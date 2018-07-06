@@ -19,7 +19,7 @@ type Step = {
   static member CreatePause(delay: TimeSpan) =    
     { Name = "pause"; Execute = (fun () -> Task.Delay(delay)) }
 
-type Flow = {
+type TestFlow = {
     Name: string
     Steps: Step[]
     ConcurrentCopies: int
@@ -27,45 +27,45 @@ type Flow = {
 
 type Scenario = {
     Name: string
-    InitFlow: Step option
-    Flows: Flow[]
+    InitStep: Step option
+    Flows: TestFlow[]
     Interval: TimeSpan
 }
 
 type ScenarioBuilder(scenarioName: string) =
     
-    let flows = Dictionary<string, Flow>()
-    let mutable initFlow = None    
+    let flows = Dictionary<string, TestFlow>()
+    let mutable initStep = None    
 
     let validateFlow (flow) =
         let uniqCount = flow.Steps |> Array.map(fun c -> c.Name) |> Array.distinct |> Array.length
         
         if flow.Steps.Length <> uniqCount then
-            failwith "all commands in job should have unique names"
+            failwith "all steps in test flow should have unique names"
 
     member x.Init(initFunc: Func<Task>) =
         let flow = { Name = "init"; Execute = initFunc.Invoke }
-        initFlow <- Some(flow)
+        initStep <- Some(flow)
         x
 
-    member x.AddFlow(name: string, commands: Step[],
-                     [<Optional; DefaultParameterValue(0)>] concurrentCopies: int) =
+    member x.AddTestFlow(name: string, steps: Step[],
+                         [<Optional; DefaultParameterValue(0)>] concurrentCopies: int) =
 
-        let flow = { Name = name; Steps = commands; ConcurrentCopies = concurrentCopies }
-        x.AddFlow(flow)
+        let flow = { Name = name; Steps = steps; ConcurrentCopies = concurrentCopies }
+        x.AddTestFlow(flow)
 
-    member x.AddFlow(job: Flow) =
+    member x.AddTestFlow(job: TestFlow) =
         validateFlow(job)        
         flows.[job.Name] <- job
         x
 
     member x.Build(interval: TimeSpan) =
-        let j = flows
-                |> Seq.map (|KeyValue|)
-                |> Seq.map (fun (name,job) -> job)
-                |> Seq.toArray
+        let testFlows = flows
+                        |> Seq.map (|KeyValue|)
+                        |> Seq.map (fun (name,job) -> job)
+                        |> Seq.toArray
 
         { Name = scenarioName
-          InitFlow = initFlow
-          Flows = j
+          InitStep = initStep
+          Flows = testFlows
           Interval = interval }

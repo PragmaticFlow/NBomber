@@ -21,10 +21,10 @@ let Run (scenario: Scenario) =
         
     Infra.initScenario(scenario)
 
-    Log.Information("warmUp")
+    Log.Information("warming up")
     Infra.warmUp(scenario)
         
-    Log.Information("startContainers")
+    Log.Information("starting test flows")
     let containers = Infra.startContainers(scenario)
 
     Log.Information("wait {time} until the execution ends", scenario.Interval.ToString())
@@ -32,12 +32,12 @@ let Run (scenario: Scenario) =
     // wait until the execution ends
     Task.Delay(scenario.Interval).Wait()
     
-    Log.Information("stopContainers")
+    Log.Information("stoping test flows")
     Infra.stopContainers(containers)
     
     let results = Infra.getResults(containers)
 
-    Log.Information("buildReport")
+    Log.Information("building report")
     Reporting.buildReport(scenario, results)
     |> Reporting.saveReport
 
@@ -70,7 +70,7 @@ module private Infra =
         member x.GetResults() = results
             
                 
-    type FlowContainer(flow: Flow) =
+    type FlowsContainer(flow: TestFlow) =
 
         let flowRunners = [1 .. flow.ConcurrentCopies] |> List.map(fun _ -> FlowRunner(flow.Steps))
 
@@ -89,16 +89,16 @@ module private Infra =
 
 
     let initScenario (scenario: Scenario) =         
-        if scenario.InitFlow.IsSome then            
+        if scenario.InitStep.IsSome then            
             Log.Debug("init has started", scenario.Name)
-            scenario.InitFlow.Value.Execute().Wait()
+            scenario.InitStep.Value.Execute().Wait()
             Log.Debug("init has finished", scenario.Name)        
 
     let warmUp (scenario: Scenario) =
         scenario.Flows         
         |> Array.iter(warmUpFlow)
 
-    let warmUpFlow (flow: Flow) = 
+    let warmUpFlow (flow: TestFlow) = 
         let timer = Stopwatch()
         let steps = flow.Steps |> Array.filter(fun x -> x.Name <> "pause")
         for c in steps do
@@ -113,14 +113,14 @@ module private Infra =
     }
 
     let startContainers (scenario: Scenario) =
-        let containers = scenario.Flows |> Array.map(FlowContainer)    
+        let containers = scenario.Flows |> Array.map(FlowsContainer)    
         containers |> Array.iter(fun c -> c.Run()) 
         containers
 
-    let stopContainers (containers: FlowContainer[]) =
+    let stopContainers (containers: FlowsContainer[]) =
         containers |> Array.iter(fun c -> c.Stop())
 
-    let getResults (containers: FlowContainer[]) =
+    let getResults (containers: FlowsContainer[]) =
         containers |> Array.map(fun c -> c.GetResults())
 
     let initLogger () =
