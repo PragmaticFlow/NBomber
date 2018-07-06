@@ -46,18 +46,16 @@ type ScenarioBuilder(scenarioName: string) =
     member x.Init(initFunc: Func<Task>) =
         let flow = { Name = "init"; Execute = initFunc.Invoke }
         initStep <- Some(flow)
+        x    
+
+    member x.AddTestFlow(flow: TestFlow) =
+        validateFlow(flow)        
+        flows.[flow.Name] <- flow
         x
 
-    member x.AddTestFlow(name: string, steps: Step[],
-                         [<Optional; DefaultParameterValue(0)>] concurrentCopies: int) =
-
+    member x.AddTestFlow(name: string, steps: Step[], concurrentCopies: int) =
         let flow = { Name = name; Steps = steps; ConcurrentCopies = concurrentCopies }
         x.AddTestFlow(flow)
-
-    member x.AddTestFlow(job: TestFlow) =
-        validateFlow(job)        
-        flows.[job.Name] <- job
-        x
 
     member x.Build(interval: TimeSpan) =
         let testFlows = flows

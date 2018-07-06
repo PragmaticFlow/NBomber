@@ -16,7 +16,7 @@ type FlowResult = {
 let buildReport (scenario: Scenario, results: FlowResult[]) =        
     let header = String.Format("Scenario: {0}, execution time: {1}", scenario.Name, scenario.Interval.ToString())
     let details = results |> Array.map(fun x -> printFlowResult(x, scenario.Interval)) |> String.concat ""    
-    header + Environment.NewLine + details
+    header + Environment.NewLine + Environment.NewLine + details
 
 let printStepResult (name: string, executionTime: TimeSpan, latency: Latency[]) =
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
@@ -24,7 +24,7 @@ let printStepResult (name: string, executionTime: TimeSpan, latency: Latency[]) 
         
     let rps = histogram.TotalCount / int64(executionTime.TotalSeconds)
 
-    String.Format("step: {0} {1} request count:{2}; RPS:{3}; min:{4}ms; mean:{5}ms; max:{6}ms; percentile rank 50%:{7}ms; 70%:{8}ms",
+    String.Format("step: {0} {1} requests:{2} RPS:{3} min:{4} mean:{5} max:{6} percentile 50%:{7} 70%:{8}",
                   name, Environment.NewLine, histogram.TotalCount, rps, 
                   Array.min(latency), Convert.ToInt64(histogram.GetMean()), histogram.GetMaxValue(),
                   histogram.GetValueAtPercentile(50.), histogram.GetValueAtPercentile(70.)) + Environment.NewLine

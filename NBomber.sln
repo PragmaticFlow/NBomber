@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27703.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NBomber", "src\NBomber\NBomber.fsproj", "{52208047-4228-4289-B5AE-D1FC57898DE6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{C66E0C71-BA9C-4906-AA96-E55DD302313A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBomber.Samples", "samples\NBomber.Samples\NBomber.Samples.csproj", "{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +19,16 @@ Global
 		{52208047-4228-4289-B5AE-D1FC57898DE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52208047-4228-4289-B5AE-D1FC57898DE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52208047-4228-4289-B5AE-D1FC57898DE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B20F5AE2-A160-4E2E-8155-AE24C1EB6BCA} = {C66E0C71-BA9C-4906-AA96-E55DD302313A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7E9329B-84FE-436E-8A44-26D8176C5C6F}
