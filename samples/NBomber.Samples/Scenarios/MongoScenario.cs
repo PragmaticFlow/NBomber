@@ -27,11 +27,8 @@ namespace NBomber.Samples.Scenarios.Mongo
             var readQuery1 = usersCollection.Find(u => u.IsActive == true).Limit(500);
             var readQuery2 = usersCollection.Find(u => u.Age > 50).Limit(100);
 
-            var step1 = Step.Create(name: "read IsActive = true and TOP 500",
-                                    execute: () => readQuery1.ToListAsync());
-
-            var step2 = Step.Create(name: "read Age > 50 and TOP 100",
-                                    execute: () => readQuery1.ToListAsync());
+            var step1 = Step.Create("read IsActive = true and TOP 500", () => readQuery1.ToListAsync());
+            var step2 = Step.Create("read Age > 50 and TOP 100", () => readQuery1.ToListAsync());
 
             return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")
                 .Init(initDb)
