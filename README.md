@@ -1,5 +1,5 @@
 # NBomber
-Very very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
+Very very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework. Also it has C#/VB bindings.
 
 ### Supports:
 - [x] Request-response scenario
