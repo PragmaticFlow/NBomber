@@ -22,7 +22,7 @@ You need to know only 2 building blocks. The whole API is built around them.
 ```fsharp
 type Step = {
     Name: string
-    Execute: unit -> Task
+    Execute: unit -> Task // in C# it's Func<Task>
 }
 
 type TestFlow = {
