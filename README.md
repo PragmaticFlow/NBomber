@@ -47,3 +47,6 @@ let scenario = ScenarioBuilder(scenarioName = "Test MongoDb")
 
 ScenarioRunner.Run(scenario)
 ```
+
+## Contributing
+Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the up-for-grabs label.
