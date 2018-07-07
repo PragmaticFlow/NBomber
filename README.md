@@ -19,4 +19,12 @@ type TestFlow = {
     Steps: Step[]
     ConcurrentCopies: int
 }
+
+// simple example
+let scenario = new ScenarioBuilder(scenarioName: "Test MongoDb")                
+                .AddTestFlow("READ Users", steps: new[] { mongoQuery }, concurrentCopies: 10)                
+                .Build(interval: TimeSpan.FromSeconds(10));
+
+ScenarioRunner.Run(scenario)
+
 ```
