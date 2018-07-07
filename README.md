@@ -1,18 +1,13 @@
 # NBomber
 Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
-### Supported technologies
-- Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
-- Supported languages: C#, F#, Visual Basic
-- Supported OS: Windows, Linux, macOS
-
 ### How to install
 To install NBomber via NuGet, run this command in NuGet package manager console:
 ```code
 PM> Install-Package VIP-Logic.NBomber
 ```
 
-### Main features
+### Features
 - [x] Request-response scenario
 - [ ] Pub/Sub scenario
 - [ ] Distibuted scenario (run scenario from several nodes in parallel)
@@ -21,6 +16,11 @@ PM> Install-Package VIP-Logic.NBomber
 |Scenario|Examples|
 |--|--|
 | Request-response | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/samples/NBomber.Samples/Scenarios/MongoScenario.cs) |
+
+### Supported technologies
+- Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
+- Supported languages: C#, F#, Visual Basic
+- Supported OS: Windows, Linux, macOS
 
 ## Why another {x} framework for load testing?
 The main reasons are:
