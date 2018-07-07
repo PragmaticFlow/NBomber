@@ -6,16 +6,17 @@ Very simple load testing framework for Request-response and Pub/Sub scenarios. I
 - Supported languages: C#, F#, Visual Basic
 - Supported OS: Windows, Linux, macOS
 
-### Main features:
-- [x] Request-response scenario
-- [ ] Pub/Sub scenario
-- [ ] Distibuted scenario (run scenario from several nodes in parallel)
-
 ### How to install
 To install NBomber via NuGet, run this command in NuGet package manager console:
 ```code
 PM> Install-Package VIP-Logic.NBomber
 ```
+
+### Main features
+- [x] Request-response scenario
+- [ ] Pub/Sub scenario
+- [ ] Distibuted scenario (run scenario from several nodes in parallel)
+
 ### Examples
 |Scenario|Examples|
 |--|--|
