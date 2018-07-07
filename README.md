@@ -11,6 +11,8 @@ To install NBomber via NuGet, run this command in NuGet package manager console:
 ```code
 PM> Install-Package VIP-Logic.NBomber
 ```
+### Examples
+[Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/samples/NBomber.Samples/Scenarios/MongoScenario.cs)
 
 ## Why another {x} framework for load testing?
 The main reasons are:
