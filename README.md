@@ -6,6 +6,12 @@ Very very simple load testing framework for Request-response and Pub/Sub scenari
 - [ ] Pub/Sub scenario
 - [ ] Distibuted scenario (run scenario from several nodes in parallel)
 
+### How to install
+To install NBomber via NuGet, run this command in NuGet package manager console:
+```code
+PM> Install-Package VIP-Logic.NBomber
+```
+
 ## Why another {x} framework for load testing?
 The main reasons are:
  - To be technology agnostic as much as it possible (no dependency on any protocol: HTTP, WebSockets, SSE).
