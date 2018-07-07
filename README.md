@@ -1,6 +1,11 @@
 # NBomber
 Very very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
+## Supports:
+- [x] Request-response scenario
+- [ ] Pub/Sub scenario
+- [ ] Distibuted scenario (run scenario from several nodes in parallel)
+
 ## Why another {x} framework for load testing?
 The main reasons are:
  - To be technology agnostic as much as it possible (no dependency on any protocol: HTTP, WebSockets, SSE).
