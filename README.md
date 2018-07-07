@@ -30,7 +30,8 @@ type TestFlow = {
     Steps: Step[]
     ConcurrentCopies: int
 }
-
+```
+```csharp
 // simple C# example
 var scenario = new ScenarioBuilder(scenarioName: "Test MongoDb")                
                 .AddTestFlow("READ Users", steps: new[] { mongoQuery }, concurrentCopies: 10)                
