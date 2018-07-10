@@ -41,11 +41,10 @@ ScenarioRunner.Run(scenario)
 ```
 ```fsharp
 // simple F# example
-let scenario = ScenarioBuilder(scenarioName = "Test MongoDb")                
-                .AddTestFlow("READ Users", steps = [|mongoQuery|], concurrentCopies = 10)                
-                .Build(interval = TimeSpan.FromSeconds(10))
-
-ScenarioRunner.Run(scenario)
+scenario("Test MongoDb")
+|> addTestFlow({ FlowName = "READ Users"; Steps = [|mongoQuery|]; ConcurrentCopies = 10 })
+|> build(TimeSpan.FromSeconds(10))
+|> run
 ```
 
 ## Contributing
