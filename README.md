@@ -47,5 +47,23 @@ scenario("Test MongoDb")
 |> run
 ```
 
+## API Documentation
+### Request-response scenario
+The whole API is built around 2 building blocks:
+```fsharp
+// Represents single executable Step.
+type Step = {
+    StepName: string
+    Execute: unit -> Task // in C# it's Func<Task>
+}
+
+// Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
+type TestFlow = {
+    FlowName: string
+    Steps: Step[]         // these steps will be executed sequentially, one by one
+    ConcurrentCopies: int // specify how many copies of current TestFlow to run in parallel
+}
+```
+
 ## Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
