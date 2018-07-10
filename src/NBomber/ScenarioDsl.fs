@@ -44,8 +44,8 @@ type ScenarioBuilder(scenarioName: string) =
             failwith "all steps in test flow should have unique names"
 
     member x.Init(initFunc: Func<Task>) =
-        let flow = { StepName = "init"; Execute = initFunc.Invoke }
-        initStep <- Some(flow)
+        let step = { StepName = "init"; Execute = initFunc.Invoke }
+        initStep <- Some(step)
         x    
 
     member x.AddTestFlow(flow: TestFlow) =
@@ -67,3 +67,22 @@ type ScenarioBuilder(scenarioName: string) =
           InitStep = initStep
           Flows = testFlows
           Interval = interval }
+
+
+module FSharpAPI =
+
+    let scenario (scenarioName: string) =
+        { ScenarioName = scenarioName
+          InitStep = None
+          Flows = Array.empty
+          Interval = TimeSpan.FromSeconds(10.0) }
+
+    let init (initFunc: unit -> Task) (scenario: Scenario) =
+        let step = { StepName = "init"; Execute = initFunc }
+        { scenario with InitStep = Some(step) }
+
+    let addTestFlow (flow: TestFlow) (scenario: Scenario) =
+        { scenario with Flows = Array.append scenario.Flows [|flow|] }
+
+    let build (interval: TimeSpan) (scenario: Scenario) =
+        { scenario with Interval = interval }

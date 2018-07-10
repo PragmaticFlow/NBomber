@@ -14,7 +14,9 @@ open HdrHistogram
 open Infra
 open Reporting
 
-let Run (scenario: Scenario) = 
+let inline Run (scenario: Scenario) = run(scenario)
+
+let run (scenario: Scenario) = 
     Infra.initLogger()
 
     Log.Information("{Scenario} has started", scenario.ScenarioName)
@@ -45,7 +47,7 @@ let Run (scenario: Scenario) =
     |> Reporting.saveReport
 
     Log.Information("{Scenario} has finished", scenario.ScenarioName) 
- 
+
 
 module private Infra =
 
