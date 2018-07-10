@@ -1,4 +1,6 @@
 # NBomber
+[![Build status](https://ci.appveyor.com/api/projects/status/ukphl1c0s9cuf4jl?svg=true)](https://ci.appveyor.com/api/projects/status/github/VIP-Logic/NBomber?branch=master&svg=true)
+
 Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
 ### How to install
