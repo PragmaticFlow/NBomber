@@ -10,23 +10,23 @@ open System.Runtime.InteropServices
 type StepName = string
 
 type Step = {
-    Name: StepName    
+    StepName: StepName    
     Execute: unit -> Task
 } with
   static member Create(name: StepName, execute: Func<Task>) =
-    { Name = name; Execute = execute.Invoke }
+    { StepName = name; Execute = execute.Invoke }
 
   static member CreatePause(delay: TimeSpan) =    
-    { Name = "pause"; Execute = (fun () -> Task.Delay(delay)) }
+    { StepName = "pause"; Execute = (fun () -> Task.Delay(delay)) }
 
 type TestFlow = {
-    Name: string
+    FlowName: string
     Steps: Step[]
     ConcurrentCopies: int
 }
 
 type Scenario = {
-    Name: string
+    ScenarioName: string
     InitStep: Step option
     Flows: TestFlow[]
     Interval: TimeSpan
@@ -38,23 +38,23 @@ type ScenarioBuilder(scenarioName: string) =
     let mutable initStep = None    
 
     let validateFlow (flow) =
-        let uniqCount = flow.Steps |> Array.map(fun c -> c.Name) |> Array.distinct |> Array.length
+        let uniqCount = flow.Steps |> Array.map(fun c -> c.StepName) |> Array.distinct |> Array.length
         
         if flow.Steps.Length <> uniqCount then
             failwith "all steps in test flow should have unique names"
 
     member x.Init(initFunc: Func<Task>) =
-        let flow = { Name = "init"; Execute = initFunc.Invoke }
+        let flow = { StepName = "init"; Execute = initFunc.Invoke }
         initStep <- Some(flow)
         x    
 
     member x.AddTestFlow(flow: TestFlow) =
         validateFlow(flow)        
-        flows.[flow.Name] <- flow
+        flows.[flow.FlowName] <- flow
         x
 
     member x.AddTestFlow(name: string, steps: Step[], concurrentCopies: int) =
-        let flow = { Name = name; Steps = steps; ConcurrentCopies = concurrentCopies }
+        let flow = { FlowName = name; Steps = steps; ConcurrentCopies = concurrentCopies }
         x.AddTestFlow(flow)
 
     member x.Build(interval: TimeSpan) =
@@ -63,7 +63,7 @@ type ScenarioBuilder(scenarioName: string) =
                         |> Seq.map (fun (name,job) -> job)
                         |> Seq.toArray
 
-        { Name = scenarioName
+        { ScenarioName = scenarioName
           InitStep = initStep
           Flows = testFlows
           Interval = interval }

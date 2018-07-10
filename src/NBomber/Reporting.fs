@@ -6,36 +6,64 @@ open System.Collections.Generic
 open HdrHistogram
 
 type Latency = int64
+type ExceptionsCount = int
+
+type StepResult = {
+    StepName: string
+    Latencies: Latency[]
+    ThrownException: exn option
+    ExceptionsCount: ExceptionsCount
+}
 
 type FlowResult = {
     FlowName: string
-    Results: Dictionary<StepName, List<Latency>>    
-    ConcurrentCopies: int    
-}
+    StepResults: StepResult[]    
+    ConcurrentCopies: int
+} with
+  static member Create(flowName, concurrentCopies: int) (stepsResults: StepResult[]) =
+    // merge all steps results into one 
+    let results = 
+        stepsResults
+        |> Array.groupBy(fun x -> x.StepName)
+        |> Array.map(fun (stName,stRes) -> 
+            { StepName = stName
+              Latencies = stRes |> Array.collect(fun x -> x.Latencies)
+              ThrownException = stRes |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
+              ExceptionsCount = stRes |> Array.map(fun x -> x.ExceptionsCount) |> Array.sum })
+    
+    { FlowName = flowName; StepResults = results; ConcurrentCopies = concurrentCopies }
+
 
 let buildReport (scenario: Scenario, results: FlowResult[]) =        
-    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.Name, scenario.Interval.ToString())
+    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Interval.ToString())
     let details = results |> Array.map(fun x -> printFlowResult(x, scenario.Interval)) |> String.concat ""    
     header + Environment.NewLine + Environment.NewLine + details
 
-let printStepResult (name: string, executionTime: TimeSpan, latency: Latency[]) =
+let printStepResult (result: StepResult, scenarioTime: TimeSpan) =
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
-    latency |> Array.iter(fun x -> histogram.RecordValue(x))
+    result.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
         
-    let rps = histogram.TotalCount / int64(executionTime.TotalSeconds)
+    let rps = histogram.TotalCount / int64(scenarioTime.TotalSeconds)
 
-    String.Format("step: {0} {1} requests:{2} RPS:{3} min:{4} mean:{5} max:{6} percentile 50%:{7} 70%:{8}",
-                  name, Environment.NewLine, histogram.TotalCount, rps, 
-                  Array.min(latency), Convert.ToInt64(histogram.GetMean()), histogram.GetMaxValue(),
-                  histogram.GetValueAtPercentile(50.), histogram.GetValueAtPercentile(70.)) + Environment.NewLine
+    let minLatency  = if result.Latencies.Length > 0 then Array.min(result.Latencies) else int64(0)
+    let meanLatency = if result.Latencies.Length > 0 then Convert.ToInt64(histogram.GetMean()) else int64(0) 
+    let maxLatency  = if result.Latencies.Length > 0 then histogram.GetMaxValue() else int64(0)
 
-let printFlowResult (flowRes: FlowResult, executionTime: TimeSpan) =          
-    let commands = flowRes.Results
-                   |> Seq.map(fun kpair -> printStepResult(kpair.Key, executionTime, kpair.Value.ToArray()))                       
+    let percent50 = if result.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
+    let percent75 = if result.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
+
+    String.Format("step: {0} {1} requests_count:{2} RPS:{3} exceptions_count:{4}   min:{5} mean:{6} max:{7}   percentile_rank: 50%:{8} 75%:{9}",
+                  result.StepName, Environment.NewLine, histogram.TotalCount, rps,
+                  minLatency, meanLatency, maxLatency, percent50, percent75, result.ExceptionsCount)
+                  + Environment.NewLine
+
+let printFlowResult (flowRes: FlowResult, executionTime: TimeSpan) =
+    let stepsStr = flowRes.StepResults
+                   |> Seq.map(fun stRes -> printStepResult(stRes, executionTime))
                    |> String.concat ""
 
     String.Format("flow name: {0}; concurrent copies: {1} {2} {3}",
-                  flowRes.FlowName, flowRes.ConcurrentCopies, Environment.NewLine, commands) + Environment.NewLine
+                  flowRes.FlowName, flowRes.ConcurrentCopies, Environment.NewLine, stepsStr) + Environment.NewLine
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore

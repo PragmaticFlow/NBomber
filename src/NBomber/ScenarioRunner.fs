@@ -17,7 +17,7 @@ open Reporting
 let Run (scenario: Scenario) = 
     Infra.initLogger()
 
-    Log.Information("{Scenario} has started", scenario.Name)
+    Log.Information("{Scenario} has started", scenario.ScenarioName)
         
     Infra.initScenario(scenario)
 
@@ -30,10 +30,13 @@ let Run (scenario: Scenario) =
     Log.Information("wait {time} until the execution ends", scenario.Interval.ToString())
 
     // wait until the execution ends
-    Task.Delay(scenario.Interval).Wait()
+    Task.Delay(scenario.Interval).Wait()    
     
     Log.Information("stoping test flows")
     Infra.stopContainers(containers)
+
+    // wait until the containers stop
+    Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
     
     let results = Infra.getResults(containers)
 
@@ -41,58 +44,70 @@ let Run (scenario: Scenario) =
     Reporting.buildReport(scenario, results)
     |> Reporting.saveReport
 
-    Log.Information("{Scenario} has finished", scenario.Name) 
+    Log.Information("{Scenario} has finished", scenario.ScenarioName) 
  
 
-module private Infra =       
+module private Infra =
 
     type FlowRunner(steps: Step[]) =
 
         let mutable stop = false        
         let mutable currentTask = None        
-        let results = Dictionary<StepName, List<Latency>>()
+        let latencies = Dictionary<StepName, List<Latency>>()
+        let exceptions = Dictionary<StepName, (Option<exn> * ExceptionsCount)>()
 
-        do steps |> Array.iter(fun c -> if c.Name <> "pause" then results.[c.Name] <- List<Latency>())
+        let init () =
+            let withoutPause = steps |> Array.filter(fun st -> st.StepName <> "pause")
+            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<Latency>())           
+            withoutPause |> Array.iter(fun st -> exceptions.[st.StepName] <- (None, 0))        
+
+        do init()
 
         let runSteps (steps) = task {
-            do! Task.Delay(100)
+            do! Task.Delay(10)
             let timer = Stopwatch()            
             while not stop do 
                 for st in steps do
-                    let! result = execStep(st, timer)                    
-                    if st.Name <> "pause" then results.[st.Name].Add(result)
+                    try
+                        let! result = execStep(st, timer)                    
+                        if st.StepName <> "pause" then latencies.[st.StepName].Add(result)
+                        
+                    with ex -> let (_, exCount) = exceptions.[st.StepName]
+                               let newCount = exCount + 1
+                               exceptions.[st.StepName] <- (Some(ex), newCount)                               
         }
 
         member x.Run() = currentTask <- steps |> runSteps |> Some                         
         
         member x.Stop() = stop <- true
 
-        member x.GetResults() = results
+        member x.GetResults() = 
+            latencies 
+            |> Seq.map(fun x -> { StepName = x.Key 
+                                  Latencies = x.Value.ToArray()
+                                  ThrownException = fst(exceptions.[x.Key])
+                                  ExceptionsCount = snd(exceptions.[x.Key]) })
+            |> Seq.toArray
             
                 
     type FlowsContainer(flow: TestFlow) =
 
-        let flowRunners = [1 .. flow.ConcurrentCopies] |> List.map(fun _ -> FlowRunner(flow.Steps))
+        let flowRunners = [|1 .. flow.ConcurrentCopies|] |> Array.map(fun _ -> FlowRunner(flow.Steps))
 
-        member x.Run() = flowRunners |> List.iter(fun j -> j.Run())
-        member x.Stop() = flowRunners |> List.iter(fun j -> j.Stop())
+        member x.Run() = flowRunners |> Array.iter(fun j -> j.Run())
+        member x.Stop() = flowRunners |> Array.iter(fun j -> j.Stop())
         
-        member x.GetResults() =             
-            let allResults = Dictionary<StepName, List<Latency>>()            
-            flow.Steps |> Array.iter(fun c -> if c.Name <> "pause" then allResults.[c.Name] <- List<Latency>())
-            // merge all results into one            
-            for jr in flowRunners do
-                jr.GetResults()
-                |> Seq.iter(fun kpair -> allResults.[kpair.Key].AddRange(kpair.Value))
-
-            { FlowName = flow.Name; Results = allResults; ConcurrentCopies = flow.ConcurrentCopies }
+        member x.GetResult() =
+            flowRunners
+            |> Array.collect(fun runner -> runner.GetResults())
+            |> FlowResult.Create(flow.FlowName, flow.ConcurrentCopies)            
 
 
     let initScenario (scenario: Scenario) =         
         if scenario.InitStep.IsSome then            
-            Log.Debug("init has started", scenario.Name)
+            Log.Debug("init has started", scenario.ScenarioName)
             scenario.InitStep.Value.Execute().Wait()
-            Log.Debug("init has finished", scenario.Name)        
+            Log.Debug("init has finished", scenario.ScenarioName)        
 
     let warmUp (scenario: Scenario) =
         scenario.Flows         
@@ -100,10 +115,12 @@ module private Infra =
 
     let warmUpFlow (flow: TestFlow) = 
         let timer = Stopwatch()
-        let steps = flow.Steps |> Array.filter(fun x -> x.Name <> "pause")
-        for c in steps do
-            let t:Task<Latency> = execStep(c, timer)
-            t.Wait()       
+        let steps = flow.Steps |> Array.filter(fun x -> x.StepName <> "pause")
+        for st in steps do
+            try
+                let t:Task<Latency> = execStep(st, timer)
+                t.Wait()
+            with ex -> Log.Error(ex.InnerException, "exception during warm up for TestFlow:{Flow} Step:{Step}", flow.FlowName, st.StepName)                
     
     let execStep (step: Step, timer: Stopwatch) = task {
         timer.Restart()
@@ -121,7 +138,7 @@ module private Infra =
         containers |> Array.iter(fun c -> c.Stop())
 
     let getResults (containers: FlowsContainer[]) =
-        containers |> Array.map(fun c -> c.GetResults())
+        containers |> Array.map(fun c -> c.GetResult())
 
     let initLogger () =
         Log.Logger <- LoggerConfiguration()
