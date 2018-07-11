@@ -49,7 +49,7 @@ scenario("Test MongoDb")
 
 ## API Documentation
 ### Request-response scenario
-The whole API is built around 2 building blocks:
+The whole API is built around 3 building blocks:
 ```fsharp
 // Represents single executable Step.
 type Step = {
@@ -62,6 +62,14 @@ type TestFlow = {
     FlowName: string
     Steps: Step[]         // these steps will be executed sequentially, one by one
     ConcurrentCopies: int // specify how many copies of current TestFlow to run in parallel
+}
+
+// Represents Scenario
+type Scenario = {
+    ScenarioName: string
+    InitStep: Step option // init step will be executed at start of every scenario
+    Flows: TestFlow[]     // each TestFlow will be executed on dedicated System.Threading.Task
+    Interval: TimeSpan    // execution time interval of scenario 
 }
 ```
 
