@@ -14,15 +14,18 @@ PM> Install-Package VIP-Logic.NBomber
 - [ ] Pub/Sub scenario
 - [ ] Distibuted scenario (run scenario from several nodes in parallel)
 
+### Supported technologies
+- Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
+- Supported languages: C#, F#, Visual Basic
+- Supported OS: Windows, Linux, macOS
+
 ### Examples
 |Scenario|Examples|
 |--|--|
 | Request-response | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/samples/NBomber.Samples/Scenarios/MongoScenario.cs) |
 
-### Supported technologies
-- Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
-- Supported languages: C#, F#, Visual Basic
-- Supported OS: Windows, Linux, macOS
+### Contributing
+Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
 
 ## Why another {x} framework for load testing?
 The main reasons are:
@@ -72,6 +75,3 @@ type Scenario = {
     Interval: TimeSpan    // execution time interval of scenario 
 }
 ```
-
-## Contributing
-Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
