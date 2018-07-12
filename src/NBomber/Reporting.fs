@@ -6,15 +6,34 @@ open System.Collections.Generic
 open HdrHistogram
 
 type Latency = int64
-type ExceptionsCount = int
+type ExceptionCount = int
 
 type StepResult = {
     StepName: string
     Latencies: Latency[]
     ThrownException: exn option
-    ExceptionsCount: ExceptionsCount
-}
-
+    OkCount: int
+    ErrorCount: int
+    ExceptionCount: ExceptionCount
+} with
+  static member Create(stepName, responseResults: List<OkOrFail*Latency>, 
+                                 exceptions: (Option<exn>*ExceptionCount)) =     
+    
+    let results = responseResults.ToArray()
+    
+    { StepName = stepName 
+      Latencies = results |> Array.map(snd)
+      ThrownException = fst(exceptions)                                  
+      OkCount = results 
+                |> Array.map(fst)
+                |> Array.filter(fun okOrFail -> okOrFail = true)
+                |> Array.length                                  
+      ErrorCount = results 
+                   |> Array.map(fst)
+                   |> Array.filter(fun okOrFail -> okOrFail = false)
+                   |> Array.length
+      ExceptionCount = snd(exceptions) }
+    
 type FlowResult = {
     FlowName: string
     StepResults: StepResult[]    
@@ -29,7 +48,9 @@ type FlowResult = {
             { StepName = stName
               Latencies = stRes |> Array.collect(fun x -> x.Latencies)
               ThrownException = stRes |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
-              ExceptionsCount = stRes |> Array.map(fun x -> x.ExceptionsCount) |> Array.sum })
+              OkCount = stRes |> Array.map(fun x -> x.OkCount) |> Array.sum
+              ErrorCount = stRes |> Array.map(fun x -> x.ErrorCount) |> Array.sum
+              ExceptionCount = stRes |> Array.map(fun x -> x.ExceptionCount) |> Array.sum })
     
     { FlowName = flowName; StepResults = results; ConcurrentCopies = concurrentCopies }
 
@@ -53,8 +74,8 @@ let printStepResult (result: StepResult, scenarioTime: TimeSpan) =
     let percent75 = if result.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
 
     String.Format("step: {0} {1} requests_count:{2} RPS:{3} exceptions_count:{4}   min:{5} mean:{6} max:{7}   percentile_rank: 50%:{8} 75%:{9}",
-                  result.StepName, Environment.NewLine, histogram.TotalCount, rps,
-                  minLatency, meanLatency, maxLatency, percent50, percent75, result.ExceptionsCount)
+                  result.StepName, Environment.NewLine, histogram.TotalCount, rps, result.ExceptionCount,
+                  minLatency, meanLatency, maxLatency, percent50, percent75)
                   + Environment.NewLine
 
 let printFlowResult (flowRes: FlowResult, executionTime: TimeSpan) =

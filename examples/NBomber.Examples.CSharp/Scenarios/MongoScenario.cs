@@ -5,7 +5,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
-namespace NBomber.Samples.Scenarios.Mongo
+namespace NBomber.Examples.CSharp.Scenarios.Mongo
 {
     class MongoScenario
     {
@@ -18,17 +18,27 @@ namespace NBomber.Samples.Scenarios.Mongo
                                      .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
                                      .ToList();
 
-            Func<Task> initDb = () =>
+            Func<Task<bool>> initDb = async () =>
             {
                 db.DropCollection("Users");
-                return usersCollection.InsertManyAsync(testData);
+                await usersCollection.InsertManyAsync(testData);
+                return true;
             };
 
             var readQuery1 = usersCollection.Find(u => u.IsActive == true).Limit(500);
             var readQuery2 = usersCollection.Find(u => u.Age > 50).Limit(100);
 
-            var step1 = Step.Create("read IsActive = true and TOP 500", () => readQuery1.ToListAsync());
-            var step2 = Step.Create("read Age > 50 and TOP 100", () => readQuery1.ToListAsync());
+            var step1 = Step.Create("read IsActive = true and TOP 500", async () =>
+            {
+                await readQuery1.ToListAsync();
+                return true;
+            });
+
+            var step2 = Step.Create("read Age > 50 and TOP 100", async () =>
+            {
+                await readQuery1.ToListAsync();
+                return true;
+            });
 
             return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")
                 .Init(initDb)

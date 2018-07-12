@@ -6,8 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
-  </ItemGroup>
+    <Compile Include="Scenarios\HttpScenario.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>  
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />

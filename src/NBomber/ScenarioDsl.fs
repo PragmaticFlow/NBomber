@@ -7,17 +7,22 @@ open System.Threading
 open System.Threading.Tasks
 open System.Runtime.InteropServices
 
+open FSharp.Control.Tasks.V2.ContextInsensitive
+
 type StepName = string
+type OkOrFail = bool
 
 type Step = {
     StepName: StepName    
-    Execute: unit -> Task
+    Execute: unit -> Task<OkOrFail>
 } with
-  static member Create(name: StepName, execute: Func<Task>) =
+  static member Create(name: StepName, execute: Func<Task<bool>>) =
     { StepName = name; Execute = execute.Invoke }
 
   static member CreatePause(delay: TimeSpan) =    
-    { StepName = "pause"; Execute = (fun () -> Task.Delay(delay)) }
+    { StepName = "pause"
+      Execute = (fun () -> task { do! Task.Delay(delay) 
+                                  return true }) }
 
 type TestFlow = {
     FlowName: string
@@ -43,7 +48,7 @@ type ScenarioBuilder(scenarioName: string) =
         if flow.Steps.Length <> uniqCount then
             failwith "all steps in test flow should have unique names"
 
-    member x.Init(initFunc: Func<Task>) =
+    member x.Init(initFunc: Func<Task<bool>>) =
         let step = { StepName = "init"; Execute = initFunc.Invoke }
         initStep <- Some(step)
         x    
@@ -77,7 +82,7 @@ module FSharpAPI =
           Flows = Array.empty
           Interval = TimeSpan.FromSeconds(10.0) }
 
-    let init (initFunc: unit -> Task) (scenario: Scenario) =
+    let init (initFunc: unit -> Task<bool>) (scenario: Scenario) =
         let step = { StepName = "init"; Execute = initFunc }
         { scenario with InitStep = Some(step) }
 

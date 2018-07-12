@@ -1,7 +1,7 @@
-﻿using NBomber.Samples.Scenarios.Mongo;
+﻿using NBomber.Examples.CSharp.Scenarios.Mongo;
 using System;
 
-namespace NBomber.Samples
+namespace NBomber.Examples.CSharp
 {
     class Program
     {
