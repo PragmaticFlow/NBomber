@@ -24,6 +24,6 @@ let private getGithubStep =
                                         else StepResult.Fail })
 
 let buildScenario () =
-    scenario("test HTTP (https://github.com) with 100 concurrent users")
+    scenario("Test HTTP (https://github.com) with 100 concurrent users")
     |> addTestFlow({ FlowName = "GET flow"; Steps = [|getGithubStep|]; ConcurrentCopies = 100 })
     |> build(TimeSpan.FromSeconds(10.0))

@@ -1,5 +1,6 @@
-﻿using NBomber.Examples.CSharp.Scenarios.Mongo;
-using System;
+﻿using System;
+using NBomber.Examples.CSharp.Scenarios.Mongo;
+using NBomber.Examples.CSharp.Scenarios.Http;
 
 namespace NBomber.Examples.CSharp
 {
@@ -7,10 +8,10 @@ namespace NBomber.Examples.CSharp
     {
         static void Main(string[] args)
         {
-            var scenario = MongoScenario.Build();
-            ScenarioRunner.Run(scenario);
+            //var scenario = MongoScenario.BuildScenario();
+            var scenario = HttpScenario.BuildScenario();
 
-            Console.ReadLine();
+            ScenarioRunner.Run(scenario);            
         }
     }
 }

@@ -9,7 +9,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
 {
     class MongoScenario
     {
-        public static Scenario Build()
+        public static Scenario BuildScenario()
         {
             var db = new MongoClient().GetDatabase("Test");
             var usersCollection = db.GetCollection<User>("Users");
@@ -36,7 +36,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
 
             var step2 = Step.Create("read Age > 50 and TOP 100", async () =>
             {
-                await readQuery1.ToListAsync();
+                await readQuery2.ToListAsync();
                 return StepResult.Ok;
             });
 
@@ -44,7 +44,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
                 .Init(initDb)
                 .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
                 .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
-                .Build(interval: TimeSpan.FromSeconds(10));
+                .Build(duration: TimeSpan.FromSeconds(10));
         }
     }
 

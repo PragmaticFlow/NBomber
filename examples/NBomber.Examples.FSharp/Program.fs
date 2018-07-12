@@ -1,5 +1,5 @@
-﻿open NBomber.Examples.FSharp.Scenarios
-open NBomber
+﻿open NBomber
+open NBomber.Examples.FSharp.Scenarios
 
 [<EntryPoint>]
 let main argv =
