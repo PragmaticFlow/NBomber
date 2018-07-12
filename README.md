@@ -20,9 +20,11 @@ PM> Install-Package VIP-Logic.NBomber
 - Supported OS: Windows, Linux, macOS
 
 ### Examples
-|Scenario|Examples|
-|--|--|
-| Request-response | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/samples/NBomber.Samples/Scenarios/MongoScenario.cs) |
+|Scenario|Language|Example|
+|--|--|--|
+| Request-response | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.CSharp/Scenarios/MongoScenario.cs) |
+| Request-response | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.CSharp/Scenarios/HttpScenario.cs) |
+| Request-response | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.FSharp/Scenarios/HttpScenario.fs) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
