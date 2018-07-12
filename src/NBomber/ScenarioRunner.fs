@@ -55,12 +55,12 @@ module private Infra =
 
         let mutable stop = false        
         let mutable currentTask = None        
-        let latencies = Dictionary<StepName, List<OkOrFail * Latency>>()
-        let exceptions = Dictionary<StepName, (Option<exn> * ExceptionCount)>()
+        let latencies = Dictionary<StepName, List<StepResult*Latency>>()
+        let exceptions = Dictionary<StepName, (Option<exn>*ExceptionCount)>()
 
         let init () =
             let withoutPause = steps |> Array.filter(fun st -> st.StepName <> "pause")
-            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<OkOrFail*Latency>())
+            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<StepResult*Latency>())
             withoutPause |> Array.iter(fun st -> exceptions.[st.StepName] <- (None, 0))        
 
         do init()
@@ -71,9 +71,9 @@ module private Infra =
             while not stop do 
                 for st in steps do
                     try
-                        let! (okOrFail,latency) = execStep(st, timer)
+                        let! (result,latency) = execStep(st, timer)
                         if st.StepName <> "pause" then 
-                            latencies.[st.StepName].Add(okOrFail,latency)
+                            latencies.[st.StepName].Add(result,latency)
                         
                     with ex -> let (_, exCount) = exceptions.[st.StepName]
                                let newCount = exCount + 1
@@ -86,7 +86,7 @@ module private Infra =
 
         member x.GetResults() = 
             latencies 
-            |> Seq.map(fun x -> StepResult.Create(x.Key, x.Value, exceptions.[x.Key]))
+            |> Seq.map(fun x -> StepStats.Create(x.Key, x.Value, exceptions.[x.Key]))
             |> Seq.toArray
             
                 
@@ -100,7 +100,7 @@ module private Infra =
         member x.GetResult() =
             flowRunners
             |> Array.collect(fun runner -> runner.GetResults())
-            |> FlowResult.Create(flow.FlowName, flow.ConcurrentCopies)            
+            |> FlowStats.Create(flow.FlowName, flow.ConcurrentCopies)            
 
 
     let initScenario (scenario: Scenario) =         
@@ -118,7 +118,7 @@ module private Infra =
         let steps = flow.Steps |> Array.filter(fun x -> x.StepName <> "pause")
         for st in steps do
             try
-                let t:Task<OkOrFail*Latency> = execStep(st, timer)
+                let t:Task<StepResult*Latency> = execStep(st, timer)
                 t.Wait()
             with ex -> Log.Error(ex.InnerException, "exception during warm up for TestFlow:{Flow} Step:{Step}", flow.FlowName, st.StepName)                
     

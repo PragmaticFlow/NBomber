@@ -8,7 +8,7 @@ open HdrHistogram
 type Latency = int64
 type ExceptionCount = int
 
-type StepResult = {
+type StepStats = {
     StepName: string
     Latencies: Latency[]
     ThrownException: exn option
@@ -16,7 +16,7 @@ type StepResult = {
     ErrorCount: int
     ExceptionCount: ExceptionCount
 } with
-  static member Create(stepName, responseResults: List<OkOrFail*Latency>, 
+  static member Create(stepName, responseResults: List<StepResult*Latency>, 
                                  exceptions: (Option<exn>*ExceptionCount)) =     
     
     let results = responseResults.ToArray()
@@ -26,20 +26,20 @@ type StepResult = {
       ThrownException = fst(exceptions)                                  
       OkCount = results 
                 |> Array.map(fst)
-                |> Array.filter(fun okOrFail -> okOrFail = true)
+                |> Array.filter(fun stRes -> stRes = StepResult.Ok)
                 |> Array.length                                  
       ErrorCount = results 
                    |> Array.map(fst)
-                   |> Array.filter(fun okOrFail -> okOrFail = false)
+                   |> Array.filter(fun stRes -> stRes = StepResult.Fail)
                    |> Array.length
       ExceptionCount = snd(exceptions) }
     
-type FlowResult = {
+type FlowStats = {
     FlowName: string
-    StepResults: StepResult[]    
+    StepStats: StepStats[]    
     ConcurrentCopies: int
 } with
-  static member Create(flowName, concurrentCopies: int) (stepsResults: StepResult[]) =
+  static member Create(flowName, concurrentCopies: int) (stepsResults: StepStats[]) =
     // merge all steps results into one 
     let results = 
         stepsResults
@@ -52,15 +52,15 @@ type FlowResult = {
               ErrorCount = stRes |> Array.map(fun x -> x.ErrorCount) |> Array.sum
               ExceptionCount = stRes |> Array.map(fun x -> x.ExceptionCount) |> Array.sum })
     
-    { FlowName = flowName; StepResults = results; ConcurrentCopies = concurrentCopies }
+    { FlowName = flowName; StepStats = results; ConcurrentCopies = concurrentCopies }
 
 
-let buildReport (scenario: Scenario, results: FlowResult[]) =        
+let buildReport (scenario: Scenario, results: FlowStats[]) =        
     let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Interval.ToString())
     let details = results |> Array.map(fun x -> printFlowResult(x, scenario.Interval)) |> String.concat ""    
     header + Environment.NewLine + Environment.NewLine + details
 
-let printStepResult (result: StepResult, scenarioTime: TimeSpan) =
+let printStepResult (result: StepStats, scenarioTime: TimeSpan) =
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
     result.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
         
@@ -78,8 +78,8 @@ let printStepResult (result: StepResult, scenarioTime: TimeSpan) =
                   minLatency, meanLatency, maxLatency, percent50, percent75)
                   + Environment.NewLine
 
-let printFlowResult (flowRes: FlowResult, executionTime: TimeSpan) =
-    let stepsStr = flowRes.StepResults
+let printFlowResult (flowRes: FlowStats, executionTime: TimeSpan) =
+    let stepsStr = flowRes.StepStats
                    |> Seq.map(fun stRes -> printStepResult(stRes, executionTime))
                    |> String.concat ""
 
