@@ -38,7 +38,7 @@ NBomber is not really a framework but rather a foundation of building blocks whi
 // simple C# example
 var scenario = new ScenarioBuilder(scenarioName: "Test MongoDb")                
                 .AddTestFlow("READ Users", steps: new[] { mongoQuery }, concurrentCopies: 10)                
-                .Build(interval: TimeSpan.FromSeconds(10));
+                .Build(duration: TimeSpan.FromSeconds(10));
 
 ScenarioRunner.Run(scenario)
 ```
@@ -54,10 +54,14 @@ scenario("Test MongoDb")
 ### Request-response scenario
 The whole API is built around 3 building blocks:
 ```fsharp
+type StepResult =
+    | Ok = 0
+    | Fail = 1
+    
 // Represents single executable Step.
 type Step = {
     StepName: string
-    Execute: unit -> Task // in C# it's Func<Task>
+    Execute: unit -> Task<StepResult> // in C# it's Func<Task>
 }
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
@@ -72,6 +76,6 @@ type Scenario = {
     ScenarioName: string
     InitStep: Step option // init step will be executed at start of every scenario
     Flows: TestFlow[]     // each TestFlow will be executed on dedicated System.Threading.Task
-    Interval: TimeSpan    // execution time interval of scenario 
+    Duration: TimeSpan    // execution time of scenario 
 }
 ```
