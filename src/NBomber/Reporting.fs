@@ -13,7 +13,7 @@ type StepStats = {
     Latencies: Latency[]
     ThrownException: exn option
     OkCount: int
-    ErrorCount: int
+    FailCount: int
     ExceptionCount: ExceptionCount
 } with
   static member Create(stepName, responseResults: List<StepResult*Latency>, 
@@ -28,7 +28,7 @@ type StepStats = {
                 |> Array.map(fst)
                 |> Array.filter(fun stRes -> stRes = StepResult.Ok)
                 |> Array.length                                  
-      ErrorCount = results 
+      FailCount = results 
                    |> Array.map(fst)
                    |> Array.filter(fun stRes -> stRes = StepResult.Fail)
                    |> Array.length
@@ -49,7 +49,7 @@ type FlowStats = {
               Latencies = stRes |> Array.collect(fun x -> x.Latencies)
               ThrownException = stRes |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
               OkCount = stRes |> Array.map(fun x -> x.OkCount) |> Array.sum
-              ErrorCount = stRes |> Array.map(fun x -> x.ErrorCount) |> Array.sum
+              FailCount = stRes |> Array.map(fun x -> x.FailCount) |> Array.sum
               ExceptionCount = stRes |> Array.map(fun x -> x.ExceptionCount) |> Array.sum })
     
     { FlowName = flowName; StepStats = results; ConcurrentCopies = concurrentCopies }
@@ -73,8 +73,9 @@ let printStepStats (stats: StepStats, scenarioDuration: TimeSpan) =
     let percent50 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
     let percent75 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
 
-    String.Format("step: {0} {1} requests_count:{2} RPS:{3} exceptions_count:{4}   min:{5} mean:{6} max:{7}   percentile_rank: 50%:{8} 75%:{9}",
-                  stats.StepName, Environment.NewLine, histogram.TotalCount, rps, stats.ExceptionCount,
+    String.Format("step: {0} {1} request_count:{2} ok_count:{3} fail_count:{4} exception_count:{5} RPS:{6}   min:{7} mean:{8} max:{9}   percentile_rank: 50%:{10} 75%:{11}",
+                  stats.StepName, Environment.NewLine, histogram.TotalCount, stats.OkCount, 
+                  stats.FailCount, stats.ExceptionCount, rps, 
                   minLatency, meanLatency, maxLatency, percent50, percent75)
                   + Environment.NewLine
 
