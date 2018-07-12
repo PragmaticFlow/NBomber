@@ -39,10 +39,10 @@ type FlowStats = {
     StepStats: StepStats[]    
     ConcurrentCopies: int
 } with
-  static member Create(flowName, concurrentCopies: int) (stepsResults: StepStats[]) =
+  static member Create(flowName, concurrentCopies: int) (stepsStats: StepStats[]) =
     // merge all steps results into one 
     let results = 
-        stepsResults
+        stepsStats
         |> Array.groupBy(fun x -> x.StepName)
         |> Array.map(fun (stName,stRes) -> 
             { StepName = stName
@@ -55,36 +55,36 @@ type FlowStats = {
     { FlowName = flowName; StepStats = results; ConcurrentCopies = concurrentCopies }
 
 
-let buildReport (scenario: Scenario, results: FlowStats[]) =        
-    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Interval.ToString())
-    let details = results |> Array.map(fun x -> printFlowResult(x, scenario.Interval)) |> String.concat ""    
+let buildReport (scenario: Scenario, stats: FlowStats[]) =        
+    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
+    let details = stats |> Array.map(fun x -> printFlowStats(x, scenario.Duration)) |> String.concat ""    
     header + Environment.NewLine + Environment.NewLine + details
 
-let printStepResult (result: StepStats, scenarioTime: TimeSpan) =
+let printStepStats (stats: StepStats, scenarioDuration: TimeSpan) =
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
-    result.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
+    stats.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
         
-    let rps = histogram.TotalCount / int64(scenarioTime.TotalSeconds)
+    let rps = histogram.TotalCount / int64(scenarioDuration.TotalSeconds)
 
-    let minLatency  = if result.Latencies.Length > 0 then Array.min(result.Latencies) else int64(0)
-    let meanLatency = if result.Latencies.Length > 0 then Convert.ToInt64(histogram.GetMean()) else int64(0) 
-    let maxLatency  = if result.Latencies.Length > 0 then histogram.GetMaxValue() else int64(0)
+    let minLatency  = if stats.Latencies.Length > 0 then Array.min(stats.Latencies) else int64(0)
+    let meanLatency = if stats.Latencies.Length > 0 then Convert.ToInt64(histogram.GetMean()) else int64(0) 
+    let maxLatency  = if stats.Latencies.Length > 0 then histogram.GetMaxValue() else int64(0)
 
-    let percent50 = if result.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
-    let percent75 = if result.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
+    let percent50 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
+    let percent75 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
 
     String.Format("step: {0} {1} requests_count:{2} RPS:{3} exceptions_count:{4}   min:{5} mean:{6} max:{7}   percentile_rank: 50%:{8} 75%:{9}",
-                  result.StepName, Environment.NewLine, histogram.TotalCount, rps, result.ExceptionCount,
+                  stats.StepName, Environment.NewLine, histogram.TotalCount, rps, stats.ExceptionCount,
                   minLatency, meanLatency, maxLatency, percent50, percent75)
                   + Environment.NewLine
 
-let printFlowResult (flowRes: FlowStats, executionTime: TimeSpan) =
-    let stepsStr = flowRes.StepStats
-                   |> Seq.map(fun stRes -> printStepResult(stRes, executionTime))
+let printFlowStats (stats: FlowStats, scenarioDuration: TimeSpan) =
+    let stepsStr = stats.StepStats
+                   |> Seq.map(fun stRes -> printStepStats(stRes, scenarioDuration))
                    |> String.concat ""
 
     String.Format("flow name: {0}; concurrent copies: {1} {2} {3}",
-                  flowRes.FlowName, flowRes.ConcurrentCopies, Environment.NewLine, stepsStr) + Environment.NewLine
+                  stats.FlowName, stats.ConcurrentCopies, Environment.NewLine, stepsStr) + Environment.NewLine
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore

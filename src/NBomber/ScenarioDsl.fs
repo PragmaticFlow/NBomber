@@ -37,7 +37,7 @@ type Scenario = {
     ScenarioName: string
     InitStep: Step option
     Flows: TestFlow[]
-    Interval: TimeSpan
+    Duration: TimeSpan
 }
 
 type ScenarioBuilder(scenarioName: string) =
@@ -65,7 +65,7 @@ type ScenarioBuilder(scenarioName: string) =
         let flow = { FlowName = name; Steps = steps; ConcurrentCopies = concurrentCopies }
         x.AddTestFlow(flow)
 
-    member x.Build(interval: TimeSpan) =
+    member x.Build(duration: TimeSpan) =
         let testFlows = flows
                         |> Seq.map (|KeyValue|)
                         |> Seq.map (fun (name,job) -> job)
@@ -74,7 +74,7 @@ type ScenarioBuilder(scenarioName: string) =
         { ScenarioName = scenarioName
           InitStep = initStep
           Flows = testFlows
-          Interval = interval }
+          Duration = duration }
 
 
 module FSharpAPI =
@@ -83,7 +83,7 @@ module FSharpAPI =
         { ScenarioName = scenarioName
           InitStep = None
           Flows = Array.empty
-          Interval = TimeSpan.FromSeconds(10.0) }
+          Duration = TimeSpan.FromSeconds(10.0) }
 
     let init (initFunc: unit -> Task<StepResult>) (scenario: Scenario) =
         let step = { StepName = "init"; Execute = initFunc }
@@ -93,4 +93,4 @@ module FSharpAPI =
         { scenario with Flows = Array.append scenario.Flows [|flow|] }
 
     let build (interval: TimeSpan) (scenario: Scenario) =
-        { scenario with Interval = interval }
+        { scenario with Duration = interval }

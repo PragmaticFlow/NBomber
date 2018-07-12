@@ -29,10 +29,10 @@ let run (scenario: Scenario) =
     Log.Information("starting test flows")
     let containers = Infra.startContainers(scenario)
 
-    Log.Information("wait {time} until the execution ends", scenario.Interval.ToString())
+    Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
 
     // wait until the execution ends
-    Task.Delay(scenario.Interval).Wait()    
+    Task.Delay(scenario.Duration).Wait()    
     
     Log.Information("stoping test flows")
     Infra.stopContainers(containers)
