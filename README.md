@@ -61,7 +61,7 @@ type StepResult =
 // Represents single executable Step.
 type Step = {
     StepName: string
-    Execute: unit -> Task<StepResult> // in C# it's Func<Task>
+    Execute: unit -> Task<StepResult> // in C# it's Func<Task<StepResult>>
 }
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
