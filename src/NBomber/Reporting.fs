@@ -75,8 +75,8 @@ let printStepStats (stats: StepStats, scenarioDuration: TimeSpan, stepCount: int
     let percent50 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
     let percent75 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
 
-    let stepStats = [int64(stepCount); histogram.TotalCount; int64(stats.OkCount); int64(stats.FailCount);
-        int64(stats.ExceptionCount); rps; minLatency; meanLatency; maxLatency; percent50; percent75]
+    let stepStats = [int64(stepCount); histogram.TotalCount; int64(stats.OkCount); int64(stats.FailCount)
+                     int64(stats.ExceptionCount); rps; minLatency; meanLatency; maxLatency; percent50; percent75]
     
     stepStats |> Seq.map(fun stats -> stats.ToString()) |> Seq.toList
 
@@ -84,15 +84,15 @@ let printFlowStats (flowStats: FlowStats, scenarioDuration: TimeSpan) =
     let headers =
         ["step No";"request_count";"ok_count";"fail_count"; "exception_count"; "RPS"; "min"; "mean"; "max"; "percentile 50%"; "70%"]
 
-    let stepsNames =
+    let stepsNames =        
         flowStats.StepStats
-       |> Seq.mapi(fun index stats ->  String.Format("{0} - {1}{2}", index+1, stats.StepName, Environment.NewLine))
-       |> String.concat ""
+        |> Seq.mapi(fun index stats ->  String.Format("{0} - {1}{2}", index+1, stats.StepName, Environment.NewLine))
+        |> String.concat ""
 
     let rows =
         flowStats.StepStats
-       |> Seq.mapi(fun index stats -> printStepStats(stats, scenarioDuration, index+1))
-       |> Seq.toList
+        |> Seq.mapi(fun index stats -> printStepStats(stats, scenarioDuration, index + 1))
+        |> Seq.toList
 
     let flowStatsTable =
         prettyTable rows |> withHeaders headers |> headerStyle Types.UpperCase |> sprintTable

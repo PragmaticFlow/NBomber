@@ -2,9 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <Company>VIP-Logic</Company>
-    <Authors>AntyaDev</Authors>
+    <Authors>AntyaDev, alkondrashov</Authors>
     <Description>Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.</Description>
     <PackageLicenseUrl>https://github.com/VIP-Logic/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/VIP-Logic/NBomber</PackageProjectUrl>
@@ -15,15 +15,15 @@
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ScenarioDsl.fs"/>
-    <Compile Include="Reporting.fs"/>
-    <Compile Include="ScenarioRunner.fs"/>
+    <Compile Include="ScenarioDsl.fs" />
+    <Compile Include="Reporting.fs" />
+    <Compile Include="ScenarioRunner.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="HdrHistogram" Version="2.5.0"/>
-    <PackageReference Include="Serilog" Version="2.7.1"/>
-    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1"/>
-    <PackageReference Include="TaskBuilder.fs" Version="2.0.0"/>
-    <PackageReference Include="FsPrettyTable" Version="0.1.0"/>
+    <PackageReference Include="HdrHistogram" Version="2.5.0" />
+    <PackageReference Include="Serilog" Version="2.7.1" />
+    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.0.0" />
+    <PackageReference Include="FsPrettyTable" Version="0.1.0" />
   </ItemGroup>
 </Project>
