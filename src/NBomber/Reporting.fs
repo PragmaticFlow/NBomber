@@ -9,7 +9,7 @@ open ConsoleTables
 type Latency = int64
 type ExceptionCount = int
 
-type StepStats = {
+type StepInfo = {
     StepName: string
     Latencies: Latency[]
     ThrownException: exn option
@@ -30,17 +30,17 @@ type StepStats = {
                 |> Array.filter(fun stRes -> stRes = StepResult.Ok)
                 |> Array.length                                  
       FailCount = results 
-                   |> Array.map(fst)
-                   |> Array.filter(fun stRes -> stRes = StepResult.Fail)
-                   |> Array.length
+                  |> Array.map(fst)
+                  |> Array.filter(fun stRes -> stRes = StepResult.Fail)
+                  |> Array.length
       ExceptionCount = snd(exceptions) }
-    
-type FlowStats = {
+
+type FlowInfo = {
     FlowName: string
-    StepStats: StepStats[]    
+    Steps: StepInfo[]    
     ConcurrentCopies: int
 } with
-  static member Create(flowName, concurrentCopies: int) (stepsStats: StepStats[]) =
+  static member Create(flowName, concurrentCopies: int) (stepsStats: StepInfo[]) =
     // merge all steps results into one 
     let results = 
         stepsStats
@@ -53,49 +53,62 @@ type FlowStats = {
               FailCount = stRes |> Array.map(fun x -> x.FailCount) |> Array.sum
               ExceptionCount = stRes |> Array.map(fun x -> x.ExceptionCount) |> Array.sum })
     
-    { FlowName = flowName; StepStats = results; ConcurrentCopies = concurrentCopies }
+    { FlowName = flowName; Steps = results; ConcurrentCopies = concurrentCopies }
 
-
-let buildReport (scenario: Scenario, stats: FlowStats[]) =        
-    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
-    let details = stats |> Array.map(fun x -> printFlowStats(x, scenario.Duration)) |> String.concat ""    
-    header + Environment.NewLine + Environment.NewLine + details
-
-let printStepStats (stats: StepStats, scenarioDuration: TimeSpan, stepCount: int, table: ConsoleTable) =
+type StepStats = {
+    StepNo: int
+    Info: StepInfo
+    RPS: int64
+    Min: Latency
+    Mean: Latency
+    Max: Latency
+    Percent50: Latency
+    Percent75: Latency
+} with
+  static member Create(stepNo: int, stepInfo: StepInfo, scenarioDuration: TimeSpan) = 
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
-    stats.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
+    stepInfo.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
         
     let rps = histogram.TotalCount / int64(scenarioDuration.TotalSeconds)
 
-    let minLatency  = if stats.Latencies.Length > 0 then Array.min(stats.Latencies) else int64(0)
-    let meanLatency = if stats.Latencies.Length > 0 then Convert.ToInt64(histogram.GetMean()) else int64(0) 
-    let maxLatency  = if stats.Latencies.Length > 0 then histogram.GetMaxValue() else int64(0)
+    let min = if stepInfo.Latencies.Length > 0 then Array.min(stepInfo.Latencies) else int64(0)
+    let mean = if stepInfo.Latencies.Length > 0 then Convert.ToInt64(histogram.GetMean()) else int64(0) 
+    let max  = if stepInfo.Latencies.Length > 0 then histogram.GetMaxValue() else int64(0)
 
-    let percent50 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
-    let percent75 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
+    let percent50 = if stepInfo.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
+    let percent75 = if stepInfo.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
+    
+    { StepNo = stepNo; Info = stepInfo; RPS = rps
+      Min = min; Mean = mean; Max = max
+      Percent50 = percent50; Percent75 = percent75 }
 
-    table.AddRow(stepCount, histogram.TotalCount, stats.OkCount, stats.FailCount,
-        stats.ExceptionCount, rps, minLatency, meanLatency, maxLatency, percent50, percent75)
 
-let printFlowStats (flowStats: FlowStats, scenarioDuration: TimeSpan) =
+let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =        
+    let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
+    let details = flowInfo |> Array.map(fun x -> printFlowTable(x, scenario.Duration)) |> String.concat ""    
+    header + Environment.NewLine + Environment.NewLine + details                 
+
+let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan) =
+    
     let stepsNames =        
-        flowStats.StepStats
-        |> Seq.mapi(fun i stats ->  String.Format("{0} - {1}", i+1, stats.StepName))
+        flowStats.Steps
+        |> Array.mapi(fun index stats ->  String.Format("{0} - {1}", index + 1, stats.StepName))
         |> String.concat Environment.NewLine
     
-    let flowTable = (new ConsoleTable([|"flows"; "concurrent copies"; "steps"|]))
-                        .AddRow(flowStats.FlowName, flowStats.ConcurrentCopies, stepsNames)
-                        .ToStringAlternative()
-
-    let headers =
-        [|"step no";"request_count";"ok_count";"fail_count"; "exception_count"; "RPS"; "min"; "mean"; "max"; "percentile 50%"; "70%"|]
-        
-    let stepStatsTable = new ConsoleTable(headers)
-    flowStats.StepStats
-       |> Seq.iteri(fun i stats -> printStepStats(stats, scenarioDuration, i+1, stepStatsTable) |> ignore)
-
-    [flowTable; stepStatsTable.ToStringAlternative()]
-        |> String.concat (String.replicate 2 Environment.NewLine)
+    let flowTable = ConsoleTable("flows", "steps", "concurrent copies")
+                        .AddRow(flowStats.FlowName, stepsNames, flowStats.ConcurrentCopies)
+                        .ToStringAlternative()    
+    
+    let stepTable = ConsoleTable("step no", "request_count", "ok_count", "fail_count",
+                                 "exception_count", "RPS", "min", "mean", "max",
+                                 "percentile 50%", "70%")
+    flowStats.Steps
+    |> Array.mapi(fun i stInfo -> StepStats.Create(i + 1, stInfo, scenarioDuration))
+    |> Array.iter(fun s -> stepTable.AddRow(s.StepNo, s.Info.Latencies.Length, s.Info.OkCount,
+                                            s.Info.FailCount, s.Info.ExceptionCount,
+                                            s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
+    
+    flowTable + Environment.NewLine + stepTable.ToStringAlternative()
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore

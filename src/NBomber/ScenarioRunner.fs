@@ -86,7 +86,7 @@ module private Infra =
 
         member x.GetResults() = 
             latencies 
-            |> Seq.map(fun x -> StepStats.Create(x.Key, x.Value, exceptions.[x.Key]))
+            |> Seq.map(fun x -> StepInfo.Create(x.Key, x.Value, exceptions.[x.Key]))
             |> Seq.toArray
             
                 
@@ -100,7 +100,7 @@ module private Infra =
         member x.GetResult() =
             flowRunners
             |> Array.collect(fun runner -> runner.GetResults())
-            |> FlowStats.Create(flow.FlowName, flow.ConcurrentCopies)            
+            |> FlowInfo.Create(flow.FlowName, flow.ConcurrentCopies)            
 
 
     let initScenario (scenario: Scenario) =         
