@@ -4,8 +4,7 @@ open System
 open System.IO
 open System.Collections.Generic
 open HdrHistogram
-open PrettyTable
-open FsPrettyTable
+open ConsoleTables
 
 type Latency = int64
 type ExceptionCount = int
@@ -62,7 +61,7 @@ let buildReport (scenario: Scenario, stats: FlowStats[]) =
     let details = stats |> Array.map(fun x -> printFlowStats(x, scenario.Duration)) |> String.concat ""    
     header + Environment.NewLine + Environment.NewLine + details
 
-let printStepStats (stats: StepStats, scenarioDuration: TimeSpan, stepCount: int) =
+let printStepStats (stats: StepStats, scenarioDuration: TimeSpan, stepCount: int, table: ConsoleTable) =
     let histogram = LongHistogram(TimeStamp.Hours(1), 3);
     stats.Latencies |> Array.iter(fun x -> histogram.RecordValue(x))
         
@@ -75,31 +74,28 @@ let printStepStats (stats: StepStats, scenarioDuration: TimeSpan, stepCount: int
     let percent50 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(50.) else int64(0)
     let percent75 = if stats.Latencies.Length > 0 then histogram.GetValueAtPercentile(75.) else int64(0)
 
-    let stepStats = [int64(stepCount); histogram.TotalCount; int64(stats.OkCount); int64(stats.FailCount)
-                     int64(stats.ExceptionCount); rps; minLatency; meanLatency; maxLatency; percent50; percent75]
-    
-    stepStats |> Seq.map(fun stats -> stats.ToString()) |> Seq.toList
+    table.AddRow(stepCount, histogram.TotalCount, stats.OkCount, stats.FailCount,
+        stats.ExceptionCount, rps, minLatency, meanLatency, maxLatency, percent50, percent75)
 
 let printFlowStats (flowStats: FlowStats, scenarioDuration: TimeSpan) =
-    let headers =
-        ["step No";"request_count";"ok_count";"fail_count"; "exception_count"; "RPS"; "min"; "mean"; "max"; "percentile 50%"; "70%"]
-
     let stepsNames =        
         flowStats.StepStats
-        |> Seq.mapi(fun index stats ->  String.Format("{0} - {1}{2}", index+1, stats.StepName, Environment.NewLine))
-        |> String.concat ""
-
-    let rows =
-        flowStats.StepStats
-        |> Seq.mapi(fun index stats -> printStepStats(stats, scenarioDuration, index + 1))
-        |> Seq.toList
-
-    let flowStatsTable =
-        prettyTable rows |> withHeaders headers |> headerStyle Types.UpperCase |> sprintTable
+        |> Seq.mapi(fun i stats ->  String.Format("{0} - {1}", i+1, stats.StepName))
+        |> String.concat Environment.NewLine
     
-    String.Format("flow name: {0}; concurrent copies: {1} {2}{3}",
-                  flowStats.FlowName, flowStats.ConcurrentCopies, Environment.NewLine + Environment.NewLine,
-                  stepsNames + Environment.NewLine + flowStatsTable) + Environment.NewLine
+    let flowTable = (new ConsoleTable([|"flows"; "concurrent copies"; "steps"|]))
+                        .AddRow(flowStats.FlowName, flowStats.ConcurrentCopies, stepsNames)
+                        .ToStringAlternative()
+
+    let headers =
+        [|"step no";"request_count";"ok_count";"fail_count"; "exception_count"; "RPS"; "min"; "mean"; "max"; "percentile 50%"; "70%"|]
+        
+    let stepStatsTable = new ConsoleTable(headers)
+    flowStats.StepStats
+       |> Seq.iteri(fun i stats -> printStepStats(stats, scenarioDuration, i+1, stepStatsTable) |> ignore)
+
+    [flowTable; stepStatsTable.ToStringAlternative()]
+        |> String.concat (String.replicate 2 Environment.NewLine)
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore
