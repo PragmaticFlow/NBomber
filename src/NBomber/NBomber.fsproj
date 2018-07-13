@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -15,18 +14,16 @@
     <Copyright>VIP-Logic@2018</Copyright>
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
-
   <ItemGroup>
-    <Compile Include="ScenarioDsl.fs" />
-    <Compile Include="Reporting.fs" />
-    <Compile Include="ScenarioRunner.fs" />
+    <Compile Include="ScenarioDsl.fs"/>
+    <Compile Include="Reporting.fs"/>
+    <Compile Include="ScenarioRunner.fs"/>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="HdrHistogram" Version="2.5.0" />
-    <PackageReference Include="Serilog" Version="2.7.1" />
-    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
-    <PackageReference Include="TaskBuilder.fs" Version="2.0.0" />
+    <PackageReference Include="HdrHistogram" Version="2.5.0"/>
+    <PackageReference Include="Serilog" Version="2.7.1"/>
+    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1"/>
+    <PackageReference Include="TaskBuilder.fs" Version="2.0.0"/>
+    <PackageReference Include="FsPrettyTable" Version="0.1.0"/>
   </ItemGroup>
-
 </Project>
