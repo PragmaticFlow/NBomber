@@ -35,6 +35,10 @@ type StepInfo = {
                   |> Array.length
       ExceptionCount = snd(exceptions) }
 
+  static member ToString(stepInfo: StepInfo) =
+      String.Format("{0} (OK:{1}, Failed:{2}, Exceptions:{3})", stepInfo.Latencies.Length,
+                    stepInfo.OkCount, stepInfo.FailCount, stepInfo.ExceptionCount)
+
 type FlowInfo = {
     FlowName: string
     Steps: StepInfo[]    
@@ -85,30 +89,28 @@ type StepStats = {
 
 let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =        
     let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
-    let details = flowInfo |> Array.map(fun x -> printFlowTable(x, scenario.Duration)) |> String.concat ""    
+    let details = flowInfo |> Array.mapi(fun i x -> printFlowTable(x, scenario.Duration, i+1)) |> String.concat Environment.NewLine    
     header + Environment.NewLine + Environment.NewLine + details                 
 
-let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan) =
+let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan, flowCount: int) =
     
-    let stepsNames =        
-        flowStats.Steps
-        |> Array.mapi(fun index stats ->  String.Format("{0} - {1}", index + 1, stats.StepName))
-        |> String.concat Environment.NewLine
-    
-    let flowTable = ConsoleTable("flows", "steps", "concurrent copies")
-                        .AddRow(flowStats.FlowName, stepsNames, flowStats.ConcurrentCopies)
-                        .ToStringAlternative()    
-    
-    let stepTable = ConsoleTable("step no", "request_count", "ok_count", "fail_count",
-                                 "exception_count", "RPS", "min", "mean", "max",
-                                 "percentile 50%", "70%")
+    let consoleTableOptions = 
+        ConsoleTableOptions(Columns = [String.Format("flow {0}: {1}", flowCount, flowStats.FlowName)
+                                       "steps"; String.Format("concurrent copies: {0}", flowStats.ConcurrentCopies)],
+                            EnableCount = false)
+
+    let flowTable = ConsoleTable(consoleTableOptions)
+       
+    flowStats.Steps
+    |> Array.iteri(fun index stats -> flowTable.AddRow("", String.Format("{0} - {1}", index + 1, stats.StepName), "") |> ignore)
+
+    let stepTable = ConsoleTable("step no", "requests", "RPS", "min", "mean", "max", "50%", "70%")
     flowStats.Steps
     |> Array.mapi(fun i stInfo -> StepStats.Create(i + 1, stInfo, scenarioDuration))
-    |> Array.iter(fun s -> stepTable.AddRow(s.StepNo, s.Info.Latencies.Length, s.Info.OkCount,
-                                            s.Info.FailCount, s.Info.ExceptionCount,
+    |> Array.iter(fun s -> stepTable.AddRow(s.StepNo, StepInfo.ToString(s.Info),
                                             s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
     
-    flowTable + stepTable.ToStringAlternative() + Environment.NewLine + Environment.NewLine
+    flowTable.ToString() + stepTable.ToStringAlternative() + Environment.NewLine + Environment.NewLine
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore
