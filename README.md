@@ -56,14 +56,10 @@ scenario("Test MongoDb")
 ### Request-response scenario
 The whole API is built around 3 building blocks:
 ```fsharp
-type StepResult =
-    | Ok = 0
-    | Fail = 1
-    
 // Represents single executable Step.
 type Step = {
     StepName: string
-    Execute: unit -> Task<StepResult> // in C# it's Func<Task<StepResult>>
+    Execute: Request -> Task<Response> // in C# it's Func<Request, Task<StepResult>>
 }
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
