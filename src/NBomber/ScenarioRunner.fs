@@ -15,8 +15,17 @@ open Infra
 open Reporting
 
 let inline Run (scenario: Scenario) = run(scenario)
+    
+let run (scenario: Scenario) =
+    let mutable runningScenario = true
+    while runningScenario do
+        runScenario(scenario)
 
-let run (scenario: Scenario) = 
+        Log.Information("Repeat the same Scenario one more time? (y/n)")
+        let userInput = Console.ReadLine()
+        runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
+
+let runScenario (scenario: Scenario) = 
     Infra.initLogger()
 
     Log.Information("{Scenario} has started", scenario.ScenarioName)
@@ -44,9 +53,10 @@ let run (scenario: Scenario) =
 
     Log.Information("building report")
     Reporting.buildReport(scenario, results)
+    |> fun report -> Log.Information(report); report        
     |> Reporting.saveReport
 
-    Log.Information("{Scenario} has finished", scenario.ScenarioName) 
+    Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
 
 module private Infra =
