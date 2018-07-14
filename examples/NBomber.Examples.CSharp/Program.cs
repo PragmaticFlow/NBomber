@@ -8,8 +8,8 @@ namespace NBomber.Examples.CSharp
     {
         static void Main(string[] args)
         {
-            //var scenario = MongoScenario.BuildScenario();
-            var scenario = HttpScenario.BuildScenario();
+            var scenario = MongoScenario.BuildScenario();
+            //var scenario = HttpScenario.BuildScenario();
 
             ScenarioRunner.Run(scenario);            
         }

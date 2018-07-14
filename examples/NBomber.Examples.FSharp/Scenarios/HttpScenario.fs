@@ -19,9 +19,9 @@ let private httpClient = new HttpClient()
 
 let private getGithubStep = 
     Step.Create("GET github.com/VIP-Logic/NBomber html",
-                fun () -> task { let! response = createRequest() |> httpClient.SendAsync                                 
-                                 return if response.IsSuccessStatusCode then StepResult.Ok
-                                        else StepResult.Fail })
+                fun _ -> task { let! response = createRequest() |> httpClient.SendAsync
+                                return if response.IsSuccessStatusCode then Response.Ok()
+                                       else Response.Fail(response.StatusCode.ToString()) })
 
 let buildScenario () =
     scenario("Test HTTP (https://github.com) with 100 concurrent users")

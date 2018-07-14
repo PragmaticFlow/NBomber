@@ -55,29 +55,36 @@ module private Infra =
 
         let mutable stop = false        
         let mutable currentTask = None        
-        let latencies = Dictionary<StepName, List<StepResult*Latency>>()
+        let latencies = Dictionary<StepName, List<Response*Latency>>()
         let exceptions = Dictionary<StepName, (Option<exn>*ExceptionCount)>()
 
         let init () =
             let withoutPause = steps |> Array.filter(fun st -> st.StepName <> "pause")
-            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<StepResult*Latency>())
+            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<Response*Latency>())
             withoutPause |> Array.iter(fun st -> exceptions.[st.StepName] <- (None, 0))        
 
         do init()
 
         let runSteps (steps) = task {
             do! Task.Delay(10)
-            let timer = Stopwatch()            
-            while not stop do 
+            let timer = Stopwatch()
+            let mutable request = null
+            let mutable skipStep = false
+            
+            while not stop do                
+                skipStep <- false
                 for st in steps do
-                    try
-                        let! (result,latency) = execStep(st, timer)
-                        if st.StepName <> "pause" then 
-                            latencies.[st.StepName].Add(result,latency)
+                    if not skipStep then
+                        try
+                            let! (response,latency) = execStep(st, request, timer)
+                            if st.StepName <> "pause" then 
+                                latencies.[st.StepName].Add(response,latency)
+                                if response.IsOk then request <- response.Payload
+                                else skipStep <- true
                         
-                    with ex -> let (_, exCount) = exceptions.[st.StepName]
-                               let newCount = exCount + 1
-                               exceptions.[st.StepName] <- (Some(ex), newCount)                               
+                        with ex -> let (_, exCount) = exceptions.[st.StepName]
+                                   let newCount = exCount + 1
+                                   exceptions.[st.StepName] <- (Some(ex), newCount)                
         }
 
         member x.Run() = currentTask <- steps |> runSteps |> Some                         
@@ -106,7 +113,7 @@ module private Infra =
     let initScenario (scenario: Scenario) =         
         if scenario.InitStep.IsSome then            
             Log.Debug("init has started", scenario.ScenarioName)
-            scenario.InitStep.Value.Execute().Wait()
+            scenario.InitStep.Value.Execute(null).Wait()
             Log.Debug("init has finished", scenario.ScenarioName)        
 
     let warmUp (scenario: Scenario) =
@@ -118,13 +125,13 @@ module private Infra =
         let steps = flow.Steps |> Array.filter(fun x -> x.StepName <> "pause")
         for st in steps do
             try
-                let t:Task<StepResult*Latency> = execStep(st, timer)
+                let t:Task<Response*Latency> = execStep(st, null, timer)
                 t.Wait()
             with ex -> Log.Error(ex.InnerException, "exception during warm up for TestFlow:{Flow} Step:{Step}", flow.FlowName, st.StepName)                
     
-    let execStep (step: Step, timer: Stopwatch) = task {
+    let execStep (step: Step, req: Request, timer: Stopwatch) = task {
         timer.Restart()
-        let! okOrFail = step.Execute()
+        let! okOrFail = step.Execute(req)
         timer.Stop()
         let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
         return (okOrFail, latency)

@@ -11,14 +11,14 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
         {
             var httpClient = new HttpClient();
 
-            var getGithubStep = Step.Create("GET github.com/VIP-Logic/NBomber html", async () =>
+            var getGithubStep = Step.Create("GET github.com/VIP-Logic/NBomber html", async _ =>
             {
                 var request = CreateRequest();
                 var response = await httpClient.SendAsync(request);
                 return response.IsSuccessStatusCode
-                    ? StepResult.Ok
-                    : StepResult.Fail;
-            });               
+                    ? Response.Ok()
+                    : Response.Fail(response.StatusCode.ToString());
+            });
 
             return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")                
                 .AddTestFlow("GET flow", steps: new[] { getGithubStep }, concurrentCopies: 100)

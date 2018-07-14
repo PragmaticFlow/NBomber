@@ -18,26 +18,26 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
                                      .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
                                      .ToList();
 
-            Func<Task<StepResult>> initDb = async () =>
+            Func<object,Task<Response>> initDb = async _ =>
             {
                 db.DropCollection("Users");
                 await usersCollection.InsertManyAsync(testData);
-                return StepResult.Ok;
+                return Response.Ok();
             };
 
             var readQuery1 = usersCollection.Find(u => u.IsActive == true).Limit(500);
             var readQuery2 = usersCollection.Find(u => u.Age > 50).Limit(100);
 
-            var step1 = Step.Create("read IsActive = true and TOP 500", async () =>
+            var step1 = Step.Create("read IsActive = true and TOP 500", async _ =>
             {
                 await readQuery1.ToListAsync();
-                return StepResult.Ok;
+                return Response.Ok();
             });
 
-            var step2 = Step.Create("read Age > 50 and TOP 100", async () =>
+            var step2 = Step.Create("read Age > 50 and TOP 100", async _ =>
             {
                 await readQuery2.ToListAsync();
-                return StepResult.Ok;
+                return Response.Ok();
             });
 
             return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")

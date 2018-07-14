@@ -17,7 +17,7 @@ type StepInfo = {
     FailCount: int
     ExceptionCount: ExceptionCount
 } with
-  static member Create(stepName, responseResults: List<StepResult*Latency>, 
+  static member Create(stepName, responseResults: List<Response*Latency>, 
                                  exceptions: (Option<exn>*ExceptionCount)) =     
     
     let results = responseResults.ToArray()
@@ -27,11 +27,11 @@ type StepInfo = {
       ThrownException = fst(exceptions)                                  
       OkCount = results 
                 |> Array.map(fst)
-                |> Array.filter(fun stRes -> stRes = StepResult.Ok)
+                |> Array.filter(fun stRes -> stRes.IsOk)
                 |> Array.length                                  
       FailCount = results 
                   |> Array.map(fst)
-                  |> Array.filter(fun stRes -> stRes = StepResult.Fail)
+                  |> Array.filter(fun stRes -> not(stRes.IsOk))
                   |> Array.length
       ExceptionCount = snd(exceptions) }
 
@@ -108,7 +108,7 @@ let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan) =
                                             s.Info.FailCount, s.Info.ExceptionCount,
                                             s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
     
-    flowTable + Environment.NewLine + stepTable.ToStringAlternative()
+    flowTable + stepTable.ToStringAlternative() + Environment.NewLine + Environment.NewLine
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore

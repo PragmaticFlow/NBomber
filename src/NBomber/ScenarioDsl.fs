@@ -1,7 +1,6 @@
 namespace rec NBomber
 
 open System
-open System.Linq
 open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
@@ -10,22 +9,27 @@ open System.Runtime.InteropServices
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 type StepName = string
+type Request = obj
 
-type StepResult =
-    | Ok = 0
-    | Fail = 1
+[<Struct>]
+type Response = {
+    IsOk: bool
+    Payload: obj
+} with
+  static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
+  static member Fail(error: string) = { IsOk = false; Payload = error }
 
 type Step = {
-    StepName: StepName    
-    Execute: unit -> Task<StepResult>
+    StepName: StepName
+    Execute: Request -> Task<Response>
 } with
-  static member Create(name: StepName, execute: Func<Task<StepResult>>) =
+  static member Create(name: StepName, execute: Func<Request,Task<Response>>) =
     { StepName = name; Execute = execute.Invoke }
 
   static member CreatePause(delay: TimeSpan) =    
     { StepName = "pause"
-      Execute = (fun () -> task { do! Task.Delay(delay) 
-                                  return StepResult.Ok }) }
+      Execute = (fun req -> task { do! Task.Delay(delay) 
+                                   return Response.Ok(req) }) }
 
 type TestFlow = {
     FlowName: string
@@ -51,7 +55,7 @@ type ScenarioBuilder(scenarioName: string) =
         if flow.Steps.Length <> uniqCount then
             failwith "all steps in test flow should have unique names"
 
-    member x.Init(initFunc: Func<Task<StepResult>>) =
+    member x.Init(initFunc: Func<Request,Task<Response>>) =
         let step = { StepName = "init"; Execute = initFunc.Invoke }
         initStep <- Some(step)
         x    
@@ -85,7 +89,7 @@ module FSharpAPI =
           Flows = Array.empty
           Duration = TimeSpan.FromSeconds(10.0) }
 
-    let init (initFunc: unit -> Task<StepResult>) (scenario: Scenario) =
+    let init (initFunc: Request -> Task<Response>) (scenario: Scenario) =
         let step = { StepName = "init"; Execute = initFunc }
         { scenario with InitStep = Some(step) }
 
