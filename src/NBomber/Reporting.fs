@@ -121,8 +121,11 @@ let saveReport (report: string) =
     Directory.CreateDirectory("reports") |> ignore
     let filePath = Path.Combine("reports", "report-" + DateTime.UtcNow.ToString("yyyy-dd-M--HH-mm-ss")) + ".txt"
     File.WriteAllText(filePath, report)
+    report
 
-module private HostEnvironmentInfo =
+
+module HostEnvironmentInfo =
+
     let getEnvironmentInfo () =
         let assembly = Assembly.GetAssembly(typedefof<ScenarioBuilder>)
         let assemblyVersion = assembly.GetName().Version.ToString()
@@ -136,13 +139,13 @@ module private HostEnvironmentInfo =
 
         let processor =
             match Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") with
-                | null -> String.Empty
-                | processor -> processor + Environment.NewLine
+            | null -> String.Empty
+            | processor -> processor + Environment.NewLine
 
         let processorArchitecture =
             match Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") with
-                | null -> String.Empty
-                | architecture -> "Processor Architecture:" + architecture + Environment.NewLine
+            | null -> String.Empty
+            | architecture -> "Processor Architecture:" + architecture + Environment.NewLine
 
         let environmentInfo = versionsAndProcessorCountInfo + processor + processorArchitecture
         String.Format(environmentInfo, assemblyName, assemblyVersion, os, Environment.ProcessorCount, dotNetVersion)

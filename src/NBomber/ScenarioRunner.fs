@@ -52,9 +52,9 @@ let runScenario (scenario: Scenario) =
     let results = Infra.getResults(containers)
 
     Log.Information("building report")
-    Reporting.buildReport(scenario, results)
-    |> fun report -> Log.Information(report); report        
+    Reporting.buildReport(scenario, results)    
     |> Reporting.saveReport
+    |> Log.Information
 
     Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
