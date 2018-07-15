@@ -6,6 +6,10 @@ open System.Collections.Generic
 open HdrHistogram
 open ConsoleTables
 
+open System.Reflection
+open System.Runtime.Versioning
+open HostEnvironmentInfo
+
 type Latency = int64
 type ExceptionCount = int
 
@@ -88,9 +92,10 @@ type StepStats = {
 
 
 let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =        
+    let environmentInfo = getEnvironmentInfo()   
     let header = String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
     let details = flowInfo |> Array.mapi(fun i x -> printFlowTable(x, scenario.Duration, i+1)) |> String.concat Environment.NewLine    
-    header + Environment.NewLine + Environment.NewLine + details                 
+    environmentInfo + Environment.NewLine + header + Environment.NewLine + Environment.NewLine + details                 
 
 let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan, flowCount: int) =
     
@@ -116,3 +121,28 @@ let saveReport (report: string) =
     Directory.CreateDirectory("reports") |> ignore
     let filePath = Path.Combine("reports", "report-" + DateTime.UtcNow.ToString("yyyy-dd-M--HH-mm-ss")) + ".txt"
     File.WriteAllText(filePath, report)
+
+module private HostEnvironmentInfo =
+    let getEnvironmentInfo () =
+        let assembly = Assembly.GetAssembly(typedefof<ScenarioBuilder>)
+        let assemblyVersion = assembly.GetName().Version.ToString()
+        let assemblyName = assembly.GetName().Name
+        let dotNetVersion = assembly.GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName;
+        let os = Environment.OSVersion.ToString()
+
+        let versionsAndProcessorCountInfo =
+            "{0}:v{1}, OS:{2}, Processor Count:{3}" + Environment.NewLine +
+            "Target Runtime Version: {4}" + Environment.NewLine
+
+        let processor =
+            match Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") with
+                | null -> String.Empty
+                | processor -> processor + Environment.NewLine
+
+        let processorArchitecture =
+            match Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") with
+                | null -> String.Empty
+                | architecture -> "Processor Architecture:" + architecture + Environment.NewLine
+
+        let environmentInfo = versionsAndProcessorCountInfo + processor + processorArchitecture
+        String.Format(environmentInfo, assemblyName, assemblyVersion, os, Environment.ProcessorCount, dotNetVersion)
