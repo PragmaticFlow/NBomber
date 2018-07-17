@@ -12,7 +12,8 @@ PM> Install-Package VIP-Logic.NBomber
 ### Features
 - [x] Request-response scenario
 - [ ] Pub/Sub scenario
-- [ ] Distibuted scenario (run scenario from several nodes in parallel)
+- [x] Sequential flow
+- [ ] Distibuted cluster (run scenario from several nodes in parallel)
 
 ### Supported technologies
 - Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
