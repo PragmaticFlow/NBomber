@@ -11,7 +11,7 @@ PM> Install-Package VIP-Logic.NBomber
 
 ### Features
 - [x] Request-response scenario
-- [ ] Pub/Sub scenario
+- [x] Pub/Sub scenario
 - [x] Sequential flow
 - [ ] Distibuted cluster (run scenario from several nodes in parallel)
 
@@ -60,8 +60,8 @@ The whole API is built around 3 building blocks:
 // Represents single executable Step
 type Step =
     | Request of ReqStep
-    | Push    of PushStep
-    | Pause   of TimeSpan
+    | Listen  of ListenStep
+    | Pause   of TimeSpan 
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
 type TestFlow = {
