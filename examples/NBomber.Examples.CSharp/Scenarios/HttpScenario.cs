@@ -11,7 +11,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
         {
             var httpClient = new HttpClient();
 
-            var getGithubStep = ReqStep.Create("GET github.com/VIP-Logic/NBomber html", async _ =>
+            var getGithubStep = RequestStep.Create("GET github.com/VIP-Logic/NBomber html", async _ =>
             {
                 var request = CreateRequest();
                 var response = await httpClient.SendAsync(request);

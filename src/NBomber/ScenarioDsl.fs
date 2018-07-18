@@ -20,7 +20,7 @@ type Response = {
     Payload: obj
 }   
 
-type ReqStep = {
+type RequestStep = {
     StepName: StepName
     Execute: Request -> Task<Response>
 }
@@ -34,7 +34,7 @@ type PauseStep =
     static member Create(duration) = Pause(duration)
 
 type Step =
-    | Request of ReqStep
+    | Request of RequestStep
     | Listen  of ListenStep
     | Pause   of TimeSpan    
 
@@ -46,7 +46,7 @@ type TestFlow = {
 
 type Scenario = {
     ScenarioName: string
-    InitStep: ReqStep option
+    InitStep: RequestStep option
     Flows: TestFlow[]
     Duration: TimeSpan
 }
@@ -56,7 +56,7 @@ type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }
 
-type ReqStep with
+type RequestStep with
     static member Create(name: StepName, execute: Func<Request,Task<Response>>) =
         Request({ StepName = name; Execute = execute.Invoke })   
 
