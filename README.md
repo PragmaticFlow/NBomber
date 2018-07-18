@@ -59,9 +59,9 @@ The whole API is built around 3 building blocks:
 ```fsharp
 // Represents single executable Step
 type Step =
-    | Request of ReqStep
+    | Request of RequestStep
     | Listen  of ListenStep
-    | Pause   of TimeSpan 
+    | Pause   of TimeSpan  
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
 type TestFlow = {
