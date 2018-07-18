@@ -3,16 +3,15 @@
 open System
 open System.IO
 open System.Diagnostics   
-open System.Collections.Generic
-open System.Threading
 open System.Threading.Tasks
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open HdrHistogram
 
+open NBomber.Errors
+open NBomber.Reporting
+open NBomber.FlowRunner
 open Infra
-open Reporting
 
 let inline Run (scenario: Scenario) = run(scenario)
     
@@ -30,129 +29,87 @@ let runScenario (scenario: Scenario) =
 
     Log.Information("{Scenario} has started", scenario.ScenarioName)
         
-    Infra.initScenario(scenario)
-
-    Log.Information("warming up")
-    Infra.warmUp(scenario)
-        
-    Log.Information("starting test flows")
-    let containers = Infra.startContainers(scenario)
-
-    Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
-
-    // wait until the execution ends
-    Task.Delay(scenario.Duration).Wait()    
+    let result = Infra.initScenario(scenario)
+                 |> Result.bind(Infra.warmUpScenario)
+                 |> Result.map(Infra.startContainers)
     
-    Log.Information("stoping test flows")
-    Infra.stopContainers(containers)
-
-    // wait until the containers stop
-    Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
+    match result with
+    | Ok containers ->   
     
-    let results = Infra.getResults(containers)
-
-    Log.Information("building report")
-    Reporting.buildReport(scenario, results)    
-    |> Reporting.saveReport
-    |> Log.Information
-
-    Log.Information("{Scenario} has finished", scenario.ScenarioName)
-
-
-module private Infra =
-
-    type FlowRunner(steps: Step[]) =
-
-        let mutable stop = false        
-        let mutable currentTask = None        
-        let latencies = Dictionary<StepName, List<Response*Latency>>()
-        let exceptions = Dictionary<StepName, (Option<exn>*ExceptionCount)>()
-
-        let init () =
-            let withoutPause = steps |> Array.filter(fun st -> st.StepName <> "pause")
-            withoutPause |> Array.iter(fun st -> latencies.[st.StepName] <- List<Response*Latency>())
-            withoutPause |> Array.iter(fun st -> exceptions.[st.StepName] <- (None, 0))        
-
-        do init()
-
-        let runSteps (steps) = task {
-            do! Task.Delay(10)
-            let timer = Stopwatch()
-            let mutable request = null
-            let mutable skipStep = false
-            
-            while not stop do                
-                skipStep <- false
-                for st in steps do
-                    if not skipStep then
-                        try
-                            let! (response,latency) = execStep(st, request, timer)
-                            if st.StepName <> "pause" then 
-                                latencies.[st.StepName].Add(response,latency)
-                                if response.IsOk then request <- response.Payload
-                                else skipStep <- true
-                        
-                        with ex -> let (_, exCount) = exceptions.[st.StepName]
-                                   let newCount = exCount + 1
-                                   exceptions.[st.StepName] <- (Some(ex), newCount)                
-        }
-
-        member x.Run() = currentTask <- steps |> runSteps |> Some                         
+        Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
+        Task.Delay(scenario.Duration).Wait()    
         
-        member x.Stop() = stop <- true
+        Infra.stopContainers(containers)
 
-        member x.GetResults() = 
-            latencies 
-            |> Seq.map(fun x -> StepInfo.Create(x.Key, x.Value, exceptions.[x.Key]))
-            |> Seq.toArray
-            
-                
-    type FlowsContainer(flow: TestFlow) =
+        // wait until the containers stop
+        Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
+    
+        let results = Infra.getResults(containers)
 
-        let flowRunners = [|1 .. flow.ConcurrentCopies|] |> Array.map(fun _ -> FlowRunner(flow.Steps))
+        Log.Information("building report")
+        Reporting.buildReport(scenario, results)    
+        |> Reporting.saveReport
+        |> Log.Information
 
-        member x.Run() = flowRunners |> Array.iter(fun j -> j.Run())
-        member x.Stop() = flowRunners |> Array.iter(fun j -> j.Stop())
-        
-        member x.GetResult() =
-            flowRunners
-            |> Array.collect(fun runner -> runner.GetResults())
-            |> FlowInfo.Create(flow.FlowName, flow.ConcurrentCopies)            
+        Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
+    | Error e       -> let msg = Errors.printError(e)
+                       Log.Error(msg)
+
+
+module private Infra = 
 
     let initScenario (scenario: Scenario) =         
-        if scenario.InitStep.IsSome then            
-            Log.Debug("init has started", scenario.ScenarioName)
-            scenario.InitStep.Value.Execute(null).Wait()
-            Log.Debug("init has finished", scenario.ScenarioName)        
-
-    let warmUp (scenario: Scenario) =
-        scenario.Flows         
-        |> Array.iter(warmUpFlow)
-
-    let warmUpFlow (flow: TestFlow) = 
-        let timer = Stopwatch()
-        let steps = flow.Steps |> Array.filter(fun x -> x.StepName <> "pause")
-        for st in steps do
+        match scenario.InitStep with
+        | Some step -> 
             try
-                let t:Task<Response*Latency> = execStep(st, null, timer)
-                t.Wait()
-            with ex -> Log.Error(ex.InnerException, "exception during warm up for TestFlow:{Flow} Step:{Step}", flow.FlowName, st.StepName)                
-    
-    let execStep (step: Step, req: Request, timer: Stopwatch) = task {
-        timer.Restart()
-        let! okOrFail = step.Execute(req)
-        timer.Stop()
-        let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
-        return (okOrFail, latency)
-    }
+                Log.Debug("init has started", scenario.ScenarioName)
+                step.Execute(null).Wait()
+                Log.Debug("init has finished", scenario.ScenarioName)
+                Ok <| scenario
+            with ex -> Error <| InitStepError(ex.ToString())
+        | None      -> Ok <| scenario
+
+    let warmUpScenario (scenario: Scenario) =
+        Log.Information("warming up")
+        let errors = scenario.Flows 
+                     |> Array.map(fun flow -> warmUpFlow(flow).Result)
+                     |> Array.filter(Result.isError)
+                     |> Array.map(Result.getError)
+        
+        if errors.Length > 0 then Error <| FlowErrors(errors)
+        else Ok <| scenario
+
+    let warmUpFlow (flow: TestFlow): Task<Result<unit,FlowError>> = task {
+        let timer = Stopwatch()        
+        let steps = flow.Steps |> Array.filter(fun st -> not(Step.isPause st))        
+        let mutable request = null
+        let mutable result = Ok()
+        let mutable skipStep = false
+
+        for st in steps do
+            if not skipStep then        
+                try            
+                    let! (response,_) = FlowRunner.execStep(st, request, timer)
+                    if response.IsOk then
+                        request <- response.Payload
+                    else 
+                        skipStep <- true                        
+                        result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = response.Payload.ToString() })
+
+                with ex -> skipStep <- true
+                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.ToString() })
+        return result
+    }    
 
     let startContainers (scenario: Scenario) =
+        Log.Information("starting test flows")
         let containers = scenario.Flows |> Array.map(FlowsContainer)    
         containers |> Array.iter(fun c -> c.Run()) 
         containers
 
     let stopContainers (containers: FlowsContainer[]) =
+        Log.Information("stoping test flows")
         containers |> Array.iter(fun c -> c.Stop())
 
     let getResults (containers: FlowsContainer[]) =

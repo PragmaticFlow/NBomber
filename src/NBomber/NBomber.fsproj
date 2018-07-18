@@ -15,15 +15,18 @@
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Errors.fs" />
     <Compile Include="ScenarioDsl.fs" />
     <Compile Include="Reporting.fs" />
+    <Compile Include="FlowRunner.fs" />
     <Compile Include="ScenarioRunner.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="HdrHistogram" Version="2.5.0"/>
-    <PackageReference Include="Serilog" Version="2.7.1"/>
-    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1"/>
-    <PackageReference Include="TaskBuilder.fs" Version="2.0.0"/>
-    <PackageReference Include="ConsoleTables" Version="2.2.0"/>
+    <PackageReference Include="HdrHistogram" Version="2.5.0" />
+    <PackageReference Include="Serilog" Version="2.7.1" />
+    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.0.0" />
+    <PackageReference Include="ConsoleTables" Version="2.2.0" />
   </ItemGroup>
 </Project>
