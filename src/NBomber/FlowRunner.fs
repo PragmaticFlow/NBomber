@@ -78,8 +78,7 @@ let execStep (step: Step, req: Request, timer: Stopwatch) = task {
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
                     return (resp, latency)        
         
-    | Push p     -> let! tResp = p.Trigger(req)
-                    let! (resp,msgCount) = p.Listener.WaitOnResponse()
+    | Listen p   -> let! (resp,msgCount) = p.Listener.WaitOnResponse()
                     timer.Stop()
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
                     return (resp, latency)

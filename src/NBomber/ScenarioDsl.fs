@@ -25,9 +25,8 @@ type ReqStep = {
     Execute: Request -> Task<Response>
 }
 
-type PushStep = {
-    StepName: StepName
-    Trigger: Request -> Task<Response>
+type ListenStep = {
+    StepName: StepName    
     Listener: Listener
 }
 
@@ -36,7 +35,7 @@ type PauseStep =
 
 type Step =
     | Request of ReqStep
-    | Push    of PushStep
+    | Listen  of ListenStep
     | Pause   of TimeSpan    
 
 type TestFlow = {
@@ -61,18 +60,18 @@ type ReqStep with
     static member Create(name: StepName, execute: Func<Request,Task<Response>>) =
         Request({ StepName = name; Execute = execute.Invoke })   
 
-type PushStep with
-    static member Create(name: StepName, trigger: Func<Request,Task<Response>>) = 
-        Push({ StepName = name; Trigger = trigger.Invoke; Listener = Listener() })
+type ListenStep with
+    static member Create(name: StepName) = 
+        Listen({ StepName = name; Listener = Listener() })
 
 type Step with    
     static member internal isRequest(step) = match step with | Request _ -> true | _ -> false
-    static member internal isPush(step)    = match step with | Push _    -> true | _ -> false
+    static member internal isPush(step)    = match step with | Listen _    -> true | _ -> false
     static member internal isPause(step)   = match step with | Pause _   -> true | _ -> false    
     static member internal getName(step)   = 
         match step with
         | Request r -> r.StepName
-        | Push p    -> p.StepName
+        | Listen p    -> p.StepName
         | Pause t   -> "pause"
 
 type Listener() =
