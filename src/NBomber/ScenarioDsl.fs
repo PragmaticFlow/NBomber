@@ -61,8 +61,8 @@ type RequestStep with
         Request({ StepName = name; Execute = execute.Invoke })   
 
 type ListenStep with
-    static member Create(name: StepName) = 
-        Listen({ StepName = name; Listener = Listener() })
+    static member Create(name: StepName, listener: Listener) = 
+        Listen({ StepName = name; Listener = listener })
 
 type Step with    
     static member internal isRequest(step) = match step with | Request _ -> true | _ -> false
@@ -76,11 +76,11 @@ type Step with
 
 type Listener() =
     let mutable msgCounter = 0
-    let mutable tcs = null
+    let mutable tcs = TaskCompletionSource<Response*MsgCount>()
     
     let init () = 
         msgCounter <- 0
-        tcs <- null
+        tcs <- TaskCompletionSource<Response*MsgCount>()
 
     member x.MsgCount = msgCounter
 
@@ -88,11 +88,12 @@ type Listener() =
         tcs <- TaskCompletionSource<Response*MsgCount>()
         tcs.Task
         
-    member x.ReceivedMsg(msg: Response, finishStep: bool) =
-        msgCounter <- msgCounter + 1        
-        if finishStep = true then            
-            tcs.SetResult(msg, msgCounter)
-            init()
+    member x.ReceiveMsg(msg: Response, [<Optional;DefaultParameterValue(true)>] finishStep: bool) =                        
+        if not tcs.Task.IsCompleted then
+            msgCounter <- msgCounter + 1
+            if finishStep then
+                tcs.SetResult(msg, msgCounter)
+                init()        
 
 type ScenarioBuilder(scenarioName: string) =
     
