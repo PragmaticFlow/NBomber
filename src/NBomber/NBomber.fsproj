@@ -19,7 +19,7 @@
     <Compile Include="Errors.fs" />
     <Compile Include="ScenarioDsl.fs" />
     <Compile Include="Reporting.fs" />
-    <Compile Include="FlowRunner.fs" />
+    <Compile Include="FlowActor.fs" />
     <Compile Include="ScenarioRunner.fs" />
   </ItemGroup>
   <ItemGroup>

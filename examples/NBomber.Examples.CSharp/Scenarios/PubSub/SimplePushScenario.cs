@@ -5,7 +5,7 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
 {
     class FakeService
     {
-        readonly Timer _timer = new Timer(2000);        
+        readonly Timer _timer = new Timer(500);        
         public event EventHandler<string> PushMessageEvent;
 
         public FakeService()
@@ -26,20 +26,20 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
         {
             var service = new FakeService();
 
-            var step1 = RequestStep.Create("trigger", async _ =>
+            var step1 = Step.CreateRequest("publish", async _ =>
             {
                 service.Send("Hi Server");
                 return Response.Ok();
             });
 
-            var listener = new Listener();
-
+            var listeners = new StepListeners();
             service.PushMessageEvent += (s, msg) =>
             {
-                listener.ReceiveMsg(Response.Ok());
+                service.Stop();
+                listeners.Notify(flowId: 0, response: Response.Ok());
             };
 
-            var step2 = ListenStep.Create("listener", listener);
+            var step2 = Step.CreateListener("listen", listeners);
 
             return new ScenarioBuilder(scenarioName: nameof(SimplePushScenario))
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)

@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.FlowRunner
+﻿module internal rec NBomber.FlowActor
 
 open System
 open System.Collections.Generic
@@ -8,7 +8,7 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Reporting
 
-type FlowRunner(allSteps: Step[]) =
+type FlowActor(flowId: int, allSteps: Step[]) =
 
     let mutable stop = false        
     let mutable currentTask = None        
@@ -28,7 +28,7 @@ type FlowRunner(allSteps: Step[]) =
             
         while not stop do
             
-            let mutable request = null
+            let mutable request = { FlowId = flowId; Payload = null }
             let mutable skipStep = false
             let mutable stepIndex = 0
 
@@ -39,11 +39,12 @@ type FlowRunner(allSteps: Step[]) =
                             
                         if not(Step.isPause st) then
                             latencies.[stepIndex].Add(response,latency)
-                            
-                        stepIndex <- stepIndex + 1
 
-                        if response.IsOk then request <- response.Payload
-                        else skipStep <- true
+                        if response.IsOk then 
+                            request <- { request with Payload = response.Payload }
+                            stepIndex <- stepIndex + 1
+                        else
+                            skipStep <- true
                         
                     with ex -> let (_, exCount) = exceptions.[stepIndex]
                                let newCount = exCount + 1
@@ -58,14 +59,15 @@ type FlowRunner(allSteps: Step[]) =
         |> Array.mapi(fun i st -> StepInfo.create(Step.getName(st), latencies.[i], exceptions.[i]))
                 
 
-type FlowsContainer(flow: TestFlow) =
+type FlowActorsHost(flow: TestFlow) =
 
-    let flowRunners = [|1 .. flow.ConcurrentCopies|] |> Array.map(fun _ -> FlowRunner(flow.Steps))
+    let actors = [|0 .. flow.ConcurrentCopies - 1|] 
+                 |> Array.map(fun flowId -> FlowActor(flowId, flow.Steps))
 
-    member x.Run() = flowRunners |> Array.iter(fun j -> j.Run())
-    member x.Stop() = flowRunners |> Array.iter(fun j -> j.Stop())            
+    member x.Run() = actors |> Array.iter(fun x -> x.Run())
+    member x.Stop() = actors |> Array.iter(fun x -> x.Stop())            
     member x.GetResult() =
-        flowRunners
+        actors
         |> Array.collect(fun runner -> runner.GetResults())
         |> FlowInfo.create(flow.FlowName, flow.ConcurrentCopies)
         
@@ -73,12 +75,13 @@ type FlowsContainer(flow: TestFlow) =
 let execStep (step: Step, req: Request, timer: Stopwatch) = task {        
     timer.Restart()        
     match step with
-    | Request s  -> let! resp = s.Execute(req)
+    | Request r  -> let! resp = r.Execute(req)
                     timer.Stop()
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
                     return (resp, latency)        
         
-    | Listen p   -> let! (resp,msgCount) = p.Listener.WaitOnResponse()
+    | Listener l -> let listener = l.Listeners.Get(req.FlowId)
+                    let! resp = listener.GetResponse()
                     timer.Stop()
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
                     return (resp, latency)

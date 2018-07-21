@@ -8,11 +8,14 @@ open System.Runtime.InteropServices
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-type MsgCount = int
-type FlowName = string
 type StepName = string
+type FlowName = string
 
-type Request = obj
+[<Struct>]
+type Request = {
+    FlowId: int
+    Payload: obj
+}
 
 [<Struct>]
 type Response = {
@@ -25,18 +28,15 @@ type RequestStep = {
     Execute: Request -> Task<Response>
 }
 
-type ListenStep = {
+type ListenerStep = {
     StepName: StepName    
-    Listener: Listener
+    Listeners: StepListeners
 }
 
-type PauseStep =
-    static member Create(duration) = Pause(duration)
-
 type Step =
-    | Request of RequestStep
-    | Listen  of ListenStep
-    | Pause   of TimeSpan    
+    | Request  of RequestStep
+    | Listener of ListenerStep
+    | Pause    of TimeSpan    
 
 type TestFlow = {
     FlowName: FlowName
@@ -56,44 +56,57 @@ type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }
 
-type RequestStep with
-    static member Create(name: StepName, execute: Func<Request,Task<Response>>) =
+type Step with 
+    static member CreateRequest(name: StepName, execute: Func<Request,Task<Response>>) =
         Request({ StepName = name; Execute = execute.Invoke })   
 
-type ListenStep with
-    static member Create(name: StepName, listener: Listener) = 
-        Listen({ StepName = name; Listener = listener })
+    static member CreateListener(name: StepName, listeners: StepListeners) =
+        Listener({ StepName = name; Listeners = listeners })
 
-type Step with    
-    static member internal isRequest(step) = match step with | Request _ -> true | _ -> false
-    static member internal isPush(step)    = match step with | Listen _    -> true | _ -> false
-    static member internal isPause(step)   = match step with | Pause _   -> true | _ -> false    
-    static member internal getName(step)   = 
-        match step with
-        | Request r -> r.StepName
-        | Listen p    -> p.StepName
-        | Pause t   -> "pause"
+    static member CreatePause(duration) = Pause(duration)
 
-type Listener() =
-    let mutable msgCounter = 0
-    let mutable tcs = TaskCompletionSource<Response*MsgCount>()
+    static member internal isRequest(step)  = match step with | Request _  -> true | _ -> false
+    static member internal isListener(step) = match step with | Listener _ -> true | _ -> false
+    static member internal isPause(step)    = match step with | Pause _    -> true | _ -> false    
     
-    let init () = 
-        msgCounter <- 0
-        tcs <- TaskCompletionSource<Response*MsgCount>()
-
-    member x.MsgCount = msgCounter
-
-    member internal x.WaitOnResponse() = 
-        tcs <- TaskCompletionSource<Response*MsgCount>()
-        tcs.Task
+    static member internal getName(step)    = 
+        match step with
+        | Request r  -> r.StepName
+        | Listener p -> p.StepName
+        | Pause t    -> "pause"
         
-    member x.ReceiveMsg(msg: Response, [<Optional;DefaultParameterValue(true)>] finishStep: bool) =                        
-        if not tcs.Task.IsCompleted then
-            msgCounter <- msgCounter + 1
-            if finishStep then
-                tcs.SetResult(msg, msgCounter)
-                init()        
+    static member internal getListener(step) = 
+        match step with 
+        | Listener p -> p
+        | _          -> failwith "step is not a Listener"
+
+
+type StepListeners() =
+
+    let mutable listeners = Array.empty
+
+    member internal x.Init(items: FlowListener[]) = 
+        listeners <- items
+
+    member internal x.Get(flowId: int) = listeners.[flowId]
+
+    member x.Notify(flowId: int, response: Response) =
+        try
+            listeners.[flowId].Notify(response)
+        with _ -> ()
+        
+
+type internal FlowListener() = 
+
+    let mutable tcs = TaskCompletionSource<Response>()
+
+    member x.Notify(response: Response) = 
+        if not tcs.Task.IsCompleted then tcs.SetResult(response)
+
+    member x.GetResponse() = 
+        tcs <- TaskCompletionSource<Response>()
+        tcs.Task
+
 
 type ScenarioBuilder(scenarioName: string) =
     

@@ -18,7 +18,7 @@ let private createRequest () =
 let private httpClient = new HttpClient()
 
 let private getGithubStep = 
-    RequestStep.Create("GET github.com/VIP-Logic/NBomber html",
+    Step.CreateRequest("GET github.com/VIP-Logic/NBomber html",
         fun _ -> task { let! response = createRequest() |> httpClient.SendAsync
                         return if response.IsSuccessStatusCode then Response.Ok()
                                else Response.Fail(response.StatusCode.ToString()) })
