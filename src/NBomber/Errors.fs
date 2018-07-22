@@ -13,8 +13,7 @@ type DomainError =
 let printError (error) =
     match error with
     | InitStepError msg -> msg
-    | FlowErrors errors -> ""
-
+    | FlowErrors errors -> errors |> Seq.map (fun error -> error.Error) |> String.concat "; "
 
 type Result<'T,'TError> with    
     static member isOk(result) = 

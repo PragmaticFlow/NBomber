@@ -25,7 +25,7 @@ let run (scenario: Scenario) =
         runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
 let runScenario (scenario: Scenario) = 
-    Infra.initLogger()
+    Infra.initLogger() 
 
     scenario.Flows |> Array.iter(Infra.initFlow)
 
@@ -47,6 +47,9 @@ let runScenario (scenario: Scenario) =
         Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
         
         let results = Infra.getResults(actorsHosts)
+
+        let assertionResults = Infra.executeAssertions(results, scenario.Asserts)
+        for result in assertionResults do Log.Information(result)
 
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
@@ -70,7 +73,7 @@ module private Infra =
                 step.Execute(req).Wait()
                 Log.Debug("init has finished", scenario.ScenarioName)
                 Ok <| scenario
-            with ex -> Error <| InitStepError(ex.ToString())
+            with ex -> Error <| InitStepError(ex.Message)
         | None      -> Ok <| scenario
     
     let initFlow (flow: TestFlow) =
@@ -108,7 +111,7 @@ module private Infra =
                         result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = response.Payload.ToString() })
 
                 with ex -> skipStep <- true
-                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.ToString() })
+                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.Message })
         return result
     }    
 
@@ -124,6 +127,50 @@ module private Infra =
 
     let getResults (actorsHost: FlowActorsHost[]) =
         actorsHost |> Array.map(fun x -> x.GetResult())
+
+    let executeAssertions(flows:FlowInfo[], assertions:Assert[]) =
+        assertions |> Seq.mapi (fun i assertion -> executeAssertion(flows, i+1, assertion)) |> checkIfAllOk                
+    
+    let executeAssertion(flows:FlowInfo[], i:Index, assertion:Assert) =
+        match assertion with
+            | All assertion -> assertForAll(flows, i, assertion)
+
+            | Flow (flowName, assertion) -> 
+                flows |> Seq.tryFind (fun f -> f.FlowName = flowName) |> assertForFlow <| (i, flowName, assertion)
+
+            | Step (flowName, stepName, assertion) -> 
+                flows |> Seq.tryFind (fun f -> f.FlowName = flowName) |> (function
+                    | Some f -> f.Steps
+                                |> Seq.tryFind (fun s -> s.StepName = stepName)
+                                |> assertForStep <| (i, stepName, assertion)
+                    | None -> NotFound(i, Scope.Flow, flowName))
+
+    let checkIfAllOk (asserted:seq<Asserted>) =
+        asserted |> Seq.forall(fun a -> Asserted.isOk(a)) |> function 
+                    | true -> asserted |> Seq.length |> 
+                                function 
+                                | 0 -> [||] 
+                                | length -> [| sprintf "Assertions: %i - OK" length |]
+                    | _ -> asserted |> Seq.choose(fun result -> Asserted.getMessage(result)) |> Seq.toArray
+
+    let assertForAll (flows:FlowInfo[], i:Index, assertion:Assertion) =
+         flows |> Seq.map (fun f -> Some(f) |> assertForFlow <| (i, f.FlowName, assertion))
+               |> Seq.exists (fun a -> Asserted.isFailed(a)) |> Asserted.create <| (i, Scope.All, "")  
+
+    let assertForFlow (flow:FlowInfo option) (i:Index, flowName:string, assertion:Assertion) =
+        match flow with
+        | Some f -> f.Steps 
+                    |> Seq.map (fun s -> Some(s) |> assertForStep <| (i, s.StepName, assertion))
+                    |> Seq.exists(fun a -> Asserted.isFailed(a)) 
+                    |> Asserted.create <| (i, Scope.Flow, f.FlowName)        
+        | None -> NotFound(i, Scope.Flow, flowName)      
+
+    let assertForStep (step:StepInfo option) (i:Index, stepName:string, assertion:Assertion) =
+        match step with
+        | Some s -> s   |> AssertionStats.Create
+                        |> assertion.Invoke
+                        |> Asserted.create <| (i, Scope.Step, s.StepName)                    
+        | None -> NotFound(i, Scope.Step, stepName) 
 
     let initLogger () =
         Log.Logger <- LoggerConfiguration()

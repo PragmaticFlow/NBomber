@@ -10,18 +10,6 @@ open System.Reflection
 open System.Runtime.Versioning
 open HostEnvironmentInfo
 
-type Latency = int64
-type ExceptionCount = int
-
-type StepInfo = {
-    StepName: string
-    Latencies: Latency[]
-    ThrownException: exn option
-    OkCount: int
-    FailCount: int
-    ExceptionCount: ExceptionCount
-}
-
 type FlowInfo = {
     FlowName: string
     Steps: StepInfo[]    
@@ -70,31 +58,6 @@ let saveReport (report: string) =
     let filePath = Path.Combine("reports", "report-" + DateTime.UtcNow.ToString("yyyy-dd-M--HH-mm-ss")) + ".txt"
     File.WriteAllText(filePath, report)
     report
-
-
-module StepInfo =
-
-    let create(stepName, responseResults: List<Response*Latency>, 
-               exceptions: (Option<exn>*ExceptionCount)) =
-    
-        let results = responseResults.ToArray()
-    
-        { StepName = stepName 
-          Latencies = results |> Array.map(snd)
-          ThrownException = fst(exceptions)                                  
-          OkCount = results 
-                    |> Array.map(fst)
-                    |> Array.filter(fun stRes -> stRes.IsOk)
-                    |> Array.length                                  
-          FailCount = results 
-                      |> Array.map(fst)
-                      |> Array.filter(fun stRes -> not(stRes.IsOk))
-                      |> Array.length
-          ExceptionCount = snd(exceptions) }
-
-    let toString(stepInfo: StepInfo) =
-        String.Format("{0} (OK:{1}, Failed:{2}, Exceptions:{3})", stepInfo.Latencies.Length,
-                      stepInfo.OkCount, stepInfo.FailCount, stepInfo.ExceptionCount)
 
 module StepStats =
 
