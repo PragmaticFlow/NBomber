@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.FlowActor
+﻿module internal rec NBomber.FlowRunner
 
 open System
 open System.Collections.Generic
@@ -8,7 +8,15 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Reporting
 
-type FlowActor(flowId: int, allSteps: Step[]) =
+type FlowRunner(flow: TestFlow) =    
+
+    let actors = createActors(flow)
+
+    member x.Run() = actors |> Array.iter(fun x -> x.Run())
+    member x.Stop() = actors |> Array.iter(fun x -> x.Stop())            
+    member x.GetResult() = getFlowResults(flow.FlowName, actors)
+
+type FlowActor(correlationId: string, allSteps: Step[]) =
 
     let mutable stop = false        
     let mutable currentTask = None        
@@ -28,7 +36,7 @@ type FlowActor(flowId: int, allSteps: Step[]) =
             
         while not stop do
             
-            let mutable request = { FlowId = flowId; Payload = null }
+            let mutable request = { CorrelationId = correlationId; Payload = null }
             let mutable skipStep = false
             let mutable stepIndex = 0
 
@@ -59,18 +67,10 @@ type FlowActor(flowId: int, allSteps: Step[]) =
         |> Array.mapi(fun i st -> StepInfo.create(Step.getName(st), latencies.[i], exceptions.[i]))
                 
 
-type FlowActorsHost(flow: TestFlow) =
-
-    let actors = [|0 .. flow.ConcurrentCopies - 1|] 
-                 |> Array.map(fun flowId -> FlowActor(flowId, flow.Steps))
-
-    member x.Run() = actors |> Array.iter(fun x -> x.Run())
-    member x.Stop() = actors |> Array.iter(fun x -> x.Stop())            
-    member x.GetResult() =
-        actors
-        |> Array.collect(fun runner -> runner.GetResults())
-        |> FlowInfo.create(flow.FlowName, flow.ConcurrentCopies)
-        
+let createActors (flow: TestFlow): FlowActor[] =
+    flow.CorrelationIds
+    |> Set.toArray
+    |> Array.map(fun id -> FlowActor(id, flow.Steps))      
 
 let execStep (step: Step, req: Request, timer: Stopwatch) = task {        
     timer.Restart()        
@@ -80,7 +80,7 @@ let execStep (step: Step, req: Request, timer: Stopwatch) = task {
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
                     return (resp, latency)        
         
-    | Listener l -> let listener = l.Listeners.Get(req.FlowId)
+    | Listener l -> let listener = l.Listeners.Get(req.CorrelationId)
                     let! resp = listener.GetResponse()
                     timer.Stop()
                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
@@ -89,3 +89,8 @@ let execStep (step: Step, req: Request, timer: Stopwatch) = task {
     | Pause time -> do! Task.Delay(time)
                     return (Response.Ok(req), int64(0))
 }
+
+let getFlowResults (flowName: string, actors: FlowActor[]) =
+    actors
+    |> Array.collect(fun actor -> actor.GetResults())
+    |> FlowInfo.create(flowName, actors.Length)

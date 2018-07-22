@@ -3,11 +3,11 @@
 open System
 open System.IO
 open System.Collections.Generic
-open HdrHistogram
-open ConsoleTables
-
 open System.Reflection
 open System.Runtime.Versioning
+
+open HdrHistogram
+open ConsoleTables
 open HostEnvironmentInfo
 
 type Latency = int64
@@ -135,7 +135,7 @@ module FlowInfo =
 module HostEnvironmentInfo =
 
     let getEnvironmentInfo () =
-        let assembly = Assembly.GetAssembly(typedefof<ScenarioBuilder>)
+        let assembly = Assembly.GetAssembly(typedefof<Request>)
         let assemblyVersion = assembly.GetName().Version.ToString()
         let assemblyName = assembly.GetName().Name
         let dotNetVersion = assembly.GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName;

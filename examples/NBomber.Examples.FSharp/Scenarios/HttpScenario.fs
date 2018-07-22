@@ -6,7 +6,7 @@ open System.Net.Http
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber
-open NBomber.FSharpAPI
+open NBomber.FSharp
 
 let private createRequest () =
     let msg = new HttpRequestMessage()
@@ -24,6 +24,10 @@ let private getGithubStep =
                                else Response.Fail(response.StatusCode.ToString()) })
 
 let buildScenario () =
+
+    let concurrentCopies = 100
+    let duration = TimeSpan.FromSeconds(10.0)
+
     scenario("Test HTTP (https://github.com) with 100 concurrent users")
-    |> addTestFlow({ FlowName = "GET flow"; Steps = [|getGithubStep|]; ConcurrentCopies = 100 })
-    |> build(TimeSpan.FromSeconds(10.0))
+    |> addTestFlow("GET flow", [getGithubStep], concurrentCopies)
+    |> build(duration)

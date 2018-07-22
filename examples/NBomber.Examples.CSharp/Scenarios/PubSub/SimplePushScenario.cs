@@ -1,45 +1,64 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Timers;
+using NBomber.CSharp;
 
 namespace NBomber.Examples.CSharp.Scenarios.PubSub
 {
-    class FakeService
+    class PushNotification
     {
-        readonly Timer _timer = new Timer(500);        
-        public event EventHandler<string> PushMessageEvent;
+        public string ClientId { get; set; }
+        public string Message { get; set; }
+    }
 
-        public FakeService()
+    class FakePushServer
+    {
+        readonly Dictionary<string, Timer> _subscribers = new Dictionary<string, Timer>();
+        
+        public event EventHandler<PushNotification> Notify;
+
+        public void Publish(string clientId, string message)
         {
-            _timer.Elapsed += (s, e) =>
+            var timer = new Timer(500);
+            timer.Elapsed += (s, e) =>
             {
-                PushMessageEvent(this, "Hi Client");
+                var msg = new PushNotification
+                {
+                    ClientId = clientId,
+                    Message = $"Hi Client {clientId} from server"
+                };
+                Notify(this, msg);
+                timer.Stop();
             };
-        }
+            timer.Start();
 
-        public void Send(string msg) => _timer.Start();
-        public void Stop() => _timer.Stop();
+            _subscribers[clientId] = timer;
+        }
     }
 
     class SimplePushScenario
     {
         public static Scenario BuildScenario()
         {
-            var service = new FakeService();
+            var server = new FakePushServer();            
 
-            var step1 = Step.CreateRequest("publish", async _ =>
+            var step1 = StepFactory.CreateRequest("publish", async req =>
             {
-                service.Send("Hi Server");
+                var clientId = req.CorrelationId;
+                var message = $"Hi Server from client: {clientId}";
+
+                server.Publish(clientId, message);
                 return Response.Ok();
             });
 
             var listeners = new StepListeners();
-            service.PushMessageEvent += (s, msg) =>
+            server.Notify += (s, pushNotification) =>
             {
-                service.Stop();
-                listeners.Notify(flowId: 0, response: Response.Ok());
-            };
+                listeners.Notify(correlationId: pushNotification.ClientId,
+                                 response: Response.Ok(pushNotification.Message));
+            };            
 
-            var step2 = Step.CreateListener("listen", listeners);
+            var step2 = StepFactory.CreateListener("listen", listeners);
 
             return new ScenarioBuilder(scenarioName: nameof(SimplePushScenario))
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)

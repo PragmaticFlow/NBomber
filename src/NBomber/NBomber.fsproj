@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -14,12 +14,14 @@
     <Copyright>VIP-Logic@2018</Copyright>
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup>    
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Errors.fs" />
-    <Compile Include="ScenarioDsl.fs" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="Api\CSharp.fs" />
+    <Compile Include="Api\FSharp.fs" />
     <Compile Include="Reporting.fs" />
-    <Compile Include="FlowActor.fs" />
+    <Compile Include="FlowRunner.fs" />
     <Compile Include="ScenarioRunner.fs" />
   </ItemGroup>
   <ItemGroup>

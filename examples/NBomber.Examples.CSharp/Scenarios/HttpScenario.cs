@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
+using NBomber.CSharp;
 
 namespace NBomber.Examples.CSharp.Scenarios.Http
 {
@@ -9,9 +8,9 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
     {
         public static Scenario BuildScenario()
         {
-            var httpClient = new HttpClient();
+            var httpClient = new HttpClient();            
 
-            var getGithubStep = Step.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
+            var getGithubStep = StepFactory.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
             {
                 var request = CreateRequest();
                 var response = await httpClient.SendAsync(request);
