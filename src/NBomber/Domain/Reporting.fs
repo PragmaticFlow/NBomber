@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.Reporting
+﻿module rec NBomber.Reporting
 
 open System
 open System.IO
