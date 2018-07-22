@@ -23,7 +23,19 @@ let private getGithubStep =
                         return if response.IsSuccessStatusCode then Response.Ok()
                                else Response.Fail(response.StatusCode.ToString()) })
 
+let private asserts = [|
+    All(Assertion(fun stats -> stats.OkCount > 95))
+    All(Assertion(fun stats -> stats.FailCount > 95))
+    All(Assertion(fun stats -> stats.OkCount > 0))
+    All(Assertion(fun stats -> stats.OkCount > 0))
+    Flow("GET flow", Assertion(fun stats -> stats.FailCount < 10))
+    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> stats.OkCount = 95))
+    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> Seq.exists (fun i -> i = stats.FailCount) [80;95]))
+    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> stats.OkCount > 80 && stats.OkCount > 95))
+|]
+
 let buildScenario () =
     scenario("Test HTTP (https://github.com) with 100 concurrent users")
     |> addTestFlow({ FlowName = "GET flow"; Steps = [|getGithubStep|]; ConcurrentCopies = 100 })
+    |> addAsserts(asserts)
     |> build(TimeSpan.FromSeconds(10.0))
