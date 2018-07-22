@@ -71,7 +71,6 @@ let saveReport (report: string) =
     File.WriteAllText(filePath, report)
     report
 
-
 module StepInfo =
 
     let create(stepName, responseResults: List<Response*Latency>, 

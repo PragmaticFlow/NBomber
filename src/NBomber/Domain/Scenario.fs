@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open System.Runtime.InteropServices
 
 type CorrelationId = string
+type StepName = string
+type FlowName = string
 
 [<Struct>]
 type Request = {
@@ -20,12 +22,12 @@ type Response = {
 }
 
 type RequestStep = {
-    StepName: string
+    StepName: StepName
     Execute: Request -> Task<Response>
 }
 
 type ListenerStep = {
-    StepName: string    
+    StepName: StepName    
     Listeners: StepListeners
 }
 
@@ -35,7 +37,7 @@ type Step =
     | Pause    of TimeSpan    
 
 type TestFlow = {    
-    FlowName: string
+    FlowName: FlowName
     Steps: Step[]    
     CorrelationIds: Set<CorrelationId>
 }
@@ -45,7 +47,7 @@ type Scenario = {
     InitStep: RequestStep option
     Flows: TestFlow[]
     Duration: TimeSpan
-}
+}   
 
 type StepListeners() =
 
@@ -96,7 +98,6 @@ type Step with
         | _          -> failwith "step is not a Listener"
 
 type TestFlow with
-
     static member private createCorrelationId (flowIndex: int, concurrentCopies: int) =
         [|0 .. concurrentCopies - 1|] 
         |> Array.map(fun flowCopyNumber -> String.Format("{0}_{1}", flowIndex, flowCopyNumber) )

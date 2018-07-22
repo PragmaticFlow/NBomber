@@ -25,7 +25,7 @@ let run (scenario: Scenario) =
         runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
 let runScenario (scenario: Scenario) = 
-    Infra.initLogger()
+    Infra.initLogger() 
 
     scenario.Flows |> Array.iter(Infra.initFlow)
 
@@ -47,6 +47,9 @@ let runScenario (scenario: Scenario) =
         Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
         
         let results = Infra.getResults(actorsHosts)
+
+        //let assertionResults = Infra.applyAssertions(results, scenario.Asserts)
+        //for result in assertionResults do Log.Information(result)
 
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
@@ -70,7 +73,7 @@ module private Infra =
                 step.Execute(req).Wait()
                 Log.Debug("init has finished", scenario.ScenarioName)
                 Ok <| scenario
-            with ex -> Error <| InitStepError(ex.ToString())
+            with ex -> Error <| InitStepError(ex.Message)
         | None      -> Ok <| scenario
     
     let initFlow (flow: TestFlow) =        
@@ -114,7 +117,7 @@ module private Infra =
                         result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = response.Payload.ToString() })
 
                 with ex -> skipStep <- true
-                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.ToString() })
+                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.Message })
         return result
     }    
 
@@ -129,7 +132,7 @@ module private Infra =
         runner |> Array.iter(fun x -> x.Stop())
 
     let getResults (runner: FlowRunner[]) =
-        runner |> Array.map(fun x -> x.GetResult())
+        runner |> Array.map(fun x -> x.GetResult())    
 
     let initLogger () =
         Log.Logger <- LoggerConfiguration()

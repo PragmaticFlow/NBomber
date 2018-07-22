@@ -8,13 +8,13 @@ open NBomber
 
 type StepFactory =    
     
-    static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) =
+    static member Request(name: string, execute: Func<Request,Task<Response>>) =
         Request({ StepName = name; Execute = execute.Invoke })
 
-    static member CreateListener(name: string, listeners: StepListeners) =
+    static member Listener(name: string, listeners: StepListeners) =
         Listener({ StepName = name; Listeners = listeners })
 
-    static member CreatePause(duration) = Pause(duration)
+    static member Pause(duration) = Pause(duration)
 
 
 type ScenarioBuilder(scenarioName: string) =
@@ -28,7 +28,7 @@ type ScenarioBuilder(scenarioName: string) =
     //    if flow.Steps.Length <> uniqCount then
     //        failwith "all steps in test flow should have unique names"
 
-    member x.Init(initFunc: Func<Request,Task<Response>>) =
+    member x.AddInit(initFunc: Func<Request,Task<Response>>) =
         let step = { StepName = "init"; Execute = initFunc.Invoke }
         initStep <- Some(step)
         x

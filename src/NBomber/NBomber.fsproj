@@ -15,9 +15,10 @@
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
   <ItemGroup>    
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Errors.fs" />
-    <Compile Include="Domain.fs" />
+    <Compile Include="AssemblyInfo.fs" />    
+    <Compile Include="Domain\Errors.fs" />    
+    <Compile Include="Domain\Scenario.fs" />    
+    <Compile Include="Domain\Assertions.fs" />
     <Compile Include="Api\CSharp.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Reporting.fs" />
