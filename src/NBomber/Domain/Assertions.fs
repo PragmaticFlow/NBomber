@@ -37,8 +37,8 @@ type Asserted =
      static member internal isFailed(step) = match step with | AssertFailed _    -> true | _ -> false
 
 type AssertScope = 
-    | Step     of FlowName * StepName * Assertion
-    | TestFlow of FlowName * Assertion
+    | Step     of string * string * Assertion
+    | TestFlow of string * Assertion
     | Scenario of Assertion
 
 module internal Assertions =

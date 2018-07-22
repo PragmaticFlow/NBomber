@@ -48,7 +48,7 @@ let runScenario (scenario: Scenario) =
         
         let results = Infra.getResults(actorsHosts)
 
-        //let assertionResults = Infra.applyAssertions(results, scenario.Asserts)
+        //let assertionResults = Assertions.apply(results, scenario.Assertions)
         //for result in assertionResults do Log.Information(result)
 
         Log.Information("building report")

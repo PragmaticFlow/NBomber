@@ -19,16 +19,16 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
                     : Response.Fail(response.StatusCode.ToString());
             });
 
-            //var asserts = new Assert[] {
-            //    Assert.ForAll(stats => stats.OkCount > 95),
-            //    Assert.ForAll(stats => stats.FailCount > 95),
-            //    Assert.ForAll(stats => stats.ExceptionCount > 95),
-            //    Assert.ForAll(stats => stats.OkCount >= 95),
-            //    Assert.ForFlow("Flow name 23", stats => stats.FailCount < 10),
-            //    Assert.ForStep("Flow name 1", "step name 10", stats => stats.FailCount == 95),
-            //    Assert.ForStep("Flow name 1", "step name 19", stats => Array.IndexOf(new [] { 80, 95}, stats.FailCount) > -1),
-            //    Assert.ForStep("Flow name 2", "step name 29", stats => stats.OkCount > 80 && stats.OkCount > 95)
-            //};
+            var asserts = new [] {
+               Assert.ForAll(stats => stats.OkCount > 95),
+               Assert.ForAll(stats => stats.FailCount > 95),
+               Assert.ForAll(stats => stats.ExceptionCount > 95),
+               Assert.ForAll(stats => stats.OkCount >= 95),
+               Assert.ForFlow("Flow name 23", stats => stats.FailCount < 10),
+               Assert.ForStep("Flow name 1", "step name 10", stats => stats.FailCount == 95),
+               Assert.ForStep("Flow name 1", "step name 19", stats => Array.IndexOf(new [] { 80, 95}, stats.FailCount) > -1),
+               Assert.ForStep("Flow name 2", "step name 29", stats => stats.OkCount > 80 && stats.OkCount > 95)
+            };
 
             return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")                
                 .AddTestFlow("GET flow", steps: new[] { getGithubStep }, concurrentCopies: 100)

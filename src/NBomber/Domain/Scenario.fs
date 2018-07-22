@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Threading.Tasks
 open System.Runtime.InteropServices
+open NBomber
 
 type CorrelationId = string
 type StepName = string
@@ -46,6 +47,7 @@ type Scenario = {
     ScenarioName: string
     InitStep: RequestStep option
     Flows: TestFlow[]
+    //Assertions: AssertScope[]
     Duration: TimeSpan
 }   
 

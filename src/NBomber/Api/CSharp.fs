@@ -16,10 +16,17 @@ type StepFactory =
 
     static member Pause(duration) = Pause(duration)
 
+type Assert =
+    static member ForAll (assertion) = AssertScope.Scenario(assertion)
+    static member ForFlow (flowName, assertion) = AssertScope.TestFlow(flowName, assertion)
+    static member ForStep (flowName, stepName, assertion) = AssertScope.Step(flowName, stepName, assertion)
 
 type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
+
+    let mutable asserts = [||]
+
     let mutable initStep = None    
 
     //let validateFlow (flow) =
@@ -39,6 +46,9 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flow.FlowName] <- flow
         x
 
+    member x.AddAsserts(assertions : AssertScope[]) =
+         asserts <- assertions
+         x
     member x.Build(duration: TimeSpan) =
         let testFlows = flows
                         |> Seq.map (|KeyValue|)
@@ -48,4 +58,5 @@ type ScenarioBuilder(scenarioName: string) =
         { ScenarioName = scenarioName
           InitStep = initStep
           Flows = testFlows
+          //Assertions = asserts
           Duration = duration }

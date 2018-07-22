@@ -16,10 +16,11 @@
   </PropertyGroup>
   <ItemGroup>    
     <Compile Include="AssemblyInfo.fs" />    
-    <Compile Include="Domain\Errors.fs" />    
-    <Compile Include="Domain\Scenario.fs" />    
-    <Compile Include="Domain\Reporting.fs" />    
+    <Compile Include="Domain\Errors.fs" />  
+    <Compile Include="Domain\Scenario.fs" />   
+    <Compile Include="Domain\Reporting.fs" /> 
     <Compile Include="Domain\Assertions.fs" />
+          
     <Compile Include="Api\CSharp.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="FlowRunner.fs" />

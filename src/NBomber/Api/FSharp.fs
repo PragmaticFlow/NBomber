@@ -15,6 +15,11 @@ module Step =
 
     let pause (duration) = Pause(duration)
 
+type Assert =
+    static member ForAll (assertion) = AssertScope.Scenario(assertion)
+    static member ForFlow (flowName, assertion) = AssertScope.TestFlow(flowName, assertion)
+    static member ForStep (flowName, stepName, assertion) = AssertScope.Step(flowName, stepName, assertion)
+
 
 module Scenario =
     
