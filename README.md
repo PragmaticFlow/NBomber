@@ -47,10 +47,13 @@ ScenarioRunner.Run(scenario)
 ```
 ```fsharp
 // simple F# example
-scenario("Test MongoDb")
-|> addTestFlow({ FlowName = "READ Users"; Steps = [|mongoQuery|]; ConcurrentCopies = 10 })
-|> build(TimeSpan.FromSeconds(10))
-|> run
+let concurrentCopies = 100
+let duration = TimeSpan.FromSeconds(10.0)
+
+Scenario.create("Test MongoDb")
+|> Scenario.addTestFlow("READ Users", [mongoQuery], concurrentCopies)
+|> Scenario.build(duration)
+|> Scenario.run
 ```
 
 ## API Documentation
@@ -59,9 +62,9 @@ The whole API is built around 3 building blocks:
 ```fsharp
 // Represents single executable Step
 type Step =
-    | Request of RequestStep
-    | Listen  of ListenStep
-    | Pause   of TimeSpan  
+    | Request  of RequestStep
+    | Listener of ListenerStep
+    | Pause    of TimeSpan  
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
 type TestFlow = {
