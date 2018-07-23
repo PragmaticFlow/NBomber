@@ -1,10 +1,11 @@
 ﻿open NBomber
+open NBomber.FSharp
 open NBomber.Examples.FSharp.Scenarios
 
 [<EntryPoint>]
 let main argv =
     
     HttpScenario.buildScenario() 
-    |> ScenarioRunner.Run
+    |> Scenario.run
     
     0 // return an integer exit code
