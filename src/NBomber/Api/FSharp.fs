@@ -3,24 +3,14 @@
 open System
 open System.Threading.Tasks
 open System.Runtime.InteropServices
+
 open NBomber
 
 module Step =
-
-    let request (name: string, execute: Request -> Task<Response>) =
-        Request({ StepName = name; Execute = execute })   
-
-    let listener (name: string, listeners: StepListeners) =
-        Listener({ StepName = name; Listeners = listeners })
-
-    let pause (duration) = Pause(duration)
-
-type Assert =
-    static member ForAll (assertion) = AssertScope.Scenario(assertion)
-    static member ForFlow (flowName, assertion) = AssertScope.TestFlow(flowName, assertion)
-    static member ForStep (flowName, stepName, assertion) = AssertScope.Step(flowName, stepName, assertion)
-
-
+    let createRequest (name: string, execute: Request -> Task<Response>) = Request({ StepName = name; Execute = execute })   
+    let createListener (name: string, listeners: StepListeners) = Listener({ StepName = name; Listeners = listeners })
+    let createPause (duration) = Pause(duration)
+    
 module Scenario =
     
     let create (name: string) =        

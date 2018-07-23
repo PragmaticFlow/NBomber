@@ -6,8 +6,8 @@ open System.Diagnostics
 open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open NBomber.Reporting
-open NBomber.FSharp
+
+open NBomber.Statistics
 
 type FlowRunner(flow: TestFlow) =    
 

@@ -5,6 +5,7 @@ open System.Threading.Tasks
 open System.Net.Http
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
+
 open NBomber
 open NBomber.FSharp
 
@@ -17,22 +18,11 @@ let private createRequest () =
     
 let private httpClient = new HttpClient()
 
-let private getGithubStep = 
-    Step.request("GET github.com/VIP-Logic/NBomber html",
+let private step1 = 
+    Step.createRequest("GET github.com/VIP-Logic/NBomber html",
         fun _ -> task { let! response = createRequest() |> httpClient.SendAsync
                         return if response.IsSuccessStatusCode then Response.Ok()
                                else Response.Fail(response.StatusCode.ToString()) })
-
-//let private asserts = [|
-//    All(Assertion(fun stats -> stats.OkCount > 95))
-//    All(Assertion(fun stats -> stats.FailCount > 95))
-//    All(Assertion(fun stats -> stats.OkCount > 0))
-//    All(Assertion(fun stats -> stats.OkCount > 0))
-//    Flow("GET flow", Assertion(fun stats -> stats.FailCount < 10))
-//    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> stats.OkCount = 95))
-//    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> Seq.exists (fun i -> i = stats.FailCount) [80;95]))
-//    Step("GET flow", "GET github.com/VIP-Logic/NBomber html", Assertion(fun stats -> stats.OkCount > 80 && stats.OkCount > 95))
-//|]
 
 let buildScenario () =
 
@@ -40,6 +30,5 @@ let buildScenario () =
     let duration = TimeSpan.FromSeconds(10.0)
 
     Scenario.create("Test HTTP (https://github.com) with 100 concurrent users")
-    |> Scenario.addTestFlow("GET flow", [getGithubStep], concurrentCopies)
-    //|> Scenario.addAsserts(asserts)
+    |> Scenario.addTestFlow("GET flow", [step1], concurrentCopies)    
     |> Scenario.build(duration)

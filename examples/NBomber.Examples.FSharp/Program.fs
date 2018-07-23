@@ -5,6 +5,6 @@ open NBomber.Examples.FSharp.Scenarios
 let main argv =
     
     HttpScenario.buildScenario() 
-    |> ScenarioRunner.run
+    |> ScenarioRunner.Run
     
     0 // return an integer exit code

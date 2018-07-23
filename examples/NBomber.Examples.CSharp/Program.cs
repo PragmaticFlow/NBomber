@@ -1,4 +1,5 @@
 ﻿using System;
+
 using NBomber.Examples.CSharp.Scenarios.Mongo;
 using NBomber.Examples.CSharp.Scenarios.Http;
 using NBomber.Examples.CSharp.Scenarios.PubSub;

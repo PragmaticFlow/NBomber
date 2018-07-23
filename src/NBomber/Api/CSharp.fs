@@ -8,32 +8,18 @@ open NBomber
 
 type StepFactory =    
     
-    static member Request(name: string, execute: Func<Request,Task<Response>>) =
+    static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) =
         Request({ StepName = name; Execute = execute.Invoke })
 
-    static member Listener(name: string, listeners: StepListeners) =
+    static member CreateListener(name: string, listeners: StepListeners) =
         Listener({ StepName = name; Listeners = listeners })
 
-    static member Pause(duration) = Pause(duration)
-
-type Assert =
-    static member ForAll (assertion) = AssertScope.Scenario(assertion)
-    static member ForFlow (flowName, assertion) = AssertScope.TestFlow(flowName, assertion)
-    static member ForStep (flowName, stepName, assertion) = AssertScope.Step(flowName, stepName, assertion)
+    static member CreatePause(duration) = Pause(duration)
 
 type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
-
-    let mutable asserts = [||]
-
-    let mutable initStep = None    
-
-    //let validateFlow (flow) =
-    //    let uniqCount = flow.Steps |> Array.map(fun c -> c.StepName) |> Array.distinct |> Array.length
-        
-    //    if flow.Steps.Length <> uniqCount then
-    //        failwith "all steps in test flow should have unique names"
+    let mutable initStep = None        
 
     member x.AddInit(initFunc: Func<Request,Task<Response>>) =
         let step = { StepName = "init"; Execute = initFunc.Invoke }
@@ -45,10 +31,7 @@ type ScenarioBuilder(scenarioName: string) =
         let flow = TestFlow.create(flowIndex, name, steps, concurrentCopies)
         flows.[flow.FlowName] <- flow
         x
-
-    member x.AddAsserts(assertions : AssertScope[]) =
-         asserts <- assertions
-         x
+        
     member x.Build(duration: TimeSpan) =
         let testFlows = flows
                         |> Seq.map (|KeyValue|)
@@ -57,6 +40,5 @@ type ScenarioBuilder(scenarioName: string) =
 
         { ScenarioName = scenarioName
           InitStep = initStep
-          Flows = testFlows
-          //Assertions = asserts
+          Flows = testFlows          
           Duration = duration }

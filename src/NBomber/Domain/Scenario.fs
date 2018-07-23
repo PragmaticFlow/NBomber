@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Threading.Tasks
 open System.Runtime.InteropServices
-open NBomber
 
 type CorrelationId = string
 type StepName = string
@@ -46,8 +45,7 @@ type TestFlow = {
 type Scenario = {
     ScenarioName: string
     InitStep: RequestStep option
-    Flows: TestFlow[]
-    //Assertions: AssertScope[]
+    Flows: TestFlow[]    
     Duration: TimeSpan
 }   
 
@@ -83,33 +81,47 @@ type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }
 
-type Step with 
-    static member internal isRequest(step)  = match step with | Request _  -> true | _ -> false
-    static member internal isListener(step) = match step with | Listener _ -> true | _ -> false
-    static member internal isPause(step)    = match step with | Pause _    -> true | _ -> false    
+module internal Step =
     
-    static member internal getName(step) = 
+    let isRequest(step)  = match step with | Request _  -> true | _ -> false
+    let isListener(step) = match step with | Listener _ -> true | _ -> false
+    let isPause(step)    = match step with | Pause _    -> true | _ -> false    
+    
+    let getName(step) = 
         match step with
         | Request s  -> s.StepName
         | Listener s -> s.StepName
         | Pause t    -> "pause"
         
-    static member internal getListener(step) = 
+    let getListener(step) = 
         match step with 
         | Listener l -> l
         | _          -> failwith "step is not a Listener"
 
-type TestFlow with
-    static member private createCorrelationId (flowIndex: int, concurrentCopies: int) =
+module internal TestFlow =
+    
+    let create (flowIndex, name, steps, concurrentCopies) =
+        { FlowName = name
+          Steps = steps
+          CorrelationIds = createCorrelationId(flowIndex, concurrentCopies) }
+
+    let initFlow (flow: TestFlow) =        
+        flow.Steps
+        |> Array.filter(Step.isListener)
+        |> Array.map(Step.getListener)        
+        |> Array.iter(initListeners(flow))
+
+    let initListeners (flow: TestFlow) (listStep: ListenerStep) = 
+        flow.CorrelationIds
+        |> Set.toArray
+        |> Array.map(StepListener)
+        |> Array.append([|StepListener(Constants.WarmUpId)|])
+        |> listStep.Listeners.Init 
+
+    let createCorrelationId (flowIndex: int, concurrentCopies: int) =
         [|0 .. concurrentCopies - 1|] 
         |> Array.map(fun flowCopyNumber -> String.Format("{0}_{1}", flowIndex, flowCopyNumber) )
         |> Set.ofArray
-
-    static member internal create (flowIndex, name, steps, concurrentCopies) =
-        { FlowName = name
-          Steps = steps
-          CorrelationIds = TestFlow.createCorrelationId(flowIndex, concurrentCopies) }
-
 
 module internal Constants =
 

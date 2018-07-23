@@ -11,11 +11,8 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Errors
 open NBomber.Reporting
 open NBomber.FlowRunner
-open Infra
-
-let inline Run (scenario: Scenario) = run(scenario)
     
-let run (scenario: Scenario) =
+let Run (scenario: Scenario) =
     let mutable runningScenario = true
     while runningScenario do
         runScenario(scenario)
@@ -27,7 +24,7 @@ let run (scenario: Scenario) =
 let runScenario (scenario: Scenario) = 
     Infra.initLogger() 
 
-    scenario.Flows |> Array.iter(Infra.initFlow)
+    scenario.Flows |> Array.iter(TestFlow.initFlow)
 
     Log.Information("{Scenario} has started", scenario.ScenarioName)
         
@@ -46,10 +43,7 @@ let runScenario (scenario: Scenario) =
         // wait until the flow runners stop
         Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
         
-        let results = Infra.getResults(actorsHosts)
-
-        //let assertionResults = Assertions.apply(results, scenario.Assertions)
-        //for result in assertionResults do Log.Information(result)
+        let results = Infra.getResults(actorsHosts)        
 
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
@@ -75,19 +69,6 @@ module private Infra =
                 Ok <| scenario
             with ex -> Error <| InitStepError(ex.Message)
         | None      -> Ok <| scenario
-    
-    let initFlow (flow: TestFlow) =        
-        flow.Steps
-        |> Array.filter(Step.isListener)
-        |> Array.map(Step.getListener)        
-        |> Array.iter(initListeners(flow))    
-
-    let initListeners (flow: TestFlow) (listStep: ListenerStep) = 
-        flow.CorrelationIds
-        |> Set.toArray
-        |> Array.map(StepListener)
-        |> Array.append([|StepListener(Constants.WarmUpId)|])
-        |> listStep.Listeners.Init        
 
     let warmUpScenario (scenario: Scenario) =
         Log.Information("warming up")
