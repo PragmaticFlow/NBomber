@@ -30,3 +30,5 @@ module Scenario =
 
     let build (duration: TimeSpan) (scenario: Scenario) =
         { scenario with Duration = duration }
+
+    let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
