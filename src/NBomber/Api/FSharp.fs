@@ -5,30 +5,38 @@ open System.Threading.Tasks
 open System.Runtime.InteropServices
 
 open NBomber
+open NBomber.Contracts
+open NBomber.Domain
 
 module Step =
-    let createRequest (name: string, execute: Request -> Task<Response>) = Request({ StepName = name; Execute = execute })   
-    let createListener (name: string, listeners: StepListeners) = Listener({ StepName = name; Listeners = listeners })
-    let createPause (duration) = Pause(duration)
+
+    let createRequest (name: string, execute: Request -> Task<Response>) = 
+        Request({ StepName = name; Execute = execute }) :> IStep  
+    
+    let createListener (name: string, listeners: IStepListenerChannel) = 
+        let ls = listeners :?> StepListenerChannel
+        Listener({ StepName = name; Listeners = ls }) :> IStep
+
+    let createPause (duration) = Pause(duration) :> IStep
+
+    let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
     
 module Scenario =
     
-    let create (name: string) =        
+    let create (name: string): ScenarioConfig =        
         { ScenarioName = name
-          InitStep = None
-          Flows = Array.empty
+          TestInit = None
+          TestFlows = Array.empty
           Duration = TimeSpan.FromSeconds(10.0) }
 
-    let addInit (initFunc: Request -> Task<Response>) (scenario: Scenario) =
-        let step = { StepName = "init"; Execute = initFunc }
-        { scenario with InitStep = Some(step) }
+    let addTestInit (initFunc: Request -> Task<Response>) (scenario: ScenarioConfig) =
+        let step = Step.createRequest(Constants.InitId, initFunc)
+        { scenario with TestInit = Some(step) }
 
-    let addTestFlow (name: string, steps: Step list, concurrentCopies: int) (scenario: Scenario) =
-        let flowIndex = Array.length(scenario.Flows)    
-        let flow = TestFlow.create(flowIndex, name, List.toArray(steps), concurrentCopies)
-        { scenario with Flows = Array.append scenario.Flows [|flow|] }
+    let addTestFlow (testFlow: TestFlowConfig) (scenario: ScenarioConfig) =        
+        { scenario with TestFlows = Array.append scenario.TestFlows [|testFlow|] }
 
-    let build (duration: TimeSpan) (scenario: Scenario) =
+    let build (duration: TimeSpan) (scenario: ScenarioConfig) =
         { scenario with Duration = duration }
 
-    let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
+    let run (scenario: ScenarioConfig) = ScenarioRunner.Run(scenario)

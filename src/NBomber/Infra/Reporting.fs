@@ -7,6 +7,8 @@ open System.Runtime.Versioning
 
 open ConsoleTables
 
+open NBomber.Contracts
+open NBomber.Domain
 open NBomber.Statistics
 
 let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =        

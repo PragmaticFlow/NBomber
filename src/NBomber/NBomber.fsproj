@@ -16,14 +16,15 @@
   </PropertyGroup>
   <ItemGroup>    
     <Compile Include="AssemblyInfo.fs" />    
+    <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
-    <Compile Include="Domain\Scenario.fs" />    
-    <Compile Include="Domain\Statistics.fs" />    
-    <Compile Include="Domain\Reporting.fs" />
-    <Compile Include="FlowRunner.fs" />
-    <Compile Include="ScenarioRunner.fs" />
-    <Compile Include="Api\CSharp.fs" />
+    <Compile Include="Domain\Domain.fs" />    
+    <Compile Include="Infra\Statistics.fs" />    
+    <Compile Include="Infra\Reporting.fs" />    
+    <Compile Include="Infra\FlowRunner.fs" />    
+    <Compile Include="Infra\ScenarioRunner.fs" />    
     <Compile Include="Api\FSharp.fs" />
+    <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="HdrHistogram" Version="2.5.0" />

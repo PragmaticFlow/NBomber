@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Timers;
 
+using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace NBomber.Examples.CSharp.Scenarios.PubSub
@@ -39,11 +40,11 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
 
     class SimplePushScenario
     {
-        public static Scenario BuildScenario()
+        public static ScenarioConfig BuildScenario()
         {
             var server = new FakePushServer();            
 
-            var step1 = StepFactory.CreateRequest("publish", async req =>
+            var step1 = Step.CreateRequest("publish", async req =>
             {
                 var clientId = req.CorrelationId;
                 var message = $"Hi Server from client: {clientId}";
@@ -52,14 +53,14 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
                 return Response.Ok();
             });
 
-            var listeners = new StepListeners();
+            var listenerChannel = Step.CreateListenerChannel();
             server.Notify += (s, pushNotification) =>
             {
-                listeners.Notify(correlationId: pushNotification.ClientId,
-                                 response: Response.Ok(pushNotification.Message));
+                listenerChannel.Notify(correlationId: pushNotification.ClientId,
+                                       response: Response.Ok(pushNotification.Message));
             };            
 
-            var step2 = StepFactory.CreateListener("listen", listeners);
+            var step2 = Step.CreateListener("listen", listenerChannel);
 
             return new ScenarioBuilder(scenarioName: nameof(SimplePushScenario))
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)

@@ -6,7 +6,7 @@ open System.Net.Http
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber
+open NBomber.Contracts
 open NBomber.FSharp
 
 let private createRequest () =
@@ -25,10 +25,6 @@ let private step1 =
                                else Response.Fail(response.StatusCode.ToString()) })
 
 let buildScenario () =
-
-    let concurrentCopies = 100
-    let duration = TimeSpan.FromSeconds(10.0)
-
     Scenario.create("Test HTTP (https://github.com) with 100 concurrent users")
-    |> Scenario.addTestFlow("GET flow", [step1], concurrentCopies)    
-    |> Scenario.build(duration)
+    |> Scenario.addTestFlow({ FlowName = "GET flow"; Steps = [|step1|]; ConcurrentCopies = 100 })    
+    |> Scenario.build(TimeSpan.FromSeconds(10.0))

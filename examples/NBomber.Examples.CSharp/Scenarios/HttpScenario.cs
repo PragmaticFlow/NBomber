@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net.Http;
-
+using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace NBomber.Examples.CSharp.Scenarios.Http
@@ -16,11 +16,11 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
             return msg;
         }
 
-        public static Scenario BuildScenario()
+        public static ScenarioConfig BuildScenario()
         {
             var httpClient = new HttpClient();            
 
-            var step1 = StepFactory.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
+            var step1 = Step.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
             {
                 var request = CreateRequest();
                 var response = await httpClient.SendAsync(request);

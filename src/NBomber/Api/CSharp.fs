@@ -4,41 +4,41 @@ open System
 open System.Collections.Generic
 open System.Threading.Tasks
 
-open NBomber
+open NBomber.Contracts
+open NBomber.Domain
+open NBomber.FSharp
 
-type StepFactory =    
-    
-    static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) =
-        Request({ StepName = name; Execute = execute.Invoke })
-
-    static member CreateListener(name: string, listeners: StepListeners) =
-        Listener({ StepName = name; Listeners = listeners })
-
-    static member CreatePause(duration) = Pause(duration)
+type Step =    
+    static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
+    static member CreateListener(name: string, listeners: IStepListenerChannel) = Step.createListener(name, listeners)
+    static member CreatePause(duration) = Step.createPause(duration)
+    static member CreateListenerChannel() = Step.createListenerChannel()
 
 type ScenarioBuilder(scenarioName: string) =
     
-    let flows = Dictionary<string, TestFlow>()
-    let mutable initStep = None        
+    let flows = Dictionary<string, TestFlowConfig>()
+    let mutable testInit = None        
 
-    member x.AddInit(initFunc: Func<Request,Task<Response>>) =
-        let step = { StepName = "init"; Execute = initFunc.Invoke }
-        initStep <- Some(step)
+    member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
+        let step = Step.CreateRequest(Constants.InitId, initFunc)        
+        testInit <- Some(step)
         x
 
-    member x.AddTestFlow(name: string, steps: Step[], concurrentCopies: int) =        
-        let flowIndex = flows.Count
-        let flow = TestFlow.create(flowIndex, name, steps, concurrentCopies)
-        flows.[flow.FlowName] <- flow
+    member x.AddTestFlow(name: string, steps: IStep[], concurrentCopies: int) =        
+        let flowConfig = { FlowName = name
+                           Steps = steps
+                           ConcurrentCopies = concurrentCopies }
+                           
+        flows.[flowConfig.FlowName] <- flowConfig
         x
         
-    member x.Build(duration: TimeSpan) =
-        let testFlows = flows
-                        |> Seq.map (|KeyValue|)
-                        |> Seq.map (fun (name,job) -> job)
-                        |> Seq.toArray
+    member x.Build(duration: TimeSpan): ScenarioConfig =
+        let flowConfigs = flows
+                          |> Seq.map (|KeyValue|)
+                          |> Seq.map (fun (name,job) -> job)
+                          |> Seq.toArray
 
         { ScenarioName = scenarioName
-          InitStep = initStep
-          Flows = testFlows          
+          TestInit = testInit
+          TestFlows = flowConfigs          
           Duration = duration }

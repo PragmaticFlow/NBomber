@@ -6,13 +6,14 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
+using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace NBomber.Examples.CSharp.Scenarios.Mongo
 {
     class MongoScenario
     {
-        public static Scenario BuildScenario()
+        public static ScenarioConfig BuildScenario()
         {
             var db = new MongoClient().GetDatabase("Test");
             var usersCollection = db.GetCollection<User>("Users");
@@ -31,20 +32,20 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
             var readQuery1 = usersCollection.Find(u => u.IsActive == true).Limit(500);
             var readQuery2 = usersCollection.Find(u => u.Age > 50).Limit(100);
 
-            var step1 = StepFactory.CreateRequest("read IsActive = true and TOP 500", async _ =>
+            var step1 = Step.CreateRequest("read IsActive = true and TOP 500", async _ =>
             {
                 await readQuery1.ToListAsync();
                 return Response.Ok();
             });            
 
-            var step2 = StepFactory.CreateRequest("read Age > 50 and TOP 100", async _ =>
+            var step2 = Step.CreateRequest("read Age > 50 and TOP 100", async _ =>
             {
                 await readQuery2.ToListAsync();
                 return Response.Ok();
             });
 
             return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")
-                .AddInit(initDb)
+                .AddTestInit(initDb)
                 .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
                 .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
                 .Build(duration: TimeSpan.FromSeconds(10));

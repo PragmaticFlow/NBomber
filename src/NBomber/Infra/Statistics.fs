@@ -5,8 +5,8 @@ open System.Collections.Generic
 
 open HdrHistogram
 
-type Latency = int64
-type ExceptionCount = int
+open NBomber.Contracts
+open NBomber.Domain
 
 type StepInfo = {
     StepName: string
