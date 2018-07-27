@@ -52,6 +52,7 @@ type StepListenerChannel() =
     let mutable listeners = Dictionary<CorrelationId,StepListener>()
 
     member x.Init(items: StepListener[]) = 
+        listeners.Clear()
         items |> Array.iter(fun x -> listeners.Add(x.CorrelationId, x))
 
     member x.Get(correlationId: string) = listeners.[correlationId]
