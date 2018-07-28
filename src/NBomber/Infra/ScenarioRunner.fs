@@ -6,6 +6,7 @@ open System.Diagnostics
 open System.Threading.Tasks
 
 open Serilog
+open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
@@ -25,7 +26,7 @@ let Run (scenario: ScenarioConfig) =
 
 let private runScenario (config: ScenarioConfig) = 
     
-    Infra.initLogger() 
+    initLogger() 
 
     let scenario = Scenario.create(config)
 
@@ -33,20 +34,24 @@ let private runScenario (config: ScenarioConfig) =
 
     let result = Scenario.runInit(scenario)
                  |> Result.bind(Scenario.warmUpScenario)
-                 |> Result.map(Infra.startFlows) 
+                 |> Result.map(startFlows) 
     
     match result with
-    | Ok actorsHosts ->   
-    
+    | Ok actorsHosts ->
+
         Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
-        Task.Delay(scenario.Duration).Wait()    
+        Log.Information("processing...")
         
-        Infra.stopFlows(actorsHosts)
+        let t1 = Task.Delay(scenario.Duration)
+        let t2 = runProgressBar(scenario.Duration)
+        Task.WhenAll(t1, t2).Wait()
+        
+        stopFlows(actorsHosts)
 
         // wait until the flow runners stop
         Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
         
-        let results = Infra.getResults(actorsHosts)        
+        let results = getResults(actorsHosts)        
 
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
@@ -56,25 +61,36 @@ let private runScenario (config: ScenarioConfig) =
         Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
     | Error e -> let msg = Errors.printError(e)
-                 Log.Error(msg)
+                 Log.Error(msg) 
 
+let private startFlows (scenario: Scenario) =
+    Log.Information("starting test flows")
+    let runners = scenario.TestFlows |> Array.map(FlowRunner)    
+    runners |> Array.iter(fun x -> x.Run()) 
+    runners
 
-module private Infra =               
+let private stopFlows (runner: FlowRunner[]) =
+    Log.Information("stoping test flows")
+    runner |> Array.iter(fun x -> x.Stop())
 
-    let startFlows (scenario: Scenario) =
-        Log.Information("starting test flows")
-        let runners = scenario.TestFlows |> Array.map(FlowRunner)    
-        runners |> Array.iter(fun x -> x.Run()) 
-        runners
+let private getResults (runner: FlowRunner[]) =
+    runner |> Array.map(fun x -> x.GetResult())    
 
-    let stopFlows (runner: FlowRunner[]) =
-        Log.Information("stoping test flows")
-        runner |> Array.iter(fun x -> x.Stop())
+let private initLogger () =
+    Log.Logger <- LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger()
 
-    let getResults (runner: FlowRunner[]) =
-        runner |> Array.map(fun x -> x.GetResult())    
+let private runProgressBar (scenarioDuration: TimeSpan) = task {    
+    let options = ProgressBarOptions(ProgressBarOnBottom = true,                                     
+                                     ForegroundColor = ConsoleColor.Yellow,
+                                     ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
+                                     BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
+                                     BackgroundCharacter = Nullable<char>('\u2593'))
 
-    let initLogger () =
-        Log.Logger <- LoggerConfiguration()
-                    .WriteTo.Console()
-                    .CreateLogger()
+    use pbar = new ProgressBar(scenarioDuration.Seconds, String.Empty, options)
+    
+    for i = 0 to scenarioDuration.Seconds do        
+        do! Task.Delay(TimeSpan.FromSeconds(1.0))
+        pbar.Tick()
+}
