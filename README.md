@@ -47,17 +47,13 @@ ScenarioRunner.Run(scenario)
 ```
 ```fsharp
 // simple F# example
-let concurrentCopies = 100
-let duration = TimeSpan.FromSeconds(10.0)
-
 Scenario.create("Test MongoDb")
-|> Scenario.addTestFlow("READ Users", [mongoQuery], concurrentCopies)
-|> Scenario.build(duration)
+|> Scenario.addTestFlow({ FlowName = "READ Users"; Steps = [|mongoQuery|]; ConcurrentCopies = 10 })
+|> Scenario.build(TimeSpan.FromSeconds(10.0))
 |> Scenario.run
 ```
 
 ## API Documentation
-### Request-response scenario
 The whole API is built around 3 building blocks:
 ```fsharp
 // Represents single executable Step
@@ -76,8 +72,35 @@ type TestFlow = {
 // Represents Scenario
 type Scenario = {
     ScenarioName: string
-    InitStep: Step option // init step will be executed at start of every scenario
-    Flows: TestFlow[]     // each TestFlow will be executed on dedicated System.Threading.Task
+    TestInit: Step option // init step will be executed at start of every scenario
+    TestFlows: TestFlow[] // each TestFlow will be executed on dedicated System.Threading.Task
     Duration: TimeSpan    // execution time of scenario 
 }
+```
+**Step** is a basic element which will be executed and measured. **TestFlow** is basically a container for steps(you can think of TestFlow like a Job of sequential operations). **All steps within one TestFlow are executing sequentially**. It helps you model dependently ordered operations like: 
+```fsharp
+// pseudo code example to demonstrate the seq of steps
+let testFlow = authenticateUserStep >> buyProductStep >> logoutUserStep
+
+// This is how NBomber works with testFlow under the hood
+// It will execute testFlow in while loop and then accumulate results
+while not stop do
+    testFlow() // execute TestFlow and measure response time
+```
+### Request-response scenario
+The Request-response is represented via RequestStep.
+```fsharp
+type RequestStep = {
+    StepName: StepName
+    Execute: Request -> Task<Response>
+}
+```
+To create RequestStep you should use
+```fsharp
+// for F#
+Step.createRequest(name: string, execute: Request -> Task<Response>)
+```
+```csharp
+// for C#
+Step.CreateRequest(name: string, execute: Func<Request, Task<Response>>)
 ```
