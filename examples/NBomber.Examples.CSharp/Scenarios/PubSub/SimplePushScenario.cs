@@ -40,7 +40,7 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
 
     class SimplePushScenario
     {
-        public static ScenarioConfig BuildScenario()
+        public static Scenario BuildScenario()
         {
             var server = new FakePushServer();            
 

@@ -152,7 +152,7 @@ module internal Step =
 
 module internal TestFlow =
     
-    let create (flowIndex, config: TestFlowConfig) =
+    let create (flowIndex, config: Contracts.TestFlow) =
         { FlowName       = config.FlowName
           Steps          = config.Steps |> Array.map(fun x -> x :?> Step)
           CorrelationIds = createCorrelationId(flowIndex, config.ConcurrentCopies) }
@@ -201,7 +201,7 @@ module internal TestFlow =
 
 module internal Scenario =    
 
-    let create (config: ScenarioConfig) =
+    let create (config: Contracts.Scenario) =
         { ScenarioName = config.ScenarioName
           InitStep = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
           TestFlows = config.TestFlows |> Array.mapi(fun i config -> TestFlow.create(i, config))   

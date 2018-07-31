@@ -13,7 +13,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Mongo
 {
     class MongoScenario
     {
-        public static ScenarioConfig BuildScenario()
+        public static Scenario BuildScenario()
         {
             var db = new MongoClient().GetDatabase("Test");
             var usersCollection = db.GetCollection<User>("Users");

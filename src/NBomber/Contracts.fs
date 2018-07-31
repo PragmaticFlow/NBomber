@@ -20,16 +20,16 @@ type IStep = interface end
 type IStepListenerChannel =
     abstract Notify: correlationId:string * response:Response -> unit
 
-type TestFlowConfig = {
+type TestFlow = {
     FlowName: string
     Steps: IStep[]
     ConcurrentCopies: int
 }
 
-type ScenarioConfig = {
+type Scenario = {
     ScenarioName: string
     TestInit: IStep option
-    TestFlows: TestFlowConfig[]    
+    TestFlows: TestFlow[]    
     Duration: TimeSpan
 }
 

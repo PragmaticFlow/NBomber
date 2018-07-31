@@ -16,7 +16,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
             return msg;
         }
 
-        public static ScenarioConfig BuildScenario()
+        public static Scenario BuildScenario()
         {
             var httpClient = new HttpClient();            
 

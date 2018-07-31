@@ -9,13 +9,12 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Statistics
 open NBomber.FlowRunner
     
-let Run (scenario: ScenarioConfig) =
+let Run (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
     while runningScenario do
         runScenario(scenario)
@@ -24,7 +23,7 @@ let Run (scenario: ScenarioConfig) =
         let userInput = Console.ReadLine()
         runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
-let private runScenario (config: ScenarioConfig) = 
+let private runScenario (config: Contracts.Scenario) = 
     
     initLogger() 
 

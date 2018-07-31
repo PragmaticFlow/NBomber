@@ -5,7 +5,6 @@ open System.Collections.Generic
 open System.Threading.Tasks
 
 open NBomber.Contracts
-open NBomber.Domain
 open NBomber.FSharp
 
 type Step =    
@@ -16,11 +15,11 @@ type Step =
 
 type ScenarioBuilder(scenarioName: string) =
     
-    let flows = Dictionary<string, TestFlowConfig>()
+    let flows = Dictionary<string, TestFlow>()
     let mutable testInit = None        
 
     member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
-        let step = Step.CreateRequest(Constants.InitId, initFunc)        
+        let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
         testInit <- Some(step)
         x
 
@@ -32,7 +31,7 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
         
-    member x.Build(duration: TimeSpan): ScenarioConfig =
+    member x.Build(duration: TimeSpan): Scenario =
         let flowConfigs = flows
                           |> Seq.map (|KeyValue|)
                           |> Seq.map (fun (name,job) -> job)
