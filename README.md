@@ -88,9 +88,9 @@ type Step =
     | Pause    of TimeSpan     // to model pause in your test flow
 ```    
 NBomber provides 3 type of steps:
-- **Request** - use Request step to simulate testing of database, HTTP server and etc.
-- **Listener** - use Listener step to simulate testing of WebSockets, SSE, RabbitMq, Kafka and etc. Usually for testing Pub/Sub you need a trigger and listener. The trigger will trigger some action and then listener will listen on correspond updates.
-- **Pause** - to model pause.
+- **Request** - to model Request-response pattern. You can use Request step to simulate testing of database, HTTP server and etc.
+- **Listener** - to model Pub/Sub pattern. You can use Listener step to simulate testing of WebSockets, SSE, RabbitMq, Kafka and etc. Usually for testing Pub/Sub you need a trigger and listener. The trigger will trigger some action and then listener will listen on correspond updates.
+- **Pause** - to model pause. You can use pause to simulate micro-batching update, or just wait some time on operation complete.
 
 This is how simple Request step could be defined:
 ```csharp
