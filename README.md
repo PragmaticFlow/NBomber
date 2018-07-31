@@ -53,14 +53,15 @@ Scenario.create("Test MongoDb")
 |> Scenario.run
 ```
 
-## API Documentation
+## API Usage
 The whole API is built around 3 building blocks:
 ```fsharp
 // Represents single executable Step
+// it's a basic element which will be executed and measured
 type Step =
-    | Request  of RequestStep
-    | Listener of ListenerStep
-    | Pause    of TimeSpan  
+    | Request  of RequestStep  // to model Request-response pattern
+    | Listener of ListenerStep // to model Pub/Sub pattern
+    | Pause    of TimeSpan     // to model pause in your test flow.
 
 // Represents TestFlow which groups steps and execute them sequentially on dedicated System.Threading.Task
 type TestFlow = {
@@ -78,11 +79,12 @@ type Scenario = {
 }
 ```
 
-**Step** is a basic element which will be executed and measured. You can use:
- - Request - to model Request-response pattern.
- - Listener - to model Pub/Sub pattern. 
- - Pause - to model pause in your test flow.
+**Step** is a basic element(you can think of Step like a function) which will be executed and measured. NBomber provides 3 type of steps:
+- Request - to model Request-response pattern. You can use Request step to simulate testing of database, HTTP server and etc.
+- Listener - to model Pub/Sub pattern. You can use Listener step to simulate testing of WebSockets, SSE, RabbitMq, Kafka and etc. Usually for testing Pub/Sub you need a trigger and listener. The trigger will trigger some action and then listener will listen on correspond updates.
+- Pause - to model pause.
 
+This is how simple Request step could be defined:
 ```csharp
 // C# example of simple Request step
 var reqStep = Step.CreateRequest(name: "simple step", execute: req => Task.FromResult(Response.Ok()))
@@ -92,7 +94,7 @@ var reqStep = Step.CreateRequest(name: "simple step", execute: req => Task.FromR
 let reqStep = Step.createRequest("simple step", fun req -> task { return Response.Ok() })
 ```
 
-**TestFlow** is basically a container for steps(you can think of TestFlow like a Job of sequential operations). **All steps within one TestFlow are executing sequentially**. It helps you model dependently ordered operations like: 
+**TestFlow** is basically a container for steps(you can think of TestFlow like a Job of sequential operations).
 ```csharp
 // C# example of TestFlow with 3 sequential steps
 var testFlow = new TestFlow(flowName: "Sequantial flow",
@@ -105,15 +107,12 @@ let testFlow = { FlowName = "Sequantial flow"
                  Steps = [authenticateUserStep, buyProductStep, logoutUserStep]
                  ConcurrentCopies = 10 }
 ```
+**All steps within one TestFlow are executing sequentially**. It helps you model dependently ordered operations. TestFlow allows you to specify how many copies will be run in parallel. For example, if you set ConcurrentCopies = 10, it means that 10 copies of the same TestFlow will be created and started at the same time.
+
+**Scenario** is a simple abstraction which represent your load test. It contains optional TestInit step which you can define to prepare test environment(load/restore database, clear cache, clean folders and etc). 
+
 ### Request-response scenario
-The Request-response is represented via RequestStep.
-```fsharp
-type RequestStep = {
-    StepName: StepName
-    Execute: Request -> Task<Response>
-}
-```
-To create RequestStep you should use
+To create Request step you should use
 ```fsharp
 // for F#
 Step.createRequest(name: string, execute: Request -> Task<Response>)
