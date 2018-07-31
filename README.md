@@ -53,7 +53,7 @@ Scenario.create("Test MongoDb")
 |> Scenario.run
 ```
 
-## API Usage
+## API Documentation
 The whole API is built around 3 building blocks: Step, TestFlow, Scenario.
 ```fsharp
 // Represents single executable Step
@@ -136,7 +136,7 @@ type Scenario = {
     Duration: TimeSpan    // execution time of scenario 
 }
 ```
-
+## API Usage
 ### Request-response scenario
 To create Request step you should use
 ```fsharp
