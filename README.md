@@ -48,7 +48,7 @@ ScenarioRunner.Run(scenario)
 ```fsharp
 // simple F# example
 Scenario.create("Test MongoDb")
-|> Scenario.addTestFlow({ FlowName = "READ Users"; Steps = [|mongoQuery|]; ConcurrentCopies = 10 })
+|> Scenario.addTestFlow({ FlowName = "READ Users"; Steps = [mongoQuery]; ConcurrentCopies = 10 })
 |> Scenario.build(TimeSpan.FromSeconds(10.0))
 |> Scenario.run
 ```
@@ -77,15 +77,33 @@ type Scenario = {
     Duration: TimeSpan    // execution time of scenario 
 }
 ```
-**Step** is a basic element which will be executed and measured. **TestFlow** is basically a container for steps(you can think of TestFlow like a Job of sequential operations). **All steps within one TestFlow are executing sequentially**. It helps you model dependently ordered operations like: 
-```fsharp
-// pseudo code example to demonstrate the seq of steps
-let testFlow = authenticateUserStep >> buyProductStep >> logoutUserStep
 
-// This is how NBomber works with testFlow under the hood
-// It will execute testFlow in while loop and then accumulate results
-while not stop do
-    testFlow() // execute TestFlow and measure response time
+**Step** is a basic element which will be executed and measured. You can use:
+ - Request - to model Request-response pattern.
+ - Listener - to model Pub/Sub pattern. 
+ - Pause - to model pause in your test flow.
+
+```csharp
+// C# example of simple Request step
+var reqStep = Step.CreateRequest(name: "simple step", execute: req => Task.FromResult(Response.Ok()))
+``` 
+```fsharp
+// F# example of simple Request step
+let reqStep = Step.createRequest("simple step", fun req -> task { return Response.Ok() })
+```
+
+**TestFlow** is basically a container for steps(you can think of TestFlow like a Job of sequential operations). **All steps within one TestFlow are executing sequentially**. It helps you model dependently ordered operations like: 
+```csharp
+// C# example of TestFlow with 3 sequential steps
+var testFlow = new TestFlow(flowName: "Sequantial flow",
+                            steps: new [] { authenticateUserStep, buyProductStep, logoutUserStep },
+                            concurrentCopies: 10)
+```
+```fsharp
+// F# example of TestFlow with 3 sequential steps
+let testFlow = { FlowName = "Sequantial flow"
+                 Steps = [authenticateUserStep, buyProductStep, logoutUserStep]
+                 ConcurrentCopies = 10 }
 ```
 ### Request-response scenario
 The Request-response is represented via RequestStep.
