@@ -43,7 +43,7 @@ var scenario = new ScenarioBuilder(scenarioName: "Test MongoDb")
                 .AddTestFlow("READ Users", steps: new[] { mongoQuery }, concurrentCopies: 10)                
                 .Build(duration: TimeSpan.FromSeconds(10));
 
-ScenarioRunner.Run(scenario)
+ScenarioRunner.Run(scenario);
 ```
 ```fsharp
 // simple F# example
@@ -95,7 +95,7 @@ NBomber provides 3 type of steps:
 This is how simple Request step could be defined:
 ```csharp
 // C# example of simple Request step
-var reqStep = Step.CreateRequest(name: "simple step", execute: req => Task.FromResult(Response.Ok()))
+var reqStep = Step.CreateRequest(name: "simple step", execute: (req) => Task.FromResult(Response.Ok()));
 ``` 
 ```fsharp
 // F# example of simple Request step
@@ -116,7 +116,7 @@ This is how simple TestFlow could be defined:
 // C# example of TestFlow with 3 sequential steps
 var testFlow = new TestFlow(flowName: "Sequantial flow",
                             steps: new [] { authenticateUserStep, buyProductStep, logoutUserStep },
-                            concurrentCopies: 10)
+                            concurrentCopies: 10);
 ```
 ```fsharp
 // F# example of TestFlow with 3 sequential steps
@@ -137,13 +137,30 @@ type Scenario = {
 }
 ```
 ## API Usage
-### Request-response scenario
-To create Request step you should use
-```fsharp
-// for F#
-Step.createRequest(name: string, execute: Request -> Task<Response>)
-```
+### Simple Request-response scenario
 ```csharp
-// for C#
-Step.CreateRequest(name: string, execute: Func<Request, Task<Response>>)
+// C# example
+// to create Request step you should use
+// Step.CreateRequest(name: string, execute: Func<Request, Task<Response>>)
+var myStep = Step.CreateRequest(name: "My Step", execute: (req) => Task.FromResult(Response.Ok()));
+
+// after creating a step you should add it to TestFlow and then to Scenario. For this you can use:
+var scenario = new ScenarioBuilder(scenarioName: "My Scenario")
+                .AddTestFlow("My TestFlow", steps: new[] { myStep }, concurrentCopies: 10)
+                .Build(duration: TimeSpan.FromSeconds(10));
+
+// run scenario
+ScenarioRunner.Run(scenario);
+```
+```fsharp
+// F# example
+// to create Request step you should use
+// Step.createRequest(name: string, execute: Request -> Task<Response>)
+let myStep = Step.createRequest("My Step", fun req -> task { return Response.Ok() })
+
+// after creating a step you should add it to TestFlow and then to Scenario. For this you can use:
+Scenario.create("My Scenario")
+|> Scenario.addTestFlow({ FlowName = "My TestFlow"; Steps = [myStep]; ConcurrentCopies = 10 })    
+|> Scenario.build(TimeSpan.FromSeconds(10.0))
+|> Scenario.run
 ```

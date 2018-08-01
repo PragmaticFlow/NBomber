@@ -154,7 +154,7 @@ module internal TestFlow =
     
     let create (flowIndex, config: Contracts.TestFlow) =
         { FlowName       = config.FlowName
-          Steps          = config.Steps |> Array.map(fun x -> x :?> Step)
+          Steps          = config.Steps |> Seq.map(fun x -> x :?> Step) |> Seq.toArray
           CorrelationIds = createCorrelationId(flowIndex, config.ConcurrentCopies) }
         |> initFlow
 

@@ -22,7 +22,7 @@ type IStepListenerChannel =
 
 type TestFlow = {
     FlowName: string
-    Steps: IStep[]
+    Steps: IStep seq
     ConcurrentCopies: int
 }
 
