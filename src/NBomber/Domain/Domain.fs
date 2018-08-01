@@ -11,6 +11,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Errors
+open NBomber.Assertions
 
 type CorrelationId = string
 type Latency = int64
@@ -45,6 +46,7 @@ type Scenario = {
     InitStep: RequestStep option
     TestFlows: TestFlow[]    
     Duration: TimeSpan
+    Assertions: AssertionScope[]
 }   
 
 type StepListenerChannel() =
@@ -205,7 +207,8 @@ module internal Scenario =
         { ScenarioName = config.ScenarioName
           InitStep = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
           TestFlows = config.TestFlows |> Array.mapi(fun i config -> TestFlow.create(i, config))   
-          Duration = config.Duration }     
+          Duration = config.Duration
+          Assertions = config.Assertions }     
           
     let runInit (scenario: Scenario) =
         match scenario.InitStep with

@@ -52,6 +52,13 @@ let private runScenario (config: Contracts.Scenario) =
         
         let results = getResults(actorsHosts)        
 
+        let assertionData = results |> Seq.collect (fun f -> f.Steps |> Array.map(fun step ->
+                                 AssertionInfo.Create(step.StepName, f.FlowName, step.OkCount,
+                                     step.FailCount, step.ExceptionCount, step.ThrownException))) |> Seq.toArray
+
+        let assertionResults = Assertions.apply(scenario.ScenarioName, assertionData, scenario.Assertions)
+        printAssertionResults(assertionResults)
+
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
         |> Reporting.saveReport
@@ -93,3 +100,9 @@ let private runProgressBar (scenarioDuration: TimeSpan) = task {
         do! Task.Delay(TimeSpan.FromSeconds(1.0))
         pbar.Tick()
 }
+
+let private printAssertionResults (result: AssertionResult) : unit =
+      //let allAreOk = asserted |> Seq.forall(fun a -> a |> function | Success -> true | _ -> false)
+      result |> function 
+           | AssertionOk(length) -> length |> function | 0 -> () | length -> Log.Information("Assertions: {length} - OK", length)
+           | AsserionFailure(assertions) -> assertions |> Seq.iter(fun (msg, name) -> Log.Error(msg + "{Name}", name))

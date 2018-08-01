@@ -2,6 +2,8 @@
 
 open System
 open System.Runtime.InteropServices
+open NBomber.Assertions
+open NBomber
 
 [<Struct>]
 type Request = {
@@ -29,7 +31,8 @@ type TestFlow = {
 type Scenario = {
     ScenarioName: string
     TestInit: IStep option
-    TestFlows: TestFlow[]    
+    TestFlows: TestFlow[]
+    Assertions: AssertionScope[]  
     Duration: TimeSpan
 }
 
