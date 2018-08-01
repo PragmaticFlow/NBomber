@@ -1,4 +1,4 @@
-﻿namespace rec NBomberd
+﻿namespace rec NBomber
 
 type CorrelationId = string
 

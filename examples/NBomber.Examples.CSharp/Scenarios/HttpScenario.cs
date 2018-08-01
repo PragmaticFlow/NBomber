@@ -27,10 +27,23 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
                 return response.IsSuccessStatusCode
                     ? Response.Ok()
                     : Response.Fail(response.StatusCode.ToString());
-            });            
+            });
+
+            var asserts = new [] {
+               Assert.ForScenario(stats => stats.OkCount > 95),
+               Assert.ForScenario(stats => stats.FailCount > 95),
+               Assert.ForScenario(stats => stats.ExceptionCount > 95),
+               Assert.ForScenario(stats => stats.OkCount >= 95),
+               Assert.ForTestFlow("Flow name 23", stats => stats.FailCount < 10),
+               Assert.ForTestFlow("test flow1", stats => stats.FailCount < 10),
+               Assert.ForStep("Flow name 1", "step name 10", stats => stats.FailCount == 95),
+               Assert.ForStep("Flow name 1", "step name 19", stats => Array.IndexOf(new [] { 80, 95}, stats.FailCount) > -1),
+               Assert.ForStep("Flow name 2", "step name 29", stats => stats.OkCount > 80 && stats.OkCount > 95)
+            };           
 
             return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")                
-                .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)               
+                .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)
+                .AddAssertions(asserts)            
                 .Build(duration: TimeSpan.FromSeconds(10));
         }
     }
