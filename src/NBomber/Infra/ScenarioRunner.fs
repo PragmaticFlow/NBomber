@@ -87,9 +87,10 @@ let private runProgressBar (scenarioDuration: TimeSpan) = task {
                                      BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
                                      BackgroundCharacter = Nullable<char>('\u2593'))
 
-    use pbar = new ProgressBar(scenarioDuration.Seconds, String.Empty, options)
+    let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
+    use pbar = new ProgressBar(totalSeconds, String.Empty, options)
     
-    for i = 0 to scenarioDuration.Seconds do        
+    for i = 0 to totalSeconds do        
         do! Task.Delay(TimeSpan.FromSeconds(1.0))
         pbar.Tick()
 }
