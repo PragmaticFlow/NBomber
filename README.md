@@ -49,7 +49,7 @@ ScenarioRunner.Run(scenario);
 // simple F# example
 Scenario.create("Test MongoDb")
 |> Scenario.addTestFlow({ FlowName = "READ Users"; Steps = [mongoQuery]; ConcurrentCopies = 10 })
-|> Scenario.build(TimeSpan.FromSeconds(10.0))
+|> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
 |> Scenario.run
 ```
 
@@ -161,6 +161,6 @@ let myStep = Step.createRequest("My Step", fun req -> task { return Response.Ok(
 // after creating a step you should add it to TestFlow and then to Scenario. For this you can use:
 Scenario.create("My Scenario")
 |> Scenario.addTestFlow({ FlowName = "My TestFlow"; Steps = [myStep]; ConcurrentCopies = 10 })    
-|> Scenario.build(TimeSpan.FromSeconds(10.0))
+|> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
 |> Scenario.run
 ```
