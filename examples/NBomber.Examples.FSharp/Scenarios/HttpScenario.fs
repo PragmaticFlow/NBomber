@@ -24,7 +24,22 @@ let private step1 =
                         return if response.IsSuccessStatusCode then Response.Ok()
                                else Response.Fail(response.StatusCode.ToString()) })
 
+let private asserts = [|
+   Assert.forScenario(fun stats -> stats.OkCount > 95)
+   Assert.forScenario(fun stats -> false)
+   Assert.forScenario(fun stats -> stats.FailCount > 95)
+   Assert.forScenario(fun stats -> stats.OkCount > 0)
+   Assert.forScenario(fun stats -> stats.OkCount > 0)
+   Assert.forScenario(fun stats -> stats.OkCount > 95)
+   Assert.forTestFlow("GET flow1", fun stats -> stats.FailCount < 10)
+   Assert.forTestFlow("GET flow", fun stats -> false)
+   Assert.forStep("GET flow", "GET github.com/VIP-Logic/NBomber html", fun stats -> false)
+   Assert.forStep("GET flow", "GET github.com/VIP-Logic/NBomber html", fun stats -> Seq.exists (fun i -> i = stats.FailCount) [80;95])
+   Assert.forStep("GET flow", "GET github.com/VIP-Logic/NBomber html", fun stats -> stats.OkCount > 80 && stats.OkCount > 95)
+|]
+
 let buildScenario () =
     Scenario.create("Test HTTP (https://github.com) with 100 concurrent users")
-    |> Scenario.addTestFlow({ FlowName = "GET flow"; Steps = [step1]; ConcurrentCopies = 100 })    
+    |> Scenario.addTestFlow({ FlowName = "GET flow"; Steps = [step1]; ConcurrentCopies = 100 })
+    |> Scenario.addAssertions(asserts)    
     |> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
