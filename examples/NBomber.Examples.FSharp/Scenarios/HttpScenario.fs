@@ -27,4 +27,4 @@ let private step1 =
 let buildScenario () =
     Scenario.create("Test HTTP (https://github.com) with 100 concurrent users")
     |> Scenario.addTestFlow({ FlowName = "GET flow"; Steps = [step1]; ConcurrentCopies = 100 })    
-    |> Scenario.build(TimeSpan.FromSeconds(10.0))
+    |> Scenario.withDuration(TimeSpan.FromSeconds(10.0))

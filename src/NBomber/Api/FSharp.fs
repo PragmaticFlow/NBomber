@@ -36,7 +36,7 @@ module Scenario =
     let addTestFlow (testFlow: Contracts.TestFlow) (scenario: Scenario) =        
         { scenario with TestFlows = Array.append scenario.TestFlows [|testFlow|] }
 
-    let build (duration: TimeSpan) (scenario: Scenario) =
+    let withDuration (duration: TimeSpan) (scenario: Scenario) =
         { scenario with Duration = duration }
 
     let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
