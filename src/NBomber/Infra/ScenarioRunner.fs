@@ -13,7 +13,8 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Statistics
 open NBomber.FlowRunner
-    
+open NBomber.Assertions
+
 let Run (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
     while runningScenario do
@@ -51,6 +52,13 @@ let private runScenario (config: Contracts.Scenario) =
         Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()
         
         let results = getResults(actorsHosts)        
+
+        let assertionData = results |> Seq.collect (fun f -> f.Steps |> Array.map(fun step ->
+                                 AssertionInfo.Create(step.StepName, f.FlowName, step.OkCount,
+                                     step.FailCount, step.ExceptionCount, step.ThrownException))) |> Seq.toArray
+
+        let assertionResults = Assertions.apply(scenario.ScenarioName, assertionData, scenario.Assertions)
+        for result in assertionResults do Log.Error(result)
 
         Log.Information("building report")
         Reporting.buildReport(scenario, results)    
