@@ -45,10 +45,12 @@ type Scenario = {
     InitStep: RequestStep option
     TestFlows: TestFlow[]    
     Duration: TimeSpan
-    Assertions: AssertionScope[]
+    Assertions: Assertion []
 }
 
-type AssertionResult = | Success | Failure of string
+type AssertionResult =
+    | Success
+    | Failure of string
 
 type StepListenerChannel() =
 
@@ -232,12 +234,12 @@ module internal Scenario =
 
 module Assertions =
 
-    let apply (scenarioName: string, flows: AssertionInfo[], assertions: AssertionScope[]) =         
+    let apply (scenarioName: string, flows: AssertionStats[], assertions: Assertion[]) =         
        assertions 
        |> Array.mapi (fun i assertion -> executeAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let executeAssertion(scenarioName:string, flows: AssertionInfo[], i: int, assertion: AssertionScope) =
+    let executeAssertion(scenarioName:string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
            | Scenario (func) ->
                 let result = flows

@@ -31,10 +31,10 @@ type Scenario = {
     TestInit: IStep option
     TestFlows: TestFlow[]   
     Duration: TimeSpan
-    Assertions: AssertionScope[]
+    Assertions: Assertion[]
 }
 
-type AssertionInfo = {
+type AssertionStats = {
     StepName: string
     FlowName: string    
     OkCount: int
@@ -46,9 +46,9 @@ type AssertionInfo = {
          { StepName = stepName; FlowName = flowName; OkCount = okCount; FailCount = failCount;
             ExceptionCount = exceptionCount; ThrownException = exn}
 
-type AssertionFunc = Func<AssertionInfo, bool>
+type AssertionFunc = Func<AssertionStats, bool>
 
-type AssertionScope = 
+type Assertion = 
     | Step     of string * string * AssertionFunc
     | TestFlow of string * AssertionFunc
     | Scenario of AssertionFunc

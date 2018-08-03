@@ -52,8 +52,8 @@ let private runScenario (config: Contracts.Scenario) =
         
         let results = getResults(actorsHosts)        
                                                                                        
-        let assertionData = results |> Seq.collect (fun f -> f.Steps |> Array.map(fun step -> Contracts.AssertionInfo.Create(step.StepName, f.FlowName, step.OkCount,
-                                                                                                step.FailCount, step.ExceptionCount, step.ThrownException))) |> Seq.toArray
+        let assertionData = results |> Array.collect (fun f -> f.Steps |> Array.map(fun step -> Contracts.AssertionStats.Create(step.StepName, f.FlowName, step.OkCount,
+                                                                                                    step.FailCount, step.ExceptionCount, step.ThrownException)))
 
         let assertionResults = Assertions.apply(scenario.ScenarioName, assertionData, scenario.Assertions)
         for result in assertionResults do Log.Error(result)

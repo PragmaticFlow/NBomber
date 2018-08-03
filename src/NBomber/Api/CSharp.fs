@@ -14,9 +14,9 @@ type Step =
     static member CreateListenerChannel() = Step.createListenerChannel()
 
 type Assert =
-    static member ForScenario (assertion:Func<AssertionInfo, bool>) = AssertionScope.Scenario(assertion)
-    static member ForTestFlow (flowName, assertion:Func<AssertionInfo, bool>) = AssertionScope.TestFlow(flowName, assertion)
-    static member ForStep (flowName, stepName, assertion:Func<AssertionInfo, bool>) = AssertionScope.Step(flowName, stepName, assertion)
+    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.Scenario(assertion)
+    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.TestFlow(flowName, assertion)
+    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assertion.Step(flowName, stepName, assertion)
 
 type ScenarioBuilder(scenarioName: string) =
     
@@ -37,7 +37,7 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
         
-    member x.AddAssertions(assertions : AssertionScope[]) =
+    member x.AddAssertions(assertions : Assertion[]) =
         asserts <- assertions
         x
          
