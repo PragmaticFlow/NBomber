@@ -45,7 +45,7 @@ type Scenario = {
     InitStep: RequestStep option
     TestFlows: TestFlow[]    
     Duration: TimeSpan
-    Assertions: Assertion []
+    Assertions: Assertion[]
 }
 
 type StepListenerChannel() =
@@ -238,32 +238,30 @@ module Assertions =
     let private applyAssertion(scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
            | Scenario (func) ->
-                let applied = flows
-                            |> Array.groupBy (fun f -> f.FlowName)
-                            |> Array.map (fun (_, steps) -> applyForSteps(steps, func))
-                            |> Array.exists (fun (result) -> match result with | Some(x) -> x | None -> true)
-                            |> Some
-
-                createAssertionResult(applied, "Scenario", scenarioName, i)
+                let stepResults = flows
+                                |> Array.groupBy (fun flow -> flow.FlowName)
+                                |> Array.map (fun (_, steps) -> applyForSteps(steps, func))
+                                |> Array.exists (fun (result) -> match result with | Some(x) -> x | None -> true)
+                                |> Some
+                createAssertionResult(stepResults, "Scenario", scenarioName, i)
 
            | TestFlow (flowName, func) ->
-                let steps = flows |> Array.where (fun f -> f.FlowName = flowName)
-                let applied = applyForSteps(steps, func)
-
-                createAssertionResult(applied, "Test Flow", flowName, i)
+                let steps = flows |> Array.where (fun flow -> flow.FlowName = flowName)
+                let stepResults = applyForSteps(steps, func)
+                createAssertionResult(stepResults, "Test Flow", flowName, i)
 
            | Step (flowName, stepName, func) -> 
                let steps = flows |> Array.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
-               let applied = applyForSteps(steps, func)
-
-               createAssertionResult(applied, "Step", stepName, i)
+               let stepResults = applyForSteps(steps, func)
+               createAssertionResult(stepResults, "Step", stepName, i)
 
     let private applyForSteps (steps: AssertionStats[], assertion: AssertionFunc) =
-        let applied = steps |> Array.map(assertion.Invoke)
-        match applied with | [||] -> None | stepResults -> stepResults |> Array.exists(id) |> Some
+        let atLeastOneFailed(stepResults) = stepResults |> Array.exists(id) 
+        let appliedForSteps = steps |> Array.map(assertion.Invoke)
+        match appliedForSteps with | [||] -> None | stepResults -> atLeastOneFailed(stepResults) |> Some
 
     let private printAssertionResults (results: AssertionResult[]) =
-      let allAreOk = results |> Array.forall(fun a -> a |> function | Success -> true | _ -> false)
+      let allAreOk = results |> Array.forall(function | Success -> true | _ -> false)
       let assertionCount = results |> Array.length
 
       if allAreOk && assertionCount = 0 then Array.empty

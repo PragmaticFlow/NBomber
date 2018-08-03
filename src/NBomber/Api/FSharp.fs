@@ -46,6 +46,6 @@ module Scenario =
         { scenario with Duration = duration }
 
     let addAssertions(assertions: Assertion list) (scenario: Scenario) =
-        { scenario with Assertions = assertions |> Seq.toArray}
+        { scenario with Assertions = assertions |> Seq.toArray }
 
     let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
