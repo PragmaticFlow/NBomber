@@ -13,10 +13,16 @@ type Step =
     static member CreatePause(duration) = Step.createPause(duration)
     static member CreateListenerChannel() = Step.createListenerChannel()
 
+type Assert =
+    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.Scenario(assertion)
+    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.TestFlow(flowName, assertion)
+    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assertion.Step(flowName, stepName, assertion)
+
 type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
-    let mutable testInit = None        
+    let mutable testInit = None
+    let mutable asserts = Array.empty        
 
     member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
         let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
@@ -31,6 +37,10 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
         
+    member x.AddAssertions(assertions : Assertion[]) =
+        asserts <- assertions
+        x
+         
     member x.Build(duration: TimeSpan): Scenario =
         let flowConfigs = flows
                           |> Seq.map (|KeyValue|)
@@ -40,4 +50,5 @@ type ScenarioBuilder(scenarioName: string) =
         { ScenarioName = scenarioName
           TestInit = testInit
           TestFlows = flowConfigs          
-          Duration = duration }
+          Duration = duration
+          Assertions = asserts }
