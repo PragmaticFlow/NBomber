@@ -2,8 +2,6 @@
 
 open System
 open System.Runtime.InteropServices
-open NBomber.Assertions
-open NBomber
 
 [<Struct>]
 type Request = {
@@ -31,10 +29,29 @@ type TestFlow = {
 type Scenario = {
     ScenarioName: string
     TestInit: IStep option
-    TestFlows: TestFlow[]
-    Assertions: AssertionScope[]   
+    TestFlows: TestFlow[]   
     Duration: TimeSpan
+    Assertions: AssertionScope[]
 }
+
+type AssertionInfo = {
+    StepName: string
+    FlowName: string    
+    OkCount: int
+    FailCount: int
+    ExceptionCount: int
+    ThrownException: exn option
+} with
+     static member Create (stepName, flowName, okCount, failCount, exceptionCount, exn) =
+         { StepName = stepName; FlowName = flowName; OkCount = okCount; FailCount = failCount;
+            ExceptionCount = exceptionCount; ThrownException = exn}
+
+type AssertionFunc = Func<AssertionInfo, bool>
+
+type AssertionScope = 
+    | Step     of string * string * AssertionFunc
+    | TestFlow of string * AssertionFunc
+    | Scenario of AssertionFunc
 
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }

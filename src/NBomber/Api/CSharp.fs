@@ -6,7 +6,6 @@ open System.Threading.Tasks
 
 open NBomber.Contracts
 open NBomber.FSharp
-open NBomber.Assertions
 
 type Step =    
     static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
@@ -23,7 +22,7 @@ type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
     let mutable testInit = None
-    let mutable asserts = [||]        
+    let mutable asserts = Array.empty        
 
     member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
         let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
@@ -38,9 +37,9 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
         
-     member x.AddAssertions(assertions : AssertionScope[]) =
-         asserts <- assertions
-         x
+    member x.AddAssertions(assertions : AssertionScope[]) =
+        asserts <- assertions
+        x
          
     member x.Build(duration: TimeSpan): Scenario =
         let flowConfigs = flows

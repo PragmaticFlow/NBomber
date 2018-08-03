@@ -15,8 +15,7 @@
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
   <ItemGroup>    
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Domain\Assertions.fs" />   
+    <Compile Include="AssemblyInfo.fs" />  
     <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
     <Compile Include="Domain\Domain.fs" />    

@@ -5,7 +5,6 @@ open System.Threading.Tasks
 open System.Runtime.InteropServices
 
 open NBomber
-open NBomber.Assertions
 open NBomber.Contracts
 
 module Step =
@@ -23,7 +22,7 @@ module Step =
     let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
 
 module Assert =
-    let forScenario (assertion:AssertionInfo -> bool) = Scenario(AssertionFunc(assertion))
+    let forScenario (assertion:AssertionInfo -> bool) = AssertionScope.Scenario(AssertionFunc(assertion))
     let forTestFlow (flowName, assertion:AssertionInfo -> bool) = TestFlow(flowName, AssertionFunc(assertion))
     let forStep (flowName, stepName, assertion:AssertionInfo -> bool) = Step(flowName, stepName, AssertionFunc(assertion))
 
@@ -47,6 +46,6 @@ module Scenario =
         { scenario with Duration = duration }
 
     let addAssertions(assertions: AssertionScope[]) (scenario: Scenario) =
-         { scenario with Assertions = assertions}
+        { scenario with Assertions = assertions}
 
     let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
