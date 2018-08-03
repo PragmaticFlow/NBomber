@@ -49,10 +49,14 @@ type AssertionStats = {
 type AssertionFunc = Func<AssertionStats, bool>
 
 type Assertion = 
-    | Step     of string * string * AssertionFunc
-    | TestFlow of string * AssertionFunc
+    | Step     of  stepName:string * flowName:string * AssertionFunc
+    | TestFlow of flowName:string * AssertionFunc
     | Scenario of AssertionFunc
 
+type AssertionResult =
+    | Success
+    | Failure of message:string
+    
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }

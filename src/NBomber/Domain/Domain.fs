@@ -48,10 +48,6 @@ type Scenario = {
     Assertions: Assertion []
 }
 
-type AssertionResult =
-    | Success
-    | Failure of string
-
 type StepListenerChannel() =
 
     let mutable listeners = Dictionary<CorrelationId,StepListener>()
@@ -239,19 +235,19 @@ module Assertions =
        |> Array.mapi (fun i assertion -> executeAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let executeAssertion(scenarioName:string, flows: AssertionStats[], i: int, assertion: Assertion) =
+    let executeAssertion(scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
            | Scenario (func) ->
                 let result = flows
-                            |> Seq.groupBy (fun f -> f.FlowName)
-                            |> Seq.map (fun (_, steps) -> steps |> executeForSteps <| func)
-                            |> Seq.exists (fun (result) -> result |> function | Some(x) -> x | None -> true)
+                            |> Array.groupBy (fun f -> f.FlowName)
+                            |> Array.map (fun (_, steps) -> steps |> executeForSteps <| func)
+                            |> Array.exists (fun (result) -> result |> function | Some(x) -> x | None -> true)
                 if result then Success
                 else Failure(sprintf "Assertion #%i FAILED for Scenario '%s'" i scenarioName)
 
            | TestFlow (flowName, func) ->
                 flows
-                |> Seq.where (fun f -> f.FlowName = flowName)
+                |> Array.where (fun f -> f.FlowName = flowName)
                 |> executeForSteps <| func
                 |> function
                 | Some(assertionResult) -> if assertionResult then Success
@@ -260,7 +256,7 @@ module Assertions =
 
            | Step (flowName, stepName, func) -> 
                flows
-               |> Seq.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
+               |> Array.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
                |> executeForSteps <| func
                |> function
                | Some(assertionResult) -> if assertionResult then Success
@@ -269,14 +265,13 @@ module Assertions =
                                                             
     let executeForSteps steps assertion : bool option =
         steps
-        |> Seq.map(fun s -> s |> assertion.Invoke)
-        |> Seq.toList
-        |> function | [] -> None | stepResults -> stepResults |> Seq.exists(id) |> Some
+        |> Array.map(fun s -> s |> assertion.Invoke)
+        |> function | [||] -> None | stepResults -> stepResults |> Array.exists(id) |> Some
 
     let private printAssertionResults (results: AssertionResult[]) =
-      let allAreOk = results |> Seq.forall(fun a -> a |> function | Success -> true | _ -> false)
-      if allAreOk then results |> Seq.length |> function | 0 -> Seq.empty | length -> seq [sprintf "Assertions: %i - OK" length]
-      else results |> Seq.choose(fun x -> x |> function | Failure(msg) -> Some(msg) | _ -> None)
+      let allAreOk = results |> Array.forall(fun a -> a |> function | Success -> true | _ -> false)
+      if allAreOk then results |> Array.length |> function | 0 -> Array.empty | length -> [|sprintf "Assertions: %i - OK" length|]
+      else results |> Array.choose(fun x -> x |> function | Failure(msg) -> Some(msg) | _ -> None)
 
 module internal Constants =
 
