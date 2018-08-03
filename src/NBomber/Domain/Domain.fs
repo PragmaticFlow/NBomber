@@ -232,46 +232,48 @@ module Assertions =
 
     let apply (scenarioName: string, flows: AssertionStats[], assertions: Assertion[]) =         
        assertions 
-       |> Array.mapi (fun i assertion -> executeAssertion(scenarioName, flows, i+1, assertion))
+       |> Array.mapi (fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let executeAssertion(scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
+    let private applyAssertion(scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
            | Scenario (func) ->
-                let result = flows
+                let applied = flows
                             |> Array.groupBy (fun f -> f.FlowName)
-                            |> Array.map (fun (_, steps) -> steps |> executeForSteps <| func)
-                            |> Array.exists (fun (result) -> result |> function | Some(x) -> x | None -> true)
-                if result then Success
-                else Failure(sprintf "Assertion #%i FAILED for Scenario '%s'" i scenarioName)
+                            |> Array.map (fun (_, steps) -> applyForSteps(steps, func))
+                            |> Array.exists (fun (result) -> match result with | Some(x) -> x | None -> true)
+                            |> Some
+
+                createAssertionResult(applied, "Scenario", scenarioName, i)
 
            | TestFlow (flowName, func) ->
-                flows
-                |> Array.where (fun f -> f.FlowName = flowName)
-                |> executeForSteps <| func
-                |> function
-                | Some(assertionResult) -> if assertionResult then Success
-                                           else Failure(sprintf "Assertion #%i FAILED for Test Flow '%s'" i scenarioName)                                  
-                | None -> Failure(sprintf "Assertion #%i NOT FOUND for Test flow '%s'" i flowName) 
+                let steps = flows |> Array.where (fun f -> f.FlowName = flowName)
+                let applied = applyForSteps(steps, func)
+
+                createAssertionResult(applied, "Test Flow", flowName, i)
 
            | Step (flowName, stepName, func) -> 
-               flows
-               |> Array.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
-               |> executeForSteps <| func
-               |> function
-               | Some(assertionResult) -> if assertionResult then Success
-                                          else Failure(sprintf "Assertion #%i FAILED for Step '%s'" i scenarioName)
-               | None -> Failure(sprintf "Assertion #%i NOT FOUND for Step '%s'" i stepName)  
-                                                            
-    let executeForSteps steps assertion : bool option =
-        steps
-        |> Array.map(fun s -> s |> assertion.Invoke)
-        |> function | [||] -> None | stepResults -> stepResults |> Array.exists(id) |> Some
+               let steps = flows |> Array.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
+               let applied = applyForSteps(steps, func)
+
+               createAssertionResult(applied, "Step", stepName, i)
+
+    let private applyForSteps (steps: AssertionStats[], assertion: AssertionFunc) =
+        let applied = steps |> Array.map(assertion.Invoke)
+        match applied with | [||] -> None | stepResults -> stepResults |> Array.exists(id) |> Some
 
     let private printAssertionResults (results: AssertionResult[]) =
       let allAreOk = results |> Array.forall(fun a -> a |> function | Success -> true | _ -> false)
-      if allAreOk then results |> Array.length |> function | 0 -> Array.empty | length -> [|sprintf "Assertions: %i - OK" length|]
-      else results |> Array.choose(fun x -> x |> function | Failure(msg) -> Some(msg) | _ -> None)
+      let assertionCount = results |> Array.length
+
+      if allAreOk && assertionCount = 0 then Array.empty
+      elif allAreOk && assertionCount > 0 then [|sprintf "Assertions: %i - OK" assertionCount|]
+      else results |> Array.choose(fun x -> match x with | Failure(msg) -> Some(msg) | _ -> None)
+    
+    let private createAssertionResult(executed: bool option, scope: string, reference: string, position: int) =
+        match executed with
+        | Some(status) -> if status then Success else Failure(sprintf "Assertion #%i FAILED for %s '%s'" position scope reference)
+        | None -> Failure(sprintf "Assertion #%i NOT FOUND for %s '%s'" position scope reference) 
 
 module internal Constants =
 

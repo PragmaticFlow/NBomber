@@ -49,7 +49,7 @@ type AssertionStats = {
 type AssertionFunc = Func<AssertionStats, bool>
 
 type Assertion = 
-    | Step     of  stepName:string * flowName:string * AssertionFunc
+    | Step     of stepName:string * flowName:string * AssertionFunc
     | TestFlow of flowName:string * AssertionFunc
     | Scenario of AssertionFunc
 
