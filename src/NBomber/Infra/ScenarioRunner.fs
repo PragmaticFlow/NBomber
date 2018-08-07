@@ -69,12 +69,12 @@ let private runScenario (config: Contracts.Scenario, assertions: Contracts.IAsse
 
             Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
-        let assertionStats = results
-                            |> Array.collect (fun flow -> flow.Steps |> Array.map(fun step -> (flow, step)))
-                            |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
-        
-        applyAssertions(scenario.ScenarioName, assertionStats, scenario.Assertions) |> printAssertionResults                  
-    
+        results
+        |> Array.collect (fun flow -> flow.Steps |> Array.map(fun step -> (flow, step)))
+        |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
+        |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
+        |> printAssertionResults 
+         
     | Error e -> let message = Errors.printError(e)
                  Log.Error(message)
                  [|message|]

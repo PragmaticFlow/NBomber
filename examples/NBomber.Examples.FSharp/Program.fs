@@ -19,6 +19,6 @@ let main argv =
        Assert.forStep("GET flow", "GET github.com/VIP-Logic/NBomber html", fun stats -> stats.OkCount > 80 && stats.OkCount > 95)
     |]
     
-    Scenario.runWithAssertions(HttpScenario.buildScenario(), assertions)
+    HttpScenario.buildScenario() |> Scenario.runWithAssertions(assertions)
 
     0 // return an integer exit code

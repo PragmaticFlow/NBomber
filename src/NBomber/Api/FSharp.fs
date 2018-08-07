@@ -50,7 +50,7 @@ module Scenario =
 
     let run (scenario: Scenario) = Run(scenario, true) |> ignore
 
-    let runWithAssertions (scenario: Scenario, assertions: IAssertion []) =
+    let runWithAssertions (assertions: IAssertion []) (scenario: Scenario) =
         RunWithAssertions(scenario, assertions, true) |> ignore
 
-    let print (scenario: Scenario, assertions: IAssertion []) = Print(scenario, assertions)
+    let print (assertions: IAssertion []) (scenario: Scenario) = Print(scenario, assertions)
