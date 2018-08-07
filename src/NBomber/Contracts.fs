@@ -15,7 +15,9 @@ type Response = {
     Payload: obj
 }
 
-type IStep = interface end    
+type IStep = interface end   
+
+type IAssertion = interface end  
 
 type IStepListenerChannel =
     abstract Notify: correlationId:string * response:Response -> unit
@@ -31,7 +33,7 @@ type Scenario = {
     TestInit: IStep option
     TestFlows: TestFlow[]   
     Duration: TimeSpan
-    Assertions: Assertion[]
+    Assertions: IAssertion[]
 }
 
 type AssertionStats = {
@@ -41,17 +43,7 @@ type AssertionStats = {
     FailCount: int
     ExceptionCount: int
     ThrownException: exn option
-} with
-  static member Create (stepName, flowName, okCount, failCount, exceptionCount, exn) =
-      { StepName = stepName; FlowName = flowName; OkCount = okCount; FailCount = failCount;
-        ExceptionCount = exceptionCount; ThrownException = exn}
-
-type AssertionFunc = AssertionStats -> bool
-
-type Assertion = 
-    | Step     of stepName:string * flowName:string * AssertionFunc
-    | TestFlow of flowName:string * AssertionFunc
-    | Scenario of AssertionFunc
+}
 
 type AssertionResult =
     | Success

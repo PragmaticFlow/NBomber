@@ -6,6 +6,7 @@ open System.Runtime.InteropServices
 
 open NBomber
 open NBomber.Contracts
+open NBomber.ScenarioRunner
 
 module Step =
     open NBomber.Domain
@@ -22,9 +23,11 @@ module Step =
     let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
 
 module Assert =
-    let forScenario (assertion: AssertionStats -> bool) = Assertion.Scenario(assertion)
-    let forTestFlow (flowName, assertion: AssertionStats -> bool) = Assertion.TestFlow(flowName, assertion)
-    let forStep (flowName, stepName, assertion: AssertionStats -> bool) = Assertion.Step(flowName, stepName, assertion)
+    open NBomber.Domain 
+
+    let forScenario (assertion: AssertionStats -> bool) = Scenario(assertion) :> IAssertion
+    let forTestFlow (flowName, assertion: AssertionStats -> bool) = TestFlow(flowName, assertion) :> IAssertion
+    let forStep (flowName, stepName, assertion: AssertionStats -> bool) = Step(flowName, stepName, assertion) :> IAssertion
 
 module Scenario =
     
@@ -45,7 +48,9 @@ module Scenario =
     let withDuration (duration: TimeSpan) (scenario: Scenario) =
         { scenario with Duration = duration }
 
-    let addAssertions(assertions: Assertion list) (scenario: Scenario) =
-        { scenario with Assertions = assertions |> Seq.toArray }
+    let run (scenario: Scenario) = Run(scenario, true) |> ignore
 
-    let run (scenario: Scenario) = ScenarioRunner.Run(scenario)
+    let runWithAssertions (assertions: IAssertion []) (scenario: Scenario) =
+        RunWithAssertions(scenario, assertions, true) |> ignore
+
+    let print (assertions: IAssertion []) (scenario: Scenario) = Print(scenario, assertions)
