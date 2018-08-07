@@ -48,6 +48,14 @@ type Scenario = {
     Assertions: Assertion[]
 }
 
+type AssertionFunc = AssertionStats -> bool
+
+type Assertion = 
+    | Step     of stepName:string * flowName:string * AssertionFunc
+    | TestFlow of flowName:string * AssertionFunc
+    | Scenario of AssertionFunc
+    interface IAssertion
+
 type StepListenerChannel() =
 
     let mutable listeners = Dictionary<CorrelationId,StepListener>()
@@ -202,12 +210,12 @@ module TestFlow =
 
 module Scenario =    
 
-    let create (config: Contracts.Scenario) =
+    let create (config: Contracts.Scenario, assertions: IAssertion[]) =
         { ScenarioName = config.ScenarioName
           InitStep = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
           TestFlows = config.TestFlows |> Array.mapi(fun i config -> TestFlow.create(i, config))   
           Duration = config.Duration
-          Assertions = config.Assertions }     
+          Assertions = assertions |> Array.map(fun a -> a :?> Assertion) }     
           
     let runInit (scenario: Scenario) =
         match scenario.InitStep with
@@ -230,7 +238,7 @@ module Scenario =
 
 module Assertions =
 
-    let apply (scenarioName: string, flows: AssertionStats[], assertions: Assertion[]) =         
+    let applyAssertions (scenarioName: string, flows: AssertionStats[], assertions: Assertion[]) =         
        assertions 
        |> Array.mapi (fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults

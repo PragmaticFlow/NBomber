@@ -6,6 +6,7 @@ open System.Threading.Tasks
 
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber
 
 type Step =    
     static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
@@ -14,15 +15,14 @@ type Step =
     static member CreateListenerChannel() = Step.createListenerChannel()
 
 type Assert =
-    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.Scenario(assertion.Invoke)
-    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.TestFlow(flowName, assertion.Invoke)
-    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assertion.Step(flowName, stepName, assertion.Invoke)
+    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assert.forScenario(assertion.Invoke)
+    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assert.forTestFlow(flowName, assertion.Invoke)
+    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assert.forStep(flowName, stepName, assertion.Invoke)
 
 type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
-    let mutable testInit = None
-    let mutable asserts = Array.empty        
+    let mutable testInit = None       
 
     member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
         let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
@@ -36,10 +36,6 @@ type ScenarioBuilder(scenarioName: string) =
                            
         flows.[flowConfig.FlowName] <- flowConfig
         x
-        
-    member x.AddAssertions(assertions : Assertion[]) =
-        asserts <- assertions
-        x
          
     member x.Build(duration: TimeSpan): Scenario =
         let flowConfigs = flows
@@ -51,4 +47,4 @@ type ScenarioBuilder(scenarioName: string) =
           TestInit = testInit
           TestFlows = flowConfigs          
           Duration = duration
-          Assertions = asserts }
+          Assertions = Array.empty }
