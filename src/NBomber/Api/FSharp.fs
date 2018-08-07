@@ -22,9 +22,9 @@ module Step =
     let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
 
 module Assert =
-    let forScenario (assertion: AssertionStats -> bool) = Assertion.Scenario(AssertionFunc(assertion))
-    let forTestFlow (flowName, assertion: AssertionStats -> bool) = Assertion.TestFlow(flowName, AssertionFunc(assertion))
-    let forStep (flowName, stepName, assertion: AssertionStats -> bool) = Assertion.Step(flowName, stepName, AssertionFunc(assertion))
+    let forScenario (assertion: AssertionStats -> bool) = Assertion.Scenario(assertion)
+    let forTestFlow (flowName, assertion: AssertionStats -> bool) = Assertion.TestFlow(flowName, assertion)
+    let forStep (flowName, stepName, assertion: AssertionStats -> bool) = Assertion.Step(flowName, stepName, assertion)
 
 module Scenario =
     

@@ -42,11 +42,11 @@ type AssertionStats = {
     ExceptionCount: int
     ThrownException: exn option
 } with
-     static member Create (stepName, flowName, okCount, failCount, exceptionCount, exn) =
-         { StepName = stepName; FlowName = flowName; OkCount = okCount; FailCount = failCount;
-            ExceptionCount = exceptionCount; ThrownException = exn}
+  static member Create (stepName, flowName, okCount, failCount, exceptionCount, exn) =
+      { StepName = stepName; FlowName = flowName; OkCount = okCount; FailCount = failCount;
+        ExceptionCount = exceptionCount; ThrownException = exn}
 
-type AssertionFunc = Func<AssertionStats, bool>
+type AssertionFunc = AssertionStats -> bool
 
 type Assertion = 
     | Step     of stepName:string * flowName:string * AssertionFunc
