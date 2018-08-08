@@ -44,10 +44,6 @@ type AssertionStats = {
     ExceptionCount: int
     ThrownException: exn option
 }
-
-type AssertionResult =
-    | Success
-    | Failure of message:string
     
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }

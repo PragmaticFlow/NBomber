@@ -56,6 +56,10 @@ type Assertion =
     | Scenario of AssertionFunc
     interface IAssertion
 
+type AssertionResult =
+    | Success
+    | Failure of message:string
+
 type StepListenerChannel() =
 
     let mutable listeners = Dictionary<CorrelationId,StepListener>()
