@@ -1,18 +1,20 @@
-﻿using System;
-
-using NBomber.Examples.CSharp.Scenarios.Mongo;
-using NBomber.Examples.CSharp.Scenarios.Http;
+using NUnit.Framework;
 using NBomber.Examples.CSharp.Scenarios.PubSub;
 using NBomber.CSharp;
+using System;
 
-namespace NBomber.Examples.CSharp
+namespace Tests
 {
-    class Program
+    public class Tests
     {
-        static void Main(string[] args)
+        [SetUp]
+        public void Setup()
         {
-            //var scenario = MongoScenario.BuildScenario();
-            //var scenario = HttpScenario.BuildScenario();  
+        }
+
+        [Test]
+        public void Test1()
+        {
             var scenario = SimplePushScenario.BuildScenario();
 
             var assertions = new [] {
@@ -27,7 +29,7 @@ namespace NBomber.Examples.CSharp
                AssertFor.Step("Flow name 2", "step name 29", stats => stats.OkCount > 80 && stats.OkCount > 95)
             };
 
-            ScenarioRunner.RunWithAssertions(scenario, assertions);
+            ScenarioRunner.ApplyAssertions(scenario, assertions);
         }
     }
 }

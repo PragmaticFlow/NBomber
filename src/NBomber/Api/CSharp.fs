@@ -14,10 +14,10 @@ type Step =
     static member CreatePause(duration) = Step.createPause(duration)
     static member CreateListenerChannel() = Step.createListenerChannel()
 
-type Assert =
-    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assert.forScenario(assertion.Invoke)
-    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assert.forTestFlow(flowName, assertion.Invoke)
-    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assert.forStep(flowName, stepName, assertion.Invoke)
+type AssertFor =
+    static member Scenario (assertion: Func<AssertionStats, bool>) = Assert.forScenario(assertion.Invoke)
+    static member TestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assert.forTestFlow(flowName, assertion.Invoke)
+    static member Step (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assert.forStep(flowName, stepName, assertion.Invoke)
 
 type ScenarioBuilder(scenarioName: string) =
     
@@ -37,7 +37,7 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
          
-    member x.Build(duration: TimeSpan): Scenario =
+    member x.Build(duration: TimeSpan): Contracts.Scenario =
         let flowConfigs = flows
                           |> Seq.map (|KeyValue|)
                           |> Seq.map (fun (name,job) -> job)
@@ -48,3 +48,16 @@ type ScenarioBuilder(scenarioName: string) =
           TestFlows = flowConfigs          
           Duration = duration
           Assertions = Array.empty }
+
+type ScenarioRunner =
+
+    static member Run (scenario: Scenario) = ScenarioRunner.Run(scenario, Array.empty, true) |> ignore
+
+    static member RunWithAssertions (scenario: Scenario, assertions: IAssertion[]) =
+        ScenarioRunner.Run(scenario, assertions, true) |> ignore
+
+    static member Print (scenario: Scenario, assertions: IAssertion[]) =
+        ScenarioRunner.Print(scenario, assertions)
+
+    static member ApplyAssertions (scenario: Scenario, assertions: IAssertion[]) =
+        ScenarioRunner.Run(scenario, assertions, false) |> Assertions.test
