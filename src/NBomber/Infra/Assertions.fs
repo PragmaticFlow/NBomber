@@ -12,9 +12,9 @@ type AssertionFailedException =
     new (info: SerializationInfo, context: StreamingContext) = { inherit exn(info, context) }
 
 type private TestFramework =
-    | Xunit of Type
-    | Nunit of Type
-    | Generic
+| Xunit of Type
+| Nunit of Type
+| Generic
 
 let private testFailed =
     let outputGenericTestFailed (msg: string) =
