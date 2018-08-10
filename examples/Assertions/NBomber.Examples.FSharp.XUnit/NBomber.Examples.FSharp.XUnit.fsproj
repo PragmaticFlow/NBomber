@@ -15,6 +15,6 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj"/>
+    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj"/>
   </ItemGroup>
 </Project>
