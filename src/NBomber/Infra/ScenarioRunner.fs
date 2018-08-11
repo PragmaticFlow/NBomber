@@ -115,6 +115,6 @@ let private createAssertionStats (flowName: string, step: StepInfo) =
 
 let private outputAssertionResults (assertionResult: AssertionResult) =
     match assertionResult with
-     | Empty -> [||]
+     | Success(0) -> [||]
      | Success(assertionCount) -> Log.Information(sprintf "Assertions: %i - OK" assertionCount); [||]
      | Failure(messages) -> messages |> Array.iter(fun msg -> Log.Error(msg)); messages

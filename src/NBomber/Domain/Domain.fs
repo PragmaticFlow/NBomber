@@ -57,7 +57,6 @@ type Assertion =
     interface IAssertion
 
 type AssertionResult =
-    | Empty
     | Success of assertionCount:int
     | Failure of messages:string[]
 
@@ -277,8 +276,7 @@ module Assertions =
         let allAreOk = results |> Array.forall(function | "" -> true | _ -> false)
         let assertionCount = results |> Array.length
 
-        if allAreOk && assertionCount = 0 then Empty
-        elif allAreOk && assertionCount > 0 then Success(assertionCount)
+        if allAreOk then Success(assertionCount)
         else results |> Array.choose(fun x -> match x with | "" -> None | msg -> Some(msg)) |> Failure
     
     let private createAssertionResult(scope: string, reference: string, position: int) (executed: bool option) =
