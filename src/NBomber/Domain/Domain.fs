@@ -57,8 +57,8 @@ type Assertion =
     interface IAssertion
 
 type AssertionResult =
-    | Success
-    | Failure of message:string
+    | Success of assertionCount:int
+    | Failure of messages:string[]
 
 type StepListenerChannel() =
 
@@ -272,19 +272,18 @@ module Assertions =
         let appliedForSteps = steps |> Array.map(assertion)
         match appliedForSteps with | [||] -> None | stepResults -> atLeastOneFailed(stepResults) |> Some
 
-    let private printAssertionResults (results: AssertionResult[]) =
-        let allAreOk = results |> Array.forall(function | Success -> true | _ -> false)
+    let private printAssertionResults (results: string[]) =
+        let allAreOk = results |> Array.forall(function | "" -> true | _ -> false)
         let assertionCount = results |> Array.length
 
-        if allAreOk && assertionCount = 0 then Array.empty
-        elif allAreOk && assertionCount > 0 then [|sprintf "Assertions: %i - OK" assertionCount|]
-        else results |> Array.choose(fun x -> match x with | Failure(msg) -> Some(msg) | _ -> None)
+        if allAreOk then Success(assertionCount)
+        else results |> Array.choose(fun x -> match x with | "" -> None | msg -> Some(msg)) |> Failure
     
     let private createAssertionResult(scope: string, reference: string, position: int) (executed: bool option) =
         match executed with
-        | Some status -> if status then Success else Failure(sprintf "Assertion #%i FAILED for %s '%s'" position scope reference)
-        | None        -> Failure(sprintf "Assertion #%i NOT FOUND for %s '%s'" position scope reference) 
-
+        | Some status -> if status then String.Empty else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference
+        | None        -> sprintf "Assertion #%i NOT FOUND for %s '%s'" position scope reference
+    
 module Constants =
 
     [<Literal>]
