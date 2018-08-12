@@ -14,6 +14,12 @@ type Step =
     static member CreatePause(duration) = Step.createPause(duration)
     static member CreateListenerChannel() = Step.createListenerChannel()
 
+
+type Assertion =
+    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.forScenario(assertion.Invoke)
+    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.forTestFlow(flowName, assertion.Invoke)
+    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assertion.forStep(flowName, stepName, assertion.Invoke)
+    
 type ScenarioBuilder(scenarioName: string) =
     
     let flows = Dictionary<string, TestFlow>()
@@ -56,10 +62,3 @@ type ScenarioRunner =
 
     static member ApplyAssertions (scenario: Scenario, assertions: IAssertion[]) =
         ScenarioRunner.Run(scenario, assertions, false) |> Assertions.test
-
-module N =
-
-    type Assert =
-        static member ForScenario (assertion: Func<AssertionStats, bool>) = Assert.forScenario(assertion.Invoke)
-        static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assert.forTestFlow(flowName, assertion.Invoke)
-        static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assert.forStep(flowName, stepName, assertion.Invoke)

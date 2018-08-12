@@ -22,7 +22,7 @@ module Step =
 
     let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
 
-module Assert =
+module Assertion =
     open NBomber.Domain 
 
     let forScenario (assertion: AssertionStats -> bool) = Scenario(assertion) :> IAssertion
