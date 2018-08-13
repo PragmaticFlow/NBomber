@@ -113,8 +113,8 @@ let private createAssertionStats (flowName: string, step: StepInfo) =
     { StepName = step.StepName; FlowName = flowName; OkCount = step.OkCount; FailCount = step.FailCount;
         ExceptionCount = step.ExceptionCount; ThrownException = step.ThrownException }
 
-let private outputAssertionResults (assertionResult: AssertionResult) =
+let private outputAssertionResults (assertionResult: Result<int, string[]>) =
     match assertionResult with
-     | Success(0) -> [||]
-     | Success(assertionCount) -> Log.Information(sprintf "Assertions: %i - OK" assertionCount); [||]
-     | Failure(messages) -> messages |> Array.iter(fun msg -> Log.Error(msg)); messages
+     | Ok 0 -> [||]
+     | Ok assertionCount -> Log.Information(sprintf "Assertions: %i - OK" assertionCount); [||]
+     | Error messages -> messages |> Array.iter(fun msg -> Log.Error(msg)); messages

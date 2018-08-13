@@ -56,10 +56,6 @@ type Assertion =
     | Scenario of AssertionFunc
     interface IAssertion
 
-type AssertionResult =
-    | Success of assertionCount:int
-    | Failure of messages:string[]
-
 type StepListenerChannel() =
 
     let mutable listeners = Dictionary<CorrelationId,StepListener>()
@@ -244,42 +240,45 @@ module Assertions =
 
     let applyAssertions (scenarioName: string, assertions: Assertion[]) (flows: AssertionStats[]) =         
        assertions 
-       |> Array.mapi (fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
+       |> Array.mapi(fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let private applyAssertion(scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
+    let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
-       | Scenario (func) ->            
+       | Scenario func ->            
             flows
-             |> Array.groupBy(fun flow -> flow.FlowName)
-             |> Array.map(fun (_,steps) -> applyForSteps func steps)
-             |> Array.exists(fun result -> match result with | Some(x) -> x | None -> true)
-             |> Some
-             |> createAssertionResult("Scenario", scenarioName, i)
+            |> Array.groupBy(fun flow -> flow.FlowName)
+            |> Array.map(fun (_,steps) -> applyForSteps func steps)
+            |> Array.exists(fun result -> match result with | Some x -> x | None -> true)
+            |> Some
+            |> createAssertionResult("Scenario", scenarioName, i)
 
-       | TestFlow (flowName, func) ->
-           flows |> Array.where (fun flow -> flow.FlowName = flowName)
-           |> applyForSteps(func)
+       | TestFlow (flowName,func) ->
+           flows
+           |> Array.filter(fun flow -> flow.FlowName = flowName)
+           |> applyForSteps(func) 
            |> createAssertionResult("Test Flow", flowName, i)
 
-       | Step (flowName, stepName, func) -> 
-           flows |> Array.filter (fun x -> x.FlowName = flowName && x.StepName = stepName)
+       | Step (flowName,stepName,func) -> 
+           flows
+           |> Array.filter(fun x -> x.FlowName = flowName && x.StepName = stepName)
            |> applyForSteps(func)
            |> createAssertionResult("Step", stepName, i)
 
     let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) =
-        let atLeastOneFailed(stepResults) = stepResults |> Array.exists(id) 
+        let atLeastOneFailed(stepResults) =
+            stepResults |> Array.exists(id)
+            
         let appliedForSteps = steps |> Array.map(assertion)
         match appliedForSteps with | [||] -> None | stepResults -> atLeastOneFailed(stepResults) |> Some
 
     let private printAssertionResults (results: string[]) =
         let allAreOk = results |> Array.forall(function | "" -> true | _ -> false)
-        let assertionCount = results |> Array.length
 
-        if allAreOk then Success(assertionCount)
-        else results |> Array.choose(fun x -> match x with | "" -> None | msg -> Some(msg)) |> Failure
+        if allAreOk then results |> Array.length |> Ok
+        else results |> Array.choose(fun x -> match x with | "" -> None | msg -> Some(msg)) |> Error
     
-    let private createAssertionResult(scope: string, reference: string, position: int) (executed: bool option) =
+    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool option) =
         match executed with
         | Some status -> if status then String.Empty else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference
         | None        -> sprintf "Assertion #%i NOT FOUND for %s '%s'" position scope reference
