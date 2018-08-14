@@ -27,7 +27,7 @@ module Assertion =
 
     let forScenario (assertion: AssertionStats -> bool) = Scenario(assertion) :> IAssertion
     let forTestFlow (flowName, assertion: AssertionStats -> bool) = TestFlow(flowName, assertion) :> IAssertion
-    let forStep (flowName, stepName, assertion: AssertionStats -> bool) = Step(flowName, stepName, assertion) :> IAssertion
+    let forStep (stepName, flowName, assertion: AssertionStats -> bool) = Step(stepName, flowName, assertion) :> IAssertion
 
 module Scenario =
     

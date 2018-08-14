@@ -8,9 +8,9 @@ let ``XUnit test`` () =
     
     let assertions = [
        Assertion.forScenario(fun stats -> stats.OkCount > 95)                
-       Assertion.forTestFlow("GET flow1", fun stats -> stats.FailCount < 10)              
-       Assertion.forStep("GET flow", "GET github.com/VIP-Logic/NBomber html", fun stats -> stats.OkCount > 80)
+       Assertion.forTestFlow("Flow", fun stats -> stats.FailCount < 10)              
+       Assertion.forStep("Step", "Flow", fun stats -> stats.OkCount > 80)
     ]
 
-    HttpScenario.buildScenario()
+    SimpleScenario.buildScenario()
     |> Scenario.runTest(assertions)
