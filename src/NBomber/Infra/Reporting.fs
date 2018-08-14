@@ -12,15 +12,17 @@ open NBomber.Domain
 open NBomber.Statistics
 
 let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) = 
-    let getPausedTime step =
-        match step with Pause time -> time.Ticks | _ -> int64 0
+    let getPausedTime (step: Step) =
+        match step with
+        | Pause time -> time.Ticks
+        | _ -> int64 0
 
     let envInfo = HostEnvironmentInfo.getEnvironmentInfo()   
     let header  = printScenarioHeader(scenario)
     
     let activeStepsDuration = scenario.TestFlows
-                                |> Array.collect (fun x -> x.Steps)
-                                |> Array.sumBy getPausedTime 
+                                |> Array.collect(fun x -> x.Steps)
+                                |> Array.sumBy(getPausedTime)
                                 |> (-) scenario.Duration.Ticks
                                 |> TimeSpan
 
