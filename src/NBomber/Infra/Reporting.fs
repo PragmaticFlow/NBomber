@@ -11,12 +11,21 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Statistics
 
-let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =        
+let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) = 
+    let getPausedTime step =
+        match step with Pause time -> time.Ticks | _ -> int64 0
+
     let envInfo = HostEnvironmentInfo.getEnvironmentInfo()   
     let header  = printScenarioHeader(scenario)
     
+    let activeStepsDuration = scenario.TestFlows
+                                |> Array.collect (fun x -> x.Steps)
+                                |> Array.sumBy getPausedTime 
+                                |> (-) scenario.Duration.Ticks
+                                |> TimeSpan
+
     let flowTable = flowInfo 
-                    |> Array.mapi(fun i x -> printFlowTable(x, scenario.Duration, i+1))
+                    |> Array.mapi(fun i x -> printFlowTable(x, activeStepsDuration, i+1))
                     |> String.concat(Environment.NewLine)
 
     envInfo + Environment.NewLine + header + Environment.NewLine + Environment.NewLine + flowTable                 
@@ -24,7 +33,7 @@ let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =
 let printScenarioHeader (scenario: Scenario) =
     String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
 
-let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan, flowCount: int) =
+let printFlowTable (flowStats: FlowInfo, activeStepsDuration: TimeSpan, flowCount: int) =
     
     let consoleTableOptions = 
         ConsoleTableOptions(
@@ -36,13 +45,13 @@ let printFlowTable (flowStats: FlowInfo, scenarioDuration: TimeSpan, flowCount: 
     flowStats.Steps
     |> Array.iteri(fun i stats -> flowTable.AddRow("", String.Format("{0} - {1}", i + 1, stats.StepName), "") |> ignore)
 
-    let stepsTable = printStepsTable(flowStats.Steps, scenarioDuration)    
+    let stepsTable = printStepsTable(flowStats.Steps, activeStepsDuration)    
     flowTable.ToString() + stepsTable + Environment.NewLine + Environment.NewLine
 
-let printStepsTable (steps: StepInfo[], scenarioDuration: TimeSpan) =
+let printStepsTable (steps: StepInfo[], activeStepsDuration: TimeSpan) =
     let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "exceptions", "RPS", "min", "mean", "max", "50%", "70%")
     steps
-    |> Array.mapi(fun i stInfo -> StepStats.create(i + 1, stInfo, scenarioDuration))
+    |> Array.mapi(fun i stInfo -> StepStats.create(i + 1, stInfo, activeStepsDuration))
     |> Array.iter(fun s -> stepTable.AddRow(s.StepNo, s.Info.Latencies.Length,
                                             s.Info.OkCount, s.Info.FailCount, s.Info.ExceptionCount,
                                             s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
