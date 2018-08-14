@@ -1,4 +1,4 @@
-﻿module rec NBomber.Examples.FSharp.Scenarios.HttpScenario
+﻿module rec HttpScenario
 
 open System
 open System.Threading.Tasks

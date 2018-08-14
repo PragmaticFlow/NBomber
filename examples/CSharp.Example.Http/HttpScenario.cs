@@ -3,7 +3,7 @@ using System.Net.Http;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace NBomber.Examples.CSharp.Scenarios.Http
+namespace CSharp.Example.Http
 {
     class HttpScenario
     {
@@ -18,7 +18,7 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
 
         public static Scenario BuildScenario()
         {
-            var httpClient = new HttpClient();            
+            var httpClient = new HttpClient();
 
             var step1 = Step.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
             {
@@ -29,8 +29,8 @@ namespace NBomber.Examples.CSharp.Scenarios.Http
                     : Response.Fail(response.StatusCode.ToString());
             });
 
-            return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")                
-                .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)          
+            return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")
+                .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)
                 .Build(duration: TimeSpan.FromSeconds(10));
         }
     }

@@ -3,17 +3,17 @@
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
+open System.Runtime.CompilerServices
 
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
-open NBomber
 
 type Step =    
     static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
     static member CreateListener(name: string, listeners: IStepListenerChannel) = Step.createListener(name, listeners)
     static member CreatePause(duration) = Step.createPause(duration)
     static member CreateListenerChannel() = Step.createListenerChannel()
-
 
 type Assertion =
     static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.forScenario(assertion.Invoke)
@@ -50,15 +50,17 @@ type ScenarioBuilder(scenarioName: string) =
           Duration = duration
           Assertions = Array.empty }
 
-type ScenarioRunner =
+[<Extension>]
+type ScenarioExt =
 
-    static member Run (scenario: Scenario) = ScenarioRunner.Run(scenario, Array.empty, true) |> ignore
+    [<Extension>]
+    static member Run(scenario: Contracts.Scenario) = 
+        ScenarioRunner.Run(scenario, Array.empty, true) |> ignore
 
-    static member RunWithAssertions (scenario: Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Run(scenario, assertions, true) |> ignore
-
-    static member Print (scenario: Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Print(scenario, assertions)
-
-    static member ApplyAssertions (scenario: Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Run(scenario, assertions, false) |> Assertions.test
+    [<Extension>]
+    static member RunWithAssertions(scenario: Contracts.Scenario, assertions: IAssertion[]) =
+        ScenarioRunner.Run(scenario, assertions, true) |> ignore    
+    
+    [<Extension>]
+    static member RunTest(scenario: Contracts.Scenario, assertions: IAssertion[]) =
+        ScenarioRunner.Run(scenario, assertions, false) |> AssertIntegration.test

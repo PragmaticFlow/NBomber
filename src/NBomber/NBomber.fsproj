@@ -23,7 +23,7 @@
     <Compile Include="Infra\Reporting.fs" />    
     <Compile Include="Infra\FlowRunner.fs" />    
     <Compile Include="Infra\ScenarioRunner.fs" /> 
-    <Compile Include="Infra\Assertions.fs" />    
+    <Compile Include="Infra\AssertIntegration.fs" />    
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>

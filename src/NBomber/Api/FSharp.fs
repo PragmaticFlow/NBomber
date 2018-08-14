@@ -48,14 +48,11 @@ module Scenario =
     let withDuration (duration: TimeSpan) (scenario: Scenario) =
         { scenario with Duration = duration }
 
-    let run (scenario: Scenario) = Run(scenario, Array.empty, true) |> ignore
+    let run (scenario: Scenario) = 
+        Run(scenario, Array.empty, true) |> ignore
 
-    let runWithAssertions (assertions: IAssertion[]) (scenario: Scenario) =
-        Run(scenario, assertions, true) |> ignore
+    let runWithAssertions (assertions: IAssertion list) (scenario: Scenario) =
+        Run(scenario, List.toArray(assertions), true) |> ignore
 
-    let print (assertions: IAssertion[]) (scenario: Scenario) = Print(scenario, assertions)
-
-    let applyAssertions (assertions: IAssertion[]) (scenario: Scenario) =
-        Run(scenario, assertions, false) |> Assertions.test
-
-    
+    let runTest (assertions: IAssertion list) (scenario: Scenario) =
+        Run(scenario, List.toArray(assertions), false) |> AssertIntegration.test

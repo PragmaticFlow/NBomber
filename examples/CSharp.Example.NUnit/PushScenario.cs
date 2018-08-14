@@ -5,7 +5,7 @@ using System.Timers;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace NBomber.Examples.CSharp.Scenarios.PubSub
+namespace CSharp.Example.NUnit
 {
     class PushNotification
     {
@@ -38,7 +38,7 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
         }
     }
 
-    class SimplePushScenario
+    class PushScenario
     {
         public static Scenario BuildScenario()
         {
@@ -62,7 +62,7 @@ namespace NBomber.Examples.CSharp.Scenarios.PubSub
 
             var step2 = Step.CreateListener("listen", listenerChannel);
 
-            return new ScenarioBuilder(scenarioName: nameof(SimplePushScenario))
+            return new ScenarioBuilder(scenarioName: nameof(PushScenario))
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)
                 .Build(duration: TimeSpan.FromSeconds(10));
         }

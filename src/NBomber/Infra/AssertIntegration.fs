@@ -1,12 +1,21 @@
-﻿module internal NBomber.Assertions
+﻿module internal rec NBomber.AssertIntegration
 
 open System
 open System.Runtime.Serialization
 
 type TestFramework =
-| Xunit of Type
-| Nunit of Type
-| Generic
+    | Xunit of Type
+    | Nunit of Type
+    | Generic
+
+let test (results: string[]) =
+    match results with
+    | [||] -> ()
+    | errors ->
+        try
+            testFailed(errors)
+        with 
+        | e -> raise e
 
 let private testFailed =
     let outputGenericTestFailed (msg: string) =
@@ -30,24 +39,15 @@ let private testFailed =
         Generic
 
     match framework with
-        | Xunit ty -> 
-            let mi = ty.GetMethod("True", [|typeof<bool>; typeof<string>|])
-            let del = Delegate.CreateDelegate(typeof<Action<bool,string>>, mi) :?> (Action<bool,string>)
-            outputFailedAssertions (fun msg -> del.Invoke(false,msg))
+    | Xunit ty -> 
+        let mi = ty.GetMethod("True", [|typeof<bool>; typeof<string>|])
+        let func = Delegate.CreateDelegate(typeof<Action<bool,string>>, mi) :?> (Action<bool,string>)
+        outputFailedAssertions(fun msg -> func.Invoke(false,msg))
 
-        | Nunit ty -> 
-            let mi = ty.GetMethod("Fail", [|typeof<string>|])
-            let del = Delegate.CreateDelegate(typeof<Action<string>>, mi) :?> (Action<string>)
-            outputFailedAssertions (fun msg -> del.Invoke(msg))
+    | Nunit ty -> 
+        let mi = ty.GetMethod("Fail", [|typeof<string>|])
+        let func = Delegate.CreateDelegate(typeof<Action<string>>, mi) :?> (Action<string>)
+        outputFailedAssertions(fun msg -> func.Invoke(msg))
 
-        | Generic ->
-            outputGenericTestFailed |> outputFailedAssertions
-
-let test (results: string[]) =
-    match results with
-    | [||] -> ()
-    | errors ->
-        try
-            testFailed errors
-        with 
-        | e -> raise e
+    | Generic ->
+        outputGenericTestFailed |> outputFailedAssertions

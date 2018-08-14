@@ -6,9 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Scenarios\HttpScenario.fs" />
+    <EmbeddedResource Remove="Scenarios\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="HttpScenario.fs" />
     <Compile Include="Program.fs" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />

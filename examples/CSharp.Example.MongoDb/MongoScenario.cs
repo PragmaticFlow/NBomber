@@ -9,7 +9,7 @@ using MongoDB.Driver;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace NBomber.Examples.CSharp.Scenarios.Mongo
+namespace CSharp.Example.MongoDb
 {
     class MongoScenario
     {
