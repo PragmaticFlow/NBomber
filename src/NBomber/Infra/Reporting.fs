@@ -12,22 +12,19 @@ open NBomber.Domain
 open NBomber.Statistics
 
 let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) = 
-    let getPausedTime (step: Step) =
-        match step with
-        | Pause time -> time.Ticks
-        | _ -> int64 0
+    let getPausedTime (scenario: Scenario) =
+        scenario.TestFlows
+        |> Array.collect(fun x -> x.Steps)
+        |> Array.sumBy(fun x -> match x with | Pause time -> time.Ticks | _ -> int64 0)
+        |> TimeSpan
 
     let envInfo = HostEnvironmentInfo.getEnvironmentInfo()   
     let header  = printScenarioHeader(scenario)
     
-    let activeStepsDuration = scenario.TestFlows
-                                |> Array.collect(fun x -> x.Steps)
-                                |> Array.sumBy(getPausedTime)
-                                |> (-) scenario.Duration.Ticks
-                                |> TimeSpan
+    let actualTime = scenario.Duration - getPausedTime(scenario)
 
     let flowTable = flowInfo 
-                    |> Array.mapi(fun i x -> printFlowTable(x, activeStepsDuration, i+1))
+                    |> Array.mapi(fun i x -> printFlowTable(x, actualTime, i+1))
                     |> String.concat(Environment.NewLine)
 
     envInfo + Environment.NewLine + header + Environment.NewLine + Environment.NewLine + flowTable                 
