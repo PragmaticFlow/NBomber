@@ -55,4 +55,4 @@ module Scenario =
         Run(scenario, List.toArray(assertions), true) |> ignore
 
     let runTest (assertions: IAssertion list) (scenario: Scenario) =
-        Run(scenario, List.toArray(assertions), false) |> AssertIntegration.test
+        Run(scenario, List.toArray(assertions), false) |> AssertIntegration.check

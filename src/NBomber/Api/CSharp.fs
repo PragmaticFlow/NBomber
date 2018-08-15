@@ -63,4 +63,4 @@ type ScenarioExt =
     
     [<Extension>]
     static member RunTest(scenario: Contracts.Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Run(scenario, assertions, false) |> AssertIntegration.test
+        ScenarioRunner.Run(scenario, assertions, false) |> AssertIntegration.check
