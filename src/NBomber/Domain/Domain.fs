@@ -243,14 +243,13 @@ module Assertions =
        |> Array.mapi(fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
+    let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) : string option =
        match assertion with
        | Scenario func ->            
             flows
             |> Array.groupBy(fun flow -> flow.FlowName)
             |> Array.map(fun (_,steps) -> applyForSteps func steps)
-            |> Array.exists(fun result -> match result with | Some x -> x | None -> true)
-            |> Some
+            |> Array.exists(id)
             |> createAssertionResult("Scenario", scenarioName, i)
 
        | TestFlow (flowName,func) ->
@@ -259,29 +258,26 @@ module Assertions =
            |> applyForSteps(func) 
            |> createAssertionResult("Test Flow", flowName, i)
 
-       | Step (flowName,stepName,func) -> 
+       | Step (stepName,flowName,func) -> 
            flows
            |> Array.filter(fun x -> x.FlowName = flowName && x.StepName = stepName)
            |> applyForSteps(func)
            |> createAssertionResult("Step", stepName, i)
 
-    let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) =
-        let atLeastOneFailed(stepResults) =
-            stepResults |> Array.exists(id)
-            
-        let appliedForSteps = steps |> Array.map(assertion)
-        match appliedForSteps with | [||] -> None | stepResults -> atLeastOneFailed(stepResults) |> Some
+    let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) =            
+        steps
+        |> Array.map(assertion)
+        |> Array.exists(id)
 
-    let private printAssertionResults (results: string[]) =
-        let allAreOk = results |> Array.forall(function | "" -> true | _ -> false)
+    let private printAssertionResults (results: string option[]) =
+        let allAreOk = results |> Array.forall(function | None -> true | _ -> false)
 
         if allAreOk then results |> Array.length |> Ok
-        else results |> Array.choose(fun x -> match x with | "" -> None | msg -> Some(msg)) |> Error
+        else results |> Array.choose(fun x -> match x with | None -> None | Some msg -> Some(msg)) |> Error
     
-    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool option) =
-        match executed with
-        | Some status -> if status then String.Empty else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference
-        | None        -> sprintf "Assertion #%i NOT FOUND for %s '%s'" position scope reference
+    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool) : string option =
+        if executed then None
+        else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference |> Some
     
 module Constants =
 

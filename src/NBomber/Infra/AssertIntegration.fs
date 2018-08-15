@@ -1,14 +1,12 @@
 ﻿module internal rec NBomber.AssertIntegration
 
 open System
-open System.Runtime.Serialization
 
 type TestFramework =
     | Xunit of Type
     | Nunit of Type
-    | Generic
 
-let test (results: string[]) =
+let check (results: string[]) =
     match results with
     | [||] -> ()
     | errors ->
@@ -17,37 +15,32 @@ let test (results: string[]) =
         with 
         | e -> raise e
 
-let private testFailed =
-    let outputGenericTestFailed (msg: string) =
-        raise (Exception("Test failed:" + msg))
-        ()
-    
+let private testFailed =    
     let outputFailedAssertions (output: string->unit) (messages: string[]) = 
         let errorMessage = messages |> String.concat Environment.NewLine 
         (Environment.NewLine + errorMessage + Environment.NewLine) |> output
 
     let framework = 
         let ty = Type.GetType("Xunit.Assert, xunit") //xunit v1
-        if not (isNull ty) then Xunit ty else
+        if not (isNull ty) then Xunit ty |> Ok else
         
         let ty = Type.GetType("Xunit.Assert, xunit.assert") //xunit v2
-        if not (isNull ty) then Xunit ty else
+        if not (isNull ty) then Xunit ty |> Ok else
 
         let ty = Type.GetType("NUnit.Framework.Assert, nunit.framework")
-        if not (isNull ty) then Nunit ty else
+        if not (isNull ty) then Nunit ty |> Ok else
 
-        Generic
+        Error("Unknown framework")
 
     match framework with
-    | Xunit ty -> 
+    | Ok(Xunit ty) -> 
         let mi = ty.GetMethod("True", [|typeof<bool>; typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<bool,string>>, mi) :?> (Action<bool,string>)
         outputFailedAssertions(fun msg -> func.Invoke(false,msg))
 
-    | Nunit ty -> 
+    | Ok(Nunit ty) -> 
         let mi = ty.GetMethod("Fail", [|typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<string>>, mi) :?> (Action<string>)
         outputFailedAssertions(fun msg -> func.Invoke(msg))
 
-    | Generic ->
-        outputGenericTestFailed |> outputFailedAssertions
+    | Error message -> raise (Exception("Test failed: " + message)) 
