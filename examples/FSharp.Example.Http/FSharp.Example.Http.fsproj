@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="HttpScenario.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

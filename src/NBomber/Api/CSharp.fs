@@ -18,7 +18,7 @@ type Step =
 type Assertion =
     static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.forScenario(assertion.Invoke)
     static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.forTestFlow(flowName, assertion.Invoke)
-    static member ForStep (flowName, stepName, assertion: Func<AssertionStats, bool>) = Assertion.forStep(flowName, stepName, assertion.Invoke)
+    static member ForStep (stepName, flowName, assertion: Func<AssertionStats, bool>) = Assertion.forStep(stepName, flowName, assertion.Invoke)
     
 type ScenarioBuilder(scenarioName: string) =
     
