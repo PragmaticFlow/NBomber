@@ -21,8 +21,7 @@ type FlowRunner(flow: TestFlow) =
     member x.GetResult() = getFlowResults(flow.FlowName, actors)
 
 type FlowActor(correlationId: string, allSteps: Step[]) =
-
-    let mutable stop = false        
+    
     let mutable currentTask = None        
     let mutable currentCts = None
     let stepsWithoutPause = allSteps |> Array.filter(fun st -> not(Step.isPause st))    

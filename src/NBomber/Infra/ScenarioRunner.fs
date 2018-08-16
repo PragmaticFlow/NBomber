@@ -31,11 +31,11 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
 
     let scenario = Scenario.create(config)
 
-    Log.Information("{Scenario} has started", config.ScenarioName)
-    
-    let result = Scenario.runInit(scenario)
-                 |> Result.bind(Scenario.warmUpScenario)
-                 |> Result.map(startFlows) 
+    Log.Information("{Scenario} has started", config.ScenarioName)        
+
+    let result = initScenario(scenario)
+                 |> Result.bind(warmUpScenario)
+                 |> Result.map(startFlows)
     
     match result with
     | Ok actorsHosts ->
@@ -44,16 +44,16 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
         
         let t1 = Task.Delay(scenario.Duration)
         let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
-        Task.WhenAll(t1, t2).Wait()
-
-        stopFlows(actorsHosts)
-
-        // wait until the flow runners stop
-        Task.Delay(TimeSpan.FromSeconds(1.0)).Wait()    
+                
+        // waiting until the Scenario ends
+        t1.Wait()
+        stopFlows(actorsHosts)                        
         let results = getResults(actorsHosts) 
 
+        t2.Wait()
+
         if isVerbose then 
-            Log.Information("building report")
+            Log.Information("building report...")
             Reporting.buildReport(scenario, results)    
             |> Reporting.saveReport
             |> Log.Information
@@ -74,6 +74,14 @@ let private initLogger () =
     Log.Logger <- LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger()
+
+let private initScenario (scenario: Scenario) =
+    Log.Information("initializing scenario...")
+    Scenario.init(scenario)
+
+let private warmUpScenario (scenario: Scenario) =
+    Log.Information("warming up scenario...")
+    Scenario.warmUp(scenario)
 
 let private startFlows (scenario: Scenario) =
     Log.Information("starting test flows")

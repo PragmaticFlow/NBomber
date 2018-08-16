@@ -140,7 +140,7 @@ module Step =
             let mutable stepIndex = 0
 
             for st in steps do
-                if not skipStep then
+                if not skipStep && not ct.IsCancellationRequested then
                     try
                         let! (response,latency) = Step.execStep(st, request, timer)
                             
@@ -217,17 +217,17 @@ module Scenario =
           Duration = config.Duration
           Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion)  }
           
-    let runInit (scenario: Scenario) =
+    let init (scenario: Scenario) =
         match scenario.InitStep with
         | Some step -> 
-            try 
+            try                 
                 let req = { CorrelationId = Constants.InitId; Payload = null }
                 step.Execute(req).Wait()                
                 Ok <| scenario
             with ex -> Error <| InitStepError(ex.Message)
         | None      -> Ok <| scenario
 
-    let warmUpScenario (scenario: Scenario) =        
+    let warmUp (scenario: Scenario) =                
         let errors = scenario.TestFlows 
                      |> Array.map(fun flow -> TestFlow.warmUpFlow(flow).Result)
                      |> Array.filter(Result.isError)
