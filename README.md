@@ -26,9 +26,12 @@ PM> Install-Package VIP-Logic.NBomber
 ### Examples
 |Scenario|Language|Example|
 |--|--|--|
-| Request-response | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.CSharp/Scenarios/MongoScenario.cs) |
-| Request-response | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.CSharp/Scenarios/HttpScenario.cs) |
-| Request-response | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.FSharp/Scenarios/HttpScenario.fs) |
+| HTTP | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/NBomber.Examples.CSharp/Scenarios/HttpScenario.cs) |
+| MongoDb | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.MongoDb/Program.cs) |
+| NUnit integration | C# | [Simple NUnit test](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.NUnit/Tests.cs) |
+| Simple Push | C# | [Test fake push server](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.SimplePush/Program.cs) |
+| HTTP | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/FSharp.Example.Http/Program.fs) |
+| XUnit integration | F# | [Simple XUnit test](https://github.com/VIP-Logic/NBomber/tree/master/examples/FSharp.Example.XUnit) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
