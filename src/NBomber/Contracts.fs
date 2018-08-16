@@ -32,8 +32,8 @@ type Scenario = {
     ScenarioName: string
     TestInit: IStep option
     TestFlows: TestFlow[]   
-    Duration: TimeSpan
     Assertions: IAssertion[]
+    Duration: TimeSpan    
 }
 
 type AssertionStats = {

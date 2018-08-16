@@ -31,4 +31,5 @@ let ``XUnit test`` () =
     ]
 
     buildScenario()
-    |> Scenario.runTest(assertions)
+    |> Scenario.withAssertions(assertions)
+    |> Scenario.runTest

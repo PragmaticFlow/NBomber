@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
 
 open NBomber
 open NBomber.Contracts
@@ -22,10 +23,11 @@ type Assertion =
     
 type ScenarioBuilder(scenarioName: string) =
     
-    let flows = Dictionary<string, TestFlow>()
     let mutable testInit = None       
+    let flows = Dictionary<string, TestFlow>()
+    let mutable asserts = Array.empty    
 
-    member x.AddTestInit(initFunc: Func<Request,Task<Response>>) =
+    member x.WithTestInit(initFunc: Func<Request,Task<Response>>) =
         let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
         testInit <- Some(step)
         x
@@ -38,6 +40,10 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
          
+    member x.WithAssertions(assertions: IAssertion[]) =
+        asserts <- assertions
+        x
+
     member x.Build(duration: TimeSpan): Contracts.Scenario =
         let flowConfigs = flows
                           |> Seq.map (|KeyValue|)
@@ -48,19 +54,17 @@ type ScenarioBuilder(scenarioName: string) =
           TestInit = testInit
           TestFlows = flowConfigs          
           Duration = duration
-          Assertions = Array.empty }
+          Assertions = asserts }
 
 [<Extension>]
-type ScenarioExt =
+type ScenarioExt =    
 
     [<Extension>]
     static member Run(scenario: Contracts.Scenario) = 
-        ScenarioRunner.Run(scenario, Array.empty, true) |> ignore
-
-    [<Extension>]
-    static member RunWithAssertions(scenario: Contracts.Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Run(scenario, assertions, true) |> ignore    
+        ScenarioRunner.Run(scenario, true) |> ignore    
     
     [<Extension>]
-    static member RunTest(scenario: Contracts.Scenario, assertions: IAssertion[]) =
-        ScenarioRunner.Run(scenario, assertions, false) |> AssertIntegration.check
+    static member RunTest(scenario: Contracts.Scenario, [<Optional;DefaultParameterValue(null:IAssertion[])>]assertions: IAssertion[]) =
+        let scn = if isNull(assertions) then scenario
+                  else  { scenario with Assertions = assertions }
+        ScenarioRunner.Run(scn, false) |> AssertIntegration.run

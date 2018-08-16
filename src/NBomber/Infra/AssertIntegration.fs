@@ -6,14 +6,13 @@ type TestFramework =
     | Xunit of Type
     | Nunit of Type
 
-let check (results: string[]) =
+let run (results: string[]) =
     match results with
-    | [||] -> ()
-    | errors ->
-        try
-            testFailed(errors)
-        with 
-        | e -> raise e
+    | [||]   -> ()
+    | errors -> try
+                    testFailed(errors)
+                with 
+                | e -> raise e
 
 let private testFailed =    
     let outputFailedAssertions (output: string->unit) (messages: string[]) = 

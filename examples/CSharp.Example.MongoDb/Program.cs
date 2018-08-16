@@ -54,7 +54,7 @@ namespace CSharp.Example.MongoDb
             });
 
             return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")
-                .AddTestInit(initDb)
+                .WithTestInit(initDb)
                 .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
                 .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
                 .Build(duration: TimeSpan.FromSeconds(10));

@@ -44,8 +44,8 @@ type Scenario = {
     ScenarioName: string
     InitStep: RequestStep option
     TestFlows: TestFlow[]    
-    Duration: TimeSpan
     Assertions: Assertion[]
+    Duration: TimeSpan    
 }
 
 type AssertionFunc = AssertionStats -> bool
@@ -210,12 +210,12 @@ module TestFlow =
 
 module Scenario =    
 
-    let create (config: Contracts.Scenario, assertions: IAssertion[]) =
+    let create (config: Contracts.Scenario) =
         { ScenarioName = config.ScenarioName
           InitStep = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
-          TestFlows = config.TestFlows |> Array.mapi(fun i config -> TestFlow.create(i, config))   
+          TestFlows = config.TestFlows |> Array.mapi(fun i config -> TestFlow.create(i, config))
           Duration = config.Duration
-          Assertions = assertions |> Array.map(fun a -> a :?> Assertion) }     
+          Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion)  }
           
     let runInit (scenario: Scenario) =
         match scenario.InitStep with

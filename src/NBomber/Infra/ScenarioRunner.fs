@@ -16,26 +16,20 @@ open NBomber.Statistics
 open NBomber.FlowRunner
 open System.Runtime.InteropServices
 
-let Run (scenario: Contracts.Scenario, assertions: Contracts.IAssertion[], [<Optional;DefaultParameterValue(true:bool)>]isVerbose: bool) =
-    runScenario(scenario, assertions, isVerbose)
-
-let Print (scenario: Contracts.Scenario, assertions: Contracts.IAssertion[]) =
-    runScenarioWithRepeat(scenario, assertions)
-
-let private runScenarioWithRepeat (scenario: Contracts.Scenario, assertions: Contracts.IAssertion[]) =
+let RunWithRepeat (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
     while runningScenario do
-        runScenario(scenario, assertions, true) |> ignore
+        Run(scenario, true) |> ignore
 
         Log.Information("Repeat the same Scenario one more time? (y/n)")
         
         let userInput = Console.ReadLine()
         runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
-let private runScenario (config: Contracts.Scenario, assertions: Contracts.IAssertion[], isVerbose: bool) = 
+let Run (config: Contracts.Scenario, isVerbose: bool) = 
     if isVerbose then initLogger() 
 
-    let scenario = Scenario.create(config, assertions)
+    let scenario = Scenario.create(config)
 
     Log.Information("{Scenario} has started", config.ScenarioName)
     

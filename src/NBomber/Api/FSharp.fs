@@ -38,21 +38,21 @@ module Scenario =
           Duration = TimeSpan.FromSeconds(10.0)
           Assertions = Array.empty }
 
-    let addTestInit (initFunc: Request -> Task<Response>) (scenario: Scenario) =
+    let withTestInit (initFunc: Request -> Task<Response>) (scenario: Scenario) =
         let step = Step.createRequest(Domain.Constants.InitId, initFunc)
         { scenario with TestInit = Some(step) }
 
     let addTestFlow (testFlow: Contracts.TestFlow) (scenario: Scenario) =        
-        { scenario with TestFlows = Array.append scenario.TestFlows [|testFlow|] }
+        { scenario with TestFlows = Array.append scenario.TestFlows [|testFlow|] }    
+
+    let withAssertions (assertions: IAssertion list) (scenario: Scenario) =
+        { scenario with Assertions = List.toArray(assertions) }
 
     let withDuration (duration: TimeSpan) (scenario: Scenario) =
         { scenario with Duration = duration }
 
-    let run (scenario: Scenario) = 
-        Run(scenario, Array.empty, true) |> ignore
+    let run (scenario: Scenario) =         
+        ScenarioRunner.Run(scenario, true) |> ignore    
 
-    let runWithAssertions (assertions: IAssertion list) (scenario: Scenario) =
-        Run(scenario, List.toArray(assertions), true) |> ignore
-
-    let runTest (assertions: IAssertion list) (scenario: Scenario) =
-        Run(scenario, List.toArray(assertions), false) |> AssertIntegration.check
+    let runTest (scenario: Scenario) =        
+        ScenarioRunner.Run(scenario, false) |> AssertIntegration.run
