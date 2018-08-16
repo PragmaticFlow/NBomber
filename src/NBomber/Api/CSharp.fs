@@ -61,14 +61,14 @@ type ScenarioExt =
 
     [<Extension>]
     static member Run(scenario: Contracts.Scenario) = 
-        ScenarioRunner.Run(scenario, true) |> ignore    
+        ScenarioRunner.run(scenario, false) |> ignore    
     
     [<Extension>]
-    static member RunAsScript(scenario: Contracts.Scenario) =
-        ScenarioRunner.RunAsScript(scenario)
+    static member RunInConsole(scenario: Contracts.Scenario) =
+        ScenarioRunner.runInConsole(scenario)
 
     [<Extension>]
     static member RunTest(scenario: Contracts.Scenario, [<Optional;DefaultParameterValue(null:IAssertion[])>]assertions: IAssertion[]) =
         let scn = if isNull(assertions) then scenario
                   else  { scenario with Assertions = assertions }
-        ScenarioRunner.Run(scn, false) |> AssertIntegration.run
+        ScenarioRunner.run(scn, false) |> AssertIntegration.run

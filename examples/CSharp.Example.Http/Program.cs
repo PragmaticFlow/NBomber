@@ -38,7 +38,7 @@ namespace CSharp.Example.Http
         static void Main(string[] args)
         {            
             var scenario = BuildScenario();
-            scenario.Run();
+            scenario.RunInConsole();
         }
     }
 }

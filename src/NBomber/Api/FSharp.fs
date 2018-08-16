@@ -52,10 +52,10 @@ module Scenario =
         { scenario with Duration = duration }
 
     let run (scenario: Scenario) =         
-        ScenarioRunner.Run(scenario, true) |> ignore    
+        ScenarioRunner.run(scenario, false) |> ignore    
 
-    let runAsScript (scenario: Scenario) =
-        ScenarioRunner.RunAsScript(scenario)
+    let runInConsole (scenario: Scenario) =
+        ScenarioRunner.runInConsole(scenario)
 
     let runTest (scenario: Scenario) =        
-        ScenarioRunner.Run(scenario, false) |> AssertIntegration.run
+        ScenarioRunner.run(scenario, false) |> AssertIntegration.run

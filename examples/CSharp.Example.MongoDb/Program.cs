@@ -63,7 +63,7 @@ namespace CSharp.Example.MongoDb
         static void Main(string[] args)
         {
             var scenario = BuildScenario();
-            scenario.Run();
+            scenario.RunInConsole();
         }
     }
 }

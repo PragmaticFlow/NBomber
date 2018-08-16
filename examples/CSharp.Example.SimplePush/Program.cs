@@ -70,7 +70,7 @@ namespace CSharp.Example.SimplePush
         static void Main(string[] args)
         {
             var scenario = BuildScenario();
-            scenario.Run();
+            scenario.RunInConsole();
         }
     }
 }

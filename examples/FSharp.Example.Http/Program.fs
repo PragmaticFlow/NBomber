@@ -31,6 +31,6 @@ let buildScenario () =
 let main argv =    
     
     buildScenario() 
-    |> Scenario.run
+    |> Scenario.runInConsole
 
     0 // return an integer exit code

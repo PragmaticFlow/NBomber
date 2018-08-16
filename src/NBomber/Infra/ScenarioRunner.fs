@@ -16,17 +16,17 @@ open NBomber.Statistics
 open NBomber.FlowRunner
 open System.Runtime.InteropServices
 
-let RunAsScript (scenario: Contracts.Scenario) =
+let runInConsole (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
     while runningScenario do
-        Run(scenario, true) |> ignore
+        run(scenario, true) |> ignore
 
         Log.Information("Repeat the same Scenario one more time? (y/n)")
         
         let userInput = Console.ReadLine()
         runningScenario <- Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
-let Run (config: Contracts.Scenario, isVerbose: bool) = 
+let run (config: Contracts.Scenario, isVerbose: bool) = 
     if isVerbose then initLogger() 
 
     let scenario = Scenario.create(config)
