@@ -16,7 +16,7 @@ open NBomber.Statistics
 open NBomber.FlowRunner
 open System.Runtime.InteropServices
 
-let RunWithRepeat (scenario: Contracts.Scenario) =
+let RunAsScript (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
     while runningScenario do
         Run(scenario, true) |> ignore

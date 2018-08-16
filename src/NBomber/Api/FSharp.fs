@@ -54,5 +54,8 @@ module Scenario =
     let run (scenario: Scenario) =         
         ScenarioRunner.Run(scenario, true) |> ignore    
 
+    let runAsScript (scenario: Scenario) =
+        ScenarioRunner.RunAsScript(scenario)
+
     let runTest (scenario: Scenario) =        
         ScenarioRunner.Run(scenario, false) |> AssertIntegration.run
