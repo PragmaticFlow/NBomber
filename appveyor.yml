@@ -1,13 +1,20 @@
-version: 0.1.{build}
+version: 0.2.{build}
 image: Visual Studio 2017
 
 branches:
   only:
     - master
 
+environment:
+  NUGET_API_KEY:
+    secure: KCtoBrghwEBWx0bFMAFNinvVWcENtGGNSNSsax68Y53fPopBvzDx9KDZOMIgYwfq
+
 artifacts:
-  - path: './artifacts/*.nupkg'
+  - path: ./artifacts/*.nupkg
     name: NBomber
 
 build_script:
-- ps: .\build.ps1 -target=Pack
+  - ps: .\build.ps1 -target=Pack
+
+deploy_script:
+  - ps: .\build.ps1 -target=Publish

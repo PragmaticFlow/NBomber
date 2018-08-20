@@ -1,7 +1,11 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
+
 var version = EnvironmentVariable("APPVEYOR_BUILD_VERSION") ?? "0.1.0";
-var nugetKey = "vV8UszS9IRwoiZREfiaIByVCYCScXK+PxMOd05VM0nylfMA8DXIrcePPHkQ6bICM";
+var nugetApiKey = EnvironmentVariable("NUGET_API_KEY") ?? "";
+
+var solution = File("./NBomber.sln");
+var project = File("./src/NBomber/NBomber.fsproj");
 
 Task("Clean")
     .Does(() =>
@@ -18,7 +22,7 @@ Task("Restore-NuGet-Packages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    NuGetRestore("./NBomber.sln");
+    NuGetRestore(solution);
 });
 
 Task("Build")
@@ -27,13 +31,13 @@ Task("Build")
 {
     Information("NBomber Version: {0}", version);
 
-    DotNetCoreBuild("./NBomber.sln", new DotNetCoreBuildSettings()
+    DotNetCoreBuild(solution, new DotNetCoreBuildSettings()
     {
         Configuration = configuration,
         ArgumentCustomization = args => args.Append("--no-restore"),
     });
 
-    DotNetCoreBuild("./src/NBomber/NBomber.fsproj", new DotNetCoreBuildSettings()
+    DotNetCoreBuild(project, new DotNetCoreBuildSettings()
     {
         Configuration = configuration,
         ArgumentCustomization = args => args.Append("--no-restore")
@@ -50,6 +54,18 @@ Task("Pack")
         Version = version,
 		OutputDirectory = "./artifacts/"		
 	});    
+});
+
+Task("Publish")
+    .Does(() =>
+{
+	var package = GetFiles("./artifacts/*.nupkg");
+
+    // Push the package.
+    NuGetPush(package, new NuGetPushSettings {
+        Source = "https://www.nuget.org/api/v3",
+        ApiKey = nugetApiKey
+    });
 });
 
 Task("Default")
