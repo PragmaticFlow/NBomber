@@ -53,7 +53,7 @@ Task("Pack")
 	{
         Version = version,
 		OutputDirectory = "./artifacts/"		
-	});    
+	});
 });
 
 Task("Publish")
