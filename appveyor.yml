@@ -5,9 +5,6 @@ branches:
   only:
     - master
 
-environment:
-  version: {version}
-
 artifacts:
   - path: './artifacts/*.nupkg'
     name: NBomber
