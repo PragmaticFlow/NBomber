@@ -8,6 +8,9 @@ branches:
 build_script:
   - ps: .\build.ps1 -target=Pack
 
+test_script:
+  - ps: .\build.ps1 -target=Test
+
 artifacts:	
   - path: ./artifacts/*.nupkg	
     name: NBomber

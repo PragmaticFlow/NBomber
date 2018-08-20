@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharp.Example.SimplePush",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharp.Example.NUnit", "examples\CSharp.Example.NUnit\CSharp.Example.NUnit.csproj", "{B126BE63-5519-4DF8-899E-9339F49D7055}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NBomber.IntegrationTests", "tests\NBomber.IntegrationTests\NBomber.IntegrationTests.fsproj", "{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +118,18 @@ Global
 		{B126BE63-5519-4DF8-899E-9339F49D7055}.Release|x64.Build.0 = Release|Any CPU
 		{B126BE63-5519-4DF8-899E-9339F49D7055}.Release|x86.ActiveCfg = Release|Any CPU
 		{B126BE63-5519-4DF8-899E-9339F49D7055}.Release|x86.Build.0 = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|x64.Build.0 = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Debug|x86.Build.0 = Debug|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|x64.ActiveCfg = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|x64.Build.0 = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|x86.ActiveCfg = Release|Any CPU
+		{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

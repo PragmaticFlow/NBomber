@@ -12,9 +12,10 @@ Task("Clean")
     CleanDirectories("./src/**/obj");
     CleanDirectories("./src/**/bin");    
     CleanDirectories("./src/examples/**/obj");
-    CleanDirectories("./src/examples/**/bin");
+    CleanDirectories("./src/examples/**/bin");    
     CleanDirectories("./tests/**/obj");
     CleanDirectories("./tests/**/bin");
+    CleanDirectories("./artifacts/");
 });
 
 Task("Restore-NuGet-Packages")
@@ -42,6 +43,24 @@ Task("Build")
         ArgumentCustomization = args => args.Append("--no-restore")
                                             .Append($"/property:Version={version}"),
     });
+});
+
+Task("Tests")
+    .Does(() =>
+{    
+    var projects = GetFiles("./tests/**/*.fsproj");
+    foreach(var project in projects)
+    {
+        Information("Testing project " + project);
+
+        DotNetCoreTest(project.ToString(),            
+            new DotNetCoreTestSettings()
+            {
+                Configuration = configuration,
+                NoBuild = true,
+                ArgumentCustomization = args => args.Append("--no-restore"),
+            });
+    }
 });
 
 Task("Pack")   
