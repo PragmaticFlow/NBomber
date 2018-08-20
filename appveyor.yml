@@ -1,16 +1,13 @@
 version: 0.1.{build}
 image: Visual Studio 2017
 
-environment:
-  nbomberVersion: {version}
-
-branches:  
+branches:
   only:
     - master
 
 artifacts:
   - path: './artifacts/*.nupkg'
-    name: NBomber    
+    name: NBomber
 
 build_script:
-- ps: .\build.ps1 -target=Build
+- ps: .\build.ps1 -target=Pack

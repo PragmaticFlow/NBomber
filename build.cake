@@ -1,6 +1,6 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
-var nbomberVersion = EnvironmentVariable("nbomberVersion") ?? "0.1.0";
+var version = EnvironmentVariable("APPVEYOR_BUILD_VERSION") ?? "0.1.0";
 var nugetKey = "vV8UszS9IRwoiZREfiaIByVCYCScXK+PxMOd05VM0nylfMA8DXIrcePPHkQ6bICM";
 
 Task("Clean")
@@ -25,7 +25,7 @@ Task("Build")
     .IsDependentOn("Restore-NuGet-Packages")
     .Does(() =>
 {
-    Information("NBomber Version: {0}", nbomberVersion);
+    Information("NBomber Version: {0}", version);
 
     DotNetCoreBuild("./NBomber.sln", new DotNetCoreBuildSettings()
     {
@@ -37,7 +37,7 @@ Task("Build")
     {
         Configuration = configuration,
         ArgumentCustomization = args => args.Append("--no-restore")
-                                            .Append($"/property:Version={nbomberVersion}"),
+                                            .Append($"/property:Version={version}"),
     });
 });
 
@@ -47,7 +47,7 @@ Task("Pack")
 {
 	NuGetPack("./NBomber.nuspec", new NuGetPackSettings
 	{
-        Version = nbomberVersion,
+        Version = version,
 		OutputDirectory = "./artifacts/"		
 	});    
 });
