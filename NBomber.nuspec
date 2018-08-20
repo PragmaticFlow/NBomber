@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>VIP-Logic.NBomber</id>    
+    <authors>AntyaDev,alkondrashov</authors>
+    <owners>AntyaDev,alkondrashov</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/VIP-Logic/NBomber/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/VIP-Logic/NBomber</projectUrl>
+    <description>Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.</description>
+    <copyright>VIP-Logic@2018</copyright>
+    <tags>load-testing, performance-testing, integration-testing, fsharp</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="ConsoleTables" version="2.2.0" exclude="Build,Analyzers" />
+        <dependency id="FSharp.Core" version="4.3.4" exclude="Build,Analyzers" />
+        <dependency id="HdrHistogram" version="2.5.0" exclude="Build,Analyzers" />
+        <dependency id="Serilog" version="2.7.1" exclude="Build,Analyzers" />
+        <dependency id="Serilog.Sinks.ColoredConsole" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="ShellProgressBar" version="4.0.0" exclude="Build,Analyzers" />
+        <dependency id="TaskBuilder.fs" version="2.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="src\NBomber\bin\Release\netstandard2.0\NBomber.dll" target="lib\netstandard2.0\NBomber.dll" />
+  </files>
+</package>

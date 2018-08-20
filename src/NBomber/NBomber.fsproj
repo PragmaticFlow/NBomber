@@ -2,20 +2,19 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.2.6</Version>
+    <Version>0.1.0</Version>
     <Company>VIP-Logic</Company>
     <Authors>AntyaDev, alkondrashov</Authors>
     <Description>Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.</Description>
     <PackageLicenseUrl>https://github.com/VIP-Logic/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/VIP-Logic/NBomber</PackageProjectUrl>
     <RepositoryUrl>https://github.com/VIP-Logic/NBomber</RepositoryUrl>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
     <Copyright>VIP-Logic@2018</Copyright>
     <PackageId>VIP-Logic.NBomber</PackageId>
   </PropertyGroup>
-  <ItemGroup>    
-    <Compile Include="AssemblyInfo.fs" />  
+  <ItemGroup>  
     <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
     <Compile Include="Domain\Domain.fs" />    

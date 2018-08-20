@@ -1,15 +1,15 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
-
-var buildDir = Directory("./src/NBomber/bin") + Directory(configuration);
+var version = EnvironmentVariable("version") ?? "0.1.0";
+var nugetKey = "vV8UszS9IRwoiZREfiaIByVCYCScXK+PxMOd05VM0nylfMA8DXIrcePPHkQ6bICM";
 
 Task("Clean")
     .Does(() =>
 {
     CleanDirectories("./src/**/obj");
     CleanDirectories("./src/**/bin");    
-    CleanDirectories("./src/samples/**/obj");
-    CleanDirectories("./src/samples/**/bin");
+    CleanDirectories("./src/examples/**/obj");
+    CleanDirectories("./src/examples/**/bin");
     CleanDirectories("./tests/**/obj");
     CleanDirectories("./tests/**/bin");
 });
@@ -25,18 +25,32 @@ Task("Build")
     .IsDependentOn("Restore-NuGet-Packages")
     .Does(() =>
 {
-    if(IsRunningOnWindows())
+    Information("NBomber Version: {0}", version);
+
+    DotNetCoreBuild("./NBomber.sln", new DotNetCoreBuildSettings()
     {
-      // Use MSBuild
-      MSBuild("./NBomber.sln", settings =>
-        settings.SetConfiguration(configuration));
-    }
-    else
+        Configuration = configuration,
+        ArgumentCustomization = args => args.Append("--no-restore"),
+    });
+
+    DotNetCoreBuild("./src/NBomber/NBomber.fsproj", new DotNetCoreBuildSettings()
     {
-      // Use XBuild
-      XBuild("./NBomber.sln", settings =>
-        settings.SetConfiguration(configuration));
-    }
+        Configuration = configuration,
+        ArgumentCustomization = args => args.Append("--no-restore")
+                                            .Append($"/property:Version={version}"),
+    });
+});
+
+Task("Pack")    
+    .Does(() =>
+{
+    Information("NBomber Version: {0}", version);    
+
+	NuGetPack("./NBomber.nuspec", new NuGetPackSettings
+	{
+        Version = version,
+		OutputDirectory = "./artifacts/"		
+	});    
 });
 
 Task("Default")

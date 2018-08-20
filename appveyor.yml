@@ -1,11 +1,17 @@
 version: 0.1.{build}
-
 image: Visual Studio 2017
 
 branches:  
   only:
     - master
 
-build_script:
-- cmd: PowerShell -Version 2.0 .\build.ps1
+environment:
+  version: {version}
 
+artifacts:
+  - path: './artifacts/*.nupkg'
+    name: NBomber
+    type: NuGetPackage
+
+build_script:
+- ps: .\build.ps1 -target=Build
