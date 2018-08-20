@@ -3,7 +3,6 @@
 </p>
 
 [![Build status](https://ci.appveyor.com/api/projects/status/fkwssbtbo7ul80gp?svg=true)](https://ci.appveyor.com/project/VIPLogic/nbomber)
-
 [![NuGet](https://img.shields.io/nuget/v/vip-logic.nbomber.svg)](https://www.nuget.org/packages/vip-logic.nbomber/)
 
 Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
