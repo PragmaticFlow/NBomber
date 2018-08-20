@@ -45,7 +45,7 @@ Task("Build")
     });
 });
 
-Task("Tests")
+Task("Test")
     .Does(() =>
 {    
     var projects = GetFiles("./tests/**/*.fsproj");
