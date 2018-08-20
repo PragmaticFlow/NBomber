@@ -2,7 +2,6 @@ var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 
 var version = EnvironmentVariable("APPVEYOR_BUILD_VERSION") ?? "0.1.0";
-var nugetApiKey = EnvironmentVariable("NUGET_API_KEY") ?? "";
 
 var solution = File("./NBomber.sln");
 var project = File("./src/NBomber/NBomber.fsproj");
@@ -54,18 +53,6 @@ Task("Pack")
         Version = version,
 		OutputDirectory = "./artifacts/"		
 	});
-});
-
-Task("Publish")
-    .Does(() =>
-{
-	var package = GetFiles("./artifacts/*.nupkg");
-
-    // Push the package.
-    NuGetPush(package, new NuGetPushSettings {
-        Source = "https://api.nuget.org/v3/index.json",
-        ApiKey = nugetApiKey
-    });
 });
 
 Task("Default")

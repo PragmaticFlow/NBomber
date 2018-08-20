@@ -5,17 +5,18 @@ branches:
   only:
     - master
 
-environment:
-  NUGET_API_KEY:
-    secure: KCtoBrghwEBWx0bFMAFNinvVWcENtGGNSNSsax68Y53fPopBvzDx9KDZOMIgYwfq
-
 build_script:
   - ps: .\build.ps1 -target=Pack
 
-deploy:
-  - provider: Environment
-    name: NuGet
-    branch: master    
+artifacts:	
+  - path: ./artifacts/*.nupkg	
+    name: NBomber
 
-deploy_script:
-  - ps: .\build.ps1 -target=Publish
+deploy:
+  - provider: NuGet
+    name: production
+    api_key:
+      secure: HWjzhBfu9tCiNTMz8IPcEa0RZHS+OQ4h/83oJM+K/0vsfMkV7be1IRzU+/hjct+b
+    on:
+      branch: master
+      appveyor_repo_tag: true
