@@ -13,7 +13,7 @@ namespace CSharp.Example.Http
             HttpRequestMessage CreateRequest()
             {
                 var msg = new HttpRequestMessage();
-                msg.RequestUri = new Uri("https://github.com/VIP-Logic/NBomber");
+                msg.RequestUri = new Uri("https://github.com/PragmaticFlow/NBomber");
                 msg.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
                 msg.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36");
                 return msg;
@@ -21,7 +21,7 @@ namespace CSharp.Example.Http
 
             var httpClient = new HttpClient();
 
-            var step1 = Step.CreateRequest("GET github.com/VIP-Logic/NBomber html", async _ =>
+            var step1 = Step.CreateRequest("GET html", async _ =>
             {
                 var request = CreateRequest();
                 var response = await httpClient.SendAsync(request);

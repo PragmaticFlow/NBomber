@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="https://github.com/VIP-Logic/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px"> 
+  <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px"> 
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fkwssbtbo7ul80gp?svg=true)](https://ci.appveyor.com/project/VIPLogic/nbomber)
-[![NuGet](https://img.shields.io/nuget/v/vip-logic.nbomber.svg)](https://www.nuget.org/packages/vip-logic.nbomber/)
+[![Build status](https://ci.appveyor.com/api/projects/status/fkwssbtbo7ul80gp?svg=true)](https://ci.appveyor.com/project/pragmaticflow/nbomber)
+[![NuGet](https://img.shields.io/nuget/v/pragmaticflow.nbomber.svg)](https://www.nuget.org/packages/pragmaticflow.nbomber/)
 
 Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
 ### How to install
 To install NBomber via NuGet, run this command in NuGet package manager console:
 ```code
-PM> Install-Package VIP-Logic.NBomber
+PM> Install-Package PragmaticFlow.NBomber
 ```
 
 ### Features
@@ -27,15 +27,15 @@ PM> Install-Package VIP-Logic.NBomber
 ### Examples
 |Scenario|Language|Example|
 |--|--|--|
-| HTTP | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.Http/Program.cs) |
-| MongoDb | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.MongoDb/Program.cs) |
-| NUnit integration | C# | [Simple NUnit test](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.NUnit/Tests.cs) |
-| Simple Push | C# | [Test fake push server](https://github.com/VIP-Logic/NBomber/blob/master/examples/CSharp.Example.SimplePush/Program.cs) |
-| HTTP | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/VIP-Logic/NBomber/blob/master/examples/FSharp.Example.Http/Program.fs) |
-| XUnit integration | F# | [Simple XUnit test](https://github.com/VIP-Logic/NBomber/blob/master/examples/FSharp.Example.XUnit/Tests.fs) |
+| HTTP | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.Http/Program.cs) |
+| MongoDb | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.MongoDb/Program.cs) |
+| NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.NUnit/Tests.cs) |
+| Simple Push | C# | [Test fake push server](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.SimplePush/Program.cs) |
+| HTTP | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/PragmaticFlow/NBomber/blob/master/examples/FSharp.Example.Http/Program.fs) |
+| XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/master/examples/FSharp.Example.XUnit/Tests.fs) |
 
 ### Contributing
-Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/VIP-Logic/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
+Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
 
 ## Why another {x} framework for load testing?
 The main reasons are:
