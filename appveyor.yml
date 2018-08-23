@@ -1,4 +1,4 @@
-version: 0.2.{build}
+version: 0.1.{build}
 image: Visual Studio 2017
 
 branches:
@@ -19,7 +19,7 @@ deploy:
   - provider: NuGet
     name: production
     api_key:
-      secure: D60KmxOpjAgwDa1ess6Xg1+axzgSCCvDXvIo/VmpjzNx++LWN6KtcXqnplHcf/cE
+      secure: iOAkV/7s8hWo8Hnm9j2UR9vJDHPNqsubhTF3HYOGz02iZtKNUNdvZFgfdf47T/Xj
     on:
       branch: master
       appveyor_repo_tag: true
