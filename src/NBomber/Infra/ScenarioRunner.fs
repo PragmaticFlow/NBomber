@@ -33,42 +33,40 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
 
     Log.Information("{Scenario} has started", config.ScenarioName)        
 
-    let result = initScenario(scenario)
-                 |> Result.bind(warmUpScenario)
-                 |> Result.map(startFlows)
+    let result = initScenario(scenario) |> Result.bind(warmUpScenario)
+    let actorsHosts = match result with
+                        | Ok warmedUpScenario -> warmedUpScenario
+                        | Error e -> Errors.printError(e) |> Log.Error; scenario
+                        |> startFlows
     
-    match result with
-    | Ok actorsHosts ->
-        Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
-        Log.Information("processing...")
-        
-        let t1 = Task.Delay(scenario.Duration)
-        let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
-                
-        // waiting until the Scenario ends
-        t1.Wait()
-        stopFlows(actorsHosts)                        
-        let results = getResults(actorsHosts) 
+    Log.Information("{Scenario} has started", config.ScenarioName)
 
-        t2.Wait()
+    Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
+    Log.Information("processing...")
 
-        if isVerbose then 
-            Log.Information("building report...")
-            Reporting.buildReport(scenario, results)    
-            |> Reporting.saveReport
-            |> Log.Information
+    let t1 = Task.Delay(scenario.Duration)
+    let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
+            
+    // waiting until the Scenario ends
+    t1.Wait()
+    stopFlows(actorsHosts)                        
+    let results = getResults(actorsHosts) 
 
-            Log.Information("{Scenario} has finished", scenario.ScenarioName)
+    t2.Wait()
 
-        results
-        |> Array.collect (fun flow -> flow.Steps |> Array.map(fun step -> (flow, step)))
-        |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
-        |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
-        |> outputAssertionResults 
-         
-    | Error e -> let message = Errors.printError(e)
-                 Log.Error(message)
-                 [|message|]
+    if isVerbose then 
+        Log.Information("building report...")
+        Reporting.buildReport(scenario, results)    
+        |> Reporting.saveReport
+        |> Log.Information
+
+        Log.Information("{Scenario} has finished", scenario.ScenarioName)
+
+    results
+    |> Array.collect (fun flow -> flow.Steps |> Array.map(fun step -> (flow, step)))
+    |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
+    |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
+    |> outputAssertionResults 
 
 let private initLogger () =
     Log.Logger <- LoggerConfiguration()
