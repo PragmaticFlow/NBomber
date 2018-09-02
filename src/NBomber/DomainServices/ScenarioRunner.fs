@@ -14,7 +14,10 @@ open NBomber.Domain
 open NBomber.Domain.Assertions
 open NBomber.Statistics
 open NBomber.FlowRunner
-open System.Runtime.InteropServices
+open NBomber.Reporting
+open NBomber.Infra
+open System.Globalization
+open System.Reflection
 
 let runInConsole (scenario: Contracts.Scenario) =
     let mutable runningScenario = true
@@ -30,7 +33,6 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
     if isVerbose then initLogger() 
 
     let scenario = Scenario.create(config)
-
     Log.Information("{Scenario} has started", config.ScenarioName)        
 
     let result = initScenario(scenario)
@@ -54,14 +56,20 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
 
         if isVerbose then 
             Log.Information("building report...")
-            Reporting.buildReport(scenario, results)    
-            |> Reporting.saveReport
-            |> Log.Information
+            
+            let dep = Dependency.create(scenario)
+            let scResult = ScenarioStats.create(scenario, results)
+            let report = Report.build(dep, scResult)
+            Report.save(dep, report, "./")
+            
+            //Reportinga.buildReport(scenario, results)    
+            //|> Reportinga.saveReport
+            //|> Log.Information
 
             Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
         results
-        |> Array.collect (fun flow -> flow.Steps |> Array.map(fun step -> (flow, step)))
+        |> Array.collect (fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
         |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
         |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
         |> outputAssertionResults 
@@ -111,7 +119,7 @@ let private runProgressBar (scenarioDuration: TimeSpan) = task {
         pbar.Tick()
 }
 
-let private createAssertionStats (flowName: string, step: StepInfo) =
+let private createAssertionStats (flowName: string, step: StepStats) =
     { StepName = step.StepName; FlowName = flowName; OkCount = step.OkCount; FailCount = step.FailCount;
         ExceptionCount = step.ExceptionCount; ThrownException = step.ThrownException }
 

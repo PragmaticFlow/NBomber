@@ -7,6 +7,7 @@ open System.Runtime.InteropServices
 open NBomber
 open NBomber.Contracts
 open NBomber.ScenarioRunner
+open NBomber.Infra
 
 module Step =
     open NBomber.Domain

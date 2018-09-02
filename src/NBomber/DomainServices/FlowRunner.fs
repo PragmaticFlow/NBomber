@@ -14,17 +14,26 @@ open NBomber.Statistics
 
 type FlowRunner(flow: TestFlow) =    
 
+    let createActors (flow: TestFlow) =
+        flow.CorrelationIds
+        |> Set.toArray
+        |> Array.map(fun id -> FlowActor(id, flow))
+
     let actors = createActors(flow)
 
     member x.Run() = actors |> Array.iter(fun x -> x.Run())
     member x.Stop() = actors |> Array.iter(fun x -> x.Stop())            
-    member x.GetResult() = getFlowResults(flow.FlowName, actors)
+    
+    member x.GetResult() = 
+        actors
+        |> Array.collect(fun actor -> actor.GetResults())
+        |> FlowStats.create(flow)
 
-type FlowActor(correlationId: string, allSteps: Step[]) =
+type FlowActor(correlationId: string, flow: TestFlow) =
     
     let mutable currentTask = None        
     let mutable currentCts = None
-    let stepsWithoutPause = allSteps |> Array.filter(fun st -> not(Step.isPause st))    
+    let stepsWithoutPause = flow.Steps |> Array.filter(fun st -> not(Step.isPause st))    
     let latencies = List<List<Response*Latency>>()
     let exceptions = List<Option<exn>*ExceptionCount>()
 
@@ -35,21 +44,10 @@ type FlowActor(correlationId: string, allSteps: Step[]) =
 
     member x.Run() = 
         currentCts <- Some(new CancellationTokenSource())
-        currentTask <- Some(Step.runSteps(allSteps, correlationId, latencies, exceptions, currentCts.Value.Token))
+        currentTask <- Some(Step.runSteps(flow.Steps, correlationId, latencies, exceptions, currentCts.Value.Token))
 
     member x.Stop() = if currentCts.IsSome then currentCts.Value.Cancel()
         
     member x.GetResults() =
         stepsWithoutPause
-        |> Array.mapi(fun i st -> StepInfo.create(Step.getName(st), latencies.[i], exceptions.[i]))
-                
-
-let createActors (flow: TestFlow): FlowActor[] =
-    flow.CorrelationIds
-    |> Set.toArray
-    |> Array.map(fun id -> FlowActor(id, flow.Steps))      
-
-let getFlowResults (flowName: string, actors: FlowActor[]) =
-    actors
-    |> Array.collect(fun actor -> actor.GetResults())
-    |> FlowInfo.create(flowName, actors.Length)
+        |> Array.mapi(fun i st -> StepStats.create(i, Step.getName(st), latencies.[i], exceptions.[i]))
