@@ -5,22 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>NBomber</title>
-    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/mdb.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/sidebar.css">
 </head>
 <body>
-    <div style="height: 100vh">
-        <div class="flex-center flex-column">
-            <h1 class="animated fadeIn mb-4">Material Design for Bootstrap</h1>
-            <h5 class="animated fadeIn mb-3">Thank you for using our product. We're glad you're with us.</h5>
-            <p class="animated fadeIn text-muted">MDB Team</p>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark" style="background-color: #222">
+        <a class="navbar-brand" href="#">NBomber</a>
+    </nav>
+    <!-- Navbar -->
+    <!-- Sidebar -->
+    <div id="wrapper" class="active">
+        <div id="sidebar-wrapper">
+            <ul id="sidebar_menu" class="sidebar-nav">
+                <li class="sidebar-brand"><a id="menu-toggle" href="#">Menu<span class="main_icon fa fa-align-justify"></span></a></li>
+            </ul>
+            <ul class="sidebar-nav" id="sidebar">
+                <li><a>Global<span class="sub_icon fas fa-globe"></span></a></li>
+                <li><a>Flow 1<span class="sub_icon fas fa-arrow-right"></span></a></li>
+            </ul>
         </div>
     </div>
-    {scenario_view}
-    <script type="text/javascript" src="assets/js/jquery-3.3.1.min.js"></script>
-    <script type="text/javascript" src="assets/js/popper.min.js"></script>
-    <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="assets/js/mdb.min.js"></script>
+    <!-- Sidebar -->
+
+    <div class="container" style="margin-top: 65px">
+        {scenario_view}
+    </div>
+
+    <script type="text/javascript" src="assets/js/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.js"></script>
+    <script type="text/javascript" src="assets/js/sidebar.js"></script>
 </body>
 </html>

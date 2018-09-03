@@ -18,7 +18,7 @@ type Dependency = {
 let create (scenario: Scenario) = 
 
     let createSessionId () =
-        let date = DateTime.UtcNow.ToString("dd.MM.yyyy")
+        let date = DateTime.UtcNow.ToString("dd.MM.yyyy-HH.mm.ff")
         let guid = Guid.NewGuid().GetHashCode().ToString("x")
         date + "-" + guid
     
