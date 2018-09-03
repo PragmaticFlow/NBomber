@@ -249,7 +249,8 @@ module Assertions =
             flows
             |> Array.groupBy(fun flow -> flow.FlowName)
             |> Array.map(fun (_,steps) -> applyForSteps func steps)
-            |> Array.exists(id)
+            |> Array.filter(fun (assertionResult, _) -> not assertionResult)
+            |> Array.head
             |> createAssertionResult("Scenario", scenarioName, i)
 
        | TestFlow (flowName,func) ->
@@ -264,10 +265,11 @@ module Assertions =
            |> applyForSteps(func)
            |> createAssertionResult("Step", stepName, i)
 
-    let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) =            
+    let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) : bool*AssertionStats =            
         steps
-        |> Array.map(assertion)
-        |> Array.exists(id)
+        |> Array.map(fun x -> assertion x, x)
+        |> Array.filter(fun (assertionResult, _) -> not assertionResult)
+        |> Array.head
 
     let private printAssertionResults (results: string option[]) =
         let allAreOk = results |> Array.forall(function | None -> true | _ -> false)
@@ -275,9 +277,9 @@ module Assertions =
         if allAreOk then results |> Array.length |> Ok
         else results |> Array.choose(fun x -> match x with | None -> None | Some msg -> Some(msg)) |> Error
     
-    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool) : string option =
+    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool, stats: AssertionStats) : string option =
         if executed then None
-        else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference |> Some
+        else sprintf "Assertion #%i FAILED for %s '%s' with the following stats: %A" position scope reference stats |> Some
     
 module Constants =
 
