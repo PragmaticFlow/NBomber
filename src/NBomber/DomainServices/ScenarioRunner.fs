@@ -57,19 +57,15 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
         if isVerbose then 
             Log.Information("building report...")
             
-            let dep = Dependency.create(scenario)
-            let scResult = ScenarioStats.create(scenario, results)
-            let report = Report.build(dep, scResult)
+            let dep = initDependency(scenario)
+            let stats = Statistics.apply(scenario, results)
+            let report = Report.build(dep, stats)
             Report.save(dep, report, "./")
-            
-            //Reportinga.buildReport(scenario, results)    
-            //|> Reportinga.saveReport
-            //|> Log.Information
 
             Log.Information("{Scenario} has finished", scenario.ScenarioName)
 
         results
-        |> Array.collect (fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
+        |> Array.collect(fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
         |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
         |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
         |> outputAssertionResults 
@@ -82,6 +78,9 @@ let private initLogger () =
     Log.Logger <- LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger()
+
+let private initDependency (scenario: Scenario) =
+    Dependency.create(scenario)
 
 let private initScenario (scenario: Scenario) =
     Log.Information("initializing scenario...")

@@ -19,7 +19,6 @@
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />    
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />    
     <Compile Include="DomainServices\Reporting\Report.fs" />    
-    <Compile Include="DomainServices\Reporting.fs" />    
     <Compile Include="DomainServices\FlowRunner.fs" />    
     <Compile Include="DomainServices\ScenarioRunner.fs" />    
     <Compile Include="Api\FSharp.fs" />

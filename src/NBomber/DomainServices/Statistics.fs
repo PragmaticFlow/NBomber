@@ -8,6 +8,8 @@ open HdrHistogram
 open NBomber.Contracts
 open NBomber.Domain
 
+let apply (scenario: Scenario, flowsStats: FlowStats[]) = ScenarioStats.create(scenario, flowsStats)
+
 type StepStats = {     
     StepName: string
     Latencies: Latency[]
