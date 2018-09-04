@@ -24,14 +24,13 @@ module ScenarioView =
 
     let private printFlowRow (flow: FlowStats) =
         flow.StepsStats
-        |> Array.map(printStepRow)
+        |> Array.map(fun step -> printStepRow(step, flow.FlowName, flow.ConcurrentCopies))
         |> String.concat("")
 
-    let private printStepRow (step: StepStats) =
+    let private printStepRow (step: StepStats, flowName: string, concurrentCopies: int) =
         let stats = step.Details.Value
-        [| step.StepNo.ToString(); step.StepName; step.Latencies.Length.ToString();
+        [| flowName; concurrentCopies.ToString(); step.StepName; step.Latencies.Length.ToString();
            step.OkCount.ToString(); step.FailCount.ToString();
-           stats.RPS.ToString(); step.ExceptionCount.ToString();
-           stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
+           stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
            stats.Percent50.ToString(); stats.Percent75.ToString() |]        
         |> HtmlBuilder.printTableRow

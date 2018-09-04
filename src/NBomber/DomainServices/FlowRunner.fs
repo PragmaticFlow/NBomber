@@ -50,4 +50,4 @@ type FlowActor(correlationId: string, flow: TestFlow) =
         
     member x.GetResults() =
         stepsWithoutPause
-        |> Array.mapi(fun i st -> StepStats.create(i, Step.getName(st), latencies.[i], exceptions.[i]))
+        |> Array.mapi(fun i st -> StepStats.create(Step.getName(st), latencies.[i], exceptions.[i]))
