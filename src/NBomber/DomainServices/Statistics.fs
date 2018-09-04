@@ -8,8 +8,7 @@ open HdrHistogram
 open NBomber.Contracts
 open NBomber.Domain
 
-type StepStats = { 
-    StepNo: int
+type StepStats = {     
     StepName: string
     Latencies: Latency[]
     ThrownException: exn option
@@ -42,15 +41,14 @@ type ScenarioStats = {
 
 module StepStats =
 
-    let create (stepNo, stepName, responseResults: List<Response*Latency>, 
+    let create (stepName, responseResults: List<Response*Latency>, 
                 exceptions: (Option<exn>*ExceptionCount)) =
     
         let results = responseResults.ToArray()
         let responses = results |> Array.map(fst)
         let latencies = results |> Array.map(snd)        
 
-        { StepNo = stepNo
-          StepName = stepName 
+        { StepName = stepName 
           Latencies = latencies
           ThrownException = fst(exceptions)
           OkCount = calcOkCount(responses)
@@ -107,8 +105,7 @@ module FlowStats =
             allCopies
             |> Array.groupBy(fun x -> x.StepName)
             |> Array.map(fun (stName, results) ->                 
-                { StepNo = results.[0].StepNo
-                  StepName = stName
+                { StepName = stName
                   Latencies = results |> Array.collect(fun x -> x.Latencies)
                   ThrownException = results |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
                   OkCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
