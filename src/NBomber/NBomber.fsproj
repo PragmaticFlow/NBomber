@@ -1,31 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <TargetFramework>netstandard2.0</TargetFramework>    
     <Version>0.1.0</Version>
-    <Company>PragmaticFlow</Company>
-    <Authors>AntyaDev, alkondrashov</Authors>
-    <Description>Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.</Description>
-    <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
-    <Copyright>PragmaticFlow@2018</Copyright>
-    <PackageId>PragmaticFlow.NBomber</PackageId>
   </PropertyGroup>
   <ItemGroup>  
+    <EmbeddedResource Include="assets\assets.zip" />  
+    <EmbeddedResource Include="assets\html\scenario_view.html" />  
+    <EmbeddedResource Include="assets\html\main.html" />  
     <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
     <Compile Include="Domain\Domain.fs" />    
-    <Compile Include="Infra\Statistics.fs" />    
-    <Compile Include="Infra\Reporting.fs" />    
-    <Compile Include="Infra\FlowRunner.fs" />    
-    <Compile Include="Infra\ScenarioRunner.fs" /> 
+    <Compile Include="Infra\HtmlBuilder.fs" />    
+    <Compile Include="Infra\EnvironmentInfo.fs" />    
+    <Compile Include="Infra\ResourceManager.fs" />    
+    <Compile Include="Infra\Dependency.fs" />    
     <Compile Include="Infra\AssertIntegration.fs" />    
+    <Compile Include="DomainServices\Statistics.fs" />    
+    <Compile Include="DomainServices\Reporting\TxtReport.fs" />    
+    <Compile Include="DomainServices\Reporting\HtmlReport.fs" />    
+    <Compile Include="DomainServices\Reporting\Report.fs" />    
+    <Compile Include="DomainServices\Reporting.fs" />    
+    <Compile Include="DomainServices\FlowRunner.fs" />    
+    <Compile Include="DomainServices\ScenarioRunner.fs" />    
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="HdrHistogram" Version="2.5.0" />
     <PackageReference Include="Serilog" Version="2.7.1" />

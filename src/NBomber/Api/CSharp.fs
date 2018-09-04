@@ -9,6 +9,7 @@ open System.Runtime.InteropServices
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Infra
 
 type Step =    
     static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)

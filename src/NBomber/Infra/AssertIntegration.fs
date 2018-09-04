@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.AssertIntegration
+﻿module internal rec NBomber.Infra.AssertIntegration
 
 open System
 

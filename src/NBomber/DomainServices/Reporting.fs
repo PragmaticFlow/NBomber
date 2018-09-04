@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.Reporting
+﻿module internal rec NBomber.Reportinga
 
 open System
 open System.IO
@@ -11,7 +11,7 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Statistics
 
-let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) = 
+let buildReport (scenario: Scenario, flowInfo: FlowStats[]) = 
     let getPausedTime (scenario: Scenario) =
         scenario.TestFlows
         |> Array.collect(fun x -> x.Steps)
@@ -32,7 +32,7 @@ let buildReport (scenario: Scenario, flowInfo: FlowInfo[]) =
 let printScenarioHeader (scenario: Scenario) =
     String.Format("Scenario: {0}, execution time: {1}", scenario.ScenarioName, scenario.Duration.ToString())
 
-let printFlowTable (flowStats: FlowInfo, activeStepsDuration: TimeSpan, flowCount: int) =
+let printFlowTable (flowStats: FlowStats, activeStepsDuration: TimeSpan, flowCount: int) =
     
     let consoleTableOptions = 
         ConsoleTableOptions(
@@ -41,20 +41,21 @@ let printFlowTable (flowStats: FlowInfo, activeStepsDuration: TimeSpan, flowCoun
             EnableCount = false)
 
     let flowTable = ConsoleTable(consoleTableOptions)       
-    flowStats.Steps
+    flowStats.StepsStats
     |> Array.iteri(fun i stats -> flowTable.AddRow("", String.Format("{0} - {1}", i + 1, stats.StepName), "") |> ignore)
 
-    let stepsTable = printStepsTable(flowStats.Steps, activeStepsDuration)    
+    let stepsTable = printStepsTable(flowStats.StepsStats, activeStepsDuration)    
     flowTable.ToString() + stepsTable + Environment.NewLine + Environment.NewLine
 
-let printStepsTable (steps: StepInfo[], activeStepsDuration: TimeSpan) =
-    let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "exceptions", "RPS", "min", "mean", "max", "50%", "70%")
-    steps
-    |> Array.mapi(fun i stInfo -> StepStats.create(i + 1, stInfo, activeStepsDuration))
-    |> Array.iter(fun s -> stepTable.AddRow(s.StepNo, s.Info.Latencies.Length,
-                                            s.Info.OkCount, s.Info.FailCount, s.Info.ExceptionCount,
-                                            s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
-    stepTable.ToStringAlternative()
+let printStepsTable (steps: StepStats[], activeStepsDuration: TimeSpan) =
+    ""
+    //let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "exceptions", "RPS", "min", "mean", "max", "50%", "70%")
+    //steps
+    //|> Array.mapi(fun i stInfo -> StepStats.create(i + 1, stInfo, activeStepsDuration))
+    //|> Array.iter(fun s -> stepTable.AddRow(s.StepNo, s.StepResult.Latencies.Length,
+    //                                        s.StepResult.OkCount, s.StepResult.FailCount, s.StepResult.ExceptionCount,
+    //                                        s.RPS, s.Min, s.Mean, s.Max, s.Percent50, s.Percent75) |> ignore)
+    //stepTable.ToStringAlternative()
 
 let saveReport (report: string) = 
     Directory.CreateDirectory("reports") |> ignore
