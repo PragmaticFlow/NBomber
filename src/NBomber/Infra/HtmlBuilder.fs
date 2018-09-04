@@ -3,7 +3,9 @@
 open System
 
 let printTableRow (rowData: string[]) =
-    rowData
-    |> Array.map(fun x -> String.Format("<td>{0}</td>", x)) 
-    |> String.concat(String.Empty)
-
+    
+    let row = rowData
+              |> Array.map(fun x -> String.Format("<td>{0}</td>", x)) 
+              |> String.concat(String.Empty)
+    
+    "<tr>" + row + "</tr>"
