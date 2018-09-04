@@ -36,7 +36,7 @@ type Scenario = {
     Duration: TimeSpan    
 }
 
-[<StructuredFormatDisplay("OkCount {OkCount}, FailCount {FailCount}, ExceptionCount {ExceptionCount}")>]
+[<StructuredFormatDisplay("OkCount: {OkCount}, FailCount: {FailCount}, ExceptionCount: {ExceptionCount}")>]
 type AssertionStats = {
     StepName: string
     FlowName: string    
