@@ -6,15 +6,17 @@ open System.Reflection
 
 open Constants
 
-type Assets = {    
-    MainHtml: string
-    ScenarioViewHtml: string
+type Assets = {
+    MainHtml: string    
+    ResultsViewHtml: string    
+    EnvViewHtml: string
 }
 
 let loadAssets () =
     let assembly = typedefof<Assets>.Assembly
-    { MainHtml = readResource(assembly, AssetsHtml + MainHtml)
-      ScenarioViewHtml = readResource(assembly, AssetsHtml + ScenarioViewHtml) }
+    { MainHtml = readResource(assembly, AssetsHtml + MainHtml)            
+      ResultsViewHtml = readResource(assembly, AssetsHtml + ResultsViewHtml)
+      EnvViewHtml = readResource(assembly, AssetsHtml + EnvViewHtml) }
 
 let saveAssets (outputDir: string) =
     let assetsDir = Path.Combine(outputDir, "assets")
@@ -48,4 +50,7 @@ module Constants =
     let MainHtml = "main.html"
 
     [<Literal>]
-    let ScenarioViewHtml = "scenario_view.html"
+    let EnvViewHtml = "env_view.html"
+
+    [<Literal>]
+    let ResultsViewHtml = "results_view.html"

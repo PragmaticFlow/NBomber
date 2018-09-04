@@ -4,18 +4,29 @@ open System
 
 open NBomber.Statistics
 open NBomber.Infra
+open NBomber.Infra.EnvironmentInfo
 open NBomber.Infra.Dependency
 open NBomber.Infra.ResourceManager
 
 let print (dep: Dependency, scResult: ScenarioStats) =
-    let scenarioView = ScenarioView.print(dep.Assets.ScenarioViewHtml, scResult)
-    dep.Assets.MainHtml.Replace("{scenario_view}", scenarioView)
+    let envView = EnvView.print(dep.Assets.EnvViewHtml, dep.EnvironmentInfo)
+    let resultsView = ResultsView.print(dep.Assets.ResultsViewHtml, scResult)
+    dep.Assets.MainHtml.Replace("{env_view}", envView)
+                       .Replace("{results_view}", resultsView)
 
-module ScenarioView =    
+module EnvView =
+    
+    let print (envViewHtml: string, envInfo: EnvironmentInfo) =            
+        let row = [envInfo.OS.VersionString; envInfo.DotNetVersion
+                   envInfo.Processor; envInfo.ProcessorArchitecture]
+                  |> HtmlBuilder.printTableRow        
+        envViewHtml.Replace("{env_table}", row)
+
+module ResultsView =    
 
     let print (scnViewHtml: string, scResult: ScenarioStats) =
         let scnTable = printScenarioTable(scResult)
-        scnViewHtml.Replace("{scenario_table}", scnTable)        
+        scnViewHtml.Replace("{results_table}", scnTable)        
 
     let private printScenarioTable (scResult: ScenarioStats) =
         scResult.FlowsStats
@@ -29,8 +40,8 @@ module ScenarioView =
 
     let private printStepRow (step: StepStats, flowName: string, concurrentCopies: int) =
         let stats = step.Details.Value
-        [| flowName; concurrentCopies.ToString(); step.StepName; step.Latencies.Length.ToString();
-           step.OkCount.ToString(); step.FailCount.ToString();
-           stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
-           stats.Percent50.ToString(); stats.Percent75.ToString() |]        
+        [flowName; concurrentCopies.ToString(); step.StepName; step.Latencies.Length.ToString();
+         step.OkCount.ToString(); step.FailCount.ToString();
+         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
+         stats.Percent50.ToString(); stats.Percent75.ToString()]
         |> HtmlBuilder.printTableRow
