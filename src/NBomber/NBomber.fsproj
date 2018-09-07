@@ -5,9 +5,12 @@
   </PropertyGroup>
   <ItemGroup>  
     <EmbeddedResource Include="assets\assets.zip" />  
-    <EmbeddedResource Include="assets\html\results_view.html" />  
-    <EmbeddedResource Include="assets\html\env_view.html" />  
+    <EmbeddedResource Include="assets\html\num_req_chart.html" />  
+    <EmbeddedResource Include="assets\html\indicators_chart.html" />  
+    <EmbeddedResource Include="assets\html\statistics_table.html" />  
+    <EmbeddedResource Include="assets\html\env_table.html" />  
     <EmbeddedResource Include="assets\html\main.html" />  
+    <EmbeddedResource Include="assets\js\num_req_chart.js" />  
     <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
     <Compile Include="Domain\Domain.fs" />    

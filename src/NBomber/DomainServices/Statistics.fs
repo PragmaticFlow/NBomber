@@ -39,6 +39,8 @@ type ScenarioStats = {
     ScenarioName: string
     FlowsStats: FlowStats[]
     ActiveTime: TimeSpan
+    AllOkCount: int
+    AllFailedCount: int
 }
 
 module StepStats =
@@ -134,9 +136,14 @@ module ScenarioStats =
 
         let stats = flowsStats |> Array.map(applyCalculations(activeTime))
 
+        let allOk = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.OkCount))
+        let allFailed = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.FailCount))
+
         { ScenarioName = scenario.ScenarioName
           FlowsStats = stats 
-          ActiveTime = activeTime }
+          ActiveTime = activeTime
+          AllOkCount = allOk
+          AllFailedCount = allFailed }
 
     let private getPausedTime (scenario: Scenario) =
         scenario.TestFlows

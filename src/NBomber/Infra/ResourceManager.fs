@@ -9,14 +9,18 @@ open Constants
 type Assets = {
     MainHtml: string    
     ResultsViewHtml: string    
-    EnvViewHtml: string
+    EnvTableHtml: string
+    NumReqChartHtml: string
+    NumReqChartJs: string
 }
 
 let loadAssets () =
     let assembly = typedefof<Assets>.Assembly
     { MainHtml = readResource(assembly, AssetsHtml + MainHtml)            
       ResultsViewHtml = readResource(assembly, AssetsHtml + ResultsViewHtml)
-      EnvViewHtml = readResource(assembly, AssetsHtml + EnvViewHtml) }
+      EnvTableHtml = readResource(assembly, AssetsHtml + EnvTableHtml)
+      NumReqChartHtml = readResource(assembly, AssetsHtml + NumReqChartHtml)
+      NumReqChartJs = readResource(assembly, AssetsJs + NumReqChartJs) }
 
 let saveAssets (outputDir: string) =
     let assetsDir = Path.Combine(outputDir, "assets")
@@ -44,13 +48,22 @@ module Constants =
     let AssetsHtml = "NBomber.assets.html."
 
     [<Literal>]
+    let AssetsJs = "NBomber.assets.js."
+
+    [<Literal>]
     let AssetsZip = "NBomber.assets.assets.zip"
     
     [<Literal>]
     let MainHtml = "main.html"
 
     [<Literal>]
-    let EnvViewHtml = "env_view.html"
+    let EnvTableHtml = "env_table.html"
 
     [<Literal>]
-    let ResultsViewHtml = "results_view.html"
+    let ResultsViewHtml = "statistics_table.html"
+
+    [<Literal>]
+    let NumReqChartHtml = "num_req_chart.html"
+
+    [<Literal>]
+    let NumReqChartJs = "num_req_chart.js"

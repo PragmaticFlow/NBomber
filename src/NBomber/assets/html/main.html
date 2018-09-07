@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
     <!-- Navbar -->
     <nav class="navbar navbar-dark" style="background-color: #222">
         <a class="navbar-brand" href="#">NBomber</a>
@@ -33,25 +32,44 @@
     <!-- PageContent -->
     <div id="page-content-wrapper">
         <div class="container">
+
             <div class="row">
+                <div class="col">
+                    %num_req_chart%
+                </div>
+                <div class="col">
+                    %indicators_chart%
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 20px">
+                <div class="col">
+                    %statistics_table%
+                </div>
+            </div>
+
+            <!--<div class="row" style="margin-top: 20px">
                 <div class="col">
                     {results_view}
                 </div>
             </div>
+
             <div class="row" style="margin-top: 20px">
                 <div class="col">
                     {env_view}
                 </div>
-                <div class="col">
-
-                </div>
-            </div>
+            </div>-->
         </div>
     </div>
     <!-- PageContent -->
 
     <script type="text/javascript" src="assets/js/jquery-3.3.1.js"></script>
-    <script type="text/javascript" src="assets/js/bootstrap.js"></script>
-    <script type="text/javascript" src="assets/js/sidebar.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.bundle.js"></script>
+    <script type="text/javascript" src="assets/js/nbomber.js"></script>
+    <script type="text/javascript" src="assets/js/chart.bundle.js"></script>    
+
+    <script type="text/javascript">
+        %js%
+    </script>
 </body>
 </html>
