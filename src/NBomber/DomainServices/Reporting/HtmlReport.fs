@@ -9,24 +9,34 @@ open NBomber.Infra.Dependency
 open NBomber.Infra.ResourceManager
 
 let print (dep: Dependency, scResult: ScenarioStats) =
-    let envView = EnvView.print(dep.Assets.EnvViewHtml, dep.EnvironmentInfo)
-    let resultsView = ResultsView.print(dep.Assets.ResultsViewHtml, scResult)
-    dep.Assets.MainHtml.Replace("{env_view}", envView)
-                       .Replace("{results_view}", resultsView)
+    let (nHtml,nJs) = NumberReqChart.print(dep.Assets, scResult)
+    let (iHtml,iJs) = IndicatorsChart.print(dep.Assets, scResult)
+    let stHtml = StatisticsTable.print(dep.Assets, scResult)
+    //let envView = EnvView.print(dep.Assets.EnvViewHtml, dep.EnvironmentInfo)
+    //let resultsView = StatisticsTable.print(dep.Assets, scResult)
+    dep.Assets.MainHtml.Replace("%num_req_chart%", nHtml)
+                       .Replace("%indicators_chart%", iHtml)
+                       .Replace("%statistics_table%", stHtml)
+                       .Replace("%js%", nJs + iJs)
+                       //.Replace("{results_view}", resultsView)
 
-module EnvView =
+module NumberReqChart =
     
-    let print (envViewHtml: string, envInfo: EnvironmentInfo) =            
-        let row = [envInfo.OS.VersionString; envInfo.DotNetVersion
-                   envInfo.Processor; envInfo.ProcessorArchitecture]
-                  |> HtmlBuilder.printTableRow        
-        envViewHtml.Replace("{env_table}", row)
+    let print (assets: Assets, scResult: ScenarioStats) =
+        let dataArray = HtmlBuilder.toJsArray([scResult.AllOkCount; scResult.AllFailedCount])
+        let js = assets.NumReqChartJs.Replace("%dataArray%", dataArray)        
+        (assets.NumReqChartHtml, js)
 
-module ResultsView =    
+module IndicatorsChart =
 
-    let print (scnViewHtml: string, scResult: ScenarioStats) =
+    let print (assets: Assets, scResult: ScenarioStats) =
+        ("", "")
+
+module StatisticsTable =    
+
+    let print (assets: Assets, scResult: ScenarioStats) =
         let scnTable = printScenarioTable(scResult)
-        scnViewHtml.Replace("{results_table}", scnTable)        
+        assets.ResultsViewHtml.Replace("%statistics_table_body%", scnTable)
 
     let private printScenarioTable (scResult: ScenarioStats) =
         scResult.FlowsStats
@@ -45,3 +55,11 @@ module ResultsView =
          stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
          stats.Percent50.ToString(); stats.Percent75.ToString()]
         |> HtmlBuilder.printTableRow
+
+module EnvView =
+    
+    let print (envViewHtml: string, envInfo: EnvironmentInfo) =            
+        let row = [envInfo.OS.VersionString; envInfo.DotNetVersion
+                   envInfo.Processor; envInfo.ProcessorArchitecture]
+                  |> HtmlBuilder.printTableRow        
+        envViewHtml.Replace("%env_table%", row)
