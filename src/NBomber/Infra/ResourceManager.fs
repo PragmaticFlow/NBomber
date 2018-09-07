@@ -12,6 +12,8 @@ type Assets = {
     EnvTableHtml: string
     NumReqChartHtml: string
     NumReqChartJs: string
+    IndicatorsChartHtml: string
+    IndicatorsChartJs: string
 }
 
 let loadAssets () =
@@ -20,7 +22,9 @@ let loadAssets () =
       ResultsViewHtml = readResource(assembly, AssetsHtml + ResultsViewHtml)
       EnvTableHtml = readResource(assembly, AssetsHtml + EnvTableHtml)
       NumReqChartHtml = readResource(assembly, AssetsHtml + NumReqChartHtml)
-      NumReqChartJs = readResource(assembly, AssetsJs + NumReqChartJs) }
+      NumReqChartJs = readResource(assembly, AssetsJs + NumReqChartJs)
+      IndicatorsChartHtml = readResource(assembly, AssetsHtml + IndicatorsChartHtml)
+      IndicatorsChartJs = readResource(assembly, AssetsJs + IndicatorsChartJs) }
 
 let saveAssets (outputDir: string) =
     let assetsDir = Path.Combine(outputDir, "assets")
@@ -67,3 +71,9 @@ module Constants =
 
     [<Literal>]
     let NumReqChartJs = "num_req_chart.js"
+
+    [<Literal>]
+    let IndicatorsChartHtml = "indicators_chart.html"
+
+    [<Literal>]
+    let IndicatorsChartJs = "indicators_chart.js"

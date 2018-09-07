@@ -17,7 +17,7 @@ let print (dep: Dependency, scResult: ScenarioStats) =
     dep.Assets.MainHtml.Replace("%num_req_chart%", nHtml)
                        .Replace("%indicators_chart%", iHtml)
                        .Replace("%statistics_table%", stHtml)
-                       .Replace("%js%", nJs + iJs)
+                       .Replace("%js%", nJs + Environment.NewLine + iJs)
                        //.Replace("{results_view}", resultsView)
 
 module NumberReqChart =
@@ -29,8 +29,16 @@ module NumberReqChart =
 
 module IndicatorsChart =
 
-    let print (assets: Assets, scResult: ScenarioStats) =
-        ("", "")
+    let print (assets: Assets, scResult: ScenarioStats) =        
+        let dataArray = 
+            HtmlBuilder.toJsArray([scResult.LatencyCount.Less800
+                                   scResult.LatencyCount.More800Less1200
+                                   scResult.LatencyCount.More1200
+                                   scResult.AllFailedCount])
+
+        let js = assets.IndicatorsChartJs.Replace("%label%", "Scenario")
+                                         .Replace("%dataArray%", dataArray)
+        (assets.IndicatorsChartHtml, js)
 
 module StatisticsTable =    
 
@@ -50,7 +58,7 @@ module StatisticsTable =
 
     let private printStepRow (step: StepStats, flowName: string, concurrentCopies: int) =
         let stats = step.Details.Value
-        [flowName; concurrentCopies.ToString(); step.StepName; step.Latencies.Length.ToString();
+        [flowName; concurrentCopies.ToString(); step.StepName; step.OkLatencies.Length.ToString();
          step.OkCount.ToString(); step.FailCount.ToString();
          stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
          stats.Percent50.ToString(); stats.Percent75.ToString()]

@@ -52,7 +52,7 @@ let private printStepsTable (steps: StepStats[]) =
     let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "exceptions", "RPS", "min", "mean", "max", "50%", "70%")
     steps    
     |> Array.iteri(fun i s -> 
-        stepTable.AddRow(i + 1, s.Latencies.Length,
+        stepTable.AddRow(i + 1, s.OkLatencies.Length,
                          s.OkCount, s.FailCount, s.ExceptionCount,
                          s.Details.Value.RPS, s.Details.Value.Min, 
                          s.Details.Value.Mean, s.Details.Value.Max,
