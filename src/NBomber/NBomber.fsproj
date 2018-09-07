@@ -11,6 +11,7 @@
     <EmbeddedResource Include="assets\html\env_table.html" />  
     <EmbeddedResource Include="assets\html\main.html" />  
     <EmbeddedResource Include="assets\js\num_req_chart.js" />  
+    <EmbeddedResource Include="assets\js\indicators_chart.js" />  
     <Compile Include="Contracts.fs" />    
     <Compile Include="Domain\Errors.fs" />    
     <Compile Include="Domain\Domain.fs" />    

@@ -1,6 +1,6 @@
 ﻿$(document).ready(function () {
-    var numReqCtx = document.getElementById("num_req_chart").getContext('2d');
-    window.numReqChart = new Chart(numReqCtx, {
+    var ctx = document.getElementById("num_req_chart").getContext('2d');
+    window.numReqChart = new Chart(ctx, {
         type: 'pie',
         data: {
             datasets: [{

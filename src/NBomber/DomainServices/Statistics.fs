@@ -10,9 +10,16 @@ open NBomber.Domain
 
 let apply (scenario: Scenario, flowsStats: FlowStats[]) = ScenarioStats.create(scenario, flowsStats)
 
+type LatencyCount = {
+    Less800: int
+    More800Less1200: int
+    More1200: int
+}
+
 type StepStats = {     
     StepName: string
-    Latencies: Latency[]
+    OkLatencies: Latency[]
+    FailLatencies: Latency[]
     ThrownException: exn option
     OkCount: int
     FailCount: int
@@ -32,7 +39,8 @@ type StepDetails = {
 type FlowStats = {
     FlowName: string
     StepsStats: StepStats[]    
-    ConcurrentCopies: int    
+    ConcurrentCopies: int
+    LatencyCount: LatencyCount
 }
 
 type ScenarioStats = {
@@ -41,6 +49,7 @@ type ScenarioStats = {
     ActiveTime: TimeSpan
     AllOkCount: int
     AllFailedCount: int
+    LatencyCount: LatencyCount
 }
 
 module StepStats =
@@ -48,17 +57,18 @@ module StepStats =
     let create (stepName, responseResults: List<Response*Latency>, 
                 exceptions: (Option<exn>*ExceptionCount)) =
     
-        let results = responseResults.ToArray()
-        let responses = results |> Array.map(fst)
-        let latencies = results |> Array.map(snd)        
+        let allResults = responseResults.ToArray()
+        let okResults = allResults |> Array.filter(fun (res,_) -> res.IsOk)
+        let failResults = allResults |> Array.filter(fun (res,_) -> not(res.IsOk))
 
         { StepName = stepName 
-          Latencies = latencies
+          OkLatencies = okResults |> Array.map(snd)
+          FailLatencies = failResults |> Array.map(snd)
           ThrownException = fst(exceptions)
-          OkCount = calcOkCount(responses)
-          FailCount = calcFailCount(responses)
+          OkCount = okResults.Length
+          FailCount = allResults.Length - okResults.Length
           ExceptionCount = snd(exceptions)
-          Details = None }
+          Details = None }    
 
     let calcDetails (stats: StepStats, scenarioDuration: TimeSpan) =
         
@@ -67,24 +77,14 @@ module StepStats =
             latencies |> Array.iter(fun x -> histogram.RecordValue(x))
             histogram           
         
-        let histogram = buildHistogram(stats.Latencies)
+        let histogram = buildHistogram(stats.OkLatencies)
             
-        { RPS = calcRPS(stats.Latencies, scenarioDuration)
-          Min = calcMin(stats.Latencies)
+        { RPS = calcRPS(stats.OkLatencies, scenarioDuration)
+          Min = calcMin(stats.OkLatencies)
           Mean = calcMean(histogram)
           Max = calcMax(histogram)
           Percent50 = calcPercentile(histogram, 50.0)
-          Percent75 = calcPercentile(histogram, 75.0) }
-
-    let calcOkCount (responses: Response[]) = 
-        responses
-        |> Array.filter(fun stRes -> stRes.IsOk)
-        |> Array.length
-
-    let calcFailCount (responses: Response[]) = 
-        responses
-        |> Array.filter(fun response -> not(response.IsOk))
-        |> Array.length
+          Percent75 = calcPercentile(histogram, 75.0) }        
 
     let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
         latencies.LongLength / int64(scenarioDuration.TotalSeconds)    
@@ -99,7 +99,7 @@ module StepStats =
         if histogram.TotalCount > 0L then histogram.GetMaxValue() else 0L
 
     let calcPercentile (histogram: LongHistogram, percentile: float) =
-        if histogram.TotalCount > 0L then histogram.GetValueAtPercentile(percentile) else 0L
+        if histogram.TotalCount > 0L then histogram.GetValueAtPercentile(percentile) else 0L    
 
 module FlowStats =
 
@@ -110,7 +110,8 @@ module FlowStats =
             |> Array.groupBy(fun x -> x.StepName)
             |> Array.map(fun (stName, results) ->                 
                 { StepName = stName
-                  Latencies = results |> Array.collect(fun x -> x.Latencies)
+                  OkLatencies = results |> Array.collect(fun x -> x.OkLatencies)
+                  FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)
                   ThrownException = results |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
                   OkCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
                   FailCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum
@@ -118,10 +119,21 @@ module FlowStats =
                   Details = None })
         
         let mergedStats = mergeByStepName(stepsStats)
+        let latency = calcLatencyCount(mergedStats)
 
         { FlowName = flow.FlowName
           StepsStats = mergedStats
-          ConcurrentCopies = flow.CorrelationIds.Count }
+          ConcurrentCopies = flow.CorrelationIds.Count
+          LatencyCount = latency }
+
+    let calcLatencyCount (stepsStats: StepStats[]) = 
+        let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800L))
+        let b = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 800L && x < 1200L))
+        let c = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 1200L))        
+
+        { Less800 = a.Length
+          More800Less1200 = b.Length
+          More1200 = c.Length }
 
 module ScenarioStats =    
 
@@ -135,15 +147,22 @@ module ScenarioStats =
         let activeTime = scenario.Duration - getPausedTime(scenario)
 
         let stats = flowsStats |> Array.map(applyCalculations(activeTime))
-
-        let allOk = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.OkCount))
-        let allFailed = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.FailCount))
+        let latencyCount = calcLatencyCount(stats)
+        let allOkCount = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.OkCount))
+        let allFailedCount = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.FailCount))
 
         { ScenarioName = scenario.ScenarioName
           FlowsStats = stats 
           ActiveTime = activeTime
-          AllOkCount = allOk
-          AllFailedCount = allFailed }
+          AllOkCount = allOkCount
+          AllFailedCount = allFailedCount
+          LatencyCount = latencyCount }
+
+    let calcLatencyCount (flowsStats: FlowStats[]) =
+        let latCounts = flowsStats |> Array.map(fun x -> x.LatencyCount)
+        { Less800 = latCounts |> Array.sumBy(fun x -> x.Less800)
+          More800Less1200 = latCounts |> Array.sumBy(fun x -> x.More800Less1200)
+          More1200 = latCounts |> Array.sumBy(fun x -> x.More1200) }        
 
     let private getPausedTime (scenario: Scenario) =
         scenario.TestFlows
