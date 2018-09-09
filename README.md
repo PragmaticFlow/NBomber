@@ -17,6 +17,7 @@ PM> Install-Package PragmaticFlow.NBomber
 - [x] Request-response scenario
 - [x] Pub/Sub scenario
 - [x] Sequential flow
+- [x] Test runner support: [XUnit; NUnit]
 - [ ] Distibuted cluster (run scenario from several nodes in parallel)
 
 ### Supported technologies
