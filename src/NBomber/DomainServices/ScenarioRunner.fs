@@ -38,7 +38,6 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
     let result = initScenario(scenario)
                  |> Result.bind(warmUpScenario)
                  |> Result.map(startFlows)
-    
     match result with
     | Ok actorsHosts ->
         Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
@@ -84,7 +83,7 @@ let private initDependency (scenario: Scenario) =
 
 let private initScenario (scenario: Scenario) =
     Log.Information("initializing scenario...")
-    Scenario.init(scenario)
+    Scenario.runInit(scenario)
 
 let private warmUpScenario (scenario: Scenario) =
     Log.Information("warming up scenario...")
@@ -119,8 +118,10 @@ let private runProgressBar (scenarioDuration: TimeSpan) = task {
 }
 
 let private createAssertionStats (flowName: string, step: StepStats) =
-    { StepName = step.StepName; FlowName = flowName; OkCount = step.OkCount; FailCount = step.FailCount;
-        ExceptionCount = step.ExceptionCount; ThrownException = step.ThrownException }
+    { StepName = step.StepName
+      FlowName = flowName
+      OkCount = step.OkCount
+      FailCount = step.FailCount }
 
 let private outputAssertionResults (assertionResult: Result<int, string[]>) =
     match assertionResult with

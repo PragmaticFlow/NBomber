@@ -34,20 +34,18 @@ type FlowActor(correlationId: string, flow: TestFlow) =
     let mutable currentTask = None        
     let mutable currentCts = None
     let stepsWithoutPause = flow.Steps |> Array.filter(fun st -> not(Step.isPause st))    
-    let latencies = List<List<Response*Latency>>()
-    let exceptions = List<Option<exn>*ExceptionCount>()
+    let latencies = List<List<Response*Latency>>()    
 
     let init () =
-        stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(List<Response*Latency>())
-                                                 exceptions.Add(None, 0))
+        stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(List<Response*Latency>()))
     do init()
 
     member x.Run() = 
         currentCts <- Some(new CancellationTokenSource())
-        currentTask <- Some(Step.runSteps(flow.Steps, correlationId, latencies, exceptions, currentCts.Value.Token))
+        currentTask <- Some(Step.runSteps(flow.Steps, correlationId, latencies, currentCts.Value.Token))
 
     member x.Stop() = if currentCts.IsSome then currentCts.Value.Cancel()
         
     member x.GetResults() =
         stepsWithoutPause
-        |> Array.mapi(fun i st -> StepStats.create(Step.getName(st), latencies.[i], exceptions.[i]))
+        |> Array.mapi(fun i st -> StepStats.create(Step.getName(st), latencies.[i]))

@@ -8,12 +8,12 @@ type FlowError = {
 
 type DomainError =
     | InitStepError of msg:string
-    | FlowErrors    of errors:FlowError[]
+    | WarmUpError   of errors:FlowError[]    
 
 let printError (error) =
     match error with
     | InitStepError msg -> msg
-    | FlowErrors errors -> errors |> Seq.map (fun error -> error.Error) |> String.concat "; "
+    | WarmUpError errors -> errors |> Seq.map (fun error -> error.Error) |> String.concat "; "
 
 type Result<'T,'TError> with    
     static member isOk(result) = 

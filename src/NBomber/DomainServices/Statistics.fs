@@ -19,11 +19,9 @@ type LatencyCount = {
 type StepStats = {     
     StepName: string
     OkLatencies: Latency[]
-    FailLatencies: Latency[]
-    ThrownException: exn option
+    FailLatencies: Latency[]    
     OkCount: int
-    FailCount: int
-    ExceptionCount: ExceptionCount 
+    FailCount: int    
     Details: StepDetails option
 }
 
@@ -54,8 +52,7 @@ type ScenarioStats = {
 
 module StepStats =
 
-    let create (stepName, responseResults: List<Response*Latency>, 
-                exceptions: (Option<exn>*ExceptionCount)) =
+    let create (stepName, responseResults: List<Response*Latency>) =
     
         let allResults = responseResults.ToArray()
         let okResults = allResults |> Array.filter(fun (res,_) -> res.IsOk)
@@ -63,11 +60,9 @@ module StepStats =
 
         { StepName = stepName 
           OkLatencies = okResults |> Array.map(snd)
-          FailLatencies = failResults |> Array.map(snd)
-          ThrownException = fst(exceptions)
+          FailLatencies = failResults |> Array.map(snd)          
           OkCount = okResults.Length
           FailCount = allResults.Length - okResults.Length
-          ExceptionCount = snd(exceptions)
           Details = None }    
 
     let calcDetails (stats: StepStats, scenarioDuration: TimeSpan) =
@@ -111,11 +106,9 @@ module FlowStats =
             |> Array.map(fun (stName, results) ->                 
                 { StepName = stName
                   OkLatencies = results |> Array.collect(fun x -> x.OkLatencies)
-                  FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)
-                  ThrownException = results |> Array.tryLast |> Option.bind(fun x -> x.ThrownException)
+                  FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)                  
                   OkCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
-                  FailCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum
-                  ExceptionCount = results |> Array.map(fun x -> x.ExceptionCount) |> Array.sum
+                  FailCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum                  
                   Details = None })
         
         let mergedStats = mergeByStepName(stepsStats)

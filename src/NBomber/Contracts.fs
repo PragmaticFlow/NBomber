@@ -41,8 +41,6 @@ type AssertionStats = {
     FlowName: string    
     OkCount: int
     FailCount: int
-    ExceptionCount: int
-    ThrownException: exn option
 }
     
 type Response with

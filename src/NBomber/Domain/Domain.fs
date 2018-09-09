@@ -13,7 +13,6 @@ open NBomber.Errors
 
 type CorrelationId = string
 type Latency = int64
-type ExceptionCount = int
 type StepName = string
 type FlowName = string
 
@@ -109,25 +108,30 @@ module Step =
 
     let execStep (step: Step, req: Request, timer: Stopwatch) = task {        
         timer.Restart()        
-        match step with
-        | Request r  -> let! resp = r.Execute(req)
-                        timer.Stop()
-                        let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
-                        return (resp, latency)        
+        try
+            match step with
+            | Request r  -> let! resp = r.Execute(req)
+                            timer.Stop()
+                            let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                            return (resp, latency)        
         
-        | Listener l -> let listener = l.Listeners.Get(req.CorrelationId)
-                        let! resp = listener.GetResponse()
-                        timer.Stop()
-                        let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
-                        return (resp, latency)
+            | Listener l -> let listener = l.Listeners.Get(req.CorrelationId)
+                            let! resp = listener.GetResponse()
+                            timer.Stop()
+                            let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                            return (resp, latency)
         
-        | Pause time -> do! Task.Delay(time)
-                        return (Response.Ok(req), int64(0))
+            | Pause time -> do! Task.Delay(time)
+                            return (Response.Ok(req), 0L)
+        with
+        | ex -> timer.Stop()
+                let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                return (Response.Fail(ex.ToString()), latency)
     }
 
     let runSteps (steps: Step[], correlationId: CorrelationId,
                   latencies: List<List<Response*Latency>>,
-                  exceptions: List<Option<exn>*ExceptionCount>, ct: CancellationToken) = task {
+                  ct: CancellationToken) = task {
         
         do! Task.Delay(10)        
         let timer = Stopwatch()
@@ -140,22 +144,17 @@ module Step =
 
             for st in steps do
                 if not skipStep && not ct.IsCancellationRequested then
-                    try
-                        let! (response,latency) = Step.execStep(st, request, timer)
-                            
-                        if not(Step.isPause st) then                        
-                            latencies.[stepIndex].Add(response,latency)
 
-                        if response.IsOk then 
-                            request <- { request with Payload = response.Payload }
-                            stepIndex <- stepIndex + 1
-                        else
-                            skipStep <- true
-                        
-                    with ex -> let (_, exCount) = exceptions.[stepIndex]
-                               let newCount = exCount + 1
-                               exceptions.[stepIndex] <- (Some(ex), newCount)
-                               skipStep <- true
+                    let! (response,latency) = Step.execStep(st, request, timer)
+                            
+                    if not(Step.isPause st) then                        
+                        latencies.[stepIndex].Add(response,latency)
+
+                    if response.IsOk then 
+                        request <- { request with Payload = response.Payload }
+                        stepIndex <- stepIndex + 1
+                    else
+                        skipStep <- true
     }
 
 module TestFlow =
@@ -192,17 +191,13 @@ module TestFlow =
         let mutable skipStep = false
 
         for st in steps do
-            if not skipStep then        
-                try            
-                    let! (response,_) = Step.execStep(st, request, timer)
-                    if response.IsOk then
-                        request <- { request with Payload = response.Payload }
-                    else 
-                        skipStep <- true                        
-                        result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = response.Payload.ToString() })
-
-                with ex -> skipStep <- true
-                           result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = ex.Message })
+            if not skipStep then                
+                let! (response,_) = Step.execStep(st, request, timer)
+                if response.IsOk then
+                    request <- { request with Payload = response.Payload }
+                else 
+                    skipStep <- true                        
+                    result <- Error({ FlowName = flow.FlowName; StepName = Step.getName(st); Error = response.Payload.ToString() })                
         return result
     }  
 
@@ -219,15 +214,15 @@ module Scenario =
           Duration = config.Duration
           Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion)  }
           
-    let init (scenario: Scenario) =
+    let runInit (scenario: Scenario) =
         match scenario.InitStep with
         | Some step -> 
             try                 
                 let req = { CorrelationId = Constants.InitId; Payload = null }
                 step.Execute(req).Wait()                
-                Ok <| scenario
-            with ex -> Error <| InitStepError(ex.Message)
-        | None      -> Ok <| scenario
+                Ok(scenario)
+            with ex -> ex.Message |> InitStepError |> Error
+        | None      -> Ok(scenario)
 
     let warmUp (scenario: Scenario) =                
         let errors = scenario.TestFlows 
@@ -235,8 +230,10 @@ module Scenario =
                      |> Array.filter(Result.isError)
                      |> Array.map(Result.getError)
         
-        if errors.Length > 0 then Error <| FlowErrors(errors)
-        else Ok <| scenario
+        if errors.Length > 0 then
+            errors |> WarmUpError |> Error
+        else
+            Ok(scenario)
 
 module Assertions =
 
@@ -245,7 +242,7 @@ module Assertions =
        |> Array.mapi(fun i assertion -> applyAssertion(scenarioName, flows, i+1, assertion))
        |> printAssertionResults
 
-    let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) : string option =
+    let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
        | Scenario func ->            
             flows
@@ -277,7 +274,7 @@ module Assertions =
         if allAreOk then results |> Array.length |> Ok
         else results |> Array.choose(fun x -> match x with | None -> None | Some msg -> Some(msg)) |> Error
     
-    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool) : string option =
+    let private createAssertionResult (scope: string, reference: string, position: int) (executed: bool) =
         if executed then None
         else sprintf "Assertion #%i FAILED for %s '%s'" position scope reference |> Some
     
