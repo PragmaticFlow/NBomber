@@ -58,16 +58,17 @@ module StatisticsTable =
 
     let private printStepRow (step: StepStats, flowName: string, concurrentCopies: int) =
         let stats = step.Details.Value
-        [flowName; concurrentCopies.ToString(); step.StepName; step.OkLatencies.Length.ToString();
-         step.OkCount.ToString(); step.FailCount.ToString();
-         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
-         stats.Percent50.ToString(); stats.Percent75.ToString()]
-        |> HtmlBuilder.printTableRow
+        [flowName; concurrentCopies.ToString(); step.StepName; step.OkLatencies.Length.ToString()
+         step.OkCount.ToString(); step.FailCount.ToString()
+         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString()
+         stats.Percent50.ToString(); stats.Percent75.ToString()
+         stats.Percent95.ToString(); stats.StdDev.ToString()]
+        |> HtmlBuilder.toTableRow
 
 module EnvView =
     
     let print (envViewHtml: string, envInfo: EnvironmentInfo) =            
         let row = [envInfo.OS.VersionString; envInfo.DotNetVersion
                    envInfo.Processor; envInfo.ProcessorArchitecture]
-                  |> HtmlBuilder.printTableRow        
+                  |> HtmlBuilder.toTableRow        
         envViewHtml.Replace("%env_table%", row)

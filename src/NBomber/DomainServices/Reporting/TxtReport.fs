@@ -49,13 +49,14 @@ let private printFlowTable (flResult: FlowStats, flowNo: int) =
     flowTable.ToString() + stepsTable + Environment.NewLine + Environment.NewLine
 
 let private printStepsTable (steps: StepStats[]) =    
-    let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "70%")
+    let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "75%", "95%", "StdDev")
     steps    
     |> Array.iteri(fun i s -> 
         stepTable.AddRow(i + 1, s.OkLatencies.Length,
                          s.OkCount, s.FailCount,
                          s.Details.Value.RPS, s.Details.Value.Min, 
                          s.Details.Value.Mean, s.Details.Value.Max,
-                         s.Details.Value.Percent50, s.Details.Value.Percent75) |> ignore)
+                         s.Details.Value.Percent50, s.Details.Value.Percent75,
+                         s.Details.Value.Percent95, s.Details.Value.StdDev) |> ignore)
     
     stepTable.ToStringAlternative()

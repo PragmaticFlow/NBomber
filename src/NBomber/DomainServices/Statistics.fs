@@ -22,16 +22,18 @@ type StepStats = {
     FailLatencies: Latency[]    
     OkCount: int
     FailCount: int    
-    Details: StepDetails option
+    Details: StatsDetails option
 }
 
-type StepDetails = {
+type StatsDetails = {
     RPS: int64
     Min: Latency
     Mean: Latency
     Max: Latency
     Percent50: Latency
     Percent75: Latency
+    Percent95: Latency
+    StdDev: int64
 }
 
 type FlowStats = {
@@ -79,7 +81,9 @@ module StepStats =
           Mean = calcMean(histogram)
           Max = calcMax(histogram)
           Percent50 = calcPercentile(histogram, 50.0)
-          Percent75 = calcPercentile(histogram, 75.0) }        
+          Percent75 = calcPercentile(histogram, 75.0)
+          Percent95 = calcPercentile(histogram, 95.0)
+          StdDev = calcStdDev(histogram) }
 
     let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
         latencies.LongLength / int64(scenarioDuration.TotalSeconds)    
@@ -95,6 +99,12 @@ module StepStats =
 
     let calcPercentile (histogram: LongHistogram, percentile: float) =
         if histogram.TotalCount > 0L then histogram.GetValueAtPercentile(percentile) else 0L    
+
+    let calcStdDev (histogram: LongHistogram) =
+        if histogram.TotalCount > 0L then
+            histogram.GetStdDeviation() |> Math.Round |> Convert.ToInt64
+        else
+            0L
 
 module FlowStats =
 

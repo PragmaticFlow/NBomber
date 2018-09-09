@@ -2,12 +2,14 @@
 
 open System
 
-let printTableRow (rawData: string list) =    
+let toTableRow (rawData: 'T list) =    
     let row = rawData
-              |> List.map(fun x -> String.Format("<td>{0}</td>", x)) 
+              |> List.map(fun x -> String.Format("<td>{0}</td>", x))
               |> String.concat(String.Empty)
     "<tr>" + row + "</tr>"
 
 let toJsArray (rawData: 'T list) =
-    let dataWithCommas = rawData |> List.map(fun x -> x.ToString() + ", ") |> String.concat(String.Empty)
+    let dataWithCommas = rawData
+                         |> List.map(fun x -> String.Format("{0}, ", x))
+                         |> String.concat(String.Empty)
     "[" + dataWithCommas + "]"
