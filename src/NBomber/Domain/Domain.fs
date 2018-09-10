@@ -244,29 +244,31 @@ module Assertions =
 
     let private applyAssertion (scenarioName: string, flows: AssertionStats[], i: int, assertion: Assertion) =
        match assertion with
-       | Scenario func ->            
+       | Scenario assertionFunc ->            
             flows
-            |> Array.groupBy(fun flow -> flow.FlowName)
-            |> Array.map(fun (_,steps) -> applyForSteps func steps)
-            |> Array.exists(id)
+            |> reduceStats
+            |> assertionFunc
             |> createAssertionResult("Scenario", scenarioName, i)
 
-       | TestFlow (flowName,func) ->
+       | TestFlow (flowName,assertionFunc) ->
            flows
            |> Array.filter(fun flow -> flow.FlowName = flowName)
-           |> applyForSteps(func) 
+           |> reduceStats
+           |> assertionFunc 
            |> createAssertionResult("Test Flow", flowName, i)
 
-       | Step (stepName,flowName,func) -> 
+       | Step (stepName,flowName,assertionFunc) -> 
            flows
            |> Array.filter(fun x -> x.FlowName = flowName && x.StepName = stepName)
-           |> applyForSteps(func)
+           |> reduceStats
+           |> assertionFunc
            |> createAssertionResult("Step", stepName, i)
 
-    let private applyForSteps (assertion: AssertionFunc) (steps: AssertionStats[]) =            
-        steps
-        |> Array.map(assertion)
-        |> Array.exists(id)
+    let private reduceStats (stats: AssertionStats[]) =
+        stats |> Array.reduce (fun sum elem -> 
+                                { StepName = ""; FlowName = "";
+                                  OkCount = sum.OkCount + elem.OkCount;
+                                  FailCount = sum.FailCount + elem.FailCount; })
 
     let private printAssertionResults (results: string option[]) =
         let allAreOk = results |> Array.forall(function | None -> true | _ -> false)

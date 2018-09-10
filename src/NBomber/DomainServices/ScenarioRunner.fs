@@ -35,43 +35,42 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
     let scenario = Scenario.create(config)
     Log.Information("{Scenario} has started", config.ScenarioName)        
 
-    let result = initScenario(scenario)
-                 |> Result.bind(warmUpScenario)
-                 |> Result.map(startFlows)
-    match result with
-    | Ok actorsHosts ->
-        Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
-        Log.Information("processing...")
+    let result = initScenario(scenario) |> Result.bind(warmUpScenario)
+    let actorsHosts = match result with
+                         | Ok warmedUpScenario -> warmedUpScenario
+                         | Error e -> Errors.printError(e) |> Log.Error; scenario
+                         |> startFlows
+
+    Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
+    Log.Information("processing...")
         
-        let t1 = Task.Delay(scenario.Duration)
-        let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
+    let t1 = Task.Delay(scenario.Duration)
+    let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
                 
         // waiting until the Scenario ends
-        t1.Wait()
-        stopFlows(actorsHosts)                        
-        let results = getResults(actorsHosts) 
+    t1.Wait()
+    stopFlows(actorsHosts)                        
+    let results = getResults(actorsHosts) 
 
-        t2.Wait()
+    t2.Wait()
 
-        if isVerbose then 
-            Log.Information("building report...")
+    if isVerbose then 
+        Log.Information("building report...")
             
-            let dep = initDependency(scenario)
-            let stats = Statistics.apply(scenario, results)
-            let report = Report.build(dep, stats)
-            Report.save(dep, report, "./")
+        let dep = initDependency(scenario)
+        let stats = Statistics.apply(scenario, results)
+        let report = Report.build(dep, stats)
+        Report.save(dep, report, "./")
 
-            Log.Information("{Scenario} has finished", scenario.ScenarioName)
+        Log.Information("{Scenario} has finished", scenario.ScenarioName)
+    
+    Log.Information(sprintf "%A" results)
 
-        results
+    results
         |> Array.collect(fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
         |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
         |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
         |> outputAssertionResults 
-         
-    | Error e -> let message = Errors.printError(e)
-                 Log.Error(message)
-                 [|message|]
 
 let private initLogger () =
     Log.Logger <- LoggerConfiguration()
