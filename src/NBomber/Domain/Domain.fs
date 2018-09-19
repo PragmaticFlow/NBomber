@@ -246,25 +246,25 @@ module Assertions =
        match assertion with
        | Scenario assertionFunc ->            
             flows
-            |> reduceStats
+            |> sumAllStats
             |> assertionFunc
             |> createAssertionResult("Scenario", scenarioName, i)
 
        | TestFlow (flowName,assertionFunc) ->
            flows
            |> Array.filter(fun flow -> flow.FlowName = flowName)
-           |> reduceStats
+           |> sumAllStats
            |> assertionFunc 
            |> createAssertionResult("Test Flow", flowName, i)
 
        | Step (stepName,flowName,assertionFunc) -> 
            flows
            |> Array.filter(fun x -> x.FlowName = flowName && x.StepName = stepName)
-           |> reduceStats
+           |> sumAllStats
            |> assertionFunc
            |> createAssertionResult("Step", stepName, i)
 
-    let private reduceStats (stats: AssertionStats[]) =
+    let private sumAllStats (stats: AssertionStats[]) =
         stats |> Array.reduce (fun sum elem -> 
                                 { StepName = ""; FlowName = "";
                                   OkCount = sum.OkCount + elem.OkCount;

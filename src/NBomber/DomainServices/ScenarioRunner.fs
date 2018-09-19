@@ -33,13 +33,9 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
     if isVerbose then initLogger() 
 
     let scenario = Scenario.create(config)
-    Log.Information("{Scenario} has started", config.ScenarioName)        
+    Log.Information("{Scenario} has started", config.ScenarioName)
 
-    let result = initScenario(scenario) |> Result.bind(warmUpScenario)
-    let actorsHosts = match result with
-                         | Ok warmedUpScenario -> warmedUpScenario
-                         | Error e -> Errors.printError(e) |> Log.Error; scenario
-                         |> startFlows
+    let actorsHosts = scenario |> prepareScenario |> startFlows
 
     Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
     Log.Information("processing...")
@@ -70,13 +66,19 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
         |> Array.collect(fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
         |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
         |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
-        |> outputAssertionResults 
+        |> outputAssertionResults
 
 let private initLogger () =
     Log.Logger <- LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger()
 
+let private prepareScenario (scenario: Scenario) =
+    let result = initScenario(scenario) |> Result.bind(warmUpScenario)
+    match result with
+     | Ok warmedUpScenario -> warmedUpScenario
+     | Error e -> Errors.printError(e) |> Log.Error; scenario
+     
 let private initDependency (scenario: Scenario) =
     Dependency.create(scenario)
 
