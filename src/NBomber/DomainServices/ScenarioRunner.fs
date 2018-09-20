@@ -33,20 +33,19 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
     if isVerbose then initLogger() 
 
     let scenario = Scenario.create(config)
-    Log.Information("{Scenario} has started", config.ScenarioName)        
+    Log.Information("{Scenario} has started", config.ScenarioName)
 
-    let result = initScenario(scenario)
-                 |> Result.bind(warmUpScenario)
-                 |> Result.map(startFlows)
-    match result with
+    let result = scenario |> prepareScenario |> Result.map(startFlows)
+
+    match result with 
     | Ok actorsHosts ->
         Log.Information("wait {time} until the execution ends", scenario.Duration.ToString())
         Log.Information("processing...")
-        
+            
         let t1 = Task.Delay(scenario.Duration)
         let t2 = if isVerbose then runProgressBar(scenario.Duration) else Task.FromResult(())
-                
-        // waiting until the Scenario ends
+                    
+            // waiting until the Scenario ends
         t1.Wait()
         stopFlows(actorsHosts)                        
         let results = getResults(actorsHosts) 
@@ -55,28 +54,39 @@ let run (config: Contracts.Scenario, isVerbose: bool) =
 
         if isVerbose then 
             Log.Information("building report...")
-            
+                
             let dep = initDependency(scenario)
             let stats = Statistics.apply(scenario, results)
             let report = Report.build(dep, stats)
             Report.save(dep, report, "./")
 
             Log.Information("{Scenario} has finished", scenario.ScenarioName)
+        
+        Log.Information(sprintf "%A" results)
 
         results
-        |> Array.collect(fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
-        |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
-        |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
-        |> outputAssertionResults 
-         
+            |> Array.collect(fun flow -> flow.StepsStats |> Array.map(fun step -> (flow, step)))
+            |> Array.map(fun (flow, step) -> createAssertionStats(flow.FlowName, step))
+            |> applyAssertions(scenario.ScenarioName, scenario.Assertions)
+            |> outputAssertionResults
+
     | Error e -> let message = Errors.printError(e)
                  Log.Error(message)
-                 [|message|]
+                 [|message|]    
 
 let private initLogger () =
     Log.Logger <- LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger()
+
+let private prepareScenario (scenario: Scenario) =
+    let result = initScenario(scenario) 
+    match result with
+     | Ok initialisedScenario -> let warmUpResult = warmUpScenario initialisedScenario
+                                 match warmUpResult with 
+                                 | Ok warmedUpScenario -> Ok warmedUpScenario
+                                 | Error e -> Errors.printError(e) |> Log.Error; Ok initialisedScenario
+     | Error e -> Error e
 
 let private initDependency (scenario: Scenario) =
     Dependency.create(scenario)
