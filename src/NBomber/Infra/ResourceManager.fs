@@ -7,8 +7,12 @@ open System.Reflection
 open Constants
 
 type Assets = {
-    MainHtml: string    
-    ResultsViewHtml: string    
+    IndexHtml: string    
+    SidebarHtml: string
+    SidebarItemHtml: string
+    ScenarioViewHtml: string
+    TestFlowViewHtml: string
+    StatisticsTableHtml: string    
     EnvTableHtml: string
     NumReqChartHtml: string
     NumReqChartJs: string
@@ -18,8 +22,12 @@ type Assets = {
 
 let loadAssets () =
     let assembly = typedefof<Assets>.Assembly
-    { MainHtml = readResource(assembly, AssetsHtml + MainHtml)            
-      ResultsViewHtml = readResource(assembly, AssetsHtml + ResultsViewHtml)
+    { IndexHtml = readResource(assembly, AssetsHtml + IndexHtml)            
+      SidebarHtml = readResource(assembly, AssetsHtml + SidebarHtml)  
+      SidebarItemHtml = readResource(assembly, AssetsHtml + SidebarItemHtml)
+      ScenarioViewHtml = readResource(assembly, AssetsHtml + ScenarioViewHtml)
+      TestFlowViewHtml = readResource(assembly, AssetsHtml + TestFlowViewHtml)
+      StatisticsTableHtml = readResource(assembly, AssetsHtml + StatisticsTableHtml)
       EnvTableHtml = readResource(assembly, AssetsHtml + EnvTableHtml)
       NumReqChartHtml = readResource(assembly, AssetsHtml + NumReqChartHtml)
       NumReqChartJs = readResource(assembly, AssetsJs + NumReqChartJs)
@@ -58,13 +66,25 @@ module Constants =
     let AssetsZip = "NBomber.assets.assets.zip"
     
     [<Literal>]
-    let MainHtml = "main.html"
+    let IndexHtml = "index.html"
+
+    [<Literal>]
+    let SidebarHtml = "sidebar.html"
+
+    [<Literal>]
+    let SidebarItemHtml = "sidebar_item.html"
+
+    [<Literal>]
+    let ScenarioViewHtml = "scenario_view.html"    
+
+    [<Literal>]
+    let TestFlowViewHtml = "test_flow_view.html"        
 
     [<Literal>]
     let EnvTableHtml = "env_table.html"
 
     [<Literal>]
-    let ResultsViewHtml = "statistics_table.html"
+    let StatisticsTableHtml = "statistics_table.html"
 
     [<Literal>]
     let NumReqChartHtml = "num_req_chart.html"

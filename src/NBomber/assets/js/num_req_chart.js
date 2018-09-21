@@ -1,5 +1,5 @@
 ﻿$(document).ready(function () {
-    var ctx = document.getElementById("num_req_chart").getContext('2d');
+    var ctx = document.getElementById("num_req_chart-%viewId%").getContext('2d');
     window.numReqChart = new Chart(ctx, {
         type: 'pie',
         data: {

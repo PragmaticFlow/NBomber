@@ -17,7 +17,7 @@ let print (dep: Dependency, scResult: ScenarioStats) =
 
     let header = printScenarioHeader(dep.Scenario)
 
-    let flowTable = scResult.FlowsStats 
+    let flowTable = scResult.TestFlowsStats 
                     |> Array.mapi(fun i x -> printFlowTable(x, i + 1))
                     |> String.concat(Environment.NewLine)
 
@@ -33,7 +33,7 @@ let private printScenarioHeader (scenario: Scenario) =
                   scenario.ScenarioName,
                   scenario.Duration.ToString())
 
-let private printFlowTable (flResult: FlowStats, flowNo: int) =
+let private printFlowTable (flResult: TestFlowStats, flowNo: int) =
     
     let consoleTableOptions = 
         ConsoleTableOptions(
@@ -54,9 +54,9 @@ let private printStepsTable (steps: StepStats[]) =
     |> Array.iteri(fun i s -> 
         stepTable.AddRow(i + 1, s.OkLatencies.Length,
                          s.OkCount, s.FailCount,
-                         s.Details.Value.RPS, s.Details.Value.Min, 
-                         s.Details.Value.Mean, s.Details.Value.Max,
-                         s.Details.Value.Percent50, s.Details.Value.Percent75,
-                         s.Details.Value.Percent95, s.Details.Value.StdDev) |> ignore)
+                         s.LatencyDetails.Value.RPS, s.LatencyDetails.Value.Min, 
+                         s.LatencyDetails.Value.Mean, s.LatencyDetails.Value.Max,
+                         s.LatencyDetails.Value.Percent50, s.LatencyDetails.Value.Percent75,
+                         s.LatencyDetails.Value.Percent95, s.LatencyDetails.Value.StdDev) |> ignore)
     
     stepTable.ToStringAlternative()

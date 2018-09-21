@@ -1,5 +1,5 @@
 ﻿$(document).ready(function () {
-    var ctx = document.getElementById("indicators_chart").getContext('2d');
+    var ctx = document.getElementById("indicators_chart-%viewId%").getContext('2d');
     window.indicatorsChart = new Chart(ctx, {
         type: 'bar',
         data: {

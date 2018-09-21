@@ -27,7 +27,7 @@ type FlowRunner(flow: TestFlow) =
     member x.GetResult() = 
         actors
         |> Array.collect(fun actor -> actor.GetResults())
-        |> FlowStats.create(flow)
+        |> TestFlowStats.create(flow)
 
 type FlowActor(correlationId: string, flow: TestFlow) =
     
