@@ -9,15 +9,12 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.Assertions
 open NBomber.Statistics
 open NBomber.FlowRunner
 open NBomber.Reporting
 open NBomber.Infra
-open System.Globalization
-open System.Reflection
 
 let runInConsole (scenario: Contracts.Scenario) =
     let mutable runningScenario = true

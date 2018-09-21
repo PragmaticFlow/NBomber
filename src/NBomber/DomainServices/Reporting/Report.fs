@@ -1,6 +1,5 @@
 ﻿module internal rec NBomber.Reporting.Report
 
-open System
 open System.IO
 
 open NBomber.Statistics
