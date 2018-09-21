@@ -101,7 +101,7 @@ module TestFlowView =
         let sHtml = StatisticsTable.print(assets, [|stats|])
         
         let js = iJs + nJs
-        let html = assets.ScenarioViewHtml
+        let html = assets.TestFlowViewHtml
                    |> String.replace("%viewId%", viewId)
                    |> String.replace("%indicators_chart%", iHtml)
                    |> String.replace("%num_req_chart%", nHtml)
