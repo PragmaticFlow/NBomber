@@ -1,11 +1,14 @@
-﻿namespace rec NBomber.Contracts
+﻿namespace NBomber.Contracts
 
 open System
 open System.Runtime.InteropServices
 
+type CorrelationId = string
+type Latency = int64
+
 [<Struct>]
 type Request = {
-    CorrelationId: string
+    CorrelationId: CorrelationId
     Payload: obj
 }
 
@@ -20,7 +23,7 @@ type IStep = interface end
 type IAssertion = interface end  
 
 type IStepListenerChannel =
-    abstract Notify: correlationId:string * response:Response -> unit
+    abstract Notify: correlationId:CorrelationId * response:Response -> unit
 
 type TestFlow = {
     FlowName: string
@@ -36,9 +39,7 @@ type Scenario = {
     Duration: TimeSpan    
 }
 
-type AssertionStats = {
-    StepName: string
-    FlowName: string    
+type AssertStats = {       
     OkCount: int
     FailCount: int
 }

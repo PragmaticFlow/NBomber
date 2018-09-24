@@ -1,4 +1,4 @@
-﻿namespace rec NBomber.CSharp
+﻿namespace NBomber.CSharp
 
 open System
 open System.Collections.Generic
@@ -9,7 +9,6 @@ open System.Runtime.InteropServices
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
-open NBomber.Infra
 
 type Step =    
     static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
@@ -18,18 +17,18 @@ type Step =
     static member CreateListenerChannel() = Step.createListenerChannel()
 
 type Assertion =
-    static member ForScenario (assertion: Func<AssertionStats, bool>) = Assertion.forScenario(assertion.Invoke)
-    static member ForTestFlow (flowName, assertion: Func<AssertionStats, bool>) = Assertion.forTestFlow(flowName, assertion.Invoke)
-    static member ForStep (stepName, flowName, assertion: Func<AssertionStats, bool>) = Assertion.forStep(stepName, flowName, assertion.Invoke)
+    static member ForScenario (assertion: Func<AssertStats, bool>) = Assertion.forScenario(assertion.Invoke)
+    static member ForTestFlow (flowName, assertion: Func<AssertStats, bool>) = Assertion.forTestFlow(flowName, assertion.Invoke)
+    static member ForStep (stepName, flowName, assertion: Func<AssertStats, bool>) = Assertion.forStep(stepName, flowName, assertion.Invoke)
     
 type ScenarioBuilder(scenarioName: string) =
     
     let mutable testInit = None       
-    let flows = Dictionary<string, TestFlow>()
-    let mutable asserts = Array.empty    
+    let flows = Dictionary<string, TestFlow>() 
+    let mutable asserts = Array.empty
 
     member x.WithTestInit(initFunc: Func<Request,Task<Response>>) =
-        let step = Step.CreateRequest(NBomber.Domain.Constants.InitId, initFunc)        
+        let step = Step.CreateRequest(Domain.DomainTypes.Constants.InitId, initFunc)        
         testInit <- Some(step)
         x
 
@@ -40,7 +39,7 @@ type ScenarioBuilder(scenarioName: string) =
                            
         flows.[flowConfig.FlowName] <- flowConfig
         x
-         
+
     member x.WithAssertions(assertions: IAssertion[]) =
         asserts <- assertions
         x
@@ -59,17 +58,18 @@ type ScenarioBuilder(scenarioName: string) =
 
 [<Extension>]
 type ScenarioExt =    
-
-    [<Extension>]
-    static member Run(scenario: Contracts.Scenario) = 
-        ScenarioRunner.run(scenario, false) |> ignore    
     
     [<Extension>]
+    static member Run(scenario: Contracts.Scenario) = 
+        FSharp.Scenario.run(scenario)
+
+    [<Extension>]
     static member RunInConsole(scenario: Contracts.Scenario) =
-        ScenarioRunner.runInConsole(scenario)
+        FSharp.Scenario.runInConsole(scenario)
 
     [<Extension>]
     static member RunTest(scenario: Contracts.Scenario, [<Optional;DefaultParameterValue(null:IAssertion[])>]assertions: IAssertion[]) =
         let scn = if isNull(assertions) then scenario
-                  else  { scenario with Assertions = assertions }
-        ScenarioRunner.run(scn, false) |> AssertIntegration.run
+                  else { scenario with Assertions = Array.append scenario.Assertions assertions }
+        
+        FSharp.Scenario.runTest(scn)

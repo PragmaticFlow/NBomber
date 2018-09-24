@@ -1,8 +1,8 @@
-﻿module internal rec NBomber.Reporting.Report
+﻿module internal NBomber.DomainServices.Reporting.Report
 
 open System.IO
 
-open NBomber.Statistics
+open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
 open NBomber.Infra.Dependency
 

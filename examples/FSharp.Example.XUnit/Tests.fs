@@ -1,4 +1,4 @@
-module rec Tests
+module Tests
 
 open System
 open System.Threading.Tasks
@@ -17,17 +17,16 @@ let buildScenario () =
     })
 
     Scenario.create("Scenario")
-    |> Scenario.addTestFlow({ FlowName = "Flow"; Steps = [step1]; ConcurrentCopies = 100 })   
+    |> Scenario.addTestFlow({ FlowName = "Flow"; Steps = [step1]; ConcurrentCopies = 1 })   
     |> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
-
 
 [<Fact>]
 let ``XUnit test`` () =    
     
     let assertions = [
-       Assertion.forScenario(fun stats -> stats.OkCount > 95)                
+       Assertion.forScenario(fun stats -> stats.OkCount > 3)
        Assertion.forTestFlow("Flow", fun stats -> stats.FailCount < 10)              
-       Assertion.forStep("Step", "Flow", fun stats -> stats.OkCount > 80)
+       Assertion.forStep("Step", "Flow", fun stats -> stats.OkCount > 3)
     ]
 
     buildScenario()

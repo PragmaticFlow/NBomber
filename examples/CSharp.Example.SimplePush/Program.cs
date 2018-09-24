@@ -64,7 +64,7 @@ namespace CSharp.Example.SimplePush
 
             return new ScenarioBuilder(scenarioName: "PushScenario")
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)
-                .Build(duration: TimeSpan.FromSeconds(10));
+                .Build(duration: TimeSpan.FromSeconds(3));
         }
 
         static void Main(string[] args)

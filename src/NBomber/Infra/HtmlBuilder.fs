@@ -1,4 +1,4 @@
-﻿module internal rec NBomber.Infra.HtmlBuilder
+﻿module internal NBomber.Infra.HtmlBuilder
 
 open System
 open System.Xml.Linq

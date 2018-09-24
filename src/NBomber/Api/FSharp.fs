@@ -1,16 +1,14 @@
-﻿namespace rec NBomber.FSharp
+﻿namespace NBomber.FSharp
 
 open System
 open System.Threading.Tasks
-open System.Runtime.InteropServices
 
 open NBomber
 open NBomber.Contracts
-open NBomber.ScenarioRunner
-open NBomber.Infra
+open NBomber.DomainServices
 
-module Step =
-    open NBomber.Domain
+module Step =    
+    open NBomber.Domain.DomainTypes
 
     let createRequest (name: string, execute: Request -> Task<Response>) = 
         Request({ StepName = name; Execute = execute }) :> IStep  
@@ -24,14 +22,15 @@ module Step =
     let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
 
 module Assertion =
-    open NBomber.Domain 
+    open NBomber.Domain.DomainTypes
 
-    let forScenario (assertion: AssertionStats -> bool) = Scenario(assertion) :> IAssertion
-    let forTestFlow (flowName, assertion: AssertionStats -> bool) = TestFlow(flowName, assertion) :> IAssertion
-    let forStep (stepName, flowName, assertion: AssertionStats -> bool) = Step(stepName, flowName, assertion) :> IAssertion
+    let forScenario (assertion: AssertStats -> bool) = Scenario(assertion) :> IAssertion
+    let forTestFlow (flowName, assertion: AssertStats -> bool) = TestFlow(flowName, assertion) :> IAssertion
+    let forStep (stepName, flowName, assertion: AssertStats -> bool) = Step(stepName, flowName, assertion) :> IAssertion
 
 module Scenario =
-    
+    open NBomber.DomainServices.ScenarioRunner
+
     let create (name: string): Scenario =        
         { ScenarioName = name
           TestInit = None
@@ -40,7 +39,7 @@ module Scenario =
           Assertions = Array.empty }
 
     let withTestInit (initFunc: Request -> Task<Response>) (scenario: Scenario) =
-        let step = Step.createRequest(Domain.Constants.InitId, initFunc)
+        let step = Step.createRequest(Domain.DomainTypes.Constants.InitId, initFunc)
         { scenario with TestInit = Some(step) }
 
     let addTestFlow (testFlow: Contracts.TestFlow) (scenario: Scenario) =        
@@ -50,13 +49,15 @@ module Scenario =
         { scenario with Assertions = List.toArray(assertions) }
 
     let withDuration (duration: TimeSpan) (scenario: Scenario) =
-        { scenario with Duration = duration }
+        { scenario with Duration = duration }    
 
-    let run (scenario: Scenario) =         
-        ScenarioRunner.run(scenario, false) |> ignore    
+    let run (scenario: Scenario) =        
+        let config = { IsVerbose = false
+                       ShouldSaveReport = true }
+        ScenarioRunner.runScenario(scenario, config) |> ignore
 
     let runInConsole (scenario: Scenario) =
         ScenarioRunner.runInConsole(scenario)
 
-    let runTest (scenario: Scenario) =        
-        ScenarioRunner.run(scenario, false) |> AssertIntegration.run
+    let runTest (scenario: Scenario) =         
+        ScenarioRunner.runTest(scenario)        

@@ -1,17 +1,12 @@
-﻿module internal rec NBomber.Reporting.TxtReport
+﻿module internal rec NBomber.DomainServices.Reporting.TxtReport
 
 open System
-open System.IO
-open System.Reflection
-open System.Runtime.Versioning
 
 open ConsoleTables
 
-open NBomber.Contracts
-open NBomber.Domain
-open NBomber.Statistics
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.StatisticsTypes
 open NBomber.Infra.Dependency
-open NBomber.Infra.EnvironmentInfo
 
 let print (dep: Dependency, scResult: ScenarioStats) = 
 

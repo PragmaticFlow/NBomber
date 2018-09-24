@@ -57,7 +57,7 @@ namespace CSharp.Example.MongoDb
                 .WithTestInit(initDb)
                 .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
                 .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
-                .Build(duration: TimeSpan.FromSeconds(10));
+                .Build(duration: TimeSpan.FromSeconds(3));
         }
 
         static void Main(string[] args)

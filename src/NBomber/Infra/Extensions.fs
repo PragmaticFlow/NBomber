@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module internal rec Extensions
+module internal Extensions
 
 module String =
 

@@ -19,7 +19,7 @@ namespace CSharp.Example.NUnit
             });
 
             return new ScenarioBuilder("Scenario")
-                .AddTestFlow("Flow", steps: new[] { step1 }, concurrentCopies: 100)
+                .AddTestFlow("Flow", steps: new[] { step1 }, concurrentCopies: 1)
                 .Build(duration: TimeSpan.FromSeconds(10));
         }
 
@@ -29,9 +29,9 @@ namespace CSharp.Example.NUnit
             var scenario = BuildScenario();
 
             var assertions = new[] {
-               Assertion.ForScenario(stats => stats.OkCount > 95),               
-               Assertion.ForTestFlow("Flow", stats => stats.FailCount < 10),               
-               Assertion.ForStep("Step", "Flow", stats => stats.OkCount > 80)
+               Assertion.ForScenario(stats => stats.OkCount > 3),
+               Assertion.ForTestFlow("Flow", stats => stats.FailCount < 10),
+               Assertion.ForStep("Step", "Flow", stats => stats.OkCount > 3)
             };
 
             scenario.RunTest(assertions);
