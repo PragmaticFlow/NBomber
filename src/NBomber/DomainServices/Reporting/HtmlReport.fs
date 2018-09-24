@@ -124,8 +124,15 @@ module ContentView =
                 let viewId = TestFlowView.createViewId(i + 1)                
                 TestFlowView.print(dep.Assets, viewId, x))
 
-        let flowHtml = allFlowsHtmlJs |> Array.map(fst) |> String.concat(String.Empty)
-        let flowJs = allFlowsHtmlJs |> Array.map(snd) |> String.concat(String.Empty)
+        let flowHtml = if allFlowsHtmlJs.Length > 1 then
+                           allFlowsHtmlJs |> Array.map(fst) |> String.concat(String.Empty)
+                       else 
+                           String.Empty
+
+        let flowJs = if allFlowsHtmlJs.Length > 1 then
+                        allFlowsHtmlJs |> Array.map(snd) |> String.concat(String.Empty)
+                     else
+                        String.Empty
 
         //let html = envHtml + scenarioHtml + flowHtml
         let html = scenarioHtml + flowHtml
