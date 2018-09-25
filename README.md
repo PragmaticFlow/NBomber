@@ -2,7 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px"> 
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fkwssbtbo7ul80gp?svg=true)](https://ci.appveyor.com/project/pragmaticflow/nbomber)
+[![Build status](https://ci.appveyor.com/api/projects/status/tkljm4xv423fnkoj?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
 [![NuGet](https://img.shields.io/nuget/v/pragmaticflow.nbomber.svg)](https://www.nuget.org/packages/pragmaticflow.nbomber/)
 
 Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
