@@ -18,7 +18,8 @@ PM> Install-Package PragmaticFlow.NBomber
 - [x] Pub/Sub scenario
 - [x] Sequential flow
 - [x] Test runner support: [XUnit; NUnit]
-- [ ] Distibuted cluster (run scenario from several nodes in parallel)
+- [x] Reporting: [Plain text; HTML]
+- [x] Distibuted cluster (run scenario from several nodes in parallel)
 
 ### Supported technologies
 - Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
