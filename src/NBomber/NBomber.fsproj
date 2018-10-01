@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>    
-    <Version>0.1.0</Version>
+    <Version>0.1.0</Version>    
   </PropertyGroup>
   <ItemGroup>  
     <EmbeddedResource Include="assets\assets.zip" />  
@@ -14,6 +14,7 @@
     <EmbeddedResource Include="assets\html\indicators_chart.html" />  
     <EmbeddedResource Include="assets\html\num_req_chart.html" />  
     <EmbeddedResource Include="assets\html\env_table.html" />  
+    <EmbeddedResource Include="assets\html\env_view.html" />  
     <EmbeddedResource Include="assets\js\num_req_chart.js" />  
     <EmbeddedResource Include="assets\js\indicators_chart.js" />  
     <Compile Include="Contracts.fs" />  

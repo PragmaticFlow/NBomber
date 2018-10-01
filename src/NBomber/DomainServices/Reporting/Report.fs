@@ -20,7 +20,7 @@ let save (dep: Dependency, report: ReportResult, outPutDir: string) =
     Directory.CreateDirectory(reportsDir) |> ignore
     ResourceManager.saveAssets(reportsDir)
 
-    let filePath = reportsDir + "/report-" + dep.SessionId
+    let filePath = reportsDir + "/report_" + dep.SessionId
 
     File.WriteAllText(filePath + ".txt", report.TxtReport)
     File.WriteAllText(filePath + ".html", report.HtmlReport)

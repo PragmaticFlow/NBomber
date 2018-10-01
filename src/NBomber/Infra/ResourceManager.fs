@@ -34,6 +34,9 @@ module Constants =
     let EnvTableHtml = "env_table.html"
 
     [<Literal>]
+    let EnvViewHtml = "env_view.html"    
+
+    [<Literal>]
     let StatisticsTableHtml = "statistics_table.html"
 
     [<Literal>]
@@ -56,6 +59,7 @@ type Assets = {
     TestFlowViewHtml: string
     StatisticsTableHtml: string    
     EnvTableHtml: string
+    EnvViewHtml: string
     NumReqChartHtml: string
     NumReqChartJs: string
     IndicatorsChartHtml: string
@@ -78,6 +82,7 @@ let loadAssets () =
       TestFlowViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.TestFlowViewHtml)
       StatisticsTableHtml = readResource(assembly, Constants.AssetsHtml + Constants.StatisticsTableHtml)
       EnvTableHtml = readResource(assembly, Constants.AssetsHtml + Constants.EnvTableHtml)
+      EnvViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.EnvViewHtml)
       NumReqChartHtml = readResource(assembly, Constants.AssetsHtml + Constants.NumReqChartHtml)
       NumReqChartJs = readResource(assembly, Constants.AssetsJs + Constants.NumReqChartJs)
       IndicatorsChartHtml = readResource(assembly, Constants.AssetsHtml + Constants.IndicatorsChartHtml)

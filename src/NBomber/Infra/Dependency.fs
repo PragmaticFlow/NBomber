@@ -9,17 +9,15 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Infra.ResourceManager
 
 type EnvironmentInfo = {
+    MachineName: string    
     OS: OperatingSystem
-    DotNetVersion: string
-    Processor: string
-    ProcessorArchitecture: string
-    AssemblyName: string
-    AssemblyVersion: Version
+    DotNetVersion: string    
+    Processor: string    
+    CoresCount: int    
 }
 
 type Dependency = {
@@ -30,23 +28,25 @@ type Dependency = {
 }
 
 let private getEnvironmentInfo () =
-    let assembly = Assembly.GetAssembly(typedefof<Request>)
-    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
-    let processorArchitecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE")
 
-    { OS = Environment.OSVersion
-      DotNetVersion = assembly.GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName 
-      Processor = if isNull(processor) then String.Empty else processor
-      ProcessorArchitecture = if isNull(processorArchitecture) then String.Empty else processorArchitecture
-      AssemblyName = assembly.GetName().Name
-      AssemblyVersion = assembly.GetName().Version }
+    let dotNetVersion = Assembly.GetEntryAssembly()
+                                .GetCustomAttribute<TargetFrameworkAttribute>()
+                                .FrameworkName;
+
+    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
+
+    { MachineName = Environment.MachineName      
+      OS = Environment.OSVersion
+      DotNetVersion = dotNetVersion
+      Processor = if isNull(processor) then String.Empty else processor      
+      CoresCount = Environment.ProcessorCount }
 
 let create (scenario: Scenario) = 
 
     let createSessionId () =
-        let date = DateTime.UtcNow.ToString("dd.MM.yyyy-HH.mm.ff")
+        let date = DateTime.UtcNow.ToString("dd.MM.yyyy_HH.mm.ff")
         let guid = Guid.NewGuid().GetHashCode().ToString("x")
-        date + "-" + guid
+        date + "_" + guid
     
     { SessionId = createSessionId()
       Scenario  = scenario      

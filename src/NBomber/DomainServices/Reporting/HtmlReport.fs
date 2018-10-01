@@ -113,10 +113,24 @@ module TestFlowView =
 module EnvView =
     
     let print (assets: Assets, envInfo: EnvironmentInfo) =            
-        let row = [envInfo.OS.VersionString; envInfo.DotNetVersion
-                   envInfo.Processor; envInfo.ProcessorArchitecture]
-                  |> HtmlBuilder.toTableRow        
-        assets.EnvTableHtml.Replace("%env_table%", row)
+        
+        let title = "Cluster info"
+
+        let row = [envInfo.MachineName                   
+                   envInfo.OS.VersionString
+                   envInfo.DotNetVersion
+                   envInfo.Processor
+                   envInfo.CoresCount.ToString()]
+                  |> HtmlBuilder.toTableRow
+
+        let envTable =
+            assets.EnvTableHtml
+            |> String.replace("%table_title%", title)
+            |> String.replace("%env_table%", row)
+
+        assets.EnvViewHtml
+        |> String.replace("%viewId%", "env-view")
+        |> String.replace("%env_table%", envTable)
 
 module ContentView =
 
@@ -140,8 +154,7 @@ module ContentView =
                      else
                         String.Empty
 
-        //let html = envHtml + scenarioHtml + flowHtml
-        let html = scenarioHtml + flowHtml
+        let html = envHtml + scenarioHtml + flowHtml        
         let js = scenarioJs + flowJs
         (html, js)
 
@@ -162,7 +175,7 @@ module SideBar =
             let css = "sub_icon fas fa-arrow-right"
             printItem(assets, viewId, name, css)
 
-        let envItem = printItem(assets, "env-view", "Environment", "sub_icon fas fa-globe")
+        let envItem = printItem(assets, "env-view", "Environment", "sub_icon fas fa-flask")
         let scenarioItem = printItem(assets, "scenario-view", "Scenario", "sub_icon fas fa-globe")
         
         let flowItems = 
