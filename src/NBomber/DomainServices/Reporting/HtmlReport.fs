@@ -44,7 +44,7 @@ module NumberReqChart =
 
 module StatisticsTable =    
 
-    let print (assets: Assets, flowsStats: TestFlowStats[]) =
+    let print (assets: Assets, tableTitle: string, flowsStats: TestFlowStats[]) =
         
         let printStepRow (step, flowName, concurrentCopies) =
             let stats = step.LatencyDetails.Value
@@ -58,13 +58,15 @@ module StatisticsTable =
         let printFlowRow (flow) =
             flow.StepsStats
             |> Array.map(fun step -> printStepRow(step, flow.FlowName, flow.ConcurrentCopies))
-            |> String.concat(String.Empty)        
+            |> String.concat(String.Empty)
 
         let tableBody = flowsStats
                         |> Array.map(printFlowRow)
                         |> String.concat(String.Empty)
 
-        assets.StatisticsTableHtml.Replace("%table_body%", tableBody)
+        assets.StatisticsTableHtml
+        |> String.replace("%table_title%", tableTitle)
+        |> String.replace("%table_body%", tableBody)
 
 module ScenarioView =    
     
@@ -76,7 +78,9 @@ module ScenarioView =
         let viewId = getViewId()        
         let (iHtml,iJs) = IndicatorsChart.print(assets, viewId, "Scenario", stats.LatencyCount, stats.FailCount)
         let (nHtml,nJs) = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
-        let sHtml = StatisticsTable.print(assets, stats.TestFlowsStats)
+
+        let title = "Scenario: " + stats.ScenarioName
+        let sHtml = StatisticsTable.print(assets, title, stats.TestFlowsStats)
         
         let js = iJs + nJs
         let html = assets.ScenarioViewHtml
@@ -94,7 +98,9 @@ module TestFlowView =
     let print (assets: Assets, viewId: string, stats: TestFlowStats) = 
         let (iHtml,iJs) = IndicatorsChart.print(assets, viewId, "TestFlow", stats.LatencyCount, stats.FailCount)
         let (nHtml,nJs) = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
-        let sHtml = StatisticsTable.print(assets, [|stats|])
+        
+        let title = "TestFlow: " + stats.FlowName
+        let sHtml = StatisticsTable.print(assets, title, [|stats|])
         
         let js = iJs + nJs
         let html = assets.TestFlowViewHtml
