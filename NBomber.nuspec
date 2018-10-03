@@ -13,7 +13,7 @@
     <dependencies>
       <group targetFramework=".NETStandard2.0">
         <dependency id="ConsoleTables" version="2.2.0" exclude="Build,Analyzers" />
-        <dependency id="FSharp.Core" version="4.3.4" exclude="Build,Analyzers" />
+        <dependency id="FSharp.Core" version="4.5.2" exclude="Build,Analyzers" />
         <dependency id="HdrHistogram" version="2.5.0" exclude="Build,Analyzers" />
         <dependency id="Serilog" version="2.7.1" exclude="Build,Analyzers" />
         <dependency id="Serilog.Sinks.ColoredConsole" version="3.0.1" exclude="Build,Analyzers" />
