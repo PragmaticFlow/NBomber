@@ -1,4 +1,7 @@
-﻿using System;
+# Testing HTTP via Pull Scenario
+
+```csharp
+using System;
 using System.Net.Http;
 
 using NBomber.Contracts;
@@ -14,8 +17,7 @@ namespace CSharp.Example.Http
             {
                 var msg = new HttpRequestMessage();
                 msg.RequestUri = new Uri("https://github.com/PragmaticFlow/NBomber");
-                msg.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-                msg.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36");
+                msg.Headers.TryAddWithoutValidation("Accept", "text/html");                
                 return msg;
             }
 
@@ -30,7 +32,7 @@ namespace CSharp.Example.Http
                     : Response.Fail(response.StatusCode.ToString());
             });
 
-            return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")
+            return new ScenarioBuilder(scenarioName: "Test HTTP https://github.com")
                 .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)
                 .Build(duration: TimeSpan.FromSeconds(10));
         }
@@ -42,3 +44,5 @@ namespace CSharp.Example.Http
         }
     }
 }
+
+```
