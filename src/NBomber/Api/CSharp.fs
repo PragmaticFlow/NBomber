@@ -40,6 +40,10 @@ type ScenarioBuilder(scenarioName: string) =
         flows.[flowConfig.FlowName] <- flowConfig
         x
 
+    member x.AddTestFlow(testFlow: TestFlow) =
+        flows.[testFlow.FlowName] <- testFlow
+        x
+
     member x.WithAssertions(assertions: IAssertion[]) =
         asserts <- assertions
         x
