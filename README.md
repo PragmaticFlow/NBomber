@@ -14,7 +14,7 @@ PM> Install-Package NBomber
 ```
 
 ### Documentation
-Documentation is located [here](https://nbomber.com/documentation).
+Documentation is located [here](https://nbomber.com).
 
 ### Features
 - [x] Request-response scenario
