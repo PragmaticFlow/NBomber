@@ -9,6 +9,12 @@ namespace CSharp.Example.SimplePush
 {
     class Program
     {
+        static void Main(string[] args)
+        {
+            var scenario = BuildScenario();
+            scenario.RunInConsole();
+        }
+
         class PushNotification
         {
             public string ClientId { get; set; }
@@ -65,12 +71,6 @@ namespace CSharp.Example.SimplePush
             return new ScenarioBuilder(scenarioName: "PushScenario")
                 .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)
                 .Build(duration: TimeSpan.FromSeconds(3));
-        }
-
-        static void Main(string[] args)
-        {
-            var scenario = BuildScenario();
-            scenario.RunInConsole();
         }
     }
 }

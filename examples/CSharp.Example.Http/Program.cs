@@ -8,6 +8,12 @@ namespace CSharp.Example.Http
 {
     class Program
     {
+        static void Main(string[] args)
+        {            
+            var scenario = BuildScenario();
+            scenario.RunInConsole();
+        }
+
         static Scenario BuildScenario()
         {
             HttpRequestMessage CreateHttpRequest()
@@ -33,12 +39,6 @@ namespace CSharp.Example.Http
             return new ScenarioBuilder(scenarioName: "Test HTTP (https://github.com) with 100 concurrent users")
                 .AddTestFlow("GET flow", steps: new[] { step1 }, concurrentCopies: 100)
                 .Build(duration: TimeSpan.FromSeconds(10));
-        }
-
-        static void Main(string[] args)
-        {            
-            var scenario = BuildScenario();
-            scenario.RunInConsole();
         }
     }
 }

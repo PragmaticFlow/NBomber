@@ -13,6 +13,12 @@ namespace CSharp.Example.MongoDb
 {
     class Program
     {
+        static void Main(string[] args)
+        {
+            var scenario = BuildScenario();
+            scenario.RunInConsole();
+        }
+
         public class User
         {
             [BsonId]
@@ -20,7 +26,7 @@ namespace CSharp.Example.MongoDb
             public string Name { get; set; }
             public int Age { get; set; }
             public bool IsActive { get; set; }
-        }
+        }        
 
         static Scenario BuildScenario()
         {
@@ -58,12 +64,6 @@ namespace CSharp.Example.MongoDb
                 .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
                 .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
                 .Build(duration: TimeSpan.FromSeconds(3));
-        }
-
-        static void Main(string[] args)
-        {
-            var scenario = BuildScenario();
-            scenario.RunInConsole();
         }
     }
 }

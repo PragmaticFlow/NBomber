@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
-    <id>PragmaticFlow.NBomber</id>    
+    <id>NBomber</id>    
     <authors>AntyaDev,alkondrashov</authors>
     <owners>AntyaDev,alkondrashov</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
