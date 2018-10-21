@@ -11,14 +11,14 @@
     <copyright>PragmaticFlow@2018</copyright>
     <tags>load-testing, performance-testing, integration-testing, fsharp</tags>
     <dependencies>
-      <group targetFramework=".NETStandard2.0">
-        <dependency id="ConsoleTables" version="2.2.0" exclude="Build,Analyzers" />
+      <group targetFramework=".NETStandard2.0">        
         <dependency id="FSharp.Core" version="4.5.2" exclude="Build,Analyzers" />
         <dependency id="HdrHistogram" version="2.5.0" exclude="Build,Analyzers" />
         <dependency id="Serilog" version="2.7.1" exclude="Build,Analyzers" />
         <dependency id="Serilog.Sinks.ColoredConsole" version="3.0.1" exclude="Build,Analyzers" />
-        <dependency id="ShellProgressBar" version="4.0.0" exclude="Build,Analyzers" />
-        <dependency id="TaskBuilder.fs" version="2.0.0" exclude="Build,Analyzers" />
+        <dependency id="ShellProgressBar" version="4.2.0" exclude="Build,Analyzers" />
+        <dependency id="TaskBuilder.fs" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="ConsoleTables" version="2.2.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>

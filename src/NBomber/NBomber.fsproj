@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>    
-    <Version>0.1.0</Version>    
   </PropertyGroup>
   <ItemGroup>  
     <EmbeddedResource Include="assets\assets.zip" />  
@@ -40,6 +39,7 @@
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
     <PackageReference Include="HdrHistogram" Version="2.5.0" />
     <PackageReference Include="Serilog" Version="2.7.1" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
