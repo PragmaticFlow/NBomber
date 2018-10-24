@@ -24,16 +24,3 @@ let toString (error) =
                             
     | AssertNotFound (scope,scopeName) -> String.Format("Assertion is not found for {0} '{1}'", scope, scopeName)
     | AssertionError (scope,scopeName,assertNumber) -> String.Format("Assertion #{0} FAILED for {1} '{2}'", assertNumber, scope, scopeName)
-
-type Result<'T,'TError> with    
-    static member isOk(result) = 
-        match result with
-        | Ok _    -> true
-        | Error _ -> false
-    
-    static member isError(result) = not(Result.isOk(result))
-    
-    static member getError(result) = 
-        match result with
-        | Ok _     -> failwith "result is not error"
-        | Error er -> er
