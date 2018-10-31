@@ -4,6 +4,7 @@ image: Visual Studio 2017
 branches:
   only:
     - master
+    - dev
 
 build_script:
   - ps: .\build.ps1 -target=Pack

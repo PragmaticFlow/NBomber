@@ -17,6 +17,7 @@
     <EmbeddedResource Include="assets\js\num_req_chart.js" />  
     <EmbeddedResource Include="assets\js\indicators_chart.js" />  
     <Compile Include="Contracts.fs" />  
+    <Compile Include="Extensions.fs" />  
     <Compile Include="Domain\Errors.fs" />  
     <Compile Include="Domain\DomainTypes.fs" />  
     <Compile Include="Domain\StatisticsTypes.fs" />  
@@ -25,7 +26,6 @@
     <Compile Include="Domain\Scenario.fs" />  
     <Compile Include="Domain\Assertion.fs" />  
     <Compile Include="Domain\Statistics.fs" />    
-    <Compile Include="Infra\Extensions.fs" />    
     <Compile Include="Infra\HtmlBuilder.fs" />    
     <Compile Include="Infra\ResourceManager.fs" />    
     <Compile Include="Infra\Dependency.fs" />    
