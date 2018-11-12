@@ -15,7 +15,7 @@ PM> Install-Package NBomber
 
 ### How to run a simple scenario
 
-![how to run a scenario gif](https://media.giphy.com/media/1ziUDchzwf6JdbFybs/giphy.gif)
+![how to run a scenario gif](https://github.com/PragmaticFlow/NBomber/blob/master/assets/howToRunScenario.gif)
 
 ### Documentation
 Documentation is located [here](https://nbomber.com).
