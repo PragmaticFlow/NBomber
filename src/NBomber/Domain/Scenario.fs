@@ -21,8 +21,9 @@ let runInit (scenario: Scenario) =
     | Some step -> 
         try                 
             let req = { CorrelationId = Constants.InitId; Payload = null }
-            step.Execute(req).Wait()                
-            Ok(scenario)
+            let response = step.Execute(req).Result
+            if response.IsOk then Ok(scenario)
+            else Error <| InitStepError("init step failed.")
         with ex -> ex.Message |> InitStepError |> Error
     | None      -> Ok(scenario)
 
