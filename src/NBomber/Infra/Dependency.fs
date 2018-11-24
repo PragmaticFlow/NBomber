@@ -9,10 +9,14 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Domain.DomainTypes
 open NBomber.Infra.ResourceManager
 
-type EnvironmentInfo = {
+type ApplicationType =
+    | Process
+    | Console    
+    | Test
+
+type MachineInfo = {
     MachineName: string    
     OS: OperatingSystem
     DotNetVersion: string    
@@ -21,13 +25,13 @@ type EnvironmentInfo = {
 }
 
 type Dependency = {
-    SessionId: string
-    Scenario: Scenario    
-    EnvironmentInfo: EnvironmentInfo
+    SessionId: string    
+    ApplicationType: ApplicationType
+    MachineInfo: MachineInfo
     Assets: Assets
 }
 
-let private getEnvironmentInfo () =
+let private getMachineInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
@@ -41,24 +45,25 @@ let private getEnvironmentInfo () =
       Processor = if isNull(processor) then String.Empty else processor      
       CoresCount = Environment.ProcessorCount }
 
-let create (scenario: Scenario) = 
+let createSessionId () =
+    let date = DateTime.UtcNow.ToString("dd.MM.yyyy_HH.mm.ff")
+    let guid = Guid.NewGuid().GetHashCode().ToString("x")
+    date + "_" + guid
 
-    let createSessionId () =
-        let date = DateTime.UtcNow.ToString("dd.MM.yyyy_HH.mm.ff")
-        let guid = Guid.NewGuid().GetHashCode().ToString("x")
-        date + "_" + guid
-    
+let create (appType: ApplicationType) =
     { SessionId = createSessionId()
-      Scenario  = scenario      
-      EnvironmentInfo = getEnvironmentInfo()
+      ApplicationType = appType
+      MachineInfo = getMachineInfo()
       Assets = ResourceManager.loadAssets() }
 
 module Logger =
 
-    let initLogger () =
-        Log.Logger <- LoggerConfiguration()
-                        .WriteTo.Console()
-                        .CreateLogger()
+    let initLogger (appType: ApplicationType) =
+        Log.Logger <- 
+            match appType with            
+            | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
+            | _       -> LoggerConfiguration().CreateLogger()
+        
 
 module ProgressBar =
 

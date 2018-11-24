@@ -13,12 +13,6 @@ namespace CSharp.Example.MongoDb
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            var scenario = BuildScenario();
-            scenario.RunInConsole();
-        }
-
         public class User
         {
             [BsonId]
@@ -59,11 +53,16 @@ namespace CSharp.Example.MongoDb
                 return Response.Ok();
             });
 
-            return new ScenarioBuilder(scenarioName: "Test MongoDb with 2 READ quries and 2000 docs")
-                .WithTestInit(initDb)
-                .AddTestFlow("READ Users 1", steps: new[] { step1 }, concurrentCopies: 20)
-                .AddTestFlow("READ Users 2", steps: new[] { step2 }, concurrentCopies: 20)
-                .Build(duration: TimeSpan.FromSeconds(3));
+            return ScenarioBuilder.CreateScenario("test mongo", step1, step2)
+                                  .WithConcurrentCopies(40)
+                                  .WithDuration(TimeSpan.FromSeconds(10));
+        }
+
+        static void Main(string[] args)
+        {
+            var scenario = BuildScenario();
+            NBomberRunner.RegisterScenarios(scenario)
+                         .RunInConsole();
         }
     }
 }

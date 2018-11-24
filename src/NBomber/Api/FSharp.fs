@@ -24,40 +24,71 @@ module Step =
 module Assertion =
     open NBomber.Domain.DomainTypes
 
-    let forScenario (assertion: AssertStats -> bool) = Scenario(assertion) :> IAssertion
-    let forTestFlow (flowName, assertion: AssertStats -> bool) = TestFlow(flowName, assertion) :> IAssertion
-    let forStep (stepName, flowName, assertion: AssertStats -> bool) = Step(stepName, flowName, assertion) :> IAssertion
+    let forStep (stepName, assertion: AssertStats -> bool) = 
+        Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
+    
+    let forScenario (assertion: AssertStats -> bool) = 
+        Scenario({ ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
 
-module Scenario =
-    open NBomber.DomainServices.ScenarioRunner
-
-    let create (name: string): Scenario =        
+module Scenario =    
+    open NBomber.Domain.DomainTypes
+    
+    let create (name: string, steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = None
-          TestFlows = Array.empty
-          Duration = TimeSpan.FromSeconds(10.0)
+          Steps = Seq.toArray(steps)
+          ConcurrentCopies = 50
+          Duration = TimeSpan.FromSeconds(20.0)
           Assertions = Array.empty }
 
-    let withTestInit (initFunc: Request -> Task<Response>) (scenario: Scenario) =
+    let withTestInit (initFunc: Request -> Task<Response>) (scenario: Contracts.Scenario) =
         let step = Step.createRequest(Domain.DomainTypes.Constants.InitId, initFunc)
         { scenario with TestInit = Some(step) }
 
-    let addTestFlow (testFlow: Contracts.TestFlow) (scenario: Scenario) =        
-        { scenario with TestFlows = Array.append scenario.TestFlows [|testFlow|] }    
+    let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
+        let asrts = assertions
+                    |> Seq.cast<Assertion>
+                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}) 
+                                        | Scenario x -> Scenario({ x with ScenarioName = scenario.ScenarioName}))
+                    |> Seq.map(fun x -> x :> IAssertion)
+                    |> Seq.toArray
 
-    let withAssertions (assertions: IAssertion list) (scenario: Scenario) =
-        { scenario with Assertions = List.toArray(assertions) }
+        { scenario with Assertions = asrts }
 
-    let withDuration (duration: TimeSpan) (scenario: Scenario) =
-        { scenario with Duration = duration }    
+    let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
+        { scenario with ConcurrentCopies = concurrentCopies }
 
-    let run (scenario: Scenario) =        
-        let config = { IsVerbose = false
-                       ShouldSaveReport = true }
-        ScenarioRunner.runScenario(scenario, config) |> ignore
+    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+        { scenario with Duration = duration }
 
-    let runInConsole (scenario: Scenario) =
-        ScenarioRunner.runInConsole(scenario)
+module NBomberRunner = 
+    open System.IO
+    open NBomber.Configuration    
+    open NBomber.Infra
+    open NBomber.Infra.Dependency
+    open Serilog
 
-    let runTest (scenario: Scenario) =         
-        ScenarioRunner.runTest(scenario)        
+    let registerScenarios (scenarios: Contracts.Scenario list) = 
+        { Scenarios = Seq.toArray(scenarios); NBomberConfig = None }
+
+    let loadConfig (path: string) (context: NBomberRunnerContext) =
+        let config = path |> File.ReadAllText |> NBomberConfig.parse
+        { context with NBomberConfig = config }
+
+    let run (context: NBomberRunnerContext) =
+        let dep = Dependency.create(Process)
+        NBomberRunner.run(dep, context)
+
+    let runInConsole (context: NBomberRunnerContext) =
+        let mutable run = true
+        while run do
+            let dep = Dependency.create(Console)
+            NBomberRunner.run(dep, context)
+            Log.Information("Repeat the same test one more time? (y/n)")
+        
+            let userInput = Console.ReadLine()
+            run <- List.contains userInput ["y"; "Y"; "yes"; "Yes"]
+
+    let runTest (context: NBomberRunnerContext) =
+        let dep = Dependency.create(Test)
+        NBomberRunner.run(dep, context)        

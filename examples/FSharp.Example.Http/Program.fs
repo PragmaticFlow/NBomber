@@ -22,15 +22,16 @@ let buildScenario () =
         return if response.IsSuccessStatusCode then Response.Ok()
                else Response.Fail(response.StatusCode.ToString()) 
     })
-
-    Scenario.create("Test HTTP (https://github.com) with 100 concurrent users")
-    |> Scenario.addTestFlow({ FlowName = "GET flow"; Steps = [step1]; ConcurrentCopies = 100 })   
+        
+    Scenario.create("test github", [step1])
+    |> Scenario.withConcurrentCopies(100)    
     |> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
 
 [<EntryPoint>]
 let main argv =    
     
-    buildScenario() 
-    |> Scenario.runInConsole
+    let scenario = buildScenario()
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runInConsole
 
     0 // return an integer exit code

@@ -2,6 +2,7 @@
 
 open System
 open System.Runtime.InteropServices
+open NBomber.Configuration
 
 type CorrelationId = string
 type Latency = int64
@@ -25,18 +26,13 @@ type IAssertion = interface end
 type IStepListenerChannel =
     abstract Notify: correlationId:CorrelationId * response:Response -> unit
 
-type TestFlow = {
-    FlowName: string
-    Steps: IStep seq
-    ConcurrentCopies: int
-}
-
 type Scenario = {
     ScenarioName: string
     TestInit: IStep option
-    TestFlows: TestFlow[]   
+    Steps: IStep[]
     Assertions: IAssertion[]
-    Duration: TimeSpan    
+    ConcurrentCopies: int
+    Duration: TimeSpan
 }
 
 type AssertStats = {       
@@ -47,3 +43,8 @@ type AssertStats = {
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }
+
+type NBomberRunnerContext = {
+    Scenarios: Scenario[]
+    NBomberConfig: NBomberConfig option
+}

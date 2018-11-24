@@ -4,8 +4,10 @@ open System
 
 open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.Infra.ResourceManager
+open NBomber.Infra.Dependency
+
+type HtmlControl = { Html: string; Js: string; }
 
 module IndicatorsChart =    
 
@@ -26,7 +28,7 @@ module IndicatorsChart =
                  |> String.replace("%viewId%", viewId)
                  |> String.replace("%label%", label)
                  
-        (html, js)
+        { Html = html; Js = js }
 
 module NumberReqChart =    
 
@@ -40,79 +42,91 @@ module NumberReqChart =
                  |> String.replace("%dataArray%", dataArray)
                  |> String.replace("%viewId%", viewId)
 
-        (html, js)
+        { Html = html; Js = js }
 
 module StatisticsTable =    
 
-    let print (assets: Assets, tableTitle: string, flowsStats: TestFlowStats[]) =
+    let print (assets: Assets, tableTitle: string, scnStats: ScenarioStats[]) =
         
-        let printStepRow (step, flowName, concurrentCopies) =
-            let stats = step.LatencyDetails.Value
-            [flowName; concurrentCopies.ToString(); step.StepName; step.OkLatencies.Length.ToString()
+        let printStepRow (step) =
+            let stats = step.Percentiles.Value
+            [step.StepName; step.ReqeustCount.ToString()
              step.OkCount.ToString(); step.FailCount.ToString()
              stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString()
-             stats.Percent50.ToString(); stats.Percent75.ToString()
-             stats.Percent95.ToString(); stats.StdDev.ToString()]
-            |> HtmlBuilder.toTableRow
+             stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString()
+             stats.StdDev.ToString()]
+            |> HtmlBuilder.toTableRow            
 
-        let printFlowRow (flow) =
-            flow.StepsStats
-            |> Array.map(fun step -> printStepRow(step, flow.FlowName, flow.ConcurrentCopies))
-            |> String.concat(String.Empty)
+        let printScenarioRow (scnStats) =  
+            
+            let cells = [scnStats.ScenarioName; scnStats.ConcurrentCopies.ToString()]
+                        |> List.map(HtmlBuilder.toTableCell(scnStats.StepsStats.Length))
+                        |> String.concat(String.Empty)
 
-        let tableBody = flowsStats
-                        |> Array.map(printFlowRow)
+            let row = scnStats.StepsStats
+                      |> Array.map(fun step -> printStepRow(step))
+                      |> String.concat(String.Empty)                      
+            
+            let rowStr = row.Remove(0, 4)
+            
+            "<tr>" + cells + rowStr
+
+        let tableBody = scnStats
+                        |> Array.map(printScenarioRow)
                         |> String.concat(String.Empty)
 
         assets.StatisticsTableHtml
         |> String.replace("%table_title%", tableTitle)
-        |> String.replace("%table_body%", tableBody)
+        |> String.replace("%table_body%", tableBody)        
 
 module ScenarioView =    
-    
-    let getViewId () = "scenario-view"
-    let getLabel () = "Scenario"
-
-    let print (assets: Assets, stats: ScenarioStats) = 
         
-        let viewId = getViewId()        
-        let (iHtml,iJs) = IndicatorsChart.print(assets, viewId, "Scenario", stats.LatencyCount, stats.FailCount)
-        let (nHtml,nJs) = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
+    let createViewId (index: int) = String.Format("scenario-view-{0}", index)
+    let createName (index: int) = String.Format("Scenario {0}", index)
 
-        let title = "Scenario: " + stats.ScenarioName
-        let sHtml = StatisticsTable.print(assets, title, stats.TestFlowsStats)
+    let print (assets: Assets, index: int, scnStats: ScenarioStats) = 
+
+        let viewId = createViewId(index)
+        let label = createName(index)
+
+        let indicatorsChart = IndicatorsChart.print(assets, viewId, label, scnStats.LatencyCount, scnStats.FailCount)
+        let numberReqChart = NumberReqChart.print(assets, viewId, scnStats.OkCount, scnStats.FailCount)
+
+        let title = "Scenario: " + scnStats.ScenarioName
+        let statisticsTableHtml = StatisticsTable.print(assets, title, [|scnStats|])
         
-        let js = iJs + nJs
+        let js = indicatorsChart.Js + numberReqChart.Js
         let html = assets.ScenarioViewHtml
-                   |> String.replace("%viewId%", "scenario-view")
-                   |> String.replace("%indicators_chart%", iHtml)
-                   |> String.replace("%num_req_chart%", nHtml)
-                   |> String.replace("%statistics_table%", sHtml)        
-        (html, js)
-
-module TestFlowView =
-
-    let createViewId (index: int) = String.Format("test-flow-view-{0}", index)
-    let createName (index: int) = String.Format("Test flow {0}", index)
-
-    let print (assets: Assets, viewId: string, stats: TestFlowStats) = 
-        let (iHtml,iJs) = IndicatorsChart.print(assets, viewId, "TestFlow", stats.LatencyCount, stats.FailCount)
-        let (nHtml,nJs) = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
-        
-        let title = "TestFlow: " + stats.FlowName
-        let sHtml = StatisticsTable.print(assets, title, [|stats|])
-        
-        let js = iJs + nJs
-        let html = assets.TestFlowViewHtml
                    |> String.replace("%viewId%", viewId)
-                   |> String.replace("%indicators_chart%", iHtml)
-                   |> String.replace("%num_req_chart%", nHtml)
-                   |> String.replace("%statistics_table%", sHtml)        
-        (html, js)
+                   |> String.replace("%statistics_table%", statisticsTableHtml)
+                   |> String.replace("%indicators_chart%", indicatorsChart.Html)
+                   |> String.replace("%num_req_chart%", numberReqChart.Html)                   
+        
+        { Html = html; Js = js }
+
+module GlobalView =  
+
+    let print (assets: Assets, stats: GlobalStats) =        
+        
+        let viewId = "global-view"
+        let indicatorsChart = IndicatorsChart.print(assets, viewId, "All Scenarios", stats.LatencyCount, stats.FailCount)
+        let numberReqChart = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
+        
+        let title = "Statistics from all scenarios"
+        let statisticsTableHtml = StatisticsTable.print(assets, title, stats.AllScenariosStats)
+
+        let js = indicatorsChart.Js + numberReqChart.Js
+        let html = assets.GlobalViewHtml
+                   |> String.replace("%viewId%", viewId)
+                   |> String.replace("%statistics_table%", statisticsTableHtml)
+                   |> String.replace("%indicators_chart%", indicatorsChart.Html)
+                   |> String.replace("%num_req_chart%", numberReqChart.Html)
+        
+        { Html = html; Js = js }
 
 module EnvView =
     
-    let print (assets: Assets, envInfo: EnvironmentInfo) =            
+    let print (assets: Assets, envInfo: MachineInfo) =            
         
         let title = "Cluster info"
 
@@ -134,33 +148,26 @@ module EnvView =
 
 module ContentView =
 
-    let print (dep: Dependency, stats: ScenarioStats) =        
-        let envHtml = EnvView.print(dep.Assets, dep.EnvironmentInfo)
-        let (scenarioHtml,scenarioJs) = ScenarioView.print(dep.Assets, stats)
+    let print (dep: Dependency, stats: GlobalStats) =        
+        let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
+        let globalView = GlobalView.print(dep.Assets, stats)
         
-        let allFlowsHtmlJs = 
-            stats.TestFlowsStats
-            |> Array.mapi(fun i x ->                 
-                let viewId = TestFlowView.createViewId(i + 1)                
-                TestFlowView.print(dep.Assets, viewId, x))
+        let scnViews =
+            if stats.AllScenariosStats.Length > 1 then
+                let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i,x))
+                let scnHtml = scnViews |> Array.map(fun x -> x.Html) |> String.concat(String.Empty)
+                let scnJs = scnViews |> Array.map(fun x -> x.Js) |> String.concat(String.Empty)
+                { Html = scnHtml; Js = scnJs }
+            else
+                { Html = ""; Js = "" }
 
-        let flowHtml = if allFlowsHtmlJs.Length > 1 then
-                           allFlowsHtmlJs |> Array.map(fst) |> String.concat(String.Empty)
-                       else 
-                           String.Empty
-
-        let flowJs = if allFlowsHtmlJs.Length > 1 then
-                        allFlowsHtmlJs |> Array.map(snd) |> String.concat(String.Empty)
-                     else
-                        String.Empty
-
-        let html = envHtml + scenarioHtml + flowHtml        
-        let js = scenarioJs + flowJs
-        (html, js)
+        let html = envHtml + globalView.Html + scnViews.Html
+        let js = globalView.Js + scnViews.Js
+        { Html = html; Js = js }
 
 module SideBar =
 
-    let print (assets: Assets, stats: ScenarioStats) =
+    let print (assets: Assets, stats: GlobalStats) =
 
         let printItem (assets, viewId, name, iconCss) =
             assets.SidebarItemHtml
@@ -168,34 +175,34 @@ module SideBar =
             |> String.replace("%name%", name)
             |> String.replace("%iconCss%", iconCss)
 
-        let printTestFlowItem (index) =
+        let printScenarioItem (index) =
             let num = index + 1
-            let viewId = TestFlowView.createViewId(num)
-            let name = TestFlowView.createName(num)
+            let viewId = ScenarioView.createViewId(num)
+            let name = ScenarioView.createName(num)
             let css = "sub_icon fas fa-arrow-right"
             printItem(assets, viewId, name, css)
 
         let envItem = printItem(assets, "env-view", "Environment", "sub_icon fas fa-flask")
-        let scenarioItem = printItem(assets, "scenario-view", "Scenario", "sub_icon fas fa-globe")
+        let globalItem = printItem(assets, "global-view", "Global", "sub_icon fas fa-globe")
         
-        let flowItems = 
-            if stats.TestFlowsStats.Length > 1 then
-                stats.TestFlowsStats 
-                |> Array.mapi(fun index _ -> printTestFlowItem(index))
+        let scnItems = 
+            if stats.AllScenariosStats.Length > 1 then
+                stats.AllScenariosStats
+                |> Array.mapi(fun index _ -> printScenarioItem(index))
                 |> String.concat(String.Empty)
             else
                 String.Empty
 
-        let sideBarItems = envItem + scenarioItem + flowItems        
+        let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: Dependency, stats: ScenarioStats) =
+let print (dep: Dependency, stats: GlobalStats) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
-    let (contentView,js) = ContentView.print(dep, stats)    
+    let contentView = ContentView.print(dep, stats)
 
     dep.Assets.IndexHtml
     |> String.replace("%sidebar%", sideBar)
-    |> String.replace("%content_view%", contentView)                              
+    |> String.replace("%content_view%", contentView.Html)
     |> HtmlBuilder.toPrettyHtml
-    |> String.replace("%js%", js)
+    |> String.replace("%js%", contentView.Js)

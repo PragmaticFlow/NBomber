@@ -12,29 +12,29 @@ namespace CSharp.Example.NUnit
     {
         Scenario BuildScenario()
         {
-            var step1 = Step.CreateRequest("Step", async _ =>
+            var step1 = Step.CreateRequest("simple step", async _ =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(2));
+                await Task.Delay(TimeSpan.FromSeconds(0.5));
                 return Response.Ok();
             });
 
-            return new ScenarioBuilder("Scenario")
-                .AddTestFlow("Flow", steps: new[] { step1 }, concurrentCopies: 1)
-                .Build(duration: TimeSpan.FromSeconds(10));
+            return ScenarioBuilder.CreateScenario("nunit hello world", step1)
+                .WithConcurrentCopies(1)
+                .WithDuration(TimeSpan.FromSeconds(2));
         }
 
         [Test]
         public void Test()
         {
-            var scenario = BuildScenario();
-
             var assertions = new[] {
-               Assertion.ForScenario(stats => stats.OkCount > 3),
-               Assertion.ForTestFlow("Flow", stats => stats.FailCount < 10),
-               Assertion.ForStep("Step", "Flow", stats => stats.OkCount > 3)
+               Assertion.ForScenario(stats => stats.OkCount > 2),               
+               Assertion.ForStep("simple step", stats => stats.OkCount > 2)
             };
 
-            scenario.RunTest(assertions);
+            var scenario = BuildScenario().WithAssertions(assertions);
+
+            NBomberRunner.RegisterScenarios(scenario)
+                         .RunTest();            
         }
     }
 }

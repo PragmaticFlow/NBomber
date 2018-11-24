@@ -63,23 +63,29 @@ type Step =
     | Pause    of TimeSpan 
     interface IStep
 
-type TestFlow = {    
-    FlowName: FlowName
-    Steps: Step[]    
-    CorrelationIds: Set<CorrelationId>
-}
-
 type AssertFunc = AssertStats -> bool
 
+type StepAssertion = {
+    StepName: StepName
+    ScenarioName: ScenarioName
+    AssertFunc: AssertFunc
+}
+
+type ScenarioAssertion = {
+    ScenarioName: ScenarioName
+    AssertFunc: AssertFunc
+}
+
 type Assertion = 
-    | Step     of StepName * FlowName * AssertFunc
-    | TestFlow of FlowName * AssertFunc
-    | Scenario of AssertFunc
+    | Step     of StepAssertion
+    | Scenario of ScenarioAssertion
     interface IAssertion
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    InitStep: RequestStep option
-    TestFlows: TestFlow[]    
+    TestInit: RequestStep option    
+    Steps: Step[]
+    Assertions: Assertion[]
+    ConcurrentCopies: int
     Duration: TimeSpan    
 }

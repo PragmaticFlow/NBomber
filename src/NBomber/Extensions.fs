@@ -14,6 +14,19 @@ type Result<'T,'TError> with
         | Ok _     -> failwith "result is not error"
         | Error er -> er
 
+[<Struct>]
+type MaybeBuilder =
+    
+    member x.Bind(m, bind) =
+        match m with
+        | Some value -> bind value
+        | None       -> None
+
+    member x.Return(value) = Some value
+    member x.ReturnFrom(value) = value
+
+let maybe = MaybeBuilder()
+
 module String =
 
     let replace (oldValue: string, newValue: string) (str: string) =

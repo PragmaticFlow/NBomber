@@ -10,7 +10,7 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 
 let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
-        latencies.LongLength / int64(scenarioDuration.TotalSeconds)    
+    latencies.LongLength / int64(scenarioDuration.TotalSeconds)    
 
 let calcMin (latencies: Latency[]) =
     if latencies.Length > 0 then Array.min(latencies) else 0L
@@ -41,11 +41,12 @@ module StepStats =
         { StepName = stepName 
           OkLatencies = okResults |> Array.map(snd)
           FailLatencies = failResults |> Array.map(snd)          
+          ReqeustCount = allResults.Length
           OkCount = okResults.Length
           FailCount = allResults.Length - okResults.Length
-          LatencyDetails = None } 
+          Percentiles = None } 
 
-    let calcLatencyDetails (stats: StepStats, scenarioDuration: TimeSpan) =
+    let calcPercentiles (stats: StepStats, scenarioDuration: TimeSpan) =
         
         let buildHistogram (latencies) =            
             let histogram = LongHistogram(TimeStamp.Hours(1), 3);
@@ -63,73 +64,75 @@ module StepStats =
           Percent95 = calcPercentile(histogram, 95.0)
           StdDev = calcStdDev(histogram) }
 
-module TestFlowStats =    
-
-    let private calcLatencyCount (stepsStats: StepStats[]) = 
-        let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800L))
-        let b = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 800L && x < 1200L))
-        let c = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 1200L))        
-
-        { Less800 = a.Length
-          More800Less1200 = b.Length
-          More1200 = c.Length }
-
-    let create (flow: TestFlow) (stepsStats: StepStats[]) =
-                
-        let mergeByStepName (allCopies: StepStats[]) =
-            allCopies
-            |> Array.groupBy(fun x -> x.StepName)
-            |> Array.map(fun (stName, results) ->                 
-                { StepName = stName
-                  OkLatencies = results |> Array.collect(fun x -> x.OkLatencies)
-                  FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)                  
-                  OkCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
-                  FailCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum                  
-                  LatencyDetails = None })
-        
-        let mergedStats = mergeByStepName(stepsStats)
-        let latency = calcLatencyCount(mergedStats)
-        let allOkCount = mergedStats |> Array.sumBy(fun x -> x.OkCount)
-        let allFailCount = mergedStats |> Array.sumBy(fun x -> x.FailCount)
-
-        { FlowName = flow.FlowName
-          StepsStats = mergedStats
-          ConcurrentCopies = flow.CorrelationIds.Count
-          OkCount = allOkCount
-          FailCount = allFailCount
-          LatencyCount = latency }
-
 module ScenarioStats =        
 
-    let private calcPausedTime (scenario: Scenario) =
-        scenario.TestFlows
-        |> Array.collect(fun x -> x.Steps)
+    let calcPausedTime (scenario: Scenario) =
+        scenario.Steps
         |> Array.sumBy(fun x -> match x with | Pause time -> time.Ticks | _ -> int64 0)
         |> TimeSpan
 
-    let private calcLatencyCount (flowsStats: TestFlowStats[]) =
-        let latCounts = flowsStats |> Array.map(fun x -> x.LatencyCount)
-        { Less800 = latCounts |> Array.sumBy(fun x -> x.Less800)
-          More800Less1200 = latCounts |> Array.sumBy(fun x -> x.More800Less1200)
-          More1200 = latCounts |> Array.sumBy(fun x -> x.More1200) }    
+    let calcLatencyCount (stepsStats: StepStats[]) = 
+        let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800L))
+        let b = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 800L && x < 1200L))
+        let c = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 1200L))        
+        { Less800 = a.Length
+          More800Less1200 = b.Length
+          More1200 = c.Length } 
 
-    let create (scenario: Scenario, flowsStats: TestFlowStats[]) =        
+    let mergeByStepName (stepsStats: StepStats[]) =
+        stepsStats
+        |> Array.groupBy(fun x -> x.StepName)
+        |> Array.map(fun (stName, results) ->
+            let okCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
+            let failCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum
+            let reqeustCount = okCount + failCount
+            { StepName = stName
+              OkLatencies = results |> Array.collect(fun x -> x.OkLatencies)
+              FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)                  
+              ReqeustCount = reqeustCount
+              OkCount = okCount
+              FailCount = failCount
+              Percentiles = None })
 
-        let applyCalculations (scenarioDuration) (flowStats) =
-            { flowStats 
-              with StepsStats = flowStats.StepsStats
-                                |> Array.map(fun x -> { x with LatencyDetails = Some(StepStats.calcLatencyDetails(x, scenarioDuration)) }) }
+    let calcPercentiles (activeScnTime: TimeSpan) (stepsStats: StepStats[]) =        
+        stepsStats 
+        |> Array.map(fun x -> { x with Percentiles = Some(StepStats.calcPercentiles(x, activeScnTime)) })
 
+    let create (scenario: Scenario) (stepsStats: StepStats[]) =
+        
         let activeTime = scenario.Duration - calcPausedTime(scenario)
+        let mergedStats = mergeByStepName(stepsStats) |> calcPercentiles(activeTime)                        
+        let latencyCount = calcLatencyCount(mergedStats)
 
-        let stats = flowsStats |> Array.map(applyCalculations(activeTime))
-        let latencyCount = calcLatencyCount(stats)
-        let allOkCount = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.OkCount))
-        let allFailCount = flowsStats |> Array.sumBy(fun x -> x.StepsStats |> Array.sumBy(fun x -> x.FailCount))
+        let allOkCount = mergedStats |> Array.sumBy(fun x -> x.OkCount)
+        let allFailCount = mergedStats |> Array.sumBy(fun x -> x.FailCount)
 
         { ScenarioName = scenario.ScenarioName
-          TestFlowsStats = stats 
+          StepsStats = mergedStats
+          ConcurrentCopies = scenario.ConcurrentCopies
+          OkCount = allOkCount
+          FailCount = allFailCount
+          LatencyCount = latencyCount
           ActiveTime = activeTime
+          Duration = scenario.Duration } 
+
+module GlobalStats =
+
+    let create (allScnStats: ScenarioStats[]) =
+        
+        let allOkCount = allScnStats
+                         |> Array.collect(fun x -> x.StepsStats)
+                         |> Array.sumBy(fun x -> x.OkCount)
+
+        let allFailCount = allScnStats
+                           |> Array.collect(fun x -> x.StepsStats)
+                           |> Array.sumBy(fun x -> x.FailCount)
+
+        let latencyCount = allScnStats
+                           |> Array.collect(fun x -> x.StepsStats)
+                           |> ScenarioStats.calcLatencyCount
+
+        { AllScenariosStats = allScnStats
           OkCount = allOkCount
           FailCount = allFailCount
           LatencyCount = latencyCount }

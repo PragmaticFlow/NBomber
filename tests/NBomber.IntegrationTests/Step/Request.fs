@@ -13,22 +13,25 @@ open NBomber.FSharp
 let ``Response.Ok | Fail should be properly count`` () =
         
     let okStep = Step.createRequest("OK step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(1.0))
+        do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Ok()
     })
 
     let failStep = Step.createRequest("Fail step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(3.0))
+        do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Fail("")
     })
 
     let assertions = [
-       Assertion.forScenario(fun stats -> stats.OkCount > 2 && stats.FailCount = 1)
+       Assertion.forScenario(fun stats -> stats.OkCount > 2 && stats.FailCount > 2)
     ]
 
-    Scenario.create("Test")
-    |> Scenario.addTestFlow({ FlowName = "Flow1"; Steps = [okStep]; ConcurrentCopies = 1 })
-    |> Scenario.addTestFlow({ FlowName = "Flow2"; Steps = [failStep]; ConcurrentCopies = 1 })
-    |> Scenario.withAssertions(assertions)
-    |> Scenario.withDuration(TimeSpan.FromSeconds(5.0))
-    |> Scenario.runTest
+    let scenario =
+        Scenario.create("simple test", [okStep; failStep])
+        |> Scenario.withConcurrentCopies(1)    
+        |> Scenario.withAssertions(assertions)
+        |> Scenario.withDuration(TimeSpan.FromSeconds(3.0))
+    
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest
+    
