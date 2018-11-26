@@ -23,7 +23,7 @@ let ``Response.Ok | Fail should be properly count`` () =
     })
 
     let assertions = [
-       Assertion.forScenario(fun stats -> stats.OkCount > 2 && stats.FailCount > 2)
+       Assertion.forScenario(fun stats -> stats.OkCount >= 2 && stats.FailCount >= 2)
     ]
 
     let scenario =
