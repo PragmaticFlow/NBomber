@@ -20,8 +20,22 @@ let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     return! Option.ofObj(globalSettings.ScenariosSettings)
 }
 
-let applyScenariosSettings (scenarios: Scenario[], settings: ScenarioSetting[]) = 
+let tryGetTargetScenarios (context: NBomberRunnerContext) = maybe {
+    let! config = context.NBomberConfig
+    let! globalSettings = config.GlobalSettings
+    return! Option.ofObj(globalSettings.TargetScenarios)
+}
+
+let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) =
+    { scenario with ScenarioName = settings.ScenarioName;
+                    ConcurrentCopies = settings.ConcurrentCopies
+                    Duration = settings.Duration }
+
+let applyScenariosSettings (scenarios: Scenario[], targetScenarios: string[], settings: ScenarioSetting[]) =
     scenarios
+    |> Array.filter (fun x -> targetScenarios |> Array.exists (fun target -> x.ScenarioName = target))
+    |> Array.map (fun x -> settings |> Array.find (fun y -> y.ScenarioName = x.ScenarioName)
+                                    |> updateScenarioWithSettings x)
 
 let warmUpScenarios (scnRunners: ScenarioRunner[]) =
     let results = 
@@ -36,13 +50,14 @@ let warmUpScenarios (scnRunners: ScenarioRunner[]) =
     else
         true
 
-let buildScenarios (context: NBomberRunnerContext) =    
-    match tryGetScenariosSettings(context) with
-    | Some settings -> applyScenariosSettings(context.Scenarios, settings)
-                       |> Array.map(Scenario.create)
-    
-    | None          -> context.Scenarios
-                       |> Array.map(Scenario.create)
+let buildScenarios (context: NBomberRunnerContext) =  
+    let scenarioSettings = tryGetScenariosSettings(context)
+    let targetScenarios = tryGetTargetScenarios(context)
+
+    match (scenarioSettings, targetScenarios) with
+    | Some settings, Some targetScenarios
+            -> applyScenariosSettings(context.Scenarios, targetScenarios, settings) |> Array.map(Scenario.create)
+    | _, _  -> context.Scenarios |> Array.map(Scenario.create)
 
 let displayProgress (scnRunners: ScenarioRunner[]) =
     let longestDuration = scnRunners

@@ -24,14 +24,13 @@ let buildScenario () =
     })
         
     Scenario.create("test github", [step1])
-    |> Scenario.withConcurrentCopies(100)    
-    |> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
 
 [<EntryPoint>]
 let main argv =    
     
     let scenario = buildScenario()
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.loadConfig "config.json"
     |> NBomberRunner.runInConsole
 
     0 // return an integer exit code
