@@ -12,8 +12,9 @@
     <tags>load-testing, performance-testing, integration-testing, fsharp</tags>
     <dependencies>
       <group targetFramework=".NETStandard2.0">        
-        <dependency id="FSharp.Core" version="4.5.2" exclude="Build,Analyzers" />
+        <dependency id="FSharp.Core" version="4.5.4" exclude="Build,Analyzers" />
         <dependency id="HdrHistogram" version="2.5.0" exclude="Build,Analyzers" />
+		<dependency id="Newtonsoft.Json" version="12.0.1" exclude="Build,Analyzers" />		
         <dependency id="Serilog" version="2.7.1" exclude="Build,Analyzers" />
         <dependency id="Serilog.Sinks.ColoredConsole" version="3.0.1" exclude="Build,Analyzers" />
         <dependency id="ShellProgressBar" version="4.2.0" exclude="Build,Analyzers" />

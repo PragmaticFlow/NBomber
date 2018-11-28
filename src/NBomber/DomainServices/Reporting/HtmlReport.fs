@@ -154,7 +154,7 @@ module ContentView =
         
         let scnViews =
             if stats.AllScenariosStats.Length > 1 then
-                let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i,x))
+                let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i+1,x))
                 let scnHtml = scnViews |> Array.map(fun x -> x.Html) |> String.concat(String.Empty)
                 let scnJs = scnViews |> Array.map(fun x -> x.Js) |> String.concat(String.Empty)
                 { Html = scnHtml; Js = scnJs }
