@@ -1,8 +1,13 @@
 ﻿module internal NBomber.DomainServices.Reporting.Report
 
+open System
 open System.IO
 
+open Serilog
+
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
+open NBomber.Domain.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 
@@ -11,11 +16,12 @@ type ReportResult = {
     HtmlReport: string    
 }
 
-let build (dep: Dependency, scResult: ScenarioStats) =
-    { TxtReport = TxtReport.print(dep, scResult)
-      HtmlReport = HtmlReport.print(dep, scResult) }
+let build (dep: Dependency, stats: GlobalStats,
+           assertResults: Result<Assertion,DomainError>[]) =
+    { TxtReport = TxtReport.print(stats)
+      HtmlReport = HtmlReport.print(dep, stats) }
 
-let save (dep: Dependency, report: ReportResult, outPutDir: string) =
+let save (dep: Dependency, outPutDir: string) (report: ReportResult) =
     let reportsDir = Path.Combine(outPutDir, "reports")
     Directory.CreateDirectory(reportsDir) |> ignore
     ResourceManager.saveAssets(reportsDir)
@@ -23,4 +29,6 @@ let save (dep: Dependency, report: ReportResult, outPutDir: string) =
     let filePath = reportsDir + "/report_" + dep.SessionId
 
     File.WriteAllText(filePath + ".txt", report.TxtReport)
-    File.WriteAllText(filePath + ".html", report.HtmlReport)
+    File.WriteAllText(filePath + ".html", report.HtmlReport)    
+    Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+    Log.Information(report.TxtReport)

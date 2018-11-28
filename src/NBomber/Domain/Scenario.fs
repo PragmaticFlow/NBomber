@@ -1,5 +1,9 @@
 ﻿module internal NBomber.Domain.Scenario
 
+open System.Diagnostics
+
+open FSharp.Control.Tasks.V2.ContextInsensitive
+
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain
@@ -8,16 +12,14 @@ open NBomber.Domain.DomainTypes
 
 let create (config: Contracts.Scenario) =
     { ScenarioName = config.ScenarioName
-      InitStep = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
-          
-      TestFlows = config.TestFlows 
-                  |> Array.mapi(fun i config -> TestFlow.create(i, config))
-                  |> Array.map(TestFlow.initFlow)
-
+      TestInit = config.TestInit |> Option.map(fun x -> Step.getRequest(x :?> Step))
+      Steps = config.Steps |> Array.map(fun x -> x :?> Step) |> Seq.toArray
+      Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
+      ConcurrentCopies = config.ConcurrentCopies      
       Duration = config.Duration }
           
 let runInit (scenario: Scenario) =
-    match scenario.InitStep with
+    match scenario.TestInit with
     | Some step -> 
         try                 
             let req = { CorrelationId = Constants.InitId; Payload = null }
@@ -27,14 +29,23 @@ let runInit (scenario: Scenario) =
         with ex -> ex.Message |> InitStepError |> Error
     | None      -> Ok(scenario)
 
-let warmUp (scenario: Scenario) =                
-    let errors = 
-        scenario.TestFlows 
-        |> Array.map(fun flow -> TestFlow.warmUpFlow(flow).Result)
-        |> Array.filter(Result.isError)
-        |> Array.map(Result.getError)
-        
-    if errors.Length > 0 then
-        errors |> WarmUpError |> Error
-    else
-        Ok(scenario)
+let warmUp (scenario: Scenario) = task {               
+    let timer = Stopwatch()
+    let steps = scenario.Steps |> Array.filter(fun st -> not(Step.isPause st))        
+    let mutable request = { CorrelationId = Constants.WarmUpId; Payload = null }
+    let mutable result = Ok(scenario)
+    let mutable skipStep = false
+
+    for st in steps do
+        if not skipStep then                
+            let! (response,_) = Step.execStep(st, request, timer)
+            if response.IsOk then
+                request <- { request with Payload = response.Payload }
+            else
+                skipStep <- true
+                result <- { ScenarioName = scenario.ScenarioName
+                            StepName = Step.getName(st)
+                            Error = response.Payload.ToString() }
+                          |> WarmUpError |> Error
+    return result
+}

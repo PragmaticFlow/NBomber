@@ -1,57 +1,30 @@
 ﻿module internal rec NBomber.DomainServices.Reporting.TxtReport
 
 open System
-
 open ConsoleTables
-
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
-open NBomber.Infra.Dependency
 
-let print (dep: Dependency, scResult: ScenarioStats) = 
+let print (stats: GlobalStats) = 
+    stats.AllScenariosStats
+    |> Array.map(fun x -> let header = printScenarioHeader(x)
+                          let stepsTable = printStepsTable(x.StepsStats)
+                          header + Environment.NewLine + stepsTable)
+    |> String.concat(Environment.NewLine)
 
-    let header = printScenarioHeader(dep.Scenario)
-
-    let flowTable = scResult.TestFlowsStats 
-                    |> Array.mapi(fun i x -> printFlowTable(x, i + 1))
-                    |> String.concat(Environment.NewLine)
-
-    printEnvInfo(dep.EnvironmentInfo) + Environment.NewLine 
-    + header + Environment.NewLine + Environment.NewLine
-    + flowTable
-
-let private printEnvInfo (envInfo: EnvironmentInfo) =
-    ""
-
-let private printScenarioHeader (scenario: Scenario) =
+let private printScenarioHeader (scnStats: ScenarioStats) =
     String.Format("Scenario: {0}, execution time: {1}",
-                  scenario.ScenarioName,
-                  scenario.Duration.ToString())
-
-let private printFlowTable (flResult: TestFlowStats, flowNo: int) =
-    
-    let consoleTableOptions = 
-        ConsoleTableOptions(
-            Columns = [String.Format("flow {0}: {1}", flowNo, flResult.FlowName)
-                       "steps"; String.Format("concurrent copies: {0}", flResult.ConcurrentCopies)],
-            EnableCount = false)
-
-    let flowTable = ConsoleTable(consoleTableOptions)       
-    flResult.StepsStats
-    |> Array.iteri(fun i stats -> flowTable.AddRow("", String.Format("{0} - {1}", i + 1, stats.StepName), "") |> ignore)
-
-    let stepsTable = printStepsTable(flResult.StepsStats)    
-    flowTable.ToString() + stepsTable + Environment.NewLine + Environment.NewLine
+                  scnStats.ScenarioName,
+                  scnStats.Duration.ToString())
 
 let private printStepsTable (steps: StepStats[]) =    
-    let stepTable = ConsoleTable("step no", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "75%", "95%", "StdDev")
+    let stepTable = ConsoleTable("step name", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "75%", "95%", "StdDev")
     steps    
     |> Array.iteri(fun i s -> 
-        stepTable.AddRow(i + 1, s.OkLatencies.Length,
+        stepTable.AddRow(s.StepName, s.ReqeustCount,
                          s.OkCount, s.FailCount,
-                         s.LatencyDetails.Value.RPS, s.LatencyDetails.Value.Min, 
-                         s.LatencyDetails.Value.Mean, s.LatencyDetails.Value.Max,
-                         s.LatencyDetails.Value.Percent50, s.LatencyDetails.Value.Percent75,
-                         s.LatencyDetails.Value.Percent95, s.LatencyDetails.Value.StdDev) |> ignore)
+                         s.Percentiles.Value.RPS, s.Percentiles.Value.Min, 
+                         s.Percentiles.Value.Mean, s.Percentiles.Value.Max,
+                         s.Percentiles.Value.Percent50, s.Percentiles.Value.Percent75,
+                         s.Percentiles.Value.Percent95, s.Percentiles.Value.StdDev) |> ignore)
     
     stepTable.ToStringAlternative()

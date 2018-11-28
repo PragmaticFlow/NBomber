@@ -1,22 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <Compile Include="Step\Request.fs" />
+    <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Include="Step/Request.fs" />
+    <Compile Include="Configuration/ApplySettings.fs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="FsCheck" Version="2.13.0" />
+    <PackageReference Include="FsCheck.Xunit" Version="2.13.0" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
-  </ItemGroup>
-
 </Project>

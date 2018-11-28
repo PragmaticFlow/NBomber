@@ -9,7 +9,7 @@ type LatencyCount = {
     More1200: int
 }
 
-type LatencyDetails = {
+type Percentiles = {
     RPS: int64
     Min: Latency
     Mean: Latency
@@ -24,25 +24,26 @@ type StepStats = {
     StepName: string
     OkLatencies: Latency[]
     FailLatencies: Latency[]    
+    ReqeustCount: int
     OkCount: int
     FailCount: int    
-    LatencyDetails: LatencyDetails option
-}
-
-type TestFlowStats = {
-    FlowName: string
-    StepsStats: StepStats[]
-    ConcurrentCopies: int
-    OkCount: int
-    FailCount: int
-    LatencyCount: LatencyCount
+    Percentiles: Percentiles option
 }
 
 type ScenarioStats = {
-    ScenarioName: string
-    TestFlowsStats: TestFlowStats[]
-    ActiveTime: TimeSpan
+    ScenarioName: string    
+    StepsStats: StepStats[]
+    ConcurrentCopies: int    
     OkCount: int
     FailCount: int
     LatencyCount: LatencyCount
+    ActiveTime: TimeSpan
+    Duration: TimeSpan
+}
+
+type GlobalStats = {
+    AllScenariosStats: ScenarioStats[]
+    OkCount: int
+    FailCount: int
+    LatencyCount: LatencyCount    
 }

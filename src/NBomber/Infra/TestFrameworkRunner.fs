@@ -1,10 +1,10 @@
-﻿module internal NBomber.DomainServices.TestRunner
+﻿module internal NBomber.DomainServices.TestFrameworkRunner
 
 open System
-open NBomber.Contracts
+
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.Errors
-open NBomber.Domain.StatisticsTypes
 
 type TestFramework =
     | Xunit of Type
@@ -31,7 +31,7 @@ let tryGetCurrentFramework () =
     |> List.tryFind(Option.isSome)
     |> Option.flatten    
 
-let run (assertions: IAssertion[], scnStats: ScenarioStats) =
+let showResults (results: Result<Assertion,DomainError>[]) =
 
     let printErrors (errors: DomainError[], framework: TestFramework) =
         let errorsStr = errors 
@@ -53,8 +53,7 @@ let run (assertions: IAssertion[], scnStats: ScenarioStats) =
     if framework.IsNone then failwith("Unknown framework")
 
     let errors = 
-        Assertion.create(assertions)
-        |> Assertion.run(scnStats)
+        results
         |> Array.filter(Result.isError)
         |> Array.map(Result.getError)
 

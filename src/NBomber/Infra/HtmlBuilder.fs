@@ -3,7 +3,10 @@
 open System
 open System.Xml.Linq
 
-let toTableRow (rawData: 'T list) =    
+let toTableCell (rowspan: int) (rawData: 'T) =
+    String.Format("""<td rowspan="{0}">{1}</td>""", rowspan, rawData)
+
+let toTableRow (rawData: 'T list) =
     let row = rawData
               |> List.map(fun x -> String.Format("<td>{0}</td>", x))
               |> String.concat(String.Empty)

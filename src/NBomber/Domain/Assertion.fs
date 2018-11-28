@@ -7,70 +7,48 @@ open NBomber.Domain.StatisticsTypes
 
 type AssertStats with
 
-    static member Create(stats: StepStats) =
+    static member create(stats: StepStats) =
         { OkCount = stats.OkCount
           FailCount = stats.FailCount }
-
-    static member Create(stats: TestFlowStats) =
+   
+    static member create(stats: ScenarioStats) =
         { OkCount = stats.OkCount
           FailCount = stats.FailCount }
-
-    static member Create(stats: ScenarioStats) =
-        { OkCount = stats.OkCount
-          FailCount = stats.FailCount }
-
-let private mapToResult (scopeType: string, scopeName: string, assertNumber: int) (result: bool) =
-    if result then
-        Ok()
-    else 
-        AssertionError(scopeType, scopeName, assertNumber)
-        |> Error
 
 let create (assertions: IAssertion[]) = 
     assertions |> Array.map(fun x -> x :?> Assertion)
 
-let execStep (scenarioStats: ScenarioStats, stepName: StepName, flowName: FlowName,
-              assertFunc: AssertFunc, assertNumber: int) =
-    let result = 
-        scenarioStats.TestFlowsStats
-        |> Array.filter(fun x -> x.FlowName = flowName)
+let applyForStep (globalStats: GlobalStats, assertNum: int, asrt: StepAssertion) =
+    let stepStats = 
+        globalStats.AllScenariosStats
+        |> Array.filter(fun x -> x.ScenarioName = asrt.ScenarioName)
         |> Array.collect(fun x -> x.StepsStats)
-        |> Array.tryFind(fun x -> x.StepName = stepName)
+        |> Array.tryFind(fun x -> x.StepName = asrt.StepName)
+    
+    match stepStats with
+    | Some v -> let result = AssertStats.create(v) |> asrt.AssertFunc
+                if result then Ok <| Step(asrt)
+                else Error <| AssertionError(assertNum, Step(asrt))
+    | None   -> Error <| AssertNotFound(assertNum, Step(asrt))
 
-    match result with
-    | Some v -> AssertStats.Create(v)
-                |> assertFunc
-                |> mapToResult("Step", v.StepName, assertNumber)
 
-    | None   -> AssertNotFound("Step", stepName) 
-                |> Error
-
-let executeTestFlow (scenarioStats: ScenarioStats, flowName: FlowName, 
-                     assertFunc: AssertFunc, assertNumber: int) =
-    let result = 
-        scenarioStats.TestFlowsStats
-        |> Array.tryFind(fun x -> x.FlowName = flowName)
+let applyForScenario (globalStats: GlobalStats, assertNum: int, asrt: ScenarioAssertion) =
+    let scnStats = 
+        globalStats.AllScenariosStats
+        |> Array.tryFind(fun x -> x.ScenarioName = asrt.ScenarioName)
         
-    match result with
-    | Some v -> AssertStats.Create(v)
-                |> assertFunc
-                |> mapToResult("TestFlow", v.FlowName, assertNumber)
+    match scnStats with
+    | Some v -> let result = AssertStats.create(v) |> asrt.AssertFunc
+                if result then Ok <| Scenario(asrt)
+                else Error <| AssertionError(assertNum, Scenario(asrt))
+    | None   -> Error <| AssertNotFound(assertNum, Scenario(asrt))
 
-    | None   -> AssertNotFound("TestFlow", flowName) 
-                |> Error    
-
-let execScenario (scenarioStats: ScenarioStats, assertFunc: AssertFunc, assertNumber: int) =
-    scenarioStats
-    |> AssertStats.Create
-    |> assertFunc
-    |> mapToResult("Scenario", scenarioStats.ScenarioName, assertNumber)
-
-let run (scnStats: ScenarioStats) (assertions: Assertion[]) =       
+let apply (globalStats: GlobalStats, assertions: Assertion[]) =
     assertions
     |> Array.mapi(fun i assertion -> 
         let asrtNum = i + 1
         match assertion with
-        | Step (stepName,flowName,assertFunc) -> execStep(scnStats, stepName, flowName, assertFunc, asrtNum)
-        | TestFlow (flowName,asrtFunc)        -> executeTestFlow(scnStats, flowName, asrtFunc, asrtNum)
-        | Scenario assertFunc                 -> execScenario(scnStats, assertFunc, asrtNum)
+        | Step asrt     -> applyForStep(globalStats, asrtNum, asrt)
+        | Scenario asrt -> applyForScenario(globalStats, asrtNum, asrt)            
     )
+

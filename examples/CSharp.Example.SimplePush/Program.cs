@@ -9,12 +9,6 @@ namespace CSharp.Example.SimplePush
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            var scenario = BuildScenario();
-            scenario.RunInConsole();
-        }
-
         class PushNotification
         {
             public string ClientId { get; set; }
@@ -68,9 +62,17 @@ namespace CSharp.Example.SimplePush
 
             var step2 = Step.CreateListener("listen", listenerChannel);
 
-            return new ScenarioBuilder(scenarioName: "PushScenario")
-                .AddTestFlow("test push ", steps: new[] { step1, step2 }, concurrentCopies: 1)
-                .Build(duration: TimeSpan.FromSeconds(3));
+            return ScenarioBuilder.CreateScenario("PushScenario", step1, step2)
+                                  .WithConcurrentCopies(2)
+                                  .WithDuration(TimeSpan.FromSeconds(3));
+        }
+
+        static void Main(string[] args)
+        {
+            var scenario = BuildScenario();
+            NBomberRunner.RegisterScenarios(scenario)
+                         .RunInConsole();
+
         }
     }
 }

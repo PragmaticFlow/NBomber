@@ -25,10 +25,10 @@ module Constants =
     let SidebarItemHtml = "sidebar_item.html"
 
     [<Literal>]
-    let ScenarioViewHtml = "scenario_view.html"    
+    let GlobalViewHtml = "global_view.html"    
 
     [<Literal>]
-    let TestFlowViewHtml = "test_flow_view.html"        
+    let ScenarioViewHtml = "scenario_view.html"        
 
     [<Literal>]
     let EnvTableHtml = "env_table.html"
@@ -55,8 +55,8 @@ type Assets = {
     IndexHtml: string    
     SidebarHtml: string
     SidebarItemHtml: string
+    GlobalViewHtml: string
     ScenarioViewHtml: string
-    TestFlowViewHtml: string
     StatisticsTableHtml: string    
     EnvTableHtml: string
     EnvViewHtml: string
@@ -78,8 +78,8 @@ let loadAssets () =
     { IndexHtml = readResource(assembly, Constants.AssetsHtml + Constants.IndexHtml)            
       SidebarHtml = readResource(assembly, Constants.AssetsHtml + Constants.SidebarHtml)  
       SidebarItemHtml = readResource(assembly, Constants.AssetsHtml + Constants.SidebarItemHtml)
+      GlobalViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.GlobalViewHtml)
       ScenarioViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.ScenarioViewHtml)
-      TestFlowViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.TestFlowViewHtml)
       StatisticsTableHtml = readResource(assembly, Constants.AssetsHtml + Constants.StatisticsTableHtml)
       EnvTableHtml = readResource(assembly, Constants.AssetsHtml + Constants.EnvTableHtml)
       EnvViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.EnvViewHtml)
