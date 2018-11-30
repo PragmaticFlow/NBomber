@@ -11,7 +11,7 @@ open NBomber.FSharp
 
 let buildScenario () =
 
-    let step1 = Step.createRequest("Step", fun _ -> task {
+    let step1 = Step.createPull("Step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Ok()
     })

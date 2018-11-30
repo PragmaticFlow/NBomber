@@ -42,20 +42,43 @@ let applyScenariosSettings (settings: ScenarioSetting[]) (scenarios: Scenario[])
         |> Array.map(fun x -> settings |> Array.find(fun y -> y.ScenarioName = x.ScenarioName)
                                        |> updateScenarioWithSettings(x))
 
-let warmUpScenarios (scnRunners: ScenarioRunner[]) =
+let initScenarios (scnRunners: ScenarioRunner[]) =    
     let results = 
-        scnRunners 
-        |> Array.map(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
-                              x.RunInit())
-                                        
-    let allOk = results |> Array.forall(Result.isOk)
-    if not allOk then
-        results |> Errors.getErrorsString |> Log.Error
-        false
-    else
-        true
+        scnRunners
+        |> Array.filter(fun x -> x.Scenario.TestInit.IsSome)
+        |> Array.map(fun x -> 
+            Log.Information("initializing scenario: '{0}'", x.Scenario.ScenarioName)
+            let initResult = x.RunInit()
+            
+            if Result.isError(initResult) then
+                let errorMsg = initResult |> Result.getError |> Errors.toString
+                Log.Error("init failed", errorMsg)            
+            initResult)
+    results 
+    |> Array.forall(Result.isOk)
 
-let buildScenarios (context: NBomberRunnerContext) =
+let initUpdatesChannel (channel: DomainTypes.GlobalUpdatesChannel, scnRunners: ScenarioRunner[]) =
+    let allIds = scnRunners |> Array.collect(fun x -> x.Scenario.CorrelationIds)
+    
+    let allPushStepNames =
+        scnRunners 
+        |> Array.collect(fun x -> x.Scenario.Steps) 
+        |> Array.filter(Step.isPush)
+        |> Array.map(Step.getName)
+    
+    channel.Init(allIds, allPushStepNames)
+
+let warmUpScenarios (scnRunners: ScenarioRunner[]) =
+    scnRunners 
+    |> Array.iter(fun x -> 
+        Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
+        let warmUpResult = x.WarmUp().Result
+        
+        if Result.isError(warmUpResult) then
+            let errorMsg = warmUpResult |> Result.getError |> Errors.toString
+            Log.Warning("warm up failed", errorMsg))
+
+let buildScenarios (context: NBomberRunnerContext) =     
     let registeredScenarios = context.Scenarios
     let scenarioSettings = tryGetScenariosSettings(context)
     let targetScenarios = tryGetTargetScenarios(context)
@@ -65,7 +88,7 @@ let buildScenarios (context: NBomberRunnerContext) =
         registeredScenarios 
         |> filterTargetScenarios(targetScns)
         |> applyScenariosSettings(settings) 
-        |> Array.map(Scenario.create)    
+        |> Array.map(Scenario.create)
     
     | Some settings, None ->         
         registeredScenarios
@@ -101,16 +124,18 @@ let calcStatistics (scnRunners: ScenarioRunner[]) =
     |> GlobalStats.create    
 
 let run (dep: Dependency, context: NBomberRunnerContext) =
-    Dependency.Logger.initLogger(dep.ApplicationType)
+    Dependency.Logger.initLogger(dep.ApplicationType)    
     Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
 
     match Validation.validateRunnerContext(context) with
     | Ok context ->             
-        let scnRunners = buildScenarios(context) |> Array.map(ScenarioRunner)                
-        
-        let allOk = warmUpScenarios(scnRunners)
+        let scnRunners = buildScenarios(context) |> Array.map(ScenarioRunner)
+        let allOk = initScenarios(scnRunners)
         
         if allOk then
+            initUpdatesChannel(Dependency.GlobalUpdatesChannel, scnRunners)
+            warmUpScenarios(scnRunners)
+            
             Log.Information("starting bombing...")
             scnRunners |> Array.iter(fun x -> x.Run())
             

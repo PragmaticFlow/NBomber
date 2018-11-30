@@ -9,6 +9,7 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Domain.DomainTypes
 open NBomber.Infra.ResourceManager
 
 type ApplicationType =
@@ -24,12 +25,15 @@ type MachineInfo = {
     CoresCount: int    
 }
 
+let private globalUpdatesChannel = GlobalUpdatesChannel()
+
 type Dependency = {
     SessionId: string    
     ApplicationType: ApplicationType
     MachineInfo: MachineInfo
     Assets: Assets
-}
+} with
+  static member GlobalUpdatesChannel = globalUpdatesChannel
 
 let private getMachineInfo () =
 

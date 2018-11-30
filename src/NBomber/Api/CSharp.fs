@@ -5,15 +5,16 @@ open System.Threading.Tasks
 open System.Runtime.CompilerServices
 
 open NBomber
-open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.FSharp
 
+type GlobalUpdatesChannel =
+    static member Instance = FSharp.GlobalUpdatesChannel.Instance
+
 type Step =    
-    static member CreateRequest(name: string, execute: Func<Request,Task<Response>>) = Step.createRequest(name, execute.Invoke)
-    static member CreateListener(name: string, listeners: IStepListenerChannel) = Step.createListener(name, listeners)
-    static member CreatePause(duration) = Step.createPause(duration)
-    static member CreateListenerChannel() = Step.createListenerChannel()
+    static member CreatePull(name: string, execute: Func<Request,Task<Response>>) = FSharp.Step.createPull(name, execute.Invoke)
+    static member CreatePush(name: string) = FSharp.Step.createPush(name)
+    static member CreatePause(duration) = FSharp.Step.createPause(duration)
 
 type Assertion =    
     static member ForStep (stepName, assertion: Func<AssertStats, bool>) = Assertion.forStep(stepName, assertion.Invoke)

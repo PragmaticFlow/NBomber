@@ -41,13 +41,13 @@ namespace CSharp.Example.MongoDb
             var readQuery1 = usersCollection.Find(u => u.IsActive == true).Limit(500);
             var readQuery2 = usersCollection.Find(u => u.Age > 50).Limit(100);
 
-            var step1 = Step.CreateRequest("read IsActive = true and TOP 500", async _ =>
+            var step1 = Step.CreatePull("read IsActive = true and TOP 500", async _ =>
             {
                 await readQuery1.ToListAsync();
                 return Response.Ok();
             });
 
-            var step2 = Step.CreateRequest("read Age > 50 and TOP 100", async _ =>
+            var step2 = Step.CreatePull("read Age > 50 and TOP 100", async _ =>
             {
                 await readQuery2.ToListAsync();
                 return Response.Ok();

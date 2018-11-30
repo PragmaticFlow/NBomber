@@ -19,12 +19,13 @@ type Response = {
     Payload: obj
 }
 
-type IStep = interface end   
+type IStep = 
+    abstract member Name: string
 
 type IAssertion = interface end  
 
-type IStepListenerChannel =
-    abstract Notify: correlationId:CorrelationId * response:Response -> unit
+type IGlobalUpdatesChannel =
+    abstract ReceivedUpdate: correlationId:CorrelationId * pushStepName: string * update:Response -> unit
 
 type Scenario = {
     ScenarioName: string
@@ -46,5 +47,5 @@ type Response with
 
 type NBomberRunnerContext = {
     Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option
+    NBomberConfig: NBomberConfig option    
 }

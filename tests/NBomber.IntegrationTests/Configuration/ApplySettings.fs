@@ -7,7 +7,7 @@ open FsCheck
 open FsCheck.Xunit
 
 [<Property>]
-let ``Apply scenario settings ``(xs:int) =
+let ``apply scenario settings ``(xs:int) =
     let scenario = Scenario.create("simple test", [])    
     true
 

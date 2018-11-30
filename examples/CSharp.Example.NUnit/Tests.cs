@@ -12,7 +12,7 @@ namespace CSharp.Example.NUnit
     {
         Scenario BuildScenario()
         {
-            var step1 = Step.CreateRequest("simple step", async _ =>
+            var step1 = Step.CreatePull("simple step", async _ =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.5));
                 return Response.Ok();

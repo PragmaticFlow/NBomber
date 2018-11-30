@@ -17,7 +17,7 @@ let buildScenario () =
     
     let httpClient = new HttpClient()
 
-    let step1 = Step.createRequest("GET html", fun _ -> task {        
+    let step1 = Step.createPull("GET html", fun _ -> task {        
         let! response = createHttpRequest() |> httpClient.SendAsync
         return if response.IsSuccessStatusCode then Response.Ok()
                else Response.Fail(response.StatusCode.ToString()) 

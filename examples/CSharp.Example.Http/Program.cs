@@ -21,7 +21,7 @@ namespace CSharp.Example.Http
 
             var httpClient = new HttpClient();
 
-            var step1 = Step.CreateRequest("GET html", async _ =>
+            var step1 = Step.CreatePull("GET html", async _ =>
             {
                 var request = CreateHttpRequest();
                 var response = await httpClient.SendAsync(request);

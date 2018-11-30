@@ -11,43 +11,43 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
-let isRequest (step)  = match step with | Request _  -> true | _ -> false
-let isListener (step) = match step with | Listener _ -> true | _ -> false
-let isPause (step)    = match step with | Pause _    -> true | _ -> false    
+let isPull (step)  = match step with | Pull _  -> true | _ -> false
+let isPush (step)  = match step with | Push _  -> true | _ -> false
+let isPause (step) = match step with | Pause _ -> true | _ -> false    
     
 let getName (step) = 
     match step with
-    | Request s  -> s.StepName
-    | Listener s -> s.StepName
-    | Pause t    -> "pause"
+    | Pull s  -> s.StepName
+    | Push s  -> s.StepName
+    | Pause t -> "pause"
         
-let getRequest (step) =
+let getPull (step) =
     match step with
-    | Request r -> r
-    | _         -> failwith "step is not a Request"
+    | Pull r -> r
+    | _         -> failwith "step is not a Pull"
 
-let getListener (step) = 
+let getPush (step) = 
     match step with 
-    | Listener l -> l
-    | _          -> failwith "step is not a Listener"
+    | Push l -> l
+    | _          -> failwith "step is not a Push"
 
 let execStep (step: Step, req: Request, timer: Stopwatch) = task {        
     timer.Restart()        
     try
         match step with
-        | Request r  -> let! resp = r.Execute(req)
-                        timer.Stop()
-                        let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
-                        return (resp, latency)        
+        | Pull s  -> let! resp = s.Execute(req)
+                     timer.Stop()
+                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                     return (resp, latency)
         
-        | Listener l -> let listener = l.Listeners.Get(req.CorrelationId)
-                        let! resp = listener.GetResponse()
-                        timer.Stop()
-                        let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
-                        return (resp, latency)
+        | Push s  -> let listener = s.UpdatesChannel.GetPushListener(req.CorrelationId, s.StepName)
+                     let! resp = listener.GetResponse()
+                     timer.Stop()
+                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                     return (resp, latency)
         
-        | Pause time -> do! Task.Delay(time)
-                        return (Response.Ok(req), 0L)
+        | Pause s -> do! Task.Delay(s)
+                     return (Response.Ok(req), 0L)
     with
     | ex -> timer.Stop()
             let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)

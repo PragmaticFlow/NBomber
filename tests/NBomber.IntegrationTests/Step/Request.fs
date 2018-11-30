@@ -12,12 +12,12 @@ open NBomber.FSharp
 [<Fact>]
 let ``Response.Ok | Fail should be properly count`` () =
         
-    let okStep = Step.createRequest("OK step", fun _ -> task {
+    let okStep = Step.createPull("OK step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Ok()
     })
 
-    let failStep = Step.createRequest("Fail step", fun _ -> task {
+    let failStep = Step.createPull("Fail step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Fail("")
     })

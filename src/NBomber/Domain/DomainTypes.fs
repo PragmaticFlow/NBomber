@@ -9,7 +9,7 @@ open NBomber.Contracts
 module Constants =
 
     [<Literal>]
-    let WarmUpId = "warm_up_flow"
+    let WarmUpId = "warm_up_step"
 
     [<Literal>]
     let InitId = "init_step"
@@ -18,11 +18,14 @@ type StepName = string
 type FlowName = string
 type ScenarioName = string
 
-type StepListener(correlationId: CorrelationId) = 
+type PushListener(id: string) = 
 
     let mutable tcs = TaskCompletionSource<Response>()    
 
-    member x.CorrelationId = correlationId
+    static member BuildId(correlationId: string, pushStepName: string) = 
+        correlationId + "_" + pushStepName
+
+    member x.Id = id
 
     member x.Notify(response: Response) = 
         if not tcs.Task.IsCompleted then tcs.SetResult(response)
@@ -31,37 +34,51 @@ type StepListener(correlationId: CorrelationId) =
         tcs <- TaskCompletionSource<Response>()
         tcs.Task
 
-type StepListenerChannel() =
+type GlobalUpdatesChannel() =
 
-    let mutable listeners = Dictionary<CorrelationId,StepListener>()
+    let mutable listeners = Dictionary<CorrelationId,PushListener>()        
 
-    member x.Init(items: StepListener[]) = 
-        listeners.Clear()
-        items |> Array.iter(fun x -> listeners.Add(x.CorrelationId, x))
+    member x.Init(allCorrelationIds: string[], pushStepNames: string[]) = 
+        listeners.Clear()        
+        allCorrelationIds
+        |> Array.collect(fun id -> pushStepNames 
+                                   |> Array.map(fun stepName -> PushListener.BuildId(id, stepName)))
+        |> Array.append(pushStepNames 
+                        |> Array.map(fun x -> PushListener.BuildId(Constants.WarmUpId, x)))
+        |> Array.map(PushListener)
+        |> Array.iter(fun x -> listeners.Add(x.Id, x))
 
-    member x.Get(correlationId: string) = listeners.[correlationId]
+    member x.GetPushListener(correlationId: string, pushStepName: string) = 
+        let id = PushListener.BuildId(correlationId, pushStepName)
+        listeners.[id]
 
-    interface IStepListenerChannel with
-        member x.Notify(correlationId: CorrelationId, response: Response) =
-            match listeners.TryGetValue(correlationId) with
+    interface IGlobalUpdatesChannel with
+        member x.ReceivedUpdate(correlationId: string, pushStepName: string, response: Response) =
+            let id = PushListener.BuildId(correlationId, pushStepName)
+            match listeners.TryGetValue(id) with
             | true, listener -> listener.Notify(response)
-            | _              -> () 
+            | _              -> ()
 
-type RequestStep = {
+type PullStep = {
     StepName: StepName
     Execute: Request -> Task<Response>
 }
 
-type ListenerStep = {
+type PushStep = {
     StepName: StepName    
-    Listeners: StepListenerChannel
+    UpdatesChannel: GlobalUpdatesChannel
 }
 
 type Step =
-    | Request  of RequestStep
-    | Listener of ListenerStep
-    | Pause    of TimeSpan 
+    | Pull  of PullStep
+    | Push  of PushStep
+    | Pause of TimeSpan 
     interface IStep
+        with member x.Name = match x with
+                             | Pull s -> s.StepName
+                             | Push s -> s.StepName
+                             | Pause s -> "pause"
+            
 
 type AssertFunc = AssertStats -> bool
 
@@ -83,9 +100,10 @@ type Assertion =
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: RequestStep option    
+    TestInit: PullStep option    
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int
-    Duration: TimeSpan    
+    CorrelationIds: CorrelationId[]
+    Duration: TimeSpan
 }

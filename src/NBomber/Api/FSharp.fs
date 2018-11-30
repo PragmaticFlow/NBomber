@@ -6,20 +6,21 @@ open System.Threading.Tasks
 open NBomber
 open NBomber.Contracts
 open NBomber.DomainServices
+open NBomber.Infra.Dependency
+
+type GlobalUpdatesChannel =
+    static member Instance = Dependency.GlobalUpdatesChannel :> IGlobalUpdatesChannel
 
 module Step =    
     open NBomber.Domain.DomainTypes
 
-    let createRequest (name: string, execute: Request -> Task<Response>) = 
-        Request({ StepName = name; Execute = execute }) :> IStep  
+    let createPull (name: string, execute: Request -> Task<Response>) = 
+        Pull({ StepName = name; Execute = execute }) :> IStep  
     
-    let createListener (name: string, listeners: IStepListenerChannel) = 
-        let ls = listeners :?> StepListenerChannel
-        Listener({ StepName = name; Listeners = ls }) :> IStep
+    let createPush (name: string) =         
+        Push({ StepName = name; UpdatesChannel = Dependency.GlobalUpdatesChannel }) :> IStep
 
-    let createPause (duration) = Pause(duration) :> IStep
-
-    let createListenerChannel () = StepListenerChannel() :> IStepListenerChannel
+    let createPause (duration) = Pause(duration) :> IStep    
 
 module Assertion =
     open NBomber.Domain.DomainTypes
@@ -42,7 +43,7 @@ module Scenario =
           Assertions = Array.empty }
 
     let withTestInit (initFunc: Request -> Task<Response>) (scenario: Contracts.Scenario) =
-        let step = Step.createRequest(Domain.DomainTypes.Constants.InitId, initFunc)
+        let step = Step.createPull(Domain.DomainTypes.Constants.InitId, initFunc)
         { scenario with TestInit = Some(step) }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        

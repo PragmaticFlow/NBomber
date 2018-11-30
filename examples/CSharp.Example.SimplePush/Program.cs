@@ -43,8 +43,9 @@ namespace CSharp.Example.SimplePush
         static Scenario BuildScenario()
         {
             var server = new FakePushServer();
+            var updatesChannel = GlobalUpdatesChannel.Instance;
 
-            var step1 = Step.CreateRequest("publish", async req =>
+            var step1 = Step.CreatePull("publish", async req =>
             {
                 var clientId = req.CorrelationId;
                 var message = $"Hi Server from client: {clientId}";
@@ -53,17 +54,19 @@ namespace CSharp.Example.SimplePush
                 return Response.Ok();
             });
 
-            var listenerChannel = Step.CreateListenerChannel();
+            var step2 = Step.CreatePush("update from server");
+
             server.Notify += (s, pushNotification) =>
             {
-                listenerChannel.Notify(correlationId: pushNotification.ClientId,
-                                       response: Response.Ok(pushNotification.Message));
+                updatesChannel.ReceivedUpdate(
+                    correlationId: pushNotification.ClientId,
+                    pushStepName: step2.Name,
+                    update: Response.Ok(pushNotification.Message)
+                );
             };
 
-            var step2 = Step.CreateListener("listen", listenerChannel);
-
             return ScenarioBuilder.CreateScenario("PushScenario", step1, step2)
-                                  .WithConcurrentCopies(2)
+                                  .WithConcurrentCopies(1)
                                   .WithDuration(TimeSpan.FromSeconds(3));
         }
 

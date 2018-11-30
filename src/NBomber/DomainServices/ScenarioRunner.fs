@@ -1,6 +1,5 @@
 ﻿module internal NBomber.DomainServices.ScenarioRunner
 
-open System
 open System.Collections.Generic
 open System.Threading
 
@@ -32,15 +31,8 @@ type ScenarioActor(correlationId: string, scenario: Scenario) =
 
 type ScenarioRunner(scenario: Scenario) =                       
 
-    let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
-        [|0 .. concurrentCopies - 1|] 
-        |> Array.map(fun i -> String.Format("{0}_{1}", scnName, i))
-        |> Set.ofArray
-
     let createActors () =
-        createCorrelationId(scenario.ScenarioName, scenario.ConcurrentCopies)        
-        |> Set.toArray
-        |> Array.map(fun id -> ScenarioActor(id, scenario))
+        scenario.CorrelationIds |> Array.map(fun id -> ScenarioActor(id, scenario))
 
     let mutable finished = false
     let actors = createActors()
