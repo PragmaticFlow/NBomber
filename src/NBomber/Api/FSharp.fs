@@ -38,8 +38,8 @@ module Scenario =
         { ScenarioName = name
           TestInit = None
           Steps = Seq.toArray(steps)
-          ConcurrentCopies = 50
-          Duration = TimeSpan.FromSeconds(20.0)
+          ConcurrentCopies = Constants.DefaultConcurrentCopies
+          Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
           Assertions = Array.empty }
 
     let withTestInit (initFunc: Request -> Task<Response>) (scenario: Contracts.Scenario) =

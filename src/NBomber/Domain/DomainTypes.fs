@@ -3,8 +3,12 @@
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
+open System.Runtime.CompilerServices
 
 open NBomber.Contracts
+
+[<assembly: InternalsVisibleTo("NBomber.IntegrationTests")>]
+do()
 
 module Constants =
 
@@ -13,6 +17,12 @@ module Constants =
 
     [<Literal>]
     let InitId = "init_step"
+
+    [<Literal>]
+    let DefaultDurationInSeconds = 20.0
+
+    [<Literal>]
+    let DefaultConcurrentCopies = 50
 
 type StepName = string
 type FlowName = string

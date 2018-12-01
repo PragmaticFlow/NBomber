@@ -2,6 +2,7 @@
 
 open System
 open System.Threading.Tasks
+open System.Runtime.CompilerServices
 
 open Serilog
 
@@ -13,6 +14,9 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
+
+[<assembly: InternalsVisibleTo("NBomber.IntegrationTests")>]
+do()
 
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
@@ -33,15 +37,16 @@ let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) 
 let filterTargetScenarios (targetScenarios: string[]) (scenarios: Scenario[]) =
     scenarios 
     |> Array.filter(fun x -> targetScenarios |> Array.exists(fun target -> x.ScenarioName = target))
-    
+        
 let applyScenariosSettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =    
     if Array.isEmpty(settings) then
         scenarios
     else
         scenarios
-        |> Array.map(fun x -> settings |> Array.find(fun y -> y.ScenarioName = x.ScenarioName)
-                                       |> updateScenarioWithSettings(x))
-
+        |> Array.map(fun scenario -> settings |> Array.tryFind(fun y -> y.ScenarioName = scenario.ScenarioName)
+                                              |> function | Some setting -> updateScenarioWithSettings scenario setting 
+                                                          | None -> scenario)
+                                       
 let initScenarios (scnRunners: ScenarioRunner[]) =    
     let results = 
         scnRunners
