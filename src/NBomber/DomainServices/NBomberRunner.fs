@@ -43,7 +43,7 @@ let applyScenariosSettings (settings: ScenarioSetting[]) (scenarios: Scenario[])
         scenarios
     else
         scenarios
-        |> Array.map(fun scenario -> settings |> Array.tryFind(fun y -> y.ScenarioName = scenario.ScenarioName)
+        |> Array.map(fun scenario -> settings |> Array.tryFind(fun s -> s.ScenarioName = scenario.ScenarioName)
                                               |> function | Some setting -> updateScenarioWithSettings scenario setting 
                                                           | None -> scenario)
                                        

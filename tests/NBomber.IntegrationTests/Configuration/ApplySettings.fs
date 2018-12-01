@@ -2,6 +2,7 @@
 
 open System
 
+open Xunit
 open FsCheck.Xunit
 
 open NBomber.FSharp
@@ -11,26 +12,36 @@ open NBomber.Domain.DomainTypes.Constants
 
 [<Property>]
 let ``Basic applying of scenario settings`` (name: string, duration: TimeSpan, concurrentCopies: int) =
-    let scenario = Scenario.create(name, [])    
     let settings = { ScenarioName = name; Duration = duration; ConcurrentCopies = concurrentCopies }
 
-    let appliedScenarios =  [|scenario|] |> applyScenariosSettings [|settings|]
+    let updatedScenarios = applyScenariosSettings [|settings|] [|Scenario.create(name, [])|]
 
-    match appliedScenarios with
-    | [|appliedScenario|] -> appliedScenario.Duration = duration && appliedScenario.ConcurrentCopies = concurrentCopies
+    match updatedScenarios with
+    | [|updatedScenario|] -> updatedScenario.Duration = duration &&
+                             updatedScenario.ConcurrentCopies = concurrentCopies
     | _ -> false
 
-[<Property>]
+[<Fact>]
 let ``Skip applying settings when scenario name is not found`` () =
-    let scenario = Scenario.create("scenario name 1", [])
-    let settings = { ScenarioName = "scenario name 2"; Duration = TimeSpan.MinValue; ConcurrentCopies = 0 }
+    let settings = { ScenarioName = "different scenario name"; Duration = TimeSpan.MinValue; ConcurrentCopies = 0 }
 
-    let appliedScenarios =  [|scenario|] |> applyScenariosSettings [|settings|]
+    let updatedScenarios = applyScenariosSettings [|settings|] [|Scenario.create("scenario name", [])|]
 
-    match appliedScenarios with
-    | [|appliedScenario|] ->
-                            appliedScenario.Duration = TimeSpan.FromSeconds(DefaultDurationInSeconds) &&
-                            appliedScenario.ConcurrentCopies = DefaultConcurrentCopies
+    match updatedScenarios with
+    | [|updatedScenario|] -> updatedScenario.Duration = TimeSpan.FromSeconds(DefaultDurationInSeconds) &&
+                             updatedScenario.ConcurrentCopies = DefaultConcurrentCopies
     | _ -> false
 
+[<Fact>]
+let ``Running applyScenariosSettings() with no Settings should make no changes`` () =
+    let updatedScenarios = applyScenariosSettings [||] [|Scenario.create("scenario name", [])|]
+
+    match updatedScenarios with
+    | [|updatedScenario|] -> updatedScenario.Duration = TimeSpan.FromSeconds(DefaultDurationInSeconds) &&
+                             updatedScenario.ConcurrentCopies = DefaultConcurrentCopies
+    | _ -> false
+
+[<Fact>]
+let ``applyScenariosSettings() with no Scenarios should return empty array`` () =
+    applyScenariosSettings [||] [||] |> Array.isEmpty
     
