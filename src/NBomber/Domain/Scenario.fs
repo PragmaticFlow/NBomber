@@ -44,15 +44,25 @@ let warmUp (scenario: Scenario) = task {
     try
         for st in steps do
             if not skipStep then                
-                let! (response,_) = Step.execStep(st, request, timer)
-                if response.IsOk then
-                    request <- { request with Payload = response.Payload }
-                else
+                let stepTask = Step.execStep(st, request, timer)
+                let finished = stepTask.Wait(5000)
+                if finished then
+                    let (response,_) = stepTask.Result
+                    if response.IsOk then
+                        request <- { request with Payload = response.Payload }
+                    else
+                        skipStep <- true
+                        result <- { ScenarioName = scenario.ScenarioName
+                                    StepName = Step.getName(st)
+                                    Error = response.Payload.ToString() }
+                                    |> WarmUpError |> Error
+                else 
                     skipStep <- true
                     result <- { ScenarioName = scenario.ScenarioName
                                 StepName = Step.getName(st)
-                                Error = response.Payload.ToString() }
+                                Error = "time out: no response in 5 sec" }
                                 |> WarmUpError |> Error
+
         return result
     with
     | e -> return { ScenarioName = scenario.ScenarioName

@@ -94,8 +94,7 @@ type ScenarioAssertion = {
 }
 
 type Assertion = 
-    | Step     of StepAssertion
-    | Scenario of ScenarioAssertion
+    | Step     of StepAssertion    
     interface IAssertion
 
 type Scenario = {    

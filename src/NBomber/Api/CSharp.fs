@@ -17,8 +17,7 @@ type Step =
     static member CreatePause(duration) = FSharp.Step.createPause(duration)
 
 type Assertion =    
-    static member ForStep (stepName, assertion: Func<AssertStats, bool>) = Assertion.forStep(stepName, assertion.Invoke)
-    static member ForScenario (assertion: Func<AssertStats, bool>) = Assertion.forScenario(assertion.Invoke)
+    static member ForStep (stepName, assertion: Func<AssertStats, bool>) = Assertion.forStep(stepName, assertion.Invoke)    
 
 [<Extension>]
 type ScenarioBuilder =

@@ -27,9 +27,6 @@ module Assertion =
 
     let forStep (stepName, assertion: AssertStats -> bool) = 
         Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
-    
-    let forScenario (assertion: AssertStats -> bool) = 
-        Scenario({ ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
 
 module Scenario =    
     open NBomber.Domain.DomainTypes
@@ -49,8 +46,7 @@ module Scenario =
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
                     |> Seq.cast<Assertion>
-                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}) 
-                                        | Scenario x -> Scenario({ x with ScenarioName = scenario.ScenarioName}))
+                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray
 
@@ -59,7 +55,7 @@ module Scenario =
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
         { scenario with ConcurrentCopies = concurrentCopies }
 
-    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
         { scenario with Duration = duration }
 
 module NBomberRunner = 

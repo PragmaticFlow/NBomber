@@ -37,20 +37,20 @@ let execStep (step: Step, req: Request, timer: Stopwatch) = task {
         match step with
         | Pull s  -> let! resp = s.Execute(req)
                      timer.Stop()
-                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                     let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
                      return (resp, latency)
         
         | Push s  -> let listener = s.UpdatesChannel.GetPushListener(req.CorrelationId, s.StepName)
                      let! resp = listener.GetResponse()
                      timer.Stop()
-                     let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+                     let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
                      return (resp, latency)
         
         | Pause s -> do! Task.Delay(s)
-                     return (Response.Ok(req), 0L)
+                     return (Response.Ok(req), 0)
     with
     | ex -> timer.Stop()
-            let latency = Convert.ToInt64(timer.Elapsed.TotalMilliseconds)
+            let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
             return (Response.Fail(ex.ToString()), latency)
 }
 
