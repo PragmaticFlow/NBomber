@@ -10,26 +10,31 @@ open NBomber.Configuration
 open NBomber.DomainServices
 open NBomber.Contracts
 
-[<Property>]
-let ``Basic validation of scenario Config`` (name: string, duration: TimeSpan, concurrentCopies: int) =
-    let scenario = Scenario.create(name, [])
-    let settings = { ScenarioName = name; Duration = duration; ConcurrentCopies = concurrentCopies }
-    let globalSettings = { ScenariosSettings = [|settings|]; TargetScenarios = [|name|] }
+let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenarios: string[]) =
+    let scenario = Scenario.create(scenarioName, [])
+    let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios }
     let config = { NBomberConfig.GlobalSettings = Some globalSettings }
-    let context = { Scenarios = [|scenario|]; NBomberConfig = Some config }
+    
+    { Scenarios = [|scenario|]; NBomberConfig = Some config }
 
-    match Validation.validateRunnerContext(context) with
+let buildSettings (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
+    { ScenarioName = scenarioName; Duration = duration; ConcurrentCopies = concurrentCopies }
+
+[<Property>]
+let ``Basic validation of scenario Config`` (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
+    let settings = buildSettings(scenarioName, duration, concurrentCopies)
+
+    buildConfig(scenarioName, [|settings|], [|scenarioName|])
+    |> Validation.validateRunnerContext
+    |> function 
     | Ok context -> true
     | _ -> false
 
 [<Fact>]
-let ``Target scenrio name is not declared`` () =
-    let scenario = Scenario.create("scenario name", [])
-    let globalSettings = { ScenariosSettings = [||]; TargetScenarios = [|"different scenario name"|] }
-    let config = { NBomberConfig.GlobalSettings = Some globalSettings }
-    let context = { Scenarios = [|scenario|]; NBomberConfig = Some config }
-
-    match Validation.validateRunnerContext(context) with
+let ``Target scenrio name is not declared`` () =    
+    buildConfig("scenario name", [||], [|"different scenario name"|])
+    |> Validation.validateRunnerContext
+    |> function 
     | Error "Target scenario is not declared" -> true
     | _ -> false
     |> Assert.True
