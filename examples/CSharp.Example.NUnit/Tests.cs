@@ -26,8 +26,7 @@ namespace CSharp.Example.NUnit
         [Test]
         public void Test()
         {
-            var assertions = new[] {
-               Assertion.ForScenario(stats => stats.OkCount > 2),               
+            var assertions = new[] {               
                Assertion.ForStep("simple step", stats => stats.OkCount > 2)
             };
 

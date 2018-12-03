@@ -23,8 +23,7 @@ let buildScenario () =
 [<Fact>]
 let ``XUnit test`` () =    
     
-    let assertions = [
-       Assertion.forScenario(fun stats -> stats.OkCount > 2)
+    let assertions = [       
        Assertion.forStep("Step", fun stats -> stats.OkCount > 2)
     ]
 

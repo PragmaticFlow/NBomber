@@ -5,7 +5,7 @@ open System.Runtime.InteropServices
 open NBomber.Configuration
 
 type CorrelationId = string
-type Latency = int64
+type Latency = int
 
 [<Struct>]
 type Request = {
@@ -39,6 +39,14 @@ type Scenario = {
 type AssertStats = {       
     OkCount: int
     FailCount: int
+    Min: Latency
+    Mean: Latency
+    Max: Latency
+    RPS: Latency
+    Percent50: Latency
+    Percent75: Latency
+    Percent95: Latency
+    StdDev: int
 }
     
 type Response with

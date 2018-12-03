@@ -10,14 +10,14 @@ type LatencyCount = {
 }
 
 type Percentiles = {
-    RPS: int64
+    RPS: int
     Min: Latency
     Mean: Latency
     Max: Latency
     Percent50: Latency
     Percent75: Latency
     Percent95: Latency
-    StdDev: int64
+    StdDev: int
 }
 
 type StepStats = {     

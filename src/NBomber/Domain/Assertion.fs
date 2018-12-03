@@ -8,12 +8,17 @@ open NBomber.Domain.StatisticsTypes
 type AssertStats with
 
     static member create(stats: StepStats) =
+        let p = stats.Percentiles.Value
         { OkCount = stats.OkCount
-          FailCount = stats.FailCount }
-   
-    static member create(stats: ScenarioStats) =
-        { OkCount = stats.OkCount
-          FailCount = stats.FailCount }
+          FailCount = stats.FailCount
+          Min = p.Min
+          Mean = p.Mean
+          Max = p.Max
+          RPS = p.RPS
+          Percent50 = p.Percent50
+          Percent75 = p.Percent75
+          Percent95 = p.Percent95
+          StdDev = p.StdDev }
 
 let create (assertions: IAssertion[]) = 
     assertions |> Array.map(fun x -> x :?> Assertion)
@@ -31,24 +36,11 @@ let applyForStep (globalStats: GlobalStats, assertNum: int, asrt: StepAssertion)
                 else Error <| AssertionError(assertNum, Step(asrt))
     | None   -> Error <| AssertNotFound(assertNum, Step(asrt))
 
-
-let applyForScenario (globalStats: GlobalStats, assertNum: int, asrt: ScenarioAssertion) =
-    let scnStats = 
-        globalStats.AllScenariosStats
-        |> Array.tryFind(fun x -> x.ScenarioName = asrt.ScenarioName)
-        
-    match scnStats with
-    | Some v -> let result = AssertStats.create(v) |> asrt.AssertFunc
-                if result then Ok <| Scenario(asrt)
-                else Error <| AssertionError(assertNum, Scenario(asrt))
-    | None   -> Error <| AssertNotFound(assertNum, Scenario(asrt))
-
 let apply (globalStats: GlobalStats, assertions: Assertion[]) =
     assertions
     |> Array.mapi(fun i assertion -> 
         let asrtNum = i + 1
         match assertion with
-        | Step asrt     -> applyForStep(globalStats, asrtNum, asrt)
-        | Scenario asrt -> applyForScenario(globalStats, asrtNum, asrt)            
+        | Step asrt     -> applyForStep(globalStats, asrtNum, asrt)        
     )
 
