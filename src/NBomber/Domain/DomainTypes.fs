@@ -3,12 +3,8 @@
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
-open System.Runtime.CompilerServices
 
 open NBomber.Contracts
-
-[<assembly: InternalsVisibleTo("NBomber.IntegrationTests")>]
-do()
 
 module Constants =
 

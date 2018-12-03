@@ -2,7 +2,6 @@
 
 open System
 open System.Threading.Tasks
-open System.Runtime.CompilerServices
 
 open Serilog
 
@@ -14,9 +13,6 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
-
-[<assembly: InternalsVisibleTo("NBomber.IntegrationTests")>]
-do()
 
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
