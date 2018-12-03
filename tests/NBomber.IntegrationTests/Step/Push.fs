@@ -1,10 +1,8 @@
 ﻿module Tests.Step.Push
 
 open System
-open System.Threading.Tasks
 
 open Xunit
-open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
@@ -34,8 +32,8 @@ let ``Ok and Fail should be properly count`` () =
     }
 
     let assertions = [
-       Assertion.forStep("ok", fun stats -> stats.OkCount >= 4 && stats.OkCount < 6)
-       Assertion.forStep("fail", fun stats -> stats.FailCount >= 4 && stats.FailCount < 6)
+       Assertion.forStep("ok", fun stats -> stats.OkCount >= 3 && stats.OkCount < 6)
+       Assertion.forStep("fail", fun stats -> stats.FailCount >= 3 && stats.FailCount < 6)
     ]
 
     let scenario =
