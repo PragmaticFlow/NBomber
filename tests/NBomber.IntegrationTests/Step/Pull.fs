@@ -35,4 +35,27 @@ let ``Ok and Fail should be properly count`` () =
     
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
+
+[<Fact>]
+let ``Min/Mean/Max/RPS should be properly count`` () =
     
+    let pullStep = Step.createPull("pull step", fun _ -> task {        
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })    
+
+    let assertions = [
+       Assertion.forStep("pull step", fun stats -> stats.RPS >= 9 && stats.RPS <= 10)       
+       Assertion.forStep("pull step", fun stats -> stats.Min <= 105)
+       Assertion.forStep("pull step", fun stats -> stats.Mean <= 110)
+       Assertion.forStep("pull step", fun stats -> stats.Max <= 120)
+    ]
+
+    let scenario =
+        Scenario.create("latency count test", [pullStep])
+        |> Scenario.withConcurrentCopies(1)
+        |> Scenario.withAssertions(assertions)
+        |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest

@@ -10,7 +10,9 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 
 let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
-    latencies.Length / int(scenarioDuration.TotalSeconds)
+    let totalSec = if scenarioDuration.TotalSeconds < 1.0 then 1.0
+                   else scenarioDuration.TotalSeconds
+    latencies.Length / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
     if latencies.Length > 0 then Array.min(latencies) else 0
