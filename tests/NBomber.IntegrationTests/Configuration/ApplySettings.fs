@@ -38,7 +38,8 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 [<Fact>]
 let ``applyScenariosSettings() should make no changes if settings absent`` () =
     let scenario = Scenario.create("scenario name", [])
-    let updatedScenarios = applyScenariosSettings Array.empty [|scenario|]
+    let settings = Array.empty
+    let updatedScenarios = applyScenariosSettings settings [|scenario|]
 
     let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
                  && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
@@ -47,5 +48,9 @@ let ``applyScenariosSettings() should make no changes if settings absent`` () =
 
 [<Fact>]
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =
-    applyScenariosSettings Array.empty Array.empty |> Array.isEmpty |> Assert.True
+    let scenarios = Array.empty
+    let settings = Array.empty
+    applyScenariosSettings settings scenarios
+    |> Array.isEmpty
+    |> Assert.True
     
