@@ -65,8 +65,8 @@ let warmUp (scenario: Scenario) = task {
 
         return result
     with
-    | e -> return { ScenarioName = scenario.ScenarioName
-                    StepName = ""
-                    Error = e.ToString() } 
-                    |> WarmUpError |> Error
+    | ex -> return { ScenarioName = scenario.ScenarioName
+                     StepName = ""
+                     Error = ex.ToString() } 
+                     |> WarmUpError |> Error
 }
