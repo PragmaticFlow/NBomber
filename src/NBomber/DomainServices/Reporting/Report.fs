@@ -22,13 +22,16 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats) }
 
 let save (dep: Dependency, outPutDir: string) (report: ReportResult) =
-    let reportsDir = Path.Combine(outPutDir, "reports")
-    Directory.CreateDirectory(reportsDir) |> ignore
-    ResourceManager.saveAssets(reportsDir)
+    try
+        let reportsDir = Path.Combine(outPutDir, "reports")
+        Directory.CreateDirectory(reportsDir) |> ignore
+        ResourceManager.saveAssets(reportsDir)
 
-    let filePath = reportsDir + "/report_" + dep.SessionId
+        let filePath = reportsDir + "/report_" + dep.SessionId
 
-    File.WriteAllText(filePath + ".txt", report.TxtReport)
-    File.WriteAllText(filePath + ".html", report.HtmlReport)    
-    Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-    Log.Information(report.TxtReport)
+        File.WriteAllText(filePath + ".txt", report.TxtReport)
+        File.WriteAllText(filePath + ".html", report.HtmlReport)    
+        Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+        Log.Information(report.TxtReport)
+    with
+    | ex -> Log.Error(ex, "Report.save failed")

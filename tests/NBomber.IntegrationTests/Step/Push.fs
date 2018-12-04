@@ -22,7 +22,7 @@ let ``Ok and Fail should be properly count`` () =
         do! Async.Sleep(100)
         udaptesChannel.ReceivedUpdate("warm_up_step", push2.Name, Response.Ok())
 
-        for i = 0 to 10 do            
+        for i = 0 to 20 do            
             do! Async.Sleep(100)
             udaptesChannel.ReceivedUpdate(correlationId, push1.Name, Response.Ok())
             
@@ -32,8 +32,8 @@ let ``Ok and Fail should be properly count`` () =
     }
 
     let assertions = [
-       Assertion.forStep("ok", fun stats -> stats.OkCount >= 3 && stats.OkCount < 6)
-       Assertion.forStep("fail", fun stats -> stats.FailCount >= 3 && stats.FailCount < 6)
+       Assertion.forStep("ok", fun stats -> stats.OkCount >= 2 && stats.OkCount < 6)
+       Assertion.forStep("fail", fun stats -> stats.FailCount >= 2 && stats.FailCount < 6)
     ]
 
     let scenario =
