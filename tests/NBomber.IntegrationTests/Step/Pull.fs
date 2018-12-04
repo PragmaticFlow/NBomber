@@ -45,17 +45,17 @@ let ``Min/Mean/Max/RPS should be properly count`` () =
     })    
 
     let assertions = [
-       Assertion.forStep("pull step", fun stats -> stats.RPS >= 9 && stats.RPS <= 10)       
-       Assertion.forStep("pull step", fun stats -> stats.Min <= 105)
-       Assertion.forStep("pull step", fun stats -> stats.Mean <= 110)
-       Assertion.forStep("pull step", fun stats -> stats.Max <= 120)
+       Assertion.forStep("pull step", fun stats -> stats.RPS >= 8 && stats.RPS <= 10)       
+       Assertion.forStep("pull step", fun stats -> stats.Min <= 110)
+       Assertion.forStep("pull step", fun stats -> stats.Mean <= 120)
+       Assertion.forStep("pull step", fun stats -> stats.Max <= 150)
     ]
 
     let scenario =
         Scenario.create("latency count test", [pullStep])
         |> Scenario.withConcurrentCopies(1)
         |> Scenario.withAssertions(assertions)
-        |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
+        |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
