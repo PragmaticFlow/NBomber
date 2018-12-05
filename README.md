@@ -54,16 +54,13 @@ The main reasons are:
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
 // simple C# example
-var scenario = new ScenarioBuilder(scenarioName: "Test MongoDb")                
-                .AddTestFlow("READ Users", steps: new[] { mongoQuery }, concurrentCopies: 10)                
-                .Build(duration: TimeSpan.FromSeconds(10));
-
-scenario.RunInConsole();
+var scenario = ScenarioBuilder.CreateScenario("Test MongoDb", mongoQuery);
+NBomberRunner.RegisterScenarios(scenario)
+             .RunInConsole();
 ```
 ```fsharp
 // simple F# example
-Scenario.create("Test MongoDb")
-|> Scenario.addTestFlow({ FlowName = "READ Users"; Steps = [mongoQuery]; ConcurrentCopies = 10 })
-|> Scenario.withDuration(TimeSpan.FromSeconds(10.0))
-|> Scenario.runInConsole
+Scenario.create("Test MongoDb", [mongoQuery])
+|> NBomberRunner.registerScenario
+|> NBomberRunner.runInConsole
 ```
