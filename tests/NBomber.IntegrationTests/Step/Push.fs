@@ -19,7 +19,7 @@ let ``Ok and Fail should be properly count`` () =
     let updatesTask = async {
         do! Async.Sleep(200)
         udaptesChannel.ReceivedUpdate("warm_up_step", push1.Name, Response.Ok())
-        do! Async.Sleep(100)
+        do! Async.Sleep(200)
         udaptesChannel.ReceivedUpdate("warm_up_step", push2.Name, Response.Ok())
 
         while true do
@@ -40,7 +40,7 @@ let ``Ok and Fail should be properly count`` () =
         Scenario.create("push_test", [push1; push2])
         |> Scenario.withConcurrentCopies(1)
         |> Scenario.withAssertions(assertions)
-        |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
+        |> Scenario.withDuration(TimeSpan.FromSeconds(3.0))
         |> NBomberRunner.registerScenario
     
     Async.Start(updatesTask)
