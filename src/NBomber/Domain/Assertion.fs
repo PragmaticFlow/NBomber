@@ -31,9 +31,10 @@ let applyForStep (globalStats: GlobalStats, assertNum: int, asrt: StepAssertion)
         |> Array.tryFind(fun x -> x.StepName = asrt.StepName)
     
     match stepStats with
-    | Some v -> let result = AssertStats.create(v) |> asrt.AssertFunc
+    | Some v -> let asrtStats = AssertStats.create(v)
+                let result = asrt.AssertFunc(asrtStats)
                 if result then Ok <| Step(asrt)
-                else Error <| AssertionError(assertNum, Step(asrt))
+                else Error <| AssertionError(assertNum, Step(asrt), asrtStats)
     | None   -> Error <| AssertNotFound(assertNum, Step(asrt))
 
 let apply (globalStats: GlobalStats, assertions: Assertion[]) =
