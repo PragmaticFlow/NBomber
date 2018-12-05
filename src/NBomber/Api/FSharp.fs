@@ -60,10 +60,12 @@ module Scenario =
 
 module NBomberRunner = 
     open System.IO
-    open NBomber.Configuration    
-    open NBomber.Infra
-    open NBomber.Infra.Dependency
     open Serilog
+    open NBomber.Configuration    
+    open NBomber.Infra        
+
+    let registerScenario (scenario: Contracts.Scenario) = 
+        { Scenarios = [|scenario|]; NBomberConfig = None }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
         { Scenarios = Seq.toArray(scenarios); NBomberConfig = None }

@@ -27,7 +27,7 @@ let ``XUnit test`` () =
        Assertion.forStep("Step", fun stats -> stats.OkCount > 2)
     ]
 
-    let scenario = buildScenario() |> Scenario.withAssertions(assertions)
-    
-    NBomberRunner.registerScenarios [scenario]
+    buildScenario()
+    |> Scenario.withAssertions(assertions)    
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest

@@ -36,13 +36,12 @@ let ``Ok and Fail should be properly count`` () =
        Assertion.forStep("fail", fun stats -> stats.FailCount >= 5)
     ]
 
-    let scenario =
+    let runner =
         Scenario.create("push_test", [push1; push2])
         |> Scenario.withConcurrentCopies(1)
         |> Scenario.withAssertions(assertions)
         |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
+        |> NBomberRunner.registerScenario
     
-    updatesTask |> Async.Start
-
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest
+    Async.Start(updatesTask)
+    NBomberRunner.runTest(runner)
