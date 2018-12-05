@@ -25,6 +25,7 @@ Documentation is located [here](https://nbomber.com).
 - [x] Pub/Sub scenario
 - [x] Sequential flow
 - [x] Test runner support: [XUnit; NUnit]
+- [x] Cluster support
 - [x] Reporting: [Plain text; HTML]
 
 ### Supported technologies
