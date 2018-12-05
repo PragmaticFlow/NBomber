@@ -26,14 +26,12 @@ let ``Ok and Fail should be properly count`` () =
        Assertion.forStep("ok step", fun stats -> stats.OkCount >= 4 && stats.OkCount < 6)
        Assertion.forStep("fail step", fun stats -> stats.FailCount >= 4 && stats.OkCount < 6)
     ]
-
-    let scenario =
-        Scenario.create("pull test", [okStep; failStep])
-        |> Scenario.withConcurrentCopies(1)    
-        |> Scenario.withAssertions(assertions)
-        |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
     
-    NBomberRunner.registerScenarios [scenario]
+    Scenario.create("pull test", [okStep; failStep])
+    |> Scenario.withConcurrentCopies(1)    
+    |> Scenario.withAssertions(assertions)
+    |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
 
 [<Fact>]
@@ -50,12 +48,10 @@ let ``Min/Mean/Max/RPS should be properly count`` () =
        Assertion.forStep("pull step", fun stats -> stats.Mean <= 120)
        Assertion.forStep("pull step", fun stats -> stats.Max <= 150)
     ]
-
-    let scenario =
-        Scenario.create("latency count test", [pullStep])
-        |> Scenario.withConcurrentCopies(1)
-        |> Scenario.withAssertions(assertions)
-        |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
-
-    NBomberRunner.registerScenarios [scenario]
+    
+    Scenario.create("latency count test", [pullStep])
+    |> Scenario.withConcurrentCopies(1)
+    |> Scenario.withAssertions(assertions)
+    |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
