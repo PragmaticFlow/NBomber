@@ -9,9 +9,15 @@ open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 
-let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
-    let totalSec = if scenarioDuration.TotalSeconds < 1.0 then 1.0
-                   else scenarioDuration.TotalSeconds
+let buildHistogram (latencies) =    
+    let histogram = LongHistogram(TimeStamp.Hours(24), 3)
+    latencies |> Array.filter(fun x -> x > 0)
+              |> Array.iter(fun x -> x |> int64 |> histogram.RecordValue)
+    histogram    
+
+let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
+    let totalSec = if scnDuration.TotalSeconds < 1.0 then 1.0
+                   else scnDuration.TotalSeconds
     latencies.Length / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
@@ -49,14 +55,7 @@ module StepStats =
           Percentiles = None } 
 
     let calcPercentiles (stats: StepStats, scenarioDuration: TimeSpan) =
-        
-        let buildHistogram (latencies) =            
-            let histogram = LongHistogram(TimeStamp.Hours(1), 3);
-            latencies |> Array.iter(fun x -> x |> int64 |> histogram.RecordValue)
-            histogram           
-        
-        let histogram = buildHistogram(stats.OkLatencies)
-            
+        let histogram = buildHistogram(stats.OkLatencies)            
         { RPS = calcRPS(stats.OkLatencies, scenarioDuration)
           Min = calcMin(stats.OkLatencies)
           Mean = calcMean(histogram)
