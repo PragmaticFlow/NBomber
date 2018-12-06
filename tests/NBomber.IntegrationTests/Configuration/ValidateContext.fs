@@ -1,6 +1,7 @@
 ﻿module Tests.Configuration.ValidateSettings
 
 open System
+open Xunit
 open FsCheck.Xunit
 
 open NBomber.FSharp
@@ -19,12 +20,21 @@ let buildSettings (scenarioName: string, duration: TimeSpan, concurrentCopies: i
     { ScenarioName = scenarioName; Duration = duration; ConcurrentCopies = concurrentCopies }
 
 [<Property>]
-let ``validateRunnerContext() should return Ok`` (scenarioName: string, concurrentCopies: int) =
-    let settings = buildSettings(scenarioName, TimeSpan.FromSeconds(1.0), 1)
+let ``validateRunnerContext() should return Ok for any args values`` (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
+    let settings = buildSettings(scenarioName, duration, concurrentCopies)
 
-    buildConfig(scenarioName, [|settings|], [|scenarioName|])
-    |> Validation.validateRunnerContext
-    |> Result.isOk
+    let validatedContext = buildConfig(scenarioName, [|settings|], [|scenarioName|])
+                            |> Validation.validateRunnerContext
+    
+    if duration < TimeSpan.FromSeconds(1.0) then
+        let errorMessage = validatedContext |> Result.getError
+        Assert.Equal(sprintf "Duration for scenarios %A can not be less than 1 sec" [|scenarioName|], errorMessage)
+
+    elif concurrentCopies < 1 then
+        let errorMessage = validatedContext |> Result.getError
+        Assert.Equal(sprintf "Concurrent copies for scenarios %A can not be less than 1" [|scenarioName|], errorMessage)
+    else
+        validatedContext |> Result.isOk |> Assert.True
 
 [<Property>]
 let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =    
@@ -34,25 +44,5 @@ let ``validateRunnerContext() should fail when target scenrio name is not declar
                         |> Result.getError
     
     errorMessage.StartsWith (sprintf "Target scenarios %A is not found." targetScenarios)
-
-[<Property>]
-let ``validateRunnerContext() should fail when duration is less than 1 sec`` (scenarioName: string) =
-    let settings = buildSettings(scenarioName, TimeSpan.FromSeconds(0.0), 1)
-
-    let errorMessage = buildConfig(scenarioName, [|settings|], [|scenarioName|])
-                        |> Validation.validateRunnerContext
-                        |> Result.getError
-    
-    errorMessage = (sprintf "Duration for scenarios %A can not be less than 1 sec" [|scenarioName|])
-
-[<Property>]
-let ``validateRunnerContext() should fail when concurrent copies are less than 1`` (scenarioName: string) =
-    let settings = buildSettings(scenarioName, TimeSpan.FromSeconds(1.0), 0)
-
-    let errorMessage = buildConfig(scenarioName, [|settings|], [|scenarioName|])
-                        |> Validation.validateRunnerContext
-                        |> Result.getError
-    
-    errorMessage = (sprintf "Concurrent copies for scenarios %A can not be less than 1" [|scenarioName|])
     
     
