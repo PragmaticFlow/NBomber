@@ -5,7 +5,7 @@ open System
 open NBomber.Contracts
 open NBomber.Configuration
     
-let targetScenarioIsNotPresent (globalSettings : GlobalSettings) =
+let targetScenarioIsNotPresent (globalSettings: GlobalSettings) =
     let availableScenarios = globalSettings.ScenariosSettings |> Array.map(fun x -> x.ScenarioName)
     let notFound = globalSettings.TargetScenarios |> Array.except availableScenarios
     
@@ -14,7 +14,7 @@ let targetScenarioIsNotPresent (globalSettings : GlobalSettings) =
     | _ -> sprintf "Target scenarios %A is not found. Available scenarios are %A" notFound availableScenarios
             |> Error
 
-let durationGreaterThenSecond (globalSettings : GlobalSettings) =
+let durationGreaterThenSecond (globalSettings: GlobalSettings) =
     globalSettings.ScenariosSettings
     |> Array.filter(fun x -> x.Duration < TimeSpan.FromSeconds(1.0))
     |> Array.map(fun x -> x.ScenarioName)
@@ -23,7 +23,7 @@ let durationGreaterThenSecond (globalSettings : GlobalSettings) =
     | scenariosWithIncorrectDuration -> sprintf "Duration for scenarios %A can not be less than 1 sec" scenariosWithIncorrectDuration
                                         |> Error
 
-let concurrentCopiesGreaterThenOne (globalSettings : GlobalSettings) =
+let concurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
     globalSettings.ScenariosSettings
     |> Array.filter(fun x -> x.ConcurrentCopies < 1)
     |> Array.map(fun x -> x.ScenarioName)
@@ -33,9 +33,6 @@ let concurrentCopiesGreaterThenOne (globalSettings : GlobalSettings) =
                                                 |> Error
 
 let validateRunnerContext(context: NBomberRunnerContext) = 
-    // check on same scenario name
-    // check on same step name within scenarion
-
     let globalSettings = context.NBomberConfig |> Option.bind (fun config -> config.GlobalSettings)
     match globalSettings with
     | Some globalSettings -> globalSettings
