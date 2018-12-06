@@ -1,33 +1,48 @@
 ﻿module internal NBomber.DomainServices.Validation
 
+open System
+
 open NBomber.Contracts
 open NBomber.Configuration
-
-let configNotPreset (context : NBomberRunnerContext) =
-    match context.NBomberConfig with 
-    | Some config -> Ok(config)
-    | None -> Error "Config file is not present"
-
-let globalSettingsNotPresent (config : NBomberConfig) =
-    match config.GlobalSettings with 
-    | Some globalSettings -> Ok(globalSettings)
-    | None -> Error "Global settings is not present"
     
 let targetScenarioIsNotPresent (globalSettings : GlobalSettings) =
-    let declaredScenarios = globalSettings.ScenariosSettings |> Array.map(fun x -> x.ScenarioName)
-    globalSettings.TargetScenarios |> Array.except declaredScenarios
+    let availableScenarios = globalSettings.ScenariosSettings |> Array.map(fun x -> x.ScenarioName)
+    let notFound = globalSettings.TargetScenarios |> Array.except availableScenarios
+    
+    match notFound with
+    | [||] -> Ok(globalSettings)
+    | _ -> sprintf "Target scenarios %A is not found. Available scenarios are %A" notFound availableScenarios
+            |> Error
+
+let durationGreaterThenSecond (globalSettings : GlobalSettings) =
+    globalSettings.ScenariosSettings
+    |> Array.filter(fun x -> x.Duration < TimeSpan.FromSeconds(1.0))
+    |> Array.map(fun x -> x.ScenarioName)
     |> function
     | [||] -> Ok(globalSettings)
-    | _ -> Error "Target scenario is not declared"
+    | scenariosWithIncorrectDuration -> sprintf "Duration for scenarios %A can not be less than 1 sec" scenariosWithIncorrectDuration
+                                        |> Error
+
+let concurrentCopiesGreaterThenOne (globalSettings : GlobalSettings) =
+    globalSettings.ScenariosSettings
+    |> Array.filter(fun x -> x.ConcurrentCopies < 1)
+    |> Array.map(fun x -> x.ScenarioName)
+    |> function
+    | [||] -> Ok(globalSettings)
+    | scenariosWithIncorrectConcurrentCopies -> sprintf "Concurrent copies for scenarios %A can not be less than 1" scenariosWithIncorrectConcurrentCopies
+                                                |> Error
 
 let validateRunnerContext(context: NBomberRunnerContext) = 
     // check on same scenario name
-    // check on same step name within scenario
+    // check on same step name within scenarion
 
-    context
-    |> configNotPreset
-    |> Result.bind globalSettingsNotPresent
-    |> Result.bind targetScenarioIsNotPresent
-    |> function
-    | Ok _ -> Ok(context)
-    | Error msg -> Error(msg)
+    let globalSettings = context.NBomberConfig |> Option.bind (fun config -> config.GlobalSettings)
+    match globalSettings with
+    | Some globalSettings -> globalSettings
+                            |> targetScenarioIsNotPresent 
+                            |> Result.bind durationGreaterThenSecond
+                            |> Result.bind concurrentCopiesGreaterThenOne
+                            |> function
+                            | Ok _ -> Ok(context)
+                            | Error msg -> Error(msg)
+    | None -> Ok(context)
