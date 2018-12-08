@@ -12,7 +12,7 @@ let print (stats: GlobalStats) =
     |> String.concat(Environment.NewLine)
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    String.Format("Scenario: '{0}', execution time: {1}, concurrent copies: {2}",
+    String.Format("Scenario: '{0}', execution time: {1}, concurrent users: {2}",
                   scnStats.ScenarioName,
                   scnStats.Duration.ToString(),
                   scnStats.ConcurrentCopies)
