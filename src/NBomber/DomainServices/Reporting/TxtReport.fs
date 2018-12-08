@@ -12,9 +12,10 @@ let print (stats: GlobalStats) =
     |> String.concat(Environment.NewLine)
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    String.Format("Scenario: {0}, execution time: {1}",
+    String.Format("Scenario: '{0}', execution time: {1}, concurrent copies: {2}",
                   scnStats.ScenarioName,
-                  scnStats.Duration.ToString())
+                  scnStats.Duration.ToString(),
+                  scnStats.ConcurrentCopies)
 
 let private printStepsTable (steps: StepStats[]) =    
     let stepTable = ConsoleTable("step name", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "75%", "95%", "StdDev")
