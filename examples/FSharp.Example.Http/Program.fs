@@ -28,8 +28,8 @@ let buildScenario () =
 [<EntryPoint>]
 let main argv =    
     
-    let scenario = buildScenario()
-    NBomberRunner.registerScenarios [scenario]
+    buildScenario()
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.loadConfig "config.json"
     |> NBomberRunner.runInConsole
 

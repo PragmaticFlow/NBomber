@@ -6,8 +6,11 @@
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Step/Request.fs" />
+    <Compile Include="Statistics.fs" />
+    <Compile Include="Step\Push.fs" />
+    <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration/ApplySettings.fs" />
+    <Compile Include="Configuration/ValidateContext.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />

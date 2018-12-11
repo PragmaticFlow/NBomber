@@ -16,6 +16,7 @@
     <EmbeddedResource Include="assets\html\env_view.html" />  
     <EmbeddedResource Include="assets\js\num_req_chart.js" />  
     <EmbeddedResource Include="assets\js\indicators_chart.js" />  
+    <Compile Include="AssemblyInfo.fs" />  
     <Compile Include="Configuration.fs" />  
     <Compile Include="Contracts.fs" />  
     <Compile Include="Extensions.fs" />  

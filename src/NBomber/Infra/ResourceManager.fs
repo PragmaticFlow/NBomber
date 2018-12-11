@@ -96,7 +96,7 @@ let saveAssets (outputDir: string) =
     let saveResource (assembly: Assembly, resourceName, outputFilePath) =
         use stream = assembly.GetManifestResourceStream(resourceName)
         use file = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write)
-        stream.CopyTo(file)
+        stream.CopyTo(file)        
 
     if not(Directory.Exists assetsDir) then
         let assembly = typedefof<Assets>.Assembly

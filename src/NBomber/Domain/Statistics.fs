@@ -9,26 +9,34 @@ open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 
-let calcRPS (latencies: Latency[], scenarioDuration: TimeSpan) =
-    latencies.LongLength / int64(scenarioDuration.TotalSeconds)    
+let buildHistogram (latencies) =    
+    let histogram = LongHistogram(TimeStamp.Hours(24), 3)
+    latencies |> Array.filter(fun x -> x > 0)
+              |> Array.iter(fun x -> x |> int64 |> histogram.RecordValue)
+    histogram    
+
+let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
+    let totalSec = if scnDuration.TotalSeconds < 1.0 then 1.0
+                   else scnDuration.TotalSeconds
+    latencies.Length / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
-    if latencies.Length > 0 then Array.min(latencies) else 0L
+    if latencies.Length > 0 then Array.min(latencies) else 0
 
 let calcMean (histogram: LongHistogram) =
-    if histogram.TotalCount > 0L then Convert.ToInt64(histogram.GetMean()) else 0L
+    if histogram.TotalCount > 0L then int(histogram.GetMean()) else 0
 
 let calcMax (histogram: LongHistogram) =
-    if histogram.TotalCount > 0L then histogram.GetMaxValue() else 0L
+    if histogram.TotalCount > 0L then int(histogram.GetMaxValue()) else 0
 
 let calcPercentile (histogram: LongHistogram, percentile: float) =
-    if histogram.TotalCount > 0L then histogram.GetValueAtPercentile(percentile) else 0L    
+    if histogram.TotalCount > 0L then int(histogram.GetValueAtPercentile(percentile)) else 0
 
 let calcStdDev (histogram: LongHistogram) =
     if histogram.TotalCount > 0L then
-        histogram.GetStdDeviation() |> Math.Round |> Convert.ToInt64
+        histogram.GetStdDeviation() |> Math.Round |> int
     else
-        0L
+        0
 
 module StepStats =
 
@@ -47,14 +55,7 @@ module StepStats =
           Percentiles = None } 
 
     let calcPercentiles (stats: StepStats, scenarioDuration: TimeSpan) =
-        
-        let buildHistogram (latencies) =            
-            let histogram = LongHistogram(TimeStamp.Hours(1), 3);
-            latencies |> Array.iter(fun x -> histogram.RecordValue(x))
-            histogram           
-        
-        let histogram = buildHistogram(stats.OkLatencies)
-            
+        let histogram = buildHistogram(stats.OkLatencies)            
         { RPS = calcRPS(stats.OkLatencies, scenarioDuration)
           Min = calcMin(stats.OkLatencies)
           Mean = calcMean(histogram)
@@ -72,9 +73,9 @@ module ScenarioStats =
         |> TimeSpan
 
     let calcLatencyCount (stepsStats: StepStats[]) = 
-        let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800L))
-        let b = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 800L && x < 1200L))
-        let c = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 1200L))        
+        let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800))
+        let b = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 800 && x < 1200))
+        let c = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x > 1200))        
         { Less800 = a.Length
           More800Less1200 = b.Length
           More1200 = c.Length } 

@@ -14,6 +14,12 @@ module Constants =
     [<Literal>]
     let InitId = "init_step"
 
+    [<Literal>]
+    let DefaultDurationInSeconds = 20.0
+
+    [<Literal>]
+    let DefaultConcurrentCopies = 50
+
 type StepName = string
 type FlowName = string
 type ScenarioName = string
@@ -94,8 +100,7 @@ type ScenarioAssertion = {
 }
 
 type Assertion = 
-    | Step     of StepAssertion
-    | Scenario of ScenarioAssertion
+    | Step     of StepAssertion    
     interface IAssertion
 
 type Scenario = {    

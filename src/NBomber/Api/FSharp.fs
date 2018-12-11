@@ -27,9 +27,6 @@ module Assertion =
 
     let forStep (stepName, assertion: AssertStats -> bool) = 
         Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
-    
-    let forScenario (assertion: AssertStats -> bool) = 
-        Scenario({ ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
 
 module Scenario =    
     open NBomber.Domain.DomainTypes
@@ -38,8 +35,8 @@ module Scenario =
         { ScenarioName = name
           TestInit = None
           Steps = Seq.toArray(steps)
-          ConcurrentCopies = 50
-          Duration = TimeSpan.FromSeconds(20.0)
+          ConcurrentCopies = Constants.DefaultConcurrentCopies
+          Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
           Assertions = Array.empty }
 
     let withTestInit (initFunc: Request -> Task<Response>) (scenario: Contracts.Scenario) =
@@ -49,8 +46,7 @@ module Scenario =
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
                     |> Seq.cast<Assertion>
-                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}) 
-                                        | Scenario x -> Scenario({ x with ScenarioName = scenario.ScenarioName}))
+                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray
 
@@ -59,15 +55,17 @@ module Scenario =
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
         { scenario with ConcurrentCopies = concurrentCopies }
 
-    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
         { scenario with Duration = duration }
 
 module NBomberRunner = 
     open System.IO
-    open NBomber.Configuration    
-    open NBomber.Infra
-    open NBomber.Infra.Dependency
     open Serilog
+    open NBomber.Configuration    
+    open NBomber.Infra        
+
+    let registerScenario (scenario: Contracts.Scenario) = 
+        { Scenarios = [|scenario|]; NBomberConfig = None }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
         { Scenarios = Seq.toArray(scenarios); NBomberConfig = None }
