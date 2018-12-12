@@ -31,53 +31,90 @@ let getPush (step) =
     | Push l -> l
     | _          -> failwith "step is not a Push"
 
-let execStep (step: Step, req: Request, timer: Stopwatch) = task {        
+let getConnectionPool (step) =
+    match step with
+    | Pull s -> Some s.ConnectionPool
+    | Push s -> Some s.ConnectionPool
+    | Pause s -> None
+
+let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
+    let getConnection (pool: ConnectionPool<obj>) =
+        let connectionIndex = actorIndex % pool.ConnectionsCount
+        pool.AliveConnections.[connectionIndex]
+
+    match step with
+    | Pull s -> let connection = getConnection(s.ConnectionPool)
+                let context = { CorrelationId = correlationId
+                                Connection = connection
+                                Payload = Unchecked.defaultof<obj> }
+                Pull { s with CurrentContext = Some context }
+    
+    | Push s -> let connection = getConnection(s.ConnectionPool)
+                let context = { CorrelationId = correlationId
+                                Connection = connection
+                                UpdatesChannel = UpdatesChannel() }
+                Push { s with CurrentContext = Some context }
+    
+    | Pause s -> step 
+    
+let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
+    let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
+    match step with
+    | Pull s -> Pull { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }    
+    | Push s -> Push { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }
+    | Pause s -> Pause s    
+
+let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {    
     timer.Restart()        
     try
         match step with
-        | Pull s  -> let! resp = s.Execute(req)
+        | Pull s  -> let context = s.CurrentContext.Value
+                     context.Payload <- prevPayload
+                     let! resp = s.Execute(s.CurrentContext.Value)
                      timer.Stop()
                      let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
                      return (resp, latency)
         
-        | Push s  -> let listener = s.UpdatesChannel.GetPushListener(req.CorrelationId, s.StepName)
-                     let! resp = listener.GetResponse()
-                     timer.Stop()
+        | Push s  -> let context = s.CurrentContext.Value
+                     let channel = context.UpdatesChannel :?> UpdatesChannel
+                     let responseT = channel.GetResponse()
+                     do! s.Handler(context)
+                     let! response = responseT
+                     timer.Stop()                     
                      let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
-                     return (resp, latency)
+                     return (response, latency)
         
         | Pause s -> do! Task.Delay(s)
-                     return (Response.Ok(req), 0)
+                     return (Response.Ok(prevPayload), 0)
     with
     | ex -> timer.Stop()
             let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
             return (Response.Fail(ex.ToString()), latency)
 }
 
-let runSteps (steps: Step[], correlationId: CorrelationId,
-              latencies: List<List<Response*Latency>>,
+let runSteps (steps: Step[], latencies: List<List<Response*Latency>>, 
               ct: CancellationToken) = task {
         
     do! Task.Delay(10)        
     let timer = Stopwatch()
 
     while not ct.IsCancellationRequested do
-            
-        let mutable request = { CorrelationId = correlationId; Payload = null }
+        
+        let mutable payload = Unchecked.defaultof<obj>
         let mutable skipStep = false
         let mutable stepIndex = 0
 
         for st in steps do
             if not skipStep && not ct.IsCancellationRequested then
 
-                let! (response,latency) = execStep(st, request, timer)
+                let! (response,latency) = execStep(st, payload, timer)
                             
                 if not(isPause st) then                        
                     latencies.[stepIndex].Add(response,latency)
+                    stepIndex <- stepIndex + 1
 
                 if response.IsOk then 
-                    request <- { request with Payload = response.Payload }
-                    stepIndex <- stepIndex + 1
+                    payload <- response.Payload                    
                 else
-                    skipStep <- true
+                    skipStep <- true                
 }

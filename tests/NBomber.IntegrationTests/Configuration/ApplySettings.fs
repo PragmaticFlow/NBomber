@@ -30,7 +30,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let updatedScenarios = applyScenariosSettings [|settings|] [|scenario|]
 
-    let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
+    let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
                  && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
     
     Assert.True(result)
@@ -41,7 +41,7 @@ let ``applyScenariosSettings() should make no changes if settings absent`` () =
     let settings = Array.empty
     let updatedScenarios = applyScenariosSettings settings [|scenario|]
 
-    let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
+    let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
                  && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
     
     Assert.True(result)

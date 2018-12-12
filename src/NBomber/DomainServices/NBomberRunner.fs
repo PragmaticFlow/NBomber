@@ -42,42 +42,39 @@ let applyScenariosSettings (settings: ScenarioSetting[]) (scenarios: Scenario[])
         |> Array.map(fun scenario -> settings |> Array.tryFind(fun s -> s.ScenarioName = scenario.ScenarioName)
                                               |> function | Some setting -> updateScenarioWithSettings scenario setting 
                                                           | None -> scenario)
-                                       
-let initScenarios (scnRunners: ScenarioRunner[]) =    
-    let results = 
-        scnRunners
-        |> Array.filter(fun x -> x.Scenario.TestInit.IsSome)
-        |> Array.map(fun x -> 
-            Log.Information("initializing scenario: '{0}'", x.Scenario.ScenarioName)
-            let initResult = x.RunInit()
-            
-            if Result.isError(initResult) then
-                let errorMsg = initResult |> Result.getError |> Errors.toString
-                Log.Error("init failed", errorMsg)            
-            initResult)
-    results 
-    |> Array.forall(Result.isOk)
 
-let initUpdatesChannel (channel: DomainTypes.GlobalUpdatesChannel, scnRunners: ScenarioRunner[]) =
-    let allIds = scnRunners |> Array.collect(fun x -> x.Scenario.CorrelationIds)
+let initScenarios (scenarios: DomainTypes.Scenario[]) =    
+    let mutable failed = false    
+    let mutable error = Unchecked.defaultof<_>
     
-    let allPushStepNames =
-        scnRunners 
-        |> Array.collect(fun x -> x.Scenario.Steps) 
-        |> Array.filter(Step.isPush)
-        |> Array.map(Step.getName)
-    
-    channel.Init(allIds, allPushStepNames)
+    let flow = seq {
+        for scn in scenarios do 
+            if not failed then
+                Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
+                let initResult = Scenario.runInit(scn)
 
-let warmUpScenarios (scnRunners: ScenarioRunner[]) =
+                if Result.isError(initResult) then
+                    let errorMsg = initResult |> Result.getError |> Errors.toString
+                    Log.Error("init failed: " + errorMsg)
+                    failed <- true
+                    error <- initResult
+                yield initResult
+    }
+
+    let results = flow |> Seq.toArray
+
+    if not failed then results |> Array.map(Result.getOk) |> Ok
+    else error |> Result.getError |> Error 
+
+let disposeScenarios (scnRunners: ScenarioRunner[]) =
+    scnRunners |> Array.iter(fun x -> x.Dispose())    
+
+let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners 
-    |> Array.iter(fun x -> 
-        Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
-        let warmUpResult = x.WarmUp().Result
-        
-        if Result.isError(warmUpResult) then
-            let errorMsg = warmUpResult |> Result.getError |> Errors.toString
-            Log.Warning("warm up failed", errorMsg))
+    |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
+                           let duration = TimeSpan.FromSeconds(DomainTypes.Constants.DefaultWarmUpDurationInSec)
+                           if dep.ApplicationType = Console then dep.ShowProgressBar(duration)
+                           x.WarmUp(duration).Wait())        
 
 let buildScenarios (context: NBomberRunnerContext) =     
     let registeredScenarios = context.Scenarios
@@ -103,15 +100,15 @@ let buildScenarios (context: NBomberRunnerContext) =
 
     | None, None -> context.Scenarios |> Array.map(Scenario.create)
 
-let displayProgress (scnRunners: ScenarioRunner[]) =
+let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     let longestDuration = scnRunners
                           |> Array.map(fun x -> x.Scenario.Duration)
                           |> Array.sort
                           |> Array.tryHead
                               
     match longestDuration with
-    | Some v -> Dependency.ProgressBar.show(v)
-    | None   -> Task.FromResult()
+    | Some duration -> dep.ShowProgressBar(duration)
+    | None          -> ()
 
 let waitUnitilAllFinish (scnRunners: ScenarioRunner[]) = 
     let mutable allFinish = scnRunners |> Array.forall(fun x -> x.Finished)
@@ -130,18 +127,16 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
 
     match Validation.validateRunnerContext(context) with
     | Ok context ->             
-        let scnRunners = buildScenarios(context) |> Array.map(ScenarioRunner)
-        let allOk = initScenarios(scnRunners)
-        
-        if allOk then
-            initUpdatesChannel(Dependency.GlobalUpdatesChannel, scnRunners)
-            warmUpScenarios(scnRunners)
+        let scnResult = buildScenarios(context) |> initScenarios        
+        if Result.isOk(scnResult) then
+            let scnRunners = scnResult |> Result.getOk |> Array.map(ScenarioRunner)
+            warmUpScenarios(dep, scnRunners)
             
             Log.Information("starting bombing...")
             scnRunners |> Array.iter(fun x -> x.Run())
             
             if dep.ApplicationType = ApplicationType.Console then
-                displayProgress(scnRunners).Wait()
+                displayProgress(dep, scnRunners)
 
             waitUnitilAllFinish(scnRunners)            
 
@@ -150,8 +145,10 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             let assertResults = Assertion.apply(globalStats, allAsserts)
             Report.build(dep, globalStats, assertResults)
             |> Report.save(dep, "./")
+                        
+            disposeScenarios(scnRunners)
 
             if dep.ApplicationType = ApplicationType.Test then
                 TestFrameworkRunner.showResults(assertResults)        
     
-    | Error e -> Log.Error(e)
+    | Error ex -> Log.Error(ex)

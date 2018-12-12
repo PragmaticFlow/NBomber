@@ -1,11 +1,9 @@
 ﻿module internal NBomber.Domain.Scenario
 
+open System
 open System.Diagnostics
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
-
 open NBomber
-open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Errors
 open NBomber.Domain.DomainTypes
@@ -16,57 +14,55 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
 
 let create (config: Contracts.Scenario) =    
     { ScenarioName = config.ScenarioName
-      TestInit = config.TestInit |> Option.map(fun x -> Step.getPull(x :?> Step))
+      TestInit = config.TestInit
       Steps = config.Steps |> Array.map(fun x -> x :?> Step) |> Seq.toArray
       Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
       ConcurrentCopies = config.ConcurrentCopies      
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
       Duration = config.Duration }
           
-let runInit (scenario: Scenario) =
-    match scenario.TestInit with
-    | Some step -> 
-        try                 
-            let req = { CorrelationId = Constants.InitId; Payload = null }
-            let response = step.Execute(req).Result
-            if response.IsOk then Ok(scenario)
-            else Error <| InitStepError("init step failed.")
-        with ex -> Error <| InitStepError(ex.Message)
-    | None      -> Ok(scenario)
+let getDistinctPools (scenario: Scenario) =
+    scenario.Steps
+    |> Array.map(Step.getConnectionPool) 
+    |> Array.filter(Option.isSome)
+    |> Array.map(Option.get)
+    |> Array.distinct    
 
-let warmUp (scenario: Scenario) = task {               
-    let timer = Stopwatch()
-    let steps = scenario.Steps |> Array.filter(fun st -> not(Step.isPause st))        
-    let mutable request = { CorrelationId = Constants.WarmUpId; Payload = null }
-    let mutable result = Ok(scenario)
-    let mutable skipStep = false    
+let runInit (scenario: Scenario) =    
+
+    let initConnectionPool (pool: ConnectionPool<obj>) =
+        let connections = System.Collections.Generic.List<obj>()
+        for i = 1 to pool.ConnectionsCount do
+            let connection = pool.OpenConnection()
+            connections.Add(connection)
+        { pool with AliveConnections = connections.ToArray() }
+
+    let initAllConnectionPools () = 
+        getDistinctPools(scenario)
+        |> Array.map(initConnectionPool)    
 
     try
-        for st in steps do
-            if not skipStep then                
-                let stepTask = Step.execStep(st, request, timer)
-                let finished = stepTask.Wait(5000)
-                if finished then
-                    let (response,_) = stepTask.Result
-                    if response.IsOk then
-                        request <- { request with Payload = response.Payload }
-                    else
-                        skipStep <- true
-                        result <- { ScenarioName = scenario.ScenarioName
-                                    StepName = Step.getName(st)
-                                    Error = response.Payload.ToString() }
-                                    |> WarmUpError |> Error
-                else 
-                    skipStep <- true
-                    result <- { ScenarioName = scenario.ScenarioName
-                                StepName = Step.getName(st)
-                                Error = "time out: no response in 5 sec" }
-                                |> WarmUpError |> Error
+        if scenario.TestInit.IsSome then scenario.TestInit.Value()        
+        let allPools = initAllConnectionPools()            
+        let steps = scenario.Steps |> Array.map(Step.setConnectionPool(allPools))
+        Ok { scenario with Steps = steps }
+    with 
+    | ex -> ex |> InitScenarioError |> Error
 
-        return result
-    with
-    | ex -> return { ScenarioName = scenario.ScenarioName
-                     StepName = ""
-                     Error = ex.ToString() } 
-                     |> WarmUpError |> Error
-}
+let dispose (scenario: Scenario) =     
+
+    let invokeDispose (connection: obj) =
+        if connection :? IDisposable then (connection :?> IDisposable).Dispose()
+
+    let closePoolConnections (pool) =
+        for connection in pool.AliveConnections do
+            try 
+                match pool.CloseConnection with
+                | Some close -> close(connection)
+                                invokeDispose(connection)
+                | None       -> invokeDispose(connection)
+            with 
+            | ex -> Serilog.Log.Error(ex, "CloseConnection")        
+    
+    getDistinctPools(scenario)
+    |> Array.iter(closePoolConnections) 

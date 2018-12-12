@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>        
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Tests.fs" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -12,12 +15,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
+    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.5.4" />
   </ItemGroup>
+
 </Project>

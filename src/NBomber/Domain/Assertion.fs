@@ -42,6 +42,5 @@ let apply (globalStats: GlobalStats, assertions: Assertion[]) =
     |> Array.mapi(fun i assertion -> 
         let asrtNum = i + 1
         match assertion with
-        | Step asrt     -> applyForStep(globalStats, asrtNum, asrt)        
+        | Step asrt -> applyForStep(globalStats, asrtNum, asrt)        
     )
-

@@ -23,11 +23,13 @@ let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
 let calcMin (latencies: Latency[]) =
     if latencies.Length > 0 then Array.min(latencies) else 0
 
-let calcMean (histogram: LongHistogram) =
-    if histogram.TotalCount > 0L then int(histogram.GetMean()) else 0
+let calcMean (latencies: Latency[]) =        
+    if latencies.Length > 0 
+    then latencies |> Array.map(float) |> Array.average |> int
+    else 0
 
-let calcMax (histogram: LongHistogram) =
-    if histogram.TotalCount > 0L then int(histogram.GetMaxValue()) else 0
+let calcMax (latencies: Latency[]) =
+    if latencies.Length > 0 then Array.max(latencies) else 0
 
 let calcPercentile (histogram: LongHistogram, percentile: float) =
     if histogram.TotalCount > 0L then int(histogram.GetValueAtPercentile(percentile)) else 0
@@ -58,8 +60,8 @@ module StepStats =
         let histogram = buildHistogram(stats.OkLatencies)            
         { RPS = calcRPS(stats.OkLatencies, scenarioDuration)
           Min = calcMin(stats.OkLatencies)
-          Mean = calcMean(histogram)
-          Max = calcMax(histogram)
+          Mean = calcMean(stats.OkLatencies)
+          Max = calcMax(stats.OkLatencies)
           Percent50 = calcPercentile(histogram, 50.0)
           Percent75 = calcPercentile(histogram, 75.0)
           Percent95 = calcPercentile(histogram, 95.0)

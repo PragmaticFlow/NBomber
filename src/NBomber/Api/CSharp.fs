@@ -3,17 +3,24 @@
 open System
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
 
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
-type GlobalUpdatesChannel =
-    static member Instance = FSharp.GlobalUpdatesChannel.Instance
+type ConnectionPool =
+    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(1)>] ?connectionsCount: int) = 
+        let close = if isNull closeConnection then (new Action<'TConnection>(fun _ -> ()))
+                    else closeConnection
+        let count = defaultArg connectionsCount Domain.DomainTypes.Constants.DefaultConnectionsCount
+        FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)    
+    
+    static member None = FSharp.ConnectionPool.none
 
 type Step =    
-    static member CreatePull(name: string, execute: Func<Request,Task<Response>>) = FSharp.Step.createPull(name, execute.Invoke)
-    static member CreatePush(name: string) = FSharp.Step.createPush(name)
+    static member CreatePull(name: string, pool: IConnectionPool<'TConnection>, execute: Func<PullContext<'TConnection>,Task<Response>>) = FSharp.Step.createPull(name, pool, execute.Invoke)
+    static member CreatePush(name: string, pool: IConnectionPool<'TConnection>, handler: Func<PushContext<'TConnection>,Task>) = FSharp.Step.createPush(name, pool, handler.Invoke)
     static member CreatePause(duration) = FSharp.Step.createPause(duration)
 
 type Assertion =    
@@ -26,7 +33,7 @@ type ScenarioBuilder =
         FSharp.Scenario.create(name, Seq.toList(steps))
     
     [<Extension>]
-    static member WithTestInit(scenario: Scenario, initFunc: Func<Request,Task<Response>>) = 
+    static member WithTestInit(scenario: Scenario, initFunc: Action) = 
         scenario |> FSharp.Scenario.withTestInit(initFunc.Invoke)
 
     [<Extension>]

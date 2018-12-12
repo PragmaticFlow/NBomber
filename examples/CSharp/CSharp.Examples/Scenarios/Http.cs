@@ -4,11 +4,11 @@ using System.Net.Http;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace CSharp.Example.Http
+namespace CSharp.Examples.Scenarios
 {
-    class Program
+    class HttpScenario
     {
-        static Scenario BuildScenario()
+        public static Scenario BuildScenario()
         {
             HttpRequestMessage CreateHttpRequest()
             {
@@ -19,27 +19,18 @@ namespace CSharp.Example.Http
                 return msg;
             }
 
-            var httpClient = new HttpClient();
+            var httpPool = ConnectionPool.Create("http pool", () => new HttpClient());
 
-            var step1 = Step.CreatePull("GET html", async _ =>
+            var step1 = Step.CreatePull("GET html", httpPool, async context =>
             {
                 var request = CreateHttpRequest();
-                var response = await httpClient.SendAsync(request);
+                var response = await context.Connection.SendAsync(request);
                 return response.IsSuccessStatusCode
                     ? Response.Ok()
                     : Response.Fail(response.StatusCode.ToString());
             });
 
-            return ScenarioBuilder.CreateScenario("test github", step1)
-                           .WithConcurrentCopies(100)
-                           .WithDuration(TimeSpan.FromSeconds(10));            
-        }
-
-        static void Main(string[] args)
-        {
-            var scenario = BuildScenario();
-            NBomberRunner.RegisterScenarios(scenario)
-                         .RunInConsole();
+            return ScenarioBuilder.CreateScenario("test github", step1);                           
         }
     }
 }

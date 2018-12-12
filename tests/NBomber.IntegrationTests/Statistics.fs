@@ -5,11 +5,10 @@ open System
 open Xunit
 open FsCheck.Xunit
 
-open NBomber.Contracts
 open NBomber.Domain
 
 [<Property>]
-let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency[], scnDuration: TimeSpan) =
+let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: int[], scnDuration: TimeSpan) =
     let result = Statistics.calcRPS(latencies, scnDuration)
 
     if latencies.Length = 0 then
@@ -22,24 +21,22 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
         Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
+let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: int[]) =
     let result   = Statistics.calcMin(latencies)    
     let expected = if latencies.Length > 0 then Array.min(latencies)
                    else 0
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
-    let result = latencies |> Statistics.buildHistogram |> Statistics.calcMean
-    let data   = latencies |> Array.filter(fun x -> x > 0)
-    let expected = if data.Length > 0 then data |> Array.map(float) |> Array.average |> int
+let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+    let result = latencies |> Statistics.calcMean    
+    let expected = if latencies.Length > 0 then latencies |> Array.map(float) |> Array.average |> int
                    else 0
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
-    let result = latencies |> Statistics.buildHistogram |> Statistics.calcMax
-    let data   = latencies |> Array.filter(fun x -> x > 0)
-    let expected = if data.Length > 0 then Array.max(data)
+let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+    let result = latencies |> Statistics.calcMax    
+    let expected = if latencies.Length > 0 then Array.max(latencies)
                    else 0
     Assert.Equal(expected, result)
