@@ -8,6 +8,25 @@ open NBomber.Domain
 open NBomber.Domain.Errors
 open NBomber.Domain.DomainTypes
 
+let updateConnectionPoolCount (concurrentCopies: int) (step) =
+    
+    let updatePoolCount (pool) =
+        let newCount = if pool.ConnectionsCount = Constants.DefaultConnectionsCount then concurrentCopies
+                       else pool.ConnectionsCount        
+        { pool with ConnectionsCount = newCount }
+    
+    match step with
+    | Pull s -> Pull { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }    
+    | Push s -> Push { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }
+    | Pause s -> Pause s
+
+let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
+    let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
+    match step with
+    | Pull s -> Pull { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }    
+    | Push s -> Push { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }
+    | Pause s -> Pause s  
+
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
     |> Array.map(fun i -> System.String.Format("{0}_{1}", scnName, i))    
@@ -15,7 +34,7 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
 let create (config: Contracts.Scenario) =    
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
-      Steps = config.Steps |> Array.map(fun x -> x :?> Step) |> Seq.toArray
+      Steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray
       Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
       ConcurrentCopies = config.ConcurrentCopies      
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
@@ -44,7 +63,7 @@ let runInit (scenario: Scenario) =
     try
         if scenario.TestInit.IsSome then scenario.TestInit.Value()        
         let allPools = initAllConnectionPools()            
-        let steps = scenario.Steps |> Array.map(Step.setConnectionPool(allPools))
+        let steps = scenario.Steps |> Array.map(setConnectionPool(allPools))
         Ok { scenario with Steps = steps }
     with 
     | ex -> ex |> InitScenarioError |> Error

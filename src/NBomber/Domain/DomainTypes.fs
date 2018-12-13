@@ -16,7 +16,7 @@ module Constants =
     let DefaultWarmUpDurationInSec = 5.0
 
     [<Literal>]
-    let DefaultConnectionsCount = 1
+    let DefaultConnectionsCount = 0
 
 type CorrelationId = string
 type StepName = string
