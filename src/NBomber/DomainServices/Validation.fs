@@ -33,13 +33,13 @@ let concurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
                                                 |> Error
 
 let validateRunnerContext(context: NBomberRunnerContext) = 
-    let globalSettings = context.NBomberConfig |> Option.bind (fun config -> config.GlobalSettings)
+    let globalSettings = context.NBomberConfig |> Option.bind(fun config -> config.GlobalSettings)
     match globalSettings with
     | Some globalSettings -> globalSettings
-                            |> targetScenarioIsNotPresent 
-                            |> Result.bind durationGreaterThenSecond
-                            |> Result.bind concurrentCopiesGreaterThenOne
-                            |> function
-                            | Ok _ -> Ok(context)
-                            | Error msg -> Error(msg)
+                             |> targetScenarioIsNotPresent 
+                             |> Result.bind durationGreaterThenSecond
+                             |> Result.bind concurrentCopiesGreaterThenOne
+                             |> function
+                             | Ok _ -> Ok(context)
+                             | Error msg -> Error(msg)
     | None -> Ok(context)
