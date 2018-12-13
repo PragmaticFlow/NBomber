@@ -5,20 +5,71 @@ open System.Threading.Tasks
 
 open NBomber
 open NBomber.Contracts
-open NBomber.DomainServices
+open NBomber.Domain.DomainTypes
 open NBomber.Infra.Dependency
+open NBomber.DomainServices
 
-type GlobalUpdatesChannel =
-    static member Instance = Dependency.GlobalUpdatesChannel :> IGlobalUpdatesChannel
+type ConnectionPool =   
 
-module Step =    
-    open NBomber.Domain.DomainTypes
+    static member create<'TConnection>(name: string, openConnection: unit -> 'TConnection, ?closeConnection: 'TConnection -> unit, ?connectionsCount: int) =        
+        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount        
+        { PoolName = name; OpenConnection = openConnection; CloseConnection = closeConnection
+          ConnectionsCount = count; AliveConnections = Array.empty }
+          :> IConnectionPool<'TConnection>
 
-    let createPull (name: string, execute: Request -> Task<Response>) = 
-        Pull({ StepName = name; Execute = execute }) :> IStep  
+    static member none =
+        { PoolName = "empty_pool"; OpenConnection = (fun _ -> ());
+          CloseConnection = None; ConnectionsCount = 1; AliveConnections = Array.empty }
+          :> IConnectionPool<unit>
+
+module Step =        
+
+    let createPull (name: string, pool: IConnectionPool<'TConnection>, execute: PullContext<'TConnection> -> Task<Response>) =                
+        let p = pool :?> ConnectionPool<'TConnection>
+        
+        let newOpen = fun () -> p.OpenConnection() :> obj
+
+        let newClose = match p.CloseConnection with
+                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
+                       | None      -> None
+        
+        let newPool = { PoolName = p.PoolName
+                        OpenConnection = newOpen
+                        CloseConnection = newClose
+                        ConnectionsCount = p.ConnectionsCount
+                        AliveConnections = Array.empty }        
+        
+        let newExecute = 
+            fun (context: PullContext<obj>) ->                 
+                let newContext = { CorrelationId = context.CorrelationId
+                                   Connection = context.Connection :?> 'TConnection
+                                   Payload = context.Payload }
+                execute(newContext)
+
+        Pull({ StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None }) :> IStep
     
-    let createPush (name: string) =         
-        Push({ StepName = name; UpdatesChannel = Dependency.GlobalUpdatesChannel }) :> IStep
+    let createPush (name: string, pool: IConnectionPool<'TConnection>, handler: PushContext<'TConnection> -> Task) =
+        let p = pool :?> ConnectionPool<'TConnection>
+        
+        let newOpen = fun () -> p.OpenConnection() :> obj
+
+        let newClose = match p.CloseConnection with
+                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
+                       | None      -> None
+
+        let newPool = { PoolName = p.PoolName
+                        OpenConnection = newOpen
+                        CloseConnection = newClose
+                        ConnectionsCount = p.ConnectionsCount
+                        AliveConnections = Array.empty }
+        let newHandler = 
+            fun (context: PushContext<obj>) ->                 
+                let newContext = { CorrelationId = context.CorrelationId
+                                   Connection = context.Connection :?> 'TConnection
+                                   UpdatesChannel = context.UpdatesChannel }
+                handler(newContext)
+
+        Push({ StepName = name; ConnectionPool = newPool; Handler = newHandler; CurrentContext = None }) :> IStep
 
     let createPause (duration) = Pause(duration) :> IStep    
 
@@ -28,20 +79,18 @@ module Assertion =
     let forStep (stepName, assertion: AssertStats -> bool) = 
         Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
 
-module Scenario =    
-    open NBomber.Domain.DomainTypes
+module Scenario =        
     
     let create (name: string, steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = None
           Steps = Seq.toArray(steps)
           ConcurrentCopies = Constants.DefaultConcurrentCopies
-          Duration = TimeSpan.FromSeconds(Constants.DefaultDurationInSeconds)
+          Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
           Assertions = Array.empty }
 
-    let withTestInit (initFunc: Request -> Task<Response>) (scenario: Contracts.Scenario) =
-        let step = Step.createPull(Domain.DomainTypes.Constants.InitId, initFunc)
-        { scenario with TestInit = Some(step) }
+    let withTestInit (initFunc: unit -> unit) (scenario: Contracts.Scenario) =                
+        { scenario with TestInit = Some initFunc }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
@@ -90,4 +139,4 @@ module NBomberRunner =
 
     let runTest (context: NBomberRunnerContext) =
         let dep = Dependency.create(Test)
-        NBomberRunner.run(dep, context)        
+        NBomberRunner.run(dep, context)

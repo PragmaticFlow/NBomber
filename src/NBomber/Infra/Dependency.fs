@@ -9,7 +9,6 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Domain.DomainTypes
 open NBomber.Infra.ResourceManager
 
 type ApplicationType =
@@ -25,15 +24,38 @@ type MachineInfo = {
     CoresCount: int    
 }
 
-let private globalUpdatesChannel = GlobalUpdatesChannel()
-
 type Dependency = {
     SessionId: string    
     ApplicationType: ApplicationType
-    MachineInfo: MachineInfo
+    MachineInfo: MachineInfo    
     Assets: Assets
-} with
-  static member GlobalUpdatesChannel = globalUpdatesChannel
+    ShowProgressBar: TimeSpan -> unit
+}
+
+module ProgressBar =
+
+    let show (scenarioDuration: TimeSpan) = task {    
+        let options = ProgressBarOptions(ProgressBarOnBottom = true,                                     
+                                         ForegroundColor = ConsoleColor.Yellow,
+                                         ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
+                                         BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
+                                         BackgroundCharacter = Nullable<char>('\u2593'))
+
+        let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
+        use pbar = new ProgressBar(totalSeconds, String.Empty, options)
+    
+        for i = 1 to totalSeconds do        
+            do! Task.Delay(TimeSpan.FromSeconds(1.0))
+            pbar.Tick()
+    }
+
+module Logger =
+
+    let initLogger (appType: ApplicationType) =
+        Log.Logger <- 
+            match appType with            
+            | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
+            | _       -> LoggerConfiguration().CreateLogger()
 
 let private getMachineInfo () =
 
@@ -58,30 +80,5 @@ let create (appType: ApplicationType) =
     { SessionId = createSessionId()
       ApplicationType = appType
       MachineInfo = getMachineInfo()
-      Assets = ResourceManager.loadAssets() }
-
-module Logger =
-
-    let initLogger (appType: ApplicationType) =
-        Log.Logger <- 
-            match appType with            
-            | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
-            | _       -> LoggerConfiguration().CreateLogger()
-        
-
-module ProgressBar =
-
-    let show (scenarioDuration: TimeSpan) = task {    
-        let options = ProgressBarOptions(ProgressBarOnBottom = true,                                     
-                                         ForegroundColor = ConsoleColor.Yellow,
-                                         ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
-                                         BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
-                                         BackgroundCharacter = Nullable<char>('\u2593'))
-
-        let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
-        use pbar = new ProgressBar(totalSeconds, String.Empty, options)
-    
-        for i = 0 to totalSeconds do        
-            do! Task.Delay(TimeSpan.FromSeconds(1.0))
-            pbar.Tick()
-    }
+      Assets = ResourceManager.loadAssets()
+      ShowProgressBar = ProgressBar.show >> ignore }

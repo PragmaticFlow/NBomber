@@ -10,17 +10,15 @@ type StepError = {
     Error: string
 }
 
-type DomainError =
-    | InitStepError  of msg:string
-    | WarmUpError    of error:StepError
+type DomainError =    
+    | InitScenarioError  of ex:exn    
     | AssertNotFound of assertNumber:int * assertion:Assertion
     | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
 
 let toString (error) =
-    match error with
-    | InitStepError msg -> msg    
-    | WarmUpError error -> String.Format("warm up has failed:'{0}'", error)    
-
+    match error with    
+    | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
+    
     | AssertNotFound (assertNum,assertion) -> 
         match assertion with
         | Step s -> String.Format("Assertion #'{0}' is not found for step: '{1}' in scenario: '{2}'", assertNum, s.StepName, s.ScenarioName)        
@@ -33,6 +31,5 @@ let toString (error) =
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 
     |> Array.filter(Result.isError)
-    |> Array.map(Result.getError)
-    |> Array.map(toString)
+    |> Array.map(Result.getError >> toString)    
     |> String.concat(Environment.NewLine)

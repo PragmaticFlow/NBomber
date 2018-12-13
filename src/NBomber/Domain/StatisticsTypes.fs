@@ -1,7 +1,7 @@
 ﻿module internal NBomber.Domain.StatisticsTypes
 
 open System
-open NBomber.Contracts
+open NBomber.Domain.DomainTypes
 
 type LatencyCount = {
     Less800: int

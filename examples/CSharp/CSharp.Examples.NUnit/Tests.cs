@@ -6,21 +6,21 @@ using NUnit.Framework;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace CSharp.Example.NUnit
+namespace CSharp.Examples.NUnit
 {
     public class Tests
     {
         Scenario BuildScenario()
         {
-            var step1 = Step.CreatePull("simple step", async _ =>
+            var pool = ConnectionPool.None;
+
+            var step1 = Step.CreatePull("simple step", pool, async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.5));
                 return Response.Ok();
             });
 
-            return ScenarioBuilder.CreateScenario("nunit hello world", step1)
-                .WithConcurrentCopies(1)
-                .WithDuration(TimeSpan.FromSeconds(2));
+            return ScenarioBuilder.CreateScenario("nunit hello world", step1);                
         }
 
         [Test]
@@ -30,7 +30,10 @@ namespace CSharp.Example.NUnit
                Assertion.ForStep("simple step", stats => stats.OkCount > 2)
             };
 
-            var scenario = BuildScenario().WithAssertions(assertions);
+            var scenario = BuildScenario()
+                .WithConcurrentCopies(1)
+                .WithDuration(TimeSpan.FromSeconds(2))
+                .WithAssertions(assertions);
 
             NBomberRunner.RegisterScenarios(scenario)
                          .RunTest();            

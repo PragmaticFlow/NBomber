@@ -4,48 +4,52 @@ open System
 open System.Runtime.InteropServices
 open NBomber.Configuration
 
-type CorrelationId = string
-type Latency = int
-
-[<Struct>]
-type Request = {
-    CorrelationId: CorrelationId
-    Payload: obj
-}
-
-[<Struct>]
 type Response = {
     IsOk: bool
     Payload: obj
 }
 
-type IStep = 
-    abstract member Name: string
+type IUpdatesChannel =
+    abstract ReceivedUpdate: update:Response -> unit
 
+type IConnectionPool<'TConnection> = interface end
+
+type PullContext<'TConnection> = {
+    CorrelationId: string
+    Connection: 'TConnection
+    mutable Payload: obj
+}
+
+type PushContext<'TConnection> = {
+    CorrelationId: string
+    Connection: 'TConnection
+    UpdatesChannel: IUpdatesChannel
+}
+
+type IStep = interface end
 type IAssertion = interface end  
 
-type IGlobalUpdatesChannel =
-    abstract ReceivedUpdate: correlationId:CorrelationId * pushStepName: string * update:Response -> unit
+type TestInit = unit -> unit
 
 type Scenario = {
-    ScenarioName: string
-    TestInit: IStep option
+    ScenarioName: string    
+    TestInit: TestInit option
     Steps: IStep[]
     Assertions: IAssertion[]
     ConcurrentCopies: int
     Duration: TimeSpan
 }
 
-type AssertStats = {       
+type AssertStats = {
     OkCount: int
     FailCount: int
-    Min: Latency
-    Mean: Latency
-    Max: Latency
-    RPS: Latency
-    Percent50: Latency
-    Percent75: Latency
-    Percent95: Latency
+    Min: int
+    Mean: int
+    Max: int
+    RPS: int
+    Percent50: int
+    Percent75: int
+    Percent95: int
     StdDev: int
 }
     

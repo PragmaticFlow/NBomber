@@ -4,8 +4,12 @@
       {
         "ScenarioName": "test github",
         "Duration": "00:00:20",
-        "ConcurrentCopies": 300,
-        "RunTestInit": true
+        "ConcurrentCopies": 100
+      },
+      {
+        "ScenarioName": "test mongo",
+        "Duration": "00:00:20",
+        "ConcurrentCopies": 100
       }
     ],
     "TargetScenarios": [ "test github" ]

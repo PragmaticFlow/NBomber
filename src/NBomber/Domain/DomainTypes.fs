@@ -1,78 +1,68 @@
 ﻿module internal NBomber.Domain.DomainTypes
 
 open System
-open System.Collections.Generic
 open System.Threading.Tasks
-
 open NBomber.Contracts
 
-module Constants =
+module Constants =   
 
     [<Literal>]
-    let WarmUpId = "warm_up_step"
-
-    [<Literal>]
-    let InitId = "init_step"
-
-    [<Literal>]
-    let DefaultDurationInSeconds = 20.0
+    let DefaultScenarioDurationInSec = 20.0
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
 
+    [<Literal>]
+    let DefaultWarmUpDurationInSec = 5.0
+
+    [<Literal>]
+    let DefaultConnectionsCount = 1
+
+type CorrelationId = string
 type StepName = string
 type FlowName = string
 type ScenarioName = string
+type Latency = int
 
-type PushListener(id: string) = 
+[<CustomEquality; NoComparison>]
+type ConnectionPool<'TConnection> = {
+    PoolName: string    
+    OpenConnection: unit -> 'TConnection
+    CloseConnection: ('TConnection -> unit) option
+    ConnectionsCount: int
+    AliveConnections: 'TConnection[]
+} with
+  interface IConnectionPool<'TConnection>
+  override x.GetHashCode() = x.PoolName.GetHashCode()
+  override x.Equals(b) = 
+    match b with
+    | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
+    | _ -> false
 
-    let mutable tcs = TaskCompletionSource<Response>()    
-
-    static member BuildId(correlationId: string, pushStepName: string) = 
-        correlationId + "_" + pushStepName
-
-    member x.Id = id
-
-    member x.Notify(response: Response) = 
-        if not tcs.Task.IsCompleted then tcs.SetResult(response)
+type UpdatesChannel() =
+    
+    let mutable tcs = TaskCompletionSource<Response>()
 
     member x.GetResponse() = 
         tcs <- TaskCompletionSource<Response>()
         tcs.Task
 
-type GlobalUpdatesChannel() =
-
-    let mutable listeners = Dictionary<CorrelationId,PushListener>()        
-
-    member x.Init(allCorrelationIds: string[], pushStepNames: string[]) = 
-        listeners.Clear()        
-        allCorrelationIds
-        |> Array.collect(fun id -> pushStepNames 
-                                   |> Array.map(fun stepName -> PushListener.BuildId(id, stepName)))
-        |> Array.append(pushStepNames 
-                        |> Array.map(fun x -> PushListener.BuildId(Constants.WarmUpId, x)))
-        |> Array.map(PushListener)
-        |> Array.iter(fun x -> listeners.Add(x.Id, x))
-
-    member x.GetPushListener(correlationId: string, pushStepName: string) = 
-        let id = PushListener.BuildId(correlationId, pushStepName)
-        listeners.[id]
-
-    interface IGlobalUpdatesChannel with
-        member x.ReceivedUpdate(correlationId: string, pushStepName: string, response: Response) =
-            let id = PushListener.BuildId(correlationId, pushStepName)
-            match listeners.TryGetValue(id) with
-            | true, listener -> listener.Notify(response)
-            | _              -> ()
+    interface IUpdatesChannel with
+        member x.ReceivedUpdate(response: Response) = 
+            if not tcs.Task.IsCompleted then tcs.SetResult(response)
 
 type PullStep = {
-    StepName: StepName
-    Execute: Request -> Task<Response>
+    StepName: StepName    
+    ConnectionPool: ConnectionPool<obj>
+    Execute: PullContext<obj> -> Task<Response>
+    CurrentContext: PullContext<obj> option
 }
 
 type PushStep = {
-    StepName: StepName    
-    UpdatesChannel: GlobalUpdatesChannel
+    StepName: StepName
+    ConnectionPool: ConnectionPool<obj>        
+    Handler: PushContext<obj> -> Task    
+    CurrentContext: PushContext<obj> option
 }
 
 type Step =
@@ -80,11 +70,6 @@ type Step =
     | Push  of PushStep
     | Pause of TimeSpan 
     interface IStep
-        with member x.Name = match x with
-                             | Pull s -> s.StepName
-                             | Push s -> s.StepName
-                             | Pause s -> "pause"
-            
 
 type AssertFunc = AssertStats -> bool
 
@@ -105,7 +90,7 @@ type Assertion =
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: PullStep option    
+    TestInit: TestInit option  
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int

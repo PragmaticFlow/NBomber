@@ -6,6 +6,11 @@ type Result<'T,'TError> with
         match result with
         | Ok _    -> true
         | Error _ -> false
+
+    static member getOk(result) = 
+        match result with
+        | Ok v    -> v
+        | Error _ -> failwith "result is error"
     
     static member isError(result) = not(Result.isOk(result))
     

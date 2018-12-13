@@ -12,14 +12,16 @@ open NBomber.FSharp
 [<Fact>]
 let ``Ok and Fail should be properly count`` () =
         
-    let okStep = Step.createPull("ok step", fun _ -> task {
+    let pool = ConnectionPool.none
+
+    let okStep = Step.createPull("ok step", pool, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })
 
-    let failStep = Step.createPull("fail step", fun _ -> task {
+    let failStep = Step.createPull("fail step", pool, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Fail("")
+        return Response.Fail("error")
     })
 
     let assertions = [
@@ -37,7 +39,9 @@ let ``Ok and Fail should be properly count`` () =
 [<Fact>]
 let ``Min/Mean/Max/RPS should be properly count`` () =
     
-    let pullStep = Step.createPull("pull step", fun _ -> task {        
+    let pool = ConnectionPool.none
+
+    let pullStep = Step.createPull("pull step", pool, fun context -> task {        
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })    
