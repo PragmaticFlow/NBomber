@@ -26,8 +26,8 @@ namespace CSharp.Examples.Scenarios
             {
                 connection.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None)
                           .Wait();
-            },
-            connectionsCount: 50);
+            });
+            //connectionsCount: 50);
 
             var pingStep = Step.CreatePull("ping", webSocketsPool, async context =>
             {

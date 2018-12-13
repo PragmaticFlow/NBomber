@@ -55,14 +55,7 @@ let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
                                 UpdatesChannel = UpdatesChannel() }
                 Push { s with CurrentContext = Some context }
     
-    | Pause s -> step 
-    
-let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
-    let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
-    match step with
-    | Pull s -> Pull { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }    
-    | Push s -> Push { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }
-    | Pause s -> Pause s    
+    | Pause s -> step
 
 let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {    
     timer.Restart()        
