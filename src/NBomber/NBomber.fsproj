@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>    
   </PropertyGroup>
-  <ItemGroup>  
+  <ItemGroup>
     <EmbeddedResource Include="assets\assets.zip" />  
     <EmbeddedResource Include="assets\html\index.html" />  
     <EmbeddedResource Include="assets\html\sidebar.html" />  
@@ -26,7 +26,8 @@
     <Compile Include="Domain\Step.fs" />  
     <Compile Include="Domain\Assertion.fs" />  
     <Compile Include="Domain\Scenario.fs" />  
-    <Compile Include="Domain\Statistics.fs" />  
+    <Compile Include="Domain\Statistics.fs" />
+    <Compile Include="Domain\ScenarioResult.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />    
     <Compile Include="Infra\HtmlBuilder.fs" />    
     <Compile Include="Infra\ResourceManager.fs" />    

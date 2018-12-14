@@ -61,3 +61,21 @@ type NBomberRunnerContext = {
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option    
 }
+
+type AssertionStatus = Fail | Success | Fatal
+
+type AssertionResult = {
+    AssertionId: int
+    AssertionStatus: AssertionStatus
+}
+
+type StepAssertStats = {
+    StepName: string
+    Stats: AssertStats
+    AssertionsResults: AssertionResult[]
+}
+
+type ScenarioResult = {
+    ScenarioName: string
+    StepStats: StepAssertStats[]
+}

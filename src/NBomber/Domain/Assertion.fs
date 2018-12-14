@@ -23,24 +23,31 @@ type AssertStats with
 let create (assertions: IAssertion[]) = 
     assertions |> Array.map(fun x -> x :?> Assertion)
 
-let applyForStep (globalStats: GlobalStats, assertNum: int, asrt: StepAssertion) =
-    let stepStats = 
-        globalStats.AllScenariosStats
-        |> Array.filter(fun x -> x.ScenarioName = asrt.ScenarioName)
-        |> Array.collect(fun x -> x.StepsStats)
-        |> Array.tryFind(fun x -> x.StepName = asrt.StepName)
-    
-    match stepStats with
-    | Some v -> let asrtStats = AssertStats.create(v)
-                let result = asrt.AssertFunc(asrtStats)
-                if result then Ok <| Step(asrt)
-                else Error <| AssertionError(assertNum, Step(asrt), asrtStats)
-    | None   -> Error <| AssertNotFound(assertNum, Step(asrt))
+let getStepsStats (globalStats: GlobalStats, scenario: NBomber.Contracts.Scenario) =
+    globalStats.AllScenariosStats
+    |> Array.tryFind(fun x -> x.ScenarioName = scenario.ScenarioName)
+    |> Option.map(fun e -> e.StepsStats |> Array.map(fun e -> (e.StepName, AssertStats.create(e))))
+    |> Option.defaultValue([||])
 
-let apply (globalStats: GlobalStats, assertions: Assertion[]) =
-    assertions
-    |> Array.mapi(fun i assertion -> 
-        let asrtNum = i + 1
-        match assertion with
-        | Step asrt -> applyForStep(globalStats, asrtNum, asrt)        
-    )
+let applyForStep (asrtStats: AssertStats option, assertNum: int, asrt: StepAssertion) =
+    match asrtStats with
+    | Some stats ->   
+        let result = asrt.AssertFunc(stats)
+        if result then Ok <| Step(asrt)
+        else Error <| AssertionError(assertNum, Step(asrt), stats)
+    | None ->  Error <| AssertNotFound(assertNum, Step(asrt))
+    
+let applyScenario(globalStats: GlobalStats, sc: NBomber.Contracts.Scenario) = 
+    let stepStats = getStepsStats(globalStats, sc) |> Map.ofArray
+    
+    let stepResults = sc.Assertions 
+                      |> create
+                      |> Array.mapi(fun i asrt -> match asrt with 
+                                                    | NBomber.Domain.DomainTypes.Step s ->
+                                                        let stepStat = Map.tryFind s.StepName stepStats
+                                                        let asrtResult = applyForStep(stepStat, i, s)
+                                                        (s.StepName, { ValidationResult.Number = i + 1; Result = asrtResult }))
+                      |> Array.groupBy(fun (stepName, _) -> stepName)
+                      |> Array.map(fun (stepName, results) -> { StepName = stepName; ValidationResults = results |> Array.map(snd); Stats = stepStats.[stepName]})
+    
+    { ScenarioName = sc.ScenarioName; StepResults = stepResults }

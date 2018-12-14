@@ -125,13 +125,15 @@ module NBomberRunner =
 
     let run (context: NBomberRunnerContext) =
         let dep = Dependency.create(Process)
-        NBomberRunner.run(dep, context)
+        match NBomberRunner.run(dep, context) with
+        | Ok result   -> result
+        | Error error -> failwith error
 
     let runInConsole (context: NBomberRunnerContext) =
         let mutable run = true
         while run do
             let dep = Dependency.create(Console)
-            NBomberRunner.run(dep, context)
+            NBomberRunner.run(dep, context) |> ignore
             Log.Information("Repeat the same test one more time? (y/n)")
         
             let userInput = Console.ReadLine()
@@ -139,4 +141,4 @@ module NBomberRunner =
 
     let runTest (context: NBomberRunnerContext) =
         let dep = Dependency.create(Test)
-        NBomberRunner.run(dep, context)
+        NBomberRunner.run(dep, context) |> ignore

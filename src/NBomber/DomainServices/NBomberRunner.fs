@@ -13,6 +13,7 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
+open NBomber.Domain.StatisticsTypes
 
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
@@ -141,14 +142,25 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             waitUnitilAllFinish(scnRunners)            
 
             let globalStats = calcStatistics(scnRunners)
-            let allAsserts = scnRunners |> Array.collect(fun x -> x.Scenario.Assertions)
-            let assertResults = Assertion.apply(globalStats, allAsserts)
+            
+            let scenarioAsrtResults = Array.map(fun sc -> Assertion.applyScenario(globalStats, sc)) context.Scenarios
+            
+            let assertResults = scenarioAsrtResults 
+                                |> Array.collect(fun sc -> sc.StepResults |> Array.collect(fun sr -> sr.ValidationResults |> Array.map(fun x -> x.Result)))
+
             Report.build(dep, globalStats, assertResults)
             |> Report.save(dep, "./")
                         
             disposeScenarios(scnRunners)
-
+            
             if dep.ApplicationType = ApplicationType.Test then
-                TestFrameworkRunner.showResults(assertResults)        
-    
-    | Error ex -> Log.Error(ex)
+                TestFrameworkRunner.showResults(assertResults)
+            
+            scenarioAsrtResults
+            |> Array.map(ScenarioResult.create)
+            |> Ok
+        else 
+            Error "Can`t build scenario"
+    | Error ex -> 
+            Log.Error(ex)
+            Error ex

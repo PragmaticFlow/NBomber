@@ -97,3 +97,24 @@ type Scenario = {
     CorrelationIds: CorrelationId[]
     Duration: TimeSpan
 }
+
+type DomainError =    
+    | InitScenarioError  of ex:exn    
+    | AssertNotFound of assertNumber:int * assertion:Assertion
+    | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
+
+type ValidationResult = {
+    Number: int
+    Result: Result<Assertion, DomainError>
+}
+
+type StepValidationResult = { 
+    StepName: string
+    Stats: AssertStats
+    ValidationResults: ValidationResult[]
+}
+
+type ScenarioValidationResult = { 
+    ScenarioName: string
+    StepResults: StepValidationResult[]
+}

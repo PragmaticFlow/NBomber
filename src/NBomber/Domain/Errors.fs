@@ -10,11 +10,6 @@ type StepError = {
     Error: string
 }
 
-type DomainError =    
-    | InitScenarioError  of ex:exn    
-    | AssertNotFound of assertNumber:int * assertion:Assertion
-    | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
-
 let toString (error) =
     match error with    
     | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
