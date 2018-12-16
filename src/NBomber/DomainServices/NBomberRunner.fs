@@ -67,8 +67,8 @@ let initScenarios (scenarios: DomainTypes.Scenario[]) =
     if not failed then results |> Array.map(Result.getOk) |> Ok
     else error |> Result.getError |> Error 
 
-let disposeScenarios (scnRunners: ScenarioRunner[]) =
-    scnRunners |> Array.iter(fun x -> x.Dispose())    
+let cleanScenarios (scnRunners: ScenarioRunner[]) =
+    scnRunners |> Array.iter(fun x -> x.Clean())    
 
 let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners 
@@ -150,8 +150,8 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
 
             Report.build(dep, globalStats, assertResults)
             |> Report.save(dep, "./")
-                        
-            disposeScenarios(scnRunners)
+
+            cleanScenarios(scnRunners)
             
             if dep.ApplicationType = ApplicationType.Test then
                 TestFrameworkRunner.showResults(assertResults)

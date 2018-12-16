@@ -37,6 +37,10 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withTestInit(initFunc.Invoke)
 
     [<Extension>]
+    static member WithTestClean(scenario: Scenario, cleanFunc: Action) = 
+        scenario |> FSharp.Scenario.withTestClean(cleanFunc.Invoke)
+
+    [<Extension>]
     static member WithAssertions(scenario: Scenario, [<System.ParamArray>]assertions: IAssertion[]) = 
         scenario |> FSharp.Scenario.withAssertions(Seq.toList(assertions))
 

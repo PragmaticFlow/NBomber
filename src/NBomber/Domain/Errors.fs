@@ -13,6 +13,7 @@ type StepError = {
 let toString (error) =
     match error with    
     | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
+    | CleanScenarioError ex -> String.Format("clean scenario error:'{0}'", ex.ToString())    
     
     | AssertNotFound (assertNum,assertion) -> 
         match assertion with

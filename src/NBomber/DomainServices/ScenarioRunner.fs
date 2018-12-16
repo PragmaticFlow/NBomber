@@ -70,7 +70,7 @@ type ScenarioRunner(scenario: Scenario) =
     member x.WarmUp(interval) = warmUp(interval)    
     member x.Run() = run()
     member x.Stop() = stop()
-    member x.Dispose() = Scenario.dispose(scenario)
+    member x.Clean() = Scenario.clean(scenario)
     
     member x.GetResult() =
         actors.Value

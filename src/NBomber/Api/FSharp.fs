@@ -84,6 +84,7 @@ module Scenario =
     let create (name: string, steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = None
+          TestClean = None
           Steps = Seq.toArray(steps)
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
@@ -91,6 +92,9 @@ module Scenario =
 
     let withTestInit (initFunc: unit -> unit) (scenario: Contracts.Scenario) =                
         { scenario with TestInit = Some initFunc }
+
+    let withTestClean (cleanFunc: unit -> unit) (scenario: Contracts.Scenario) =
+        { scenario with TestClean = Some cleanFunc }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
