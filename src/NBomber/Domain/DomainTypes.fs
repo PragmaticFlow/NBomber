@@ -90,7 +90,8 @@ type Assertion =
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: TestInit option  
+    TestInit: (unit -> unit) option  
+    TestClean: (unit -> unit) option  
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int

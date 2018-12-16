@@ -7,6 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Statistics.fs" />
+    <Compile Include="Scenario.fs" />
     <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration/ApplySettings.fs" />
     <Compile Include="Configuration/ValidateContext.fs" />

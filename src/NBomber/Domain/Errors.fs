@@ -12,12 +12,14 @@ type StepError = {
 
 type DomainError =    
     | InitScenarioError  of ex:exn    
+    | CleanScenarioError of ex:exn    
     | AssertNotFound of assertNumber:int * assertion:Assertion
     | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
 
 let toString (error) =
     match error with    
     | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
+    | CleanScenarioError ex -> String.Format("clean scenario error:'{0}'", ex.ToString())    
     
     | AssertNotFound (assertNum,assertion) -> 
         match assertion with

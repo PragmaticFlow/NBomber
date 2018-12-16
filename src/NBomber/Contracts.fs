@@ -29,11 +29,10 @@ type PushContext<'TConnection> = {
 type IStep = interface end
 type IAssertion = interface end  
 
-type TestInit = unit -> unit
-
 type Scenario = {
     ScenarioName: string    
-    TestInit: TestInit option
+    TestInit: (unit -> unit) option
+    TestClean: (unit -> unit) option
     Steps: IStep[]
     Assertions: IAssertion[]
     ConcurrentCopies: int
