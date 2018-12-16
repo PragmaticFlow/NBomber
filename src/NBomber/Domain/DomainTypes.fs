@@ -100,6 +100,7 @@ type Scenario = {
 
 type DomainError =    
     | InitScenarioError  of ex:exn    
+    | CleanScenarioError of ex:exn    
     | AssertNotFound of assertNumber:int * assertion:Assertion
     | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
 
