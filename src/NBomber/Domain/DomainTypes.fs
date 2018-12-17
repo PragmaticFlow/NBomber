@@ -79,11 +79,6 @@ type StepAssertion = {
     AssertFunc: AssertFunc
 }
 
-type ScenarioAssertion = {
-    ScenarioName: ScenarioName
-    AssertFunc: AssertFunc
-}
-
 type Assertion = 
     | Step     of StepAssertion    
     interface IAssertion
