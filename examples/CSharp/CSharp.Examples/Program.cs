@@ -8,11 +8,12 @@ namespace CSharp.Examples
     {
         static void Main(string[] args)
         {
-            var scenario = HttpScenario
+            var scenario = HelloWorldScenario
+            //var scenario = HttpScenario
             //var scenario = MongoDbScenario
             //var scenario = WebSocketsScenario
                 .BuildScenario()
-                .WithConcurrentCopies(50)
+                .WithConcurrentCopies(10)
                 .WithDuration(TimeSpan.FromSeconds(5));
 
             NBomberRunner.RegisterScenarios(scenario)

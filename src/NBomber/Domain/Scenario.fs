@@ -34,6 +34,7 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
 let create (config: Contracts.Scenario) =    
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
+      TestClean = config.TestClean
       Steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray
       Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
       ConcurrentCopies = config.ConcurrentCopies      
@@ -68,7 +69,7 @@ let runInit (scenario: Scenario) =
     with 
     | ex -> ex |> InitScenarioError |> Error
 
-let dispose (scenario: Scenario) =     
+let clean (scenario: Scenario) =     
 
     let invokeDispose (connection: obj) =
         if connection :? IDisposable then (connection :?> IDisposable).Dispose()
@@ -80,8 +81,15 @@ let dispose (scenario: Scenario) =
                 | Some close -> close(connection)
                                 invokeDispose(connection)
                 | None       -> invokeDispose(connection)
-            with 
-            | ex -> Serilog.Log.Error(ex, "CloseConnection")        
+            with
+            | ex -> Serilog.Log.Error(ex, "CloseConnection")
     
     getDistinctPools(scenario)
     |> Array.iter(closePoolConnections) 
+
+    try
+        if scenario.TestClean.IsSome then
+            scenario.TestClean.Value()
+    with
+    | ex -> Serilog.Log.Error(ex, "TestClean")
+        

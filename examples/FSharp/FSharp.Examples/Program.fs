@@ -4,8 +4,9 @@ open NBomber.FSharp
 [<EntryPoint>]
 let main argv =
     
-    FSharpHttpScenario.buildScenario()
-    |> Scenario.withConcurrentCopies(50)
+    //HttpScenario.buildScenario()
+    HelloWorldScenario.buildScenario()
+    |> Scenario.withConcurrentCopies(10)
     |> Scenario.withDuration(TimeSpan.FromSeconds(5.0))    
     |> NBomberRunner.registerScenario
     // |> NBomberRunner.registerScenarios

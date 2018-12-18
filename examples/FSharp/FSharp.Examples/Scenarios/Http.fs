@@ -1,4 +1,4 @@
-﻿module FSharpHttpScenario
+﻿module HttpScenario
 
 open System
 open System.Net.Http
@@ -19,10 +19,10 @@ let buildScenario () =
 
     let pool = ConnectionPool.create("httpPool", fun () -> new HttpClient())
 
-    let step = Step.createPull("GET html", pool, fun context -> task {        
+    let step1 = Step.createPull("GET html", pool, fun context -> task {        
         let! response = createHttpRequest() |> context.Connection.SendAsync
         return if response.IsSuccessStatusCode then Response.Ok()
                else Response.Fail(response.StatusCode.ToString()) 
     })
         
-    Scenario.create("test github", [step])
+    Scenario.create("test github", [step1])

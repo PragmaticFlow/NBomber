@@ -6,11 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Scenarios\HelloWorld.fs" />
+    <Compile Include="Scenarios\Http.fs" />
+    <Compile Include="Program.fs" />
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Scenarios\Http.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup />

@@ -21,11 +21,11 @@ PM> Install-Package NBomber
 Documentation is located [here](https://nbomber.com).
 
 ### Features
-- [x] Request-response scenario
-- [x] Pub/Sub scenario
+- [x] Pull scenario (Request-response)
+- [x] Push scenario (Pub/Sub)
 - [x] Sequential flow
 - [x] Test runner support: [XUnit; NUnit]
-- [x] Cluster support
+- [x] Cluster support (run scenario from several nodes in parallel)
 - [x] Reporting: [Plain text; HTML]
 
 ### Supported technologies
@@ -36,32 +36,39 @@ Documentation is located [here](https://nbomber.com).
 ### Examples
 |Scenario|Language|Example|
 |--|--|--|
-| HTTP | C# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.Http/Program.cs) |
-| MongoDb | C# | [Test MongoDb with 2 READ queries and 2000 docs](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.MongoDb/Program.cs) |
-| NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.NUnit/Tests.cs) |
-| Simple Push | C# | [Test fake push server](https://github.com/PragmaticFlow/NBomber/blob/master/examples/CSharp.Example.SimplePush/Program.cs) |
-| HTTP | F# | [Test HTTP (https://github.com) with 100 concurrent users](https://github.com/PragmaticFlow/NBomber/blob/master/examples/FSharp.Example.Http/Program.fs) |
-| XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/master/examples/FSharp.Example.XUnit/Tests.fs) |
+| HTTP | C# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/Http.cs) |
+| MongoDb | C# | [Test MongoDb with 2 READ queries](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/MongoDb.cs)|
+| NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.NUnit/Tests.cs) |
+| WebSockets | C# | [Test ping and pong on WebSockets](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/WebSockets.cs) |
+| HTTP | F# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/Http.fs) |
+| XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.XUnit/Tests.fs) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
 
 ## Why another {x} framework for load testing?
 The main reasons are:
- - **To be technology agnostic** as much as possible (**no dependency on any protocol: HTTP, WebSockets, SSE**).
+ - **To be technology agnostic** as much as possible (**no dependency on any protocol: HTTP, WebSockets, SSE etc**).
  - To be able to test .NET implementation of specific driver. During testing, it was identified many times that the performance could be slightly different because of the virtual machine(.NET, Java, PHP, Js, Erlang, different settings for GC) or just quality of drivers. For example there were cases that drivers written in C++ and invoked from NodeJs app worked faster than drivers written in C#/.NET. Therefore, it does make sense to load test your app using your concrete driver and runtime.
 
-### What makes it very simple? 
+ ### What makes it very simple? 
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
-// simple C# example
-var scenario = ScenarioBuilder.CreateScenario("Test MongoDb", mongoQuery);
+var httpPool = ConnectionPool.Create("http pool", () => new HttpClient());
+
+var step1 = Step.CreatePull("GET html", httpPool, async context =>
+{
+    var request = CreateHttpRequest();
+    var response = await context.Connection.SendAsync(request);
+    return response.IsSuccessStatusCode
+        ? Response.Ok()
+        : Response.Fail(response.StatusCode.ToString());
+});
+
+var scenario = ScenarioBuilder.CreateScenario("test github", step1)
+                              .WithConcurrentCopies(10)
+                              .WithDuration(TimeSpan.FromSeconds(20));
+
 NBomberRunner.RegisterScenarios(scenario)
              .RunInConsole();
-```
-```fsharp
-// simple F# example
-Scenario.create("Test MongoDb", [mongoQuery])
-|> NBomberRunner.registerScenario
-|> NBomberRunner.runInConsole
 ```

@@ -77,20 +77,17 @@ type StepAssertion = {
     StepName: StepName
     ScenarioName: ScenarioName
     AssertFunc: AssertFunc
-}
-
-type ScenarioAssertion = {
-    ScenarioName: ScenarioName
-    AssertFunc: AssertFunc
+    Label: string option
 }
 
 type Assertion = 
-    | Step     of StepAssertion    
+    | Step of StepAssertion    
     interface IAssertion
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: TestInit option  
+    TestInit: (unit -> unit) option  
+    TestClean: (unit -> unit) option  
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int

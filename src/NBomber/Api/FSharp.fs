@@ -73,17 +73,17 @@ module Step =
 
     let createPause (duration) = Pause(duration) :> IStep    
 
-module Assertion =
-    open NBomber.Domain.DomainTypes
+type Assertion =
 
-    let forStep (stepName, assertion: AssertStats -> bool) = 
-        Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion }) :> IAssertion
+    static member forStep (stepName, assertion: AssertStats -> bool, ?label: string) =         
+        Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
 module Scenario =        
     
     let create (name: string, steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = None
+          TestClean = None
           Steps = Seq.toArray(steps)
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
@@ -92,9 +92,12 @@ module Scenario =
     let withTestInit (initFunc: unit -> unit) (scenario: Contracts.Scenario) =                
         { scenario with TestInit = Some initFunc }
 
+    let withTestClean (cleanFunc: unit -> unit) (scenario: Contracts.Scenario) =
+        { scenario with TestClean = Some cleanFunc }
+
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
-                    |> Seq.cast<Assertion>
+                    |> Seq.cast<Domain.DomainTypes.Assertion>
                     |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray
