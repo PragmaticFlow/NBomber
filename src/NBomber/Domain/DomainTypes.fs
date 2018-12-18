@@ -77,10 +77,11 @@ type StepAssertion = {
     StepName: StepName
     ScenarioName: ScenarioName
     AssertFunc: AssertFunc
+    Label: string option
 }
 
 type Assertion = 
-    | Step     of StepAssertion    
+    | Step of StepAssertion    
     interface IAssertion
 
 type Scenario = {    

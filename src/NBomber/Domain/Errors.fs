@@ -26,9 +26,15 @@ let toString (error) =
         | Step s -> String.Format("Assertion #'{0}' is not found for step: '{1}' in scenario: '{2}'", assertNum, s.StepName, s.ScenarioName)        
 
     | AssertionError (assertNum,assertion,stats) ->
-        let statsStr = sprintf "%A" stats
+        let statsJson = sprintf "%A" stats        
         match assertion with
-        | Step s -> String.Format("Assertion #'{0}' FAILED for step: '{1}' in scenario: '{2}', stats: '{3}'", assertNum, s.StepName, s.ScenarioName, statsStr)
+        | Step s -> let scenarioStr = String.Format("SCENARIO: '{0}' {1}", s.ScenarioName, Environment.NewLine)
+                    let stepStr     = String.Format("STEP: '{0}' {1}", s.StepName, Environment.NewLine)                    
+                    let labelStr = if s.Label.IsSome
+                                   then String.Format("LABEL: '{0}' {1}", s.Label.Value, Environment.NewLine)
+                                   else String.Empty 
+                    let statsStr = String.Format("STATS: {0} {1} {2}", Environment.NewLine, statsJson, Environment.NewLine)
+                    String.Format("Assertion #'{0}' FAILED for: {1} {2} {3} {4} {5}", assertNum, Environment.NewLine, scenarioStr, stepStr, labelStr, statsStr)
 
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 
