@@ -9,9 +9,8 @@ let print (stats: GlobalStats) =
     header + Environment.NewLine + body
 
 let private getHeader () =
-    "scenario,execution_time,step_name,request_count," +
-    "ok,failed,rps,min,mean,max,50_percent,75_percent," +
-    "95_percent,std_dev"
+    "scenario,execution_time,step_name,request_count,ok,failed," +
+    "rps,min,mean,max,50_percent,75_percent,95_percent,std_dev"
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats) =
     sprintf "%s,%O,%s,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i"
