@@ -1,26 +1,28 @@
 ﻿module internal rec NBomber.DomainServices.Reporting.CsvReport
 
 open System
-open ConsoleTables
 open NBomber.Domain.StatisticsTypes
 
 let print (stats: GlobalStats) =
     let header = printHeader()
-
-    stats.AllScenariosStats
-    |> Array.map(fun x -> printSteps(x))
-    |> String.concat(Environment.NewLine)
+    let body = stats.AllScenariosStats |> Array.map printSteps |> String.concat ""
+    header + Environment.NewLine + body
 
 let private printHeader () =
-    "Scenario, Execution time, request_count, OK, failed, RPS, min, mean, max, 50%, 75%, 95%, StdDev"
+    sprintf "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
+            "Scenario" "Execution time" "step name" "request_count"
+            "OK" "failed" "RPS" "min" "mean" "max" "50%" "75%"
+            "95%" "StdDev"
 
-let private printSteps (stats: ScenarioStats) : string [] =
+let private printStep (scenarioName: string, duration: TimeSpan, stats: StepStats) =
+    sprintf "%s, %O, %s, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i"
+            scenarioName duration stats.StepName stats.ReqeustCount
+            stats.OkCount stats.FailCount stats.Percentiles.Value.RPS stats.Percentiles.Value.Min
+            stats.Percentiles.Value.Mean stats.Percentiles.Value.Max stats.Percentiles.Value.Percent50
+            stats.Percentiles.Value.Percent75 stats.Percentiles.Value.Percent95
+            stats.Percentiles.Value.StdDev
+
+let private printSteps (stats: ScenarioStats) =
     stats.StepsStats
-    |> Array.map(fun s ->
-        String.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}",
-            stats.ScenarioName, stats.Duration.ToString(),
-            s.StepName, s.ReqeustCount, s.OkCount, s.FailCount,
-            s.Percentiles.Value.RPS, s.Percentiles.Value.Min,
-            s.Percentiles.Value.Mean, s.Percentiles.Value.Max,
-            s.Percentiles.Value.Percent50, s.Percentiles.Value.Percent75,
-            s.Percentiles.Value.Percent95, s.Percentiles.Value.StdDev))
+    |> Array.map(fun s -> printStep(stats.ScenarioName, stats.Duration, s))
+    |> String.concat(Environment.NewLine)    
