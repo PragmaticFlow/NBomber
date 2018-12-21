@@ -23,7 +23,7 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string, outputFilename: string option) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, outputFilename: string option, outputFiletypes: string[]) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
@@ -32,9 +32,14 @@ let save (dep: Dependency, outPutDir: string, outputFilename: string option) (re
         let fileName = outputFilename |> Option.defaultValue ("report_" + dep.SessionId)
         let filePath = reportsDir + "/" + fileName
         
-        File.WriteAllText(filePath + ".txt", report.TxtReport)
-        File.WriteAllText(filePath + ".html", report.HtmlReport)
-        File.WriteAllText(filePath + ".csv", report.CsvReport)    
+        let isPrintingTxt = outputFiletypes |> Array.exists(fun x -> x = "Txt")
+        let isPrintingHtml = outputFiletypes |> Array.exists(fun x -> x = "Html")
+        let isPrintingCsv = outputFiletypes |> Array.exists(fun x -> x = "Csv")
+
+        if(isPrintingTxt) then File.WriteAllText(filePath + ".txt", report.TxtReport)
+        if(isPrintingHtml) then File.WriteAllText(filePath + ".Html", report.HtmlReport)
+        if(isPrintingCsv) then File.WriteAllText(filePath + ".csv", report.CsvReport)
+ 
         Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
         Log.Information(report.TxtReport)
     with

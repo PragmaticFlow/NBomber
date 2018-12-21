@@ -14,7 +14,7 @@ let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenar
     let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios }
     let config = { NBomberConfig.GlobalSettings = Some globalSettings }
     
-    { Scenarios = [|scenario|]; NBomberConfig = Some config; OutputFilename = None }
+    { Scenarios = [|scenario|]; NBomberConfig = Some config; OutputFilename = None; OutputFileTypes = [||] }
 
 let buildSettings (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
     { ScenarioName = scenarioName; Duration = duration; ConcurrentCopies = concurrentCopies }

@@ -59,5 +59,6 @@ type Response with
 type NBomberRunnerContext = {
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option  
-    OutputFilename: String option 
+    OutputFilename: string option
+    OutputFileTypes: string []
 }
