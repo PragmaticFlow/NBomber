@@ -131,8 +131,9 @@ module NBomberRunner =
     let withOutputFilename (outputFilename: string) (context: NBomberRunnerContext) =
         { context with OutputFilename = Some outputFilename }
 
-    let withOutputFileTypes (outputFileTypes: FileType[]) (context: NBomberRunnerContext) =
-        { context with OutputFileTypes = outputFileTypes }    
+    let withOutputFileTypes (outputFileTypes: FileType list) (context: NBomberRunnerContext) =
+        let fileTypes = outputFileTypes |> Seq.toArray
+        { context with OutputFileTypes = fileTypes }    
 
     let loadConfig (path: string) (context: NBomberRunnerContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse

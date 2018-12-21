@@ -69,8 +69,9 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withOutputFilename(outputFilename)
 
     [<Extension>]
-    static member WithOutputFileTypes(context: NBomberRunnerContext, outputFileTypes: FileType[]) =
-        context |> FSharp.NBomberRunner.withOutputFileTypes(outputFileTypes)   
+    static member WithOutputFileTypes(context: NBomberRunnerContext, [<System.ParamArray>]outputFileTypes: FileType[]) =
+        let fileTypes = outputFileTypes |> Seq.toList
+        context |> FSharp.NBomberRunner.withOutputFileTypes(fileTypes)   
 
     [<Extension>]
     static member Run(context: NBomberRunnerContext) =

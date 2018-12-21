@@ -20,7 +20,7 @@ namespace CSharp.Examples
             NBomberRunner.RegisterScenarios(scenario)
                          //.LoadConfig("config.json")
                          //.WithOutputFilename("custom_report_name")
-                         //.WithOutputFileTypes(new [] { FileType.Txt, FileType.Html })
+                         //.WithOutputFileTypes(FileType.Txt, FileType.Html)
                          .RunInConsole();
         }
     }
