@@ -117,10 +117,13 @@ module NBomberRunner =
     open NBomber.Infra        
 
     let registerScenario (scenario: Contracts.Scenario) = 
-        { Scenarios = [|scenario|]; NBomberConfig = None }
+        { Scenarios = [|scenario|]; NBomberConfig = None; OutputFilename = None }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
-        { Scenarios = Seq.toArray(scenarios); NBomberConfig = None }
+        { Scenarios = Seq.toArray(scenarios); NBomberConfig = None; OutputFilename = None }
+
+    let withOutputFilename (outputFilename: string) (context: NBomberRunnerContext) =
+        { context with OutputFilename = Some outputFilename }    
 
     let loadConfig (path: string) (context: NBomberRunnerContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse

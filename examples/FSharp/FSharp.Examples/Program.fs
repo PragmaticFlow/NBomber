@@ -11,6 +11,7 @@ let main argv =
     |> NBomberRunner.registerScenario
     // |> NBomberRunner.registerScenarios
     // |> NBomberRunner.loadConfig "config.json"
+    // |> NBomberRunner.withOutputFilename "custom_report_name"
     |> NBomberRunner.runInConsole
 
     0

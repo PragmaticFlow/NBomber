@@ -23,14 +23,15 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, outputFilename: string option) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
-
-        let filePath = reportsDir + "/report_" + dep.SessionId
-
+        
+        let fileName = outputFilename |> Option.defaultValue ("report_" + dep.SessionId)
+        let filePath = reportsDir + "/" + fileName
+        
         File.WriteAllText(filePath + ".txt", report.TxtReport)
         File.WriteAllText(filePath + ".html", report.HtmlReport)
         File.WriteAllText(filePath + ".csv", report.CsvReport)    
