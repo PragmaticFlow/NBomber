@@ -1,6 +1,7 @@
 ﻿using System;
 using NBomber.CSharp;
 using CSharp.Examples.Scenarios;
+using NBomber.Contracts;
 
 namespace CSharp.Examples
 {

@@ -10,6 +10,7 @@ open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
+open NBomber.Contracts
 
 type ReportResult = {
     TxtReport: string
@@ -23,7 +24,7 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string, outputFilename: string option, outputFiletypes: string[]) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, outputFilename: string option, outputFiletypes: FileType[]) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
@@ -32,9 +33,9 @@ let save (dep: Dependency, outPutDir: string, outputFilename: string option, out
         let fileName = outputFilename |> Option.defaultValue ("report_" + dep.SessionId)
         let filePath = reportsDir + "/" + fileName
         
-        let isPrintingTxt = outputFiletypes |> Array.exists(fun x -> x = "Txt")
-        let isPrintingHtml = outputFiletypes |> Array.exists(fun x -> x = "Html")
-        let isPrintingCsv = outputFiletypes |> Array.exists(fun x -> x = "Csv")
+        let isPrintingTxt = outputFiletypes |> Array.exists(fun x -> x = FileType.Txt)
+        let isPrintingHtml = outputFiletypes |> Array.exists(fun x -> x = FileType.Html)
+        let isPrintingCsv = outputFiletypes |> Array.exists(fun x -> x = FileType.Csv)
 
         if(isPrintingTxt) then File.WriteAllText(filePath + ".txt", report.TxtReport)
         if(isPrintingHtml) then File.WriteAllText(filePath + ".Html", report.HtmlReport)

@@ -56,9 +56,11 @@ type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
     static member Fail(error: string) = { IsOk = false; Payload = error }
 
+type FileType = Txt | Html | Csv
+
 type NBomberRunnerContext = {
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option  
     OutputFilename: string option
-    OutputFileTypes: string []
+    OutputFileTypes: FileType []
 }

@@ -78,8 +78,6 @@ type Assertion =
     static member forStep (stepName, assertion: AssertStats -> bool, ?label: string) =         
         Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
-type FileType = Txt | Html | Csv
-
 module Scenario =        
     
     let create (name: string, steps: IStep list): Contracts.Scenario =
@@ -122,19 +120,19 @@ module NBomberRunner =
         { Scenarios = [|scenario|];
             NBomberConfig = None;
             OutputFilename = None;
-            OutputFileTypes = [|"Txt"; "Html"; "Csv"|] }
+            OutputFileTypes = [|FileType.Txt; FileType.Html; FileType.Csv|] }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
         { Scenarios = Seq.toArray(scenarios);
             NBomberConfig = None;
             OutputFilename = None;
-            OutputFileTypes = [|"Txt"; "Html"; "Csv"|] }
+            OutputFileTypes = [|FileType.Txt; FileType.Html; FileType.Csv|] }
 
     let withOutputFilename (outputFilename: string) (context: NBomberRunnerContext) =
         { context with OutputFilename = Some outputFilename }
 
     let withOutputFileTypes (outputFileTypes: FileType[]) (context: NBomberRunnerContext) =
-        { context with OutputFileTypes = (outputFileTypes |> Array.map(fun x -> x.ToString())) }    
+        { context with OutputFileTypes = outputFileTypes }    
 
     let loadConfig (path: string) (context: NBomberRunnerContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse

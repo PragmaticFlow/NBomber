@@ -28,8 +28,6 @@ type Assertion =
         if isNull label then Assertion.forStep(stepName, assertion.Invoke)
         else Assertion.forStep(stepName, assertion.Invoke, label)
 
-type FileType = Txt | Html | Csv
-
 [<Extension>]
 type ScenarioBuilder =
 
@@ -72,17 +70,7 @@ type NBomberRunner =
 
     [<Extension>]
     static member WithOutputFileTypes(context: NBomberRunnerContext, outputFileTypes: FileType[]) =
-        let mutable fileTypes : FSharp.FileType list = []
-
-        let isPrintingTxt = outputFileTypes |> Array.exists(fun x -> x = FileType.Txt)
-        let isPrintingHtml = outputFileTypes |> Array.exists(fun x -> x = FileType.Html)
-        let isPrintingCsv = outputFileTypes |> Array.exists(fun x -> x = FileType.Csv)
-
-        if(isPrintingTxt) then fileTypes <- FSharp.FileType.Txt :: fileTypes
-        if(isPrintingHtml) then fileTypes <- FSharp.FileType.Html :: fileTypes
-        if(isPrintingCsv) then fileTypes <- FSharp.FileType.Csv :: fileTypes
-
-        context |> FSharp.NBomberRunner.withOutputFileTypes((fileTypes |> List.toArray))   
+        context |> FSharp.NBomberRunner.withOutputFileTypes(outputFileTypes)   
 
     [<Extension>]
     static member Run(context: NBomberRunnerContext) =
