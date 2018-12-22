@@ -12,8 +12,8 @@ let main argv =
     |> NBomberRunner.registerScenario
     // |> NBomberRunner.registerScenarios
     // |> NBomberRunner.loadConfig "config.json"
-    // |> NBomberRunner.withOutputFilename "custom_report_name"
-    // |> NBomberRunner.withOutputFileTypes [FileType.Csv]
+    // |> NBomberRunner.withReportFileName "custom_report_name"
+    // |> NBomberRunner.withReportFormats [FileType.Csv]
     |> NBomberRunner.runInConsole
 
     0

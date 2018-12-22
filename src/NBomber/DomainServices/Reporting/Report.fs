@@ -24,18 +24,18 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string, outputFilename: string option, outputFiletypes: FileType[]) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, reportFileName: string option, reportFormats: ReportFormat[]) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
         
-        let fileName = outputFilename |> Option.defaultValue ("report_" + dep.SessionId)
+        let fileName = reportFileName |> Option.defaultValue ("report_" + dep.SessionId)
         let filePath = reportsDir + "/" + fileName
         
-        let isPrintingTxt = outputFiletypes |> Array.exists(fun x -> x = FileType.Txt)
-        let isPrintingHtml = outputFiletypes |> Array.exists(fun x -> x = FileType.Html)
-        let isPrintingCsv = outputFiletypes |> Array.exists(fun x -> x = FileType.Csv)
+        let isPrintingTxt = reportFormats |> Array.exists(fun x -> x = ReportFormat.Txt)
+        let isPrintingHtml = reportFormats |> Array.exists(fun x -> x = ReportFormat.Html)
+        let isPrintingCsv = reportFormats |> Array.exists(fun x -> x = ReportFormat.Csv)
 
         if(isPrintingTxt) then File.WriteAllText(filePath + ".txt", report.TxtReport)
         if(isPrintingHtml) then File.WriteAllText(filePath + ".Html", report.HtmlReport)

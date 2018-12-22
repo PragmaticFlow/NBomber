@@ -119,21 +119,21 @@ module NBomberRunner =
     let registerScenario (scenario: Contracts.Scenario) = 
         { Scenarios = [|scenario|];
             NBomberConfig = None;
-            OutputFilename = None;
-            OutputFileTypes = [|FileType.Txt; FileType.Html; FileType.Csv|] }
+            ReportFileName = None;
+            ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
         { Scenarios = Seq.toArray(scenarios);
             NBomberConfig = None;
-            OutputFilename = None;
-            OutputFileTypes = [|FileType.Txt; FileType.Html; FileType.Csv|] }
+            ReportFileName = None;
+            ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
 
-    let withOutputFilename (outputFilename: string) (context: NBomberRunnerContext) =
-        { context with OutputFilename = Some outputFilename }
+    let withReportFileName (reportFileName: string) (context: NBomberRunnerContext) =
+        { context with ReportFileName = Some reportFileName }
 
-    let withOutputFileTypes (outputFileTypes: FileType list) (context: NBomberRunnerContext) =
-        let fileTypes = outputFileTypes |> Seq.toArray
-        { context with OutputFileTypes = fileTypes }    
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberRunnerContext) =
+        let formats = reportFormats |> Seq.toArray
+        { context with ReportFormats = formats }    
 
     let loadConfig (path: string) (context: NBomberRunnerContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
