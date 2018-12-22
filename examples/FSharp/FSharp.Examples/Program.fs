@@ -1,5 +1,6 @@
 ﻿open System
 open NBomber.FSharp
+open NBomber.Contracts
 
 [<EntryPoint>]
 let main argv =
@@ -11,6 +12,8 @@ let main argv =
     |> NBomberRunner.registerScenario
     // |> NBomberRunner.registerScenarios
     // |> NBomberRunner.loadConfig "config.json"
+    // |> NBomberRunner.withReportFileName "custom_report_name"
+    // |> NBomberRunner.withReportFormats [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv]
     |> NBomberRunner.runInConsole
 
     0

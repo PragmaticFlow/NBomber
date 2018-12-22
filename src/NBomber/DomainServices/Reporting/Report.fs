@@ -10,6 +10,7 @@ open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
+open NBomber.Contracts
 
 type ReportResult = {
     TxtReport: string
@@ -23,17 +24,23 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, reportFileName: string option, reportFormats: ReportFormat[]) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
+        
+        let fileName = reportFileName |> Option.defaultValue ("report_" + dep.SessionId)
+        let filePath = reportsDir + "/" + fileName
+        
+        let isPrintingTxt = reportFormats |> Array.exists(fun x -> x = ReportFormat.Txt)
+        let isPrintingHtml = reportFormats |> Array.exists(fun x -> x = ReportFormat.Html)
+        let isPrintingCsv = reportFormats |> Array.exists(fun x -> x = ReportFormat.Csv)
 
-        let filePath = reportsDir + "/report_" + dep.SessionId
-
-        File.WriteAllText(filePath + ".txt", report.TxtReport)
-        File.WriteAllText(filePath + ".html", report.HtmlReport)
-        File.WriteAllText(filePath + ".csv", report.CsvReport)    
+        if(isPrintingTxt) then File.WriteAllText(filePath + ".txt", report.TxtReport)
+        if(isPrintingHtml) then File.WriteAllText(filePath + ".Html", report.HtmlReport)
+        if(isPrintingCsv) then File.WriteAllText(filePath + ".csv", report.CsvReport)
+ 
         Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
         Log.Information(report.TxtReport)
     with

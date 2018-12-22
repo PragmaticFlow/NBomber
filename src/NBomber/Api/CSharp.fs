@@ -65,6 +65,15 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.loadConfig(path)
 
     [<Extension>]
+    static member WithReportFileName(context: NBomberRunnerContext, reportFileName: string) =
+        context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
+
+    [<Extension>]
+    static member WithReportFormats(context: NBomberRunnerContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+        let formats = reportFormats |> Seq.toList
+        context |> FSharp.NBomberRunner.withReportFormats(formats)   
+
+    [<Extension>]
     static member Run(context: NBomberRunnerContext) =
         FSharp.NBomberRunner.run(context)
         

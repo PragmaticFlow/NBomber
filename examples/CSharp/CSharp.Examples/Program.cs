@@ -1,4 +1,5 @@
 ﻿using System;
+using NBomber.Contracts;
 using NBomber.CSharp;
 using CSharp.Examples.Scenarios;
 
@@ -18,6 +19,8 @@ namespace CSharp.Examples
 
             NBomberRunner.RegisterScenarios(scenario)
                          //.LoadConfig("config.json")
+                         //.WithReportFileName("custom_report_name")
+                         //.WithReportFormats(ReportFormat.Txt, ReportFormat.Html, ReportFormat.Csv)
                          .RunInConsole();
         }
     }

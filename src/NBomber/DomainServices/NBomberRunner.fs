@@ -144,7 +144,7 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             let allAsserts = scnRunners |> Array.collect(fun x -> x.Scenario.Assertions)
             let assertResults = Assertion.apply(globalStats, allAsserts)
             Report.build(dep, globalStats, assertResults)
-            |> Report.save(dep, "./")
+            |> Report.save(dep, "./", context.ReportFileName, context.ReportFormats)
                         
             cleanScenarios(scnRunners)
 
