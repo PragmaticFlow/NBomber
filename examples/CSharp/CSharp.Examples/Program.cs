@@ -19,8 +19,8 @@ namespace CSharp.Examples
 
             NBomberRunner.RegisterScenarios(scenario)
                          //.LoadConfig("config.json")
-                         //.WithReportFilename("custom_report_name")
-                         //.WithReportFormats(FileType.Txt, FileType.Html)
+                         //.WithReportFileName("custom_report_name")
+                         //.WithReportFormats(ReportFormat.Txt, ReportFormat.Html, ReportFormat.Csv)
                          .RunInConsole();
         }
     }
