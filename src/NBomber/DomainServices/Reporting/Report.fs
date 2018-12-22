@@ -33,13 +33,13 @@ let save (dep: Dependency, outPutDir: string, reportFileName: string option, rep
         let fileName = reportFileName |> Option.defaultValue ("report_" + dep.SessionId)
         let filePath = reportsDir + "/" + fileName
         
-        let isPrintingTxt = reportFormats |> Array.exists(fun x -> x = ReportFormat.Txt)
+        let isPrintingTxt  = reportFormats |> Array.exists(fun x -> x = ReportFormat.Txt)
         let isPrintingHtml = reportFormats |> Array.exists(fun x -> x = ReportFormat.Html)
-        let isPrintingCsv = reportFormats |> Array.exists(fun x -> x = ReportFormat.Csv)
+        let isPrintingCsv  = reportFormats |> Array.exists(fun x -> x = ReportFormat.Csv)
 
-        if(isPrintingTxt) then File.WriteAllText(filePath + ".txt", report.TxtReport)
-        if(isPrintingHtml) then File.WriteAllText(filePath + ".Html", report.HtmlReport)
-        if(isPrintingCsv) then File.WriteAllText(filePath + ".csv", report.CsvReport)
+        if isPrintingTxt  then File.WriteAllText(filePath + ".txt", report.TxtReport)
+        if isPrintingHtml then File.WriteAllText(filePath + ".Html", report.HtmlReport)
+        if isPrintingCsv  then File.WriteAllText(filePath + ".csv", report.CsvReport)
  
         Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
         Log.Information(report.TxtReport)

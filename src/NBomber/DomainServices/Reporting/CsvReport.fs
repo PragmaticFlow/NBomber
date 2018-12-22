@@ -22,5 +22,5 @@ let private printSteps (stats: ScenarioStats) =
 
 let print (stats: GlobalStats) =
     let header = getHeader()
-    let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat ""
+    let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat("")
     header + Environment.NewLine + body
