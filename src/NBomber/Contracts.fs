@@ -7,6 +7,7 @@ open NBomber.Configuration
 type Response = {
     IsOk: bool
     Payload: obj
+    SizeKB: int
 }
 
 type IUpdatesChannel =
@@ -50,11 +51,15 @@ type AssertStats = {
     Percent75: int
     Percent95: int
     StdDev: int
+    DataMinKB: int
+    DataMeanKB: int
+    DataMaxKB: int
+    AllDataMB: float
 }
     
 type Response with
-    static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj) = { IsOk = true; Payload = payload }
-    static member Fail(error: string) = { IsOk = false; Payload = error }
+    static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj, [<Optional;DefaultParameterValue(0:int)>]sizeKB: int) = { IsOk = true; Payload = payload; SizeKB = sizeKB }
+    static member Fail(error: string) = { IsOk = false; Payload = error; SizeKB = 0 }
 
 type ReportFormat = 
     | Txt = 0

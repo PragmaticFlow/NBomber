@@ -25,4 +25,4 @@ let buildScenario () =
                else Response.Fail(response.StatusCode.ToString()) 
     })
         
-    Scenario.create("test github", [step1])
+    Scenario.create("test_github", [step1])

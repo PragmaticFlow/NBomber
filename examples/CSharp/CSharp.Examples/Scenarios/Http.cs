@@ -25,12 +25,16 @@ namespace CSharp.Examples.Scenarios
             {
                 var request = CreateHttpRequest();
                 var response = await context.Connection.SendAsync(request);
+                var responseSizeKB = response.Content.Headers.ContentLength.HasValue
+                    ? response.Content.Headers.ContentLength.Value / 1024
+                    : 0;
+
                 return response.IsSuccessStatusCode
-                    ? Response.Ok()
+                    ? Response.Ok(sizeKB: Convert.ToInt32(responseSizeKB))
                     : Response.Fail(response.StatusCode.ToString());
             });
 
-            return ScenarioBuilder.CreateScenario("test github", step1);                           
+            return ScenarioBuilder.CreateScenario("test_github", step1);                           
         }
     }
 }

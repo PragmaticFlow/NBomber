@@ -55,7 +55,7 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            return ScenarioBuilder.CreateScenario("test mongo", step1, step2)
+            return ScenarioBuilder.CreateScenario("test_mongo", step1, step2)
                                   .WithTestInit(initDb);                                  
         }
     }
