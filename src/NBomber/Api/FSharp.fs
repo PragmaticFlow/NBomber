@@ -84,7 +84,7 @@ module Scenario =
         { ScenarioName = name
           TestInit = None
           TestClean = None
-          Steps = Seq.toArray(steps)
+          Steps = List.toArray(steps)
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
           Assertions = Array.empty }
@@ -123,7 +123,7 @@ module NBomberRunner =
           ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
-        { Scenarios = Seq.toArray(scenarios)
+        { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
           ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
