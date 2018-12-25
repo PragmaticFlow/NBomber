@@ -57,9 +57,9 @@ module StatisticsTable =
                          stats.StdDev.ToString()]
             
             let dataTransferBlock = if step.DataTransfer.AllMB > 0.0 then
-                                        [step.DataTransfer.MinKB.ToString();
-                                         step.DataTransfer.MeanKB.ToString();
-                                         step.DataTransfer.MaxKB.ToString();
+                                        [step.DataTransfer.MinKB.ToString()
+                                         step.DataTransfer.MeanKB.ToString()
+                                         step.DataTransfer.MaxKB.ToString()
                                          step.DataTransfer.MaxKB.ToString()]
                                     else ["-"; "-"; "-"; "-"]
 
