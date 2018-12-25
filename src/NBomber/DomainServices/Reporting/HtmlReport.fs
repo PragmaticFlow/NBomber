@@ -46,17 +46,24 @@ module NumberReqChart =
 
 module StatisticsTable =    
 
-    let print (assets: Assets, scnStats: ScenarioStats[]) =
-        
+    let print (assets: Assets, scnStats: ScenarioStats[]) =     
+
         let printStepRow (step) =
             let stats = step.Percentiles.Value
-            [step.StepName; step.ReqeustCount.ToString()
-             step.OkCount.ToString(); step.FailCount.ToString()
-             stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString()
-             stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString()
-             stats.StdDev.ToString(); step.DataTransfer.MinKB.ToString(); step.DataTransfer.MeanKB.ToString()
-             step.DataTransfer.MaxKB.ToString(); step.DataTransfer.AllMB.ToString()]
-            |> HtmlBuilder.toTableRow
+            let data = [step.StepName; step.ReqeustCount.ToString();
+                         step.OkCount.ToString(); step.FailCount.ToString();
+                         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
+                         stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString();
+                         stats.StdDev.ToString()]
+            
+            let dataTransferBlock = if step.DataTransfer.AllMB > 0.0 then
+                                        [step.DataTransfer.MinKB.ToString();
+                                         step.DataTransfer.MeanKB.ToString();
+                                         step.DataTransfer.MaxKB.ToString();
+                                         step.DataTransfer.MaxKB.ToString()]
+                                    else ["-"; "-"; "-"; "-"]
+
+            dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
 
         let printScenarioRow (scnStats) =  
 

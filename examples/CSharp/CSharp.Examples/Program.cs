@@ -17,10 +17,18 @@ namespace CSharp.Examples
                 .WithConcurrentCopies(10)
                 .WithDuration(TimeSpan.FromSeconds(5));
 
-            NBomberRunner.RegisterScenarios(scenario)
+            var scenario2 = HelloWorldScenario
+            //var scenario = HttpScenario
+            //var scenario = MongoDbScenario
+            //var scenario = WebSocketsScenario
+                .BuildScenario()
+                .WithConcurrentCopies(10)
+                .WithDuration(TimeSpan.FromSeconds(5));
+
+            NBomberRunner.RegisterScenarios(scenario, scenario2)
                          //.LoadConfig("config.json")
                          //.WithReportFileName("custom_report_name")
-                         //.WithReportFormats(ReportFormat.Txt, ReportFormat.Html, ReportFormat.Csv)
+                         .WithReportFormats(ReportFormat.Html)
                          .RunInConsole();
         }
     }
