@@ -30,7 +30,7 @@ let private printStepsTable (steps: StepStats[]) =
         stepTable.AddRow("- response time percentile", String.Format("50% = {0} | 75% = {1} | 95% = {2} | StdDev= {3}", p.Percent50, p.Percent75, p.Percent95, p.StdDev)) |> ignore
         
         if dataInfoAvailable then
-            stepTable.AddRow("- data transfer", String.Format("min = {0}KB | mean = {1}KB | max = {2}KB | all = {3}MB", s.DataTransfer.MinKB, s.DataTransfer.MeanKB, s.DataTransfer.MaxKB, s.DataTransfer.AllMB)) |> ignore
+            stepTable.AddRow("- data transfer", String.Format("min = {0}Kb | mean = {1}Kb | max = {2}Kb | all = {3}MB", s.DataTransfer.MinKb, s.DataTransfer.MeanKb, s.DataTransfer.MaxKb, s.DataTransfer.AllMB)) |> ignore
         else
             stepTable.AddRow("- data transfer", "min = - | mean = - | max = - | all = -") |> ignore
 

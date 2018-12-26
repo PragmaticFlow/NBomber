@@ -9,14 +9,13 @@ let private getHeader () =
     "data_transfer_min_kb,data_transfer_mean_kb,data_transfer_max_kb,data_transfer_all_mb"
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats) =
-    sprintf "%s,%O,%s,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%f"
-            scenarioName duration stats.StepName stats.ReqeustCount
-            stats.OkCount stats.FailCount stats.Percentiles.Value.RPS stats.Percentiles.Value.Min
-            stats.Percentiles.Value.Mean stats.Percentiles.Value.Max stats.Percentiles.Value.Percent50
-            stats.Percentiles.Value.Percent75 stats.Percentiles.Value.Percent95
-            stats.Percentiles.Value.StdDev
-            stats.DataTransfer.MinKB stats.DataTransfer.MeanKB 
-            stats.DataTransfer.MaxKB stats.DataTransfer.AllMB
+    let p = stats.Percentiles.Value
+    let dt = stats.DataTransfer
+    String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",    
+                  scenarioName, duration, stats.StepName, stats.ReqeustCount,
+                  stats.OkCount, stats.FailCount,
+                  p.RPS, p.Min, p.Mean, p.Max, p.Percent50, p.Percent75, p.Percent95, p.StdDev,
+                  dt.MinKb, dt.MeanKb, dt.MaxKb, dt.AllMB)
 
 let private printSteps (stats: ScenarioStats) =
     stats.StepsStats

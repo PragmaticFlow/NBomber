@@ -12,17 +12,23 @@ let buildScenario () =
 
     let createHttpRequest () =
         let msg = new HttpRequestMessage()
-        msg.RequestUri <- Uri("https://github.com/PragmaticFlow/NBomber")
+        msg.RequestUri <- Uri("https://www.youtube.com/")
         msg.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8") |> ignore
         msg.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36") |> ignore
         msg
 
-    let pool = ConnectionPool.create("httpPool", fun () -> new HttpClient())
+    let httpClient = new HttpClient()
 
-    let step1 = Step.createPull("GET html", pool, fun context -> task {        
-        let! response = createHttpRequest() |> context.Connection.SendAsync
-        return if response.IsSuccessStatusCode then Response.Ok()
-               else Response.Fail(response.StatusCode.ToString()) 
+    let step1 = Step.createPull("GET html", ConnectionPool.none, fun context -> task {        
+        let! response = createHttpRequest() |> httpClient.SendAsync        
+        let responseSize =
+            if response.Content.Headers.ContentLength.HasValue then 
+               response.Content.Headers.ContentLength.Value |> Convert.ToInt32
+            else
+               0
+
+        return if response.IsSuccessStatusCode then Response.Ok(sizeBytes = responseSize)
+               else Response.Fail() 
     })
         
-    Scenario.create("test_github", [step1])
+    Scenario.create("test_youtube", [step1])

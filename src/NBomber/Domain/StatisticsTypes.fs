@@ -4,9 +4,9 @@ open System
 open NBomber.Domain.DomainTypes
 
 type DataTransferCount = {
-    MinKB: int
-    MeanKB: int
-    MaxKB: int
+    MinKb: float
+    MeanKb: float
+    MaxKb: float
     AllMB: float
 }
 

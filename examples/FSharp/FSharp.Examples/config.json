@@ -2,7 +2,7 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "test_github",
+        "ScenarioName": "test_youtube",
         "Duration": "00:00:20",
         "ConcurrentCopies": 100
       },
@@ -12,6 +12,6 @@
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "test_github" ]
+    "TargetScenarios": [ "test_youtube" ]
   }
 }

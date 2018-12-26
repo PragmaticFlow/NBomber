@@ -19,9 +19,9 @@ type AssertStats with
           Percent75 = p.Percent75
           Percent95 = p.Percent95
           StdDev = p.StdDev
-          DataMinKB = stats.DataTransfer.MinKB
-          DataMeanKB = stats.DataTransfer.MeanKB
-          DataMaxKB = stats.DataTransfer.MaxKB
+          DataMinKb = stats.DataTransfer.MinKb
+          DataMeanKb = stats.DataTransfer.MeanKb
+          DataMaxKb = stats.DataTransfer.MaxKb
           AllDataMB = stats.DataTransfer.AllMB }
 
 let create (assertions: IAssertion[]) = 

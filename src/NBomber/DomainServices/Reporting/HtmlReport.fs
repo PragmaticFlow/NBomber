@@ -51,21 +51,22 @@ module StatisticsTable =
         let printStepRow (step) =
             let stats = step.Percentiles.Value
             let data = [step.StepName; step.ReqeustCount.ToString();
-                         step.OkCount.ToString(); step.FailCount.ToString();
-                         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
-                         stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString();
-                         stats.StdDev.ToString()]
+                        step.OkCount.ToString(); step.FailCount.ToString();
+                        stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
+                        stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString();
+                        stats.StdDev.ToString()]
             
             let dataTransferBlock = if step.DataTransfer.AllMB > 0.0 then
-                                        [step.DataTransfer.MinKB.ToString()
-                                         step.DataTransfer.MeanKB.ToString()
-                                         step.DataTransfer.MaxKB.ToString()
-                                         step.DataTransfer.MaxKB.ToString()]
-                                    else ["-"; "-"; "-"; "-"]
+                                        [step.DataTransfer.MinKb.ToString()
+                                         step.DataTransfer.MeanKb.ToString()
+                                         step.DataTransfer.MaxKb.ToString()
+                                         step.DataTransfer.MaxKb.ToString()]
+                                    else 
+                                        ["-"; "-"; "-"; "-"]
 
             dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
 
-        let printScenarioRow (scnStats) =  
+        let printScenarioTable (scnStats) =  
 
             let row = scnStats.StepsStats
                       |> Array.map(fun step -> printStepRow(step))
@@ -80,7 +81,7 @@ module StatisticsTable =
             |> String.replace("%table_body%", "<tr>" + rowStr)
 
         scnStats
-        |> Array.map(printScenarioRow)
+        |> Array.map(printScenarioTable)
         |> String.concat(String.Empty)        
 
 module ScenarioView =    

@@ -21,7 +21,7 @@ let ``Ok and Fail should be properly count`` () =
 
     let failStep = Step.createPull("fail step", pool, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Fail("error")
+        return Response.Fail()
     })
 
     let assertions = [
@@ -45,7 +45,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     
     let pullStep = Step.createPull("pull step", pool, fun context -> task {                
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Ok(sizeKB = 100)
+        return Response.Ok(sizeBytes = 100)
     })
 
     let assertions = [
@@ -54,8 +54,8 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
        Assertion.forStep("pull step", (fun stats -> stats.Min <= 110), "Min <= 110")
        Assertion.forStep("pull step", (fun stats -> stats.Mean <= 120), "Mean <= 120")
        Assertion.forStep("pull step", (fun stats -> stats.Max <= 150), "Max <= 150")
-       Assertion.forStep("pull step", (fun stats -> stats.DataMinKB = 100), "DataMinKB = 100")
-       Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 1.7), "AllDataMB >= 1.7")
+       Assertion.forStep("pull step", (fun stats -> stats.DataMinKb = 0.1), "DataMinKb = 0.1")
+       Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 0.0017), "AllDataMB >= 0.0017")
     ]
     
     Scenario.create("latency count test", [pullStep])
