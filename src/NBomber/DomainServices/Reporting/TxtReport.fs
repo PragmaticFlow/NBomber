@@ -32,7 +32,7 @@ let private printStepsTable (steps: StepStats[]) =
         if dataInfoAvailable then
             stepTable.AddRow("- data transfer", String.Format("min = {0}KB | mean = {1}KB | max = {2}KB | all = {3}MB", s.DataTransfer.MinKB, s.DataTransfer.MeanKB, s.DataTransfer.MaxKB, s.DataTransfer.AllMB)) |> ignore
         else
-            stepTable.AddRow("- data transfer", "no information") |> ignore
+            stepTable.AddRow("- data transfer", "min = - | mean = - | max = - | all = -") |> ignore
 
         if steps.Length > 1 && i < (steps.Length - 1) then
             stepTable.AddRow("", "") |> ignore

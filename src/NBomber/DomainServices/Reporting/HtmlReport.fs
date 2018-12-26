@@ -46,38 +46,42 @@ module NumberReqChart =
 
 module StatisticsTable =    
 
-    let print (assets: Assets, tableTitle: string, scnStats: ScenarioStats[]) =
-        
+    let print (assets: Assets, scnStats: ScenarioStats[]) =     
+
         let printStepRow (step) =
             let stats = step.Percentiles.Value
-            [step.StepName; step.ReqeustCount.ToString()
-             step.OkCount.ToString(); step.FailCount.ToString()
-             stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString()
-             stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString()
-             stats.StdDev.ToString()]
-            |> HtmlBuilder.toTableRow            
+            let data = [step.StepName; step.ReqeustCount.ToString();
+                         step.OkCount.ToString(); step.FailCount.ToString();
+                         stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
+                         stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString();
+                         stats.StdDev.ToString()]
+            
+            let dataTransferBlock = if step.DataTransfer.AllMB > 0.0 then
+                                        [step.DataTransfer.MinKB.ToString()
+                                         step.DataTransfer.MeanKB.ToString()
+                                         step.DataTransfer.MaxKB.ToString()
+                                         step.DataTransfer.MaxKB.ToString()]
+                                    else ["-"; "-"; "-"; "-"]
+
+            dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
 
         let printScenarioRow (scnStats) =  
-            
-            let cells = [scnStats.ScenarioName; scnStats.ConcurrentCopies.ToString()]
-                        |> List.map(HtmlBuilder.toTableCell(scnStats.StepsStats.Length))
-                        |> String.concat(String.Empty)
 
             let row = scnStats.StepsStats
                       |> Array.map(fun step -> printStepRow(step))
                       |> String.concat(String.Empty)                      
             
             let rowStr = row.Remove(0, 4)
+
+            let tableTitle = sprintf "Statistics from scenario <b>%s</b> with concurrent copies: <b>%i</b>" scnStats.ScenarioName scnStats.ConcurrentCopies
             
-            "<tr>" + cells + rowStr
+            assets.StatisticsTableHtml
+            |> String.replace("%table_title%", tableTitle)
+            |> String.replace("%table_body%", "<tr>" + rowStr)
 
-        let tableBody = scnStats
-                        |> Array.map(printScenarioRow)
-                        |> String.concat(String.Empty)
-
-        assets.StatisticsTableHtml
-        |> String.replace("%table_title%", tableTitle)
-        |> String.replace("%table_body%", tableBody)        
+        scnStats
+        |> Array.map(printScenarioRow)
+        |> String.concat(String.Empty)        
 
 module ScenarioView =    
         
@@ -92,8 +96,7 @@ module ScenarioView =
         let indicatorsChart = IndicatorsChart.print(assets, viewId, label, scnStats.LatencyCount, scnStats.FailCount)
         let numberReqChart = NumberReqChart.print(assets, viewId, scnStats.OkCount, scnStats.FailCount)
 
-        let title = "Scenario: " + scnStats.ScenarioName
-        let statisticsTableHtml = StatisticsTable.print(assets, title, [|scnStats|])
+        let statisticsTableHtml = StatisticsTable.print(assets, [|scnStats|])
         
         let js = indicatorsChart.Js + numberReqChart.Js
         let html = assets.ScenarioViewHtml
@@ -112,8 +115,7 @@ module GlobalView =
         let indicatorsChart = IndicatorsChart.print(assets, viewId, "All Scenarios", stats.LatencyCount, stats.FailCount)
         let numberReqChart = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
         
-        let title = "Statistics from all scenarios"
-        let statisticsTableHtml = StatisticsTable.print(assets, title, stats.AllScenariosStats)
+        let statisticsTableHtml = StatisticsTable.print(assets, stats.AllScenariosStats)
 
         let js = indicatorsChart.Js + numberReqChart.Js
         let html = assets.GlobalViewHtml
