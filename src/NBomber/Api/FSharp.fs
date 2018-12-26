@@ -84,7 +84,7 @@ module Scenario =
         { ScenarioName = name
           TestInit = None
           TestClean = None
-          Steps = Seq.toArray(steps)
+          Steps = List.toArray(steps)
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
           Assertions = Array.empty }
@@ -117,10 +117,23 @@ module NBomberRunner =
     open NBomber.Infra        
 
     let registerScenario (scenario: Contracts.Scenario) = 
-        { Scenarios = [|scenario|]; NBomberConfig = None }
+        { Scenarios = [|scenario|]
+          NBomberConfig = None
+          ReportFileName = None
+          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
 
     let registerScenarios (scenarios: Contracts.Scenario list) = 
-        { Scenarios = Seq.toArray(scenarios); NBomberConfig = None }
+        { Scenarios = List.toArray(scenarios)
+          NBomberConfig = None
+          ReportFileName = None
+          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
+
+    let withReportFileName (reportFileName: string) (context: NBomberRunnerContext) =
+        { context with ReportFileName = Some reportFileName }
+
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberRunnerContext) =
+        let formats = reportFormats |> List.toArray
+        { context with ReportFormats = formats }    
 
     let loadConfig (path: string) (context: NBomberRunnerContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse

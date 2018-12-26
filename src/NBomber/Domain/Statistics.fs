@@ -40,7 +40,43 @@ let calcStdDev (histogram: LongHistogram) =
     else
         0
 
-module StepStats =
+let fromBytesToKb (sizeBytes: int) =
+    if sizeBytes > 0 then float(sizeBytes) / 1024.0
+    else 0.0
+
+let fromKbToMb (sizeKb: float) =
+    if sizeKb > 0.0 then sizeKb / 1024.0
+    else 0.0
+
+let calcAllMB (sizesBytes: int[]) =    
+    let toMB (sizeBytes) = sizeBytes |> fromBytesToKb |> fromKbToMb   
+    sizesBytes     
+    |> Array.fold(fun sizeMb sizeKb -> sizeMb + toMB(sizeKb)) 0.0
+
+module StepStats =        
+
+    let calcDataTransfer (responses: (Response*Latency)[]) = 
+        let allSizesBytes = responses
+                            |> Array.map(fst)
+                            |> Array.filter(fun x -> x.SizeBytes > 0)
+                            |> Array.map(fun x -> x.SizeBytes)
+
+        { MinKb  = allSizesBytes |> calcMin |> fromBytesToKb
+          MeanKb = allSizesBytes |> calcMean |> fromBytesToKb
+          MaxKb  = allSizesBytes |> calcMax |> fromBytesToKb
+          AllMB  = calcAllMB(allSizesBytes) }
+
+    let mergeTraffic (counts: DataTransferCount[]) =
+        
+        let roundResult (value: float) =
+            let result = Math.Round(value, 2)
+            if result > 0.01 then result            
+            else Math.Round(value, 4)
+
+        { MinKb  = counts |> Array.map(fun x -> x.MinKb) |> Array.min |> roundResult
+          MeanKb = counts |> Array.map(fun x -> x.MeanKb) |> Array.average |> roundResult
+          MaxKb  = counts |> Array.map(fun x -> x.MaxKb) |> Array.max |> roundResult
+          AllMB  = counts |> Array.sumBy(fun x -> x.AllMB) |> roundResult }
 
     let create (stepName, responseResults: List<Response*Latency>) =
     
@@ -54,7 +90,8 @@ module StepStats =
           ReqeustCount = allResults.Length
           OkCount = okResults.Length
           FailCount = allResults.Length - okResults.Length
-          Percentiles = None } 
+          Percentiles = None
+          DataTransfer = calcDataTransfer(allResults) }
 
     let calcPercentiles (stats: StepStats, scenarioDuration: TimeSpan) =
         let histogram = buildHistogram(stats.OkLatencies)            
@@ -65,7 +102,7 @@ module StepStats =
           Percent50 = calcPercentile(histogram, 50.0)
           Percent75 = calcPercentile(histogram, 75.0)
           Percent95 = calcPercentile(histogram, 95.0)
-          StdDev = calcStdDev(histogram) }
+          StdDev = calcStdDev(histogram) }    
 
 module ScenarioStats =        
 
@@ -89,13 +126,16 @@ module ScenarioStats =
             let okCount = results |> Array.map(fun x -> x.OkCount) |> Array.sum
             let failCount = results |> Array.map(fun x -> x.FailCount) |> Array.sum
             let reqeustCount = okCount + failCount
+            let traffic = results |> Array.map(fun x -> x.DataTransfer) |> StepStats.mergeTraffic
+
             { StepName = stName
               OkLatencies = results |> Array.collect(fun x -> x.OkLatencies)
               FailLatencies = results |> Array.collect(fun x -> x.FailLatencies)                  
               ReqeustCount = reqeustCount
               OkCount = okCount
               FailCount = failCount
-              Percentiles = None })
+              Percentiles = None
+              DataTransfer = traffic })
 
     let calcPercentiles (activeScnTime: TimeSpan) (stepsStats: StepStats[]) =        
         stepsStats 

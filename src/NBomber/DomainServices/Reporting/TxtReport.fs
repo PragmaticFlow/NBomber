@@ -16,15 +16,26 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
                   scnStats.ScenarioName,
                   scnStats.Duration.ToString())
 
-let private printStepsTable (steps: StepStats[]) =    
-    let stepTable = ConsoleTable("step name", "request_count", "OK", "failed", "RPS", "min", "mean", "max", "50%", "75%", "95%", "StdDev")
+let private printStepsTable (steps: StepStats[]) = 
+    
+    let dataInfoAvailable = steps |> Array.exists(fun x -> x.DataTransfer.AllMB > 0.0)
+
+    let stepTable = ConsoleTable("step", "details")
     steps    
     |> Array.iteri(fun i s -> 
-        stepTable.AddRow(s.StepName, s.ReqeustCount,
-                         s.OkCount, s.FailCount,
-                         s.Percentiles.Value.RPS, s.Percentiles.Value.Min, 
-                         s.Percentiles.Value.Mean, s.Percentiles.Value.Max,
-                         s.Percentiles.Value.Percent50, s.Percentiles.Value.Percent75,
-                         s.Percentiles.Value.Percent95, s.Percentiles.Value.StdDev) |> ignore)
+        let p = s.Percentiles.Value
+        stepTable.AddRow("- name", s.StepName) |> ignore
+        stepTable.AddRow("- request count", String.Format("all = {0} | OK = {1} | failed = {2}", s.ReqeustCount, s.OkCount, s.FailCount)) |> ignore
+        stepTable.AddRow("- response time", String.Format("RPS = {0} | min = {1} | mean = {2} | max = {3} ", p.RPS, p.Min, p.Mean, p.Max)) |> ignore
+        stepTable.AddRow("- response time percentile", String.Format("50% = {0} | 75% = {1} | 95% = {2} | StdDev= {3}", p.Percent50, p.Percent75, p.Percent95, p.StdDev)) |> ignore
+        
+        if dataInfoAvailable then
+            stepTable.AddRow("- data transfer", String.Format("min = {0}Kb | mean = {1}Kb | max = {2}Kb | all = {3}MB", s.DataTransfer.MinKb, s.DataTransfer.MeanKb, s.DataTransfer.MaxKb, s.DataTransfer.AllMB)) |> ignore
+        else
+            stepTable.AddRow("- data transfer", "min = - | mean = - | max = - | all = -") |> ignore
+
+        if steps.Length > 1 && i < (steps.Length - 1) then
+            stepTable.AddRow("", "") |> ignore
+        )
     
     stepTable.ToStringAlternative()

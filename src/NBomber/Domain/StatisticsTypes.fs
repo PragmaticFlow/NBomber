@@ -3,6 +3,13 @@
 open System
 open NBomber.Domain.DomainTypes
 
+type DataTransferCount = {
+    MinKb: float
+    MeanKb: float
+    MaxKb: float
+    AllMB: float
+}
+
 type LatencyCount = {
     Less800: int
     More800Less1200: int
@@ -28,6 +35,7 @@ type StepStats = {
     OkCount: int
     FailCount: int    
     Percentiles: Percentiles option
+    DataTransfer: DataTransferCount
 }
 
 type ScenarioStats = {

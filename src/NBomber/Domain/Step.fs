@@ -82,7 +82,7 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
     with
     | ex -> timer.Stop()
             let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
-            return (Response.Fail(ex.ToString()), latency)
+            return (Response.Fail(), latency)
 }
 
 let runSteps (steps: Step[], latencies: List<List<Response*Latency>>, 
