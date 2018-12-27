@@ -54,20 +54,15 @@ The main reasons are:
  ### What makes it very simple? 
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
-var httpPool = ConnectionPool.Create("http pool", () => new HttpClient());
-
-var step1 = Step.CreatePull("GET html", httpPool, async context =>
+var step1 = Step.CreatePull("simple step", ConnectionPool.None, async context =>
 {
-    var request = CreateHttpRequest();
-    var response = await context.Connection.SendAsync(request);
-    return response.IsSuccessStatusCode
-        ? Response.Ok()
-        : Response.Fail(response.StatusCode.ToString());
+    // you can do any logic here: go to http, websocket etc
+    // NBomber will measure execution of this lambda function
+    await Task.Delay(TimeSpan.FromSeconds(0.1));    
+    return Response.Ok();
 });
 
-var scenario = ScenarioBuilder.CreateScenario("test github", step1)
-                              .WithConcurrentCopies(10)
-                              .WithDuration(TimeSpan.FromSeconds(20));
+var scenario = ScenarioBuilder.CreateScenario("Hello World from NBomber!", step1);
 
 NBomberRunner.RegisterScenarios(scenario)
              .RunInConsole();
