@@ -24,11 +24,12 @@ let buildScenario () =
 let ``XUnit test`` () =    
     
     let assertions = [       
-       Assertion.forStep("Step", fun stats -> stats.OkCount > 2)
+       Assertion.forStep("Step", (fun stats -> stats.OkCount > 2), "OkCount > 2")
     ]
 
     buildScenario()
     |> Scenario.withConcurrentCopies(1)
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(1.0))
     |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
     |> Scenario.withAssertions(assertions)
     |> NBomberRunner.registerScenario

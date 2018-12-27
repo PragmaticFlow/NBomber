@@ -28,6 +28,7 @@ let tryGetTargetScenarios (context: NBomberRunnerContext) = maybe {
 
 let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) =
     { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                    WarmUpDuration = settings.WarmUpDuration
                     Duration = settings.Duration }
 
 let filterTargetScenarios (targetScenarios: string[]) (scenarios: Scenario[]) =
@@ -72,9 +73,9 @@ let cleanScenarios (scnRunners: ScenarioRunner[]) =
 let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners 
     |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
-                           let duration = TimeSpan.FromSeconds(DomainTypes.Constants.DefaultWarmUpDurationInSec)
+                           let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = Console then dep.ShowProgressBar(duration)
-                           x.WarmUp(duration).Wait())        
+                           x.WarmUp(duration).Wait())
 
 let buildScenarios (context: NBomberRunnerContext) =     
     let registeredScenarios = context.Scenarios

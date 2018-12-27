@@ -92,5 +92,6 @@ type Scenario = {
     Assertions: Assertion[]
     ConcurrentCopies: int
     CorrelationIds: CorrelationId[]
+    WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }

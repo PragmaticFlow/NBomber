@@ -4,8 +4,9 @@ open System
 
 type ScenarioSetting = {
     ScenarioName: string
-    Duration: TimeSpan
     ConcurrentCopies: int
+    WarmUpDuration: TimeSpan
+    Duration: TimeSpan
 }
 
 type GlobalSettings = {

@@ -11,8 +11,8 @@ open NBomber.Domain.DomainTypes
 open NBomber.DomainServices.NBomberRunner
 
 [<Property>]
-let ``applyScenariosSettings() should override initial settings`` (name: string, duration: TimeSpan, concurrentCopies: int) =
-    let settings = { ScenarioName = name; Duration = duration; ConcurrentCopies = concurrentCopies }
+let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
+    let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
     let scenario = Scenario.create(name, [])
 
     let updatedScenarios = applyScenariosSettings [|settings|] [|scenario|]
@@ -23,8 +23,8 @@ let ``applyScenariosSettings() should override initial settings`` (name: string,
     Assert.True(result)
 
 [<Property>]
-let ``applyScenariosSettings() should skip applying settings when scenario name is not found`` (name: string, duration: TimeSpan, concurrentCopies: int) =
-    let settings = { ScenarioName = name; Duration = duration; ConcurrentCopies = concurrentCopies }
+let ``applyScenariosSettings() should skip applying settings when scenario name is not found`` (name: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
+    let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
     let newName = name + "_new_name"
     let scenario = Scenario.create(newName, [])
 
