@@ -15,6 +15,7 @@ namespace CSharp.Examples
             //var scenario = WebSocketsScenario
                 .BuildScenario()
                 .WithConcurrentCopies(10)
+                //.WithWarmUpDuration(TimeSpan.FromSeconds(10))
                 .WithDuration(TimeSpan.FromSeconds(5));
 
             NBomberRunner.RegisterScenarios(scenario)

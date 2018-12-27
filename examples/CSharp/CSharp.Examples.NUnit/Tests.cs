@@ -27,11 +27,12 @@ namespace CSharp.Examples.NUnit
         public void Test()
         {
             var assertions = new[] {               
-               Assertion.ForStep("simple step", stats => stats.OkCount > 2)
+               Assertion.ForStep("simple step", stats => stats.OkCount > 2, "OkCount > 2")
             };
 
             var scenario = BuildScenario()
                 .WithConcurrentCopies(1)
+                .WithWarmUpDuration(TimeSpan.FromSeconds(0))
                 .WithDuration(TimeSpan.FromSeconds(2))
                 .WithAssertions(assertions);
 

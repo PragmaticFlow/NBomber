@@ -14,9 +14,10 @@ namespace CSharp.Examples.Scenarios
     {
         public static Scenario BuildScenario()
         {
-            var url = "ws://localhost:5000";
+            var url = "ws://localhost:53231";
 
-            var webSocketsPool = ConnectionPool.Create("webSocketsPool", () =>
+            var webSocketsPool = ConnectionPool.Create("webSocketsPool",
+            openConnection: () =>
             {
                 var ws = new ClientWebSocket();
                 ws.ConnectAsync(new Uri(url), CancellationToken.None).Wait();

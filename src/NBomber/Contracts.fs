@@ -37,6 +37,7 @@ type Scenario = {
     Steps: IStep[]
     Assertions: IAssertion[]
     ConcurrentCopies: int
+    WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }
 

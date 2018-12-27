@@ -16,12 +16,12 @@ let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenar
     
     { Scenarios = [|scenario|]; NBomberConfig = Some config; ReportFileName = None; ReportFormats = [||] }
 
-let buildSettings (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
-    { ScenarioName = scenarioName; Duration = duration; ConcurrentCopies = concurrentCopies }
+let buildSettings (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
+    { ScenarioName = scenarioName; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
 
 [<Property>]
-let ``validateRunnerContext() should return Ok for any args values`` (scenarioName: string, duration: TimeSpan, concurrentCopies: int) =
-    let settings = buildSettings(scenarioName, duration, concurrentCopies)
+let ``validateRunnerContext() should return Ok for any args values`` (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
+    let settings = buildSettings(scenarioName, warmUpDuration, duration, concurrentCopies)
 
     let validatedContext = buildConfig(scenarioName, [|settings|], [|scenarioName|])
                             |> Validation.validateRunnerContext
@@ -39,7 +39,7 @@ let ``validateRunnerContext() should return Ok for any args values`` (scenarioNa
 [<Property>]
 let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =    
     let targetScenarios = [|scenarioName + "new_name"|]
-    let errorMessage = buildConfig(scenarioName, [||], targetScenarios)
+    let errorMessage = buildConfig(scenarioName, Array.empty, targetScenarios)
                         |> Validation.validateRunnerContext
                         |> Result.getError
     

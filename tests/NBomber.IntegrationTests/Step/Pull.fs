@@ -34,6 +34,7 @@ let ``Ok and Fail should be properly count`` () =
     Scenario.create("pull test", [okStep; failStep])
     |> Scenario.withConcurrentCopies(1)    
     |> Scenario.withAssertions(assertions)
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(1.0))
     |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
@@ -61,6 +62,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     Scenario.create("latency count test", [pullStep])
     |> Scenario.withConcurrentCopies(1)
     |> Scenario.withAssertions(assertions)
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(1.0))
     |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest

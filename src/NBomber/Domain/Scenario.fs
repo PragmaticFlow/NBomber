@@ -39,6 +39,7 @@ let create (config: Contracts.Scenario) =
       Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
       ConcurrentCopies = config.ConcurrentCopies      
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
+      WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
           
 let getDistinctPools (scenario: Scenario) =
