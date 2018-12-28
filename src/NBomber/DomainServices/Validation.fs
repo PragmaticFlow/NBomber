@@ -32,6 +32,32 @@ let concurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
     | scenariosWithIncorrectConcurrentCopies -> sprintf "Concurrent copies for scenarios %A can not be less than 1" scenariosWithIncorrectConcurrentCopies
                                                 |> Error
 
+let reportFileNameIsNotEmpty (globalSettings: GlobalSettings) =
+    match globalSettings.ReportFileName with
+    | Some reportFileName -> 
+        if String.IsNullOrEmpty(reportFileName) then
+            Error("Report File Name can not be empty string.")
+        else
+            Ok(globalSettings)
+    | None -> Ok(globalSettings)
+
+let parseReportFormat (reportFormat: string) =
+    match reportFormat with 
+    | "Txt" -> Some(ReportFormat.Txt)
+    | "Html" -> Some(ReportFormat.Html)
+    | "Csv" -> Some(ReportFormat.Csv)
+    | _ -> None
+
+let parseAndGetValidReportFormats (reportFormat: string[]) =
+    reportFormat |> Array.choose(parseReportFormat)
+
+let reportFormatsAreWithinAllowedReportFormats (globalSettings: GlobalSettings) =
+    globalSettings.ReportFormats
+    |> Array.choose(fun x -> x |> parseReportFormat |> function | None -> Some(x) | _ -> None)
+    |> function
+    | [||] -> Ok(globalSettings)
+    | unknownReportFormats -> Error(sprintf "Unknown Report Formats '%A'. Allowed formats: Txt, Html or Csv." unknownReportFormats)
+
 let validateRunnerContext(context: NBomberRunnerContext) = 
     let globalSettings = context.NBomberConfig |> Option.bind(fun config -> config.GlobalSettings)
     match globalSettings with
@@ -39,6 +65,8 @@ let validateRunnerContext(context: NBomberRunnerContext) =
                              |> targetScenarioIsNotPresent 
                              |> Result.bind durationGreaterThenSecond
                              |> Result.bind concurrentCopiesGreaterThenOne
+                             |> Result.bind reportFileNameIsNotEmpty
+                             |> Result.bind reportFormatsAreWithinAllowedReportFormats
                              |> function
                              | Ok _ -> Ok(context)
                              | Error msg -> Error(msg)
