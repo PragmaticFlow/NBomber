@@ -52,9 +52,9 @@ let parseAndGetValidReportFormats (reportFormat: string[]) =
     reportFormat |> Array.choose(parseReportFormat)
 
 let reportFormatsAreWithinAllowedReportFormats (globalSettings: GlobalSettings) =
-    globalSettings.ReportFormats
-    |> Array.choose(fun x -> x |> parseReportFormat |> function | None -> Some(x) | _ -> None)
-    |> function
+    let parsedReportFormats = globalSettings.ReportFormats |> Array.choose(fun x -> x |> parseReportFormat |> function | None -> Some(x) | _ -> None)
+    
+    match parsedReportFormats with
     | [||] -> Ok(globalSettings)
     | unknownReportFormats -> Error(sprintf "Unknown Report Formats '%A'. Allowed formats: Txt, Html or Csv." unknownReportFormats)
 

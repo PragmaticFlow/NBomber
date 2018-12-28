@@ -11,7 +11,7 @@ open NBomber.Contracts
 
 let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string option, reportFormats: string[]) =
     let scenario = Scenario.create(scenarioName, [])
-    let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios; ReportFileName = reportFileName; ReportFormats = reportFormats}
+    let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios; ReportFileName = reportFileName; ReportFormats = reportFormats }
     let config = { NBomberConfig.GlobalSettings = Some globalSettings }
     
     { Scenarios = [|scenario|]; NBomberConfig = Some config; ReportFileName = None; ReportFormats = [||] }
