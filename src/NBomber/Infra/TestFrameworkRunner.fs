@@ -57,4 +57,4 @@ let showResults (results: Result<Assertion,DomainError>[]) =
         |> Array.filter(Result.isError)
         |> Array.map(Result.getError)
 
-    if errors.Length > 0 then printErrors(errors, framework.Value)
+    if errors |> Array.isEmpty |> not then printErrors(errors, framework.Value)

@@ -23,20 +23,20 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
 [<Property>]
 let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: int[]) =
     let result   = Statistics.calcMin(latencies)    
-    let expected = if latencies.Length > 0 then Array.min(latencies)
-                   else 0
+    let expected = if Array.isEmpty latencies then 0
+                   else Array.min(latencies)
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: int[]) =
     let result = latencies |> Statistics.calcMean    
-    let expected = if latencies.Length > 0 then latencies |> Array.map(float) |> Array.average |> int
-                   else 0
+    let expected = if Array.isEmpty latencies then 0
+                   else latencies |> Array.map(float) |> Array.average |> int
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: int[]) =
     let result = latencies |> Statistics.calcMax    
-    let expected = if latencies.Length > 0 then Array.max(latencies)
-                   else 0
+    let expected = if Array.isEmpty latencies then 0
+                   else Array.max(latencies)
     Assert.Equal(expected, result)

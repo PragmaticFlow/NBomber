@@ -26,6 +26,19 @@ let tryGetTargetScenarios (context: NBomberRunnerContext) = maybe {
     return! Option.ofObj(globalSettings.TargetScenarios)
 }
 
+let tryGetReportFileName (context: NBomberRunnerContext) = maybe {
+    let! config = context.NBomberConfig
+    let! globalSettings = config.GlobalSettings
+    return! globalSettings.ReportFileName
+}
+
+let tryGetReportFormats (context: NBomberRunnerContext) = maybe {
+    let! config = context.NBomberConfig
+    let! globalSettings = config.GlobalSettings
+    let reportFormats = globalSettings.ReportFormats |> Validation.getValidReportFormats              
+    return! Option.ofObj(reportFormats)
+}
+
 let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) =
     { scenario with ConcurrentCopies = settings.ConcurrentCopies
                     WarmUpDuration = settings.WarmUpDuration
@@ -144,8 +157,13 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             let globalStats = calcStatistics(scnRunners)
             let allAsserts = scnRunners |> Array.collect(fun x -> x.Scenario.Assertions)
             let assertResults = Assertion.apply(globalStats, allAsserts)
+
+            let declaredReportFileName = context.ReportFileName |> Option.defaultValue ("report_" + dep.SessionId)
+            let reportFileName = tryGetReportFileName(context) |> Option.defaultValue declaredReportFileName
+            let reportFormats = tryGetReportFormats(context) |> Option.defaultValue context.ReportFormats
+
             Report.build(dep, globalStats, assertResults)
-            |> Report.save(dep, "./", context.ReportFileName, context.ReportFormats)
+            |> Report.save(dep, "./", reportFileName, reportFormats)
                         
             cleanScenarios(scnRunners)
 
