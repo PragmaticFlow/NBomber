@@ -35,7 +35,7 @@ let tryGetReportFileName (context: NBomberRunnerContext) = maybe {
 let tryGetReportFormats (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
     let! globalSettings = config.GlobalSettings
-    let reportFormats = globalSettings.ReportFormats |> Validation.parseAndGetValidReportFormats              
+    let reportFormats = globalSettings.ReportFormats |> Validation.getValidReportFormats              
     return! Option.ofObj(reportFormats)
 }
 

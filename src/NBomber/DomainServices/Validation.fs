@@ -32,7 +32,7 @@ let concurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
     | scenariosWithIncorrectConcurrentCopies -> sprintf "Concurrent copies for scenarios %A can not be less than 1" scenariosWithIncorrectConcurrentCopies
                                                 |> Error
 
-let reportFileNameIsNotEmpty (globalSettings: GlobalSettings) =
+let isReportFileNameNotEmpty (globalSettings: GlobalSettings) =
     match globalSettings.ReportFileName with
     | Some reportFileName -> 
         if String.IsNullOrEmpty(reportFileName) then
@@ -41,33 +41,37 @@ let reportFileNameIsNotEmpty (globalSettings: GlobalSettings) =
             Ok(globalSettings)
     | None -> Ok(globalSettings)
 
-let parseReportFormat (reportFormat: string) =
-    match reportFormat with 
-    | "Txt" -> Some(ReportFormat.Txt)
-    | "Html" -> Some(ReportFormat.Html)
-    | "Csv" -> Some(ReportFormat.Csv)
-    | _ -> None
+let validateReportFormat (reportFormat: string) =
+    if String.IsNullOrEmpty(reportFormat) then
+        None
+    else
+        match reportFormat.ToLower().Trim() with 
+        | "txt"  -> Some(ReportFormat.Txt)
+        | "html" -> Some(ReportFormat.Html)
+        | "csv"  -> Some(ReportFormat.Csv)
+        | _      -> None
 
-let parseAndGetValidReportFormats (reportFormat: string[]) =
-    reportFormat |> Array.choose(parseReportFormat)
+let getValidReportFormats (reportFormat: string[]) =
+    reportFormat |> Array.choose(validateReportFormat)
 
-let reportFormatsAreWithinAllowedReportFormats (globalSettings: GlobalSettings) =
-    let parsedReportFormats = globalSettings.ReportFormats |> Array.choose(fun x -> x |> parseReportFormat |> function | None -> Some(x) | _ -> None)
+let isReportFormatSupported (globalSettings: GlobalSettings) =
+    let validReportFormats = globalSettings.ReportFormats |> Array.choose(fun x -> x |> validateReportFormat |> function | None -> Some(x) | _ -> None)
     
-    match parsedReportFormats with
+    match validReportFormats with
     | [||] -> Ok(globalSettings)
     | unknownReportFormats -> Error(sprintf "Unknown Report Formats '%A'. Allowed formats: Txt, Html or Csv." unknownReportFormats)
 
 let validateRunnerContext(context: NBomberRunnerContext) = 
     let globalSettings = context.NBomberConfig |> Option.bind(fun config -> config.GlobalSettings)
     match globalSettings with
-    | Some globalSettings -> globalSettings
-                             |> targetScenarioIsNotPresent 
-                             |> Result.bind durationGreaterThenSecond
-                             |> Result.bind concurrentCopiesGreaterThenOne
-                             |> Result.bind reportFileNameIsNotEmpty
-                             |> Result.bind reportFormatsAreWithinAllowedReportFormats
-                             |> function
-                             | Ok _ -> Ok(context)
-                             | Error msg -> Error(msg)
+    | Some globalSettings ->
+        globalSettings
+        |> targetScenarioIsNotPresent 
+        |> Result.bind durationGreaterThenSecond
+        |> Result.bind concurrentCopiesGreaterThenOne
+        |> Result.bind isReportFileNameNotEmpty
+        |> Result.bind isReportFormatSupported
+        |> function
+        | Ok _ -> Ok(context)
+        | Error msg -> Error(msg)
     | None -> Ok(context)

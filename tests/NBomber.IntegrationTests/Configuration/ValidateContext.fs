@@ -48,7 +48,7 @@ let ``validateRunnerContext() should fail when report formats are unknown`` (rep
     let validatedContext = buildConfig("scenario_name", [|settings|], [|"scenario_name"|], None, reportFormats)
                             |> Validation.validateRunnerContext
 
-    let atLeastOneReportFormatUnknown = reportFormats |> Array.map(Validation.parseReportFormat) |> Array.exists(fun x -> x.IsNone)
+    let atLeastOneReportFormatUnknown = reportFormats |> Array.map(Validation.validateReportFormat) |> Array.exists(fun x -> x.IsNone)
     let reportFormatsNotEmpty = reportFormats |> Array.isEmpty |> not
 
     if reportFormatsNotEmpty && atLeastOneReportFormatUnknown then
