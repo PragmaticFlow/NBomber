@@ -55,12 +55,13 @@ let getValidReportFormats (reportFormat: string[]) =
     reportFormat |> Array.choose(validateReportFormat)
 
 let isReportFormatSupported (globalSettings: GlobalSettings) =
-    let validReportFormats = globalSettings.ReportFormats |> Array.choose(fun x -> x |> validateReportFormat |> function | None -> Some(x) | _ -> None)
-    
-    match validReportFormats with
-    | [||] -> Ok(globalSettings)
-    | unknownReportFormats -> Error(sprintf "Unknown Report Formats '%A'. Allowed formats: Txt, Html or Csv." unknownReportFormats)
+    let unsupportedFormats =
+        globalSettings.ReportFormats
+        |> Array.choose(fun x -> x |> validateReportFormat |> function | None -> Some(x) | _ -> None)
 
+    if Array.isEmpty unsupportedFormats then Ok(globalSettings)
+    else Error(sprintf "Unknown Report Formats '%A'. Allowed formats: Txt, Html or Csv." unsupportedFormats)
+        
 let validateRunnerContext(context: NBomberRunnerContext) = 
     let globalSettings = context.NBomberConfig |> Option.bind(fun config -> config.GlobalSettings)
     match globalSettings with
