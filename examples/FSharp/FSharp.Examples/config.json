@@ -14,6 +14,8 @@
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "test_youtube" ]
+    "TargetScenarios": [ "test_youtube" ],
+    "ReportFileName": "custom_report_name_from_json",
+    "ReportFormats": ["Html", "Txt"]
   }
 }

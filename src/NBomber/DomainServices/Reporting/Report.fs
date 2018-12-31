@@ -24,14 +24,13 @@ let build (dep: Dependency, stats: GlobalStats,
       HtmlReport = HtmlReport.print(dep, stats)
       CsvReport = CsvReport.print(stats) }
 
-let save (dep: Dependency, outPutDir: string, reportFileName: string option, reportFormats: ReportFormat[]) (report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, reportFileName: string, reportFormats: ReportFormat[]) (report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
-        
-        let fileName = reportFileName |> Option.defaultValue ("report_" + dep.SessionId)
-        let filePath = reportsDir + "/" + fileName
+            
+        let filePath = reportsDir + "/" + reportFileName
         
         let isPrintingTxt  = reportFormats |> Array.exists(fun x -> x = ReportFormat.Txt)
         let isPrintingHtml = reportFormats |> Array.exists(fun x -> x = ReportFormat.Html)

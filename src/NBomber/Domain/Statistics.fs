@@ -21,15 +21,15 @@ let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
     latencies.Length / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
-    if latencies.Length > 0 then Array.min(latencies) else 0
+    if Array.isEmpty latencies then 0 else Array.min(latencies)
 
 let calcMean (latencies: Latency[]) =        
-    if latencies.Length > 0 
-    then latencies |> Array.map(float) |> Array.average |> int
-    else 0
+    if Array.isEmpty latencies 
+    then 0
+    else latencies |> Array.map(float) |> Array.average |> int
 
 let calcMax (latencies: Latency[]) =
-    if latencies.Length > 0 then Array.max(latencies) else 0
+    if Array.isEmpty latencies then 0 else Array.max(latencies)
 
 let calcPercentile (histogram: LongHistogram, percentile: float) =
     if histogram.TotalCount > 0L then int(histogram.GetValueAtPercentile(percentile)) else 0

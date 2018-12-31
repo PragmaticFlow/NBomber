@@ -12,6 +12,8 @@ type ScenarioSetting = {
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
+    ReportFileName: string option
+    ReportFormats: string[]
 }
 
 type NBomberConfig = {
