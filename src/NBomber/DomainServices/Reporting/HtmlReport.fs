@@ -48,19 +48,18 @@ module StatisticsTable =
 
     let print (assets: Assets, scnStats: ScenarioStats[]) =     
 
-        let printStepRow (step) =
-            let stats = step.Percentiles.Value
+        let printStepRow (step) =            
             let data = [step.StepName; step.ReqeustCount.ToString();
                         step.OkCount.ToString(); step.FailCount.ToString();
-                        stats.RPS.ToString(); stats.Min.ToString(); stats.Mean.ToString(); stats.Max.ToString();
-                        stats.Percent50.ToString(); stats.Percent75.ToString(); stats.Percent95.ToString();
-                        stats.StdDev.ToString()]
+                        step.RPS.ToString(); step.Min.ToString(); step.Mean.ToString(); step.Max.ToString();
+                        step.Percent50.ToString(); step.Percent75.ToString(); step.Percent95.ToString();
+                        step.StdDev.ToString()]
             
             let dataTransferBlock = if step.DataTransfer.AllMB > 0.0 then
-                                        [step.DataTransfer.MinKb.ToString()
-                                         step.DataTransfer.MeanKb.ToString()
-                                         step.DataTransfer.MaxKb.ToString()
-                                         step.DataTransfer.MaxKb.ToString()]
+                                       [step.DataTransfer.MinKb.ToString()
+                                        step.DataTransfer.MeanKb.ToString()
+                                        step.DataTransfer.MaxKb.ToString()
+                                        step.DataTransfer.MaxKb.ToString()]
                                     else 
                                         ["-"; "-"; "-"; "-"]
 

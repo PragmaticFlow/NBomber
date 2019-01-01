@@ -33,7 +33,7 @@ type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
         
     member x.GetResults() =
         stepsWithoutPause
-        |> Array.mapi(fun i st -> StepStats.create(Step.getName(st), latencies.[i]))
+        |> Array.mapi(fun i st -> StepResults.create(Step.getName(st), latencies.[i].ToArray()))
 
 type ScenarioRunner(scenario: Scenario) =                       
 

@@ -22,12 +22,11 @@ let private printStepsTable (steps: StepStats[]) =
 
     let stepTable = ConsoleTable("step", "details")
     steps    
-    |> Array.iteri(fun i s -> 
-        let p = s.Percentiles.Value
+    |> Array.iteri(fun i s ->         
         stepTable.AddRow("- name", s.StepName) |> ignore
         stepTable.AddRow("- request count", String.Format("all = {0} | OK = {1} | failed = {2}", s.ReqeustCount, s.OkCount, s.FailCount)) |> ignore
-        stepTable.AddRow("- response time", String.Format("RPS = {0} | min = {1} | mean = {2} | max = {3} ", p.RPS, p.Min, p.Mean, p.Max)) |> ignore
-        stepTable.AddRow("- response time percentile", String.Format("50% = {0} | 75% = {1} | 95% = {2} | StdDev = {3}", p.Percent50, p.Percent75, p.Percent95, p.StdDev)) |> ignore
+        stepTable.AddRow("- response time", String.Format("RPS = {0} | min = {1} | mean = {2} | max = {3} ", s.RPS, s.Min, s.Mean, s.Max)) |> ignore
+        stepTable.AddRow("- response time percentile", String.Format("50% = {0} | 75% = {1} | 95% = {2} | StdDev = {3}", s.Percent50, s.Percent75, s.Percent95, s.StdDev)) |> ignore
         
         if dataInfoAvailable then
             stepTable.AddRow("- data transfer", String.Format("min = {0}Kb | mean = {1}Kb | max = {2}Kb | all = {3}MB", s.DataTransfer.MinKb, s.DataTransfer.MeanKb, s.DataTransfer.MaxKb, s.DataTransfer.AllMB)) |> ignore
