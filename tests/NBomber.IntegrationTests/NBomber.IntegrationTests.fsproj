@@ -6,12 +6,17 @@
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Configuration\config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Configuration/ParseJson.fs" />
     <Compile Include="Statistics.fs" />
     <Compile Include="Scenario.fs" />
     <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration/ApplySettings.fs" />
     <Compile Include="Configuration/ValidateContext.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
