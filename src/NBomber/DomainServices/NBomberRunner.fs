@@ -13,6 +13,7 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
+open NBomber.Domain.Errors
 
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
@@ -35,7 +36,7 @@ let tryGetReportFileName (context: NBomberRunnerContext) = maybe {
 let tryGetReportFormats (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
     let! globalSettings = config.GlobalSettings
-    let reportFormats = globalSettings.ReportFormats |> Validation.getValidReportFormats              
+    let reportFormats = globalSettings.ReportFormats |> Array.choose(Validation.isReportFormatSupported)              
     return! Option.ofObj(reportFormats)
 }
 
@@ -178,4 +179,4 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             if dep.ApplicationType = ApplicationType.Test then
                 TestFrameworkRunner.showResults(assertResults)        
     
-    | Error ex -> Log.Error(ex)
+    | Error ex -> ex |> toString |> Log.Error
