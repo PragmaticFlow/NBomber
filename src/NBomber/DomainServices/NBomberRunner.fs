@@ -14,6 +14,9 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
 
+let concatWithCommaAndQuotes (strings: string[]) =
+        strings |> String.concat("', '") |> sprintf "'%s'"
+
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
     let! globalSettings = config.GlobalSettings
@@ -29,7 +32,7 @@ let tryGetTargetScenarios (context: NBomberRunnerContext) = maybe {
 let tryGetReportFileName (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
     let! globalSettings = config.GlobalSettings
-    return! globalSettings.ReportFileName
+    return! Option.ofObj(globalSettings.ReportFileName)
 }
 
 let tryGetReportFormats (context: NBomberRunnerContext) = maybe {
@@ -45,6 +48,8 @@ let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) 
                     Duration = settings.Duration }
 
 let filterTargetScenarios (targetScenarios: string[]) (scenarios: Scenario[]) =
+    Log.Information("target scenarios from config: {0}", targetScenarios |> concatWithCommaAndQuotes)
+
     scenarios 
     |> Array.filter(fun x -> targetScenarios |> Array.exists(fun target -> x.ScenarioName = target))
         
@@ -95,6 +100,10 @@ let buildScenarios (context: NBomberRunnerContext) =
     let scenarioSettings = tryGetScenariosSettings(context)
     let targetScenarios = tryGetTargetScenarios(context)
 
+    if not(Array.isEmpty registeredScenarios) then
+        let scnNames = registeredScenarios |> Array.map(fun x -> x.ScenarioName)
+        Log.Information("registered scenarios: {0}", scnNames |> concatWithCommaAndQuotes)
+
     match (scenarioSettings, targetScenarios) with
     | Some settings, Some targetScns -> 
         registeredScenarios 
@@ -115,14 +124,16 @@ let buildScenarios (context: NBomberRunnerContext) =
     | None, None -> context.Scenarios |> Array.map(Scenario.create)
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
-    let longestDuration = scnRunners
-                          |> Array.map(fun x -> x.Scenario.Duration)
-                          |> Array.sort
-                          |> Array.tryHead
-                              
-    match longestDuration with
-    | Some duration -> dep.ShowProgressBar(duration)
-    | None          -> ()
+    let runnerWithLongestScenario = scnRunners
+                                    |> Array.sortByDescending(fun x -> x.Scenario.Duration)
+                                    |> Array.tryHead
+
+    match runnerWithLongestScenario with
+    | Some runner ->
+        Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'...", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+        dep.ShowProgressBar(runner.Scenario.Duration)
+
+    | None -> ()
 
 let waitUnitilAllFinish (scnRunners: ScenarioRunner[]) = 
     let mutable allFinish = scnRunners |> Array.forall(fun x -> x.Finished)
