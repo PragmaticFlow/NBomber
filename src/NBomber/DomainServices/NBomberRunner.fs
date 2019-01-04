@@ -101,8 +101,8 @@ let buildScenarios (context: NBomberRunnerContext) =
     let targetScenarios = tryGetTargetScenarios(context)
 
     if not(Array.isEmpty registeredScenarios) then
-        let scnNames = registeredScenarios |> Array.map(fun x -> x.ScenarioName)
-        Log.Information("registered scenarios: {0}", scnNames |> concatWithCommaAndQuotes)
+        let scnNames = registeredScenarios |> Array.map(fun x -> x.ScenarioName) |> concatWithCommaAndQuotes
+        Log.Information("registered scenarios: {0}", scnNames)
 
     match (scenarioSettings, targetScenarios) with
     | Some settings, Some targetScns -> 
