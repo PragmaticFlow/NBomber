@@ -15,7 +15,7 @@ open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
 
 let concatWithCommaAndQuotes (strings: string[]) =
-        strings |> String.concat("', '") |> sprintf "'%s'"
+    strings |> String.concat("', '") |> sprintf "'%s'"
 
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
