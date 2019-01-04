@@ -14,9 +14,6 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.ScenarioRunner
 
-let concatWithCommaAndQuotes (strings: string[]) =
-    strings |> String.concat("', '") |> sprintf "'%s'"
-
 let tryGetScenariosSettings (context: NBomberRunnerContext) = maybe {
     let! config = context.NBomberConfig
     let! globalSettings = config.GlobalSettings
@@ -48,7 +45,7 @@ let updateScenarioWithSettings (scenario: Scenario) (settings: ScenarioSetting) 
                     Duration = settings.Duration }
 
 let filterTargetScenarios (targetScenarios: string[]) (scenarios: Scenario[]) =
-    Log.Information("target scenarios from config: {0}", targetScenarios |> concatWithCommaAndQuotes)
+    Log.Information("target scenarios from config: {0}", targetScenarios |> String.concatWithCommaAndQuotes)
 
     scenarios 
     |> Array.filter(fun x -> targetScenarios |> Array.exists(fun target -> x.ScenarioName = target))
@@ -101,7 +98,7 @@ let buildScenarios (context: NBomberRunnerContext) =
     let targetScenarios = tryGetTargetScenarios(context)
 
     if not(Array.isEmpty registeredScenarios) then
-        let scnNames = registeredScenarios |> Array.map(fun x -> x.ScenarioName) |> concatWithCommaAndQuotes
+        let scnNames = registeredScenarios |> Array.map(fun x -> x.ScenarioName) |> String.concatWithCommaAndQuotes
         Log.Information("registered scenarios: {0}", scnNames)
 
     match (scenarioSettings, targetScenarios) with
