@@ -16,6 +16,17 @@ type DomainError =
     | AssertNotFound of assertNumber:int * assertion:Assertion
     | AssertionError of assertNumber:int * assertion:Assertion * stats:AssertStats
 
+    // Validation errors
+    | DurationLessThanOneSecond of scenarioNames:string[]
+    | ConcurrentCopiesLessThanOne of scenarioNames:string[]
+    | EmptyReportFileName
+    | UnsupportedReportFormat of reportFormats:string[]
+    | DuplicateScenarios
+    | DuplicateSteps of scenarioNames:string[]
+    | EmptyScenarioName
+    | EmptyStepName of scenarioNames:string[]
+    | ScenariosNotFound of notFoundScenarios:string[] * availableScenarios:string[]
+
 let toString (error) =
     match error with    
     | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
@@ -35,6 +46,29 @@ let toString (error) =
                                    else String.Empty 
                     let statsStr = String.Format("STATS: {0} {1} {2}", Environment.NewLine, statsJson, Environment.NewLine)
                     String.Format("Assertion #'{0}' FAILED for: {1} {2} {3} {4} {5}", assertNum, Environment.NewLine, scenarioStr, stepStr, labelStr, statsStr)
+
+    | ScenariosNotFound (notFoundScenarios,availableScenarios) ->
+        notFoundScenarios
+        |> String.concatWithCommaAndQuotes
+        |> sprintf "Target scenarios %s is not found. Available scenarios are %s" <| String.concatWithCommaAndQuotes(availableScenarios)
+    
+    | DurationLessThanOneSecond scenarioNames ->
+        scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
+
+    | ConcurrentCopiesLessThanOne scenarioNames ->
+        scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
+
+    | EmptyScenarioName -> "Scenario name can not be empty."
+    | EmptyReportFileName -> "Report File Name can not be empty string."
+    | UnsupportedReportFormat reportFormats ->
+        reportFormats |> String.concatWithCommaAndQuotes |> sprintf "Unknown Report Formats %s. Allowed formats: Txt, Html or Csv."
+
+    | DuplicateScenarios -> "Scenario names should be unique."
+    | DuplicateSteps scenarioNames ->
+        scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique in scenarios: %s. Step names should be unique within scenario."
+
+    | EmptyStepName scenarioNames->
+        scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
 
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 
