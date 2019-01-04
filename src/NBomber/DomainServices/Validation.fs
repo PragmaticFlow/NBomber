@@ -33,13 +33,10 @@ let concurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
                                                 |> Error
 
 let isReportFileNameNotEmpty (globalSettings: GlobalSettings) =
-    match globalSettings.ReportFileName with
-    | Some reportFileName -> 
-        if String.IsNullOrEmpty(reportFileName) then
-            Error("Report File Name can not be empty string.")
-        else
-            Ok(globalSettings)
-    | None -> Ok(globalSettings)
+    if String.IsNullOrEmpty globalSettings.ReportFileName then
+        Error("Report File Name can not be empty string.")
+    else
+        Ok(globalSettings)
 
 let validateReportFormat (reportFormat: string) =
     if String.IsNullOrEmpty(reportFormat) then
