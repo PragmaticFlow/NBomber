@@ -9,7 +9,7 @@ open NBomber.Configuration
 open NBomber.DomainServices
 open NBomber.Contracts
 
-let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string option, reportFormats: string[]) =
+let buildConfig (scenarioName: string, settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string, reportFormats: string[]) =
     let scenario = Scenario.create(scenarioName, [])
     let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios; ReportFileName = reportFileName; ReportFormats = reportFormats }
     let config = { NBomberConfig.GlobalSettings = Some globalSettings }
@@ -23,7 +23,7 @@ let buildSettings (scenarioName: string, warmUpDuration: TimeSpan, duration: Tim
 let ``validateRunnerContext() should return Ok for any args values`` (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int, reportFileName: string) =
     let settings = buildSettings(scenarioName, warmUpDuration, duration, concurrentCopies)
 
-    let validatedContext = buildConfig(scenarioName, [|settings|], [|scenarioName|], Some(reportFileName), [||])
+    let validatedContext = buildConfig(scenarioName, [|settings|], [|scenarioName|], reportFileName, [||])
                             |> Validation.validateRunnerContext
     
     if duration < TimeSpan.FromSeconds(1.0) then
@@ -45,7 +45,7 @@ let ``validateRunnerContext() should return Ok for any args values`` (scenarioNa
 let ``validateRunnerContext() should fail when report formats are unknown`` (reportFormats: string[]) =    
     let settings = buildSettings("scenario_name", TimeSpan.FromSeconds(10.0), TimeSpan.FromSeconds(10.0), 10)
 
-    let validatedContext = buildConfig("scenario_name", [|settings|], [|"scenario_name"|], None, reportFormats)
+    let validatedContext = buildConfig("scenario_name", [|settings|], [|"scenario_name"|], "report_file_name", reportFormats)
                             |> Validation.validateRunnerContext
 
     let atLeastOneReportFormatUnknown = reportFormats |> Array.map(Validation.validateReportFormat) |> Array.exists(fun x -> x.IsNone)
@@ -60,7 +60,7 @@ let ``validateRunnerContext() should fail when report formats are unknown`` (rep
 [<Property>]
 let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =    
     let targetScenarios = [|scenarioName + "new_name"|]
-    let errorMessage = buildConfig(scenarioName, Array.empty, targetScenarios, None, [||])
+    let errorMessage = buildConfig(scenarioName, Array.empty, targetScenarios, "report_file_name", [||])
                         |> Validation.validateRunnerContext
                         |> Result.getError
     

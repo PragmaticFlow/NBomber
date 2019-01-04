@@ -36,5 +36,8 @@ module String =
 
     let replace (oldValue: string, newValue: string) (str: string) =
         str.Replace(oldValue, newValue)
+
+    let concatWithCommaAndQuotes (strings: string[]) =
+        "'" + (strings |> String.concat("', '")) + "'"
         
 

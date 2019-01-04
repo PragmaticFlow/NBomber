@@ -12,7 +12,7 @@ type ScenarioSetting = {
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
-    ReportFileName: string option
+    ReportFileName: string
     ReportFormats: string[]
 }
 
