@@ -26,7 +26,7 @@ let private isTargetScenarioPresent (globalSettings: GlobalSettings) =
     let availableScenarios = globalSettings.ScenariosSettings |> Array.map(fun x -> x.ScenarioName)
     let notFoundScenarios = globalSettings.TargetScenarios |> Array.except availableScenarios
 
-    if Array.isEmpty notFoundScenarios then Ok globalSettings
+    if Array.isEmpty(notFoundScenarios) then Ok globalSettings
     else (notFoundScenarios, availableScenarios) |> ScenariosNotFound |> Error
 
 let private isDurationGreaterThenSecond (globalSettings: GlobalSettings) =
@@ -35,7 +35,7 @@ let private isDurationGreaterThenSecond (globalSettings: GlobalSettings) =
         |> Array.filter(fun x -> x.Duration < TimeSpan.FromSeconds 1.0)
         |> Array.map(fun x -> x.ScenarioName)
 
-    if Array.isEmpty scenariosWithIncorrectDuration then Ok globalSettings
+    if Array.isEmpty(scenariosWithIncorrectDuration) then Ok globalSettings
     else scenariosWithIncorrectDuration |> DurationLessThanOneSecond |> Error
 
 let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
@@ -44,7 +44,7 @@ let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
         |> Array.filter(fun x -> x.ConcurrentCopies < 1)
         |> Array.map(fun x -> x.ScenarioName)
     
-    if Array.isEmpty scenariosWithIncorrectConcurrentCopies then Ok globalSettings
+    if Array.isEmpty(scenariosWithIncorrectConcurrentCopies) then Ok globalSettings
     else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
 
 let private isEmptyScenarioNameExist (scenarios: Scenario[]) =
@@ -59,7 +59,7 @@ let private isEmptyReportFileNameExist (globalSettings: GlobalSettings) =
 let private validateReportFormat (globalSettings: GlobalSettings) =
     let unsupportedFormats = getUnsupportedReportFormats(globalSettings.ReportFormats)
 
-    if Array.isEmpty unsupportedFormats then Ok globalSettings
+    if Array.isEmpty(unsupportedFormats) then Ok globalSettings
     else unsupportedFormats |> UnsupportedReportFormat |> Error
 
 let private isScenarioNameDuplicate (scenarios: Scenario[]) =
@@ -76,10 +76,10 @@ let private isStepNameDuplicate (scenarios: Scenario[]) =
                 |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
                 |> Array.filter(fun x -> x <> "pause")
 
-            not(Array.isEmpty stepNames) && uniqueCount(stepNames) <> stepNames.Length)
+            not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
         |> Array.map(fun x -> x.ScenarioName)
     
-    if Array.isEmpty duplicates then Ok scenarios
+    if Array.isEmpty(duplicates) then Ok scenarios
     else duplicates |> DuplicateSteps |> Error
 
 let private isEmptyStepNameExist (scenarios: Scenario[]) =
@@ -91,7 +91,7 @@ let private isEmptyStepNameExist (scenarios: Scenario[]) =
             |> Array.exists(String.IsNullOrEmpty))
         |> Array.map(fun x -> x.ScenarioName)
     
-    if Array.isEmpty scenariosWithEmptySteps then Ok scenarios
+    if Array.isEmpty(scenariosWithEmptySteps) then Ok scenarios
     else scenariosWithEmptySteps |> EmptyStepName |> Error
 
 let internal validateNaming (context: NBomberRunnerContext) =
