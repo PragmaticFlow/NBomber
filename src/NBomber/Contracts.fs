@@ -60,6 +60,7 @@ type AssertStats = {
     
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj, [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) = { IsOk = true; Payload = payload; SizeBytes = sizeBytes }
+    static member Ok(payload: byte[]) = { IsOk = true; Payload = payload; SizeBytes = if payload <> null then Array.length payload else 0}
     static member Fail() = { IsOk = false; Payload = null; SizeBytes = 0 }
 
 type ReportFormat = 

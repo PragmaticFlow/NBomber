@@ -10,6 +10,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Configuration/ParseJson.fs" />
+    <Compile Include="Result.fs" />
     <Compile Include="Statistics.fs" />
     <Compile Include="Scenario.fs" />
     <Compile Include="Step\Pull.fs" />
