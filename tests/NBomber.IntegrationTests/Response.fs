@@ -1,9 +1,9 @@
 ﻿module Tests.Response
 
-open NBomber.Contracts
-
 open Xunit
 open FsCheck.Xunit
+
+open NBomber.Contracts
 
 [<Property>]
 let ``Response.Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
