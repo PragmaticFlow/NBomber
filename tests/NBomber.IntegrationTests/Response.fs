@@ -1,4 +1,4 @@
-﻿module Tests.Result
+﻿module Tests.Response
 
 open NBomber.Contracts
 
