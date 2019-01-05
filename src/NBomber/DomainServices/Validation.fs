@@ -8,12 +8,12 @@ open NBomber.Domain
 open NBomber.Domain.Errors
 
 let isReportFormatSupported (reportFormat: string) =
-    if String.IsNullOrEmpty reportFormat then None
+    if String.IsNullOrEmpty(reportFormat) then None
     else
         match reportFormat.ToLower().Trim() with 
-        | "txt"  -> Some(ReportFormat.Txt)
-        | "html" -> Some(ReportFormat.Html)
-        | "csv"  -> Some(ReportFormat.Csv)
+        | "txt"  -> Some ReportFormat.Txt
+        | "html" -> Some ReportFormat.Html
+        | "csv"  -> Some ReportFormat.Csv
         | _      -> None
 
 let private getUnsupportedReportFormats (reportFormats: string[]) =
@@ -35,7 +35,7 @@ let private isDurationGreaterThenSecond (globalSettings: GlobalSettings) =
         |> Array.filter(fun x -> x.Duration < TimeSpan.FromSeconds 1.0)
         |> Array.map(fun x -> x.ScenarioName)
 
-    if Array.isEmpty scenariosWithIncorrectDuration then Ok(globalSettings)
+    if Array.isEmpty scenariosWithIncorrectDuration then Ok globalSettings
     else scenariosWithIncorrectDuration |> DurationLessThanOneSecond |> Error
 
 let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
@@ -48,12 +48,12 @@ let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
     else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
 
 let private isEmptyScenarioNameExist (scenarios: Scenario[]) =
-    let isAnyScenarioNullOrEmpty = scenarios |> Array.exists(fun x -> String.IsNullOrEmpty x.ScenarioName)
+    let isAnyScenarioNullOrEmpty = scenarios |> Array.exists(fun x -> String.IsNullOrEmpty(x.ScenarioName))
     if isAnyScenarioNullOrEmpty then Error EmptyScenarioName
     else Ok scenarios
 
 let private isEmptyReportFileNameExist (globalSettings: GlobalSettings) =
-    if String.IsNullOrEmpty globalSettings.ReportFileName then Error EmptyReportFileName
+    if String.IsNullOrEmpty(globalSettings.ReportFileName) then Error EmptyReportFileName
     else Ok globalSettings
 
 let private validateReportFormat (globalSettings: GlobalSettings) =
