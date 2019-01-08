@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.StatisticsTypes
 
 open System
+open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
 type DataTransferCount = {
@@ -16,7 +17,18 @@ type LatencyCount = {
     More1200: int
 }
 
-type Percentiles = {
+type StepResults = {     
+    StepName: string
+    Results: (Response*Latency)[]    
+    DataTransfer: DataTransferCount
+}
+
+type StepStats = {
+    StepName: string
+    OkLatencies: Latency[]
+    ReqeustCount: int    
+    OkCount: int
+    FailCount: int   
     RPS: int
     Min: Latency
     Mean: Latency
@@ -25,16 +37,6 @@ type Percentiles = {
     Percent75: Latency
     Percent95: Latency
     StdDev: int
-}
-
-type StepStats = {     
-    StepName: string
-    OkLatencies: Latency[]
-    FailLatencies: Latency[]    
-    ReqeustCount: int
-    OkCount: int
-    FailCount: int    
-    Percentiles: Percentiles option
     DataTransfer: DataTransferCount
 }
 

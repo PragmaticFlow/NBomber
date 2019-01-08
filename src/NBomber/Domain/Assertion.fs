@@ -7,18 +7,17 @@ open NBomber.Domain.StatisticsTypes
 
 type AssertStats with
 
-    static member create(stats: StepStats) =
-        let p = stats.Percentiles.Value
+    static member create(stats: StepStats) =        
         { OkCount = stats.OkCount
           FailCount = stats.FailCount
-          Min = p.Min
-          Mean = p.Mean
-          Max = p.Max
-          RPS = p.RPS
-          Percent50 = p.Percent50
-          Percent75 = p.Percent75
-          Percent95 = p.Percent95
-          StdDev = p.StdDev
+          Min = stats.Min
+          Mean = stats.Mean
+          Max = stats.Max
+          RPS = stats.RPS
+          Percent50 = stats.Percent50
+          Percent75 = stats.Percent75
+          Percent95 = stats.Percent95
+          StdDev = stats.StdDev
           DataMinKb = stats.DataTransfer.MinKb
           DataMeanKb = stats.DataTransfer.MeanKb
           DataMaxKb = stats.DataTransfer.MaxKb
