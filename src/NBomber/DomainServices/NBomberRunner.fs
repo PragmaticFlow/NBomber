@@ -180,6 +180,6 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
                 TestFrameworkRunner.showResults(assertResults)        
     
     | Error ex ->
-        let errorMessage = ex |> toString
+        let errorMessage = toString(ex)
         if dep.ApplicationType = ApplicationType.Test then TestFrameworkRunner.showValidationErrors(errorMessage)
         else Log.Error(errorMessage)
