@@ -59,7 +59,7 @@ module StatisticsTable =
                                        [step.DataTransfer.MinKb.ToString()
                                         step.DataTransfer.MeanKb.ToString()
                                         step.DataTransfer.MaxKb.ToString()
-                                        step.DataTransfer.MaxKb.ToString()]
+                                        step.DataTransfer.AllMB.ToString()]
                                     else 
                                         ["-"; "-"; "-"; "-"]
 
