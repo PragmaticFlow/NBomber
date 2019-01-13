@@ -59,7 +59,7 @@ module StatisticsTable =
                                        [step.DataTransfer.MinKb.ToString()
                                         step.DataTransfer.MeanKb.ToString()
                                         step.DataTransfer.MaxKb.ToString()
-                                        step.DataTransfer.MaxKb.ToString()]
+                                        step.DataTransfer.AllMB.ToString()]
                                     else 
                                         ["-"; "-"; "-"; "-"]
 
@@ -73,7 +73,7 @@ module StatisticsTable =
             
             let rowStr = row.Remove(0, 4)
 
-            let tableTitle = sprintf "Statistics from scenario <b>%s</b> with concurrent copies: <b>%i</b>" scnStats.ScenarioName scnStats.ConcurrentCopies
+            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>", scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
             
             assets.StatisticsTableHtml
             |> String.replace("%table_title%", tableTitle)
