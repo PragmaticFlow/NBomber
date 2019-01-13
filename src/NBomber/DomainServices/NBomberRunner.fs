@@ -128,7 +128,11 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
 
     match runnerWithLongestScenario with
     | Some runner ->
-        Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'...", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+        if scnRunners.Length > 1 then
+            Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+        else
+            Log.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
+
         dep.ShowProgressBar(runner.Scenario.Duration)
 
     | None -> ()
