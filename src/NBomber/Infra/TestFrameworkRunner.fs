@@ -58,5 +58,4 @@ let showAssertionErrors (results: Result<Assertion,DomainError>[]) =
 let showValidationErrors (errorMsg: string) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
-
     if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)
