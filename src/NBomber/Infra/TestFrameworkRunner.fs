@@ -42,22 +42,21 @@ let tryGetCurrentFramework () =
     |> List.tryFind(Option.isSome)
     |> Option.flatten    
 
-let showResults (results: Result<Assertion,DomainError>[]) =
+let showAssertionErrors (results: Result<Assertion,DomainError>[]) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
 
-    let errors = 
+    let errorMsg = 
         results
         |> Array.filter(Result.isError)
         |> Array.map(Result.getError)
         |> Array.map(Errors.toString)
         |> String.concat(Environment.NewLine)
 
-    if errors |> String.IsNullOrEmpty |> not then printErrorMessage(errors, framework.Value)
+    if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)
 
-let showValidationErrors (errorMessage: string) =
+let showValidationErrors (errorMsg: string) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
 
-    if errorMessage |> String.IsNullOrEmpty |> not then
-        printErrorMessage(errorMessage, framework.Value)
+    if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)

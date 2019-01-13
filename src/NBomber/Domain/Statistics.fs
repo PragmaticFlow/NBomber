@@ -135,9 +135,11 @@ module ScenarioStats =
 
         let allOkCount = stepsStats |> Array.sumBy(fun x -> x.OkCount)
         let allFailCount = stepsStats |> Array.sumBy(fun x -> x.FailCount)
+        let allRPS = stepsStats |> Array.sumBy(fun x -> x.RPS)
 
         { ScenarioName = scenario.ScenarioName
           StepsStats = stepsStats
+          RPS = allRPS
           ConcurrentCopies = scenario.ConcurrentCopies
           OkCount = allOkCount
           FailCount = allFailCount

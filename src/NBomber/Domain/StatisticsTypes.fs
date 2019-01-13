@@ -43,6 +43,7 @@ type StepStats = {
 type ScenarioStats = {
     ScenarioName: string    
     StepsStats: StepStats[]
+    RPS: int
     ConcurrentCopies: int    
     OkCount: int
     FailCount: int

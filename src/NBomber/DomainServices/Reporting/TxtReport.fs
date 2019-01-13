@@ -12,9 +12,11 @@ let print (stats: GlobalStats) =
     |> String.concat(Environment.NewLine)
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    String.Format("Scenario: {0}, execution time: {1}",
+    String.Format("Scenario: '{0}', Duration time: '{1}', RPS: '{2}', Concurrent Copies: '{3}'",
                   scnStats.ScenarioName,
-                  scnStats.Duration.ToString())
+                  scnStats.Duration,
+                  scnStats.RPS,
+                  scnStats.ConcurrentCopies)
 
 let private printStepsTable (steps: StepStats[]) = 
     

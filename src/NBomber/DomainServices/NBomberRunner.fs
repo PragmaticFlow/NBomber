@@ -177,7 +177,7 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             cleanScenarios(scnRunners)
 
             if dep.ApplicationType = ApplicationType.Test then
-                TestFrameworkRunner.showResults(assertResults)        
+                TestFrameworkRunner.showAssertionErrors(assertResults)        
     
     | Error ex ->
         let errorMessage = toString(ex)
