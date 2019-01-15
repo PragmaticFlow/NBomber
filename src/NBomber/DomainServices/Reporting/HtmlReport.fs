@@ -66,15 +66,20 @@ module StatisticsTable =
                                         ["-"; "-"; "-"; "-"]
 
             dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
-
-        let printScenarioTable (scnStats) =  
-
+        
+        let printAssertions (assertResults) =
             let assertionsStr =
                 assertResults
                 |> Array.filter(Result.isError)
                 |> Array.map(Result.getError)
                 |> Array.map(toHtmlString)
                 |> String.concat(String.Empty)
+
+            if String.IsNullOrEmpty(assertionsStr) then String.Empty
+            else sprintf "<ul class=\"list-group\">%s</ul><br/>" assertionsStr
+
+        let printScenarioTable (scnStats) =  
+            let assertionsStr = printAssertions(assertResults)
 
             let row = scnStats.StepsStats
                       |> Array.map(fun step -> printStepRow(step))
