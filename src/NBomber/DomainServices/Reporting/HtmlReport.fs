@@ -47,7 +47,6 @@ module NumberReqChart =
         { Html = html; Js = js }
 
 module StatisticsTable =    
-    open NBomber.Domain.Errors
 
     let print (assets: Assets, scnStats: ScenarioStats[], assertResults: Result<Assertion,DomainError>[]) =     
 
@@ -75,7 +74,7 @@ module StatisticsTable =
                 |> Array.filter(Result.isError)
                 |> Array.map(Result.getError)
                 |> Array.map(toHtmlString)
-                |> String.concat(String.Empty) 
+                |> String.concat(String.Empty)
 
             let row = scnStats.StepsStats
                       |> Array.map(fun step -> printStepRow(step))
