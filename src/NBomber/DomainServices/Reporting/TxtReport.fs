@@ -1,13 +1,17 @@
 ﻿module internal rec NBomber.DomainServices.Reporting.TxtReport
 
 open System
-open ConsoleTables
-open NBomber.Domain.StatisticsTypes
 
-let print (stats: GlobalStats) = 
+open ConsoleTables
+
+open NBomber.Domain.StatisticsTypes
+open NBomber.Domain.Errors
+open NBomber.Domain.DomainTypes
+
+let print (stats: GlobalStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats
     |> Array.map(fun x -> let header = printScenarioHeader(x)
-                          let stepsTable = printStepsTable(x.StepsStats)
+                          let stepsTable = printStepsTable(x.StepsStats, failedAsserts)
                           header + Environment.NewLine + stepsTable)
     |> String.concat(Environment.NewLine)
 
@@ -18,8 +22,16 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
                   scnStats.RPS,
                   scnStats.ConcurrentCopies)
 
-let private printStepsTable (steps: StepStats[]) = 
-    
+let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
+    let printFailedAssert (failedAssert) =
+        match failedAssert with
+        | AssertionError (_,assertion,_) ->
+            match assertion with
+            | Step s ->
+                let labelStr = if s.Label.IsSome then s.Label.Value else String.Empty
+                Some <| sprintf "%s" labelStr
+        | _ -> None
+
     let dataInfoAvailable = steps |> Array.exists(fun x -> x.DataTransfer.AllMB > 0.0)
 
     let stepTable = ConsoleTable("step", "details")
@@ -39,4 +51,8 @@ let private printStepsTable (steps: StepStats[]) =
             stepTable.AddRow("", "") |> ignore
         )
     
+    failedAsserts
+    |> Array.choose(printFailedAssert)
+    |> Array.iteri(fun i s -> stepTable.AddRow(sprintf "- failed assertion #%i" (i + 1), s) |> ignore)
+
     stepTable.ToStringAlternative()

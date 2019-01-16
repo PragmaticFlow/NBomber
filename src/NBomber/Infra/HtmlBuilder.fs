@@ -35,16 +35,16 @@ let toListGroupItem (failedAssert) =
         match assertion with
         | Step s ->
             let labelStr = if s.Label.IsSome then s.Label.Value else String.Empty
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion <strong>'%s'</strong> is not found for step <strong>'%s'</strong></li>" labelStr s.StepName
+            Some <| sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion <strong>'%s'</strong> is not found for step <strong>'%s'</strong></li>" labelStr s.StepName
     | AssertionError (_,assertion,_) ->
         match assertion with
         | Step s ->
             let labelStr = if s.Label.IsSome then s.Label.Value else String.Empty
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion <strong>'%s'</strong> for step <strong>'%s'</strong></li>" labelStr s.StepName
-    | _ -> String.Empty
+            Some <| sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion <strong>'%s'</strong> for step <strong>'%s'</strong></li>" labelStr s.StepName
+    | _ -> None
 
 let toListGroup (failedAsserts) =
-    let assertionsStr = failedAsserts |> Array.map(toListGroupItem) |> String.concat(String.Empty)
+    let assertionsStr = failedAsserts |> Array.choose(toListGroupItem) |> String.concat(String.Empty)
 
     if String.IsNullOrEmpty(assertionsStr) then String.Empty
     else sprintf "<ul class=\"list-group\">%s</ul><br/>" assertionsStr
