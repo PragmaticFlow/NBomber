@@ -23,7 +23,7 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
                   scnStats.ConcurrentCopies)
 
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
-    let printFailedAssert (failedAssert) =
+    let getAssertNumberAndLabel (failedAssert) =
         match failedAssert with
         | AssertionError (assertNumber,assertion,_) ->
             match assertion with
@@ -52,7 +52,7 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         )
     
     failedAsserts
-    |> Array.map(printFailedAssert)
+    |> Array.map(getAssertNumberAndLabel)
     |> Array.iter(fun (assertNumber, assertLabel) -> stepTable.AddRow(assertNumber, assertLabel) |> ignore)
 
     stepTable.ToStringAlternative()
