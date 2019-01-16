@@ -69,20 +69,6 @@ let toString (error) =
 
     | EmptyStepName scenarioNames->
         scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
-
-let toHtmlString (error) =
-    match error with
-    | AssertNotFound (_,assertion) -> 
-        match assertion with
-        | Step s ->
-            let labelStr = if s.Label.IsSome then s.Label.Value else String.Empty
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion <strong>'%s'</strong> is not found for step <strong>'%s'</strong></li>" labelStr s.StepName
-    | AssertionError (_,assertion,_) ->
-        match assertion with
-        | Step s ->
-            let labelStr = if s.Label.IsSome then s.Label.Value else String.Empty
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion <strong>'%s'</strong> for step <strong>'%s'</strong></li>" labelStr s.StepName
-    | _ -> String.Empty
  
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 

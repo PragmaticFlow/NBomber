@@ -2,7 +2,6 @@
 
 open System
 
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Errors
 open NBomber.Infra
@@ -48,7 +47,7 @@ module NumberReqChart =
 
 module StatisticsTable =    
 
-    let print (assets: Assets, scnStats: ScenarioStats[], assertResults: Result<Assertion,DomainError>[]) =     
+    let print (assets: Assets, scnStats: ScenarioStats[], assertErrors: DomainError[]) =     
 
         let printStepRow (step: StepStats) =            
             let data = [step.StepName; step.ReqeustCount.ToString();
@@ -66,20 +65,9 @@ module StatisticsTable =
                                         ["-"; "-"; "-"; "-"]
 
             dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
-        
-        let printAssertions (assertResults) =
-            let assertionsStr =
-                assertResults
-                |> Array.filter(Result.isError)
-                |> Array.map(Result.getError)
-                |> Array.map(toHtmlString)
-                |> String.concat(String.Empty)
-
-            if String.IsNullOrEmpty(assertionsStr) then String.Empty
-            else sprintf "<ul class=\"list-group\">%s</ul><br/>" assertionsStr
 
         let printScenarioTable (scnStats) =  
-            let assertionsStr = printAssertions(assertResults)
+            let assertionsStr = HtmlBuilder.toListGroup(assertErrors)
 
             let row = scnStats.StepsStats
                       |> Array.map(fun step -> printStepRow(step))
@@ -103,7 +91,7 @@ module ScenarioView =
     let createViewId (index: int) = String.Format("scenario-view-{0}", index)
     let createName (index: int) = String.Format("Scenario {0}", index)
 
-    let print (assets: Assets, index: int, scnStats: ScenarioStats, assertResults: Result<Assertion,DomainError>[]) = 
+    let print (assets: Assets, index: int, scnStats: ScenarioStats, assertErrors: DomainError[]) = 
 
         let viewId = createViewId(index)
         let label = createName(index)
@@ -111,7 +99,7 @@ module ScenarioView =
         let indicatorsChart = IndicatorsChart.print(assets, viewId, label, scnStats.LatencyCount, scnStats.FailCount)
         let numberReqChart = NumberReqChart.print(assets, viewId, scnStats.OkCount, scnStats.FailCount)
 
-        let statisticsTableHtml = StatisticsTable.print(assets, [|scnStats|], assertResults)
+        let statisticsTableHtml = StatisticsTable.print(assets, [|scnStats|], assertErrors)
         
         let js = indicatorsChart.Js + numberReqChart.Js
         let html = assets.ScenarioViewHtml
@@ -124,13 +112,13 @@ module ScenarioView =
 
 module GlobalView =  
 
-    let print (assets: Assets, stats: GlobalStats, assertResults: Result<Assertion,DomainError>[]) =        
+    let print (assets: Assets, stats: GlobalStats, assertErrors: DomainError[]) =        
         
         let viewId = "global-view"
         let indicatorsChart = IndicatorsChart.print(assets, viewId, "All Scenarios", stats.LatencyCount, stats.FailCount)
         let numberReqChart = NumberReqChart.print(assets, viewId, stats.OkCount, stats.FailCount)
         
-        let statisticsTableHtml = StatisticsTable.print(assets, stats.AllScenariosStats, assertResults)
+        let statisticsTableHtml = StatisticsTable.print(assets, stats.AllScenariosStats, assertErrors)
 
         let js = indicatorsChart.Js + numberReqChart.Js
         let html = assets.GlobalViewHtml
@@ -165,13 +153,13 @@ module EnvView =
 
 module ContentView =
 
-    let print (dep: Dependency, stats: GlobalStats, assertResults: Result<Assertion,DomainError>[]) =        
+    let print (dep: Dependency, stats: GlobalStats, assertErrors: DomainError[]) =        
         let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
-        let globalView = GlobalView.print(dep.Assets, stats, assertResults)
+        let globalView = GlobalView.print(dep.Assets, stats, assertErrors)
         
         let scnViews =
             if stats.AllScenariosStats.Length > 1 then
-                let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i+1,x, assertResults))
+                let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i+1,x, assertErrors))
                 let scnHtml = scnViews |> Array.map(fun x -> x.Html) |> String.concat(String.Empty)
                 let scnJs = scnViews |> Array.map(fun x -> x.Js) |> String.concat(String.Empty)
                 { Html = scnHtml; Js = scnJs }
@@ -213,10 +201,10 @@ module SideBar =
         let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: Dependency, stats: GlobalStats, assertResults: Result<Assertion,DomainError>[]) =
+let print (dep: Dependency, stats: GlobalStats, assertErrors: DomainError[]) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
-    let contentView = ContentView.print(dep, stats, assertResults)
+    let contentView = ContentView.print(dep, stats, assertErrors)
 
     dep.Assets.IndexHtml
     |> String.replace("%sidebar%", sideBar)
