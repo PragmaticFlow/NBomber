@@ -29,24 +29,26 @@ let toPrettyHtml (html: string) =
             |> String.replace("<root>", "<!DOCTYPE HTML>")
             |> String.replace("</root>", String.Empty)
 
+let formatAssertion (assertNumber: int, assertLabel: string option) =
+    if assertLabel.IsSome then sprintf "<strong>%s</strong>" assertLabel.Value
+    else sprintf "<strong>#%i</strong>" assertNumber
+
 let toListGroupItem (failedAssert) =
     match failedAssert with
-    | AssertNotFound (_,assertion) -> 
+    | AssertNotFound (assertNumber,assertion) -> 
         match assertion with
         | Step s ->
-            if s.Label.IsSome then
-                Some <| sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion <strong>'%s'</strong> is not found for step <strong>'%s'</strong></li>" s.Label.Value s.StepName
-            else None        
-    | AssertionError (_,assertion,_) ->
+            let labelStr = formatAssertion(assertNumber, s.Label)
+            sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion %s is not found for step <strong>%s</strong></li>" labelStr s.StepName
+    | AssertionError (assertNumber,assertion,_) ->
         match assertion with
         | Step s ->
-            if s.Label.IsSome then
-                Some <| sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion <strong>'%s'</strong> for step <strong>'%s'</strong></li>" s.Label.Value s.StepName
-            else None
-    | _ -> None
+            let labelStr = formatAssertion(assertNumber, s.Label)
+            sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion %s for step <strong>%s</strong></li>" labelStr s.StepName
+    | _ -> String.Empty
 
 let toListGroup (failedAsserts) =
-    let assertionsStr = failedAsserts |> Array.choose(toListGroupItem) |> String.concat(String.Empty)
+    let assertionsStr = failedAsserts |> Array.map(toListGroupItem) |> String.concat(String.Empty)
 
     if String.IsNullOrEmpty(assertionsStr) then String.Empty
     else sprintf "<ul class=\"list-group\">%s</ul><br/>" assertionsStr

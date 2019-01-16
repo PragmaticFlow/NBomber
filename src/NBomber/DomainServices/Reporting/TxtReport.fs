@@ -28,9 +28,9 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         | AssertionError (_,assertion,_) ->
             match assertion with
             | Step s ->
-                if s.Label.IsSome then Some <| sprintf "%s" s.Label.Value
-                else None     
-        | _ -> None
+                let labelStr = if s.Label.IsSome then s.Label.Value else "no label"
+                sprintf "%s" labelStr
+        | _ -> String.Empty
 
     let dataInfoAvailable = steps |> Array.exists(fun x -> x.DataTransfer.AllMB > 0.0)
 
@@ -52,7 +52,7 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         )
     
     failedAsserts
-    |> Array.choose(printFailedAssert)
+    |> Array.map(printFailedAssert)
     |> Array.iteri(fun i s -> stepTable.AddRow(sprintf "- failed assertion #%i" (i + 1), s) |> ignore)
 
     stepTable.ToStringAlternative()
