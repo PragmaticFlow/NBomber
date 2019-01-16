@@ -38,13 +38,13 @@ let toListGroupItem (failedAssert) =
     | AssertNotFound (assertNumber,assertion) -> 
         match assertion with
         | Step s ->
-            let labelStr = formatAssertion(assertNumber, s.Label)
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion %s is not found for step <strong>%s</strong></li>" labelStr s.StepName
+            let assertLabel = formatAssertion(assertNumber, s.Label)
+            sprintf "<li class=\"list-group-item list-group-item-danger\">Assertion %s is not found for step <strong>%s</strong></li>" assertLabel s.StepName
     | AssertionError (assertNumber,assertion,_) ->
         match assertion with
         | Step s ->
-            let labelStr = formatAssertion(assertNumber, s.Label)
-            sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion %s for step <strong>%s</strong></li>" labelStr s.StepName
+            let assertLabel = formatAssertion(assertNumber, s.Label)
+            sprintf "<li class=\"list-group-item list-group-item-danger\">Failed assertion %s for step <strong>%s</strong></li>" assertLabel s.StepName
     | _ -> String.Empty
 
 let toListGroup (failedAsserts) =
