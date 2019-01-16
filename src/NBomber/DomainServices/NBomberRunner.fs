@@ -175,9 +175,9 @@ let run (dep: Dependency, context: NBomberRunnerContext) =
             let reportFileName = tryGetReportFileName(context) |> Option.defaultValue declaredReportFileName
             let reportFormats = tryGetReportFormats(context) |> Option.defaultValue context.ReportFormats
 
-            let assertErrors = assertResults |> Array.filter(Result.isError) |> Array.map(Result.getError)
+            let failedAsserts = assertResults |> Array.filter(Result.isError) |> Array.map(Result.getError)
 
-            Report.build(dep, globalStats, assertErrors)
+            Report.build(dep, globalStats, failedAsserts)
             |> Report.save(dep, "./", reportFileName, reportFormats)
                         
             cleanScenarios(scnRunners)
