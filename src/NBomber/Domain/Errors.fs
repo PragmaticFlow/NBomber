@@ -69,7 +69,7 @@ let toString (error) =
 
     | EmptyStepName scenarioNames->
         scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
- 
+
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 
     |> Array.filter(Result.isError)
