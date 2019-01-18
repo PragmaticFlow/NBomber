@@ -19,7 +19,7 @@ type ReportResult = {
 }
 
 let build (dep: Dependency, stats: GlobalStats, failedAsserts: DomainError[]) =
-    { TxtReport = TxtReport.print(stats)
+    { TxtReport = TxtReport.print(stats, failedAsserts)
       HtmlReport = HtmlReport.print(dep, stats, failedAsserts)
       CsvReport = CsvReport.print(stats) }
 
