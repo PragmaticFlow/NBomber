@@ -1,13 +1,17 @@
 ﻿module internal rec NBomber.DomainServices.Reporting.TxtReport
 
 open System
-open ConsoleTables
-open NBomber.Domain.StatisticsTypes
 
-let print (stats: GlobalStats) = 
+open ConsoleTables
+
+open NBomber.Domain.StatisticsTypes
+open NBomber.Domain.Errors
+open NBomber.Domain.DomainTypes
+
+let print (stats: GlobalStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats
     |> Array.map(fun x -> let header = printScenarioHeader(x)
-                          let stepsTable = printStepsTable(x.StepsStats)
+                          let stepsTable = printStepsTable(x.StepsStats, failedAsserts)
                           header + Environment.NewLine + stepsTable)
     |> String.concat(Environment.NewLine)
 
@@ -18,8 +22,16 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
                   scnStats.RPS,
                   scnStats.ConcurrentCopies)
 
-let private printStepsTable (steps: StepStats[]) = 
-    
+let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
+    let getAssertNumberAndLabel (failedAssert) =
+        match failedAssert with
+        | AssertionError (assertNumber,assertion,_) ->
+            match assertion with
+            | Step s ->
+                let assertLabel = if s.Label.IsSome then s.Label.Value else String.Empty
+                sprintf "- failed assertion #%i" assertNumber, assertLabel
+        | _ -> String.Empty, String.Empty
+
     let dataInfoAvailable = steps |> Array.exists(fun x -> x.DataTransfer.AllMB > 0.0)
 
     let stepTable = ConsoleTable("step", "details")
@@ -39,4 +51,8 @@ let private printStepsTable (steps: StepStats[]) =
             stepTable.AddRow("", "") |> ignore
         )
     
+    failedAsserts
+    |> Array.map(getAssertNumberAndLabel)
+    |> Array.iter(fun (assertNumber, assertLabel) -> stepTable.AddRow(assertNumber, assertLabel) |> ignore)
+
     stepTable.ToStringAlternative()
