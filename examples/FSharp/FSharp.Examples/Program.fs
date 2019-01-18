@@ -1,6 +1,5 @@
 ﻿open System
 open NBomber.FSharp
-open NBomber.Contracts
 
 [<EntryPoint>]
 let main argv =
