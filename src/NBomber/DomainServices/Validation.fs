@@ -10,10 +10,11 @@ open NBomber.Domain.Errors
 let isReportFormatSupported (reportFormat: string) =
     if String.IsNullOrEmpty(reportFormat) then None
     else
-        match reportFormat.ToLower().Trim() with 
+        match reportFormat.ToLower().Trim() with
         | "txt"  -> Some ReportFormat.Txt
         | "html" -> Some ReportFormat.Html
         | "csv"  -> Some ReportFormat.Csv
+        | "md"   -> Some ReportFormat.Md
         | _      -> None
 
 let private getUnsupportedReportFormats (reportFormats: string[]) =
@@ -43,7 +44,7 @@ let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
         globalSettings.ScenariosSettings
         |> Array.filter(fun x -> x.ConcurrentCopies < 1)
         |> Array.map(fun x -> x.ScenarioName)
-    
+
     if Array.isEmpty(scenariosWithIncorrectConcurrentCopies) then Ok globalSettings
     else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
 
@@ -78,7 +79,7 @@ let private isStepNameDuplicate (scenarios: Scenario[]) =
 
             not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
         |> Array.map(fun x -> x.ScenarioName)
-    
+
     if Array.isEmpty(duplicates) then Ok scenarios
     else duplicates |> DuplicateSteps |> Error
 
@@ -90,7 +91,7 @@ let private isEmptyStepNameExist (scenarios: Scenario[]) =
             |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
             |> Array.exists(String.IsNullOrEmpty))
         |> Array.map(fun x -> x.ScenarioName)
-    
+
     if Array.isEmpty(scenariosWithEmptySteps) then Ok scenarios
     else scenariosWithEmptySteps |> EmptyStepName |> Error
 
@@ -103,7 +104,7 @@ let internal validateNaming (context: NBomberRunnerContext) =
 
 let internal validateGlobalSettings (globalSettings: GlobalSettings) =
     globalSettings
-    |> isTargetScenarioPresent 
+    |> isTargetScenarioPresent
     |> Result.bind isDurationGreaterThenSecond
     |> Result.bind isConcurrentCopiesGreaterThenOne
     |> Result.bind isEmptyReportFileNameExist
@@ -124,4 +125,3 @@ let validateRunnerContext (context: NBomberRunnerContext) =
         | None -> Ok context
     | Error msg -> Error msg
 
-    
