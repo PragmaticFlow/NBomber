@@ -28,10 +28,10 @@ type PushContext<'TConnection> = {
 }
 
 type IStep = interface end
-type IAssertion = interface end  
+type IAssertion = interface end
 
 type Scenario = {
-    ScenarioName: string    
+    ScenarioName: string
     TestInit: (unit -> unit) option
     TestClean: (unit -> unit) option
     Steps: IStep[]
@@ -57,20 +57,21 @@ type AssertStats = {
     DataMaxKb: float
     AllDataMB: float
 }
-    
+
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj, [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) = { IsOk = true; Payload = payload; SizeBytes = sizeBytes }
     static member Ok(payload: byte[]) = { IsOk = true; Payload = payload; SizeBytes = if isNull(payload) then 0 else Array.length(payload)}
     static member Fail() = { IsOk = false; Payload = null; SizeBytes = 0 }
 
-type ReportFormat = 
+type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
+    | Md = 3
 
 type NBomberRunnerContext = {
     Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option  
+    NBomberConfig: NBomberConfig option
     ReportFileName: string option
     ReportFormats: ReportFormat[]
 }
