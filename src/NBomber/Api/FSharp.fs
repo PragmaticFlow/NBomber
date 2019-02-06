@@ -120,17 +120,14 @@ module NBomberRunner =
     open NBomber.Configuration    
     open NBomber.Infra        
 
-    let registerScenario (scenario: Contracts.Scenario) = 
-        { Scenarios = [|scenario|]
-          NBomberConfig = None
-          ReportFileName = None
-          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
-
     let registerScenarios (scenarios: Contracts.Scenario list) = 
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv|] }
+          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|] }
+
+    let registerScenario (scenario: Contracts.Scenario) = 
+        registerScenarios([scenario])
 
     let withReportFileName (reportFileName: string) (context: NBomberRunnerContext) =
         { context with ReportFileName = Some reportFileName }
