@@ -6,14 +6,16 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Errors
 open NBomber.Domain.StatisticsTypes
 
-
 [<AutoOpen>]
 module private Impl =
     type Row2 = string * string
+    
     let sep n =
         System.String('-', n)
+    
     let sep2 l1 l2 =
         sprintf "|-%s-|-%s-|" (sep l1) (sep l2)
+    
     let asMdTable (s : StepStats) =
         let dataInfoAvailable = s.DataTransfer.AllMB > 0.0
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
@@ -46,7 +48,7 @@ module private Impl =
             | _ -> ()
         } |> String.concat Environment.NewLine
 
-    let scenarioHeader (scnStats : ScenarioStats) =
+    let scenarioHeader (scnStats: ScenarioStats) =
         sprintf "# Scenario: `%s`\n\n- Duration time: `%A`\n- RPS: `%i`\n- Concurrent Copies: `%i`\n"
                 (scnStats.ScenarioName.Replace('_', ' '))
                 scnStats.Duration
@@ -62,12 +64,13 @@ module private Impl =
                 sprintf "- failed assertion nr `%i`, `%s`" assertNumber assertLabel
         | _ -> String.Empty
 
-
-let print (stats : GlobalStats, failedAsserts: DomainError[]) =
+let print (stats: GlobalStats, failedAsserts: DomainError[]) =
+    
     let assertErrors =
         failedAsserts
         |> Array.map(getAssertNumberAndLabel)
         |> List.ofArray
+    
     stats.AllScenariosStats
     |> Seq.collect (fun x ->
         seq {
