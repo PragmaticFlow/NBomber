@@ -39,36 +39,16 @@ type ConnectionPool<'TConnection> = {
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false
 
-type UpdatesChannel() =
-    
-    let mutable tcs = TaskCompletionSource<Response>()
-
-    member x.GetResponse() = 
-        tcs <- TaskCompletionSource<Response>()
-        tcs.Task
-
-    interface IUpdatesChannel with
-        member x.ReceivedUpdate(response: Response) = 
-            if not tcs.Task.IsCompleted then tcs.SetResult(response)
-
-type PullStep = {
-    StepName: StepName    
-    ConnectionPool: ConnectionPool<obj>
-    Execute: PullContext<obj> -> Task<Response>
-    CurrentContext: PullContext<obj> option
-}
-
-type PushStep = {
+type ActionStep = {
     StepName: StepName
-    ConnectionPool: ConnectionPool<obj>        
-    Handler: PushContext<obj> -> Task    
-    CurrentContext: PushContext<obj> option
+    ConnectionPool: ConnectionPool<obj>
+    Execute: StepContext<obj> -> Task<Response>
+    CurrentContext: StepContext<obj> option
 }
 
 type Step =
-    | Pull  of PullStep
-    | Push  of PushStep
-    | Pause of TimeSpan 
+    | Action of ActionStep
+    | Pause  of TimeSpan
     interface IStep
 
 type AssertFunc = AssertStats -> bool

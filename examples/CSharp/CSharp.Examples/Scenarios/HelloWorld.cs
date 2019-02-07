@@ -9,7 +9,7 @@ namespace CSharp.Examples.Scenarios
     {
         public static Scenario BuildScenario()
         {   
-            var step1 = Step.CreatePull("simple step", ConnectionPool.None, async context =>
+            var step1 = Step.CreateAction("simple step", ConnectionPool.None, async context =>
             {
                 // you can do any logic here: go to http, websocket etc
                 await Task.Delay(TimeSpan.FromSeconds(0.1));

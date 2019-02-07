@@ -18,13 +18,11 @@ type ReportResult = {
       MdReport: string
     }
 
-let build (dep: Dependency, stats: GlobalStats, failedAsserts: DomainError[]) =
+let build (dep: Dependency, stats: GlobalStats) (failedAsserts: DomainError[]) =
     { TxtReport = TxtReport.print(stats, failedAsserts)
       HtmlReport = HtmlReport.print(dep, stats, failedAsserts)
       CsvReport = CsvReport.print(stats)
-      MdReport = MdReport.print (stats, failedAsserts)
-    }
-
+      MdReport = MdReport.print(stats, failedAsserts) }
 
 let save (dep: Dependency, outPutDir: string, reportFileName: string, reportFormats: ReportFormat[]) (report: ReportResult) =
     try

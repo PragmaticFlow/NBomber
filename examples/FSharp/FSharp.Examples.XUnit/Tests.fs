@@ -11,9 +11,7 @@ open NBomber.FSharp
 
 let buildScenario () =
 
-    let pool = ConnectionPool.none
-
-    let step1 = Step.createPull("Step", pool, fun context -> task {
+    let step1 = Step.createAction("Step", ConnectionPool.none, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.5))
         return Response.Ok()
     })

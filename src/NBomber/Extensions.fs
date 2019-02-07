@@ -20,6 +20,19 @@ type Result<'T,'TError> with
         | Error er -> er
 
 [<Struct>]
+type TrialBuilder =
+
+  member x.Bind(r, bind) =
+    match r with
+    | Ok result    -> bind result
+    | Error errors -> Error errors
+
+  member x.Return(value) = Ok value
+  member x.ReturnFrom(value) = value
+
+let trial = TrialBuilder()
+
+[<Struct>]
 type MaybeBuilder =
     
     member x.Bind(m, bind) =
@@ -39,5 +52,3 @@ module String =
 
     let concatWithCommaAndQuotes (strings: string[]) =
         "'" + (strings |> String.concat("', '")) + "'"
-        
-

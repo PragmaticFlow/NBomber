@@ -40,7 +40,7 @@ let applyForStep (globalStats: GlobalStats, assertNum: int, asrt: StepAssertion)
                 else Error <| AssertionError(assertNum, Step(asrt), asrtStats)
     | None   -> Error <| AssertNotFound(assertNum, Step(asrt))
 
-let apply (globalStats: GlobalStats, assertions: Assertion[]) =
+let apply (globalStats: GlobalStats) (assertions: Assertion[]) =
     assertions
     |> Array.mapi(fun i assertion -> 
         let asrtNum = i + 1

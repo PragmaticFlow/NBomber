@@ -21,7 +21,7 @@ namespace CSharp.Examples.Scenarios
 
             var httpClient = new HttpClient();
 
-            var step1 = Step.CreatePull("GET html", ConnectionPool.None, async context =>
+            var step1 = Step.CreateAction("GET html", ConnectionPool.None, async context =>
             {
                 var request = CreateHttpRequest();
 

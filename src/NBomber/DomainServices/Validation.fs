@@ -44,7 +44,7 @@ let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
         globalSettings.ScenariosSettings
         |> Array.filter(fun x -> x.ConcurrentCopies < 1)
         |> Array.map(fun x -> x.ScenarioName)
-
+    
     if Array.isEmpty(scenariosWithIncorrectConcurrentCopies) then Ok globalSettings
     else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
 
@@ -79,7 +79,7 @@ let private isStepNameDuplicate (scenarios: Scenario[]) =
 
             not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
         |> Array.map(fun x -> x.ScenarioName)
-
+    
     if Array.isEmpty(duplicates) then Ok scenarios
     else duplicates |> DuplicateSteps |> Error
 
@@ -91,11 +91,11 @@ let private isEmptyStepNameExist (scenarios: Scenario[]) =
             |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
             |> Array.exists(String.IsNullOrEmpty))
         |> Array.map(fun x -> x.ScenarioName)
-
+    
     if Array.isEmpty(scenariosWithEmptySteps) then Ok scenarios
     else scenariosWithEmptySteps |> EmptyStepName |> Error
 
-let internal validateNaming (context: NBomberRunnerContext) =
+let internal validateNaming (context: NBomberContext) =
     context.Scenarios
     |> isScenarioNameDuplicate
     |> Result.bind isStepNameDuplicate
@@ -104,13 +104,13 @@ let internal validateNaming (context: NBomberRunnerContext) =
 
 let internal validateGlobalSettings (globalSettings: GlobalSettings) =
     globalSettings
-    |> isTargetScenarioPresent
+    |> isTargetScenarioPresent 
     |> Result.bind isDurationGreaterThenSecond
     |> Result.bind isConcurrentCopiesGreaterThenOne
     |> Result.bind isEmptyReportFileNameExist
     |> Result.bind validateReportFormat
 
-let validateRunnerContext (context: NBomberRunnerContext) =
+let validateRunnerContext (context: NBomberContext) =
     let validatedContext = validateNaming(context)
 
     match validatedContext with
@@ -124,4 +124,3 @@ let validateRunnerContext (context: NBomberRunnerContext) =
             | Error msg -> Error msg
         | None -> Ok context
     | Error msg -> Error msg
-

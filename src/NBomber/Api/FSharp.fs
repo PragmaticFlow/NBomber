@@ -24,7 +24,7 @@ type ConnectionPool =
 
 module Step =        
 
-    let createPull (name: string, pool: IConnectionPool<'TConnection>, execute: PullContext<'TConnection> -> Task<Response>) =                
+    let createAction (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
         let p = pool :?> ConnectionPool<'TConnection>
         
         let newOpen = fun () -> p.OpenConnection() :> obj
@@ -40,36 +40,13 @@ module Step =
                         AliveConnections = Array.empty }        
         
         let newExecute = 
-            fun (context: PullContext<obj>) ->                 
+            fun (context: StepContext<obj>) ->                 
                 let newContext = { CorrelationId = context.CorrelationId
                                    Connection = context.Connection :?> 'TConnection
                                    Payload = context.Payload }
                 execute(newContext)
 
-        Pull({ StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None }) :> IStep
-    
-    let createPush (name: string, pool: IConnectionPool<'TConnection>, handler: PushContext<'TConnection> -> Task) =
-        let p = pool :?> ConnectionPool<'TConnection>
-        
-        let newOpen = fun () -> p.OpenConnection() :> obj
-
-        let newClose = match p.CloseConnection with
-                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
-                       | None      -> None
-
-        let newPool = { PoolName = p.PoolName
-                        OpenConnection = newOpen
-                        CloseConnection = newClose
-                        ConnectionsCount = p.ConnectionsCount
-                        AliveConnections = Array.empty }
-        let newHandler = 
-            fun (context: PushContext<obj>) ->                 
-                let newContext = { CorrelationId = context.CorrelationId
-                                   Connection = context.Connection :?> 'TConnection
-                                   UpdatesChannel = context.UpdatesChannel }
-                handler(newContext)
-
-        Push({ StepName = name; ConnectionPool = newPool; Handler = newHandler; CurrentContext = None }) :> IStep
+        Action({ StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None }) :> IStep
 
     let createPause (duration) = Pause(duration) :> IStep    
 
@@ -129,22 +106,22 @@ module NBomberRunner =
     let registerScenario (scenario: Contracts.Scenario) = 
         registerScenarios([scenario])
 
-    let withReportFileName (reportFileName: string) (context: NBomberRunnerContext) =
+    let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberRunnerContext) =
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         let formats = reportFormats |> List.toArray
         { context with ReportFormats = formats }    
 
-    let loadConfig (path: string) (context: NBomberRunnerContext) =
+    let loadConfig (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
         { context with NBomberConfig = config }
 
-    let run (context: NBomberRunnerContext) =
+    let run (context: NBomberContext) =
         let dep = Dependency.create(Process)
         NBomberRunner.run(dep, context)
 
-    let runInConsole (context: NBomberRunnerContext) =
+    let runInConsole (context: NBomberContext) =
         let mutable run = true
         while run do
             let dep = Dependency.create(Console)
@@ -154,6 +131,6 @@ module NBomberRunner =
             let userInput = Console.ReadLine()
             run <- List.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
-    let runTest (context: NBomberRunnerContext) =
+    let runTest (context: NBomberContext) =
         let dep = Dependency.create(Test)
         NBomberRunner.run(dep, context)

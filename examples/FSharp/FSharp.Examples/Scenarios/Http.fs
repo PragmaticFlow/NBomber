@@ -19,7 +19,7 @@ let buildScenario () =
 
     let httpClient = new HttpClient()
 
-    let step1 = Step.createPull("GET html", ConnectionPool.none, fun context -> task {        
+    let step1 = Step.createAction("GET html", ConnectionPool.none, fun context -> task {        
         let! response = createHttpRequest() |> httpClient.SendAsync        
         let responseSize =
             if response.Content.Headers.ContentLength.HasValue then 

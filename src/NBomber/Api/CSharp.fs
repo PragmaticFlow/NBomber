@@ -19,8 +19,7 @@ type ConnectionPool =
     static member None = FSharp.ConnectionPool.none
 
 type Step =    
-    static member CreatePull(name: string, pool: IConnectionPool<'TConnection>, execute: Func<PullContext<'TConnection>,Task<Response>>) = FSharp.Step.createPull(name, pool, execute.Invoke)
-    static member CreatePush(name: string, pool: IConnectionPool<'TConnection>, handler: Func<PushContext<'TConnection>,Task>) = FSharp.Step.createPush(name, pool, handler.Invoke)
+    static member CreateAction(name: string, pool: IConnectionPool<'TConnection>, execute: Func<StepContext<'TConnection>,Task<Response>>) = FSharp.Step.createAction(name, pool, execute.Invoke)    
     static member CreatePause(duration) = FSharp.Step.createPause(duration)
 
 type Assertion =    
@@ -65,26 +64,26 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios    
 
     [<Extension>]
-    static member LoadConfig(context: NBomberRunnerContext, path: string) =
+    static member LoadConfig(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
 
     [<Extension>]
-    static member WithReportFileName(context: NBomberRunnerContext, reportFileName: string) =
+    static member WithReportFileName(context: NBomberContext, reportFileName: string) =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     [<Extension>]
-    static member WithReportFormats(context: NBomberRunnerContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+    static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)   
 
     [<Extension>]
-    static member Run(context: NBomberRunnerContext) =
+    static member Run(context: NBomberContext) =
         FSharp.NBomberRunner.run(context)
         
     [<Extension>]
-    static member RunInConsole(context: NBomberRunnerContext) =
+    static member RunInConsole(context: NBomberContext) =
         FSharp.NBomberRunner.runInConsole(context)
 
     [<Extension>]
-    static member RunTest(context: NBomberRunnerContext) =
+    static member RunTest(context: NBomberContext) =
         FSharp.NBomberRunner.runTest(context)

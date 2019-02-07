@@ -1,7 +1,6 @@
 ﻿module internal NBomber.Domain.Step
 
 open System
-open System.Collections.Generic
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -11,30 +10,22 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
-let isPull (step)  = match step with | Pull _  -> true | _ -> false
-let isPush (step)  = match step with | Push _  -> true | _ -> false
-let isPause (step) = match step with | Pause _ -> true | _ -> false    
+let isAction (step) = match step with | Action _  -> true | _ -> false
+let isPause (step)  = match step with | Pause _ -> true | _ -> false    
     
 let getName (step) = 
     match step with
-    | Pull s  -> s.StepName
-    | Push s  -> s.StepName
+    | Action s  -> s.StepName    
     | Pause t -> "pause"
         
-let getPull (step) =
+let getAction (step) =
     match step with
-    | Pull r -> r
-    | _         -> failwith "step is not a Pull"
-
-let getPush (step) = 
-    match step with 
-    | Push l -> l
-    | _          -> failwith "step is not a Push"
+    | Action r -> r
+    | _        -> failwith "step is not a Action"
 
 let getConnectionPool (step) =
     match step with
-    | Pull s -> Some s.ConnectionPool
-    | Push s -> Some s.ConnectionPool
+    | Action s -> Some s.ConnectionPool    
     | Pause s -> None
 
 let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
@@ -43,17 +34,12 @@ let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
         pool.AliveConnections.[connectionIndex]
 
     match step with
-    | Pull s -> let connection = getConnection(s.ConnectionPool)
-                let context = { CorrelationId = correlationId
-                                Connection = connection
-                                Payload = Unchecked.defaultof<obj> }
-                Pull { s with CurrentContext = Some context }
-    
-    | Push s -> let connection = getConnection(s.ConnectionPool)
-                let context = { CorrelationId = correlationId
-                                Connection = connection
-                                UpdatesChannel = UpdatesChannel() }
-                Push { s with CurrentContext = Some context }
+    | Action s -> 
+        let connection = getConnection(s.ConnectionPool)
+        let context = { CorrelationId = correlationId
+                        Connection = connection
+                        Payload = Unchecked.defaultof<obj> }
+        Step.Action { s with CurrentContext = Some context }
     
     | Pause s -> step
 
@@ -61,21 +47,13 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
     timer.Restart()        
     try
         match step with
-        | Pull s  -> let context = s.CurrentContext.Value
-                     context.Payload <- prevPayload
-                     let! resp = s.Execute(s.CurrentContext.Value)
-                     timer.Stop()
-                     let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
-                     return (resp, latency)
-        
-        | Push s  -> let context = s.CurrentContext.Value
-                     let channel = context.UpdatesChannel :?> UpdatesChannel
-                     let responseT = channel.GetResponse()
-                     do! s.Handler(context)
-                     let! response = responseT
-                     timer.Stop()                     
-                     let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
-                     return (response, latency)
+        | Action s ->
+            let context = s.CurrentContext.Value
+            context.Payload <- prevPayload
+            let! resp = s.Execute(s.CurrentContext.Value)
+            timer.Stop()
+            let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
+            return (resp, latency)
         
         | Pause s -> do! Task.Delay(s)
                      return (Response.Ok(prevPayload), 0)
@@ -85,7 +63,7 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
             return (Response.Fail(), latency)
 }
 
-let runSteps (steps: Step[], latencies: List<List<Response*Latency>>, 
+let runSteps (steps: Step[], latencies: ResizeArray<ResizeArray<Response*Latency>>, 
               ct: CancellationToken) = task {
         
     do! Task.Delay(10)        

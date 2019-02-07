@@ -30,7 +30,7 @@ namespace CSharp.Examples.Scenarios
             });
             //connectionsCount: 50);
 
-            var pingStep = Step.CreatePull("ping", webSocketsPool, async context =>
+            var pingStep = Step.CreateAction("ping", webSocketsPool, async context =>
             {
                 var msg = new WebSocketRequest
                 {
@@ -42,14 +42,17 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            var pongStep = Step.CreatePush("pong", webSocketsPool, async context =>
+            var pongStep = Step.CreateAction("pong", webSocketsPool, async context =>
             {
-                var (response, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection);
-                var msg = MsgConverter.FromJsonByteArray<WebSocketResponse>(message);
-
-                if (msg.CorrelationId == context.CorrelationId)
+                while (true)
                 {
-                    context.UpdatesChannel.ReceivedUpdate(Response.Ok(msg));
+                    var (response, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection);
+                    var msg = MsgConverter.FromJsonByteArray<WebSocketResponse>(message);
+
+                    if (msg.CorrelationId == context.CorrelationId)
+                    {
+                        return Response.Ok(msg);
+                    }
                 }
             });
 

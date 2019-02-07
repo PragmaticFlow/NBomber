@@ -1,7 +1,6 @@
 ﻿module internal NBomber.DomainServices.ScenarioRunner
 
 open System
-open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
 
@@ -18,11 +17,11 @@ type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
     let mutable currentCts = None
     let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex))
     let stepsWithoutPause = steps |> Array.filter(fun st -> not(Step.isPause st))
-    let latencies = List<List<Response*Latency>>()
+    let latencies = ResizeArray<ResizeArray<Response*Latency>>()
 
     let init () =
         latencies.Clear()
-        stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(List<Response*Latency>()))    
+        stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(ResizeArray<Response*Latency>()))    
 
     member x.Run() = 
         init()
@@ -39,38 +38,35 @@ type ScenarioRunner(scenario: Scenario) =
 
     let createActors () =
         scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario))
+    
+    let mutable finished = true
+    let actors = lazy createActors()    
 
-    let mutable finished = false
-    let actors = lazy createActors()
-    let scnTimer = new System.Timers.Timer()
+    let stop () =  
+        if not finished then
+            actors.Value |> Array.iter(fun x -> x.Stop())        
+            finished <- true
 
-    let stop () =         
-        actors.Value |> Array.iter(fun x -> x.Stop())
-        scnTimer.Stop()
-        finished <- true
-
-    let run () =        
+    let run () = task {       
         stop()
-        finished <- false
-        scnTimer.Start()
+        finished <- false        
         actors.Value |> Array.iter(fun x -> x.Run())
+        do! Task.Delay(scenario.Duration)
+        actors.Value |> Array.iter(fun x -> x.Stop())
+        do! Task.Delay(TimeSpan.FromSeconds(1.0))    
+    }
         
     let warmUp (interval: TimeSpan) = task {
         actors.Value |> Array.iter(fun x -> x.Run())
         do! Task.Delay(interval)
         actors.Value |> Array.iter(fun x -> x.Stop())
         do! Task.Delay(TimeSpan.FromSeconds(1.0))        
-    }
-
-    do scnTimer.Interval <- scenario.Duration.TotalMilliseconds
-       scnTimer.Elapsed.Add(fun _ -> stop())
-
-    member x.Finished = finished
+    }    
+        
     member x.Scenario = scenario
     member x.WarmUp(interval) = warmUp(interval)    
     member x.Run() = run()
-    member x.Stop() = stop()
-    member x.Clean() = Scenario.clean(scenario)
+    member x.Stop() = stop()    
     
     member x.GetResult() =
         actors.Value
