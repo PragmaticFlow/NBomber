@@ -10,16 +10,14 @@ open NBomber.Contracts
 open NBomber.FSharp
 
 [<Fact>]
-let ``Ok and Fail should be properly count`` () =
-        
-    let pool = ConnectionPool.none
-
-    let okStep = Step.createPull("ok step", pool, fun context -> task {
+let ``Ok and Fail should be properly count`` () =       
+    
+    let okStep = Step.createAction("ok step", ConnectionPool.none, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })
 
-    let failStep = Step.createPull("fail step", pool, fun context -> task {
+    let failStep = Step.createAction("fail step", ConnectionPool.none, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Fail()
     })
@@ -42,9 +40,7 @@ let ``Ok and Fail should be properly count`` () =
 [<Fact>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     
-    let pool = ConnectionPool.none
-    
-    let pullStep = Step.createPull("pull step", pool, fun context -> task {                
+    let pullStep = Step.createAction("pull step", ConnectionPool.none, fun context -> task {                
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok(sizeBytes = 100)
     })

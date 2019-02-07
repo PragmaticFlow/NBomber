@@ -11,10 +11,8 @@ namespace CSharp.Examples.NUnit
     public class Tests
     {
         Scenario BuildScenario()
-        {
-            var pool = ConnectionPool.None;
-
-            var step1 = Step.CreatePull("simple step", pool, async context =>
+        {   
+            var step1 = Step.CreateAction("simple step", ConnectionPool.None, async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.5));
                 return Response.Ok();

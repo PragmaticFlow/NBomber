@@ -16,15 +16,13 @@ let updateConnectionPoolCount (concurrentCopies: int) (step) =
         { pool with ConnectionsCount = newCount }
     
     match step with
-    | Pull s -> Pull { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }    
-    | Push s -> Push { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }
+    | Action s -> Action { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }        
     | Pause s -> Pause s
 
 let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
     let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
     match step with
-    | Pull s -> Pull { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }    
-    | Push s -> Push { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }
+    | Action s -> Action { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }        
     | Pause s -> Pause s  
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
@@ -49,7 +47,7 @@ let getDistinctPools (scenario: Scenario) =
     |> Array.map(Option.get)
     |> Array.distinct    
 
-let runInit (scenario: Scenario) =    
+let init (scenario: Scenario) =    
 
     let initConnectionPool (pool: ConnectionPool<obj>) =
         let connections = System.Collections.Generic.List<obj>()
@@ -93,4 +91,3 @@ let clean (scenario: Scenario) =
             scenario.TestClean.Value()
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
-        

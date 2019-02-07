@@ -27,7 +27,18 @@ type DomainError =
     | EmptyStepName of scenarioNames:string[]
     | ScenariosNotFound of notFoundScenarios:string[] * availableScenarios:string[]
 
-let toString (error) =
+    // Cluster Coordinator errors
+    | StartNewSessionError of agentErrors:DomainError[]    
+    | StartWarmUpError     of agentErrors:DomainError[]    
+    | StartBombingError    of agentErrors:DomainError[]    
+    | GetStatisticsError   of agentErrors:DomainError[]
+
+    // Cluster Agent errors 
+    | AgentErrors        of errors:DomainError[]
+    | AgentIsWorking
+    | CommunicationError of ex:exn    
+
+let rec toString (error) =
     match error with    
     | InitScenarioError ex -> String.Format("init scenario error:'{0}'", ex.ToString())    
     | CleanScenarioError ex -> String.Format("clean scenario error:'{0}'", ex.ToString())    
@@ -69,6 +80,8 @@ let toString (error) =
 
     | EmptyStepName scenarioNames->
         scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
+            
+    | _ -> "undefined error"
 
 let getErrorsString (results: Result<_,DomainError>[]) =
     results 

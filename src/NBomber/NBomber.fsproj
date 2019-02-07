@@ -27,6 +27,7 @@
     <Compile Include="Domain\Assertion.fs" />
     <Compile Include="Domain\Scenario.fs" />
     <Compile Include="Domain\Statistics.fs" />
+    <Compile Include="Infra\Http.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />
     <Compile Include="Infra\HtmlBuilder.fs" />
     <Compile Include="Infra\ResourceManager.fs" />
@@ -37,7 +38,13 @@
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
+    <Compile Include="DomainServices\NBomberContext.fs" />
+    <Compile Include="DomainServices\ScenarioBuilder.fs" />
     <Compile Include="DomainServices\ScenarioRunner.fs" />
+    <Compile Include="DomainServices\ScenariosHost.fs" />
+    <Compile Include="DomainServices\Cluster\Contracts.fs" />
+    <Compile Include="DomainServices\Cluster\Agent.fs" />
+    <Compile Include="DomainServices\Cluster\Coordinator.fs" />
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
