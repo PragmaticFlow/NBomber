@@ -23,7 +23,7 @@ type Step =
     static member CreatePause(duration) = FSharp.Step.createPause(duration)
 
 type Assertion =    
-    static member ForStep (stepName, assertion: Func<AssertStats, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
+    static member ForStep (stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
         if isNull label then Assertion.forStep(stepName, assertion.Invoke)
         else Assertion.forStep(stepName, assertion.Invoke, label)
 
@@ -43,7 +43,7 @@ type ScenarioBuilder =
 
     [<Extension>]
     static member WithAssertions(scenario: Scenario, [<System.ParamArray>]assertions: IAssertion[]) = 
-        scenario |> FSharp.Scenario.withAssertions(Seq.toList(assertions))
+        scenario |> FSharp.Scenario.withAssertions(Seq.toList(assertions))    
 
     [<Extension>]
     static member WithConcurrentCopies(scenario: Scenario, concurrentCopies: int) = 
@@ -75,6 +75,10 @@ type NBomberRunner =
     static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)   
+
+    [<Extension>]
+    static member SaveStatisticsTo(context: NBomberContext, statisticsSink: IStatisticsSink) = 
+        context |> FSharp.NBomberRunner.saveStatisticsTo(statisticsSink)
 
     [<Extension>]
     static member Run(context: NBomberContext) =

@@ -8,7 +8,7 @@ open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Errors
 open NBomber.Domain.DomainTypes
 
-let print (stats: GlobalStats, failedAsserts: DomainError[]) = 
+let print (stats: NodeStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats
     |> Array.map(fun x -> let header = printScenarioHeader(x)
                           let stepsTable = printStepsTable(x.StepsStats, failedAsserts)

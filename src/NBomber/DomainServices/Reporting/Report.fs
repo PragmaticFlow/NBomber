@@ -18,7 +18,7 @@ type ReportResult = {
       MdReport: string
     }
 
-let build (dep: Dependency, stats: GlobalStats) (failedAsserts: DomainError[]) =
+let build (dep: Dependency, stats: NodeStats) (failedAsserts: DomainError[]) =
     { TxtReport = TxtReport.print(stats, failedAsserts)
       HtmlReport = HtmlReport.print(dep, stats, failedAsserts)
       CsvReport = CsvReport.print(stats)

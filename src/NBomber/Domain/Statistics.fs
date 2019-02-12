@@ -8,6 +8,31 @@ open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
 
+let create (nodeStats: NodeStats) =
+    
+    let mapStep (scnName: string, step: StepStats) =
+        { ScenarioName = scnName
+          StepName = step.StepName
+          OkCount = step.OkCount
+          FailCount = step.FailCount
+          Min = step.Min
+          Mean = step.Mean
+          Max = step.Max
+          RPS = step.RPS
+          Percent50 = step.Percent50
+          Percent75 = step.Percent75
+          Percent95 = step.Percent95
+          StdDev = step.StdDev
+          DataMinKb = step.DataTransfer.MinKb
+          DataMeanKb = step.DataTransfer.MeanKb
+          DataMaxKb = step.DataTransfer.MaxKb
+          AllDataMB = step.DataTransfer.AllMB
+          Meta = nodeStats.Meta }        
+
+    nodeStats.AllScenariosStats
+    |> Array.collect(fun scn -> 
+        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))
+
 let buildHistogram (latencies) =    
     let histogram = LongHistogram(TimeStamp.Hours(24), 3)
     latencies |> Array.filter(fun x -> x > 0)
@@ -176,9 +201,9 @@ module ScenarioStats =
         let stepsStats = stepsResults |> StepResults.merge |> Array.map(StepStats.create(activeTime))
         createByStepStats(scenario, stepsStats)
 
-module GlobalStats =
+module NodeStats =
 
-    let create (allScnStats: ScenarioStats[]) =
+    let create (meta: StatisticsMeta) (allScnStats: ScenarioStats[]) =
         
         let allOkCount = allScnStats
                          |> Array.collect(fun x -> x.StepsStats)
@@ -195,14 +220,15 @@ module GlobalStats =
         { AllScenariosStats = allScnStats
           OkCount = allOkCount
           FailCount = allFailCount
-          LatencyCount = latencyCount }
+          LatencyCount = latencyCount
+          Meta = meta }
 
-    let merge (allGlobalStats: GlobalStats[]) (allScenarios: Scenario[]) =
-        allGlobalStats 
+    let merge (meta: StatisticsMeta, allNodesStats: NodeStats[]) (allScenarios: Scenario[]) =
+        allNodesStats 
         |> Array.collect(fun x -> x.AllScenariosStats)
         |> Array.groupBy(fun x -> x.ScenarioName)
         |> Array.map(fun (scnName, allStats) -> 
             let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)
             let allSteps = allStats |> Array.collect(fun x -> x.StepsStats)
             ScenarioStats.createByStepStats(scn, allSteps))
-        |> create
+        |> create(meta)
