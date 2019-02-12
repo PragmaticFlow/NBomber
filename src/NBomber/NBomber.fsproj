@@ -24,9 +24,9 @@
     <Compile Include="Domain\StatisticsTypes.fs" />
     <Compile Include="Domain\Errors.fs" />
     <Compile Include="Domain\Step.fs" />
-    <Compile Include="Domain\Assertion.fs" />
     <Compile Include="Domain\Scenario.fs" />
     <Compile Include="Domain\Statistics.fs" />
+    <Compile Include="Domain\Assertion.fs" />
     <Compile Include="Infra\Http.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />
     <Compile Include="Infra\HtmlBuilder.fs" />

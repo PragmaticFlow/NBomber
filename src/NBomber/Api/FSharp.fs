@@ -52,7 +52,7 @@ module Step =
 
 type Assertion =
 
-    static member forStep (stepName, assertion: AssertStats -> bool, ?label: string) =         
+    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =         
         Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
 module Scenario =        
@@ -62,10 +62,10 @@ module Scenario =
           TestInit = None
           TestClean = None
           Steps = List.toArray(steps)
+          Assertions = Array.empty          
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
-          Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
-          Assertions = Array.empty }
+          Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
     let withTestInit (initFunc: unit -> unit) (scenario: Contracts.Scenario) =                
         { scenario with TestInit = Some initFunc }
@@ -80,13 +80,13 @@ module Scenario =
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray
 
-        { scenario with Assertions = asrts }
+        { scenario with Assertions = asrts }    
 
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
         { scenario with ConcurrentCopies = concurrentCopies }
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
-        { scenario with WarmUpDuration = duration }
+        { scenario with WarmUpDuration = duration }    
 
     let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
         { scenario with Duration = duration }
@@ -101,7 +101,8 @@ module NBomberRunner =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|] }
+          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|]
+          StatisticsSink = None }
 
     let registerScenario (scenario: Contracts.Scenario) = 
         registerScenarios([scenario])
@@ -117,14 +118,19 @@ module NBomberRunner =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
         { context with NBomberConfig = config }
 
+    let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
+        { context with StatisticsSink = Some statisticsSink }
+
     let run (context: NBomberContext) =
-        let dep = Dependency.create(Process)
+        let nodeType = NBomberContext.getNodeType(context)
+        let dep = Dependency.create(Process, nodeType)
         NBomberRunner.run(dep, context)
 
     let runInConsole (context: NBomberContext) =
         let mutable run = true
         while run do
-            let dep = Dependency.create(Console)
+            let nodeType = NBomberContext.getNodeType(context)
+            let dep = Dependency.create(Console, nodeType)
             NBomberRunner.run(dep, context)
             Log.Information("Repeat the same test one more time? (y/n)")
         
@@ -132,5 +138,6 @@ module NBomberRunner =
             run <- List.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
     let runTest (context: NBomberContext) =
-        let dep = Dependency.create(Test)
+        let nodeType = NBomberContext.getNodeType(context)
+        let dep = Dependency.create(Test, nodeType)
         NBomberRunner.run(dep, context)

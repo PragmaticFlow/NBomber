@@ -21,7 +21,8 @@ let buildConfig (scenarioName: string, steps: IStep[], settings: ScenarioSetting
     { Scenarios = [|scenario|]
       NBomberConfig = Some config
       ReportFileName = None
-      ReportFormats = Array.empty }
+      ReportFormats = Array.empty
+      StatisticsSink = None }
 
 let buildSettings (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
     { ScenarioName = scenarioName
@@ -107,7 +108,7 @@ let ``validateRunnerContext() should fail when target scenrio name is not declar
 [<Fact>]
 let ``validateRunnerContext() should fail when scenario names are duplicates`` () =
     let scenario = Scenario.create("scenario", []);
-    let context = { Scenarios = [|scenario; scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty }
+    let context = { Scenarios = [|scenario; scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
     Assert.Equal("Scenario names should be unique.", errorMessage)
@@ -116,7 +117,7 @@ let ``validateRunnerContext() should fail when scenario names are duplicates`` (
 let ``validateRunnerContext() should fail when step names are duplicates`` () =
     let step = Step.createAction("simple step", ConnectionPool.none, fun _ -> task { return Response.Ok() })
     let scenario = Scenario.create("scenario", [step; step])
-    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty }
+    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
     Assert.Equal("Step names are not unique in scenarios: 'scenario'. Step names should be unique within scenario.", errorMessage)
@@ -125,7 +126,7 @@ let ``validateRunnerContext() should fail when step names are duplicates`` () =
 let ``validateRunnerContext() should fail when at least one step name is empty`` () =
     let step = Step.createAction("", ConnectionPool.none, fun _ -> task { return Response.Ok() })
     let scenario = Scenario.create("scenario", [step])
-    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty }
+    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
     Assert.Equal("Step names are empty in scenarios: 'scenario'. Step names should not be empty within scenario.", errorMessage)

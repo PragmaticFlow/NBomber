@@ -22,7 +22,7 @@ let private printSteps (stats: ScenarioStats) =
     |> Array.map(fun x -> getLine(stats.ScenarioName, stats.Duration, x))
     |> String.concat Environment.NewLine
 
-let print (stats: GlobalStats) =
+let print (stats: NodeStats) =
     let header = getHeader()
     let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat("")
     header + Environment.NewLine + body

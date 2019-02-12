@@ -51,7 +51,7 @@ type Step =
     | Pause  of TimeSpan
     interface IStep
 
-type AssertFunc = AssertStats -> bool
+type AssertFunc = Statistics -> bool
 
 type StepAssertion = {
     StepName: StepName

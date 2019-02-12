@@ -23,13 +23,9 @@ let runSingleNode (scnHost: IScenariosHost, settings: ScenarioSetting[],
     return scnHost.GetStatistics()
 }
 
-let applyAsserts (assertions: Assertion[]) (globalStats: GlobalStats) = 
-    assertions
-    |> Assertion.apply(globalStats)
-    |> fun assrtResult -> (globalStats, assrtResult)
-
-let createAndSaveReport (dep: Dependency, context: NBomberContext) 
-                        (globalStats: GlobalStats, assertResults: Result<Assertion,DomainError>[]) =
+let createAndSaveReport (dep: Dependency, context: NBomberContext,
+                         nodeStats: NodeStats, 
+                         assertResults: Result<Assertion,DomainError>[]) =
 
     let declaredReportFileName = context.ReportFileName
                                  |> Option.defaultValue("report_" + dep.SessionId)
@@ -43,8 +39,13 @@ let createAndSaveReport (dep: Dependency, context: NBomberContext)
     assertResults
     |> Array.filter(Result.isError)
     |> Array.map(Result.getError)
-    |> Report.build(dep, globalStats)
+    |> Report.build(dep, nodeStats)
     |> Report.save(dep, "./", reportFileName, reportFormats)
+
+let handleError (appType: ApplicationType, error: DomainError) =
+    let errorMessage = toString(error)
+    if appType = ApplicationType.Test then TestFrameworkRunner.showValidationErrors(errorMessage)
+    else Log.Error(errorMessage)
 
 let run (dep: Dependency, context: NBomberContext) =
     Dependency.Logger.initLogger(dep.ApplicationType)    
@@ -55,16 +56,24 @@ let run (dep: Dependency, context: NBomberContext) =
         let scnSettings     = NBomberContext.getScenariosSettings(context)
         let targetScenarios = NBomberContext.getTargetScenarios(context) 
         let clusterSettings = NBomberContext.tryGetClusterSettings(context)
-        let registeredScenarios = ScenarioBuilder.build(context.Scenarios)
+        let registeredScenarios = ScenarioBuilder.build(context.Scenarios)        
         let assertions = context.Scenarios |> Array.collect(fun x -> x.Assertions) |> Assertion.create
         
         if clusterSettings.IsSome then
             match clusterSettings.Value with
             | Coordinator coordinatorSettings ->                 
                 let cluster = ClusterCoordinator.create(dep, registeredScenarios, coordinatorSettings)
-                cluster.Run(scnSettings, targetScenarios)                
-                |> Result.map(assertions |> applyAsserts >> createAndSaveReport(dep, context))
-                |> ignore // todo: use custom operator >=>
+                cluster.Run(scnSettings, targetScenarios)
+                |> Result.map(fun allNodeStats -> 
+
+                    let clusterNodeStats = ClusterCoordinator.createStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScenarios, scnSettings, allNodeStats)                    
+                    let statistics = Statistics.create(clusterNodeStats)
+                    let asrtResults = statistics |> Assertion.apply(assertions)
+                    createAndSaveReport(dep, context, clusterNodeStats, asrtResults)
+                    statistics |> NBomberContext.trySaveStatistics(context))
+
+                |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
+                |> ignore
             
             | Agent agentSettings ->
                 ClusterAgent.create(dep, registeredScenarios)
@@ -72,8 +81,13 @@ let run (dep: Dependency, context: NBomberContext) =
         else
             let scnHost = ScenariosHost(dep, registeredScenarios) 
             runSingleNode(scnHost, scnSettings, targetScenarios)
-            |> Result.map(assertions |> applyAsserts >> createAndSaveReport(dep, context))
-            |> ignore
+            |> Result.map(fun nodeStats ->
+                let statistics = Statistics.create(nodeStats)
+                let asrtResults = statistics |> Assertion.apply(assertions)
+                createAndSaveReport(dep, context, nodeStats, asrtResults)
+                statistics |> NBomberContext.trySaveStatistics(context))
+            |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
+            |> ignore            
         
     | Error ex ->
         let errorMessage = toString(ex)

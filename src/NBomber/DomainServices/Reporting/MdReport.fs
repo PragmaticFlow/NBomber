@@ -64,7 +64,7 @@ module private Impl =
                 sprintf "- failed assertion nr `%i`, `%s`" assertNumber assertLabel
         | _ -> String.Empty
 
-let print (stats: GlobalStats, failedAsserts: DomainError[]) =
+let print (stats: NodeStats, failedAsserts: DomainError[]) =
     
     let assertErrors =
         failedAsserts

@@ -6,6 +6,7 @@ open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
@@ -21,7 +22,7 @@ type IScenariosHost =
     abstract WarmUpScenarios: unit -> Task<unit>
     abstract RunBombing: unit -> Task<unit>
     abstract StopScenarios: unit -> unit
-    abstract GetStatistics: unit -> GlobalStats
+    abstract GetStatistics: unit -> NodeStats
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     let runnerWithLongestScenario = scnRunners
@@ -80,15 +81,16 @@ let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.iter(fun x -> x.Stop())    
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
 
-let getResults (scnRunners: ScenarioRunner[]) =
+let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
     scnRunners
     |> Array.map(fun x -> x.GetResult())
-    |> GlobalStats.create
+    |> NodeStats.create(meta)
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable scnRunners = None
     let mutable isWorking = Ok false
+    let statsMeta = { SessionId = dep.SessionId; NodeName = dep.NodeInfo.NodeName; Sender = dep.NodeType }
     let startedWork () = isWorking <- Ok true
     let stoppedWork () = isWorking <- Ok false
     let failed (error) = isWorking <- Error error
@@ -130,7 +132,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         member x.StopScenarios() = scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
 
-        member x.GetStatistics() =
+        member x.GetStatistics() =            
             match scnRunners with
-            | Some v -> getResults(v)
-            | None   -> GlobalStats.create(Array.empty)
+            | Some v -> getResults(statsMeta, v)
+            | None   -> NodeStats.create statsMeta Array.empty

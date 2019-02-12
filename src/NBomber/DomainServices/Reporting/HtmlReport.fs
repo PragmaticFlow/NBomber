@@ -112,7 +112,7 @@ module ScenarioView =
 
 module GlobalView =  
 
-    let print (assets: Assets, stats: GlobalStats, failedAsserts: DomainError[]) =        
+    let print (assets: Assets, stats: NodeStats, failedAsserts: DomainError[]) =        
         
         let viewId = "global-view"
         let indicatorsChart = IndicatorsChart.print(assets, viewId, "All Scenarios", stats.LatencyCount, stats.FailCount)
@@ -131,15 +131,15 @@ module GlobalView =
 
 module EnvView =
     
-    let print (assets: Assets, envInfo: MachineInfo) =            
+    let print (assets: Assets, nodeInfo: NodeInfo) =            
         
         let title = "Cluster info"
 
-        let row = [envInfo.MachineName                   
-                   envInfo.OS.VersionString
-                   envInfo.DotNetVersion
-                   envInfo.Processor
-                   envInfo.CoresCount.ToString()]
+        let row = [nodeInfo.NodeName                   
+                   nodeInfo.OS.VersionString
+                   nodeInfo.DotNetVersion
+                   nodeInfo.Processor
+                   nodeInfo.CoresCount.ToString()]
                   |> HtmlBuilder.toTableRow
 
         let envTable =
@@ -153,8 +153,8 @@ module EnvView =
 
 module ContentView =
 
-    let print (dep: Dependency, stats: GlobalStats, failedAsserts: DomainError[]) =        
-        let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
+    let print (dep: Dependency, stats: NodeStats, failedAsserts: DomainError[]) =        
+        let envHtml = EnvView.print(dep.Assets, dep.NodeInfo)
         let globalView = GlobalView.print(dep.Assets, stats, failedAsserts)
         
         let scnViews =
@@ -172,7 +172,7 @@ module ContentView =
 
 module SideBar =
 
-    let print (assets: Assets, stats: GlobalStats) =
+    let print (assets: Assets, stats: NodeStats) =
 
         let printItem (assets, viewId, name, iconCss) =
             assets.SidebarItemHtml
@@ -201,7 +201,7 @@ module SideBar =
         let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: Dependency, stats: GlobalStats, failedAsserts: DomainError[]) =
+let print (dep: Dependency, stats: NodeStats, failedAsserts: DomainError[]) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
     let contentView = ContentView.print(dep, stats, failedAsserts)

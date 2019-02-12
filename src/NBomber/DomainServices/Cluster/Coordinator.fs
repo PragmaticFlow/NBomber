@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Domain.Errors
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
@@ -22,7 +23,7 @@ type IClusterCoordinator =
     abstract WaitAllAgentsReady: unit -> Task<Result<unit,DomainError>>
     abstract StartWarmUp: unit -> Result<unit,DomainError>
     abstract StartBombing: unit -> Result<unit,DomainError>
-    abstract GetStatistics: unit -> Result<GlobalStats[],DomainError>
+    abstract GetStatistics: unit -> Result<NodeStats[],DomainError>
 
 let startNewSession (sessionId: string, settings:ScenarioSetting[], agents: AgentInfo[]) =
     try
@@ -114,7 +115,7 @@ let getStatistics (sessionId: string, agents: AgentInfo[]) =
         else 
             responses 
             |> Array.filter(fun x -> x.Data.IsSome)
-            |> Array.map(fun x -> x.Data.Value :?> GlobalStats)
+            |> Array.map(fun x -> x.Data.Value :?> NodeStats)
             |> Ok
     with
     | ex -> ex |> CommunicationError |> Error
@@ -140,10 +141,19 @@ let run (cluster: IClusterCoordinator, scnHost: IScenariosHost,
     
     scnHost.StopScenarios()
 
-    return scnHost.GetRegisteredScenarios()
-           |> ScenarioBuilder.applyScenariosSettings(settings)
-           |> GlobalStats.merge(allStats)
+    return allStats    
 }
+
+let createStats (sessionId: string, nodeName: string, registeredScenarios: Scenario[],
+                 scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) = 
+    
+    let meta = { SessionId = sessionId
+                 NodeName = nodeName
+                 Sender = NodeType.Cluster }
+                    
+    registeredScenarios 
+    |> ScenarioBuilder.applyScenariosSettings(scnSettings)
+    |> NodeStats.merge(meta, allNodeStats)
 
 type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =
     

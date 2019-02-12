@@ -52,9 +52,10 @@ type ScenarioStats = {
     Duration: TimeSpan
 }
 
-type GlobalStats = {
+type NodeStats = {    
     AllScenariosStats: ScenarioStats[]
     OkCount: int
     FailCount: int
-    LatencyCount: LatencyCount    
+    LatencyCount: LatencyCount
+    Meta: StatisticsMeta
 }
