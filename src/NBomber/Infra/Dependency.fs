@@ -9,6 +9,7 @@ open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Contracts
 open NBomber.Infra.ResourceManager
 
 type ApplicationType =
@@ -16,8 +17,8 @@ type ApplicationType =
     | Console    
     | Test
 
-type MachineInfo = {
-    MachineName: string    
+type NodeInfo = {
+    NodeName: string    
     OS: OperatingSystem
     DotNetVersion: string    
     Processor: string    
@@ -27,7 +28,8 @@ type MachineInfo = {
 type Dependency = {
     SessionId: string    
     ApplicationType: ApplicationType
-    MachineInfo: MachineInfo    
+    NodeType: NodeType
+    NodeInfo: NodeInfo
     Assets: Assets
     ShowProgressBar: TimeSpan -> unit
 }
@@ -57,7 +59,7 @@ module Logger =
             | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
             | _       -> LoggerConfiguration().CreateLogger()
 
-let private getMachineInfo () =
+let private retrieveNodeInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
@@ -65,7 +67,7 @@ let private getMachineInfo () =
 
     let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
 
-    { MachineName = Environment.MachineName      
+    { NodeName = Environment.MachineName      
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
       Processor = if isNull(processor) then String.Empty else processor      
@@ -76,9 +78,10 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType) =
+let create (appType: ApplicationType, nodeType: NodeType) =
     { SessionId = createSessionId()
       ApplicationType = appType
-      MachineInfo = getMachineInfo()
+      NodeType = nodeType
+      NodeInfo = retrieveNodeInfo()
       Assets = ResourceManager.loadAssets()
       ShowProgressBar = ProgressBar.show >> ignore }
