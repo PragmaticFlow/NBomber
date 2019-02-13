@@ -2,7 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px"> 
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/sf3ntwjvb4s0xoya?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
+[![Build status](https://ci.appveyor.com/api/projects/status/kko2ro88xry274do?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 
 Very simple load testing framework for Pull and Push scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.

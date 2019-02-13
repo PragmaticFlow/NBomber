@@ -44,7 +44,7 @@ let createAndSaveReport (dep: Dependency, context: NBomberContext,
 
 let handleError (appType: ApplicationType, error: DomainError) =
     let errorMessage = toString(error)
-    if appType = ApplicationType.Test then TestFrameworkRunner.showValidationErrors(errorMessage)
+    if appType = ApplicationType.Test then TestFrameworkRunner.showError(errorMessage)
     else Log.Error(errorMessage)
 
 let run (dep: Dependency, context: NBomberContext) =
@@ -68,10 +68,11 @@ let run (dep: Dependency, context: NBomberContext) =
 
                     let clusterNodeStats = ClusterCoordinator.createStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScenarios, scnSettings, allNodeStats)                    
                     let statistics = Statistics.create(clusterNodeStats)
-                    let asrtResults = statistics |> Assertion.apply(assertions)
+                    let asrtResults = statistics |> Assertion.apply(assertions)                    
                     createAndSaveReport(dep, context, clusterNodeStats, asrtResults)
-                    statistics |> NBomberContext.trySaveStatistics(context))
-
+                    statistics |> NBomberContext.trySaveStatistics(context)
+                    TestFrameworkRunner.showAssertionErrors(asrtResults)
+                )
                 |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
                 |> ignore
             
@@ -85,11 +86,13 @@ let run (dep: Dependency, context: NBomberContext) =
                 let statistics = Statistics.create(nodeStats)
                 let asrtResults = statistics |> Assertion.apply(assertions)
                 createAndSaveReport(dep, context, nodeStats, asrtResults)
-                statistics |> NBomberContext.trySaveStatistics(context))
+                statistics |> NBomberContext.trySaveStatistics(context)
+                TestFrameworkRunner.showAssertionErrors(asrtResults)
+            )
             |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
             |> ignore            
         
     | Error ex ->
         let errorMessage = toString(ex)
-        if dep.ApplicationType = ApplicationType.Test then TestFrameworkRunner.showValidationErrors(errorMessage)
+        if dep.ApplicationType = ApplicationType.Test then TestFrameworkRunner.showError(errorMessage)
         else Log.Error(errorMessage)

@@ -7,8 +7,9 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <licenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/PragmaticFlow/NBomber</projectUrl>
-    <description>Very simple load testing framework for Request-response and Pub/Sub scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.</description>
-    <copyright>PragmaticFlow@2018</copyright>
+	<iconUrl>https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_icon.png</iconUrl>
+    <description>Very simple load testing framework for Pull and Push scenarios.</description>
+    <copyright>PragmaticFlow@2019</copyright>
     <tags>load-testing, performance-testing, integration-testing, fsharp</tags>
     <dependencies>
       <group targetFramework=".NETStandard2.0">        
