@@ -49,10 +49,7 @@ let initScenarios (scenarios: Scenario[]) = task {
             if not failed then
                 Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
                 let initResult = Scenario.init(scn)
-
-                if Result.isError(initResult) then
-                    let errorMsg = initResult |> Result.getError |> Errors.toString
-                    Log.Error("init failed: " + errorMsg)
+                if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
                 yield initResult
