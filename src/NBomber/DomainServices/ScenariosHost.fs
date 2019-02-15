@@ -67,7 +67,7 @@ let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
                            let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = Console then dep.ShowProgressBar(duration)
-                           x.WarmUp(duration).Wait())    
+                           x.WarmUp().Wait())    
 
 let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     Log.Information("starting bombing...")    
@@ -75,7 +75,7 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
 let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
-    scnRunners |> Array.iter(fun x -> x.Stop())    
+    scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
 
 let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
