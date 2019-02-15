@@ -42,6 +42,7 @@ module Step =
         let newExecute = 
             fun (context: StepContext<obj>) ->                 
                 let newContext = { CorrelationId = context.CorrelationId
+                                   CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
                                    Payload = context.Payload }
                 execute(newContext)

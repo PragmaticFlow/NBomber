@@ -28,7 +28,8 @@ let getConnectionPool (step) =
     | Action s -> Some s.ConnectionPool    
     | Pause s -> None
 
-let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
+let setStepContext (correlationId: string, actorIndex: int, cancellToken: CancellationToken)
+                   (step: Step) =
     let getConnection (pool: ConnectionPool<obj>) =
         let connectionIndex = actorIndex % pool.ConnectionsCount
         pool.AliveConnections.[connectionIndex]
@@ -37,6 +38,7 @@ let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
     | Action s -> 
         let connection = getConnection(s.ConnectionPool)
         let context = { CorrelationId = correlationId
+                        CancellationToken = cancellToken
                         Connection = connection
                         Payload = Unchecked.defaultof<obj> }
         Step.Action { s with CurrentContext = Some context }
