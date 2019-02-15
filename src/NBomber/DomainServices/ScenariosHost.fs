@@ -49,10 +49,7 @@ let initScenarios (scenarios: Scenario[]) = task {
             if not failed then
                 Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
                 let initResult = Scenario.init(scn)
-
-                if Result.isError(initResult) then
-                    let errorMsg = initResult |> Result.getError |> Errors.toString
-                    Log.Error("init failed: " + errorMsg)
+                if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
                 yield initResult
@@ -70,7 +67,7 @@ let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
                            let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = Console then dep.ShowProgressBar(duration)
-                           x.WarmUp(duration).Wait())    
+                           x.WarmUp().Wait())    
 
 let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     Log.Information("starting bombing...")    
@@ -78,7 +75,7 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
 let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
-    scnRunners |> Array.iter(fun x -> x.Stop())    
+    scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
 
 let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
