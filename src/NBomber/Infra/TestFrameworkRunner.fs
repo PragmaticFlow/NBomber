@@ -3,7 +3,6 @@
 open System
 
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.Errors
 
 type TestFramework =
@@ -42,20 +41,13 @@ let tryGetCurrentFramework () =
     |> List.tryFind(Option.isSome)
     |> Option.flatten    
 
-let showAssertionErrors (results: Result<Assertion,DomainError>[]) =
+let showErrors (errors: DomainError[]) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
 
     let errorMsg = 
-        results
-        |> Array.filter(Result.isError)
-        |> Array.map(Result.getError)
+        errors        
         |> Array.map(Errors.toString)
         |> String.concat(Environment.NewLine)
 
-    if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)
-
-let showError (errorMsg: string) =
-    let framework = tryGetCurrentFramework()
-    if framework.IsNone then failwith("Unknown framework")
     if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)

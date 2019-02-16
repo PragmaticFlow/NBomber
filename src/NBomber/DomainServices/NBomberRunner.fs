@@ -42,10 +42,17 @@ let createAndSaveReport (dep: Dependency, context: NBomberContext,
     |> Report.build(dep, nodeStats)
     |> Report.save(dep, "./", reportFileName, reportFormats)
 
-let handleError (appType: ApplicationType, error: DomainError) =
-    let errorMessage = toString(error)
-    if appType = ApplicationType.Test then TestFrameworkRunner.showError(errorMessage)
-    else Log.Error(errorMessage)
+let handleError (appType: ApplicationType, error: DomainError) =    
+    if appType = ApplicationType.Test then TestFrameworkRunner.showErrors([|error|])
+    else error |> toString |> Log.Error
+
+let showAssertsResults (appType: ApplicationType, asrtResults: Result<Assertion,DomainError>[]) =     
+    if asrtResults |> Array.exists(Result.isError) then
+        let errors = asrtResults |> Array.filter(Result.isError) |> Array.map(Result.getError)
+        if appType = ApplicationType.Test then            
+            TestFrameworkRunner.showErrors(errors)
+        else
+            errors |> Array.iter(toString >> Log.Error)
 
 let run (dep: Dependency, context: NBomberContext) =
     Dependency.Logger.initLogger(dep.ApplicationType)    
@@ -70,8 +77,8 @@ let run (dep: Dependency, context: NBomberContext) =
                     let statistics = Statistics.create(clusterNodeStats)
                     let asrtResults = statistics |> Assertion.apply(assertions)                    
                     createAndSaveReport(dep, context, clusterNodeStats, asrtResults)
-                    statistics |> NBomberContext.trySaveStatistics(context)
-                    TestFrameworkRunner.showAssertionErrors(asrtResults)
+                    statistics |> NBomberContext.trySaveStatistics(context)                    
+                    showAssertsResults(dep.ApplicationType, asrtResults)
                 )
                 |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
                 |> ignore
@@ -87,12 +94,10 @@ let run (dep: Dependency, context: NBomberContext) =
                 let asrtResults = statistics |> Assertion.apply(assertions)
                 createAndSaveReport(dep, context, nodeStats, asrtResults)
                 statistics |> NBomberContext.trySaveStatistics(context)
-                TestFrameworkRunner.showAssertionErrors(asrtResults)
+                showAssertsResults(dep.ApplicationType, asrtResults)
             )
             |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
             |> ignore            
         
-    | Error ex ->
-        let errorMessage = toString(ex)
-        if dep.ApplicationType = ApplicationType.Test then TestFrameworkRunner.showError(errorMessage)
-        else Log.Error(errorMessage)
+    | Error error ->
+        handleError(dep.ApplicationType, error)
