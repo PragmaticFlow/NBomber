@@ -2,6 +2,7 @@
 
 open System
 open System.Runtime.InteropServices
+open System.Threading
 open System.Threading.Tasks
 open NBomber.Configuration
 
@@ -47,6 +48,7 @@ type IConnectionPool<'TConnection> = interface end
 
 type StepContext<'TConnection> = {
     CorrelationId: string
+    CancellationToken: CancellationToken
     Connection: 'TConnection
     mutable Payload: obj
 }

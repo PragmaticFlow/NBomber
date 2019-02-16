@@ -26,7 +26,8 @@ Documentation is located [here](https://nbomber.com).
 - [x] Sequential flow
 - [x] Test runner support: [XUnit; NUnit]
 - [x] Cluster support (run scenario from several nodes in parallel)
-- [x] Reporting: [Plain text; HTML]
+- [x] Reporting: [Plain text; HTML; Csv; Md]
+- [x] Statistics sinks: (analyze and monitor performance trends via sinking statistics to any data storage)
 
 ### Supported technologies
 - Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
@@ -54,7 +55,7 @@ The main reasons are:
  ### What makes it very simple? 
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
-var step1 = Step.CreatePull("simple step", ConnectionPool.None, async context =>
+var step1 = Step.CreateAction("simple step", ConnectionPool.None, async context =>
 {
     // you can do any logic here: go to http, websocket etc
     // NBomber will measure execution of this lambda function

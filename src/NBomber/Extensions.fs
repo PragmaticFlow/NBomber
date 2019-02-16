@@ -1,6 +1,8 @@
 ﻿[<AutoOpen>]
 module internal Extensions
 
+type FastCancellationToken = { mutable ShouldCancel: bool }
+
 type Result<'T,'TError> with    
     static member isOk(result) = 
         match result with

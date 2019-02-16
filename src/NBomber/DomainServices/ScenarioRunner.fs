@@ -13,14 +13,14 @@ open NBomber.Domain.Statistics
 
 type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
     
-    let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex))
-    let stepsWithoutPause = steps |> Array.filter(fun st -> not(Step.isPause st))
+    let stepsWithoutPause = scenario.Steps |> Array.filter(fun st -> not(Step.isPause st))
     let latencies = ResizeArray<ResizeArray<Response*Latency>>()    
 
-    member x.Run(cancellToken) = 
+    member x.Run(fastCancelToken, cancelToken) = 
         latencies.Clear()
+        let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
         stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(ResizeArray<Response*Latency>()))            
-        Step.runSteps(steps, latencies, cancellToken)
+        Step.runSteps(steps, latencies, fastCancelToken)
 
     member x.GetResults() =
         stepsWithoutPause
@@ -28,34 +28,38 @@ type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
 
 type ScenarioRunner(scenario: Scenario) = 
     
-    let mutable cancellToken = new CancellationTokenSource()
+    let mutable cancelToken = new CancellationTokenSource()
     let mutable actorsTasks = Array.empty<Task<unit>>
+    let fastCancelToken = { ShouldCancel = false }
 
     let createActors () =
         scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario))
 
     let actors = lazy createActors()    
 
-    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {
-        let mutable allFinish = actorsTasks |> Array.forall(fun x -> x.IsCompleted)
-        while not allFinish do            
-            allFinish <- actorsTasks |> Array.forall(fun x -> x.IsCompleted)
-            do! Task.Delay(100)
+    let waitOnAllFinish (actorsTasks: Task<unit>[], timeout: TimeSpan) = task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.5))
+        let mutable allFinish = actorsTasks |> Array.forall(fun x -> x.Status <> TaskStatus.Running)
+        if not allFinish then do! Task.Delay(timeout)   
     }
 
     let stop () = task {
-        if not cancellToken.IsCancellationRequested then cancellToken.Cancel()
-        do! waitOnAllFinish(actorsTasks)
+        if actorsTasks.Length > 0 && not cancelToken.IsCancellationRequested then
+            fastCancelToken.ShouldCancel <- true
+            cancelToken.Cancel()
+            do! waitOnAllFinish(actorsTasks, TimeSpan.FromSeconds(5.0))
+            actorsTasks <- Array.empty
     }
 
     let run (duration: TimeSpan) = task {
         do! stop()
-        cancellToken <- new CancellationTokenSource()
-        actorsTasks <- actors.Value |> Array.map(fun x -> x.Run(cancellToken.Token))
-        do! Task.Delay(duration, cancellToken.Token)
+        cancelToken <- new CancellationTokenSource()
+        fastCancelToken.ShouldCancel <- false
+        actorsTasks <- actors.Value |> Array.map(fun x -> x.Run(fastCancelToken, cancelToken.Token))
+        do! Task.Delay(duration, cancelToken.Token)
         do! stop()
     }
-        
+
     member x.Scenario = scenario
     member x.WarmUp() = run(scenario.WarmUpDuration)
     member x.Run() = run(scenario.Duration)

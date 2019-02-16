@@ -28,7 +28,8 @@ let getConnectionPool (step) =
     | Action s -> Some s.ConnectionPool    
     | Pause s -> None
 
-let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
+let setStepContext (correlationId: string, actorIndex: int, cancelToken: CancellationToken)
+                   (step: Step) =
     let getConnection (pool: ConnectionPool<obj>) =
         let connectionIndex = actorIndex % pool.ConnectionsCount
         pool.AliveConnections.[connectionIndex]
@@ -37,6 +38,7 @@ let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
     | Action s -> 
         let connection = getConnection(s.ConnectionPool)
         let context = { CorrelationId = correlationId
+                        CancellationToken = cancelToken
                         Connection = connection
                         Payload = Unchecked.defaultof<obj> }
         Step.Action { s with CurrentContext = Some context }
@@ -44,7 +46,7 @@ let setStepContext (correlationId: string, actorIndex: int) (step: Step) =
     | Pause s -> step
 
 let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {    
-    timer.Restart()        
+    timer.Restart()
     try
         match step with
         | Action s ->
@@ -64,19 +66,19 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
 }
 
 let runSteps (steps: Step[], latencies: ResizeArray<ResizeArray<Response*Latency>>, 
-              ct: CancellationToken) = task {
+              cancelToken: FastCancellationToken) = task {
         
     do! Task.Delay(10)        
     let timer = Stopwatch()
 
-    while not ct.IsCancellationRequested do
+    while not cancelToken.ShouldCancel do
         
         let mutable payload = Unchecked.defaultof<obj>
         let mutable skipStep = false
         let mutable stepIndex = 0
 
         for st in steps do
-            if not skipStep && not ct.IsCancellationRequested then
+            if not skipStep && not cancelToken.ShouldCancel then
 
                 let! (response,latency) = execStep(st, payload, timer)
                             
