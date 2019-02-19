@@ -13,12 +13,11 @@ To install NBomber via NuGet, run this command in NuGet package manager console:
 PM> Install-Package NBomber
 ```
 
-### How to run a simple scenario
-
-![how to run a scenario gif](https://github.com/PragmaticFlow/NBomber/blob/master/assets/howToRunScenario.gif)
-
 ### Documentation
 Documentation is located [here](https://nbomber.com).
+
+### How to run a simple scenario
+![how to run a scenario gif](https://github.com/PragmaticFlow/NBomber/blob/master/assets/howToRunScenario.gif)
 
 ### Features
 - [x] Pull scenario (Request-response)
