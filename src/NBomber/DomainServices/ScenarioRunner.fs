@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 
+open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
@@ -37,17 +38,18 @@ type ScenarioRunner(scenario: Scenario) =
 
     let actors = lazy createActors()    
 
-    let waitOnAllFinish (actorsTasks: Task<unit>[], timeout: TimeSpan) = task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.5))
-        let mutable allFinish = actorsTasks |> Array.forall(fun x -> x.Status <> TaskStatus.Running)
-        if not allFinish then do! Task.Delay(timeout)   
+    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                
+        let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)        
+        while not (allFinish()) do            
+            Log.Information("waiting all steps to finish.")
+            do! Task.Delay(TimeSpan.FromSeconds(5.0))            
     }
 
     let stop () = task {
         if actorsTasks.Length > 0 && not cancelToken.IsCancellationRequested then
             fastCancelToken.ShouldCancel <- true
             cancelToken.Cancel()
-            do! waitOnAllFinish(actorsTasks, TimeSpan.FromSeconds(5.0))
+            do! waitOnAllFinish(actorsTasks)
             actorsTasks <- Array.empty
     }
 
