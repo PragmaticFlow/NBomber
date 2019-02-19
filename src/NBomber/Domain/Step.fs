@@ -81,13 +81,15 @@ let runSteps (steps: Step[], latencies: ResizeArray<ResizeArray<Response*Latency
             if not skipStep && not cancelToken.ShouldCancel then
 
                 let! (response,latency) = execStep(st, payload, timer)
-                            
-                if not(isPause st) then                        
-                    latencies.[stepIndex].Add(response,latency)
-                    stepIndex <- stepIndex + 1
+                        
+                if not cancelToken.ShouldCancel then
 
-                if response.IsOk then 
-                    payload <- response.Payload                    
-                else
-                    skipStep <- true                
+                    if not(isPause st) then                        
+                        latencies.[stepIndex].Add(response,latency)
+                        stepIndex <- stepIndex + 1
+
+                    if response.IsOk then 
+                        payload <- response.Payload                    
+                    else
+                        skipStep <- true                
 }
