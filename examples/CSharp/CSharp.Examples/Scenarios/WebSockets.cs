@@ -38,7 +38,7 @@ namespace CSharp.Examples.Scenarios
                     RequestType = RequestType.Ping
                 };
                 var bytes = MsgConverter.ToJsonByteArray(msg);
-                await context.Connection.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                await context.Connection.SendAsync(bytes, WebSocketMessageType.Text, true, context.CancellationToken);
                 return Response.Ok();
             });
 
@@ -46,7 +46,7 @@ namespace CSharp.Examples.Scenarios
             {
                 while (true)
                 {
-                    var (response, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection);
+                    var (response, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection, context.CancellationToken);
                     var msg = MsgConverter.FromJsonByteArray<WebSocketResponse>(message);
 
                     if (msg.CorrelationId == context.CorrelationId)

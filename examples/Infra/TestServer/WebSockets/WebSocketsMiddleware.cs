@@ -37,7 +37,7 @@ namespace TestServer.WebSockets
         {
             while (socket.State == WebSocketState.Open)
             {
-                var (response, message) = await ReadFullMessage(socket);
+                var (response, message) = await ReadFullMessage(socket, CancellationToken.None);
 
                 if (response.MessageType == WebSocketMessageType.Close)
                 {   
@@ -59,7 +59,7 @@ namespace TestServer.WebSockets
             }
         }
 
-        public static async Task<(WebSocketReceiveResult,byte[])> ReadFullMessage(WebSocket socket)
+        public static async Task<(WebSocketReceiveResult,byte[])> ReadFullMessage(WebSocket socket, CancellationToken token)
         {
             var buffer = new byte[BufferSize];
 
@@ -67,7 +67,7 @@ namespace TestServer.WebSockets
             var message = new List<byte>();
             do
             {
-                response = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                response = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
                 message.AddRange(new ArraySegment<byte>(buffer, 0, response.Count));
             }
             while (!response.EndOfMessage);

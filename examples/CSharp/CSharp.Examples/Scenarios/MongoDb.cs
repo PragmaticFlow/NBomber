@@ -41,7 +41,7 @@ namespace CSharp.Examples.Scenarios
             {
                 await usersCollection.Find(u => u.IsActive == true)
                                      .Limit(500)
-                                     .ToListAsync();
+                                     .ToListAsync(context.CancellationToken);
                 return Response.Ok();
             });
 

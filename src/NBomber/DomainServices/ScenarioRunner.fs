@@ -38,17 +38,18 @@ type ScenarioRunner(scenario: Scenario) =
 
     let actors = lazy createActors()    
 
-    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                
+    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                        
         let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)        
         while not (allFinish()) do            
             Log.Information("waiting all steps to finish.")
-            do! Task.Delay(TimeSpan.FromSeconds(5.0))            
+            do! Task.Delay(TimeSpan.FromSeconds(1.0))
     }
 
     let stop () = task {
         if actorsTasks.Length > 0 && not cancelToken.IsCancellationRequested then
             fastCancelToken.ShouldCancel <- true
             cancelToken.Cancel()
+            do! Task.Delay(TimeSpan.FromSeconds(1.5))
             do! waitOnAllFinish(actorsTasks)
             actorsTasks <- Array.empty
     }
