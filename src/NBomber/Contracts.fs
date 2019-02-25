@@ -57,11 +57,11 @@ type IStep = interface end
 type IAssertion = interface end  
 
 type Scenario = {
-    ScenarioName: string    
-    TestInit: (unit -> unit) option
-    TestClean: (unit -> unit) option
+    ScenarioName: string
+    TestInit: (CancellationToken -> Task) option
+    TestClean: (CancellationToken -> Task) option
     Steps: IStep[]
-    Assertions: IAssertion[]    
+    Assertions: IAssertion[]
     ConcurrentCopies: int
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

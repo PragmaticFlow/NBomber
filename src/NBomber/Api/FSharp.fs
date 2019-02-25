@@ -57,22 +57,23 @@ type Assertion =
         Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
 module Scenario =        
+    open System.Threading
     
     let create (name: string, steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
-          TestInit = None
-          TestClean = None
+          TestInit = Unchecked.defaultof<_>
+          TestClean = Unchecked.defaultof<_>
           Steps = List.toArray(steps)
           Assertions = Array.empty          
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
-    let withTestInit (initFunc: unit -> unit) (scenario: Contracts.Scenario) =                
-        { scenario with TestInit = Some initFunc }
+    let withTestInit (initFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
+        { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
 
-    let withTestClean (cleanFunc: unit -> unit) (scenario: Contracts.Scenario) =
-        { scenario with TestClean = Some cleanFunc }
+    let withTestClean (cleanFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
+        { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
