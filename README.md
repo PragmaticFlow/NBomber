@@ -16,8 +16,14 @@ PM> Install-Package NBomber
 ### Documentation
 Documentation is located [here](https://nbomber.com).
 
-### How to run a simple scenario
-![how to run a scenario gif](https://github.com/PragmaticFlow/NBomber/blob/master/assets/howToRunScenario.gif)
+### Run test scenario
+![how to run a scenario gif](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_run.gif)
+
+### View report
+![view report](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_report.jpg)
+
+### Analyze trends
+![analyze trends](https://github.com/PragmaticFlow/NBomber/blob/dev/assets/influx_trends.png)
 
 ### Features
 - [x] Pull scenario (Request-response)
