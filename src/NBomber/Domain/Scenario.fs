@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.Scenario
 
 open System
+open System.Threading
 open System.Diagnostics
 
 open NBomber
@@ -27,14 +28,17 @@ let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
-    |> Array.map(fun i -> System.String.Format("{0}_{1}", scnName, i))    
+    |> Array.map(fun i -> sprintf "%s_%i" scnName i)    
 
-let create (config: Contracts.Scenario) =    
+let create (config: Contracts.Scenario) =
+    let steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray        
+    let assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
+
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
       TestClean = config.TestClean
-      Steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray
-      Assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
+      Steps = steps
+      Assertions = assertions
       ConcurrentCopies = config.ConcurrentCopies      
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
       WarmUpDuration = config.WarmUpDuration
@@ -60,8 +64,12 @@ let init (scenario: Scenario) =
         getDistinctPools(scenario)
         |> Array.map(initConnectionPool)    
 
-    try
-        if scenario.TestInit.IsSome then scenario.TestInit.Value()        
+    try     
+        // todo: refactor, pass token
+        if scenario.TestInit.IsSome then
+            let cancelToken = new CancellationTokenSource()
+            scenario.TestInit.Value(cancelToken.Token).Wait()        
+
         let allPools = initAllConnectionPools()            
         let steps = scenario.Steps |> Array.map(setConnectionPool(allPools))
         Ok { scenario with Steps = steps }
@@ -88,6 +96,8 @@ let clean (scenario: Scenario) =
 
     try
         if scenario.TestClean.IsSome then
-            scenario.TestClean.Value()
+            // todo: refacto, pass token
+            let cancelToken = new CancellationTokenSource()
+            scenario.TestClean.Value(cancelToken.Token).Wait()
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")

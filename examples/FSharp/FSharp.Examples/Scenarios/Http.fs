@@ -20,7 +20,7 @@ let buildScenario () =
     let httpClient = new HttpClient()
 
     let step1 = Step.createAction("GET html", ConnectionPool.none, fun context -> task {        
-        let! response = createHttpRequest() |> httpClient.SendAsync        
+        let! response = httpClient.SendAsync(createHttpRequest(), context.CancellationToken)        
         let responseSize =
             if response.Content.Headers.ContentLength.HasValue then 
                response.Content.Headers.ContentLength.Value |> Convert.ToInt32

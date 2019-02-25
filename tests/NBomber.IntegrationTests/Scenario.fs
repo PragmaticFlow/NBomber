@@ -1,6 +1,7 @@
 ﻿module Tests.Scenario
 
 open System
+open System.Threading
 open System.Threading.Tasks
 
 open Xunit
@@ -15,9 +16,10 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
     
     let mutable invokeCounter = 0
 
-    let testClean = fun () -> invokeCounter <- invokeCounter + 1
-                              failwith "exception was not handled"
-                              ()
+    let testClean = fun _ -> task {
+        invokeCounter <- invokeCounter + 1
+        failwith "exception was not handled"        
+    }
 
     let pool = ConnectionPool.none
 

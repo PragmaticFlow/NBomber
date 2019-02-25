@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -25,15 +27,16 @@ namespace CSharp.Examples.Scenarios
         {
             var db = new MongoClient().GetDatabase("Test");
 
-            Action initDb = () =>
-            {   
+            Task initDb(CancellationToken token)
+            {
                 var testData = Enumerable.Range(0, 2000)
                     .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
                     .ToList();
 
-                db.DropCollection("Users");
-                db.GetCollection<User>("Users").InsertMany(testData);
-            };
+                db.DropCollection("Users", token);
+                return db.GetCollection<User>("Users")
+                         .InsertManyAsync(testData, cancellationToken: token);
+            }
 
             var usersCollection = db.GetCollection<User>("Users");
 
@@ -41,7 +44,7 @@ namespace CSharp.Examples.Scenarios
             {
                 await usersCollection.Find(u => u.IsActive == true)
                                      .Limit(500)
-                                     .ToListAsync();
+                                     .ToListAsync(context.CancellationToken);
                 return Response.Ok();
             });
 

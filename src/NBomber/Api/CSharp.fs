@@ -1,6 +1,7 @@
 ﻿namespace NBomber.CSharp
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -34,12 +35,12 @@ type ScenarioBuilder =
         FSharp.Scenario.create(name, Seq.toList(steps))
     
     [<Extension>]
-    static member WithTestInit(scenario: Scenario, initFunc: Action) = 
-        scenario |> FSharp.Scenario.withTestInit(initFunc.Invoke)
+    static member WithTestInit(scenario: Scenario, initFunc: Func<CancellationToken,Task>) = 
+        { scenario with TestInit = Some initFunc.Invoke }
 
     [<Extension>]
-    static member WithTestClean(scenario: Scenario, cleanFunc: Action) = 
-        scenario |> FSharp.Scenario.withTestClean(cleanFunc.Invoke)
+    static member WithTestClean(scenario: Scenario, cleanFunc: Func<CancellationToken,Task>) = 
+        { scenario with TestClean = Some cleanFunc.Invoke }
 
     [<Extension>]
     static member WithAssertions(scenario: Scenario, [<System.ParamArray>]assertions: IAssertion[]) = 

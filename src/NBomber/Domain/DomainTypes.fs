@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.DomainTypes
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open NBomber.Contracts
 
@@ -66,8 +67,8 @@ type Assertion =
 
 type Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: (unit -> unit) option  
-    TestClean: (unit -> unit) option  
+    TestInit: (CancellationToken -> Task) option  
+    TestClean: (CancellationToken -> Task) option  
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int

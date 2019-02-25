@@ -25,7 +25,7 @@ namespace CSharp.Examples.Scenarios
             {
                 var request = CreateHttpRequest();
 
-                var response = await httpClient.SendAsync(request);
+                var response = await httpClient.SendAsync(request, context.CancellationToken);
 
                 var responseSize = response.Content.Headers.ContentLength.HasValue
                     ? Convert.ToInt32(response.Content.Headers.ContentLength.Value)
