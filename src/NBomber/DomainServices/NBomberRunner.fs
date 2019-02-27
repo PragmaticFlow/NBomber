@@ -5,9 +5,6 @@ open Serilog
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
@@ -44,7 +41,7 @@ let createAndSaveReport (dep: Dependency, context: NBomberContext,
 
 let handleError (appType: ApplicationType, error: DomainError) =    
     if appType = ApplicationType.Test then TestFrameworkRunner.showErrors([|error|])
-    else error |> toString |> Log.Error
+    else error |> Errors.toString |> Log.Error
 
 let showAssertsResults (appType: ApplicationType, asrtResults: Result<Assertion,DomainError>[]) =     
     if asrtResults |> Array.exists(Result.isError) then
@@ -52,7 +49,7 @@ let showAssertsResults (appType: ApplicationType, asrtResults: Result<Assertion,
         if appType = ApplicationType.Test then            
             TestFrameworkRunner.showErrors(errors)
         else
-            errors |> Array.iter(toString >> Log.Error)
+            errors |> Array.iter(Errors.toString >> Log.Error)
 
 let run (dep: Dependency, context: NBomberContext) =
     Dependency.Logger.initLogger(dep.ApplicationType)    

@@ -9,34 +9,33 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.Statistics
 
-type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
+type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =    
     
-    let stepsWithoutPause = scenario.Steps |> Array.filter(fun st -> not(Step.isPause st))
-    let latencies = ResizeArray<ResizeArray<Response*Latency>>()    
+    let actorLatencies = ResizeArray<ResizeArray<Response*Latency>>()    
 
-    member x.Run(fastCancelToken, cancelToken) = 
-        latencies.Clear()
-        let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
-        stepsWithoutPause |> Array.iter(fun _ -> latencies.Add(ResizeArray<Response*Latency>()))            
-        Step.runSteps(steps, latencies, fastCancelToken)
+    member x.Run(fastCancelToken, cancelToken) = task {        
+        do! Task.Delay(1)
+        actorLatencies.Clear()
+        let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))                    
+        let! latencies = Step.runSteps(steps, fastCancelToken)
+        actorLatencies.AddRange(latencies)
+    }
 
     member x.GetResults() =
-        stepsWithoutPause
-        |> Array.mapi(fun i st -> StepResults.create(Step.getName(st), latencies.[i].ToArray()))
+        if actorLatencies.Count > 0 then
+            scenario.Steps        
+            |> Array.mapi(fun i st -> StepResults.create (Step.getName st) (actorLatencies.[i].ToArray()) )
+        else
+            Array.empty
 
 type ScenarioRunner(scenario: Scenario) = 
     
     let mutable cancelToken = new CancellationTokenSource()
-    let mutable actorsTasks = Array.empty<Task<unit>>
-    let fastCancelToken = { ShouldCancel = false }
-
-    let createActors () =
-        scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario))
-
-    let actors = lazy createActors()    
+    let mutable actorsTasks = Array.empty<Task<_>>
+    let fastCancelToken = { ShouldCancel = false }    
+    let actors = scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario))
 
     let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                        
         let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)        
@@ -58,7 +57,7 @@ type ScenarioRunner(scenario: Scenario) =
         do! stop()
         cancelToken <- new CancellationTokenSource()
         fastCancelToken.ShouldCancel <- false
-        actorsTasks <- actors.Value |> Array.map(fun x -> x.Run(fastCancelToken, cancelToken.Token))
+        actorsTasks <- actors |> Array.map(fun x -> x.Run(fastCancelToken, cancelToken.Token))
         do! Task.Delay(duration, cancelToken.Token)
         do! stop()
     }
@@ -69,6 +68,6 @@ type ScenarioRunner(scenario: Scenario) =
     member x.Stop() = stop()    
     
     member x.GetResult() =
-        actors.Value
+        actors
         |> Array.collect(fun actor -> actor.GetResults())
-        |> ScenarioStats.create(scenario)
+        |> ScenarioStats.create scenario

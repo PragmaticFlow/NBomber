@@ -3,8 +3,7 @@
 open System
 
 open NBomber.Configuration
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Infra.Http

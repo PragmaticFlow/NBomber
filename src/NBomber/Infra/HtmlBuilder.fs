@@ -3,10 +3,9 @@
 open System
 open System.Xml.Linq
 
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
 
-let htmlEncode (t : 'T) = System.Web.HttpUtility.HtmlEncode t
+let htmlEncode (t: 'T) = System.Web.HttpUtility.HtmlEncode t
 
 let toTableCell rowspan rawData =
     sprintf """<td rowspan="%i">%s</td>""" rowspan (htmlEncode rawData)
@@ -36,7 +35,7 @@ let formatAssertion assertNumber assertLabel =
     | Some value -> value |> htmlEncode |> sprintf "<strong>%s</strong>"
     | None -> sprintf "<strong>#%i</strong>" assertNumber
 
-let toListGroupItem failedAssert =
+let toListGroupItem (failedAssert: DomainError) =
     match failedAssert with
     | AssertNotFound (assertNumber,Step s) ->
         let assertLabel = formatAssertion assertNumber s.Label
@@ -48,7 +47,7 @@ let toListGroupItem failedAssert =
         sprintf """<li class="list-group-item list-group-item-danger">Failed assertion %s for step <strong>%s</strong></li>""" assertLabel stepName
     | _ -> String.Empty
 
-let toListGroup failedAsserts =
+let toListGroup (failedAsserts: DomainError[]) =
     failedAsserts
     |> Array.map toListGroupItem
     |> String.concat String.Empty

@@ -5,8 +5,7 @@ open System
 open HdrHistogram
 
 open NBomber.Contracts
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
+open NBomber.Domain
 
 let create (nodeStats: NodeStats) =
     
@@ -111,7 +110,7 @@ module StepResults =
               Results = results |> Array.collect(fun x -> x.Results)
               DataTransfer = dataTransfer })
 
-    let create (stepName, results: (Response*Latency)[]) =
+    let create (stepName: string) (results: (Response*Latency)[]) =
         { StepName = stepName 
           Results = results
           DataTransfer = calcDataTransfer(results) }
@@ -137,7 +136,7 @@ module StepStats =
           StdDev = calcStdDev(histogram)
           DataTransfer = stepResults.DataTransfer } 
           
-    let merge (stepsStats: StepStats[], scenarioActiveTime: TimeSpan) = 
+    let merge (stepsStats: StepStats[]) (scenarioActiveTime: TimeSpan) = 
         stepsStats
         |> Array.groupBy(fun x -> x.StepName)
         |> Array.map(fun (name, stats) -> 
@@ -161,12 +160,33 @@ module StepStats =
               StdDev = calcStdDev(histogram)
               DataTransfer = dataTransfer }) 
 
-module ScenarioStats =        
+module ScenarioStats =
+            
+    let calcActiveTime (scnDuration: TimeSpan) (scnConcurrentCopies: int) (allPauseTime: TimeSpan) =
+        if allPauseTime <= TimeSpan.Zero then scnDuration        
+        else
+            let copiesCount = float scnConcurrentCopies
+            let allWorkingTime = TimeSpan.FromSeconds(scnDuration.TotalSeconds * copiesCount)
+            let allActiveTime = allWorkingTime - allPauseTime
+            TimeSpan.FromMilliseconds(allActiveTime.TotalMilliseconds / copiesCount)
 
-    let calcPausedTime (scenario: Scenario) =
-        scenario.Steps
-        |> Array.sumBy(fun x -> match x with | Pause time -> time.Ticks | _ -> int64 0)
-        |> TimeSpan
+    let calcActiveTimeByStepsResults (scenario: Scenario) (stepsResults: StepResults[]) =
+        stepsResults
+        |> Array.filter(fun x -> x.StepName = Constants.PauseStepName)
+        |> Array.collect(fun x -> x.Results)
+        |> Array.sumBy snd
+        |> float
+        |> TimeSpan.FromMilliseconds
+        |> calcActiveTime scenario.Duration scenario.ConcurrentCopies
+                    
+    let calcActiveTimeByStepStats (scenario: Scenario) (stepsStats: StepStats[]) =
+        stepsStats                
+        |> Array.filter(fun x -> x.StepName = Constants.PauseStepName)
+        |> Array.collect(fun x -> x.OkLatencies)
+        |> Array.sum
+        |> float
+        |> TimeSpan.FromMilliseconds
+        |> calcActiveTime scenario.Duration scenario.ConcurrentCopies
 
     let calcLatencyCount (stepsStats: StepStats[]) = 
         let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800))
@@ -176,11 +196,11 @@ module ScenarioStats =
           More800Less1200 = b.Length
           More1200 = c.Length } 
 
-    let createByStepStats (scenario: Scenario, stepsStats: StepStats[]) =
-        let activeTime = scenario.Duration - calcPausedTime(scenario)
-        let mergedStepsStats = StepStats.merge(stepsStats, activeTime)
+    let createByStepStats (scenario: Scenario) (stepsStats: StepStats[]) =
+        let activeTime = calcActiveTimeByStepStats scenario stepsStats
+        let mergedStepsStats = StepStats.merge stepsStats activeTime
 
-        let latencyCount = calcLatencyCount(mergedStepsStats)
+        let latencyCount = calcLatencyCount mergedStepsStats
 
         let allOkCount = mergedStepsStats |> Array.sumBy(fun x -> x.OkCount)
         let allFailCount = mergedStepsStats |> Array.sumBy(fun x -> x.FailCount)
@@ -196,10 +216,12 @@ module ScenarioStats =
           ActiveTime = activeTime
           Duration = scenario.Duration }         
 
-    let create (scenario: Scenario) (stepsResults: StepResults[]) =        
-        let activeTime = scenario.Duration - calcPausedTime(scenario)
-        let stepsStats = stepsResults |> StepResults.merge |> Array.map(StepStats.create(activeTime))
-        createByStepStats(scenario, stepsStats)
+    let create (scenario: Scenario) (stepsResults: StepResults[]) =         
+        let activeTime = calcActiveTimeByStepsResults scenario stepsResults
+        stepsResults
+        |> StepResults.merge
+        |> Array.map(StepStats.create activeTime)
+        |> createByStepStats scenario        
 
 module NodeStats =
 
@@ -229,6 +251,5 @@ module NodeStats =
         |> Array.groupBy(fun x -> x.ScenarioName)
         |> Array.map(fun (scnName, allStats) -> 
             let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)
-            let allSteps = allStats |> Array.collect(fun x -> x.StepsStats)
-            ScenarioStats.createByStepStats(scn, allSteps))
-        |> create(meta)
+            allStats |> Array.collect(fun x -> x.StepsStats) |> ScenarioStats.createByStepStats scn)             
+        |> create meta

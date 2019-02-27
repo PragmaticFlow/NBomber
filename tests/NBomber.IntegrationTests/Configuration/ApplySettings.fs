@@ -5,10 +5,10 @@ open System
 open Xunit
 open FsCheck.Xunit
 
-open NBomber.FSharp
 open NBomber.Configuration
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
 open NBomber.DomainServices
+open NBomber.FSharp
 
 [<Property>]
 let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =

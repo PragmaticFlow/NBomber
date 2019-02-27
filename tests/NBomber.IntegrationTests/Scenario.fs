@@ -1,14 +1,13 @@
 ﻿module Tests.Scenario
 
 open System
-open System.Threading
 open System.Threading.Tasks
 
 open Xunit
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Domain
 open NBomber.Contracts
+open NBomber.Domain
 open NBomber.FSharp
 
 [<Fact>]

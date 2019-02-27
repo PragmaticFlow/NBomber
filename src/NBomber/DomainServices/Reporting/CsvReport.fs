@@ -1,7 +1,7 @@
 ﻿module internal NBomber.DomainServices.Reporting.CsvReport
 
 open System
-open NBomber.Domain.StatisticsTypes
+open NBomber.Domain
 
 let private getHeader () =
     "scenario,execution_time,step_name,request_count,ok,failed," +

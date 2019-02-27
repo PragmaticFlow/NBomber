@@ -2,10 +2,10 @@
 
 open System
 
-open NBomber.Contracts
+open NBomber
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.Errors
 
 let isReportFormatSupported (reportFormat: string) =
     if String.IsNullOrEmpty(reportFormat) then None
@@ -48,7 +48,7 @@ let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
     if Array.isEmpty(scenariosWithIncorrectConcurrentCopies) then Ok globalSettings
     else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
 
-let private isEmptyScenarioNameExist (scenarios: Scenario[]) =
+let private isEmptyScenarioNameExist (scenarios: Contracts.Scenario[]) =
     let isAnyScenarioNullOrEmpty = scenarios |> Array.exists(fun x -> String.IsNullOrEmpty(x.ScenarioName))
     if isAnyScenarioNullOrEmpty then Error EmptyScenarioName
     else Ok scenarios
@@ -63,19 +63,19 @@ let private validateReportFormat (globalSettings: GlobalSettings) =
     if Array.isEmpty(unsupportedFormats) then Ok globalSettings
     else unsupportedFormats |> UnsupportedReportFormat |> Error
 
-let private isScenarioNameDuplicate (scenarios: Scenario[]) =
+let private isScenarioNameDuplicate (scenarios: Contracts.Scenario[]) =
     let scenarioNames = scenarios |> Array.map(fun x -> x.ScenarioName)
     if uniqueCount(scenarioNames) = scenarios.Length then Ok scenarios
     else Error DuplicateScenarios
 
-let private isStepNameDuplicate (scenarios: Scenario[]) =
+let private isStepNameDuplicate (scenarios: Contracts.Scenario[]) =
     let duplicates =
         scenarios
         |> Array.filter(fun x ->
             let stepNames =
                 x.Steps
-                |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
-                |> Array.filter(fun x -> x <> "pause")
+                |> Array.map(fun x -> x :?> Step |> Step.getName)
+                |> Array.filter(fun x -> x <> Constants.PauseStepName)
 
             not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
         |> Array.map(fun x -> x.ScenarioName)
@@ -83,12 +83,12 @@ let private isStepNameDuplicate (scenarios: Scenario[]) =
     if Array.isEmpty(duplicates) then Ok scenarios
     else duplicates |> DuplicateSteps |> Error
 
-let private isEmptyStepNameExist (scenarios: Scenario[]) =
+let private isEmptyStepNameExist (scenarios: Contracts.Scenario[]) =
     let scenariosWithEmptySteps =
         scenarios
         |> Array.filter(fun x ->
             x.Steps
-            |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
+            |> Array.map(fun x -> x :?> Step |> Step.getName)
             |> Array.exists(String.IsNullOrEmpty))
         |> Array.map(fun x -> x.ScenarioName)
     

@@ -1,11 +1,11 @@
-﻿module internal NBomber.Domain.DomainTypes
+﻿namespace NBomber.Domain
 
 open System
 open System.Threading
 open System.Threading.Tasks
 open NBomber.Contracts
 
-module Constants =   
+module internal Constants =   
 
     [<Literal>]
     let DefaultScenarioDurationInSec = 20.0
@@ -18,15 +18,18 @@ module Constants =
 
     [<Literal>]
     let DefaultConnectionsCount = 0
+    
+    [<Literal>]
+    let PauseStepName = "pause"
 
-type CorrelationId = string
-type StepName = string
-type FlowName = string
-type ScenarioName = string
-type Latency = int
+type internal CorrelationId = string
+type internal StepName = string
+type internal FlowName = string
+type internal ScenarioName = string
+type internal Latency = int
 
 [<CustomEquality; NoComparison>]
-type ConnectionPool<'TConnection> = {
+type internal ConnectionPool<'TConnection> = {
     PoolName: string    
     OpenConnection: unit -> 'TConnection
     CloseConnection: ('TConnection -> unit) option
@@ -40,32 +43,32 @@ type ConnectionPool<'TConnection> = {
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false
 
-type ActionStep = {
+type internal ActionStep = {
     StepName: StepName
     ConnectionPool: ConnectionPool<obj>
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
 }
 
-type Step =
+type internal Step =
     | Action of ActionStep
     | Pause  of TimeSpan
     interface IStep
 
-type AssertFunc = Statistics -> bool
+type internal AssertFunc = Statistics -> bool
 
-type StepAssertion = {
+type internal StepAssertion = {
     StepName: StepName
     ScenarioName: ScenarioName
     AssertFunc: AssertFunc
     Label: string option
 }
 
-type Assertion = 
+type internal Assertion = 
     | Step of StepAssertion    
     interface IAssertion
 
-type Scenario = {    
+type internal Scenario = {    
     ScenarioName: ScenarioName
     TestInit: (CancellationToken -> Task) option  
     TestClean: (CancellationToken -> Task) option  

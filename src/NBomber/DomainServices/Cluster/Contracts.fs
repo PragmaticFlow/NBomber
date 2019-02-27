@@ -1,7 +1,7 @@
 ﻿module internal NBomber.DomainServices.Cluster.Contracts
 
 open NBomber.Configuration
-open NBomber.Domain.Errors
+open NBomber.Domain
 
 type AgentCommand =
     | NewSession  of sessionId:string * settings:ScenarioSetting[] * targetScenarios:string[]    

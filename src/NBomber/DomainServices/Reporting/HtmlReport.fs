@@ -2,8 +2,7 @@
 
 open System
 
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
+open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.ResourceManager
 open NBomber.Infra.Dependency

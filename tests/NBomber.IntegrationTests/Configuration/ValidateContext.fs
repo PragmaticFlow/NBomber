@@ -6,11 +6,11 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Xunit
 open FsCheck.Xunit
 
-open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Domain
 open NBomber.DomainServices
-open NBomber.Domain.Errors
+open NBomber.FSharp
 
 let buildConfig (scenarioName: string, steps: IStep[], settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string, reportFormats: string[]) =
     let scenario = Scenario.create(scenarioName, Array.toList steps)
@@ -44,15 +44,15 @@ let ``validateGlobalSettings() should return Ok for any args values`` (scenarioN
         buildGlobalSettings([|settings|], [|scenarioName|], reportFileName, Array.empty) |> Validation.validateGlobalSettings
     
     if duration < TimeSpan.FromSeconds(1.0) then
-        let errorMessage = validatedContext |> Result.getError |> toString
+        let errorMessage = validatedContext |> Result.getError |> Errors.toString
         Assert.Equal(sprintf "Duration for scenarios '%s' can not be less than 1 sec." scenarioName, errorMessage)
 
     elif concurrentCopies < 1 then
-        let errorMessage = validatedContext |> Result.getError |> toString
+        let errorMessage = validatedContext |> Result.getError |> Errors.toString
         Assert.Equal(sprintf "Concurrent copies for scenarios '%s' can not be less than 1." scenarioName, errorMessage)
 
     elif String.IsNullOrEmpty(reportFileName) then
-        let errorMessage = validatedContext |> Result.getError |> toString
+        let errorMessage = validatedContext |> Result.getError |> Errors.toString
         Assert.Equal("Report File Name can not be empty string.", errorMessage)
 
     else
@@ -67,7 +67,7 @@ let ``validateNaming() should return Ok for any args values`` (scenarioName: str
         |> Validation.validateNaming
     
     if String.IsNullOrEmpty(scenarioName) then
-        let errorMessage = validatedContext |> Result.getError |> toString
+        let errorMessage = validatedContext |> Result.getError |> Errors.toString
         Assert.Equal("Scenario name can not be empty.", errorMessage) 
 
     else
@@ -89,7 +89,7 @@ let ``validateRunnerContext() should fail when report formats are unknown`` (rep
     let reportFormatsNotEmpty = reportFormats |> Array.isEmpty |> not
 
     if reportFormatsNotEmpty && atLeastOneReportFormatUnknown then
-        let errorMessage = validatedContext |> Result.getError |> toString
+        let errorMessage = validatedContext |> Result.getError |> Errors.toString
         Assert.EndsWith("Allowed formats: Txt, Html or Csv.", errorMessage)
 
     else validatedContext |> Result.isOk |> Assert.True                   
@@ -101,7 +101,7 @@ let ``validateRunnerContext() should fail when target scenrio name is not declar
         buildConfig(scenarioName + "not_empty", Array.empty, Array.empty, targetScenarios, "report_file_name", Array.empty)
         |> Validation.validateRunnerContext
         |> Result.getError
-        |> toString
+        |> Errors.toString
     
     errorMessage.StartsWith (sprintf "Target scenarios '%s' is not found." (scenarioName + "new_name"))
 
@@ -110,7 +110,7 @@ let ``validateRunnerContext() should fail when scenario names are duplicates`` (
     let scenario = Scenario.create("scenario", []);
     let context = { Scenarios = [|scenario; scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
+    let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString
     Assert.Equal("Scenario names should be unique.", errorMessage)
 
 [<Fact>]
@@ -119,7 +119,7 @@ let ``validateRunnerContext() should fail when step names are duplicates`` () =
     let scenario = Scenario.create("scenario", [step; step])
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
+    let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString
     Assert.Equal("Step names are not unique in scenarios: 'scenario'. Step names should be unique within scenario.", errorMessage)
 
 [<Fact>]
@@ -128,5 +128,5 @@ let ``validateRunnerContext() should fail when at least one step name is empty``
     let scenario = Scenario.create("scenario", [step])
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
+    let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString
     Assert.Equal("Step names are empty in scenarios: 'scenario'. Step names should not be empty within scenario.", errorMessage)

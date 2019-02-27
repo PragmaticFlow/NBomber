@@ -2,7 +2,6 @@
 
 open System.IO
 open Xunit
-
 open NBomber.Configuration
 
 [<Fact>]

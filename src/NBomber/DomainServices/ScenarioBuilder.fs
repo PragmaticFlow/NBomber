@@ -5,7 +5,6 @@ open Serilog
 open NBomber
 open NBomber.Configuration
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 
 let updateScenarioWithSettings (scenario: Scenario, settings: ScenarioSetting) =
     { scenario with ConcurrentCopies = settings.ConcurrentCopies

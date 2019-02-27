@@ -1,13 +1,9 @@
-﻿module internal NBomber.Domain.Scenario
+﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+module internal NBomber.Domain.Scenario
 
 open System
 open System.Threading
-open System.Diagnostics
-
 open NBomber
-open NBomber.Domain
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
 
 let updateConnectionPoolCount (concurrentCopies: int) (step) =
     

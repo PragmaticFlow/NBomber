@@ -5,11 +5,9 @@ open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
+open NBomber.Configuration
+open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -144,7 +142,8 @@ let run (cluster: IClusterCoordinator, scnHost: IScenariosHost,
     return allStats    
 }
 
-let createStats (sessionId: string, nodeName: string, registeredScenarios: Scenario[],
+let createStats (sessionId: string, nodeName: string, 
+                 registeredScenarios: Scenario[],
                  scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) = 
     
     let meta = { SessionId = sessionId

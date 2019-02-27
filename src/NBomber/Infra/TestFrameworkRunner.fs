@@ -3,7 +3,6 @@
 open System
 
 open NBomber.Domain
-open NBomber.Domain.Errors
 
 type TestFramework =
     | Xunit of Type

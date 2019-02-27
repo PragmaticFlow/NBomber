@@ -3,12 +3,14 @@
 open System
 
 open Xunit
+open FsCheck
 open FsCheck.Xunit
 
 open NBomber.Domain
+open NBomber.Domain.Statistics
 
 [<Property>]
-let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: int[], scnDuration: TimeSpan) =
+let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency[], scnDuration: TimeSpan) =
     let result = Statistics.calcRPS(latencies, scnDuration)
 
     if latencies.Length = 0 then
@@ -21,22 +23,50 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
         Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result   = Statistics.calcMin(latencies)    
     let expected = if Array.isEmpty latencies then 0
                    else Array.min(latencies)
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMean    
     let expected = if Array.isEmpty latencies then 0
                    else latencies |> Array.map(float) |> Array.average |> int
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMax    
     let expected = if Array.isEmpty latencies then 0
                    else Array.max(latencies)
     Assert.Equal(expected, result)
+
+[<Fact>]
+let ``calcActiveTime() should return scDuration = activeTime if allPauseTime = 0 and scnDuration > activeTime `` () =
+    
+    let data = gen { let! minutes = Gen.elements [10..100]
+                     let! count = Gen.elements [10..100]
+                     let! seconds = Gen.elements [0..200]
+                     return TimeSpan.FromMinutes(float minutes), count, TimeSpan.FromSeconds(float seconds) }
+                            |> Arb.fromGen
+    
+    Prop.forAll data (fun (scnDuration, concurrentCopies, allPauseTime) -> 
+        
+        let activeTime = ScenarioStats.calcActiveTime scnDuration concurrentCopies allPauseTime
+        
+        if allPauseTime = TimeSpan.Zero then Assert.Equal(scnDuration, activeTime)
+        else Assert.True(scnDuration > activeTime)
+    )
+    |> Check.QuickThrowOnFailure
+
+[<Fact>]
+let ``calcActiveTime() should susbtract pause time from the scenario.Duration`` () =
+    let scnDuration = TimeSpan.FromMinutes(10.0)
+    let concurrentCopies = 5
+    let allPauseTime = TimeSpan.FromMinutes(10.0)
+
+    let activeTime = ScenarioStats.calcActiveTime scnDuration concurrentCopies allPauseTime
+    
+    Assert.Equal(TimeSpan.FromMinutes(8.0), activeTime)

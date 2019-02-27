@@ -1,8 +1,7 @@
-﻿module internal NBomber.Domain.Assertion
+﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+module internal NBomber.Domain.Assertion
 
 open NBomber.Contracts
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
 
 let create (assertions: IAssertion[]) = 
     assertions |> Array.map(fun x -> x :?> Assertion)

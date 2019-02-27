@@ -5,7 +5,7 @@ open System.Threading.Tasks
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
@@ -54,7 +54,7 @@ module Step =
 type Assertion =
 
     static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =         
-        Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
+        Domain.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
 module Scenario =        
     open System.Threading
@@ -77,7 +77,7 @@ module Scenario =
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
-                    |> Seq.cast<Domain.DomainTypes.Assertion>
+                    |> Seq.cast<Domain.Assertion>
                     |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray

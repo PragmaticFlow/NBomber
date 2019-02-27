@@ -8,9 +8,6 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
 open NBomber.Domain.Statistics
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenarioRunner

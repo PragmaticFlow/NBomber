@@ -11,10 +11,10 @@ open NBomber.Contracts
 open NBomber.FSharp
 
 type ConnectionPool =
-    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.DomainTypes.Constants.DefaultConnectionsCount)>] ?connectionsCount: int) = 
+    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.Constants.DefaultConnectionsCount)>] ?connectionsCount: int) = 
         let close = if isNull closeConnection then (new Action<'TConnection>(fun _ -> ()))
                     else closeConnection
-        let count = defaultArg connectionsCount Domain.DomainTypes.Constants.DefaultConnectionsCount
+        let count = defaultArg connectionsCount Domain.Constants.DefaultConnectionsCount
         FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)    
     
     static member None = FSharp.ConnectionPool.none

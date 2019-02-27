@@ -5,8 +5,7 @@ open System.IO
 
 open Serilog
 
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
+open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Contracts
