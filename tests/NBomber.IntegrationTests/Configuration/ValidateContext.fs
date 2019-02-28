@@ -115,7 +115,7 @@ let ``validateRunnerContext() should fail when scenario names are duplicates`` (
 
 [<Fact>]
 let ``validateRunnerContext() should fail when step names are duplicates`` () =
-    let step = Step.createAction("simple step", ConnectionPool.none, fun _ -> task { return Response.Ok() })
+    let step = Step.create("simple step", ConnectionPool.none, fun _ -> task { return Response.Ok() })
     let scenario = Scenario.create("scenario", [step; step])
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
@@ -124,7 +124,7 @@ let ``validateRunnerContext() should fail when step names are duplicates`` () =
 
 [<Fact>]
 let ``validateRunnerContext() should fail when at least one step name is empty`` () =
-    let step = Step.createAction("", ConnectionPool.none, fun _ -> task { return Response.Ok() })
+    let step = Step.create("", ConnectionPool.none, fun _ -> task { return Response.Ok() })
     let scenario = Scenario.create("scenario", [step])
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 

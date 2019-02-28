@@ -26,7 +26,7 @@ type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
     member x.GetResults() =
         if actorLatencies.Count > 0 then
             scenario.Steps        
-            |> Array.mapi(fun i st -> StepResults.create (Step.getName st) (actorLatencies.[i].ToArray()) )
+            |> Array.mapi(fun i st -> StepResults.create st.StepName (actorLatencies.[i].ToArray()) )
         else
             Array.empty
 

@@ -24,7 +24,7 @@ type ConnectionPool =
 
 module Step =        
 
-    let createAction (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
+    let create (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
         let p = pool :?> ConnectionPool<'TConnection>
         
         let newOpen = fun () -> p.OpenConnection() :> obj
@@ -47,9 +47,7 @@ module Step =
                                    Payload = context.Payload }
                 execute(newContext)
 
-        Action({ StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None }) :> IStep
-
-    let createPause (duration) = Pause(duration) :> IStep    
+        { StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None } :> IStep
 
 type Assertion =
 

@@ -5,22 +5,18 @@ open System
 open System.Threading
 open NBomber
 
-let updateConnectionPoolCount (concurrentCopies: int) (step) =
+let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
     let updatePoolCount (pool) =
         let newCount = if pool.ConnectionsCount = Constants.DefaultConnectionsCount then concurrentCopies
                        else pool.ConnectionsCount        
         { pool with ConnectionsCount = newCount }
     
-    match step with
-    | Action s -> Action { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }        
-    | Pause s -> Pause s
+    { step with ConnectionPool = updatePoolCount(step.ConnectionPool) }            
 
-let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
+let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =    
     let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
-    match step with
-    | Action s -> Action { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }        
-    | Pause s -> Pause s  
+    { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }    
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
@@ -42,7 +38,7 @@ let create (config: Contracts.Scenario) =
 
 let getDistinctPools (scenario: Scenario) =
     scenario.Steps
-    |> Array.choose(Step.getConnectionPool)
+    |> Array.map(fun x -> x.ConnectionPool)
     |> Array.distinct
 
 let init (scenario: Scenario) =

@@ -72,12 +72,8 @@ let private isStepNameDuplicate (scenarios: Contracts.Scenario[]) =
     let duplicates =
         scenarios
         |> Array.filter(fun x ->
-            let stepNames =
-                x.Steps
-                |> Array.map(fun x -> x :?> Step |> Step.getName)
-                |> Array.filter(fun x -> x <> Constants.PauseStepName)
-
-            not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
+            let stepNames = x.Steps |> Seq.cast<Step> |> Seq.map(fun x -> x.StepName) |> Seq.toArray
+            not(Seq.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length )
         |> Array.map(fun x -> x.ScenarioName)
     
     if Array.isEmpty(duplicates) then Ok scenarios
@@ -86,10 +82,7 @@ let private isStepNameDuplicate (scenarios: Contracts.Scenario[]) =
 let private isEmptyStepNameExist (scenarios: Contracts.Scenario[]) =
     let scenariosWithEmptySteps =
         scenarios
-        |> Array.filter(fun x ->
-            x.Steps
-            |> Array.map(fun x -> x :?> Step |> Step.getName)
-            |> Array.exists(String.IsNullOrEmpty))
+        |> Array.filter(fun x -> x.Steps |> Seq.cast<Step> |> Seq.map(fun x -> x.StepName) |> Seq.exists String.IsNullOrEmpty )
         |> Array.map(fun x -> x.ScenarioName)
     
     if Array.isEmpty(scenariosWithEmptySteps) then Ok scenarios

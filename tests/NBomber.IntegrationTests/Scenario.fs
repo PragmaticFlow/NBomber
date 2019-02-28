@@ -22,7 +22,7 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
 
     let pool = ConnectionPool.none
 
-    let okStep = Step.createAction("ok step", pool, fun context -> task {
+    let okStep = Step.create("ok step", pool, fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })

@@ -46,8 +46,7 @@ type internal ScenarioStats = {
     ConcurrentCopies: int    
     OkCount: int
     FailCount: int
-    LatencyCount: LatencyCount
-    ActiveTime: TimeSpan
+    LatencyCount: LatencyCount    
     Duration: TimeSpan
 }
 

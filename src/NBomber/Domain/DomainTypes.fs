@@ -43,17 +43,12 @@ type internal ConnectionPool<'TConnection> = {
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false
 
-type internal ActionStep = {
+type internal Step = {
     StepName: StepName
     ConnectionPool: ConnectionPool<obj>
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
-}
-
-type internal Step =
-    | Action of ActionStep
-    | Pause  of TimeSpan
-    interface IStep
+} with interface IStep
 
 type internal AssertFunc = Statistics -> bool
 

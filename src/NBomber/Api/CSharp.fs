@@ -20,8 +20,7 @@ type ConnectionPool =
     static member None = FSharp.ConnectionPool.none
 
 type Step =    
-    static member CreateAction(name: string, pool: IConnectionPool<'TConnection>, execute: Func<StepContext<'TConnection>,Task<Response>>) = FSharp.Step.createAction(name, pool, execute.Invoke)    
-    static member CreatePause(duration) = FSharp.Step.createPause(duration)
+    static member Create(name: string, pool: IConnectionPool<'TConnection>, execute: Func<StepContext<'TConnection>,Task<Response>>) = FSharp.Step.create(name, pool, execute.Invoke)        
 
 type Assertion =    
     static member ForStep (stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
