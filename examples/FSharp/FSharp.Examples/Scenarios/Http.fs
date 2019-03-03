@@ -31,4 +31,4 @@ let buildScenario () =
                else Response.Fail() 
     })
         
-    Scenario.create("test_youtube", [step1])
+    Scenario.create "test_youtube" [step1]

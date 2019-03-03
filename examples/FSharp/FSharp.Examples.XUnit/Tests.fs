@@ -16,7 +16,7 @@ let buildScenario () =
         return Response.Ok(sizeBytes = 1024)
     })
 
-    Scenario.create("xunit hello world", [step1])    
+    Scenario.create "xunit hello world" [step1]
 
 [<Fact>]
 let ``XUnit test`` () =    
@@ -30,9 +30,9 @@ let ``XUnit test`` () =
     ]
 
     buildScenario()
-    |> Scenario.withConcurrentCopies(1)
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(0.0))
-    |> Scenario.withDuration(TimeSpan.FromSeconds(2.0))
-    |> Scenario.withAssertions(assertions)
+    |> Scenario.withConcurrentCopies 1
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+    |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
+    |> Scenario.withAssertions assertions
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest

@@ -13,7 +13,7 @@ open NBomber.DomainServices
 open NBomber.FSharp
 
 let buildConfig (scenarioName: string, steps: IStep[], settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string, reportFormats: string[]) =
-    let scenario = Scenario.create(scenarioName, Array.toList steps)
+    let scenario = Scenario.create scenarioName (Array.toList steps)
     let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios; ReportFileName = reportFileName; ReportFormats = reportFormats }
     let config = { NBomberConfig.GlobalSettings = Some globalSettings
                    ClusterSettings = None }
@@ -107,7 +107,7 @@ let ``validateRunnerContext() should fail when target scenrio name is not declar
 
 [<Fact>]
 let ``validateRunnerContext() should fail when scenario names are duplicates`` () =
-    let scenario = Scenario.create("scenario", []);
+    let scenario = Scenario.create "scenario" []
     let context = { Scenarios = [|scenario; scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString
@@ -116,7 +116,7 @@ let ``validateRunnerContext() should fail when scenario names are duplicates`` (
 [<Fact>]
 let ``validateRunnerContext() should fail when step names are duplicates`` () =
     let step = Step.create("simple step", ConnectionPool.none, fun _ -> task { return Response.Ok() })
-    let scenario = Scenario.create("scenario", [step; step])
+    let scenario = Scenario.create "scenario" [step; step]
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString
@@ -125,7 +125,7 @@ let ``validateRunnerContext() should fail when step names are duplicates`` () =
 [<Fact>]
 let ``validateRunnerContext() should fail when at least one step name is empty`` () =
     let step = Step.create("", ConnectionPool.none, fun _ -> task { return Response.Ok() })
-    let scenario = Scenario.create("scenario", [step])
+    let scenario = Scenario.create "scenario" [step]
     let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
 
     let errorMessage = context |> Validation.validateNaming |> Result.getError |> Errors.toString

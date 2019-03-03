@@ -57,7 +57,7 @@ type Assertion =
 module Scenario =        
     open System.Threading
     
-    let create (name: string, steps: IStep list): Contracts.Scenario =
+    let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>

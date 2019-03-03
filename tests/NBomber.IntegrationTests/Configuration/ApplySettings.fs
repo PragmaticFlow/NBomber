@@ -13,7 +13,7 @@ open NBomber.FSharp
 [<Property>]
 let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
     let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
-    let scenario = Scenario.create(name, []) |> NBomber.Domain.Scenario.create
+    let scenario = Scenario.create name [] |> NBomber.Domain.Scenario.create
 
     let updatedScenarios = ScenarioBuilder.applyScenariosSettings [|settings|] [|scenario|]
     
@@ -26,7 +26,7 @@ let ``applyScenariosSettings() should override initial settings`` (name: string,
 let ``applyScenariosSettings() should skip applying settings when scenario name is not found`` (name: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
     let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
     let newName = name + "_new_name"
-    let scenario = Scenario.create(newName, []) |> NBomber.Domain.Scenario.create
+    let scenario = Scenario.create newName [] |> NBomber.Domain.Scenario.create
 
     let updatedScenarios = ScenarioBuilder.applyScenariosSettings [|settings|] [|scenario|]
 
@@ -37,7 +37,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
 [<Fact>]
 let ``applyScenariosSettings() should make no changes if settings absent`` () =
-    let scenario = Scenario.create("scenario name", []) |> NBomber.Domain.Scenario.create
+    let scenario = Scenario.create "scenario name" [] |> NBomber.Domain.Scenario.create
     let settings = Array.empty
     let updatedScenarios = ScenarioBuilder.applyScenariosSettings settings [|scenario|]
 

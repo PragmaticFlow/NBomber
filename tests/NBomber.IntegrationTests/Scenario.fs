@@ -27,9 +27,9 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
         return Response.Ok()
     })
 
-    Scenario.create("withTestClean test", [okStep])    
-    |> Scenario.withTestClean(testClean)
-    |> Scenario.withDuration(TimeSpan.FromSeconds(1.0))
+    Scenario.create "withTestClean test" [okStep]
+    |> Scenario.withTestClean testClean
+    |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
 

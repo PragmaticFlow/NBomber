@@ -31,7 +31,7 @@ type Assertion =
 type ScenarioBuilder =
 
     static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
-        FSharp.Scenario.create(name, Seq.toList(steps))
+        FSharp.Scenario.create name (Seq.toList steps)
     
     [<Extension>]
     static member WithTestInit(scenario: Scenario, initFunc: Func<CancellationToken,Task>) = 

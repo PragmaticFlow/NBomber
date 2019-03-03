@@ -16,4 +16,4 @@ let buildScenario () =
         return Response.Ok() 
     })
         
-    Scenario.create("Hello World from NBomber!", [step1])
+    Scenario.create "Hello World from NBomber!" [step1]
