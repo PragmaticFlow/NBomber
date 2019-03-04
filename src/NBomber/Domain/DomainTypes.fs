@@ -8,13 +8,13 @@ open NBomber.Contracts
 module internal Constants =   
 
     [<Literal>]
-    let DefaultScenarioDurationInSec = 20.0
+    let DefaultScenarioDurationInSec = 180.0
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
 
     [<Literal>]
-    let DefaultWarmUpDurationInSec = 5.0
+    let DefaultWarmUpDurationInSec = 10.0
 
     [<Literal>]
     let DefaultConnectionsCount = 0
