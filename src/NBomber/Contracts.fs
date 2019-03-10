@@ -12,7 +12,7 @@ type Response = {
     SizeBytes: int
 }
 
-type NodeType = 
+type NodeType =
     | SingleNode = 0
     | Coordinator = 1
     | Agent = 2
@@ -24,7 +24,7 @@ type StatisticsMeta = {
     Sender: NodeType
 }
 
-type Statistics = {    
+type Statistics = {
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -54,7 +54,7 @@ type StepContext<'TConnection> = {
 }
 
 type IStep = interface end
-type IAssertion = interface end  
+type IAssertion = interface end
 
 type Scenario = {
     ScenarioName: string
@@ -67,18 +67,24 @@ type Scenario = {
     Duration: TimeSpan
 }
 
-type ReportFormat = 
+type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
     | Md = 3
+
+module ReportFormat =
+    let tryParse reportFormat =
+        match ReportFormat.TryParse<ReportFormat>(value = reportFormat, ignoreCase = true) with
+        | true, f -> Some f
+        | false, _ -> None
 
 type IStatisticsSink =
     abstract SaveStatistics: Statistics[] -> Task
 
 type NBomberContext = {
     Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option  
+    NBomberConfig: NBomberConfig option
     ReportFileName: string option
     ReportFormats: ReportFormat[]
     StatisticsSink: IStatisticsSink option

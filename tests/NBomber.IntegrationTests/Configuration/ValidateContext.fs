@@ -42,7 +42,7 @@ let ``validateGlobalSettings() should return Ok for any args values`` (scenarioN
 
     let validatedContext =
         buildGlobalSettings([|settings|], [|scenarioName|], reportFileName, Array.empty) |> Validation.validateGlobalSettings
-    
+
     if duration < TimeSpan.FromSeconds(1.0) then
         let errorMessage = validatedContext |> Result.getError |> toString
         Assert.Equal(sprintf "Duration for scenarios '%s' can not be less than 1 sec." scenarioName, errorMessage)
@@ -65,16 +65,16 @@ let ``validateNaming() should return Ok for any args values`` (scenarioName: str
     let validatedContext =
         buildConfig(scenarioName, Array.empty, [|settings|], [|scenarioName|], reportFileName, Array.empty)
         |> Validation.validateNaming
-    
+
     if String.IsNullOrEmpty(scenarioName) then
         let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.Equal("Scenario name can not be empty.", errorMessage) 
+        Assert.Equal("Scenario name can not be empty.", errorMessage)
 
     else
         validatedContext |> Result.isOk |> Assert.True
 
 [<Property>]
-let ``validateRunnerContext() should fail when report formats are unknown`` (reportFormats: string[]) =    
+let ``validateRunnerContext() should fail when report formats are unknown`` (reportFormats: string[]) =
     let settings = buildSettings("scenario_name", TimeSpan.FromSeconds 10.0, TimeSpan.FromSeconds 10.0, 10)
 
     let validatedContext =
@@ -83,8 +83,7 @@ let ``validateRunnerContext() should fail when report formats are unknown`` (rep
 
     let atLeastOneReportFormatUnknown =
         reportFormats
-        |> Array.map(Validation.isReportFormatSupported)
-        |> Array.exists(fun x -> x.IsNone)
+        |> Array.exists(Validation.isReportFormatSupported >> not)
 
     let reportFormatsNotEmpty = reportFormats |> Array.isEmpty |> not
 
@@ -92,17 +91,17 @@ let ``validateRunnerContext() should fail when report formats are unknown`` (rep
         let errorMessage = validatedContext |> Result.getError |> toString
         Assert.EndsWith("Allowed formats: Txt, Html or Csv.", errorMessage)
 
-    else validatedContext |> Result.isOk |> Assert.True                   
+    else validatedContext |> Result.isOk |> Assert.True
 
 [<Property>]
-let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =    
+let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =
     let targetScenarios = [|scenarioName + "new_name"|]
     let errorMessage =
         buildConfig(scenarioName + "not_empty", Array.empty, Array.empty, targetScenarios, "report_file_name", Array.empty)
         |> Validation.validateRunnerContext
         |> Result.getError
         |> toString
-    
+
     errorMessage.StartsWith (sprintf "Target scenarios '%s' is not found." (scenarioName + "new_name"))
 
 [<Fact>]

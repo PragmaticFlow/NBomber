@@ -43,7 +43,7 @@ type ClusterSettingsJson = {
 }
 
 type NBomberConfig = {
-    GlobalSettings: GlobalSettings option    
+    GlobalSettings: GlobalSettings option
     ClusterSettings: ClusterSettings option
 }
 
@@ -53,39 +53,36 @@ type NBomberConfigJson = {
 }
 
 module internal NBomberConfig =
-    open Newtonsoft.Json
+    open Newtonsoft.Json // TODO: replace with utf8json
+    let ofNull o =
+        if isNull (o :> obj) then None
+        else Some o
+    let parse (json) : NBomberConfig option =
+        let parseGlobalSettings config = ofNull config.GlobalSettings
+        let parseClusterSettings config =
+            config.ClusterSettings
+            |> ofNull
+            |> Option.map (fun clusterSettings ->
+                let coordinator' = ofNull clusterSettings.Coordinator
+                let agent' = ofNull clusterSettings.Agent
+                match coordinator', agent' with
+                | Some _, Some _ -> failwith "" // todo: return Result
+                | None, None -> failwith ""
+                | Some coordinator, None ->
+                    if isNull coordinator.ClusterId then failwith "ClusterId isNull"
+                    if isNull coordinator.TargetScenarios then failwith "TargetScenarios isNull"
+                    if isNull coordinator.Agents then failwith "Agents isNull"
+                    Coordinator coordinator
+                | None, Some agent ->
+                    if isNull agent.ClusterId then failwith ""
+                    Agent agent
+            )
 
-    let parse (json): NBomberConfig option =
-        
-        let parseGlobalSettings (config) =
-            if isNull(config.GlobalSettings :> obj) then None
-            else Some(config.GlobalSettings)        
-
-        let parseClusterSettings (config) =
-            if isNull(config.ClusterSettings :> obj) then None
-            else                 
-                let coordinator = if isNull(config.ClusterSettings.Coordinator :> obj) then None
-                                  else Some(config.ClusterSettings.Coordinator)
-
-                let agent = if isNull(config.ClusterSettings.Agent :> obj) then None
-                            else Some(config.ClusterSettings.Agent)
-                              
-                if coordinator.IsSome && agent.IsSome then failwith "" // todo: return Result
-                elif coordinator.IsNone && agent.IsNone then failwith ""
-                
-                if coordinator.IsSome then
-                    if isNull(coordinator.Value.ClusterId) then failwith "ClusterId isNull"                                    
-                    if isNull(coordinator.Value.TargetScenarios) then failwith "TargetScenarios isNull"
-                    if isNull(coordinator.Value.Agents) then failwith "Agents isNull"                                        
-                    Some <| Coordinator(coordinator.Value)
-                else
-                    if isNull(agent.Value.ClusterId) then failwith ""
-                    Some <| Agent(agent.Value)
-
-        let config = JsonConvert.DeserializeObject<NBomberConfigJson>(json)
-        if isNull(config :> obj) then None
-        else
-            let globalSettings = parseGlobalSettings(config)
-            let clusterSettings = parseClusterSettings(config)
-            Some { GlobalSettings = globalSettings
-                   ClusterSettings = clusterSettings }
+        JsonConvert.DeserializeObject<NBomberConfigJson> json
+        |> ofNull
+        |> Option.map (fun config ->
+            let globalSettings = parseGlobalSettings config
+            let clusterSettings = parseClusterSettings config
+            { GlobalSettings = globalSettings
+              ClusterSettings = clusterSettings }
+        )
