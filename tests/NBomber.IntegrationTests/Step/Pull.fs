@@ -38,6 +38,7 @@ let ``Ok and Fail should be properly count`` () =
     Scenario.create "count test" [okStep; failStep]
     |> Scenario.withConcurrentCopies 1
     |> Scenario.withAssertions assertions
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
     |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
