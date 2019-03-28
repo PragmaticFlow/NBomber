@@ -35,11 +35,39 @@ let ``Ok and Fail should be properly count`` () =
        Assertion.forStep("fail step", fun stats -> [failCnt-1..failCnt] |> Seq.contains stats.FailCount)
     ]
     
-    Scenario.create "pull test" [okStep; failStep]
+    Scenario.create "count test" [okStep; failStep]
     |> Scenario.withConcurrentCopies 1
     |> Scenario.withAssertions assertions
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
     |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.runTest
+
+[<Fact>]
+let ``Warmup should not have effect on stats`` () =       
+    
+    let okStep = Step.create("ok step", ConnectionPool.none, fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })
+
+    let failStep = Step.create("fail step", ConnectionPool.none, fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Fail()
+    })
+
+    let assertions = [
+       Assertion.forStep("ok step", fun stats -> stats.OkCount = 0 )
+       Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
+
+       Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
+       Assertion.forStep("fail step", fun stats -> stats.FailCount = 0)
+    ]
+    
+    Scenario.create "warmup test" [okStep; failStep]
+    |> Scenario.withConcurrentCopies 1
+    |> Scenario.withAssertions assertions
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.5)
+    |> Scenario.withDuration(TimeSpan.FromSeconds 0.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
 
