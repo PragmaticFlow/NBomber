@@ -142,8 +142,8 @@ module StepStats =
         |> Array.map(fun (name, stats) -> 
             let dataTransfer = stats |> Array.map(fun x -> x.DataTransfer) |> StepResults.mergeTraffic
             let okLatencies = stats |> Array.collect(fun x -> x.OkLatencies)
-            let histogram = buildHistogram(okLatencies)            
-            let failCount = stepsStats |> Array.sumBy(fun x -> x.FailCount)
+            let histogram = buildHistogram(okLatencies)
+            let failCount = stats |> Array.sumBy(fun x -> x.FailCount)
 
             { StepName = name
               OkLatencies = okLatencies
