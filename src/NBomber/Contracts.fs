@@ -13,10 +13,10 @@ type Response = {
 }
 
 type NodeType = 
-    | SingleNode = 0
-    | Coordinator = 1
-    | Agent = 2
-    | Cluster = 3
+    | SingleNode
+    | Coordinator
+    | Agent
+    | Cluster
 
 type StatisticsMeta = {
     SessionId: string
@@ -67,12 +67,6 @@ type Scenario = {
     Duration: TimeSpan
 }
 
-type ReportFormat = 
-    | Txt = 0
-    | Html = 1
-    | Csv = 2
-    | Md = 3
-
 type IStatisticsSink =
     abstract SaveStatistics: Statistics[] -> Task
 
@@ -80,7 +74,7 @@ type NBomberContext = {
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option  
     ReportFileName: string option
-    ReportFormats: ReportFormat[]
+    ReportFormats: ReportFormat list
     StatisticsSink: IStatisticsSink option
 }
 

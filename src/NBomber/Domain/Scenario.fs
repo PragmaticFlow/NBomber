@@ -23,7 +23,7 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     |> Array.map(fun i -> sprintf "%s_%i" scnName i)    
 
 let create (config: Contracts.Scenario) =
-    let steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray        
+    let steps = config.Steps |> Step.create |> Array.map(fun x -> x |> updateConnectionPoolCount(config.ConcurrentCopies))
     let assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
 
     { ScenarioName = config.ScenarioName

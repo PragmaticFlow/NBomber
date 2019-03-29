@@ -131,3 +131,16 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
             match scnRunners with
             | Some v -> getResults(statsMeta, v)
             | None   -> NodeStats.create statsMeta Array.empty
+
+let create (dep: Dependency, registeredScns: Scenario[]) =
+    ScenariosHost(dep, registeredScns) :> IScenariosHost
+
+let run (scnSettings: ScenarioSetting[], targetScns: ScenarioName[])
+        (scnHost: IScenariosHost) = trial {    
+    
+    do! scnHost.InitScenarios(scnSettings, targetScns).Result
+    scnHost.WarmUpScenarios().Wait()
+    scnHost.RunBombing().Wait()
+    scnHost.StopScenarios()
+    return scnHost.GetStatistics()
+}

@@ -13,18 +13,20 @@ type internal DomainError =
     | InitScenarioError  of ex:exn    
     | CleanScenarioError of ex:exn    
     | AssertNotFound of assertNumber:int * assertion:Assertion
-    | AssertionError of assertNumber:int * assertion:Assertion * stats:Statistics
+    | AssertionError of assertNumber:int * assertion:Assertion * stats:Statistics    
 
-    // Validation errors
-    | DurationLessThanOneSecond of scenarioNames:string[]
-    | ConcurrentCopiesLessThanOne of scenarioNames:string[]
-    | EmptyReportFileName
-    | UnsupportedReportFormat of reportFormats:string[]
-    | DuplicateScenarios
-    | DuplicateSteps of scenarioNames:string[]
+    // GlobalSettingsValidation errors
+    | TargetScenarioIsEmpty
+    | TargetScenarioNotFound  of notFoundScenarios:string[] * availableScenarios:string[]
+    | DurationIsWrong         of scenarioNames:string[]
+    | ConcurrentCopiesIsWrong of scenarioNames:string[]
+    | EmptyReportName
+    
+    // ScenarioValidation errors
     | EmptyScenarioName
-    | EmptyStepName of scenarioNames:string[]
-    | ScenariosNotFound of notFoundScenarios:string[] * availableScenarios:string[]
+    | DuplicateScenarioName of scenarioNames:string[]
+    | EmptyStepName         of scenarioNames:string[]
+    | DuplicateStepName     of stepNames:string[]    
 
     // Cluster Coordinator errors
     | StartNewSessionError of agentErrors:DomainError[]    
@@ -59,28 +61,26 @@ module internal Errors =
                         let statsStr = String.Format("STATS: {0} {1} {2}", Environment.NewLine, statsJson, Environment.NewLine)
                         String.Format("Assertion #'{0}' FAILED for: {1} {2} {3} {4} {5}", assertNum, Environment.NewLine, scenarioStr, stepStr, labelStr, statsStr)
 
-        | ScenariosNotFound (notFoundScenarios,availableScenarios) ->
+        | TargetScenarioNotFound (notFoundScenarios,availableScenarios) ->
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
             |> sprintf "Target scenarios %s is not found. Available scenarios are %s" <| String.concatWithCommaAndQuotes(availableScenarios)
     
-        | DurationLessThanOneSecond scenarioNames ->
+        | DurationIsWrong scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
 
-        | ConcurrentCopiesLessThanOne scenarioNames ->
+        | ConcurrentCopiesIsWrong scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
 
         | EmptyScenarioName -> "Scenario name can not be empty."
-        | EmptyReportFileName -> "Report File Name can not be empty string."
-        | UnsupportedReportFormat reportFormats ->
-            reportFormats |> String.concatWithCommaAndQuotes |> sprintf "Unknown Report Formats %s. Allowed formats: Txt, Html or Csv."
+        | EmptyReportName -> "Report File Name can not be empty string."        
 
-        | DuplicateScenarios -> "Scenario names should be unique."
-        | DuplicateSteps scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique in scenarios: %s. Step names should be unique within scenario."
+        //| DuplicateScenarios -> "Scenario names should be unique."
+        //| DuplicateSteps scenarioNames ->
+        //    scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique in scenarios: %s. Step names should be unique within scenario."
 
-        | EmptyStepName scenarioNames->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
+        //| EmptyStepName scenarioNames->
+        //    scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s. Step names should not be empty within scenario."
             
         | _ -> "undefined error"
 

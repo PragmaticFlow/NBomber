@@ -30,7 +30,7 @@ let create (nodeStats: NodeStats) =
 
     nodeStats.AllScenariosStats
     |> Array.collect(fun scn -> 
-        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))
+        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))    
 
 let buildHistogram (latencies) =    
     let histogram = LongHistogram(TimeStamp.Hours(24), 3)

@@ -20,7 +20,7 @@ type AgentInfo = {
 } with
   static member create (clusterId: string) (settings: AgentInfoSettings) = 
     let url = Http.createUrl(settings.Host, settings.Port, clusterId)
-    { Url = Uri(url); TargetScenarios = settings.TargetScenarios }
+    { Url = Uri(url); TargetScenarios = settings.TargetScenarios |> List.toArray }
 
 let generateAgentId () = Guid.NewGuid().ToString("N") 
 
@@ -75,8 +75,8 @@ let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =
     server.Start().Wait()
     server.Stop()
 
-let create (dep: Dependency, registeredScenarios: Scenario[]) =
-    let scnsWithoutInit = registeredScenarios |> Array.map(fun x -> { x with TestInit = None; TestClean = None } )
+let create (dep: Dependency, registeredScns: Scenario[]) =
+    let scnsWithoutInit = registeredScns |> Array.map(fun x -> { x with TestInit = None; TestClean = None } )
     let scnHost = ScenariosHost(dep, scnsWithoutInit)
     let agentId = generateAgentId()    
     ClusterAgent(agentId, scnHost)

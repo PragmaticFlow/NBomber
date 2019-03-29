@@ -3,56 +3,40 @@
 open NBomber.Configuration
 open NBomber.Contracts
 
-let getScenariosSettings (context: NBomberContext) =
-    let settings = 
-        context.NBomberConfig
-        |> Option.bind(fun x -> x.GlobalSettings)
-        |> Option.bind(fun x -> Option.ofObj(x.ScenariosSettings))
-                   
-    match settings with
-    | Some v -> v
-    | None   -> Array.empty
+let getScenariosSettings (context: NBomberContext) =    
+    context.NBomberConfig
+    |> Option.bind(fun x -> x.GlobalSettings)
+    |> Option.map(fun x -> x.ScenariosSettings)
+    |> Option.defaultValue List.empty
+    |> List.toArray
 
-let tryGetClusterSettings (context: NBomberContext) = maybe {
-    let! config = context.NBomberConfig
-    let! clusterSettings = config.ClusterSettings
-    return clusterSettings
-}
+let tryGetClusterSettings (context: NBomberContext) =
+    context.NBomberConfig
+    |> Option.bind(fun x -> x.ClusterSettings)
 
 let getNodeType (context: NBomberContext) = 
-    let cluster = maybe {
-        let! config = context.NBomberConfig
-        match! config.ClusterSettings with
-        | Coordinator c -> return NodeType.Coordinator
-        | Agent a       -> return NodeType.Agent
-    }
-    match cluster with
-    | Some v -> v
-    | None   -> NodeType.SingleNode
+    context.NBomberConfig
+    |> Option.bind(fun x -> x.ClusterSettings)
+    |> Option.map(function 
+        | ClusterSettings.Coordinator _ -> NodeType.Coordinator
+        | ClusterSettings.Agent _       -> NodeType.Agent)
+    |> Option.defaultValue NodeType.SingleNode        
 
 let getTargetScenarios (context: NBomberContext) =
-    let targetScenarios = 
-        context.NBomberConfig
-        |> Option.bind(fun x -> x.GlobalSettings)
-        |> Option.bind(fun x -> Option.ofObj(x.TargetScenarios))
-
-    match targetScenarios with
-    | Some v -> v
-    | None   -> Array.empty
+    context.NBomberConfig
+    |> Option.bind(fun x -> x.GlobalSettings)
+    |> Option.map(fun x -> x.TargetScenarios)
+    |> Option.defaultValue List.empty
+    |> List.toArray
 
 let tryGetReportFileName (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
-    let! globalSettings = config.GlobalSettings
-    return! Option.ofObj(globalSettings.ReportFileName)
-}
+    let! settings = config.GlobalSettings
+    return! settings.ReportFileName
+}   
 
 let tryGetReportFormats (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
-    let! globalSettings = config.GlobalSettings
-    let reportFormats = globalSettings.ReportFormats |> Array.choose(Validation.isReportFormatSupported)              
-    return! Option.ofObj(reportFormats)
+    let! settings = config.GlobalSettings
+    return! settings.ReportFormats    
 }
-
-let trySaveStatistics (context: NBomberContext) (stats: Statistics[]) = 
-    if context.StatisticsSink.IsSome then
-        context.StatisticsSink.Value.SaveStatistics(stats).Wait()

@@ -44,21 +44,21 @@
     <Compile Include="DomainServices\ScenariosHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />
     <Compile Include="DomainServices\Cluster\Agent.fs" />
+    <Compile Include="DomainServices\Cluster\Communication.fs" />
     <Compile Include="DomainServices\Cluster\Coordinator.fs" />
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
-  <ItemGroup>    
-    <PackageReference Include="HdrHistogram" Version="2.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Serilog" Version="2.7.1" />
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.6.2" />
+    <PackageReference Include="FSharp.Json" Version="0.3.5" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="0.0.14" />    
+    <PackageReference Include="HdrHistogram" Version="2.5.0" />    
+    <PackageReference Include="Serilog" Version="2.8.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
     <PackageReference Include="ShellProgressBar" Version="4.2.0" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
-    <PackageReference Include="ConsoleTables" Version="2.2.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.1" />
-  </ItemGroup>
+    <PackageReference Include="ConsoleTables" Version="2.3.0" />
+  </ItemGroup>  
 </Project>

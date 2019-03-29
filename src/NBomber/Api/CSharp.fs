@@ -9,6 +9,7 @@ open System.Runtime.InteropServices
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Configuration
 
 type ConnectionPool =
     static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.Constants.DefaultConnectionsCount)>] ?connectionsCount: int) = 

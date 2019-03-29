@@ -36,7 +36,7 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("test nbomber.com", step1);                           
+            return ScenarioBuilder.CreateScenario("nbomber.com", step1);                           
         }
     }
 }

@@ -68,7 +68,7 @@ let ``Warmup should not have effect on stats`` () =
     |> Scenario.withConcurrentCopies 1
     |> Scenario.withAssertions assertions
     |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.5)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 0.0)
+    |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
 

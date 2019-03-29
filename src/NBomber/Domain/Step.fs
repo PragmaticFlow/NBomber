@@ -10,6 +10,9 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.Domain
 
+let create (steps: IStep[]) = 
+    steps |> Seq.cast<Step> |> Seq.toArray
+
 let setStepContext (correlationId: string, actorIndex: int, cancelToken: CancellationToken)
                    (step: Step) =
     

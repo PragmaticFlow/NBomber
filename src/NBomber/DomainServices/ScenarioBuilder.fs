@@ -2,14 +2,13 @@
 
 open Serilog
 
-open NBomber
 open NBomber.Configuration
 open NBomber.Domain
 
 let updateScenarioWithSettings (scenario: Scenario, settings: ScenarioSetting) =
     { scenario with ConcurrentCopies = settings.ConcurrentCopies
-                    WarmUpDuration = settings.WarmUpDuration
-                    Duration = settings.Duration }
+                    WarmUpDuration = settings.WarmUpDuration.TimeOfDay
+                    Duration = settings.Duration.TimeOfDay }
 
 let filterTargetScenarios (targetScenarios: string[]) (scenarios: Scenario[]) =
     if Array.isEmpty(targetScenarios) then scenarios
@@ -24,6 +23,3 @@ let applyScenariosSettings (settings: ScenarioSetting[]) (scenarios: Scenario[])
         settings |> Array.tryFind(fun s -> s.ScenarioName = scenario.ScenarioName)
                     |> function | Some setting -> updateScenarioWithSettings(scenario, setting)
                                 | None -> scenario)
-
-let build (scenarios: Contracts.Scenario[]) = 
-    scenarios |> Array.map(Scenario.create)

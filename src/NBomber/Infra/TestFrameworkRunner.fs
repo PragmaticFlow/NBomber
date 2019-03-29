@@ -8,7 +8,7 @@ type TestFramework =
     | Xunit of Type
     | Nunit of Type
 
-let private printErrorMessage (errorsMessage: string, framework: TestFramework) =
+let private printErrorMessage (framework: TestFramework) (errorsMessage: string) =
     match framework with
     | Xunit xType -> 
         let m = xType.GetMethod("True", [|typeof<bool>; typeof<string>|])
@@ -40,13 +40,7 @@ let tryGetCurrentFramework () =
     |> List.tryFind(Option.isSome)
     |> Option.flatten    
 
-let showErrors (errors: DomainError[]) =
+let showError (error: DomainError) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
-
-    let errorMsg = 
-        errors        
-        |> Array.map(Errors.toString)
-        |> String.concat(Environment.NewLine)
-
-    if not <| String.IsNullOrEmpty(errorMsg) then printErrorMessage(errorMsg, framework.Value)
+    error |> Errors.toString |> printErrorMessage(framework.Value)

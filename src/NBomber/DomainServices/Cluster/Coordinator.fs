@@ -23,106 +23,11 @@ type IClusterCoordinator =
     abstract StartBombing: unit -> Result<unit,DomainError>
     abstract GetStatistics: unit -> Result<NodeStats[],DomainError>
 
-let startNewSession (sessionId: string, settings:ScenarioSetting[], agents: AgentInfo[]) =
-    try
-        let errors =
-            agents 
-            |> Array.map(fun x -> 
-                let cmd = NewSession(sessionId, settings, x.TargetScenarios)
-                Http.sendMsg<AgentCommand,AgentResponse>(x.Url, cmd).Result)
-            |> Array.filter(fun x -> x.Error.IsSome)
-            |> Array.map(fun x -> x.Error.Value)
-        
-        if errors.Length = 0 then Ok()
-        else errors |> StartNewSessionError |> Error
-    with
-    | ex -> ex |> CommunicationError |> Error
-
-let waitAllAgentsReady (sessionId: string, agents: AgentInfo[]) = task {
-    try
-        let mutable returnResult = Ok()
-        let mutable allFinished = false
-        let exit (result) = allFinished <- true
-                            returnResult <- result
-
-        while not allFinished do
-            let responses = 
-                agents 
-                |> Array.map(fun x -> 
-                    let cmd = IsWorking(sessionId)
-                    Http.sendMsg<AgentCommand,AgentResponse>(x.Url, cmd).Result)
-            
-            let errors = responses |> Array.filter(fun x -> x.Error.IsSome) |> Array.map(fun x -> x.Error.Value)
-            if errors.Length > 0 then
-                errors |> AgentErrors |> Error |> exit
-            else
-                let stillWorking = 
-                    responses 
-                    |> Array.filter(fun x -> x.Data.IsSome)
-                    |> Array.exists(fun x -> x.Data.Value :?> bool)
-                
-                if stillWorking then do! Task.Delay(TimeSpan.FromSeconds(5.0))
-                else Ok() |> exit
-                
-        return returnResult
-    with
-    | ex -> return ex |> CommunicationError |> Error
-}
-
-let startWarmUp (sessionId: string, agents: AgentInfo[]) =
-    try
-        let errors =
-            agents 
-            |> Array.map(fun x -> 
-                let cmd = StartWarmUp(sessionId)
-                Http.sendMsg<AgentCommand,AgentResponse>(x.Url, cmd).Result)
-            |> Array.filter(fun x -> x.Error.IsSome)
-            |> Array.map(fun x -> x.Error.Value)
-        
-        if errors.Length = 0 then Ok()
-        else errors |> StartWarmUpError |> Error
-    with
-    | ex -> ex |> CommunicationError |> Error
-
-let startBombing (sessionId: string, agents: AgentInfo[]) =
-    try
-        let errors =
-            agents 
-            |> Array.map(fun x -> 
-                let cmd = StartBombing(sessionId)
-                Http.sendMsg<AgentCommand,AgentResponse>(x.Url, cmd).Result)
-            |> Array.filter(fun x -> x.Error.IsSome)
-            |> Array.map(fun x -> x.Error.Value)
-        
-        if errors.Length = 0 then Ok()
-        else errors |> StartBombingError |> Error
-    with
-    | ex -> ex |> CommunicationError |> Error
-
-let getStatistics (sessionId: string, agents: AgentInfo[]) =
-    try
-        let responses = 
-            agents 
-            |> Array.map(fun x -> 
-                let cmd = GetStatistics(sessionId)
-                Http.sendMsg<AgentCommand,AgentResponse>(x.Url, cmd).Result)            
-        
-        let errors = responses |> Array.filter(fun x -> x.Error.IsSome) |> Array.map(fun x -> x.Error.Value)
-        if errors.Length > 0 then
-            errors |> GetStatisticsError |> Error
-        else 
-            responses 
-            |> Array.filter(fun x -> x.Data.IsSome)
-            |> Array.map(fun x -> x.Data.Value :?> NodeStats)
-            |> Ok
-    with
-    | ex -> ex |> CommunicationError |> Error
-
-let run (cluster: IClusterCoordinator, scnHost: IScenariosHost,
-         settings: ScenarioSetting[], targetScenarios: string[]) = trial {
+let runCoordinator (cluster: IClusterCoordinator, scnHost: IScenariosHost,
+                    settings: ScenarioSetting[], targetScns: string[]) = trial {
     
     do! cluster.StartNewSession(settings)
-    do! scnHost.InitScenarios(settings, targetScenarios).Result    
+    do! scnHost.InitScenarios(settings, targetScns).Result    
     do! cluster.WaitAllAgentsReady().Result
     
     do! cluster.StartWarmUp()
@@ -154,18 +59,21 @@ let createStats (sessionId: string, nodeName: string,
     |> ScenarioBuilder.applyScenariosSettings(scnSettings)
     |> NodeStats.merge(meta, allNodeStats)
 
-type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =
-    
-    member x.Run(settings, targetScenarios) = run(this, scnHost, settings, targetScenarios)
+type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =       
+
+    member x.Run(settings, targetScns) = runCoordinator(this, scnHost, settings, targetScns)
 
     interface IClusterCoordinator with        
-        member x.StartNewSession(settings) = startNewSession(sessionId, settings, agents)
-        member x.WaitAllAgentsReady() = waitAllAgentsReady(sessionId, agents)
-        member x.StartWarmUp() = startWarmUp(sessionId, agents)
-        member x.StartBombing() = startBombing(sessionId, agents)
-        member x.GetStatistics() = getStatistics(sessionId, agents)        
+        member x.StartNewSession(settings) = Communication.startNewSession(sessionId, settings, agents)
+        member x.WaitAllAgentsReady() = Communication.waitAllAgentsReady(sessionId, agents)
+        member x.StartWarmUp() = Communication.startWarmUp(sessionId, agents)
+        member x.StartBombing() = Communication.startBombing(sessionId, agents)
+        member x.GetStatistics() = Communication.getStatistics(sessionId, agents)        
 
 let create (dep: Dependency, registeredScenarios: Scenario[], settings: CoordinatorSettings) =
     let scnHost = ScenariosHost(dep, registeredScenarios)
-    let agents = settings.Agents |> Array.map(AgentInfo.create(settings.ClusterId))
+    let agents = settings.Agents |> List.toArray |> Array.map(AgentInfo.create(settings.ClusterId))
     ClusterCoordinator(dep.SessionId, scnHost, agents) 
+
+let run (scnSettings, targetScns) (coordinator: ClusterCoordinator) = 
+    coordinator.Run(scnSettings, targetScns)

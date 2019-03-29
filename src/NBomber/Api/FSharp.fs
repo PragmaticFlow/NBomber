@@ -101,7 +101,7 @@ module NBomberRunner =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|]
+          ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
           StatisticsSink = None }
 
     let registerScenario (scenario: Contracts.Scenario) = 
@@ -110,13 +110,12 @@ module NBomberRunner =
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
-        let formats = reportFormats |> List.toArray
-        { context with ReportFormats = formats }    
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =        
+        { context with ReportFormats = reportFormats }    
 
     let loadConfig (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
-        { context with NBomberConfig = config }
+        { context with NBomberConfig = Some config }
 
     let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
         { context with StatisticsSink = Some statisticsSink }

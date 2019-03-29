@@ -1,6 +1,8 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
 open Serilog
+open FsToolkit.ErrorHandling
+open FsToolkit.ErrorHandling.CE.Result
 
 open NBomber.Contracts
 open NBomber.Configuration
@@ -8,93 +10,113 @@ open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
-open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.Cluster
 
-let runSingleNode (scnHost: IScenariosHost, settings: ScenarioSetting[],
-                   targetScenarios: string[]) = trial {
-    do! scnHost.InitScenarios(settings, targetScenarios).Result
-    scnHost.WarmUpScenarios().Wait()
-    scnHost.RunBombing().Wait()
-    scnHost.StopScenarios()
-    return scnHost.GetStatistics()
+type ExecutionResult = {     
+    AllNodeStats: NodeStats[]
+    Statistics: Statistics[]
+    FailedAsserts: DomainError[]
 }
 
-let createAndSaveReport (dep: Dependency, context: NBomberContext,
-                         nodeStats: NodeStats, 
-                         assertResults: Result<Assertion,DomainError>[]) =
+let getScenariosArgs (context: NBomberContext) =
+    let scnSettings = NBomberContext.getScenariosSettings(context)
+    let targetScns = NBomberContext.getTargetScenarios(context)
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)    
+    scnSettings, targetScns, registeredScns
 
-    let declaredReportFileName = context.ReportFileName
-                                 |> Option.defaultValue("report_" + dep.SessionId)
+let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
+                           crdSettings: CoordinatorSettings) =
     
-    let reportFileName = NBomberContext.tryGetReportFileName(context)
-                         |> Option.defaultValue(declaredReportFileName)
+    let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
+    ClusterCoordinator.create(dep, registeredScns, crdSettings)
+    |> ClusterCoordinator.run(scnSettings, targetScns)
+
+let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: AgentSettings) = 
+    let _, _, registeredScns = getScenariosArgs(context)
+    ClusterAgent.create(dep, registeredScns)
+    |> ClusterAgent.runAgentListener(agentSettings)
+
+let runSingleNode (dep: Dependency, context: NBomberContext) =
+    let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
+    ScenariosHost.create(dep, registeredScns)
+    |> ScenariosHost.run(scnSettings, targetScns)
+    |> Result.map(fun stats -> [|stats|])
+
+let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
+    let scnSettings, _, registeredScns = getScenariosArgs(context)
+    match dep.NodeType with
+    | NodeType.SingleNode  -> 
+        let statistics = allNodeStats |> Array.exactlyOne |> Statistics.create
+        { AllNodeStats = allNodeStats
+          Statistics = statistics
+          FailedAsserts = Array.empty }
     
-    let reportFormats = NBomberContext.tryGetReportFormats(context)
-                        |> Option.defaultValue(context.ReportFormats)
+    | NodeType.Coordinator -> 
+        let clusterNodeStats = ClusterCoordinator.createStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScns, scnSettings, allNodeStats)
+        let statistics = Statistics.create(clusterNodeStats)        
+        { AllNodeStats = allNodeStats |> Array.append [|clusterNodeStats|]
+          Statistics = statistics
+          FailedAsserts = Array.empty }
     
-    assertResults
-    |> Array.filter(Result.isError)
-    |> Array.map(Result.getError)
-    |> Report.build(dep, nodeStats)
-    |> Report.save(dep, "./", reportFileName, reportFormats)
+    | _ -> { AllNodeStats = Array.empty
+             Statistics = Array.empty
+             FailedAsserts = Array.empty }
 
-let handleError (appType: ApplicationType, error: DomainError) =    
-    if appType = ApplicationType.Test then TestFrameworkRunner.showErrors([|error|])
-    else error |> Errors.toString |> Log.Error
+let saveStatistics (context: NBomberContext) (result: ExecutionResult) =    
+    if context.StatisticsSink.IsSome then
+        context.StatisticsSink.Value.SaveStatistics(result.Statistics).Wait()    
+    result
 
-let showAssertsResults (appType: ApplicationType, asrtResults: Result<Assertion,DomainError>[]) =     
-    if asrtResults |> Array.exists(Result.isError) then
-        let errors = asrtResults |> Array.filter(Result.isError) |> Array.map(Result.getError)
-        if appType = ApplicationType.Test then            
-            TestFrameworkRunner.showErrors(errors)
-        else
-            errors |> Array.iter(Errors.toString >> Log.Error)
+let applyAsserts (context: NBomberContext) (result: ExecutionResult) = 
+    let errors = 
+        context.Scenarios 
+        |> Array.collect(fun x -> x.Assertions)
+        |> Assertion.create
+        |> Assertion.apply(result.Statistics)
+    { result with FailedAsserts = errors }
+    
+let buildReport (dep: Dependency) (result: ExecutionResult) =    
+    Report.build(dep, result.AllNodeStats, result.FailedAsserts)
 
-let run (dep: Dependency, context: NBomberContext) =
-    Dependency.Logger.initLogger(dep.ApplicationType)    
-    Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
+let saveReport (dep: Dependency, context: NBomberContext) (report: ReportResult) =
+    let defaultFileName = context.ReportFileName 
+                          |> Option.defaultValue("report_" + dep.SessionId)
+    
+    let fileName = NBomberContext.tryGetReportFileName(context) 
+                   |> Option.defaultValue(defaultFileName)
+    
+    let formats = NBomberContext.tryGetReportFormats(context)
+                  |> Option.defaultValue context.ReportFormats
+    
+    Report.save(dep, "./", fileName, formats, report) 
+    
+let handleError (dep: Dependency) (error: DomainError) = 
+    if dep.ApplicationType = ApplicationType.Test then
+        TestFrameworkRunner.showError(error)
+    else
+        error |> Errors.toString |> Log.Error
 
-    match Validation.validateRunnerContext(context) with
-    | Ok context ->        
-        let scnSettings     = NBomberContext.getScenariosSettings(context)
-        let targetScenarios = NBomberContext.getTargetScenarios(context) 
-        let clusterSettings = NBomberContext.tryGetClusterSettings(context)
-        let registeredScenarios = ScenarioBuilder.build(context.Scenarios)        
-        let assertions = context.Scenarios |> Array.collect(fun x -> x.Assertions) |> Assertion.create
-        
-        if clusterSettings.IsSome then
-            match clusterSettings.Value with
-            | Coordinator coordinatorSettings ->                 
-                let cluster = ClusterCoordinator.create(dep, registeredScenarios, coordinatorSettings)
-                cluster.Run(scnSettings, targetScenarios)
-                |> Result.map(fun allNodeStats -> 
+let run (dep: Dependency, context: NBomberContext) = 
+    result {
+        Dependency.Logger.initLogger(dep.ApplicationType)    
+        Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
 
-                    let clusterNodeStats = ClusterCoordinator.createStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScenarios, scnSettings, allNodeStats)                    
-                    let statistics = Statistics.create(clusterNodeStats)
-                    let asrtResults = statistics |> Assertion.apply(assertions)                    
-                    createAndSaveReport(dep, context, clusterNodeStats, asrtResults)
-                    statistics |> NBomberContext.trySaveStatistics(context)                    
-                    showAssertsResults(dep.ApplicationType, asrtResults)
-                )
-                |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
-                |> ignore
-            
-            | Agent agentSettings ->
-                ClusterAgent.create(dep, registeredScenarios)
-                |> ClusterAgent.runAgentListener(agentSettings)
-        else
-            let scnHost = ScenariosHost(dep, registeredScenarios) 
-            runSingleNode(scnHost, scnSettings, targetScenarios)
-            |> Result.map(fun nodeStats ->
-                let statistics = Statistics.create(nodeStats)
-                let asrtResults = statistics |> Assertion.apply(assertions)
-                createAndSaveReport(dep, context, nodeStats, asrtResults)
-                statistics |> NBomberContext.trySaveStatistics(context)
-                showAssertsResults(dep.ApplicationType, asrtResults)
-            )
-            |> Result.mapError(fun error -> handleError(dep.ApplicationType, error))
-            |> ignore            
-        
-    | Error error ->
-        handleError(dep.ApplicationType, error)
+        let! ctx = Validation.validateContext(context)
+        let! nodeStats = 
+            NBomberContext.tryGetClusterSettings(ctx)        
+            |> Option.bind(function
+                | Coordinator c        -> runClusterCoordinator(dep, ctx, c) |> Some
+                | Agent a              -> runClusterAgent(dep, ctx, a); None)
+            |> Option.orElseWith(fun _ -> runSingleNode(dep, ctx) |> Some)
+            |> Option.get
+
+        return nodeStats
+               |> calcStatistics(dep, ctx)
+               |> saveStatistics(ctx)
+               |> applyAsserts(ctx)
+               |> buildReport(dep)
+               |> saveReport(dep, ctx)
+    }
+    |> Result.mapError(handleError(dep)) 
+    |> ignore

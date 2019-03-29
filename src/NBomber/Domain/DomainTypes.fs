@@ -8,7 +8,7 @@ open NBomber.Contracts
 module internal Constants =   
 
     [<Literal>]
-    let DefaultScenarioDurationInSec = 180.0
+    let DefaultScenarioDurationInSec = 60.0
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
