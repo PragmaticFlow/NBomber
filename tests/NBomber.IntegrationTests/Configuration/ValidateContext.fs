@@ -36,7 +36,6 @@ let scenario = {
     Duration = TimeSpan.FromSeconds(10.)
 }
 
-
 [<Fact>]
 let ``GlobalSettingsValidation.checkEmptyTarget should return fail if TargetScenarios has empty value`` () =    
     let glSettings = { globalSettings with TargetScenarios = [" "] }
