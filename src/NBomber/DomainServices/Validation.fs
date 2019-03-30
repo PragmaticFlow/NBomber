@@ -15,12 +15,10 @@ let private getDuplicates (data: string[]) =
     |> Array.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
 
 let private isDurationOk (duration: TimeSpan) =
-    if duration >= TimeSpan.FromSeconds 1.0 then true
-    else false
+    duration >= TimeSpan.FromSeconds 1.0
 
-let private isConcurrentCopiesOk (value: int) =
-    if value >= 1 then true
-    else false
+let private isConcurrentCopiesOk (value: int) = 
+    value >= 1
 
 module ScenarioValidation =
 
