@@ -28,16 +28,23 @@ let getScenariosArgs (context: NBomberContext) =
 let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
                            crdSettings: CoordinatorSettings) =
     
+    Log.Information("NBomber started as cluster coordinator")
+
     let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
     ClusterCoordinator.create(dep, registeredScns, crdSettings)
     |> ClusterCoordinator.run(scnSettings, targetScns)
 
 let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: AgentSettings) = 
+    Log.Information("NBomber started as cluster agent")    
+
     let _, _, registeredScns = getScenariosArgs(context)
     ClusterAgent.create(dep, registeredScns)
     |> ClusterAgent.runAgentListener(agentSettings)
+    Ok Array.empty<NodeStats>
 
 let runSingleNode (dep: Dependency, context: NBomberContext) =
+    Log.Information("NBomber started as single node")
+
     let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
     ScenariosHost.create(dep, registeredScns)
     |> ScenariosHost.run(scnSettings, targetScns)
@@ -103,11 +110,11 @@ let run (dep: Dependency, context: NBomberContext) =
         Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
 
         let! ctx = Validation.validateContext(context)
-        let! nodeStats = 
+        let! nodeStats =             
             NBomberContext.tryGetClusterSettings(ctx)        
-            |> Option.bind(function
-                | Coordinator c        -> runClusterCoordinator(dep, ctx, c) |> Some
-                | Agent a              -> runClusterAgent(dep, ctx, a); None)
+            |> Option.map(function
+                | Coordinator c        -> runClusterCoordinator(dep, ctx, c)
+                | Agent a              -> runClusterAgent(dep, ctx, a))
             |> Option.orElseWith(fun _ -> runSingleNode(dep, ctx) |> Some)
             |> Option.get
 
