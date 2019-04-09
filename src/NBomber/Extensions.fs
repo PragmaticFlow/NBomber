@@ -1,38 +1,42 @@
 ﻿[<AutoOpen>]
 module internal Extensions
 
+open System.Threading.Tasks
+open FsToolkit.ErrorHandling.CE.Result
+
 type FastCancellationToken = { mutable ShouldCancel: bool }
 
+type Task<'T> with
+    static member map f (m: Task<_>) =
+        m.ContinueWith(fun (t: Task<_>) -> f t.Result)
+
 type Result<'T,'TError> with    
-    static member isOk(result) = 
+    static member isOk (result) = 
         match result with
         | Ok _    -> true
         | Error _ -> false
 
-    static member getOk(result) = 
+    static member getOk (result) = 
         match result with
         | Ok v    -> v
         | Error _ -> failwith "result is error"
     
-    static member isError(result) = not(Result.isOk(result))
+    static member isError (result) = not(Result.isOk(result))
     
-    static member getError(result) = 
+    static member getError (result) = 
         match result with
         | Ok _     -> failwith "result is not error"
-        | Error er -> er
-
-[<Struct>]
-type TrialBuilder =
-
-  member x.Bind(r, bind) =
-    match r with
-    | Ok result    -> bind result
-    | Error errors -> Error errors
-
-  member x.Return(value) = Ok value
-  member x.ReturnFrom(value) = value
-
-let trial = TrialBuilder()
+        | Error er -> er    
+        
+    static member sequence (results: Result<'a,'e>[]) =
+        let folder state (acc: Result<'a [],'e []>) =
+            match state, acc with
+            | Ok v, Ok items     -> Ok(Array.append items [| v |])
+            | Ok r, Error ers    -> Error ers
+            | Error e, Ok items  -> Error [|e|]
+            | Error e, Error ers -> Error(Array.append ers [| e |])
+        
+        Seq.foldBack folder results (Ok Array.empty)
 
 [<Struct>]
 type MaybeBuilder =

@@ -56,7 +56,7 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
 
             | StartBombing sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w when w = false -> scnHost.RunBombing() |> ignore
+                | Ok w when w = false -> scnHost.StartBombing() |> ignore
                                          response(w)
                 | Ok _    -> errorResponse(AgentIsWorking)
                 | Error e -> errorResponse(e)

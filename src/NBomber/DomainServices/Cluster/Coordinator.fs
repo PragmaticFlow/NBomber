@@ -1,51 +1,45 @@
 ﻿module internal NBomber.DomainServices.Cluster.ClusterCoordinator
 
-open System
 open System.Threading.Tasks
-
-open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Domain.Statistics
-open NBomber.Infra
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.Cluster.Contracts
-open NBomber.DomainServices.Cluster.ClusterAgent
-open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices
+open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.Cluster.ClusterAgent
 
 type IClusterCoordinator =
-    abstract StartNewSession: ScenarioSetting[] -> Result<unit,DomainError>    
-    abstract WaitAllAgentsReady: unit -> Task<Result<unit,DomainError>>
-    abstract StartWarmUp: unit -> Result<unit,DomainError>
-    abstract StartBombing: unit -> Result<unit,DomainError>
-    abstract GetStatistics: unit -> Result<NodeStats[],DomainError>
+    abstract SendStartNewSession: ScenarioSetting[] -> Task<Result<unit,DomainError>>
+    abstract WaitOnAllAgentsReady: unit -> Task<Result<unit,DomainError>>
+    abstract SendStartWarmUp: unit -> Task<Result<unit,DomainError>>
+    abstract SendStartBombing: unit -> Task<Result<unit,DomainError>>
+    abstract GetStatistics: unit -> Task<Result<NodeStats[],DomainError>>
 
-let runCoordinator (cluster: IClusterCoordinator, scnHost: IScenariosHost,
-                    settings: ScenarioSetting[], targetScns: string[]) = trial {
+let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
+                    settings: ScenarioSetting[], targetScns: string[]) = 
     
-    do! cluster.StartNewSession(settings)
-    do! scnHost.InitScenarios(settings, targetScns).Result    
-    do! cluster.WaitAllAgentsReady().Result
+    asyncResult {    
+        do! cluster.SendStartNewSession(settings)
+        do! localHost.InitScenarios(settings, targetScns)    
+        do! cluster.WaitOnAllAgentsReady()
     
-    do! cluster.StartWarmUp()
-    do scnHost.WarmUpScenarios().Wait()
-    do! cluster.WaitAllAgentsReady().Result
+        do! cluster.SendStartWarmUp()
+        do! localHost.WarmUpScenarios()
+        do! cluster.WaitOnAllAgentsReady()
 
-    do! cluster.StartBombing()
-    do scnHost.RunBombing().Wait()
-    do! cluster.WaitAllAgentsReady().Result
+        do! cluster.SendStartBombing()
+        do! localHost.StartBombing()
+        do! cluster.WaitOnAllAgentsReady()
 
-    let localStats = scnHost.GetStatistics()
-    let! agentsStats = cluster.GetStatistics()
-    let allStats = Array.append [|localStats|] agentsStats 
-    
-    scnHost.StopScenarios()
-
-    return allStats    
-}
+        let localStats = localHost.GetStatistics()
+        let! agentsStats = cluster.GetStatistics()
+        let allStats = Array.append [|localStats|] agentsStats     
+        localHost.StopScenarios()
+        return allStats    
+    }
 
 let createStats (sessionId: string, nodeName: string, 
                  registeredScenarios: Scenario[],
@@ -64,10 +58,10 @@ type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: Agen
     member x.Run(settings, targetScns) = runCoordinator(this, scnHost, settings, targetScns)
 
     interface IClusterCoordinator with        
-        member x.StartNewSession(settings) = Communication.startNewSession(sessionId, settings, agents)
-        member x.WaitAllAgentsReady() = Communication.waitAllAgentsReady(sessionId, agents)
-        member x.StartWarmUp() = Communication.startWarmUp(sessionId, agents)
-        member x.StartBombing() = Communication.startBombing(sessionId, agents)
+        member x.SendStartNewSession(settings) = Communication.startNewSession(sessionId, settings, agents)
+        member x.WaitOnAllAgentsReady() = Communication.waitOnAllAgentsReady(sessionId, agents)
+        member x.SendStartWarmUp() = Communication.startWarmUp(sessionId, agents)
+        member x.SendStartBombing() = Communication.startBombing(sessionId, agents)
         member x.GetStatistics() = Communication.getStatistics(sessionId, agents)        
 
 let create (dep: Dependency, registeredScenarios: Scenario[], settings: CoordinatorSettings) =

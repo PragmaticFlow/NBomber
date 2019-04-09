@@ -1,0 +1,8 @@
+﻿{
+  "ClusterSettings": {
+    "Agent": {
+      "ClusterId": "test_cluster",
+      "Port": 8080
+    }
+  }
+}

@@ -9,6 +9,8 @@ open System.Runtime.Serialization.Formatters.Binary
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Domain
+
 type ReqMsg = byte[]
 type ResMsg = byte[]
 
@@ -33,13 +35,16 @@ let createHandler (handler: 'TCommand -> 'TResponse) (request: byte[]) =
     let response = handler(command)
     serializeBinary(response)   
 
-let sendMsg<'TRequest,'TResponse>(url: Uri, msg: 'TRequest) = task {    
-    let httpMsg = new HttpRequestMessage(HttpMethod.Post, url)
-    let binaryReq = serializeBinary(msg)
-    httpMsg.Content <- new ByteArrayContent(binaryReq)
-    let! httpResponse = httpClient.SendAsync(httpMsg)
-    let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync()
-    return deserializeBinary<'TResponse>(binaryRes)
+let sendRequest<'TRequest,'TResponse>(url: Uri) (request: 'TRequest) = task {    
+    try
+        let httpMsg = new HttpRequestMessage(HttpMethod.Post, url)
+        let binaryReq = serializeBinary(request)
+        httpMsg.Content <- new ByteArrayContent(binaryReq)
+        let! httpResponse = httpClient.SendAsync(httpMsg)
+        let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync()
+        return Ok <| deserializeBinary<'TResponse>(binaryRes)
+    with
+    | ex -> return Error <| HttpError ex
 }
 
 type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =    
@@ -49,10 +54,10 @@ type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =
     do listener.Prefixes.Add(listenUrl)
 
     let start () = task {    
-        listener.Start()        
+        try 
+            listener.Start()        
 
-        while not stop do            
-            try 
+            while not stop do                        
                 let! context = listener.GetContextAsync()            
                 let request  = context.Request
                 let response = context.Response 
@@ -65,10 +70,10 @@ type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =
                 
                 use responseStream = response.OutputStream
                 do! responseStream.WriteAsync(resMsg, 0, resMsg.Length)                
-            with
-            | ex -> Log.Error(ex, "HttpServer error")
+        with
+        | ex -> Log.Error(ex, "HttpServer error")
         
-        listener.Stop()        
+        if listener.IsListening then listener.Stop()        
     }
 
     member x.Start() = stop <- false

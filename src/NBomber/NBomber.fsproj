@@ -50,7 +50,8 @@
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup>    
+    <PackageReference Include="Cvdm.ErrorHandling" Version="2.0.0" />    
     <PackageReference Include="FSharp.Core" Version="4.6.2" />
     <PackageReference Include="FSharp.Json" Version="0.3.5" />
     <PackageReference Include="FsToolkit.ErrorHandling" Version="0.0.14" />    

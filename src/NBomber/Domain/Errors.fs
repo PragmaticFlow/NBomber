@@ -9,7 +9,9 @@ type internal StepError = {
     Error: string
 }
 
-type internal DomainError =    
+type internal DomainError = 
+    | HttpError of exn
+
     | InitScenarioError  of ex:exn    
     | CleanScenarioError of ex:exn    
     | AssertNotFound of assertNumber:int * assertion:Assertion
@@ -29,15 +31,16 @@ type internal DomainError =
     | DuplicateStepName     of stepNames:string[]    
 
     // Cluster Coordinator errors
-    | StartNewSessionError of agentErrors:DomainError[]    
+    | StartNewSessionError of agentErrors:DomainError[]        
     | StartWarmUpError     of agentErrors:DomainError[]    
     | StartBombingError    of agentErrors:DomainError[]    
     | GetStatisticsError   of agentErrors:DomainError[]
 
     // Cluster Agent errors 
     | AgentErrors        of errors:DomainError[]
-    | AgentIsWorking
-    | CommunicationError of ex:exn    
+    | AgentIsWorking    
+
+    | OperationFailed of operationName:string * errors:DomainError[]
 
 module internal Errors =
 

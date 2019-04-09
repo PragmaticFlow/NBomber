@@ -17,7 +17,7 @@ type IScenariosHost =
     abstract IsWorking: unit -> Result<bool,DomainError>        
     abstract InitScenarios: ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,DomainError>>
     abstract WarmUpScenarios: unit -> Task<unit>
-    abstract RunBombing: unit -> Task<unit>
+    abstract StartBombing: unit -> Task<unit>
     abstract StopScenarios: unit -> unit
     abstract GetStatistics: unit -> NodeStats
 
@@ -118,7 +118,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                 stoppedWork()       
         }
 
-        member x.RunBombing() = task {
+        member x.StartBombing() = task {
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value) 
@@ -136,11 +136,11 @@ let create (dep: Dependency, registeredScns: Scenario[]) =
     ScenariosHost(dep, registeredScns) :> IScenariosHost
 
 let run (scnSettings: ScenarioSetting[], targetScns: ScenarioName[])
-        (scnHost: IScenariosHost) = trial {    
+        (scnHost: IScenariosHost) = asyncResult {    
     
-    do! scnHost.InitScenarios(scnSettings, targetScns).Result
-    scnHost.WarmUpScenarios().Wait()
-    scnHost.RunBombing().Wait()
+    do! scnHost.InitScenarios(scnSettings, targetScns)
+    do! scnHost.WarmUpScenarios()
+    do! scnHost.StartBombing()
     scnHost.StopScenarios()
     return scnHost.GetStatistics()
 }
