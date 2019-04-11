@@ -4,6 +4,7 @@ module internal NBomber.Domain.Scenario
 open System
 open System.Threading
 open NBomber
+open NBomber.Configuration
 
 let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
@@ -91,3 +92,27 @@ let clean (scenario: Scenario) =
             scenario.TestClean.Value(cancelToken.Token).Wait()
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
+
+let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[]) =
+    match targetScenarios with
+    | [||] -> allScenarios
+    | _    ->
+        allScenarios 
+        |> Array.filter(fun x -> targetScenarios |> Array.exists(fun target -> x.ScenarioName = target))
+        
+let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =        
+    
+    let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
+        { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                        WarmUpDuration = settings.WarmUpDuration.TimeOfDay
+                        Duration = settings.Duration.TimeOfDay }
+
+    scenarios
+    |> Array.map(fun scn -> 
+        settings
+        |> Array.tryPick(fun x -> 
+            if x.ScenarioName = scn.ScenarioName then Some(scn, x)
+            else None)
+        |> Option.map(updateScenario)
+        |> Option.orElse(Some scn)
+        |> Option.get)

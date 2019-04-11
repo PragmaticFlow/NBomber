@@ -39,7 +39,6 @@
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
     <Compile Include="DomainServices\NBomberContext.fs" />
-    <Compile Include="DomainServices\ScenarioBuilder.fs" />
     <Compile Include="DomainServices\ScenarioRunner.fs" />
     <Compile Include="DomainServices\ScenariosHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />

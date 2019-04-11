@@ -50,7 +50,7 @@ let createStats (sessionId: string, nodeName: string,
                  Sender = NodeType.Cluster }
                     
     registeredScenarios 
-    |> ScenarioBuilder.applyScenariosSettings(scnSettings)
+    |> Scenario.applySettings(scnSettings)
     |> NodeStats.merge(meta, allNodeStats)
 
 type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =       

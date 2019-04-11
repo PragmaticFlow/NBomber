@@ -19,7 +19,7 @@ namespace CSharp.Examples
                 .WithDuration(TimeSpan.FromSeconds(5));
 
             NBomberRunner.RegisterScenarios(scenario)
-                         .LoadConfig("config.json")
+                         //.LoadConfig("config.json")
                          //.WithReportFileName("custom_report_name")
                          //.WithReportFormats(ReportFormat.Txt, ReportFormat.Html, ReportFormat.Csv)
                          .RunInConsole();

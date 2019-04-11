@@ -82,6 +82,12 @@ let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
     |> Array.map(fun x -> x.GetResult())
     |> NodeStats.create(meta)
 
+let printTargetScenarios (scenarios: Scenario[]) = 
+    scenarios
+    |> Array.map(fun x -> x.ScenarioName)
+    |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
+    |> fun _ -> scenarios
+
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable scnRunners = None
@@ -94,12 +100,13 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     interface IScenariosHost with
         member x.GetRegisteredScenarios() = registeredScenarios
         member x.IsWorking() = isWorking        
-
-        member x.InitScenarios(settings, targetScenarios) = task {
+        //Log.Information("target scenarios from config: {0}", targetScenarios |> String.concatWithCommaAndQuotes)
+        member x.InitScenarios(settings, targetScenarios) = task {            
             startedWork()
             let! results = registeredScenarios
-                           |> ScenarioBuilder.applyScenariosSettings(settings)
-                           |> ScenarioBuilder.filterTargetScenarios(targetScenarios)
+                           |> Scenario.applySettings(settings)
+                           |> Scenario.filterTargetScenarios(targetScenarios)
+                           |> printTargetScenarios
                            |> initScenarios
             
             match results with
