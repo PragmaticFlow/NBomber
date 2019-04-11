@@ -3,6 +3,7 @@
 open System
 open System.Xml.Linq
 
+open NBomber.Extensions
 open NBomber.Domain
 
 let htmlEncode (t: 'T) = System.Web.HttpUtility.HtmlEncode t

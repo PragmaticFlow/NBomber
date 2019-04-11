@@ -7,6 +7,7 @@ open System.Threading
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 

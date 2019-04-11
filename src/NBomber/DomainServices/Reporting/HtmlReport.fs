@@ -2,6 +2,7 @@
 
 open System
 
+open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.ResourceManager

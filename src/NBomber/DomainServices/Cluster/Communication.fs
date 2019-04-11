@@ -5,6 +5,7 @@ open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Infra

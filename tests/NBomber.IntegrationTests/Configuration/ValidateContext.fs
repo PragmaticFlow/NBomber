@@ -5,6 +5,7 @@ open System.Threading.Tasks
 
 open Xunit
 
+open NBomber.Extensions
 open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts

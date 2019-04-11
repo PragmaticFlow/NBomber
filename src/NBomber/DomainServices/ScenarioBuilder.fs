@@ -2,6 +2,7 @@
 
 open Serilog
 
+open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Domain
 

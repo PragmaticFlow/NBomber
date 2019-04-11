@@ -1,5 +1,6 @@
 ﻿module internal NBomber.DomainServices.NBomberContext
 
+open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
 

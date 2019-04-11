@@ -3,6 +3,7 @@
 open System
 
 open FsToolkit.ErrorHandling.Operator.Result
+open NBomber.Extensions.Operator.Result
 
 open NBomber
 open NBomber.Configuration
@@ -124,7 +125,5 @@ module GlobalSettingsValidation =
         )
         |> Option.defaultValue(Ok context)        
 
-let validateContext (context: NBomberContext) = 
-    context
-    |> ScenarioValidation.validate
-    >>= GlobalSettingsValidation.validate
+let validateContext = 
+    ScenarioValidation.validate >=> GlobalSettingsValidation.validate

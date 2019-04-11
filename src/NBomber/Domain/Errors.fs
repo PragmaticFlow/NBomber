@@ -1,6 +1,7 @@
 ﻿namespace NBomber.Domain
 
 open System
+open NBomber.Extensions
 open NBomber.Contracts
 
 type internal StepError = {
