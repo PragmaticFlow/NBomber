@@ -35,13 +35,13 @@ let createHandler (handler: 'TCommand -> 'TResponse) (request: byte[]) =
     let response = handler(command)
     serializeBinary(response)   
 
-let sendRequest<'TRequest,'TResponse>(url: Uri) (request: 'TRequest) = task {    
+let sendRequest<'TRequest,'TResponse>(url: Uri) (request: 'TRequest) = async {    
     try
         let httpMsg = new HttpRequestMessage(HttpMethod.Post, url)
         let binaryReq = serializeBinary(request)
         httpMsg.Content <- new ByteArrayContent(binaryReq)
-        let! httpResponse = httpClient.SendAsync(httpMsg)
-        let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync()
+        let! httpResponse = httpClient.SendAsync(httpMsg) |> Async.AwaitTask
+        let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync() |> Async.AwaitTask
         return Ok <| deserializeBinary<'TResponse>(binaryRes)
     with
     | ex -> return Error <| HttpError ex

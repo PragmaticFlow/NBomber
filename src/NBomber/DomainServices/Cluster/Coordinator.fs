@@ -1,22 +1,19 @@
 ﻿module internal NBomber.DomainServices.Cluster.ClusterCoordinator
 
-open System.Threading.Tasks
-
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Infra.Dependency
-open NBomber.DomainServices
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster.ClusterAgent
 
 type IClusterCoordinator =
-    abstract SendStartNewSession: ScenarioSetting[] -> Task<Result<unit,DomainError>>
-    abstract WaitOnAllAgentsReady: unit -> Task<Result<unit,DomainError>>
-    abstract SendStartWarmUp: unit -> Task<Result<unit,DomainError>>
-    abstract SendStartBombing: unit -> Task<Result<unit,DomainError>>
-    abstract GetStatistics: unit -> Task<Result<NodeStats[],DomainError>>
+    abstract SendStartNewSession: ScenarioSetting[] -> Async<Result<unit,DomainError>>
+    abstract WaitOnAllAgentsReady: unit -> Async<Result<unit,DomainError>>
+    abstract SendStartWarmUp: unit -> Async<Result<unit,DomainError>>
+    abstract SendStartBombing: unit -> Async<Result<unit,DomainError>>
+    abstract GetStatistics: unit -> Async<Result<NodeStats[],DomainError>>
 
 let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
                     settings: ScenarioSetting[], targetScns: string[]) = 
