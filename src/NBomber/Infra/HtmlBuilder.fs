@@ -5,6 +5,7 @@ open System.Xml.Linq
 
 open NBomber.Extensions
 open NBomber.Domain
+open NBomber.Errors
 
 let htmlEncode (t: 'T) = System.Web.HttpUtility.HtmlEncode t
 
@@ -37,11 +38,7 @@ let formatAssertion assertNumber assertLabel =
     | None -> sprintf "<strong>#%i</strong>" assertNumber
 
 let toListGroupItem (failedAssert: DomainError) =
-    match failedAssert with
-    | AssertNotFound (assertNumber,Step s) ->
-        let assertLabel = formatAssertion assertNumber s.Label
-        let stepName = htmlEncode s.StepName
-        sprintf """<li class="list-group-item list-group-item-danger">Assertion %s is not found for step <strong>%s</strong></li>""" assertLabel stepName
+    match failedAssert with    
     | AssertionError (assertNumber,Step s, _) ->
         let assertLabel = formatAssertion assertNumber s.Label
         let stepName = htmlEncode s.StepName

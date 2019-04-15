@@ -6,6 +6,7 @@ open System.IO
 open Serilog
 
 open NBomber.Domain
+open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Configuration

@@ -10,13 +10,14 @@ open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Statistics
+open NBomber.Errors
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenarioRunner
 
 type IScenariosHost =
     abstract GetRegisteredScenarios: unit -> Scenario[]
-    abstract IsWorking: unit -> Result<bool,DomainError>        
-    abstract InitScenarios: ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,DomainError>>
+    abstract IsWorking: unit -> Result<bool,AppError>        
+    abstract InitScenarios: ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,AppError>>
     abstract WarmUpScenarios: unit -> Task<unit>
     abstract StartBombing: unit -> Task<unit>
     abstract StopScenarios: unit -> unit
@@ -95,12 +96,12 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     let statsMeta = { SessionId = dep.SessionId; NodeName = dep.NodeInfo.NodeName; Sender = dep.NodeType }
     let startedWork () = isWorking <- Ok true
     let stoppedWork () = isWorking <- Ok false
-    let failed (error) = isWorking <- Error error
+    let failed (error: DomainError) = isWorking <- AppError.createResult(error)
 
     interface IScenariosHost with
         member x.GetRegisteredScenarios() = registeredScenarios
-        member x.IsWorking() = isWorking        
-        //Log.Information("target scenarios from config: {0}", targetScenarios |> String.concatWithCommaAndQuotes)
+        member x.IsWorking() = isWorking                
+        
         member x.InitScenarios(settings, targetScenarios) = task {            
             startedWork()
             let! results = registeredScenarios
@@ -115,7 +116,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                          return Ok() 
             
             | Error e -> failed(e)
-                         return Error e
+                         return AppError.createResult(e)
         }
 
         member x.WarmUpScenarios() = task {

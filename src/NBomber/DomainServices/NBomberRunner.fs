@@ -6,6 +6,7 @@ open FsToolkit.ErrorHandling
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
+open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
@@ -99,11 +100,16 @@ let saveReport (dep: Dependency, context: NBomberContext) (report: ReportResult)
     
     Report.save(dep, "./", fileName, formats, report) 
     
-let handleError (dep: Dependency) (error: DomainError) = 
+let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
-        TestFrameworkRunner.showError(error)
+        TestFrameworkRunner.showErrors(errors)
     else
-        error |> Errors.toString |> Log.Error
+        errors |> Array.iter(AppError.toString >> Log.Error)
+
+let showAsserts (dep: Dependency) (result: ExecutionResult) =
+    match result.FailedAsserts with
+    | [||]          -> ()
+    | failedAsserts -> failedAsserts |> Array.map(AppError.create) |> showErrors(dep)        
 
 let run (dep: Dependency, context: NBomberContext) = 
     asyncResult {
@@ -119,13 +125,11 @@ let run (dep: Dependency, context: NBomberContext) =
             |> Option.orElseWith(fun _ -> runSingleNode(dep, ctx))
             |> Option.get
 
-        return nodeStats
-               |> calcStatistics(dep, ctx)
-               |> saveStatistics(ctx)
-               |> applyAsserts(ctx)
-               |> buildReport(dep)
-               |> saveReport(dep, ctx)
+        let result = nodeStats |> calcStatistics(dep, ctx) |> saveStatistics(ctx) |> applyAsserts(ctx)
+        result |> buildReport(dep) |> saveReport(dep, ctx)
+        return result
     }
-    |> AsyncResult.mapError(handleError(dep)) 
+    |> AsyncResult.map(showAsserts(dep))
+    |> AsyncResult.mapError(fun error -> showErrors dep [|error|]) 
     |> Async.RunSynchronously
     |> ignore

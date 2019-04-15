@@ -2,6 +2,7 @@ module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
 open NBomber.Domain
+open NBomber.Errors
 
 [<AutoOpen>]
 module private Impl =
@@ -65,7 +66,7 @@ let print (stats: NodeStats, failedAsserts: DomainError[]) =
     
     let assertErrors =
         failedAsserts
-        |> Array.map(getAssertNumberAndLabel)
+        |> Array.map(getAssertNumberAndLabel)            
         |> List.ofArray
     
     stats.AllScenariosStats

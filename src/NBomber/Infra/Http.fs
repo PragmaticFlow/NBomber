@@ -9,7 +9,7 @@ open System.Runtime.Serialization.Formatters.Binary
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Domain
+open NBomber.Errors
 
 type ReqMsg = byte[]
 type ResMsg = byte[]
@@ -44,7 +44,7 @@ let sendRequest<'TRequest,'TResponse>(url: Uri) (request: 'TRequest) = async {
         let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync() |> Async.AwaitTask
         return Ok <| deserializeBinary<'TResponse>(binaryRes)
     with
-    | ex -> return Error <| HttpError ex
+    | ex -> return Error <| HttpError(url, ex.Message)
 }
 
 type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =    

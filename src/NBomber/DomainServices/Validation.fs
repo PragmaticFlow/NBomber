@@ -9,6 +9,7 @@ open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
+open NBomber.Errors
 
 let private getDuplicates (data: string[]) =
     data
@@ -25,7 +26,7 @@ module ScenarioValidation =
 
     let checkEmptyName (scenarios: Contracts.Scenario[]) =
         let emptyScn = scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace(x.ScenarioName))
-        if emptyScn.IsSome then Error EmptyScenarioName
+        if emptyScn.IsSome then Error <| EmptyScenarioName
         else Ok scenarios
 
     let checkDuplicateName (scenarios: Contracts.Scenario[]) =
@@ -44,7 +45,7 @@ module ScenarioValidation =
                 if emptyStepExist then Some x.ScenarioName else None)
 
         if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
-        else scnWithEmptySteps |> EmptyStepName |> Error
+        else Error <| EmptyStepName scnWithEmptySteps
 
     let checkDuplicateStepName (scenarios: Contracts.Scenario[]) =    
         let duplicates = 
@@ -73,19 +74,20 @@ module ScenarioValidation =
         >>= checkDuration
         >>= checkConcurrentCopies
         >>= fun _ -> Ok context
+        |> Result.mapError(AppError.create)
 
 module GlobalSettingsValidation =
 
     let checkEmptyTarget (globalSettings: GlobalSettings) =
         let emptyTarget = globalSettings.TargetScenarios |> List.exists(String.IsNullOrWhiteSpace)
-        if emptyTarget then Error TargetScenarioIsEmpty
+        if emptyTarget then Error <| TargetScenarioIsEmpty
         else Ok globalSettings
 
-    let checkAvailableTarget (globalSettings: GlobalSettings) =
-        let allScenarios = globalSettings.ScenariosSettings |> List.map(fun x -> x.ScenarioName)
+    let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
+        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
         let notFoundScenarios = globalSettings.TargetScenarios |> List.except allScenarios
         if List.isEmpty(notFoundScenarios) then Ok globalSettings
-        else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, List.toArray allScenarios)
+        else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, allScenarios)
 
     let checkDuration (globalSettings: GlobalSettings) =
         let invalidScns =
@@ -103,25 +105,26 @@ module GlobalSettingsValidation =
             |> List.toArray
         
         if Array.isEmpty(invalidScns) then Ok globalSettings
-        else Error <| ConcurrentCopiesIsWrong invalidScns       
+        else Error <| ConcurrentCopiesIsWrong invalidScns
 
     let checkEmptyReportName (globalSettings: GlobalSettings) =
         match globalSettings.ReportFileName with
-        | Some name -> if String.IsNullOrWhiteSpace(name) then Error EmptyReportName
+        | Some name -> if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
                        else Ok globalSettings
         | None      -> Ok globalSettings
 
-    let validate (context: NBomberContext) =         
+    let validate (context: NBomberContext) =        
         context.NBomberConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 
             glSettings 
             |> checkEmptyTarget
-            >>= checkAvailableTarget
+            >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
             >>= checkConcurrentCopies
             >>= checkEmptyReportName
             >>= fun _ -> Ok context
+            |> Result.mapError(AppError.create)
         )
         |> Option.defaultValue(Ok context)        
 

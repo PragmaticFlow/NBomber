@@ -5,6 +5,7 @@ open FsToolkit.ErrorHandling
 open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Domain
+open NBomber.Errors
 open NBomber.Infra
 open NBomber.DomainServices.Cluster.Contracts
 open NBomber.DomainServices.Cluster.ClusterAgent
@@ -19,7 +20,7 @@ let private sendCommand (createCommand: AgentInfo -> AgentCommand) (agents: Agen
 let private checkResponses (operationName: string) (responses) =     
     match Result.sequence(responses) with
     | Ok _     -> Ok()
-    | Error es -> Error <| OperationFailed(operationName, es)
+    | Error es -> AppError.createResult(OperationFailed(operationName, es))
 
 let startNewSession (sessionId: string, 
                      settings: ScenarioSetting[], agents: AgentInfo[]) =
@@ -40,7 +41,7 @@ let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
                 do! Async.Sleep(2000)
                 return! start()            
 
-        | Error es -> return! Error <| OperationFailed("WaitOnAllAgentsReady", es)
+        | Error es -> return! AppError.createResult(OperationFailed("WaitOnAllAgentsReady", es))
     }
     start()
 
@@ -61,5 +62,5 @@ let getStatistics (sessionId: string, agents: AgentInfo[]) = async {
 
     match Result.sequence(responses) with
     | Ok stats -> return stats |> Array.map(fun x -> x.Data.Value :?> NodeStats) |> Ok
-    | Error es -> return Error <| OperationFailed("GetStatistics", es)
+    | Error es -> return AppError.createResult(OperationFailed("GetStatistics", es))
 }

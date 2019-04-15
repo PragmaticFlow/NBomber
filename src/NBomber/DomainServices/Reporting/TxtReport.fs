@@ -3,6 +3,7 @@
 open System
 open ConsoleTables
 open NBomber.Domain
+open NBomber.Errors
 
 let print (stats: NodeStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats

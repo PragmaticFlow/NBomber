@@ -9,7 +9,7 @@ open NBomber.Extensions
 open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Domain
+open NBomber.Errors
 open NBomber.DomainServices.Validation
 
 let globalSettings = { 
@@ -47,11 +47,11 @@ let ``GlobalSettingsValidation.checkEmptyTarget should return fail if TargetScen
     | _ -> failwith ""
     
 [<Fact>]
-let ``GlobalSettingsValidation.checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in scenario settings`` () =    
-    let scnSettings = { scenarioSettings with ScenarioName = "3" }
-    let glSettings = { globalSettings with TargetScenarios = ["1"; "3"]; ScenariosSettings = [scnSettings] }
+let ``GlobalSettingsValidation.checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in registered scenarios`` () =    
+    let scenarios = [| scenario |]    
+    let glSettings = { globalSettings with TargetScenarios = ["3"] }    
     
-    let error = GlobalSettingsValidation.checkAvailableTarget(glSettings) |> Result.getError
+    let error = GlobalSettingsValidation.checkAvailableTarget scenarios glSettings |> Result.getError
     match error with
     | TargetScenarioNotFound _ -> ()
     | _ -> failwith ""
@@ -88,6 +88,7 @@ let ``GlobalSettingsValidation.checkEmptyReportName should return fail if Report
 [<Fact>]
 let ``ScenarioValidation.checkEmptyName should return fail if scenario has empty name`` () =    
     let scn = { scenario with ScenarioName = " " } |> Array.singleton    
+    
     let error = ScenarioValidation.checkEmptyName(scn) |> Result.getError
     match error with
     | EmptyScenarioName -> ()
@@ -126,6 +127,7 @@ let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario h
 [<Fact>]
 let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` () =        
     let scn = { scenario with Duration = TimeSpan.FromSeconds(0.5) }
+    
     let error = ScenarioValidation.checkDuration([|scn|]) |> Result.getError
     match error with
     | DurationIsWrong _ -> ()
@@ -134,6 +136,7 @@ let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` 
 [<Fact>]
 let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentCopies < 1`` () =        
     let scn = { scenario with ConcurrentCopies = 0 }
+    
     let error = ScenarioValidation.checkConcurrentCopies([|scn|]) |> Result.getError
     match error with
     | ConcurrentCopiesIsWrong _ -> ()

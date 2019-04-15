@@ -5,6 +5,7 @@ open System
 open System.Threading
 open NBomber
 open NBomber.Configuration
+open NBomber.Errors
 
 let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
@@ -65,7 +66,7 @@ let init (scenario: Scenario) =
         let steps = scenario.Steps |> Array.map(setConnectionPool(allPools))
         Ok { scenario with Steps = steps }
     with 
-    | ex -> ex |> InitScenarioError |> Error
+    | ex -> Error <| InitScenarioError ex
 
 let clean (scenario: Scenario) =     
 

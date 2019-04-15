@@ -2,6 +2,7 @@
 module internal NBomber.Domain.Assertion
 
 open NBomber.Contracts
+open NBomber.Errors
 
 let create (assertions: IAssertion[]) = 
     assertions |> Array.map(fun x -> x :?> Assertion)

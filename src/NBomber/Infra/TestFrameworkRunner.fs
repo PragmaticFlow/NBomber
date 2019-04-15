@@ -1,8 +1,7 @@
 ﻿module internal NBomber.DomainServices.TestFrameworkRunner
 
 open System
-
-open NBomber.Domain
+open NBomber.Errors
 
 type TestFramework =
     | Xunit of Type
@@ -40,7 +39,7 @@ let tryGetCurrentFramework () =
     |> List.tryFind(Option.isSome)
     |> Option.flatten    
 
-let showError (error: DomainError) =
+let showErrors (error: AppError[]) =
     let framework = tryGetCurrentFramework()
     if framework.IsNone then failwith("Unknown framework")
-    error |> Errors.toString |> printErrorMessage(framework.Value)
+    error |> Array.map(AppError.toString) |> String.concat(", ") |> printErrorMessage(framework.Value)
