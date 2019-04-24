@@ -1,37 +1,31 @@
-﻿module internal NBomber.Domain.Scenario
+﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+module internal NBomber.Domain.Scenario
 
 open System
 open System.Threading
-open System.Diagnostics
-
 open NBomber
-open NBomber.Domain
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Configuration
+open NBomber.Errors
 
-let updateConnectionPoolCount (concurrentCopies: int) (step) =
+let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
     let updatePoolCount (pool) =
         let newCount = if pool.ConnectionsCount = Constants.DefaultConnectionsCount then concurrentCopies
                        else pool.ConnectionsCount        
         { pool with ConnectionsCount = newCount }
     
-    match step with
-    | Action s -> Action { s with ConnectionPool = updatePoolCount(s.ConnectionPool) }        
-    | Pause s -> Pause s
+    { step with ConnectionPool = updatePoolCount(step.ConnectionPool) }            
 
-let setConnectionPool (allPools: ConnectionPool<obj>[]) (step) =    
+let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =    
     let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
-    match step with
-    | Action s -> Action { s with ConnectionPool = findPool(s.ConnectionPool.PoolName) }        
-    | Pause s -> Pause s  
+    { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }    
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
     |> Array.map(fun i -> sprintf "%s_%i" scnName i)    
 
 let create (config: Contracts.Scenario) =
-    let steps = config.Steps |> Array.map(fun x -> x :?> Step |> updateConnectionPoolCount(config.ConcurrentCopies)) |> Seq.toArray        
+    let steps = config.Steps |> Step.create |> Array.map(fun x -> x |> updateConnectionPoolCount(config.ConcurrentCopies))
     let assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
 
     { ScenarioName = config.ScenarioName
@@ -43,15 +37,13 @@ let create (config: Contracts.Scenario) =
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
       WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
-          
+
 let getDistinctPools (scenario: Scenario) =
     scenario.Steps
-    |> Array.map(Step.getConnectionPool) 
-    |> Array.filter(Option.isSome)
-    |> Array.map(Option.get)
-    |> Array.distinct    
+    |> Array.map(fun x -> x.ConnectionPool)
+    |> Array.distinct
 
-let init (scenario: Scenario) =    
+let init (scenario: Scenario) =
 
     let initConnectionPool (pool: ConnectionPool<obj>) =
         let connections = System.Collections.Generic.List<obj>()
@@ -74,7 +66,7 @@ let init (scenario: Scenario) =
         let steps = scenario.Steps |> Array.map(setConnectionPool(allPools))
         Ok { scenario with Steps = steps }
     with 
-    | ex -> ex |> InitScenarioError |> Error
+    | ex -> Error <| InitScenarioError ex
 
 let clean (scenario: Scenario) =     
 
@@ -101,3 +93,26 @@ let clean (scenario: Scenario) =
             scenario.TestClean.Value(cancelToken.Token).Wait()
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
+
+let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[]) =
+    match targetScenarios with
+    | [||] -> allScenarios
+    | _    ->
+        allScenarios 
+        |> Array.filter(fun x -> targetScenarios |> Array.exists(fun target -> x.ScenarioName = target))
+        
+let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =        
+    
+    let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
+        { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                        WarmUpDuration = settings.WarmUpDuration.TimeOfDay
+                        Duration = settings.Duration.TimeOfDay }
+
+    scenarios
+    |> Array.map(fun scn -> 
+        settings
+        |> Array.tryPick(fun x -> 
+            if x.ScenarioName = scn.ScenarioName then Some(scn, x)
+            else None)
+        |> Option.map(updateScenario)
+        |> Option.defaultValue(scn))

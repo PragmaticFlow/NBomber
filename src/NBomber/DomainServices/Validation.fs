@@ -2,125 +2,131 @@
 
 open System
 
-open NBomber.Contracts
+open FsToolkit.ErrorHandling.Operator.Result
+open NBomber.Extensions.Operator.Result
+
+open NBomber
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.Errors
+open NBomber.Errors
 
-let isReportFormatSupported (reportFormat: string) =
-    if String.IsNullOrEmpty(reportFormat) then None
-    else
-        match reportFormat.ToLower().Trim() with
-        | "txt"  -> Some ReportFormat.Txt
-        | "html" -> Some ReportFormat.Html
-        | "csv"  -> Some ReportFormat.Csv
-        | "md"   -> Some ReportFormat.Md
-        | _      -> None
+let private getDuplicates (data: string[]) =
+    data
+    |> Array.groupBy(id)
+    |> Array.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
 
-let private getUnsupportedReportFormats (reportFormats: string[]) =
-    reportFormats |> Array.filter(fun x -> x |> isReportFormatSupported |> Option.isNone)
+let private isDurationOk (duration: TimeSpan) =
+    duration >= TimeSpan.FromSeconds 1.0
 
-let private uniqueCount (strings: string[]) =
-    strings |> Array.distinct |> Array.length
+let private isConcurrentCopiesOk (value: int) = 
+    value >= 1
 
-let private isTargetScenarioPresent (globalSettings: GlobalSettings) =
-    let availableScenarios = globalSettings.ScenariosSettings |> Array.map(fun x -> x.ScenarioName)
-    let notFoundScenarios = globalSettings.TargetScenarios |> Array.except availableScenarios
+module ScenarioValidation =
 
-    if Array.isEmpty(notFoundScenarios) then Ok globalSettings
-    else (notFoundScenarios, availableScenarios) |> ScenariosNotFound |> Error
+    let checkEmptyName (scenarios: Contracts.Scenario[]) =
+        let emptyScn = scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace(x.ScenarioName))
+        if emptyScn.IsSome then Error <| EmptyScenarioName
+        else Ok scenarios
 
-let private isDurationGreaterThenSecond (globalSettings: GlobalSettings) =
-    let scenariosWithIncorrectDuration =
-        globalSettings.ScenariosSettings
-        |> Array.filter(fun x -> x.Duration < TimeSpan.FromSeconds 1.0)
-        |> Array.map(fun x -> x.ScenarioName)
+    let checkDuplicateName (scenarios: Contracts.Scenario[]) =
+        let duplicates = scenarios |> Array.map(fun x -> x.ScenarioName) |> getDuplicates
+        if duplicates.Length > 0 then Error <| DuplicateScenarioName duplicates
+        else Ok scenarios
 
-    if Array.isEmpty(scenariosWithIncorrectDuration) then Ok globalSettings
-    else scenariosWithIncorrectDuration |> DurationLessThanOneSecond |> Error
+    let checkEmptyStepName (scenarios: Contracts.Scenario[]) =
+        let scnWithEmptySteps =
+            scenarios
+            |> Array.choose(fun x -> 
+                let emptyStepExist = 
+                    x.Steps |> Step.create
+                    |> Array.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
+            
+                if emptyStepExist then Some x.ScenarioName else None)
 
-let private isConcurrentCopiesGreaterThenOne (globalSettings: GlobalSettings) =
-    let scenariosWithIncorrectConcurrentCopies =
-        globalSettings.ScenariosSettings
-        |> Array.filter(fun x -> x.ConcurrentCopies < 1)
-        |> Array.map(fun x -> x.ScenarioName)
+        if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
+        else Error <| EmptyStepName scnWithEmptySteps
+
+    let checkDuplicateStepName (scenarios: Contracts.Scenario[]) =    
+        let duplicates = 
+            scenarios
+            |> Array.collect(fun x -> x.Steps |> Step.create |> Array.map(fun x -> x.StepName) |> getDuplicates)
     
-    if Array.isEmpty(scenariosWithIncorrectConcurrentCopies) then Ok globalSettings
-    else scenariosWithIncorrectConcurrentCopies |> ConcurrentCopiesLessThanOne |> Error
+        if Array.isEmpty(duplicates) then Ok scenarios
+        else Error <| DuplicateStepName duplicates
 
-let private isEmptyScenarioNameExist (scenarios: Scenario[]) =
-    let isAnyScenarioNullOrEmpty = scenarios |> Array.exists(fun x -> String.IsNullOrEmpty(x.ScenarioName))
-    if isAnyScenarioNullOrEmpty then Error EmptyScenarioName
-    else Ok scenarios
+    let checkDuration (scenarios: Contracts.Scenario[]) =
+        let invalidScns = scenarios |> Array.choose(fun x -> if isDurationOk(x.Duration) then None else Some x.ScenarioName)
+        if Array.isEmpty(invalidScns) then Ok scenarios
+        else Error <| DurationIsWrong invalidScns
 
-let private isEmptyReportFileNameExist (globalSettings: GlobalSettings) =
-    if String.IsNullOrEmpty(globalSettings.ReportFileName) then Error EmptyReportFileName
-    else Ok globalSettings
+    let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
+        let invalidScns = scenarios |> Array.choose(fun x -> if isConcurrentCopiesOk(x.ConcurrentCopies) then None else Some x.ScenarioName)
+        if Array.isEmpty(invalidScns) then Ok scenarios
+        else Error <| ConcurrentCopiesIsWrong invalidScns
 
-let private validateReportFormat (globalSettings: GlobalSettings) =
-    let unsupportedFormats = getUnsupportedReportFormats(globalSettings.ReportFormats)
+    let validate (context: NBomberContext) =
+        context.Scenarios 
+        |> checkEmptyName
+        >>= checkDuplicateName
+        >>= checkEmptyStepName
+        >>= checkDuplicateStepName
+        >>= checkDuration
+        >>= checkConcurrentCopies
+        >>= fun _ -> Ok context
+        |> Result.mapError(AppError.create)
 
-    if Array.isEmpty(unsupportedFormats) then Ok globalSettings
-    else unsupportedFormats |> UnsupportedReportFormat |> Error
+module GlobalSettingsValidation =
 
-let private isScenarioNameDuplicate (scenarios: Scenario[]) =
-    let scenarioNames = scenarios |> Array.map(fun x -> x.ScenarioName)
-    if uniqueCount(scenarioNames) = scenarios.Length then Ok scenarios
-    else Error DuplicateScenarios
+    let checkEmptyTarget (globalSettings: GlobalSettings) =
+        let emptyTarget = globalSettings.TargetScenarios |> List.exists(String.IsNullOrWhiteSpace)
+        if emptyTarget then Error <| TargetScenarioIsEmpty
+        else Ok globalSettings
 
-let private isStepNameDuplicate (scenarios: Scenario[]) =
-    let duplicates =
-        scenarios
-        |> Array.filter(fun x ->
-            let stepNames =
-                x.Steps
-                |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
-                |> Array.filter(fun x -> x <> "pause")
+    let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
+        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
+        let notFoundScenarios = globalSettings.TargetScenarios |> List.except allScenarios
+        if List.isEmpty(notFoundScenarios) then Ok globalSettings
+        else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, allScenarios)
 
-            not(Array.isEmpty(stepNames)) && uniqueCount(stepNames) <> stepNames.Length)
-        |> Array.map(fun x -> x.ScenarioName)
-    
-    if Array.isEmpty(duplicates) then Ok scenarios
-    else duplicates |> DuplicateSteps |> Error
+    let checkDuration (globalSettings: GlobalSettings) =
+        let invalidScns =
+            globalSettings.ScenariosSettings
+            |> List.choose(fun x -> if isDurationOk(x.Duration.TimeOfDay) then None else Some(x.ScenarioName))
+            |> List.toArray                
 
-let private isEmptyStepNameExist (scenarios: Scenario[]) =
-    let scenariosWithEmptySteps =
-        scenarios
-        |> Array.filter(fun x ->
-            x.Steps
-            |> Array.map(fun x -> x :?> DomainTypes.Step |> Step.getName)
-            |> Array.exists(String.IsNullOrEmpty))
-        |> Array.map(fun x -> x.ScenarioName)
-    
-    if Array.isEmpty(scenariosWithEmptySteps) then Ok scenarios
-    else scenariosWithEmptySteps |> EmptyStepName |> Error
+        if Array.isEmpty(invalidScns) then Ok globalSettings
+        else Error <| DurationIsWrong invalidScns
 
-let internal validateNaming (context: NBomberContext) =
-    context.Scenarios
-    |> isScenarioNameDuplicate
-    |> Result.bind isStepNameDuplicate
-    |> Result.bind isEmptyScenarioNameExist
-    |> Result.bind isEmptyStepNameExist
+    let checkConcurrentCopies (globalSettings: GlobalSettings) =
+        let invalidScns = 
+            globalSettings.ScenariosSettings
+            |> List.choose(fun x -> if isConcurrentCopiesOk(x.ConcurrentCopies) then None else Some x.ScenarioName)
+            |> List.toArray
+        
+        if Array.isEmpty(invalidScns) then Ok globalSettings
+        else Error <| ConcurrentCopiesIsWrong invalidScns
 
-let internal validateGlobalSettings (globalSettings: GlobalSettings) =
-    globalSettings
-    |> isTargetScenarioPresent 
-    |> Result.bind isDurationGreaterThenSecond
-    |> Result.bind isConcurrentCopiesGreaterThenOne
-    |> Result.bind isEmptyReportFileNameExist
-    |> Result.bind validateReportFormat
+    let checkEmptyReportName (globalSettings: GlobalSettings) =
+        match globalSettings.ReportFileName with
+        | Some name -> if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
+                       else Ok globalSettings
+        | None      -> Ok globalSettings
 
-let validateRunnerContext (context: NBomberContext) =
-    let validatedContext = validateNaming(context)
+    let validate (context: NBomberContext) =        
+        context.NBomberConfig 
+        |> Option.bind(fun x -> x.GlobalSettings)
+        |> Option.map(fun glSettings -> 
+            glSettings 
+            |> checkEmptyTarget
+            >>= checkAvailableTarget(context.Scenarios)
+            >>= checkDuration
+            >>= checkConcurrentCopies
+            >>= checkEmptyReportName
+            >>= fun _ -> Ok context
+            |> Result.mapError(AppError.create)
+        )
+        |> Option.defaultValue(Ok context)        
 
-    match validatedContext with
-    | Ok _ ->
-        context.NBomberConfig
-        |> Option.bind(fun config -> config.GlobalSettings)
-        |> function
-        | Some globalSettings ->
-            match validateGlobalSettings(globalSettings) with
-            | Ok _ -> Ok context
-            | Error msg -> Error msg
-        | None -> Ok context
-    | Error msg -> Error msg
+let validateContext = 
+    ScenarioValidation.validate >=> GlobalSettingsValidation.validate

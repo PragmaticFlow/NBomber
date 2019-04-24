@@ -1,132 +1,143 @@
 ﻿module Tests.Configuration.ValidateSettings
 
 open System
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open System.Threading.Tasks
 
 open Xunit
-open FsCheck.Xunit
 
+open NBomber.Extensions
 open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.DomainServices
-open NBomber.Domain.Errors
+open NBomber.Errors
+open NBomber.DomainServices.Validation
 
-let buildConfig (scenarioName: string, steps: IStep[], settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string, reportFormats: string[]) =
-    let scenario = Scenario.create(scenarioName, Array.toList steps)
-    let globalSettings = { ScenariosSettings = settings; TargetScenarios = targetScenarios; ReportFileName = reportFileName; ReportFormats = reportFormats }
-    let config = { NBomberConfig.GlobalSettings = Some globalSettings
-                   ClusterSettings = None }
+let globalSettings = { 
+    ScenariosSettings = List.empty
+    TargetScenarios = ["1"]
+    ReportFileName = None
+    ReportFormats = None 
+}
 
-    { Scenarios = [|scenario|]
-      NBomberConfig = Some config
-      ReportFileName = None
-      ReportFormats = Array.empty
-      StatisticsSink = None }
+let scenarioSettings = { 
+    ScenarioName = "1"
+    ConcurrentCopies = 1
+    WarmUpDuration = DateTime.MinValue.AddSeconds(10.)
+    Duration = DateTime.MinValue.AddSeconds(10.) 
+}
 
-let buildSettings (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int) =
-    { ScenarioName = scenarioName
-      WarmUpDuration = warmUpDuration
-      Duration = duration
-      ConcurrentCopies = concurrentCopies }
-
-let buildGlobalSettings (settings: ScenarioSetting[], targetScenarios: string[], reportFileName: string, reportFormats: string[]) =
-    { ScenariosSettings = settings
-      TargetScenarios = targetScenarios
-      ReportFileName = reportFileName
-      ReportFormats = reportFormats }
-
-[<Property>]
-let ``validateGlobalSettings() should return Ok for any args values`` (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int, reportFileName: string) =
-    let settings = buildSettings(scenarioName, warmUpDuration, duration, concurrentCopies)
-
-    let validatedContext =
-        buildGlobalSettings([|settings|], [|scenarioName|], reportFileName, Array.empty) |> Validation.validateGlobalSettings
-    
-    if duration < TimeSpan.FromSeconds(1.0) then
-        let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.Equal(sprintf "Duration for scenarios '%s' can not be less than 1 sec." scenarioName, errorMessage)
-
-    elif concurrentCopies < 1 then
-        let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.Equal(sprintf "Concurrent copies for scenarios '%s' can not be less than 1." scenarioName, errorMessage)
-
-    elif String.IsNullOrEmpty(reportFileName) then
-        let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.Equal("Report File Name can not be empty string.", errorMessage)
-
-    else
-        validatedContext |> Result.isOk |> Assert.True
-
-[<Property>]
-let ``validateNaming() should return Ok for any args values`` (scenarioName: string, warmUpDuration: TimeSpan, duration: TimeSpan, concurrentCopies: int, reportFileName: string) =
-    let settings = buildSettings(scenarioName, warmUpDuration, duration, concurrentCopies)
-
-    let validatedContext =
-        buildConfig(scenarioName, Array.empty, [|settings|], [|scenarioName|], reportFileName, Array.empty)
-        |> Validation.validateNaming
-    
-    if String.IsNullOrEmpty(scenarioName) then
-        let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.Equal("Scenario name can not be empty.", errorMessage) 
-
-    else
-        validatedContext |> Result.isOk |> Assert.True
-
-[<Property>]
-let ``validateRunnerContext() should fail when report formats are unknown`` (reportFormats: string[]) =    
-    let settings = buildSettings("scenario_name", TimeSpan.FromSeconds 10.0, TimeSpan.FromSeconds 10.0, 10)
-
-    let validatedContext =
-        buildConfig("scenario_name", Array.empty, [|settings|], [|"scenario_name"|], "report_file_name", reportFormats)
-        |> Validation.validateRunnerContext
-
-    let atLeastOneReportFormatUnknown =
-        reportFormats
-        |> Array.map(Validation.isReportFormatSupported)
-        |> Array.exists(fun x -> x.IsNone)
-
-    let reportFormatsNotEmpty = reportFormats |> Array.isEmpty |> not
-
-    if reportFormatsNotEmpty && atLeastOneReportFormatUnknown then
-        let errorMessage = validatedContext |> Result.getError |> toString
-        Assert.EndsWith("Allowed formats: Txt, Html or Csv.", errorMessage)
-
-    else validatedContext |> Result.isOk |> Assert.True                   
-
-[<Property>]
-let ``validateRunnerContext() should fail when target scenrio name is not declared`` (scenarioName: string) =    
-    let targetScenarios = [|scenarioName + "new_name"|]
-    let errorMessage =
-        buildConfig(scenarioName + "not_empty", Array.empty, Array.empty, targetScenarios, "report_file_name", Array.empty)
-        |> Validation.validateRunnerContext
-        |> Result.getError
-        |> toString
-    
-    errorMessage.StartsWith (sprintf "Target scenarios '%s' is not found." (scenarioName + "new_name"))
+let scenario = {
+    ScenarioName = "1"
+    TestInit = None
+    TestClean = None
+    Steps = Array.empty
+    Assertions = Array.empty
+    ConcurrentCopies = 1
+    WarmUpDuration = TimeSpan.FromSeconds(10.)
+    Duration = TimeSpan.FromSeconds(10.)
+}
 
 [<Fact>]
-let ``validateRunnerContext() should fail when scenario names are duplicates`` () =
-    let scenario = Scenario.create("scenario", []);
-    let context = { Scenarios = [|scenario; scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
-
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
-    Assert.Equal("Scenario names should be unique.", errorMessage)
+let ``GlobalSettingsValidation.checkEmptyTarget should return fail if TargetScenarios has empty value`` () =    
+    let glSettings = { globalSettings with TargetScenarios = [" "] }
+    
+    let error = GlobalSettingsValidation.checkEmptyTarget(glSettings) |> Result.getError
+    match error with
+    | TargetScenarioIsEmpty _ -> ()
+    | _ -> failwith ""
+    
+[<Fact>]
+let ``GlobalSettingsValidation.checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in registered scenarios`` () =    
+    let scenarios = [| scenario |]    
+    let glSettings = { globalSettings with TargetScenarios = ["3"] }    
+    
+    let error = GlobalSettingsValidation.checkAvailableTarget scenarios glSettings |> Result.getError
+    match error with
+    | TargetScenarioNotFound _ -> ()
+    | _ -> failwith ""
 
 [<Fact>]
-let ``validateRunnerContext() should fail when step names are duplicates`` () =
-    let step = Step.createAction("simple step", ConnectionPool.none, fun _ -> task { return Response.Ok() })
-    let scenario = Scenario.create("scenario", [step; step])
-    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
-
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
-    Assert.Equal("Step names are not unique in scenarios: 'scenario'. Step names should be unique within scenario.", errorMessage)
+let ``GlobalSettingsValidation.checkDuration should return fail if Duration < 1 sec`` () =
+    let scnSettings = { scenarioSettings with Duration = DateTime.MinValue.AddSeconds(0.5) }
+    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    
+    let error = GlobalSettingsValidation.checkDuration(glSettings) |> Result.getError
+    match error with
+    | DurationIsWrong _ -> ()
+    | _ -> failwith ""
+    
+[<Fact>]
+let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if ConcurrentCopies < 1`` () =
+    let scnSettings = { scenarioSettings with ConcurrentCopies = 0 }
+    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    
+    let error = GlobalSettingsValidation.checkConcurrentCopies(glSettings) |> Result.getError
+    match error with
+    | ConcurrentCopiesIsWrong _ -> ()
+    | _ -> failwith ""
 
 [<Fact>]
-let ``validateRunnerContext() should fail when at least one step name is empty`` () =
-    let step = Step.createAction("", ConnectionPool.none, fun _ -> task { return Response.Ok() })
-    let scenario = Scenario.create("scenario", [step])
-    let context = { Scenarios = [|scenario|]; NBomberConfig = None; ReportFileName = None; ReportFormats = Array.empty; StatisticsSink = None }
+let ``GlobalSettingsValidation.checkEmptyReportName should return fail if ReportFileName is empty`` () =    
+    let glSettings = { globalSettings with ReportFileName = Some " " }
+    
+    let error = GlobalSettingsValidation.checkEmptyReportName(glSettings) |> Result.getError
+    match error with
+    | EmptyReportName _ -> ()
+    | _ -> failwith ""
 
-    let errorMessage = context |> Validation.validateNaming |> Result.getError |> toString
-    Assert.Equal("Step names are empty in scenarios: 'scenario'. Step names should not be empty within scenario.", errorMessage)
+[<Fact>]
+let ``ScenarioValidation.checkEmptyName should return fail if scenario has empty name`` () =    
+    let scn = { scenario with ScenarioName = " " } |> Array.singleton    
+    
+    let error = ScenarioValidation.checkEmptyName(scn) |> Result.getError
+    match error with
+    | EmptyScenarioName -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkDuplicateName should return fail if scenario has duplicate name`` () =    
+    let scn1 = { scenario with ScenarioName = "1" }
+    let scn2 = { scenario with ScenarioName = "1" }
+
+    let error = ScenarioValidation.checkDuplicateName([|scn1; scn2|]) |> Result.getError
+    match error with
+    | DuplicateScenarioName _ -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has empty step name`` () =    
+    let step = NBomber.FSharp.Step.create(" ", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let scn = { scenario with Steps = [|step|] }    
+
+    let error = ScenarioValidation.checkEmptyStepName([|scn|]) |> Result.getError
+    match error with
+    | EmptyStepName _ -> ()
+    | _ -> failwith ""
+    
+[<Fact>]
+let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario has duplicate step name`` () =    
+    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let scn = { scenario with Steps = [|step; step|] }        
+
+    let error = ScenarioValidation.checkDuplicateStepName([|scn|]) |> Result.getError
+    match error with
+    | DuplicateStepName _ -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` () =        
+    let scn = { scenario with Duration = TimeSpan.FromSeconds(0.5) }
+    
+    let error = ScenarioValidation.checkDuration([|scn|]) |> Result.getError
+    match error with
+    | DurationIsWrong _ -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentCopies < 1`` () =        
+    let scn = { scenario with ConcurrentCopies = 0 }
+    
+    let error = ScenarioValidation.checkConcurrentCopies([|scn|]) |> Result.getError
+    match error with
+    | ConcurrentCopiesIsWrong _ -> ()
+    | _ -> failwith ""

@@ -2,41 +2,12 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "test_youtube",
-        "WarmUpDuration": "00:00:05",
-        "Duration": "00:00:20",
-        "ConcurrentCopies": 100
-      },
-      {
-        "ScenarioName": "test_mongo",
+        "ScenarioName": "nbomber.com",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "test_youtube" ],
-    "ReportFileName": "custom_report_name_from_json",
-    "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
+    "TargetScenarios": [ "nbomber.com" ]    
   }
-
-  //"ClusterSettings": {
-
-  //  //"Agent": {
-  //  //  "ClusterId": "test_cluster",
-  //  //  "Port": 2222
-  //  //}
-
-  //  "Coordinator": {
-  //    "ClusterId": "test_cluster",
-  //    "TargetScenarios": [ "test_youtube" ],
-  //    "Agents": [
-  //      {
-  //        "Host": "localhost",
-  //        "Port": 2222,
-  //        "TargetScenarios": [ "test_youtube" ]
-  //      }
-  //    ]
-  //  }
-  //}
-
 }

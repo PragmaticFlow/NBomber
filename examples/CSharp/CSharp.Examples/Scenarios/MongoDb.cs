@@ -40,7 +40,7 @@ namespace CSharp.Examples.Scenarios
 
             var usersCollection = db.GetCollection<User>("Users");
 
-            var step1 = Step.CreateAction("read IsActive = true and TOP 500", ConnectionPool.None, async context =>
+            var step1 = Step.Create("read IsActive = true and TOP 500", ConnectionPool.None, async context =>
             {
                 await usersCollection.Find(u => u.IsActive == true)
                                      .Limit(500)

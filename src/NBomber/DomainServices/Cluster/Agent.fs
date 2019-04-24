@@ -3,8 +3,8 @@
 open System
 
 open NBomber.Configuration
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
+open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Infra.Http
@@ -21,7 +21,7 @@ type AgentInfo = {
 } with
   static member create (clusterId: string) (settings: AgentInfoSettings) = 
     let url = Http.createUrl(settings.Host, settings.Port, clusterId)
-    { Url = Uri(url); TargetScenarios = settings.TargetScenarios }
+    { Url = Uri(url); TargetScenarios = settings.TargetScenarios |> List.toArray }
 
 let generateAgentId () = Guid.NewGuid().ToString("N") 
 
@@ -29,9 +29,14 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
     
     let mutable curSessionId = ""
     let emptyResponse = { AgentId = agentId; Data = None; Error = None }
-    let response (data) = { AgentId = agentId; Data = Some data; Error = None }
-    let errorResponse (error) = { AgentId = agentId; Data = None; Error = Some error }
-        
+    let response (data) = { AgentId = agentId; Data = Some data; Error = None }    
+
+    member private x.ErrorResponse (e: CommunicationError) = 
+        { AgentId = agentId; Data = None; Error = Some(Communication e) }
+
+    member private x.ErrorResponse (e: AppError) = 
+        { AgentId = agentId; Data = None; Error = Some e }
+
     interface IClusterAgent with
         member x.AgentId = agentId  
         
@@ -46,28 +51,28 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
             | IsWorking sessionId ->
                 match scnHost.IsWorking() with
                 | Ok w    -> response(w)
-                | Error e -> errorResponse(e) 
+                | Error e -> x.ErrorResponse(e) 
                 
             | StartWarmUp sessionId ->
                 match scnHost.IsWorking() with
                 | Ok w when w = false -> scnHost.WarmUpScenarios() |> ignore
                                          response(w)                
-                | Ok _    -> errorResponse(AgentIsWorking)
-                | Error e -> errorResponse(e)
+                | Ok _    -> x.ErrorResponse(AgentIsWorking)
+                | Error e -> x.ErrorResponse(e)
 
             | StartBombing sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w when w = false -> scnHost.RunBombing() |> ignore
+                | Ok w when w = false -> scnHost.StartBombing() |> ignore
                                          response(w)
-                | Ok _    -> errorResponse(AgentIsWorking)
-                | Error e -> errorResponse(e)
+                | Ok _    -> x.ErrorResponse(AgentIsWorking)
+                | Error e -> x.ErrorResponse(e)
 
             | GetStatistics sessionId ->
                 match scnHost.IsWorking() with
                 | Ok w when w = false -> scnHost.GetStatistics()
                                          |> response
-                | Ok _    -> errorResponse(AgentIsWorking)
-                | Error e -> errorResponse(e)
+                | Ok _    -> x.ErrorResponse(AgentIsWorking)
+                | Error e -> x.ErrorResponse(e)
 
 let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =        
     let listenUrl = Http.createUrl("*", settings.Port, settings.ClusterId)
@@ -76,8 +81,8 @@ let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =
     server.Start().Wait()
     server.Stop()
 
-let create (dep: Dependency, registeredScenarios: Scenario[]) =
-    let scnsWithoutInit = registeredScenarios |> Array.map(fun x -> { x with TestInit = None; TestClean = None } )
+let create (dep: Dependency, registeredScns: Scenario[]) =
+    let scnsWithoutInit = registeredScns |> Array.map(fun x -> { x with TestInit = None; TestClean = None } )
     let scnHost = ScenariosHost(dep, scnsWithoutInit)
     let agentId = generateAgentId()    
     ClusterAgent(agentId, scnHost)

@@ -1,12 +1,9 @@
 ﻿module internal rec NBomber.DomainServices.Reporting.TxtReport
 
 open System
-
 open ConsoleTables
-
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
+open NBomber.Errors
 
 let print (stats: NodeStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats
@@ -16,11 +13,7 @@ let print (stats: NodeStats, failedAsserts: DomainError[]) =
     |> String.concat(Environment.NewLine)
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    String.Format("Scenario: '{0}', Duration time: '{1}', RPS: '{2}', Concurrent Copies: '{3}'",
-                  scnStats.ScenarioName,
-                  scnStats.Duration,
-                  scnStats.RPS,
-                  scnStats.ConcurrentCopies)
+    sprintf "Scenario: '%s', Duration time: '%A', RPS: '%i', Concurrent Copies: '%i'" scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
 
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
     let getAssertNumberAndLabel (failedAssert) =
@@ -38,12 +31,12 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
     steps    
     |> Array.iteri(fun i s ->         
         stepTable.AddRow("- name", s.StepName) |> ignore
-        stepTable.AddRow("- request count", String.Format("all = {0} | OK = {1} | failed = {2}", s.ReqeustCount, s.OkCount, s.FailCount)) |> ignore
-        stepTable.AddRow("- response time", String.Format("RPS = {0} | min = {1} | mean = {2} | max = {3} ", s.RPS, s.Min, s.Mean, s.Max)) |> ignore
-        stepTable.AddRow("- response time percentile", String.Format("50% = {0} | 75% = {1} | 95% = {2} | StdDev = {3}", s.Percent50, s.Percent75, s.Percent95, s.StdDev)) |> ignore
+        stepTable.AddRow("- request count", sprintf "all = %i | OK = %i | failed = %i" s.ReqeustCount s.OkCount s.FailCount) |> ignore
+        stepTable.AddRow("- response time", sprintf "RPS = %i | min = %i | mean = %i | max = %i" s.RPS s.Min s.Mean s.Max) |> ignore
+        stepTable.AddRow("- response time percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.StdDev) |> ignore
         
         if dataInfoAvailable then
-            stepTable.AddRow("- data transfer", String.Format("min = {0}Kb | mean = {1}Kb | max = {2}Kb | all = {3}MB", s.DataTransfer.MinKb, s.DataTransfer.MeanKb, s.DataTransfer.MaxKb, s.DataTransfer.AllMB)) |> ignore
+            stepTable.AddRow("- data transfer", sprintf "min = %gKb | mean = %gKb | max = %gKb | all = %gMB" s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB) |> ignore
         else
             stepTable.AddRow("- data transfer", "min = - | mean = - | max = - | all = -") |> ignore
 

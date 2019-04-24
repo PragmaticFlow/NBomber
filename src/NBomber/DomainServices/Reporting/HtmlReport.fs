@@ -2,8 +2,9 @@
 
 open System
 
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
+open NBomber.Extensions
+open NBomber.Domain
+open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.ResourceManager
 open NBomber.Infra.Dependency
@@ -45,7 +46,7 @@ module NumberReqChart =
 
         { Html = html; Js = js }
 
-module StatisticsTable =    
+module StatisticsTable =        
 
     let print (assets: Assets, scnStats: ScenarioStats[], failedAsserts: DomainError[]) =     
 

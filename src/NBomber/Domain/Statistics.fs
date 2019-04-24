@@ -5,8 +5,7 @@ open System
 open HdrHistogram
 
 open NBomber.Contracts
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
+open NBomber.Domain
 
 let create (nodeStats: NodeStats) =
     
@@ -31,7 +30,7 @@ let create (nodeStats: NodeStats) =
 
     nodeStats.AllScenariosStats
     |> Array.collect(fun scn -> 
-        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))
+        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))    
 
 let buildHistogram (latencies) =    
     let histogram = LongHistogram(TimeStamp.Hours(24), 3)
@@ -111,14 +110,14 @@ module StepResults =
               Results = results |> Array.collect(fun x -> x.Results)
               DataTransfer = dataTransfer })
 
-    let create (stepName, results: (Response*Latency)[]) =
+    let create (stepName: string) (results: (Response*Latency)[]) =
         { StepName = stepName 
           Results = results
           DataTransfer = calcDataTransfer(results) }
 
 module StepStats = 
 
-    let create (scenarioDuration: TimeSpan) (stepResults: StepResults) =        
+    let create (scnDuration: TimeSpan) (stepResults: StepResults) =        
         let okLatencies = stepResults.Results |> Array.filter(fun (res,_) -> res.IsOk) |> Array.map(snd)       
         let histogram = buildHistogram(okLatencies)
         
@@ -127,7 +126,7 @@ module StepStats =
           ReqeustCount = stepResults.Results.Length          
           OkCount = okLatencies.Length
           FailCount = stepResults.Results.Length - okLatencies.Length
-          RPS = calcRPS(okLatencies, scenarioDuration)
+          RPS = calcRPS(okLatencies, scnDuration)
           Min = calcMin(okLatencies)
           Mean = calcMean(okLatencies)
           Max = calcMax(okLatencies)
@@ -137,21 +136,21 @@ module StepStats =
           StdDev = calcStdDev(histogram)
           DataTransfer = stepResults.DataTransfer } 
           
-    let merge (stepsStats: StepStats[], scenarioActiveTime: TimeSpan) = 
+    let merge (stepsStats: StepStats[]) (scnDuration: TimeSpan) = 
         stepsStats
         |> Array.groupBy(fun x -> x.StepName)
         |> Array.map(fun (name, stats) -> 
             let dataTransfer = stats |> Array.map(fun x -> x.DataTransfer) |> StepResults.mergeTraffic
             let okLatencies = stats |> Array.collect(fun x -> x.OkLatencies)
-            let histogram = buildHistogram(okLatencies)            
-            let failCount = stepsStats |> Array.sumBy(fun x -> x.FailCount)
+            let histogram = buildHistogram(okLatencies)
+            let failCount = stats |> Array.sumBy(fun x -> x.FailCount)
 
             { StepName = name
               OkLatencies = okLatencies
               ReqeustCount = okLatencies.Length + failCount
               OkCount = okLatencies.Length
               FailCount = failCount
-              RPS = calcRPS(okLatencies, scenarioActiveTime)
+              RPS = calcRPS(okLatencies, scnDuration)
               Min = calcMin(okLatencies)
               Mean = calcMean(okLatencies)
               Max = calcMax(okLatencies)
@@ -161,12 +160,7 @@ module StepStats =
               StdDev = calcStdDev(histogram)
               DataTransfer = dataTransfer }) 
 
-module ScenarioStats =        
-
-    let calcPausedTime (scenario: Scenario) =
-        scenario.Steps
-        |> Array.sumBy(fun x -> match x with | Pause time -> time.Ticks | _ -> int64 0)
-        |> TimeSpan
+module ScenarioStats =
 
     let calcLatencyCount (stepsStats: StepStats[]) = 
         let a = stepsStats |> Array.collect(fun x -> x.OkLatencies |> Array.filter(fun x -> x < 800))
@@ -176,11 +170,10 @@ module ScenarioStats =
           More800Less1200 = b.Length
           More1200 = c.Length } 
 
-    let createByStepStats (scenario: Scenario, stepsStats: StepStats[]) =
-        let activeTime = scenario.Duration - calcPausedTime(scenario)
-        let mergedStepsStats = StepStats.merge(stepsStats, activeTime)
+    let createByStepStats (scenario: Scenario) (stepsStats: StepStats[]) =        
+        let mergedStepsStats = StepStats.merge stepsStats scenario.Duration
 
-        let latencyCount = calcLatencyCount(mergedStepsStats)
+        let latencyCount = calcLatencyCount mergedStepsStats
 
         let allOkCount = mergedStepsStats |> Array.sumBy(fun x -> x.OkCount)
         let allFailCount = mergedStepsStats |> Array.sumBy(fun x -> x.FailCount)
@@ -192,14 +185,14 @@ module ScenarioStats =
           ConcurrentCopies = scenario.ConcurrentCopies
           OkCount = allOkCount
           FailCount = allFailCount
-          LatencyCount = latencyCount
-          ActiveTime = activeTime
+          LatencyCount = latencyCount          
           Duration = scenario.Duration }         
 
-    let create (scenario: Scenario) (stepsResults: StepResults[]) =        
-        let activeTime = scenario.Duration - calcPausedTime(scenario)
-        let stepsStats = stepsResults |> StepResults.merge |> Array.map(StepStats.create(activeTime))
-        createByStepStats(scenario, stepsStats)
+    let create (scenario: Scenario) (stepsResults: StepResults[]) =
+        stepsResults
+        |> StepResults.merge
+        |> Array.map(StepStats.create scenario.Duration)
+        |> createByStepStats scenario        
 
 module NodeStats =
 
@@ -229,6 +222,5 @@ module NodeStats =
         |> Array.groupBy(fun x -> x.ScenarioName)
         |> Array.map(fun (scnName, allStats) -> 
             let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)
-            let allSteps = allStats |> Array.collect(fun x -> x.StepsStats)
-            ScenarioStats.createByStepStats(scn, allSteps))
-        |> create(meta)
+            allStats |> Array.collect(fun x -> x.StepsStats) |> ScenarioStats.createByStepStats scn)             
+        |> create meta

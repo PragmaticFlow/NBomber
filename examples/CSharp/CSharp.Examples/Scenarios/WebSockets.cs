@@ -30,7 +30,7 @@ namespace CSharp.Examples.Scenarios
             });
             //connectionsCount: 50);
 
-            var pingStep = Step.CreateAction("ping", webSocketsPool, async context =>
+            var pingStep = Step.Create("ping", webSocketsPool, async context =>
             {
                 var msg = new WebSocketRequest
                 {
@@ -42,7 +42,7 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            var pongStep = Step.CreateAction("pong", webSocketsPool, async context =>
+            var pongStep = Step.Create("pong", webSocketsPool, async context =>
             {
                 while (true)
                 {

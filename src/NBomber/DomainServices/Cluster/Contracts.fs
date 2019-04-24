@@ -1,7 +1,7 @@
 ﻿module internal NBomber.DomainServices.Cluster.Contracts
 
 open NBomber.Configuration
-open NBomber.Domain.Errors
+open NBomber.Errors
 
 type AgentCommand =
     | NewSession  of sessionId:string * settings:ScenarioSetting[] * targetScenarios:string[]    
@@ -13,5 +13,5 @@ type AgentCommand =
 type AgentResponse = {
     AgentId: string
     Data: obj option
-    Error: DomainError option
+    Error: AppError option
 }

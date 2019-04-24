@@ -4,23 +4,23 @@ open System.Threading.Tasks
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open FsToolkit.ErrorHandling
 
+open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
-open NBomber.Domain.Errors
 open NBomber.Domain.Statistics
+open NBomber.Errors
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenarioRunner
 
 type IScenariosHost =
     abstract GetRegisteredScenarios: unit -> Scenario[]
-    abstract IsWorking: unit -> Result<bool,DomainError>        
-    abstract InitScenarios: ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,DomainError>>
+    abstract IsWorking: unit -> Result<bool,AppError>        
+    abstract InitScenarios: ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,AppError>>
     abstract WarmUpScenarios: unit -> Task<unit>
-    abstract RunBombing: unit -> Task<unit>
+    abstract StartBombing: unit -> Task<unit>
     abstract StopScenarios: unit -> unit
     abstract GetStatistics: unit -> NodeStats
 
@@ -84,6 +84,12 @@ let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
     |> Array.map(fun x -> x.GetResult())
     |> NodeStats.create(meta)
 
+let printTargetScenarios (scenarios: Scenario[]) = 
+    scenarios
+    |> Array.map(fun x -> x.ScenarioName)
+    |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
+    |> fun _ -> scenarios
+
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable scnRunners = None
@@ -91,17 +97,18 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     let statsMeta = { SessionId = dep.SessionId; NodeName = dep.NodeInfo.NodeName; Sender = dep.NodeType }
     let startedWork () = isWorking <- Ok true
     let stoppedWork () = isWorking <- Ok false
-    let failed (error) = isWorking <- Error error
+    let failed (error: DomainError) = isWorking <- AppError.createResult(error)
 
     interface IScenariosHost with
         member x.GetRegisteredScenarios() = registeredScenarios
-        member x.IsWorking() = isWorking        
-
-        member x.InitScenarios(settings, targetScenarios) = task {
+        member x.IsWorking() = isWorking                
+        
+        member x.InitScenarios(settings, targetScenarios) = task {            
             startedWork()
             let! results = registeredScenarios
-                           |> ScenarioBuilder.applyScenariosSettings(settings)
-                           |> ScenarioBuilder.filterTargetScenarios(targetScenarios)
+                           |> Scenario.applySettings(settings)
+                           |> Scenario.filterTargetScenarios(targetScenarios)
+                           |> printTargetScenarios
                            |> initScenarios
             
             match results with
@@ -110,7 +117,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                          return Ok() 
             
             | Error e -> failed(e)
-                         return Error e
+                         return AppError.createResult(e)
         }
 
         member x.WarmUpScenarios() = task {
@@ -121,7 +128,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                 stoppedWork()       
         }
 
-        member x.RunBombing() = task {
+        member x.StartBombing() = task {
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value) 
@@ -134,3 +141,16 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
             match scnRunners with
             | Some v -> getResults(statsMeta, v)
             | None   -> NodeStats.create statsMeta Array.empty
+
+let create (dep: Dependency, registeredScns: Scenario[]) =
+    ScenariosHost(dep, registeredScns) :> IScenariosHost
+
+let run (scnSettings: ScenarioSetting[], targetScns: ScenarioName[])
+        (scnHost: IScenariosHost) = asyncResult {    
+    
+    do! scnHost.InitScenarios(scnSettings, targetScns)
+    do! scnHost.WarmUpScenarios()
+    do! scnHost.StartBombing()
+    scnHost.StopScenarios()
+    return scnHost.GetStatistics()
+}

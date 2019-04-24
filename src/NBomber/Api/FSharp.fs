@@ -5,7 +5,7 @@ open System.Threading.Tasks
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain.DomainTypes
+open NBomber.Domain
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
@@ -24,7 +24,7 @@ type ConnectionPool =
 
 module Step =        
 
-    let createAction (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
+    let create (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
         let p = pool :?> ConnectionPool<'TConnection>
         
         let newOpen = fun () -> p.OpenConnection() :> obj
@@ -47,19 +47,17 @@ module Step =
                                    Payload = context.Payload }
                 execute(newContext)
 
-        Action({ StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None }) :> IStep
-
-    let createPause (duration) = Pause(duration) :> IStep    
+        { StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None } :> IStep
 
 type Assertion =
 
     static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =         
-        Domain.DomainTypes.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
+        Domain.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
 
 module Scenario =        
     open System.Threading
     
-    let create (name: string, steps: IStep list): Contracts.Scenario =
+    let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
@@ -77,7 +75,7 @@ module Scenario =
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
         let asrts = assertions
-                    |> Seq.cast<Domain.DomainTypes.Assertion>
+                    |> Seq.cast<Domain.Assertion>
                     |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
                     |> Seq.map(fun x -> x :> IAssertion)
                     |> Seq.toArray
@@ -103,7 +101,7 @@ module NBomberRunner =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|]
+          ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
           StatisticsSink = None }
 
     let registerScenario (scenario: Contracts.Scenario) = 
@@ -112,13 +110,12 @@ module NBomberRunner =
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
-        let formats = reportFormats |> List.toArray
-        { context with ReportFormats = formats }    
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =        
+        { context with ReportFormats = reportFormats }    
 
     let loadConfig (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
-        { context with NBomberConfig = config }
+        { context with NBomberConfig = Some config }
 
     let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
         { context with StatisticsSink = Some statisticsSink }

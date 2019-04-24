@@ -1,14 +1,12 @@
 ﻿module Tests.Statistics
 
 open System
-
 open Xunit
 open FsCheck.Xunit
-
 open NBomber.Domain
 
 [<Property>]
-let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: int[], scnDuration: TimeSpan) =
+let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency[], scnDuration: TimeSpan) =
     let result = Statistics.calcRPS(latencies, scnDuration)
 
     if latencies.Length = 0 then
@@ -21,21 +19,21 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
         Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result   = Statistics.calcMin(latencies)    
     let expected = if Array.isEmpty latencies then 0
                    else Array.min(latencies)
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMean    
     let expected = if Array.isEmpty latencies then 0
                    else latencies |> Array.map(float) |> Array.average |> int
     Assert.Equal(expected, result)
 
 [<Property>]
-let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: int[]) =
+let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMax    
     let expected = if Array.isEmpty latencies then 0
                    else Array.max(latencies)

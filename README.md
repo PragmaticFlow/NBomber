@@ -4,6 +4,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/kko2ro88xry274do?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
+[![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Very simple load testing framework for Pull and Push scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
@@ -16,8 +17,14 @@ PM> Install-Package NBomber
 ### Documentation
 Documentation is located [here](https://nbomber.com).
 
-### How to run a simple scenario
-![how to run a scenario gif](https://github.com/PragmaticFlow/NBomber/blob/master/assets/howToRunScenario.gif)
+### Run test scenario
+![how to run a scenario gif](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_run.gif)
+
+### View report
+![view report](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_report.jpg)
+
+### Analyze trends
+![analyze trends](https://github.com/PragmaticFlow/NBomber/blob/dev/assets/influx_trends.png)
 
 ### Features
 - [x] Pull scenario (Request-response)
@@ -54,7 +61,7 @@ The main reasons are:
  ### What makes it very simple? 
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
-var step1 = Step.CreateAction("simple step", ConnectionPool.None, async context =>
+var step1 = Step.Create("simple step", ConnectionPool.None, async context =>
 {
     // you can do any logic here: go to http, websocket etc
     // NBomber will measure execution of this lambda function

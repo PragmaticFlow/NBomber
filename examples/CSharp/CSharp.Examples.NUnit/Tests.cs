@@ -12,7 +12,7 @@ namespace CSharp.Examples.NUnit
     {
         Scenario BuildScenario()
         {   
-            var step1 = Step.CreateAction("simple step", ConnectionPool.None, async context =>
+            var step1 = Step.Create("simple step", ConnectionPool.None, async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
                 return Response.Ok(sizeBytes: 1024);

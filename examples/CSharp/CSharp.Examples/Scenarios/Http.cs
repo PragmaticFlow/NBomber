@@ -10,20 +10,21 @@ namespace CSharp.Examples.Scenarios
     {
         public static Scenario BuildScenario()
         {
-            HttpRequestMessage CreateHttpRequest()
+            HttpRequestMessage CreateHttpRequest(Uri requestUrl)
             {
                 var msg = new HttpRequestMessage();
-                msg.RequestUri = new Uri("https://www.youtube.com/");
+                msg.RequestUri = requestUrl;
                 msg.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
                 msg.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36");
                 return msg;
             }
 
             var httpClient = new HttpClient();
+            var url = new Uri("https://nbomber.com");
 
-            var step1 = Step.CreateAction("GET html", ConnectionPool.None, async context =>
+            var step1 = Step.Create("GET html", ConnectionPool.None, async context =>
             {
-                var request = CreateHttpRequest();
+                var request = CreateHttpRequest(url);
 
                 var response = await httpClient.SendAsync(request, context.CancellationToken);
 
@@ -36,7 +37,7 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("test_youtube", step1);                           
+            return ScenarioBuilder.CreateScenario("nbomber.com", step1);                           
         }
     }
 }

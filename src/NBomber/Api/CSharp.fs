@@ -9,19 +9,19 @@ open System.Runtime.InteropServices
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Configuration
 
 type ConnectionPool =
-    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.DomainTypes.Constants.DefaultConnectionsCount)>] ?connectionsCount: int) = 
+    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.Constants.DefaultConnectionsCount)>] ?connectionsCount: int) = 
         let close = if isNull closeConnection then (new Action<'TConnection>(fun _ -> ()))
                     else closeConnection
-        let count = defaultArg connectionsCount Domain.DomainTypes.Constants.DefaultConnectionsCount
+        let count = defaultArg connectionsCount Domain.Constants.DefaultConnectionsCount
         FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)    
     
     static member None = FSharp.ConnectionPool.none
 
 type Step =    
-    static member CreateAction(name: string, pool: IConnectionPool<'TConnection>, execute: Func<StepContext<'TConnection>,Task<Response>>) = FSharp.Step.createAction(name, pool, execute.Invoke)    
-    static member CreatePause(duration) = FSharp.Step.createPause(duration)
+    static member Create(name: string, pool: IConnectionPool<'TConnection>, execute: Func<StepContext<'TConnection>,Task<Response>>) = FSharp.Step.create(name, pool, execute.Invoke)        
 
 type Assertion =    
     static member ForStep (stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
@@ -32,7 +32,7 @@ type Assertion =
 type ScenarioBuilder =
 
     static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
-        FSharp.Scenario.create(name, Seq.toList(steps))
+        FSharp.Scenario.create name (Seq.toList steps)
     
     [<Extension>]
     static member WithTestInit(scenario: Scenario, initFunc: Func<CancellationToken,Task>) = 
