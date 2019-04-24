@@ -50,10 +50,9 @@
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
   <ItemGroup>    
-    <PackageReference Include="Cvdm.ErrorHandling" Version="2.0.0" />    
     <PackageReference Include="FSharp.Core" Version="4.6.2" />
     <PackageReference Include="FSharp.Json" Version="0.3.5" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="0.0.14" />    
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.0.0" />    
     <PackageReference Include="HdrHistogram" Version="2.5.0" />    
     <PackageReference Include="Serilog" Version="2.8.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />

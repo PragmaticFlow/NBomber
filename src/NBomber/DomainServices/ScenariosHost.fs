@@ -4,6 +4,7 @@ open System.Threading.Tasks
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open FsToolkit.ErrorHandling
 
 open NBomber.Extensions
 open NBomber.Configuration

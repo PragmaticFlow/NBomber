@@ -1,5 +1,7 @@
 ﻿module internal NBomber.DomainServices.Cluster.ClusterCoordinator
 
+open FsToolkit.ErrorHandling
+
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain

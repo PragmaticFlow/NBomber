@@ -1,7 +1,7 @@
 ﻿namespace NBomber.Extensions
 
 open System.Threading.Tasks
-open FsToolkit.ErrorHandling.CE.Result
+open FsToolkit.ErrorHandling
 
 [<AutoOpen>]
 module internal Extensions =

@@ -115,5 +115,4 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =
             if x.ScenarioName = scn.ScenarioName then Some(scn, x)
             else None)
         |> Option.map(updateScenario)
-        |> Option.orElse(Some scn)
-        |> Option.get)
+        |> Option.defaultValue(scn))

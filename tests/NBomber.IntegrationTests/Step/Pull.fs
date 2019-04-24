@@ -57,17 +57,17 @@ let ``Warmup should not have effect on stats`` () =
     })
 
     let assertions = [
-       Assertion.forStep("ok step", fun stats -> stats.OkCount = 0 )
+       Assertion.forStep("ok step", fun stats -> stats.OkCount <= 5)
        Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
 
        Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
-       Assertion.forStep("fail step", fun stats -> stats.FailCount = 0)
+       Assertion.forStep("fail step", fun stats -> stats.FailCount <= 5)
     ]
     
     Scenario.create "warmup test" [okStep; failStep]
     |> Scenario.withConcurrentCopies 1
     |> Scenario.withAssertions assertions
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.5)
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
     |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
