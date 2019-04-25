@@ -1,6 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>PragmaticFlow</Authors>
+    <Company>PragmaticFlow</Company>
+    <Version>0.11.0</Version>
+    <Copyright>PragmaticFlow@2019</Copyright>
+    <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_icon.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
+    <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description>Very simple load testing framework for Pull and Push scenarios.</Description>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="assets\assets.zip" />

@@ -63,15 +63,18 @@ Task("Test")
     }
 });
 
-Task("Pack")   
-    .IsDependentOn("Build")
+Task("Pack")    
+	.IsDependentOn("Build")
     .Does(() =>
 {
-	NuGetPack("./NBomber.nuspec", new NuGetPackSettings
-	{
-        Version = version,
-		OutputDirectory = "./artifacts/"		
-	});
+    var settings = new DotNetCorePackSettings
+    {
+        OutputDirectory = "./artifacts/",
+        NoBuild = true,
+        Configuration = configuration              
+    };
+
+	DotNetCorePack(project, settings);     
 });
 
 Task("Default")

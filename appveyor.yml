@@ -7,7 +7,7 @@ branches:
     - tests
 
 build_script:
-  - ps: .\build.ps1 -target=Pack
+  - ps: .\build.ps1 -target=Build
 
 test_script:
   - ps: .\build.ps1 -target=Test
