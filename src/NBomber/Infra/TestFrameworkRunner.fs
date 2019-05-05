@@ -7,7 +7,7 @@ type TestFramework =
     | Xunit of Type
     | Nunit of Type
 
-let private printErrorMessage (framework: TestFramework) (errorsMessage: string) =
+let private printErrorMessage framework errorsMessage =
     match framework with
     | Xunit xType ->
         let m = xType.GetMethod("True", [|typeof<bool>; typeof<string>|])
@@ -20,26 +20,14 @@ let private printErrorMessage (framework: TestFramework) (errorsMessage: string)
         func.Invoke errorsMessage
 
 let tryGetCurrentFramework () =
-    let xUnit1 =
-        "Xunit.Assert, xunit"
-        |> Type.GetType
+    [ "Xunit.Assert, xunit", Xunit
+      "Xunit.Assert, xunit.assert", Xunit
+      "NUnit.Framework.Assert, nunit.framework", Nunit
+    ] |> List.tryPick( fun (typeName, ctor) ->
+        Type.GetType typeName
         |> Option.ofObj
-        |> Option.map Xunit
-
-    let xUnit2 =
-        "Xunit.Assert, xunit.assert"
-        |> Type.GetType
-        |> Option.ofObj
-        |> Option.map Xunit
-
-    let nUnit =
-        "NUnit.Framework.Assert, nunit.framework"
-        |> Type.GetType
-        |> Option.ofObj
-        |> Option.map Nunit
-
-
-    [xUnit1; xUnit2; nUnit] |> List.tryPick id
+        |> Option.map ctor
+    )
 
 let showErrors (error: AppError[]) =
     match tryGetCurrentFramework() with

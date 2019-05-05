@@ -41,9 +41,11 @@ let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
         return allStats
     }
 
-let createStats (sessionId: string, nodeName: string,
+let createStats (sessionId: string,
+                 nodeName: string,
                  registeredScenarios: Scenario[],
-                 scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) =
+                 scnSettings: ScenarioSetting[],
+                 allNodeStats: NodeStats[]) =
 
     let meta = { SessionId = sessionId
                  NodeName = nodeName

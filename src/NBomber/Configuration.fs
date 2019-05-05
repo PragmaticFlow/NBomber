@@ -1,6 +1,7 @@
 ﻿namespace NBomber.Configuration
 
 open System
+open System.IO
 
 type ReportFormat =
     | Txt = 0
@@ -51,5 +52,8 @@ type NBomberConfig = {
 module internal NBomberConfig =
     open FSharp.Json
 
-    let parse json =
-        Json.deserialize<NBomberConfig> json
+    let load path =
+        path
+        |> File.ReadAllText
+        |> Json.deserialize<NBomberConfig>
+        |> Some

@@ -4,6 +4,7 @@ open System
 open System.Threading.Tasks
 
 open NBomber
+open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Infra.Dependency
@@ -136,8 +137,7 @@ module NBomberRunner =
         { context with ReportFormats = reportFormats }
 
     let loadConfig (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> NBomberConfig.parse
-        { context with NBomberConfig = Some config }
+        { context with NBomberConfig = NBomberConfig.load path }
 
     let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
         { context with StatisticsSink = Some statisticsSink }

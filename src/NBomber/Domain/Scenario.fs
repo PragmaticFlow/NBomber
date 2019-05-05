@@ -79,7 +79,7 @@ let clean (scenario: Scenario) =
     let closePoolConnections pool =
         for connection in pool.AliveConnections do
             try
-                pool.CloseConnection |> Option.iter( fun close -> close connection)
+                pool.CloseConnection |> Option.iter (fun close -> close connection)
                 invokeDispose connection
             with
             | ex -> Serilog.Log.Error(ex, "CloseConnection")

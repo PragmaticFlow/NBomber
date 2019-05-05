@@ -76,8 +76,9 @@ module StatisticsTable =
             
             let rowStr = row.Remove(0, 4)
 
-            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>",
-                                           scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
+            let tableTitle =
+                sprintf "Statistics for Scenario: <b>%s</b>, Duration: <b>%A</b>, RPS: <b>%i</b>, Concurrent Copies: <b>%i</b>" 
+                        scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
             
             assets.StatisticsTableHtml
             |> String.replace("%assertions%", assertionsStr)
@@ -90,8 +91,8 @@ module StatisticsTable =
 
 module ScenarioView =    
         
-    let createViewId (index: int) = String.Format("scenario-view-{0}", index)
-    let createName (index: int) = String.Format("Scenario {0}", index)
+    let createViewId index = sprintf "scenario-view-%i" index
+    let createName index = sprintf "Scenario %i" index
 
     let print (assets: Assets, index: int, scnStats: ScenarioStats, failedAsserts: DomainError[]) = 
 
