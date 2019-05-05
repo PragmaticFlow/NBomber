@@ -12,7 +12,7 @@ type Response = {
     SizeBytes: int
 }
 
-type NodeType = 
+type NodeType =
     | SingleNode
     | Coordinator
     | Agent
@@ -24,7 +24,7 @@ type StatisticsMeta = {
     Sender: NodeType
 }
 
-type Statistics = {    
+type Statistics = {
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -54,7 +54,7 @@ type StepContext<'TConnection> = {
 }
 
 type IStep = interface end
-type IAssertion = interface end  
+type IAssertion = interface end
 
 type Scenario = {
     ScenarioName: string
@@ -72,13 +72,26 @@ type IStatisticsSink =
 
 type NBomberContext = {
     Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option  
+    NBomberConfig: NBomberConfig option
     ReportFileName: string option
     ReportFormats: ReportFormat list
     StatisticsSink: IStatisticsSink option
 }
 
 type Response with
-    static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj, [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) = { IsOk = true; Payload = payload; SizeBytes = sizeBytes }
-    static member Ok(payload: byte[]) = { IsOk = true; Payload = payload; SizeBytes = if isNull(payload) then 0 else Array.length(payload)}
-    static member Fail() = { IsOk = false; Payload = null; SizeBytes = 0 }
+    static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
+                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) = {
+        IsOk = true
+        Payload = payload
+        SizeBytes = sizeBytes
+    }
+    static member Ok(payload: byte[]) = {
+        IsOk = true
+        Payload = payload
+        SizeBytes = if isNull payload then 0 else Array.length payload
+    }
+    static member Fail() = {
+        IsOk = false
+        Payload = null
+        SizeBytes = 0
+    }

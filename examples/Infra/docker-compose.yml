@@ -1,12 +1,12 @@
 ﻿version: '3.4'
 services:
 
-  mongo: 
+  mongo:
     image: mongo:4.0.3
     container_name: mongo_db_1
     ports:
       - "27017:27017"
-  
+
   influxdb:
     image: "influxdb:1.5.4"
     networks:
@@ -26,7 +26,7 @@ services:
       - "GF_SERVER_ROOT_URL=http://grafana:6082"
     depends_on:
       - influxdb
-  
+
 networks:
   local:
     driver: bridge

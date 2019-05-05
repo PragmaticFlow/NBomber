@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using System.Net;
 
 namespace TestServer
 {
@@ -13,9 +12,9 @@ namespace TestServer
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args)                
+            return WebHost.CreateDefaultBuilder(args)
                 .UseKestrel(options =>
-                {                    
+                {
                     options.ListenLocalhost(5000);
                 })
                 .UseStartup<Startup>();

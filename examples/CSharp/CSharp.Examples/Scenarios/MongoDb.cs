@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +26,7 @@ namespace CSharp.Examples.Scenarios
         {
             var db = new MongoClient().GetDatabase("Test");
 
-            Task initDb(CancellationToken token)
+            Task InitDb(CancellationToken token)
             {
                 var testData = Enumerable.Range(0, 2000)
                     .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
@@ -42,14 +41,14 @@ namespace CSharp.Examples.Scenarios
 
             var step1 = Step.Create("read IsActive = true and TOP 500", ConnectionPool.None, async context =>
             {
-                await usersCollection.Find(u => u.IsActive == true)
+                await usersCollection.Find(u => u.IsActive)
                                      .Limit(500)
                                      .ToListAsync(context.CancellationToken);
                 return Response.Ok();
             });
 
             return ScenarioBuilder.CreateScenario("test_mongo", step1)
-                                  .WithTestInit(initDb);                                  
+                                  .WithTestInit(InitDb);
         }
     }
 }

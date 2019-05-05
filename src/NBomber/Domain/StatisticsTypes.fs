@@ -16,18 +16,18 @@ type internal LatencyCount = {
     More1200: int
 }
 
-type internal StepResults = {     
+type internal StepResults = {
     StepName: string
-    Results: (Response*Latency)[]    
+    Results: (Response*Latency)[]
     DataTransfer: DataTransferCount
 }
 
 type internal StepStats = {
     StepName: string
     OkLatencies: Latency[]
-    ReqeustCount: int    
+    ReqeustCount: int
     OkCount: int
-    FailCount: int   
+    FailCount: int
     RPS: int
     Min: Latency
     Mean: Latency
@@ -40,17 +40,17 @@ type internal StepStats = {
 }
 
 type internal ScenarioStats = {
-    ScenarioName: string    
+    ScenarioName: string
     StepsStats: StepStats[]
     RPS: int
-    ConcurrentCopies: int    
+    ConcurrentCopies: int
     OkCount: int
     FailCount: int
-    LatencyCount: LatencyCount    
+    LatencyCount: LatencyCount
     Duration: TimeSpan
 }
 
-type internal NodeStats = {    
+type internal NodeStats = {
     AllScenariosStats: ScenarioStats[]
     OkCount: int
     FailCount: int

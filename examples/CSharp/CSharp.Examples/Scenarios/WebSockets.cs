@@ -4,8 +4,7 @@ using System.Threading;
 
 using NBomber.Contracts;
 using NBomber.CSharp;
-
-using TestServer.Utils;
+using TestServer;
 using TestServer.WebSockets;
 
 namespace CSharp.Examples.Scenarios
@@ -46,7 +45,7 @@ namespace CSharp.Examples.Scenarios
             {
                 while (true)
                 {
-                    var (response, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection, context.CancellationToken);
+                    var (_, message) = await WebSocketsMiddleware.ReadFullMessage(context.Connection, context.CancellationToken);
                     var msg = MsgConverter.FromJsonByteArray<WebSocketResponse>(message);
 
                     if (msg.CorrelationId == context.CorrelationId)
@@ -56,7 +55,7 @@ namespace CSharp.Examples.Scenarios
                 }
             });
 
-            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);                          
+            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);
         }
     }
 }

@@ -67,16 +67,17 @@ module StatisticsTable =
 
             dataTransferBlock |> List.append data |> HtmlBuilder.toTableRow
 
-        let printScenarioTable (scnStats) =  
-            let assertionsStr = HtmlBuilder.toListGroup(failedAsserts)
+        let printScenarioTable scnStats =  
+            let assertionsStr = HtmlBuilder.toListGroup failedAsserts
 
             let row = scnStats.StepsStats
-                      |> Array.map(fun step -> printStepRow(step))
-                      |> String.concat(String.Empty)                      
+                      |> Array.map(fun step -> printStepRow step)
+                      |> String.concat String.Empty
             
             let rowStr = row.Remove(0, 4)
 
-            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>", scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
+            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>",
+                                           scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
             
             assets.StatisticsTableHtml
             |> String.replace("%assertions%", assertionsStr)
@@ -84,8 +85,8 @@ module StatisticsTable =
             |> String.replace("%table_body%", "<tr>" + rowStr)
 
         scnStats
-        |> Array.map(printScenarioTable)
-        |> String.concat(String.Empty)        
+        |> Array.map printScenarioTable
+        |> String.concat String.Empty        
 
 module ScenarioView =    
         
@@ -94,8 +95,8 @@ module ScenarioView =
 
     let print (assets: Assets, index: int, scnStats: ScenarioStats, failedAsserts: DomainError[]) = 
 
-        let viewId = createViewId(index)
-        let label = createName(index)
+        let viewId = createViewId index
+        let label = createName index
 
         let indicatorsChart = IndicatorsChart.print(assets, viewId, label, scnStats.LatencyCount, scnStats.FailCount)
         let numberReqChart = NumberReqChart.print(assets, viewId, scnStats.OkCount, scnStats.FailCount)
@@ -161,8 +162,8 @@ module ContentView =
         let scnViews =
             if stats.AllScenariosStats.Length > 1 then
                 let scnViews = stats.AllScenariosStats |> Array.mapi(fun i x -> ScenarioView.print(dep.Assets, i+1,x, failedAsserts))
-                let scnHtml = scnViews |> Array.map(fun x -> x.Html) |> String.concat(String.Empty)
-                let scnJs = scnViews |> Array.map(fun x -> x.Js) |> String.concat(String.Empty)
+                let scnHtml = scnViews |> Array.map(fun x -> x.Html) |> String.concat String.Empty
+                let scnJs = scnViews |> Array.map(fun x -> x.Js) |> String.concat String.Empty
                 { Html = scnHtml; Js = scnJs }
             else
                 { Html = ""; Js = "" }
@@ -181,10 +182,10 @@ module SideBar =
             |> String.replace("%name%", name)
             |> String.replace("%iconCss%", iconCss)
 
-        let printScenarioItem (index) =
+        let printScenarioItem index =
             let num = index + 1
-            let viewId = ScenarioView.createViewId(num)
-            let name = ScenarioView.createName(num)
+            let viewId = ScenarioView.createViewId num
+            let name = ScenarioView.createName num
             let css = "sub_icon fas fa-arrow-right"
             printItem(assets, viewId, name, css)
 
@@ -194,8 +195,8 @@ module SideBar =
         let scnItems = 
             if stats.AllScenariosStats.Length > 1 then
                 stats.AllScenariosStats
-                |> Array.mapi(fun index _ -> printScenarioItem(index))
-                |> String.concat(String.Empty)
+                |> Array.mapi(fun index _ -> printScenarioItem index)
+                |> String.concat String.Empty
             else
                 String.Empty
 
