@@ -38,7 +38,7 @@ let formatAssertion assertNumber assertLabel =
     | None -> sprintf "<strong>#%i</strong>" assertNumber
 
 let toListGroupItem (failedAssert: DomainError) =
-    match failedAssert with    
+    match failedAssert with
     | AssertionError (assertNumber,Step s, _) ->
         let assertLabel = formatAssertion assertNumber s.Label
         let stepName = htmlEncode s.StepName

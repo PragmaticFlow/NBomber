@@ -19,9 +19,9 @@ let buildScenario () =
     Scenario.create "xunit hello world" [step1]
 
 [<Fact>]
-let ``XUnit test`` () =    
-    
-    let assertions = [       
+let ``XUnit test`` () =
+
+    let assertions = [
        Assertion.forStep("simple step", (fun stats -> stats.OkCount > 2), "OkCount > 2")
        Assertion.forStep("simple step", (fun stats -> stats.RPS > 8), "RPS > 8")
        Assertion.forStep("simple step", (fun stats -> stats.Percent75 >= 102), "Percent75 >= 102")

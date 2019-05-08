@@ -8,7 +8,7 @@
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "nbomber.com" ]    
+    "TargetScenarios": [ "nbomber.com" ]
   },
 
   "ClusterSettings": {

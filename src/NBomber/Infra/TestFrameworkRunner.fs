@@ -9,12 +9,12 @@ type TestFramework =
 
 let private printErrorMessage (framework: TestFramework) (errorsMessage: string) =
     match framework with
-    | Xunit xType -> 
+    | Xunit xType ->
         let m = xType.GetMethod("True", [|typeof<bool>; typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<bool,string>>, m) :?> (Action<bool,string>)
-        func.Invoke(false, errorsMessage)            
+        func.Invoke(false, errorsMessage)
 
-    | Nunit nType -> 
+    | Nunit nType ->
         let m = nType.GetMethod("Fail", [|typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<string>>, m) :?> (Action<string>)
         func.Invoke(errorsMessage)
@@ -37,7 +37,7 @@ let tryGetCurrentFramework () =
 
     [xUnit1; xUnit2; nUnit]
     |> List.tryFind(Option.isSome)
-    |> Option.flatten    
+    |> Option.flatten
 
 let showErrors (error: AppError[]) =
     let framework = tryGetCurrentFramework()

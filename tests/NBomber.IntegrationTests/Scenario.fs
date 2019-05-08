@@ -12,12 +12,12 @@ open NBomber.FSharp
 
 [<Fact>]
 let ``withTestClean should be invoked only once and not fail runner`` () =
-    
+
     let mutable invokeCounter = 0
 
     let testClean = fun _ -> task {
         invokeCounter <- invokeCounter + 1
-        failwith "exception was not handled"        
+        failwith "exception was not handled"
     }
 
     let pool = ConnectionPool.none

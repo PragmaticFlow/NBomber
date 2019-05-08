@@ -19,7 +19,7 @@ type ReportResult = {
 }
 
 //todo: fix stats.[0]
-let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =    
+let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =
     { TxtReport = TxtReport.print(stats.[0], failedAsserts)
       HtmlReport = HtmlReport.print(dep, stats.[0], failedAsserts)
       CsvReport = CsvReport.print(stats.[0])

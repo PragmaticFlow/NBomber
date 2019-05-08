@@ -19,7 +19,7 @@ let private getDuplicates (data: string[]) =
 let private isDurationOk (duration: TimeSpan) =
     duration >= TimeSpan.FromSeconds 1.0
 
-let private isConcurrentCopiesOk (value: int) = 
+let private isConcurrentCopiesOk (value: int) =
     value >= 1
 
 module ScenarioValidation =
@@ -37,21 +37,21 @@ module ScenarioValidation =
     let checkEmptyStepName (scenarios: Contracts.Scenario[]) =
         let scnWithEmptySteps =
             scenarios
-            |> Array.choose(fun x -> 
-                let emptyStepExist = 
+            |> Array.choose(fun x ->
+                let emptyStepExist =
                     x.Steps |> Step.create
                     |> Array.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
-            
+
                 if emptyStepExist then Some x.ScenarioName else None)
 
         if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
         else Error <| EmptyStepName scnWithEmptySteps
 
-    let checkDuplicateStepName (scenarios: Contracts.Scenario[]) =    
-        let duplicates = 
+    let checkDuplicateStepName (scenarios: Contracts.Scenario[]) =
+        let duplicates =
             scenarios
             |> Array.collect(fun x -> x.Steps |> Step.create |> Array.map(fun x -> x.StepName) |> getDuplicates)
-    
+
         if Array.isEmpty(duplicates) then Ok scenarios
         else Error <| DuplicateStepName duplicates
 
@@ -66,7 +66,7 @@ module ScenarioValidation =
         else Error <| ConcurrentCopiesIsWrong invalidScns
 
     let validate (context: NBomberContext) =
-        context.Scenarios 
+        context.Scenarios
         |> checkEmptyName
         >>= checkDuplicateName
         >>= checkEmptyStepName
@@ -93,17 +93,17 @@ module GlobalSettingsValidation =
         let invalidScns =
             globalSettings.ScenariosSettings
             |> List.choose(fun x -> if isDurationOk(x.Duration.TimeOfDay) then None else Some(x.ScenarioName))
-            |> List.toArray                
+            |> List.toArray
 
         if Array.isEmpty(invalidScns) then Ok globalSettings
         else Error <| DurationIsWrong invalidScns
 
     let checkConcurrentCopies (globalSettings: GlobalSettings) =
-        let invalidScns = 
+        let invalidScns =
             globalSettings.ScenariosSettings
             |> List.choose(fun x -> if isConcurrentCopiesOk(x.ConcurrentCopies) then None else Some x.ScenarioName)
             |> List.toArray
-        
+
         if Array.isEmpty(invalidScns) then Ok globalSettings
         else Error <| ConcurrentCopiesIsWrong invalidScns
 
@@ -113,11 +113,11 @@ module GlobalSettingsValidation =
                        else Ok globalSettings
         | None      -> Ok globalSettings
 
-    let validate (context: NBomberContext) =        
-        context.NBomberConfig 
+    let validate (context: NBomberContext) =
+        context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
-        |> Option.map(fun glSettings -> 
-            glSettings 
+        |> Option.map(fun glSettings ->
+            glSettings
             |> checkEmptyTarget
             >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
@@ -126,7 +126,7 @@ module GlobalSettingsValidation =
             >>= fun _ -> Ok context
             |> Result.mapError(AppError.create)
         )
-        |> Option.defaultValue(Ok context)        
+        |> Option.defaultValue(Ok context)
 
-let validateContext = 
+let validateContext =
     ScenarioValidation.validate >=> GlobalSettingsValidation.validate

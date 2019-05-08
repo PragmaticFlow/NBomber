@@ -19,16 +19,16 @@ let buildScenario () =
 
     let httpClient = new HttpClient()
 
-    let step1 = Step.create("GET html", ConnectionPool.none, fun context -> task {        
-        let! response = httpClient.SendAsync(createHttpRequest(), context.CancellationToken)        
+    let step1 = Step.create("GET html", ConnectionPool.none, fun context -> task {
+        let! response = httpClient.SendAsync(createHttpRequest(), context.CancellationToken)
         let responseSize =
-            if response.Content.Headers.ContentLength.HasValue then 
+            if response.Content.Headers.ContentLength.HasValue then
                response.Content.Headers.ContentLength.Value |> Convert.ToInt32
             else
                0
 
         return if response.IsSuccessStatusCode then Response.Ok(sizeBytes = responseSize)
-               else Response.Fail() 
+               else Response.Fail()
     })
-        
+
     Scenario.create "nbomber.com" [step1]

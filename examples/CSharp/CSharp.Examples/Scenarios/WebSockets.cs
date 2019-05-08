@@ -56,7 +56,7 @@ namespace CSharp.Examples.Scenarios
                 }
             });
 
-            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);                          
+            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);
         }
     }
 }

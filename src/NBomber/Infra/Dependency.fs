@@ -14,19 +14,19 @@ open NBomber.Infra.ResourceManager
 
 type ApplicationType =
     | Process
-    | Console    
+    | Console
     | Test
 
 type NodeInfo = {
-    NodeName: string    
+    NodeName: string
     OS: OperatingSystem
-    DotNetVersion: string    
-    Processor: string    
-    CoresCount: int    
+    DotNetVersion: string
+    Processor: string
+    CoresCount: int
 }
 
 type Dependency = {
-    SessionId: string    
+    SessionId: string
     ApplicationType: ApplicationType
     NodeType: NodeType
     NodeInfo: NodeInfo
@@ -36,17 +36,17 @@ type Dependency = {
 
 module ProgressBar =
 
-    let show (scenarioDuration: TimeSpan) = task {    
-        let options = ProgressBarOptions(ProgressBarOnBottom = true,                                     
+    let show (scenarioDuration: TimeSpan) = task {
+        let options = ProgressBarOptions(ProgressBarOnBottom = true,
                                          ForegroundColor = ConsoleColor.Yellow,
                                          ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
                                          BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
                                          BackgroundCharacter = Nullable<char>('\u2593'))
 
-        let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
+        let totalSeconds = int(scenarioDuration.TotalSeconds)
         use pbar = new ProgressBar(totalSeconds, String.Empty, options)
-    
-        for i = 1 to totalSeconds do        
+
+        for i = 1 to totalSeconds do
             do! Task.Delay(TimeSpan.FromSeconds(1.0))
             pbar.Tick()
     }
@@ -54,8 +54,8 @@ module ProgressBar =
 module Logger =
 
     let initLogger (appType: ApplicationType) =
-        Log.Logger <- 
-            match appType with            
+        Log.Logger <-
+            match appType with
             | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
             | _       -> LoggerConfiguration().CreateLogger()
 
@@ -65,12 +65,12 @@ let private retrieveNodeInfo () =
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
                                 .FrameworkName;
 
-    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
+    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
 
-    { NodeName = Environment.MachineName      
+    { NodeName = Environment.MachineName
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
-      Processor = if isNull(processor) then String.Empty else processor      
+      Processor = if isNull(processor) then String.Empty else processor
       CoresCount = Environment.ProcessorCount }
 
 let createSessionId () =

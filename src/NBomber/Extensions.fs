@@ -12,24 +12,24 @@ module internal Extensions =
         static member map f (m: Task<_>) =
             m.ContinueWith(fun (t: Task<_>) -> f t.Result)
 
-    type Result<'T,'TError> with    
-        static member isOk (result) = 
+    type Result<'T,'TError> with
+        static member isOk (result) =
             match result with
             | Ok _    -> true
             | Error _ -> false
 
-        static member getOk (result) = 
+        static member getOk (result) =
             match result with
             | Ok v    -> v
             | Error _ -> failwith "result is error"
-    
+
         static member isError (result) = not(Result.isOk(result))
-    
-        static member getError (result) = 
+
+        static member getError (result) =
             match result with
             | Ok _     -> failwith "result is not error"
-            | Error er -> er    
-        
+            | Error er -> er
+
         static member sequence (results: Result<'a,'e>[]) =
             let folder state (acc: Result<'a [],'e []>) =
                 match state, acc with
@@ -37,11 +37,11 @@ module internal Extensions =
                 | Ok r, Error ers    -> Error ers
                 | Error e, Ok items  -> Error [|e|]
                 | Error e, Error ers -> Error(Array.append ers [| e |])
-        
+
             Seq.foldBack folder results (Ok Array.empty)
 
     type MaybeBuilder() =
-    
+
         member x.Bind(m, bind) =
             match m with
             | Some value -> bind value

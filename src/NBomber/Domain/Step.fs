@@ -11,27 +11,27 @@ open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 
-let create (steps: IStep[]) = 
+let create (steps: IStep[]) =
     steps |> Seq.cast<Step> |> Seq.toArray
 
 let setStepContext (correlationId: string, actorIndex: int, cancelToken: CancellationToken)
                    (step: Step) =
-    
+
     let getConnection (pool: ConnectionPool<obj>) =
         let connectionIndex = actorIndex % pool.ConnectionsCount
         pool.AliveConnections.[connectionIndex]
-    
+
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Payload = Unchecked.defaultof<obj> }    
-    
+                    Payload = Unchecked.defaultof<obj> }
+
     { step with CurrentContext = Some context }
-    
-let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {    
+
+let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
     timer.Restart()
-    try 
+    try
         let context = step.CurrentContext.Value
         context.Payload <- prevPayload
         let! resp = step.Execute(step.CurrentContext.Value)
@@ -45,13 +45,13 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
 }
 
 let runSteps (steps: Step[], cancelToken: FastCancellationToken) = task {
-    
+
     let timer = Stopwatch()
     let latencies = ResizeArray<ResizeArray<Response*Latency>>()
-    steps |> Array.iter(fun _ -> latencies.Add(ResizeArray<Response*Latency>()))    
+    steps |> Array.iter(fun _ -> latencies.Add(ResizeArray<Response*Latency>()))
 
     while not cancelToken.ShouldCancel do
-        
+
         let mutable payload = Unchecked.defaultof<obj>
         let mutable skipStep = false
         let mutable stepIndex = 0
@@ -60,14 +60,14 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken) = task {
             if not skipStep && not cancelToken.ShouldCancel then
 
                 let! response, latency = execStep(st, payload, timer)
-                        
+
                 if not cancelToken.ShouldCancel then
                     latencies.[stepIndex].Add(response,latency)
                     stepIndex <- stepIndex + 1
-                    
-                    if response.IsOk then 
-                        payload <- response.Payload                    
+
+                    if response.IsOk then
+                        payload <- response.Payload
                     else
-                        skipStep <- true                        
-    return latencies              
+                        skipStep <- true
+    return latencies
 }

@@ -15,10 +15,10 @@ let ``applyScenariosSettings() should override initial settings`` (name: string,
     let scenario = Scenario.create name [] |> NBomber.Domain.Scenario.create
 
     let updatedScenarios = Scenario.applySettings [|settings|] [|scenario|]
-    
+
     let result = updatedScenarios.[0].Duration = duration.TimeOfDay
                  && updatedScenarios.[0].ConcurrentCopies = concurrentCopies
-    
+
     Assert.True(result)
 
 [<Property>]
@@ -31,7 +31,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
                  && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
-    
+
     Assert.True(result)
 
 [<Fact>]
@@ -42,7 +42,7 @@ let ``applyScenariosSettings() should make no changes if settings absent`` () =
 
     let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
                  && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
-    
+
     Assert.True(result)
 
 [<Fact>]

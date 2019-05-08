@@ -12,35 +12,35 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Statistics
 
-type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =    
-    
-    let actorLatencies = ResizeArray<ResizeArray<Response*Latency>>()    
+type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
 
-    member x.Run(fastCancelToken, cancelToken) = task {        
+    let actorLatencies = ResizeArray<ResizeArray<Response*Latency>>()
+
+    member x.Run(fastCancelToken, cancelToken) = task {
         do! Task.Delay(1)
         actorLatencies.Clear()
-        let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))                    
+        let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
         let! latencies = Step.runSteps(steps, fastCancelToken)
         actorLatencies.AddRange(latencies)
     }
 
     member x.GetResults() =
         if actorLatencies.Count > 0 then
-            scenario.Steps        
+            scenario.Steps
             |> Array.mapi(fun i st -> StepResults.create st.StepName (actorLatencies.[i].ToArray()) )
         else
             Array.empty
 
-type ScenarioRunner(scenario: Scenario) = 
-    
+type ScenarioRunner(scenario: Scenario) =
+
     let mutable cancelToken = new CancellationTokenSource()
     let mutable actorsTasks = Array.empty<Task<_>>
-    let fastCancelToken = { ShouldCancel = false }    
+    let fastCancelToken = { ShouldCancel = false }
     let actors = scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario))
 
-    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                        
-        let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)        
-        while not (allFinish()) do            
+    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {
+        let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)
+        while not (allFinish()) do
             Log.Information("waiting all steps to finish.")
             do! Task.Delay(TimeSpan.FromSeconds(1.0))
     }
@@ -66,8 +66,8 @@ type ScenarioRunner(scenario: Scenario) =
     member x.Scenario = scenario
     member x.WarmUp() = run(scenario.WarmUpDuration)
     member x.Run() = run(scenario.Duration)
-    member x.Stop() = stop()    
-    
+    member x.Stop() = stop()
+
     member x.GetResult() =
         actors
         |> Array.collect(fun actor -> actor.GetResults())
