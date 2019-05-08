@@ -54,7 +54,8 @@ type internal AppError =
                 let labelStr = if s.Label.IsSome then sprintf "LABEL: '%s' %s" s.Label.Value Environment.NewLine
                                else String.Empty
                 let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
-                sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s" assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
+                sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s"
+                        assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
 
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
@@ -66,29 +67,41 @@ type internal AppError =
         | TargetScenarioNotFound (notFoundScenarios, registeredScenarios) ->
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
-            |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes registeredScenarios
+            |> sprintf "Target scenarios %s is not found. Available scenarios are %s."
+            <| String.concatWithCommaAndQuotes registeredScenarios
 
         | DurationIsWrong scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
+            scenarioNames
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Duration for scenarios %s can not be less than 1 sec."
 
         | ConcurrentCopiesIsWrong scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
+            scenarioNames
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
 
         | EmptyReportName -> "Report File Name can not be empty string."
         | EmptyScenarioName -> "Scenario name can not be empty."
 
         | DuplicateScenarioName scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
+            scenarioNames
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Scenario names are not unique: %s."
 
         | EmptyStepName scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s."
+            scenarioNames
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Step names are empty in scenarios: %s."
 
         | DuplicateStepName stepNames ->
-            stepNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique: %s."
+            stepNames
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Step names are not unique: %s."
 
         | AssertNotFound (assertNumber, assertion) ->
             match assertion with
-            | Step s -> sprintf "Assertion #'%i' is not found for step: '%s' in scenario: '%s'" assertNumber s.StepName s.ScenarioName
+            | Step s -> sprintf "Assertion #'%i' is not found for step: '%s' in scenario: '%s'"
+                                assertNumber s.StepName s.ScenarioName
 
     static member toString (error: CommunicationError) =
         match error with

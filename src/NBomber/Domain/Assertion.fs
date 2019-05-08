@@ -14,7 +14,8 @@ let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
             let asrtNum = i + 1
             match assertion with
             | Step asrt ->
-                let stats = stepsStats |> Array.find(fun x -> x.ScenarioName = asrt.ScenarioName && x.StepName = asrt.StepName)
+                let stats = stepsStats |> Array.find(fun x -> x.ScenarioName = asrt.ScenarioName &&
+                                                              x.StepName = asrt.StepName)
                 if asrt.AssertFunc stats then
                     None
                 else

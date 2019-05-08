@@ -67,7 +67,7 @@ let init (scenario: Scenario) =
         let steps = scenario.Steps |> Array.map(setConnectionPool allPools)
         Ok { scenario with Steps = steps }
     with
-    | ex -> Error <| InitScenarioError ex
+    | ex -> ex |> InitScenarioError |> Error
 
 let clean (scenario: Scenario) =
 

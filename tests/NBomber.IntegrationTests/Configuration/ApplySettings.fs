@@ -11,7 +11,11 @@ open NBomber.FSharp
 
 [<Property>]
 let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: DateTime, duration: DateTime, concurrentCopies: int) =
-    let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
+    let settings =
+        { ScenarioName = name
+          WarmUpDuration = warmUpDuration
+          Duration = duration
+          ConcurrentCopies = concurrentCopies }
     let scenario = Scenario.create name [] |> NBomber.Domain.Scenario.create
 
     let updatedScenarios = Scenario.applySettings [|settings|] [|scenario|]
@@ -23,7 +27,11 @@ let ``applyScenariosSettings() should override initial settings`` (name: string,
 
 [<Property>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not found`` (name: string, warmUpDuration: DateTime, duration: DateTime, concurrentCopies: int) =
-    let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
+    let settings =
+        { ScenarioName = name
+          WarmUpDuration = warmUpDuration
+          Duration = duration
+          ConcurrentCopies = concurrentCopies }
     let newName = name + "_new_name"
     let scenario = Scenario.create newName [] |> NBomber.Domain.Scenario.create
 

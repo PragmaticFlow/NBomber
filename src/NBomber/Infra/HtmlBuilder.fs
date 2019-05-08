@@ -42,7 +42,8 @@ let toListGroupItem (failedAssert: DomainError) =
     | AssertionError (assertNumber,Step s, _) ->
         let assertLabel = formatAssertion assertNumber s.Label
         let stepName = htmlEncode s.StepName
-        sprintf """<li class="list-group-item list-group-item-danger">Failed assertion %s for step <strong>%s</strong></li>""" assertLabel stepName
+        sprintf """<li class="list-group-item list-group-item-danger">Failed assertion %s for step <strong>%s</strong></li>"""
+                assertLabel stepName
     | _ -> String.Empty
 
 let toListGroup (failedAsserts: DomainError[]) =

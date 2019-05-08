@@ -25,16 +25,17 @@ let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =
       CsvReport = CsvReport.print(stats.[0])
       MdReport = MdReport.print(stats.[0], failedAsserts) }
 
-let save (dep: Dependency, outPutDir: string, reportFileName: string, reportFormats: ReportFormat list, report: ReportResult) =
+let save (dep: Dependency, outPutDir: string,
+          reportFileName: string, reportFormats: ReportFormat list, report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         reportsDir |> Directory.CreateDirectory |> ignore
         reportsDir |> ResourceManager.saveAssets
 
-        [ ReportFormat.Txt, report.TxtReport, ".txt"
+        [ ReportFormat.Txt,  report.TxtReport,  ".txt"
           ReportFormat.Html, report.HtmlReport, ".html"
-          ReportFormat.Csv, report.CsvReport, ".csv"
-          ReportFormat.Md, report.MdReport, ".md" ]
+          ReportFormat.Csv,  report.CsvReport,  ".csv"
+          ReportFormat.Md,   report.MdReport,   ".md" ]
         |> List.iter
                (fun (format, report, ext) ->
                let filePath = reportsDir + "/" + reportFileName + ext

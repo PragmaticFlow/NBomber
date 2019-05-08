@@ -13,7 +13,8 @@ let print (stats: NodeStats, failedAsserts: DomainError[]) =
     |> String.concat Environment.NewLine
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    sprintf "Scenario: '%s', Duration time: '%A', RPS: '%i', Concurrent Copies: '%i'" scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
+    sprintf "Scenario: '%s', Duration time: '%A', RPS: '%i', Concurrent Copies: '%i'"
+            scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
 
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
     let getAssertNumberAndLabel failedAssert =
@@ -31,12 +32,20 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
     steps
     |> Array.iteri(fun i s ->
         stepTable.AddRow("- name", s.StepName) |> ignore
-        stepTable.AddRow("- request count", sprintf "all = %i | OK = %i | failed = %i" s.ReqeustCount s.OkCount s.FailCount) |> ignore
-        stepTable.AddRow("- response time", sprintf "RPS = %i | min = %i | mean = %i | max = %i" s.RPS s.Min s.Mean s.Max) |> ignore
-        stepTable.AddRow("- response time percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.StdDev) |> ignore
+        stepTable.AddRow("- request count",
+                         sprintf "all = %i | OK = %i | failed = %i"
+                                 s.ReqeustCount s.OkCount s.FailCount) |> ignore
+        stepTable.AddRow("- response time",
+                         sprintf "RPS = %i | min = %i | mean = %i | max = %i"
+                                 s.RPS s.Min s.Mean s.Max) |> ignore
+        stepTable.AddRow("- response time percentile",
+                         sprintf "50%% = %i | 75%% = %i | 95%% = %i | StdDev = %i"
+                                 s.Percent50 s.Percent75 s.Percent95 s.StdDev) |> ignore
 
         if dataInfoAvailable then
-            stepTable.AddRow("- data transfer", sprintf "min = %gKb | mean = %gKb | max = %gKb | all = %gMB" s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB) |> ignore
+            stepTable.AddRow("- data transfer", sprintf "min = %gKb | mean = %gKb | max = %gKb | all = %gMB"
+                                s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB)
+            |> ignore
         else
             stepTable.AddRow("- data transfer", "min = - | mean = - | max = - | all = -") |> ignore
 

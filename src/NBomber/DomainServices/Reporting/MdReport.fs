@@ -19,7 +19,8 @@ module private Impl =
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
         let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
         let percentile =
-                sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
+                sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`"
+                        s.Percent50 s.Percent75 s.Percent95 s.StdDev
         let transfer =
             if dataInfoAvailable
             then

@@ -222,5 +222,7 @@ module NodeStats =
         |> Array.groupBy(fun x -> x.ScenarioName)
         |> Array.map(fun (scnName, allStats) ->
             let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)
-            allStats |> Array.collect(fun x -> x.StepsStats) |> ScenarioStats.createByStepStats scn)
+            allStats
+            |> Array.collect(fun x -> x.StepsStats)
+            |> ScenarioStats.createByStepStats scn)
         |> create meta

@@ -63,7 +63,7 @@ let private retrieveNodeInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
-                                .FrameworkName;
+                                .FrameworkName
 
     let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
 
