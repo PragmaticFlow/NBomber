@@ -38,7 +38,7 @@ type internal ConnectionPool<'TConnection> = {
 } with
   interface IConnectionPool<'TConnection>
   override x.GetHashCode() = x.PoolName.GetHashCode()
-  override x.Equals(b) =
+  override x.Equals b =
     match b with
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false

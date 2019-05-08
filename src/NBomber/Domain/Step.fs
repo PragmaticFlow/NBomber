@@ -21,7 +21,7 @@ let setStepContext (correlationId: string, actorIndex: int, cancelToken: Cancell
         let connectionIndex = actorIndex % pool.ConnectionsCount
         pool.AliveConnections.[connectionIndex]
 
-    let connection = getConnection(step.ConnectionPool)
+    let connection = getConnection step.ConnectionPool
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
@@ -34,13 +34,13 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
     try
         let context = step.CurrentContext.Value
         context.Payload <- prevPayload
-        let! resp = step.Execute(step.CurrentContext.Value)
+        let! resp = step.Execute step.CurrentContext.Value
         timer.Stop()
-        let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
+        let latency = Convert.ToInt32 timer.Elapsed.TotalMilliseconds
         return (resp, latency)
     with
     | ex -> timer.Stop()
-            let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
+            let latency = Convert.ToInt32 timer.Elapsed.TotalMilliseconds
             return (Response.Fail(), latency)
 }
 

@@ -22,8 +22,8 @@ let globalSettings = {
 let scenarioSettings = {
     ScenarioName = "1"
     ConcurrentCopies = 1
-    WarmUpDuration = DateTime.MinValue.AddSeconds(10.)
-    Duration = DateTime.MinValue.AddSeconds(10.)
+    WarmUpDuration = DateTime.MinValue.AddSeconds 10.
+    Duration = DateTime.MinValue.AddSeconds 10.
 }
 
 let scenario = {
@@ -33,15 +33,15 @@ let scenario = {
     Steps = Array.empty
     Assertions = Array.empty
     ConcurrentCopies = 1
-    WarmUpDuration = TimeSpan.FromSeconds(10.)
-    Duration = TimeSpan.FromSeconds(10.)
+    WarmUpDuration = TimeSpan.FromSeconds 10.
+    Duration = TimeSpan.FromSeconds 10.
 }
 
 [<Fact>]
 let ``GlobalSettingsValidation.checkEmptyTarget should return fail if TargetScenarios has empty value`` () =
     let glSettings = { globalSettings with TargetScenarios = [" "] }
 
-    let error = GlobalSettingsValidation.checkEmptyTarget(glSettings) |> Result.getError
+    let error = glSettings |> GlobalSettingsValidation.checkEmptyTarget |> Result.getError
     match error with
     | TargetScenarioIsEmpty _ -> ()
     | _ -> failwith ""
@@ -58,10 +58,10 @@ let ``GlobalSettingsValidation.checkAvailableTarget should return fail if Target
 
 [<Fact>]
 let ``GlobalSettingsValidation.checkDuration should return fail if Duration < 1 sec`` () =
-    let scnSettings = { scenarioSettings with Duration = DateTime.MinValue.AddSeconds(0.5) }
+    let scnSettings = { scenarioSettings with Duration = DateTime.MinValue.AddSeconds 0.5 }
     let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
 
-    let error = GlobalSettingsValidation.checkDuration(glSettings) |> Result.getError
+    let error = glSettings |> GlobalSettingsValidation.checkDuration |> Result.getError
     match error with
     | DurationIsWrong _ -> ()
     | _ -> failwith ""
@@ -71,7 +71,7 @@ let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if Concu
     let scnSettings = { scenarioSettings with ConcurrentCopies = 0 }
     let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
 
-    let error = GlobalSettingsValidation.checkConcurrentCopies(glSettings) |> Result.getError
+    let error = glSettings |> GlobalSettingsValidation.checkConcurrentCopies |> Result.getError
     match error with
     | ConcurrentCopiesIsWrong _ -> ()
     | _ -> failwith ""
@@ -80,7 +80,7 @@ let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if Concu
 let ``GlobalSettingsValidation.checkEmptyReportName should return fail if ReportFileName is empty`` () =
     let glSettings = { globalSettings with ReportFileName = Some " " }
 
-    let error = GlobalSettingsValidation.checkEmptyReportName(glSettings) |> Result.getError
+    let error = glSettings |> GlobalSettingsValidation.checkEmptyReportName |> Result.getError
     match error with
     | EmptyReportName _ -> ()
     | _ -> failwith ""
@@ -89,7 +89,7 @@ let ``GlobalSettingsValidation.checkEmptyReportName should return fail if Report
 let ``ScenarioValidation.checkEmptyName should return fail if scenario has empty name`` () =
     let scn = { scenario with ScenarioName = " " } |> Array.singleton
 
-    let error = ScenarioValidation.checkEmptyName(scn) |> Result.getError
+    let error = scn |> ScenarioValidation.checkEmptyName |> Result.getError
     match error with
     | EmptyScenarioName -> ()
     | _ -> failwith ""
@@ -126,7 +126,7 @@ let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario h
 
 [<Fact>]
 let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` () =
-    let scn = { scenario with Duration = TimeSpan.FromSeconds(0.5) }
+    let scn = { scenario with Duration = TimeSpan.FromSeconds 0.5 }
 
     let error = ScenarioValidation.checkDuration([|scn|]) |> Result.getError
     match error with

@@ -17,11 +17,11 @@ type ScenarioActor(actorIndex: int, correlationId: string, scenario: Scenario) =
     let actorLatencies = ResizeArray<ResizeArray<Response*Latency>>()
 
     member x.Run(fastCancelToken, cancelToken) = task {
-        do! Task.Delay(1)
+        do! Task.Delay 1
         actorLatencies.Clear()
         let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
         let! latencies = Step.runSteps(steps, fastCancelToken)
-        actorLatencies.AddRange(latencies)
+        actorLatencies.AddRange latencies
     }
 
     member x.GetResults() =
@@ -42,15 +42,15 @@ type ScenarioRunner(scenario: Scenario) =
         let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)
         while not (allFinish()) do
             Log.Information("waiting all steps to finish.")
-            do! Task.Delay(TimeSpan.FromSeconds(1.0))
+            do! Task.Delay(TimeSpan.FromSeconds 1.0)
     }
 
     let stop () = task {
         if actorsTasks.Length > 0 && not cancelToken.IsCancellationRequested then
             fastCancelToken.ShouldCancel <- true
             cancelToken.Cancel()
-            do! Task.Delay(TimeSpan.FromSeconds(1.5))
-            do! waitOnAllFinish(actorsTasks)
+            do! Task.Delay(TimeSpan.FromSeconds 1.5)
+            do! waitOnAllFinish actorsTasks
             actorsTasks <- Array.empty
     }
 
@@ -64,8 +64,8 @@ type ScenarioRunner(scenario: Scenario) =
     }
 
     member x.Scenario = scenario
-    member x.WarmUp() = run(scenario.WarmUpDuration)
-    member x.Run() = run(scenario.Duration)
+    member x.WarmUp() = run scenario.WarmUpDuration
+    member x.Run() = run scenario.Duration
     member x.Stop() = stop()
 
     member x.GetResult() =

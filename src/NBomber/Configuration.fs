@@ -51,5 +51,5 @@ type NBomberConfig = {
 module internal NBomberConfig =
     open FSharp.Json
 
-    let parse (json) =
-        Json.deserialize<NBomberConfig>(json)
+    let parse  json =
+        Json.deserialize<NBomberConfig> json

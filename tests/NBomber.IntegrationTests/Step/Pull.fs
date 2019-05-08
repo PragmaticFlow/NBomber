@@ -16,13 +16,13 @@ let ``Ok and Fail should be properly count`` () =
     let mutable failCnt = 0
 
     let okStep = Step.create("ok step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         okCnt <- okCnt + 1
         return Response.Ok()
     })
 
     let failStep = Step.create("fail step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         failCnt <- failCnt + 1
         return Response.Fail()
     })
@@ -47,12 +47,12 @@ let ``Ok and Fail should be properly count`` () =
 let ``Warmup should not have effect on stats`` () =
 
     let okStep = Step.create("ok step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         return Response.Ok()
     })
 
     let failStep = Step.create("fail step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         return Response.Fail()
     })
 
@@ -76,7 +76,7 @@ let ``Warmup should not have effect on stats`` () =
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.create("pull step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         return Response.Ok(sizeBytes = 100)
     })
 

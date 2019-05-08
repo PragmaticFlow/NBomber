@@ -15,11 +15,11 @@ let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
             match assertion with
             | Step asrt ->
                 let stats = stepsStats |> Array.find(fun x -> x.ScenarioName = asrt.ScenarioName && x.StepName = asrt.StepName)
-                if asrt.AssertFunc(stats) then
+                if asrt.AssertFunc stats then
                     None
                 else
-                    Some <| AssertionError(asrtNum, Step(asrt), stats))
-        |> Array.filter(Option.isSome)
+                    Some <| AssertionError(asrtNum, Step asrt, stats))
+        |> Array.filter Option.isSome
 
-    if Array.isEmpty(errors) then Array.empty
-    else errors |> Array.map(Option.get)
+    if Array.isEmpty errors then Array.empty
+    else errors |> Array.map Option.get

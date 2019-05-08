@@ -69,7 +69,7 @@ type Assets = {
 let loadAssets () =
 
     let readResource (assembly: Assembly, resourceName) =
-        use stream = assembly.GetManifestResourceStream(resourceName)
+        use stream = assembly.GetManifestResourceStream resourceName
         use reader = new StreamReader(stream)
         reader.ReadToEnd()
 
@@ -94,12 +94,12 @@ let saveAssets (outputDir: string) =
     let assetsZip = Path.Combine(outputDir, "assets.zip")
 
     let saveResource (assembly: Assembly, resourceName, outputFilePath) =
-        use stream = assembly.GetManifestResourceStream(resourceName)
+        use stream = assembly.GetManifestResourceStream resourceName
         use file = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write)
-        stream.CopyTo(file)
+        stream.CopyTo file
 
     if not(Directory.Exists assetsDir) then
         let assembly = typedefof<Assets>.Assembly
         saveResource(assembly, Constants.AssetsZip, assetsZip)
         ZipFile.ExtractToDirectory(assetsZip, assetsDir)
-        File.Delete(assetsZip)
+        File.Delete assetsZip

@@ -66,7 +66,7 @@ let print (stats: NodeStats, failedAsserts: DomainError[]) =
 
     let assertErrors =
         failedAsserts
-        |> Array.map(getAssertNumberAndLabel)
+        |> Array.map getAssertNumberAndLabel
         |> List.ofArray
 
     stats.AllScenariosStats

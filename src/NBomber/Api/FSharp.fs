@@ -45,7 +45,7 @@ module Step =
                                    CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
                                    Payload = context.Payload }
-                execute(newContext)
+                execute newContext
 
         { StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None } :> IStep
 
@@ -61,17 +61,17 @@ module Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = List.toArray(steps)
+          Steps = List.toArray steps
           Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies
-          WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
-          Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
+          WarmUpDuration = TimeSpan.FromSeconds Constants.DefaultWarmUpDurationInSec
+          Duration = TimeSpan.FromSeconds Constants.DefaultScenarioDurationInSec }
 
     let withTestInit (initFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
-        { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
+        { scenario with TestInit = Some(fun token -> initFunc token :> Task) }
 
     let withTestClean (cleanFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
-        { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
+        { scenario with TestClean = Some(fun token -> cleanFunc token :> Task) }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
         let asrts = assertions
@@ -98,7 +98,7 @@ module NBomberRunner =
     open NBomber.Infra
 
     let registerScenarios (scenarios: Contracts.Scenario list) =
-        { Scenarios = List.toArray(scenarios)
+        { Scenarios = List.toArray scenarios
           NBomberConfig = None
           ReportFileName = None
           ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
@@ -121,14 +121,14 @@ module NBomberRunner =
         { context with StatisticsSink = Some statisticsSink }
 
     let run (context: NBomberContext) =
-        let nodeType = NBomberContext.getNodeType(context)
+        let nodeType = NBomberContext.getNodeType context
         let dep = Dependency.create(Process, nodeType)
         NBomberRunner.run(dep, context)
 
     let runInConsole (context: NBomberContext) =
         let mutable run = true
         while run do
-            let nodeType = NBomberContext.getNodeType(context)
+            let nodeType = NBomberContext.getNodeType context
             let dep = Dependency.create(Console, nodeType)
             NBomberRunner.run(dep, context)
             Log.Information("Repeat the same test one more time? (y/n)")
@@ -137,6 +137,6 @@ module NBomberRunner =
             run <- List.contains userInput ["y"; "Y"; "yes"; "Yes"]
 
     let runTest (context: NBomberContext) =
-        let nodeType = NBomberContext.getNodeType(context)
+        let nodeType = NBomberContext.getNodeType context
         let dep = Dependency.create(Test, nodeType)
         NBomberRunner.run(dep, context)

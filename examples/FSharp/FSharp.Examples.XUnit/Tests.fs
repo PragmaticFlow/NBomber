@@ -12,7 +12,7 @@ open NBomber.FSharp
 let buildScenario () =
 
     let step1 = Step.create("simple step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         return Response.Ok(sizeBytes = 1024)
     })
 

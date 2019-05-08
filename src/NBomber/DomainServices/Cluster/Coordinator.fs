@@ -22,7 +22,7 @@ let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
                     settings: ScenarioSetting[], targetScns: string[]) =
 
     asyncResult {
-        do! cluster.SendStartNewSession(settings)
+        do! cluster.SendStartNewSession settings
         do! localHost.InitScenarios(settings, targetScns)
         do! cluster.WaitOnAllAgentsReady()
 
@@ -50,7 +50,7 @@ let createStats (sessionId: string, nodeName: string,
                  Sender = NodeType.Cluster }
 
     registeredScenarios
-    |> Scenario.applySettings(scnSettings)
+    |> Scenario.applySettings scnSettings
     |> NodeStats.merge(meta, allNodeStats)
 
 type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =
@@ -58,7 +58,7 @@ type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: Agen
     member x.Run(settings, targetScns) = runCoordinator(this, scnHost, settings, targetScns)
 
     interface IClusterCoordinator with
-        member x.SendStartNewSession(settings) = Communication.startNewSession(sessionId, settings, agents)
+        member x.SendStartNewSession settings = Communication.startNewSession(sessionId, settings, agents)
         member x.WaitOnAllAgentsReady() = Communication.waitOnAllAgentsReady(sessionId, agents)
         member x.SendStartWarmUp() = Communication.startWarmUp(sessionId, agents)
         member x.SendStartBombing() = Communication.startBombing(sessionId, agents)
@@ -66,7 +66,7 @@ type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: Agen
 
 let create (dep: Dependency, registeredScenarios: Scenario[], settings: CoordinatorSettings) =
     let scnHost = ScenariosHost(dep, registeredScenarios)
-    let agents = settings.Agents |> List.toArray |> Array.map(AgentInfo.create(settings.ClusterId))
+    let agents = settings.Agents |> List.toArray |> Array.map(AgentInfo.create settings.ClusterId)
     ClusterCoordinator(dep.SessionId, scnHost, agents)
 
 let run (scnSettings, targetScns) (coordinator: ClusterCoordinator) =

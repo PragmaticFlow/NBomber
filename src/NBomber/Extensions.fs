@@ -13,19 +13,19 @@ module internal Extensions =
             m.ContinueWith(fun (t: Task<_>) -> f t.Result)
 
     type Result<'T,'TError> with
-        static member isOk (result) =
+        static member isOk result =
             match result with
             | Ok _    -> true
             | Error _ -> false
 
-        static member getOk (result) =
+        static member getOk result =
             match result with
             | Ok v    -> v
             | Error _ -> failwith "result is error"
 
-        static member isError (result) = not(Result.isOk(result))
+        static member isError result = not(Result.isOk result)
 
-        static member getError (result) =
+        static member getError result =
             match result with
             | Ok _     -> failwith "result is not error"
             | Error er -> er
@@ -47,8 +47,8 @@ module internal Extensions =
             | Some value -> bind value
             | None       -> None
 
-        member x.Return(value) = Some value
-        member x.ReturnFrom(value) = value
+        member x.Return value = Some value
+        member x.ReturnFrom value = value
 
     let maybe = MaybeBuilder()
 

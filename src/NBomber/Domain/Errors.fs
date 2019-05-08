@@ -39,9 +39,9 @@ type internal AppError =
     static member createResult (e: DomainError) = Error(Domain e)
     static member createResult (e: AppError) =
         match e with
-        | Domain e        -> AppError.createResult(e)
-        | Validation e    -> AppError.createResult(e)
-        | Communication e -> AppError.createResult(e)
+        | Domain e        -> AppError.createResult e
+        | Validation e    -> AppError.createResult e
+        | Communication e -> AppError.createResult e
 
     static member toString (error: DomainError) =
         match error with
@@ -66,7 +66,7 @@ type internal AppError =
         | TargetScenarioNotFound (notFoundScenarios, registeredScenarios) ->
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
-            |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes(registeredScenarios)
+            |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes registeredScenarios
 
         | DurationIsWrong scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
@@ -96,12 +96,12 @@ type internal AppError =
         | AgentIsWorking -> "AgentError error: agent is working"
         | OperationFailed (operationName, ers) ->
             ers
-            |> Array.map(AppError.toString)
+            |> Array.map AppError.toString
             |> String.concatWithCommaAndQuotes
             |> sprintf "OperationFailed: '%s', %s %s" operationName Environment.NewLine
 
     static member toString (error: AppError) =
         match error with
-        | Domain e        -> AppError.toString(e)
-        | Validation e    -> AppError.toString(e)
-        | Communication e -> AppError.toString(e)
+        | Domain e        -> AppError.toString e
+        | Validation e    -> AppError.toString e
+        | Communication e -> AppError.toString e

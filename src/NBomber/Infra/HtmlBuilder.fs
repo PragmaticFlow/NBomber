@@ -15,13 +15,13 @@ let toTableCell rowspan rawData =
 let toTableRow (rawData: 'T list) =
     let row = rawData
               |> List.map(htmlEncode >> sprintf "<td>%s</td>")
-              |> String.concat(String.Empty)
+              |> String.concat String.Empty
     "<tr>" + row + "</tr>"
 
 let toJsArray (rawData: 'T list) =
     let dataWithCommas = rawData
                          |> List.map(fun x -> String.Format("{0}, ", x))
-                         |> String.concat(String.Empty)
+                         |> String.concat String.Empty
     "[" + dataWithCommas + "]"
 
 let toPrettyHtml (html: string) =

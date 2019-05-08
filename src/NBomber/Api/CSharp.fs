@@ -44,19 +44,19 @@ type ScenarioBuilder =
 
     [<Extension>]
     static member WithAssertions(scenario: Scenario, [<System.ParamArray>]assertions: IAssertion[]) =
-        scenario |> FSharp.Scenario.withAssertions(Seq.toList(assertions))
+        scenario |> FSharp.Scenario.withAssertions(Seq.toList assertions)
 
     [<Extension>]
     static member WithConcurrentCopies(scenario: Scenario, concurrentCopies: int) =
-        scenario |> FSharp.Scenario.withConcurrentCopies(concurrentCopies)
+        scenario |> FSharp.Scenario.withConcurrentCopies concurrentCopies
 
     [<Extension>]
     static member WithWarmUpDuration(scenario: Scenario, duration: TimeSpan) =
-        scenario |> FSharp.Scenario.withWarmUpDuration(duration)
+        scenario |> FSharp.Scenario.withWarmUpDuration duration
 
     [<Extension>]
     static member WithDuration(scenario: Scenario, duration: TimeSpan) =
-        scenario |> FSharp.Scenario.withDuration(duration)
+        scenario |> FSharp.Scenario.withDuration duration
 
 [<Extension>]
 type NBomberRunner =
@@ -66,29 +66,29 @@ type NBomberRunner =
 
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadConfig(path)
+        context |> FSharp.NBomberRunner.loadConfig path
 
     [<Extension>]
     static member WithReportFileName(context: NBomberContext, reportFileName: string) =
-        context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
+        context |> FSharp.NBomberRunner.withReportFileName reportFileName
 
     [<Extension>]
     static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
-        context |> FSharp.NBomberRunner.withReportFormats(formats)
+        context |> FSharp.NBomberRunner.withReportFormats formats
 
     [<Extension>]
     static member SaveStatisticsTo(context: NBomberContext, statisticsSink: IStatisticsSink) =
-        context |> FSharp.NBomberRunner.saveStatisticsTo(statisticsSink)
+        context |> FSharp.NBomberRunner.saveStatisticsTo statisticsSink
 
     [<Extension>]
     static member Run(context: NBomberContext) =
-        FSharp.NBomberRunner.run(context)
+        FSharp.NBomberRunner.run context
 
     [<Extension>]
     static member RunInConsole(context: NBomberContext) =
-        FSharp.NBomberRunner.runInConsole(context)
+        FSharp.NBomberRunner.runInConsole context
 
     [<Extension>]
     static member RunTest(context: NBomberContext) =
-        FSharp.NBomberRunner.runTest(context)
+        FSharp.NBomberRunner.runTest context

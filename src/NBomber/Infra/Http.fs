@@ -28,21 +28,21 @@ let serializeBinary (data: obj) =
 let deserializeBinary<'T>(data: byte[]) =
     use ms = new MemoryStream(data)
     let formatter = BinaryFormatter()
-    formatter.Deserialize(ms) :?> 'T
+    formatter.Deserialize ms :?> 'T
 
 let createHandler (handler: 'TCommand -> 'TResponse) (request: byte[]) =
-    let command = deserializeBinary<'TCommand>(request)
-    let response = handler(command)
-    serializeBinary(response)
+    let command = deserializeBinary<'TCommand> request
+    let response = handler command
+    serializeBinary response
 
 let sendRequest<'TRequest,'TResponse>(url: Uri) (request: 'TRequest) = async {
     try
         let httpMsg = new HttpRequestMessage(HttpMethod.Post, url)
-        let binaryReq = serializeBinary(request)
+        let binaryReq = serializeBinary request
         httpMsg.Content <- new ByteArrayContent(binaryReq)
-        let! httpResponse = httpClient.SendAsync(httpMsg) |> Async.AwaitTask
+        let! httpResponse = httpClient.SendAsync httpMsg |> Async.AwaitTask
         let! binaryRes = httpResponse.Content.ReadAsByteArrayAsync() |> Async.AwaitTask
-        return Ok <| deserializeBinary<'TResponse>(binaryRes)
+        return Ok <| deserializeBinary<'TResponse> binaryRes
     with
     | ex -> return Error <| HttpError(url, ex.Message)
 }
@@ -51,7 +51,7 @@ type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =
 
     let mutable stop = false
     let listener = new HttpListener()
-    do listener.Prefixes.Add(listenUrl)
+    do listener.Prefixes.Add listenUrl
 
     let start () = task {
         try
@@ -63,9 +63,9 @@ type HttpServer(listenUrl: string, handler: ReqMsg -> ResMsg) =
                 let response = context.Response
 
                 use ms = new MemoryStream()
-                do! request.InputStream.CopyToAsync(ms)
+                do! request.InputStream.CopyToAsync ms
                 let reqMsg = ms.ToArray()
-                let resMsg = handler(reqMsg)
+                let resMsg = handler reqMsg
                 response.ContentLength64 <- resMsg.LongLength
 
                 use responseStream = response.OutputStream

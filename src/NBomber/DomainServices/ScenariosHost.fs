@@ -36,7 +36,7 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
         else
             Log.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
 
-        dep.ShowProgressBar(runner.Scenario.Duration)
+        dep.ShowProgressBar runner.Scenario.Duration
 
     | None -> ()
 
@@ -48,17 +48,17 @@ let initScenarios (scenarios: Scenario[]) = task {
         for scn in scenarios do
             if not failed then
                 Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
-                let initResult = Scenario.init(scn)
-                if Result.isError(initResult) then
+                let initResult = Scenario.init scn
+                if Result.isError initResult then
                     failed <- true
                     error <- initResult
                 yield initResult
     }
 
     let results = flow |> Seq.toArray
-    let allOk   = results |> Array.forall(Result.isOk)
+    let allOk   = results |> Array.forall Result.isOk
 
-    return if allOk then results |> Array.map(Result.getOk) |> Ok
+    return if allOk then results |> Array.map Result.getOk |> Ok
            else error |> Result.getError |> Error
 }
 
@@ -67,7 +67,7 @@ let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     |> Array.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
     |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
                            let duration = x.Scenario.WarmUpDuration
-                           if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar(duration)
+                           if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar duration
                            x.WarmUp().Wait())
 
 let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
@@ -77,17 +77,17 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
 
 let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())
-    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
+    scnRunners |> Array.iter(fun x -> Scenario.clean x.Scenario)
 
 let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
     scnRunners
     |> Array.map(fun x -> x.GetResult())
-    |> NodeStats.create(meta)
+    |> NodeStats.create meta
 
 let printTargetScenarios (scenarios: Scenario[]) =
     scenarios
     |> Array.map(fun x -> x.ScenarioName)
-    |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
+    |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
     |> fun _ -> scenarios
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
@@ -97,7 +97,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     let statsMeta = { SessionId = dep.SessionId; NodeName = dep.NodeInfo.NodeName; Sender = dep.NodeType }
     let startedWork () = isWorking <- Ok true
     let stoppedWork () = isWorking <- Ok false
-    let failed (error: DomainError) = isWorking <- AppError.createResult(error)
+    let failed (error: DomainError) = isWorking <- AppError.createResult error
 
     interface IScenariosHost with
         member x.GetRegisteredScenarios() = registeredScenarios
@@ -106,22 +106,22 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         member x.InitScenarios(settings, targetScenarios) = task {
             startedWork()
             let! results = registeredScenarios
-                           |> Scenario.applySettings(settings)
-                           |> Scenario.filterTargetScenarios(targetScenarios)
+                           |> Scenario.applySettings settings
+                           |> Scenario.filterTargetScenarios targetScenarios
                            |> printTargetScenarios
                            |> initScenarios
 
             match results with
             | Ok scns -> stoppedWork()
-                         scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
+                         scnRunners <- scns |> Array.map ScenarioRunner |> Some
                          return Ok()
 
-            | Error e -> failed(e)
-                         return AppError.createResult(e)
+            | Error e -> failed e
+                         return AppError.createResult e
         }
 
         member x.WarmUpScenarios() = task {
-            do! Task.Delay(10)
+            do! Task.Delay 10
             if scnRunners.IsSome then
                 startedWork()
                 warmUpScenarios(dep, scnRunners.Value)
@@ -135,7 +135,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                 stoppedWork()
         }
 
-        member x.StopScenarios() = scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
+        member x.StopScenarios() = scnRunners |> Option.map stopAndCleanScenarios |> ignore
 
         member x.GetStatistics() =
             match scnRunners with

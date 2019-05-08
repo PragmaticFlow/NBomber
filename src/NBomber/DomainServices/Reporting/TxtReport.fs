@@ -7,16 +7,16 @@ open NBomber.Errors
 
 let print (stats: NodeStats, failedAsserts: DomainError[]) =
     stats.AllScenariosStats
-    |> Array.map(fun x -> let header = printScenarioHeader(x)
+    |> Array.map(fun x -> let header = printScenarioHeader x
                           let stepsTable = printStepsTable(x.StepsStats, failedAsserts)
                           header + Environment.NewLine + stepsTable)
-    |> String.concat(Environment.NewLine)
+    |> String.concat Environment.NewLine
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
     sprintf "Scenario: '%s', Duration time: '%A', RPS: '%i', Concurrent Copies: '%i'" scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
 
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
-    let getAssertNumberAndLabel (failedAssert) =
+    let getAssertNumberAndLabel failedAssert =
         match failedAssert with
         | AssertionError (assertNumber,assertion,_) ->
             match assertion with
@@ -45,7 +45,7 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         )
 
     failedAsserts
-    |> Array.map(getAssertNumberAndLabel)
+    |> Array.map getAssertNumberAndLabel
     |> Array.iter(fun (assertNumber, assertLabel) -> stepTable.AddRow(assertNumber, assertLabel) |> ignore)
 
     stepTable.ToStringAlternative()

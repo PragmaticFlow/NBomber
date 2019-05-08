@@ -39,15 +39,15 @@ module ProgressBar =
     let show (scenarioDuration: TimeSpan) = task {
         let options = ProgressBarOptions(ProgressBarOnBottom = true,
                                          ForegroundColor = ConsoleColor.Yellow,
-                                         ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
-                                         BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
+                                         ForegroundColorDone = Nullable<ConsoleColor> ConsoleColor.DarkGreen,
+                                         BackgroundColor = Nullable<ConsoleColor> ConsoleColor.DarkGray,
                                          BackgroundCharacter = Nullable<char>('\u2593'))
 
-        let totalSeconds = int(scenarioDuration.TotalSeconds)
+        let totalSeconds = int scenarioDuration.TotalSeconds
         use pbar = new ProgressBar(totalSeconds, String.Empty, options)
 
         for i = 1 to totalSeconds do
-            do! Task.Delay(TimeSpan.FromSeconds(1.0))
+            do! Task.Delay(TimeSpan.FromSeconds 1.0)
             pbar.Tick()
     }
 
@@ -70,7 +70,7 @@ let private retrieveNodeInfo () =
     { NodeName = Environment.MachineName
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
-      Processor = if isNull(processor) then String.Empty else processor
+      Processor = if isNull processor then String.Empty else processor
       CoresCount = Environment.ProcessorCount }
 
 let createSessionId () =
