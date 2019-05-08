@@ -22,6 +22,21 @@ let private isDurationOk (duration: TimeSpan) =
 let private isConcurrentCopiesOk (value: int) = 
     value >= 1
 
+let private getInvalidAssertionStepNames (scenario: Contracts.Scenario) =
+    let scenarioStepNames = 
+        scenario.Steps 
+        |> Step.create 
+        |> Array.map(fun x -> (scenario.ScenarioName, x.StepName));
+
+    let assertionStepNames =
+        scenario.Assertions 
+        |> Assertion.matchStepAssertions
+        |> Array.map(fun x -> (x.ScenarioName, x.StepName))
+
+    set assertionStepNames - set scenarioStepNames
+    |> Seq.toArray
+
+
 module ScenarioValidation =
 
     let checkEmptyName (scenarios: Contracts.Scenario[]) =
@@ -65,6 +80,11 @@ module ScenarioValidation =
         if Array.isEmpty(invalidScns) then Ok scenarios
         else Error <| ConcurrentCopiesIsWrong invalidScns
 
+    let checkForInvalidAssertionStepNames (scenarios: Contracts.Scenario[]) =
+        let invalidAssertions = scenarios |> Array.collect(fun x -> getInvalidAssertionStepNames(x))
+        if Array.isEmpty(invalidAssertions) then Ok scenarios
+        else Error <| AssertionDoesntMatchScenario invalidAssertions
+
     let validate (context: NBomberContext) =
         context.Scenarios 
         |> checkEmptyName
@@ -73,6 +93,7 @@ module ScenarioValidation =
         >>= checkDuplicateStepName
         >>= checkDuration
         >>= checkConcurrentCopies
+        >>= checkForInvalidAssertionStepNames
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 

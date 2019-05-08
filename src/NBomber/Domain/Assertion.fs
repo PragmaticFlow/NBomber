@@ -4,8 +4,14 @@ module internal NBomber.Domain.Assertion
 open NBomber.Contracts
 open NBomber.Errors
 
-let create (assertions: IAssertion[]) = 
-    assertions |> Array.map(fun x -> x :?> Assertion)
+let create : IAssertion[] -> Assertion[] = 
+    Array.map(fun x -> x :?> Assertion)
+
+let matchStepAssertions :IAssertion[] -> StepAssertion[] =
+    create
+    >> Array.map(fun x ->
+        match x with
+        | Step s -> s)
 
 let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
     let errors = 
