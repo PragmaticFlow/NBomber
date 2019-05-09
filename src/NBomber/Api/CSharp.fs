@@ -12,15 +12,12 @@ open NBomber.FSharp
 open NBomber.Configuration
 
 type ConnectionPool =
-    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>,
-                                       [<Optional;DefaultParameterValue(null:obj)>]
-                                       closeConnection: Action<'TConnection>,
-                                       [<Optional;DefaultParameterValue(Domain.Constants.DefaultConnectionsCount)>]
-                                       ?connectionsCount: int) =
-        let close = if isNull closeConnection then (new Action<'TConnection>(fun _ -> ()))
-                    else closeConnection
-        let count = defaultArg connectionsCount Domain.Constants.DefaultConnectionsCount
-        FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)
+    static member Create<'a>(name: string, openConnection: Func<'a>) =
+        FSharp.ConnectionPool.create(name, openConnection.Invoke, ignore, Domain.Constants.DefaultConnectionsCount)
+    static member Create<'a>(name: string, openConnection: Func<'a>, closeConnection: Action<'a>) =
+        FSharp.ConnectionPool.create(name, openConnection.Invoke, closeConnection.Invoke, Domain.Constants.DefaultConnectionsCount)
+    static member Create<'a>(name: string, openConnection: Func<'a>, closeConnection: Action<'a>, count) =
+        FSharp.ConnectionPool.create(name, openConnection.Invoke, closeConnection.Invoke, count)
 
     static member None = FSharp.ConnectionPool.none
 

@@ -23,7 +23,7 @@ module internal Extensions =
             | Ok v    -> v
             | Error _ -> failwith "result is error"
 
-        static member isError result = not(Result.isOk result)
+        static member isError result = result |> Result.isOk |> not
 
         static member getError result =
             match result with
@@ -58,7 +58,9 @@ module internal Extensions =
             str.Replace(oldValue, newValue)
 
         let concatWithCommaAndQuotes (strings: string seq) =
-            "'" + (strings |> String.concat("', '")) + "'"
+            strings
+            |> Seq.map (sprintf "'%s'")
+            |> String.concat ", "
 
 
 namespace NBomber.Extensions.Operator

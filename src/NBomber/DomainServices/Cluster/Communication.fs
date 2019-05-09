@@ -17,7 +17,7 @@ let private sendCommand (createCommand: AgentInfo -> AgentCommand) (agents: Agen
         |> Http.sendRequest<AgentCommand,AgentResponse> x.Url)
     |> Async.Parallel
 
-let private checkResponses (operationName: string)  responses =
+let private checkResponses (operationName: string) responses =
     match Result.sequence responses with
     | Ok _     -> Ok()
     | Error es -> AppError.createResult(OperationFailed(operationName, es))
@@ -26,7 +26,7 @@ let startNewSession (sessionId: string,
                      settings: ScenarioSetting[], agents: AgentInfo[]) =
     agents
     |> sendCommand(fun x -> NewSession(sessionId, settings, x.TargetScenarios))
-    |> Async.map(checkResponses("StartNewSession"))
+    |> Async.map(checkResponses "StartNewSession")
 
 let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
     let rec start () = asyncResult {
@@ -48,12 +48,12 @@ let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
 let startWarmUp (sessionId: string, agents: AgentInfo[]) =
     agents
     |> sendCommand(fun _ -> StartWarmUp sessionId)
-    |> Async.map(checkResponses("StartWarmUp"))
+    |> Async.map(checkResponses "StartWarmUp")
 
 let startBombing (sessionId: string, agents: AgentInfo[]) =
     agents
     |> sendCommand(fun _ -> StartBombing sessionId)
-    |> Async.map(checkResponses("StartBombing"))
+    |> Async.map(checkResponses "StartBombing")
 
 let getStatistics (sessionId: string, agents: AgentInfo[]) = async {
     let! responses =

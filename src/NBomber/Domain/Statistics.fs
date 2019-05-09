@@ -9,7 +9,7 @@ open NBomber.Domain
 
 let create (nodeStats: NodeStats) =
 
-    let mapStep (scnName: string, step: StepStats) =
+    let mapStep (scnName: string) (step: StepStats) =
         { ScenarioName = scnName
           StepName = step.StepName
           OkCount = step.OkCount
@@ -29,18 +29,16 @@ let create (nodeStats: NodeStats) =
           Meta = nodeStats.Meta }
 
     nodeStats.AllScenariosStats
-    |> Array.collect(fun scn ->
-        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))
+    |> Array.collect(fun scn -> scn.StepsStats |> Array.map(mapStep scn.ScenarioName))
 
-let buildHistogram  latencies =
+let buildHistogram latencies =
     let histogram = LongHistogram(TimeStamp.Hours 24, 3)
     latencies |> Seq.filter(fun x -> x > 0)
               |> Seq.iter(fun x -> x |> int64 |> histogram.RecordValue)
     histogram
 
 let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
-    let totalSec = if scnDuration.TotalSeconds < 1.0 then 1.0
-                   else scnDuration.TotalSeconds
+    let totalSec = Math.Max(1.0, scnDuration.TotalSeconds)
     latencies.Length / int totalSec
 
 let calcMin (latencies: Latency[]) =
@@ -72,7 +70,7 @@ let fromKbToMb (sizeKb: float) =
     else 0.0
 
 let calcAllMB (sizesBytes: int[]) =
-    let toMB  sizeBytes = sizeBytes |> fromBytesToKb |> fromKbToMb
+    let toMB sizeBytes = sizeBytes |> fromBytesToKb |> fromKbToMb
     sizesBytes
     |> Array.fold(fun sizeMb sizeKb -> sizeMb + toMB sizeKb) 0.0
 

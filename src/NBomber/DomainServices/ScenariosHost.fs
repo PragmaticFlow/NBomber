@@ -1,4 +1,4 @@
-﻿module internal NBomber.DomainServices.ScenariosHost
+module internal NBomber.DomainServices.ScenariosHost
 
 open System.Threading.Tasks
 
@@ -32,7 +32,8 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     match runnerWithLongestScenario with
     | Some runner ->
         if scnRunners.Length > 1 then
-            Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+            Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'",
+                            runner.Scenario.Duration, runner.Scenario.ScenarioName)
         else
             Log.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
 
@@ -140,8 +141,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         member x.StopScenarios() =
             scnRunners
-            |> Option.map stopAndCleanScenarios
-            |> ignore
+            |> Option.iter stopAndCleanScenarios
 
         member x.GetStatistics() =
             match scnRunners with

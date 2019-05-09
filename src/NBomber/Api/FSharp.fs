@@ -25,7 +25,7 @@ type ConnectionPool =
 
     static member none =
         { PoolName = "empty_pool"
-          OpenConnection = (fun _ -> ())
+          OpenConnection = ignore
           CloseConnection = None
           ConnectionsCount = 1
           AliveConnections = Array.empty }
@@ -40,9 +40,10 @@ module Step =
 
         let newOpen = fun () -> p.OpenConnection() :> obj
 
-        let newClose = match p.CloseConnection with
-                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
-                       | None      -> None
+        let newClose =
+            match p.CloseConnection with
+            | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
+            | None      -> None
 
         let newPool = { PoolName = p.PoolName
                         OpenConnection = newOpen
@@ -66,11 +67,10 @@ module Step =
 type Assertion =
 
     static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =
-        Domain.Assertion.Step(
-            { StepName = stepName
-              ScenarioName = ""
-              AssertFunc = assertion
-              Label = label }) :> IAssertion
+        { StepName = stepName
+          ScenarioName = ""
+          AssertFunc = assertion
+          Label = label } |> Domain.Assertion.Step :> IAssertion
 
 module Scenario =
     open System.Threading
@@ -94,8 +94,7 @@ module Scenario =
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
         let asrts = assertions
                     |> Seq.cast<Domain.Assertion>
-                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
-                    |> Seq.map(fun x -> x :> IAssertion)
+                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}) :> IAssertion)
                     |> Seq.toArray
 
         { scenario with Assertions = asrts }
@@ -119,7 +118,10 @@ module NBomberRunner =
         { Scenarios = List.toArray scenarios
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
+          ReportFormats = [ ReportFormat.Txt
+                            ReportFormat.Html
+                            ReportFormat.Csv
+                            ReportFormat.Md ]
           StatisticsSink = None }
 
     let registerScenario (scenario: Contracts.Scenario) =
@@ -132,8 +134,7 @@ module NBomberRunner =
         { context with ReportFormats = reportFormats }
 
     let loadConfig (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> NBomberConfig.parse
-        { context with NBomberConfig = Some config }
+        { context with NBomberConfig = NBomberConfig.load path }
 
     let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
         { context with StatisticsSink = Some statisticsSink }

@@ -1,6 +1,7 @@
 ﻿namespace NBomber.Configuration
 
 open System
+open System.IO
 
 type ReportFormat =
     | Txt = 0
@@ -53,3 +54,8 @@ module internal NBomberConfig =
 
     let parse  json =
         Json.deserialize<NBomberConfig> json
+    let load path =
+        path
+        |> File.ReadAllText
+        |> parse
+        |> Some

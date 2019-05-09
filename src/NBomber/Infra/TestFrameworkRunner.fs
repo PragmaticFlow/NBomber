@@ -20,22 +20,14 @@ let private printErrorMessage (framework: TestFramework) (errorsMessage: string)
         func.Invoke errorsMessage
 
 let tryGetCurrentFramework () =
-    let xUnit1 =
-        let xunitType = Type.GetType("Xunit.Assert, xunit")
-        if not (isNull xunitType) then Xunit xunitType |> Some
-        else None
-
-    let xUnit2 =
-        let xunitType = Type.GetType("Xunit.Assert, xunit.assert")
-        if not (isNull xunitType) then Xunit xunitType |> Some
-        else None
-
-    let nUnit =
-        let nunitType = Type.GetType("NUnit.Framework.Assert, nunit.framework")
-        if not (isNull nunitType) then Nunit nunitType |> Some
-        else None
-
-    [xUnit1; xUnit2; nUnit] |> List.tryPick id
+    [ "Xunit.Assert, xunit", Xunit
+      "Xunit.Assert, xunit.assert", Xunit
+      "NUnit.Framework.Assert, nunit.framework", Nunit
+    ] |> List.tryPick( fun (typeName, ctor) ->
+        Type.GetType typeName
+        |> Option.ofObj
+        |> Option.map ctor
+    )
 
 let showErrors (error: AppError[]) =
     match tryGetCurrentFramework() with
@@ -43,5 +35,5 @@ let showErrors (error: AppError[]) =
     | Some framework ->
         error
         |> Array.map AppError.toString
-        |> String.concat(", ")
+        |> String.concat ", "
         |> printErrorMessage framework

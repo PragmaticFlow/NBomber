@@ -26,8 +26,8 @@ module ScenarioValidation =
 
     let checkEmptyName (scenarios: Contracts.Scenario[]) =
         match scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace x.ScenarioName) with
-        | Some _ -> Error EmptyScenarioName
         | None -> Ok scenarios
+        | Some _ -> Error EmptyScenarioName
 
     let checkDuplicateName (scenarios: Contracts.Scenario[]) =
         let duplicates = scenarios |> Array.map(fun x -> x.ScenarioName) |> getDuplicates
@@ -53,7 +53,7 @@ module ScenarioValidation =
             |> Array.collect(fun x -> x.Steps |> Step.create |> Array.map(fun x -> x.StepName) |> getDuplicates)
 
         if Array.isEmpty duplicates then Ok scenarios
-        else Error <| DuplicateStepName duplicates
+        else duplicates |> DuplicateStepName |> Error
 
     let checkDuration (scenarios: Contracts.Scenario[]) =
         let invalidScns = scenarios |> Array.choose(fun x -> if isDurationOk x.Duration then None else Some x.ScenarioName)
@@ -61,7 +61,8 @@ module ScenarioValidation =
         else Error <| DurationIsWrong invalidScns
 
     let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
-        let invalidScns = scenarios |> Array.choose(fun x -> if isConcurrentCopiesOk x.ConcurrentCopies then None else Some x.ScenarioName)
+        let invalidScns = scenarios |> Array.choose(fun x -> if isConcurrentCopiesOk x.ConcurrentCopies then None
+                                                             else Some x.ScenarioName)
         if Array.isEmpty invalidScns then Ok scenarios
         else Error <| ConcurrentCopiesIsWrong invalidScns
 

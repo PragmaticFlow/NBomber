@@ -46,18 +46,17 @@ type internal AppError =
     static member toString (error: DomainError) =
         match error with
         | AssertionError (assertNumber, assertion, stats) ->
-            let statsJson = sprintf "%A" stats
             match assertion with
             | Step s ->
-                let scenarioStr = sprintf "SCENARIO: '%s' %s" s.ScenarioName Environment.NewLine
-                let stepStr     = sprintf "STEP: '%s' %s" s.StepName Environment.NewLine
-                let labelStr =
-                    s.Label
-                    |> Option.map (fun label -> sprintf "LABEL: '%s' %s" label Environment.NewLine)
-                    |> Option.defaultValue ""
-                let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
-                sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s"
-                        assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
+                [ sprintf "Assertion #'%i' FAILED for:" assertNumber
+                  sprintf "SCENARIO: '%s'" s.ScenarioName
+                  sprintf "STEP: '%s'" s.StepName
+                  s.Label |> Option.map (fun label -> sprintf "LABEL: '%s'" label)
+                          |> Option.defaultValue ""
+                  "STATS:"
+                  sprintf "%A" stats
+                ]|> List.filter ((<>) "")
+                |> String.concat Environment.NewLine
 
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
@@ -67,10 +66,10 @@ type internal AppError =
         | TargetScenarioIsEmpty -> "Target scenario can't be empty."
 
         | TargetScenarioNotFound (notFoundScenarios, registeredScenarios) ->
-            notFoundScenarios
-            |> String.concatWithCommaAndQuotes
-            |> sprintf "Target scenarios %s is not found. Available scenarios are %s."
-            <| String.concatWithCommaAndQuotes registeredScenarios
+            let notFound = notFoundScenarios |> String.concatWithCommaAndQuotes
+            let available = registeredScenarios |> String.concatWithCommaAndQuotes
+            sprintf "Target scenarios %s is not found. Available scenarios are %s."
+                    notFound available
 
         | DurationIsWrong scenarioNames ->
             scenarioNames
