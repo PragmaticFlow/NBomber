@@ -25,9 +25,9 @@ let private isConcurrentCopiesOk (value: int) =
 module ScenarioValidation =
 
     let checkEmptyName (scenarios: Contracts.Scenario[]) =
-        let emptyScn = scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace x.ScenarioName)
-        if emptyScn.IsSome then Error <| EmptyScenarioName
-        else Ok scenarios
+        match scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace x.ScenarioName) with
+        | Some _ -> Error EmptyScenarioName
+        | None -> Ok scenarios
 
     let checkDuplicateName (scenarios: Contracts.Scenario[]) =
         let duplicates = scenarios |> Array.map(fun x -> x.ScenarioName) |> getDuplicates

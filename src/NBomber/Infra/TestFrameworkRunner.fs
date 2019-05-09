@@ -35,11 +35,13 @@ let tryGetCurrentFramework () =
         if not (isNull nunitType) then Nunit nunitType |> Some
         else None
 
-    [xUnit1; xUnit2; nUnit]
-    |> List.tryFind Option.isSome
-    |> Option.flatten
+    [xUnit1; xUnit2; nUnit] |> List.tryPick id
 
 let showErrors (error: AppError[]) =
-    let framework = tryGetCurrentFramework()
-    if framework.IsNone then failwith("Unknown framework")
-    error |> Array.map AppError.toString |> String.concat(", ") |> printErrorMessage framework.Value
+    match tryGetCurrentFramework() with
+    | None -> failwith "Unknown framework"
+    | Some framework ->
+        error
+        |> Array.map AppError.toString
+        |> String.concat(", ")
+        |> printErrorMessage framework

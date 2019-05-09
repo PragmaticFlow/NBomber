@@ -51,8 +51,10 @@ type internal AppError =
             | Step s ->
                 let scenarioStr = sprintf "SCENARIO: '%s' %s" s.ScenarioName Environment.NewLine
                 let stepStr     = sprintf "STEP: '%s' %s" s.StepName Environment.NewLine
-                let labelStr = if s.Label.IsSome then sprintf "LABEL: '%s' %s" s.Label.Value Environment.NewLine
-                               else String.Empty
+                let labelStr =
+                    s.Label
+                    |> Option.map (fun label -> sprintf "LABEL: '%s' %s" label Environment.NewLine)
+                    |> Option.defaultValue ""
                 let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
                 sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s"
                         assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr

@@ -8,9 +8,9 @@ let create (assertions: IAssertion[]) =
     assertions |> Array.map(fun x -> x :?> Assertion)
 
 let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
-    let errors =
         assertions
-        |> Array.mapi(fun i assertion ->
+        |> Seq.indexed
+        |> Seq.choose (fun (i, assertion) ->
             let asrtNum = i + 1
             match assertion with
             | Step asrt ->
@@ -19,8 +19,6 @@ let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
                 if asrt.AssertFunc stats then
                     None
                 else
-                    Some <| AssertionError(asrtNum, Step asrt, stats))
-        |> Array.filter Option.isSome
-
-    if Array.isEmpty errors then Array.empty
-    else errors |> Array.map Option.get
+                    AssertionError(asrtNum, Step asrt, stats) |> Some
+        )
+        |> Seq.toArray

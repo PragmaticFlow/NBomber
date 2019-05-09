@@ -59,9 +59,11 @@ let init (scenario: Scenario) =
 
     try
         // todo: refactor, pass token
-        if scenario.TestInit.IsSome then
-            let cancelToken = new CancellationTokenSource()
-            scenario.TestInit.Value(cancelToken.Token).Wait()
+        scenario.TestInit
+        |> Option.iter(fun testInit ->
+            use cancelToken = new CancellationTokenSource()
+            testInit(cancelToken.Token).Wait()
+        )
 
         let allPools = initAllConnectionPools()
         let steps = scenario.Steps |> Array.map(setConnectionPool allPools)
@@ -89,10 +91,12 @@ let clean (scenario: Scenario) =
     |> Array.iter closePoolConnections
 
     try
-        if scenario.TestClean.IsSome then
-            // todo: refacto, pass token
-            let cancelToken = new CancellationTokenSource()
-            scenario.TestClean.Value(cancelToken.Token).Wait()
+        scenario.TestClean
+        |> Option.iter(fun testClean ->
+            // todo: refactor, pass token
+            use cancelToken = new CancellationTokenSource()
+            testClean(cancelToken.Token).Wait()
+        )
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
 

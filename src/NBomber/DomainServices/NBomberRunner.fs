@@ -50,7 +50,6 @@ let runSingleNode (dep: Dependency, context: NBomberContext) =
     ScenariosHost.create(dep, registeredScns)
     |> ScenariosHost.run(scnSettings, targetScns)
     |> AsyncResult.map(fun stats -> [|stats|])
-    |> Some
 
 let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =
     let scnSettings, _, registeredScns = getScenariosArgs context
@@ -75,8 +74,8 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
              FailedAsserts = Array.empty }
 
 let saveStatistics (context: NBomberContext) (result: ExecutionResult) =
-    if context.StatisticsSink.IsSome then
-        context.StatisticsSink.Value.SaveStatistics(result.Statistics).Wait()
+    context.StatisticsSink
+    |> Option.iter(fun sink -> sink.SaveStatistics(result.Statistics).Wait())
     result
 
 let applyAsserts (context: NBomberContext) (result: ExecutionResult) =
@@ -120,14 +119,16 @@ let run (dep: Dependency, context: NBomberContext) =
 
         let! ctx = Validation.validateContext context
         let! nodeStats =
-            NBomberContext.tryGetClusterSettings ctx
-            |> Option.map(function
-                | Coordinator c        -> runClusterCoordinator(dep, ctx, c)
-                | Agent a              -> runClusterAgent(dep, ctx, a))
-            |> Option.orElseWith(fun _ -> runSingleNode(dep, ctx))
-            |> Option.get
+            match NBomberContext.tryGetClusterSettings ctx with
+            | Some (Coordinator c) -> runClusterCoordinator(dep, ctx, c)
+            | Some (Agent a)       -> runClusterAgent(dep, ctx, a)
+            | None                 -> runSingleNode(dep, ctx)
 
-        let result = nodeStats |> calcStatistics(dep, ctx) |> saveStatistics ctx |> applyAsserts ctx
+        let result =
+            nodeStats
+            |> calcStatistics(dep, ctx)
+            |> saveStatistics ctx
+            |> applyAsserts ctx
         result |> buildReport dep |> saveReport(dep, ctx)
         return result
     }

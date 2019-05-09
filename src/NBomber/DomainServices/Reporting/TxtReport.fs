@@ -22,7 +22,7 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         | AssertionError (assertNumber,assertion,_) ->
             match assertion with
             | Step s ->
-                let assertLabel = if s.Label.IsSome then s.Label.Value else String.Empty
+                let assertLabel = s.Label |> Option.defaultValue ""
                 sprintf "- failed assertion #%i" assertNumber, assertLabel
         | _ -> String.Empty, String.Empty
 

@@ -59,8 +59,9 @@ module private Impl =
         | AssertionError (assertNumber,assertion,_) ->
             match assertion with
             | Step s ->
-                let assertLabel = if s.Label.IsSome then s.Label.Value else String.Empty
-                sprintf "- failed assertion nr `%i`, `%s`" assertNumber assertLabel
+                s.Label
+                |> Option.defaultValue ""
+                |> sprintf "- failed assertion nr `%i`, `%s`" assertNumber
         | _ -> String.Empty
 
 let print (stats: NodeStats, failedAsserts: DomainError[]) =

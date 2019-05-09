@@ -122,20 +122,26 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         member x.WarmUpScenarios() = task {
             do! Task.Delay 10
-            if scnRunners.IsSome then
+            scnRunners
+            |> Option.iter(fun runners ->
                 startedWork()
-                warmUpScenarios(dep, scnRunners.Value)
-                stoppedWork()
+                warmUpScenarios(dep, runners)
+                stoppedWork())
         }
 
         member x.StartBombing() = task {
-            if scnRunners.IsSome then
+            match scnRunners with
+            | None -> ()
+            | Some runners ->
                 startedWork()
-                let! tasks = runBombing(dep, scnRunners.Value)
+                let! tasks = runBombing(dep, runners)
                 stoppedWork()
         }
 
-        member x.StopScenarios() = scnRunners |> Option.map stopAndCleanScenarios |> ignore
+        member x.StopScenarios() =
+            scnRunners
+            |> Option.map stopAndCleanScenarios
+            |> ignore
 
         member x.GetStatistics() =
             match scnRunners with
