@@ -23,7 +23,7 @@ let buildScenario () =
         let! response = httpClient.SendAsync(createHttpRequest(), context.CancellationToken)
         let responseSize =
             if response.Content.Headers.ContentLength.HasValue then
-               response.Content.Headers.ContentLength.Value |> Convert.ToInt32
+               response.Content.Headers.ContentLength.Value |> int
             else
                0
 

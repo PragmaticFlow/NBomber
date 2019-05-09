@@ -46,11 +46,8 @@ let getDistinctPools (scenario: Scenario) =
 let init (scenario: Scenario) =
 
     let initConnectionPool (pool: ConnectionPool<obj>) =
-        let connections = System.Collections.Generic.List<obj>()
-        for i = 1 to pool.ConnectionsCount do
-            let connection = pool.OpenConnection()
-            connections.Add connection
-        { pool with AliveConnections = connections.ToArray() }
+        let connections = Array.init pool.ConnectionsCount (fun _ -> pool.OpenConnection())
+        { pool with AliveConnections = connections }
 
     let initAllConnectionPools () =
         scenario

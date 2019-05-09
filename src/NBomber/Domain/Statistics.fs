@@ -34,8 +34,8 @@ let create (nodeStats: NodeStats) =
 
 let buildHistogram  latencies =
     let histogram = LongHistogram(TimeStamp.Hours 24, 3)
-    latencies |> Array.filter(fun x -> x > 0)
-              |> Array.iter(fun x -> x |> int64 |> histogram.RecordValue)
+    latencies |> Seq.filter(fun x -> x > 0)
+              |> Seq.iter(fun x -> x |> int64 |> histogram.RecordValue)
     histogram
 
 let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
@@ -49,7 +49,7 @@ let calcMin (latencies: Latency[]) =
 let calcMean (latencies: Latency[]) =
     if Array.isEmpty latencies
     then 0
-    else latencies |> Array.map float |> Array.average |> int
+    else latencies |> Array.averageBy float |> int
 
 let calcMax (latencies: Latency[]) =
     if Array.isEmpty latencies then 0 else Array.max latencies
@@ -80,9 +80,10 @@ module StepResults =
 
     let calcDataTransfer (responses: (Response*Latency)[]) =
         let allSizesBytes = responses
-                            |> Array.map fst
-                            |> Array.filter(fun x -> x.SizeBytes > 0)
-                            |> Array.map(fun x -> x.SizeBytes)
+                            |> Seq.map fst
+                            |> Seq.filter(fun x -> x.SizeBytes > 0)
+                            |> Seq.map(fun x -> x.SizeBytes)
+                            |> Seq.toArray
 
         { MinKb  = allSizesBytes |> calcMin |> fromBytesToKb
           MeanKb = allSizesBytes |> calcMean |> fromBytesToKb
@@ -96,10 +97,10 @@ module StepResults =
             if result > 0.01 then result
             else Math.Round(value, 4)
 
-        { MinKb  = counts |> Array.map(fun x -> x.MinKb) |> Array.min |> roundResult
-          MeanKb = counts |> Array.map(fun x -> x.MeanKb) |> Array.average |> roundResult
-          MaxKb  = counts |> Array.map(fun x -> x.MaxKb) |> Array.max |> roundResult
-          AllMB  = counts |> Array.sumBy(fun x -> x.AllMB) |> roundResult }
+        { MinKb  = counts |> Seq.map(fun x -> x.MinKb) |> Seq.min |> roundResult
+          MeanKb = counts |> Seq.map(fun x -> x.MeanKb) |> Seq.average |> roundResult
+          MaxKb  = counts |> Seq.map(fun x -> x.MaxKb) |> Seq.max |> roundResult
+          AllMB  = counts |> Seq.sumBy(fun x -> x.AllMB) |> roundResult }
 
     let merge (stepsResults: StepResults[]) =
         stepsResults
@@ -118,7 +119,11 @@ module StepResults =
 module StepStats =
 
     let create (scnDuration: TimeSpan) (stepResults: StepResults) =
-        let okLatencies = stepResults.Results |> Array.filter(fun (res,_) -> res.IsOk) |> Array.map snd
+        let okLatencies =
+            stepResults.Results
+            |> Seq.filter(fun (res,_) -> res.IsOk)
+            |> Seq.map snd
+            |> Seq.toArray
         let histogram = buildHistogram okLatencies
 
         { StepName = stepResults.StepName
@@ -177,7 +182,7 @@ module ScenarioStats =
 
         let allOkCount = mergedStepsStats |> Array.sumBy(fun x -> x.OkCount)
         let allFailCount = mergedStepsStats |> Array.sumBy(fun x -> x.FailCount)
-        let allRPS = mergedStepsStats |> Array.map(fun x -> x.RPS) |> Array.min
+        let allRPS = mergedStepsStats |> Seq.map(fun x -> x.RPS) |> Seq.min
 
         { ScenarioName = scenario.ScenarioName
           StepsStats = mergedStepsStats
@@ -199,12 +204,12 @@ module NodeStats =
     let create (meta: StatisticsMeta) (allScnStats: ScenarioStats[]) =
 
         let allOkCount = allScnStats
-                         |> Array.collect(fun x -> x.StepsStats)
-                         |> Array.sumBy(fun x -> x.OkCount)
+                         |> Seq.collect(fun x -> x.StepsStats)
+                         |> Seq.sumBy(fun x -> x.OkCount)
 
         let allFailCount = allScnStats
-                           |> Array.collect(fun x -> x.StepsStats)
-                           |> Array.sumBy(fun x -> x.FailCount)
+                           |> Seq.collect(fun x -> x.StepsStats)
+                           |> Seq.sumBy(fun x -> x.FailCount)
 
         let latencyCount = allScnStats
                            |> Array.collect(fun x -> x.StepsStats)

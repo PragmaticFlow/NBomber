@@ -54,7 +54,7 @@ let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) =
         )
 
     failedAsserts
-    |> Array.map getAssertNumberAndLabel
-    |> Array.iter(fun (assertNumber, assertLabel) -> stepTable.AddRow(assertNumber, assertLabel) |> ignore)
+    |> Seq.map getAssertNumberAndLabel
+    |> Seq.iter(fun (assertNumber, assertLabel) -> stepTable.AddRow(assertNumber, assertLabel) |> ignore)
 
     stepTable.ToStringAlternative()

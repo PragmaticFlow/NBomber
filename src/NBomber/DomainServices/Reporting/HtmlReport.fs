@@ -71,7 +71,7 @@ module StatisticsTable =
             let assertionsStr = HtmlBuilder.toListGroup failedAsserts
 
             let row = scnStats.StepsStats
-                      |> Array.map(fun step -> printStepRow step)
+                      |> Array.map printStepRow
                       |> String.concat String.Empty
 
             let rowStr = row.Remove(0, 4)

@@ -36,7 +36,7 @@ let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
 
         match Result.sequence responses with
         | Ok data  ->
-            let ready = data |> Array.choose(fun x -> x.Error) |> Array.isEmpty
+            let ready = data |> Seq.choose(fun x -> x.Error) |> Seq.isEmpty
             if not ready then
                 do! Async.Sleep 2000
                 return! start()

@@ -64,8 +64,8 @@ let initScenarios (scenarios: Scenario[]) = task {
 
 let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners
-    |> Array.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
-    |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
+    |> Seq.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
+    |> Seq.iter(fun x ->   Log.Information("warming up scenario: '{0}'", x.Scenario.ScenarioName)
                            let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar duration
                            x.WarmUp().Wait())

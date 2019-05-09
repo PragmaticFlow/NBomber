@@ -36,11 +36,11 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
         context.Payload <- prevPayload
         let! resp = step.Execute step.CurrentContext.Value
         timer.Stop()
-        let latency = Convert.ToInt32 timer.Elapsed.TotalMilliseconds
+        let latency = int timer.Elapsed.TotalMilliseconds
         return (resp, latency)
     with
     | ex -> timer.Stop()
-            let latency = Convert.ToInt32 timer.Elapsed.TotalMilliseconds
+            let latency = int timer.Elapsed.TotalMilliseconds
             return (Response.Fail(), latency)
 }
 
@@ -58,13 +58,10 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken) = task {
 
         for st in steps do
             if not skipStep && not cancelToken.ShouldCancel then
-
                 let! response, latency = execStep(st, payload, timer)
-
                 if not cancelToken.ShouldCancel then
                     latencies.[stepIndex].Add(response,latency)
                     stepIndex <- stepIndex + 1
-
                     if response.IsOk then
                         payload <- response.Payload
                     else
