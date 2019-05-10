@@ -43,6 +43,7 @@ Documentation is located [here](https://nbomber.com).
 ### Examples
 |Scenario|Language|Example|
 |--|--|--|
+| Hello World | C# | [Create basic scenarios](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/HelloWorld.cs) |
 | HTTP | C# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/Http.cs) |
 | MongoDb | C# | [Test MongoDb with 2 READ queries](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/MongoDb.cs)|
 | NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.NUnit/Tests.cs) |

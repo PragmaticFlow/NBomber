@@ -9,8 +9,9 @@ namespace CSharp.Examples
     {
         static void Main(string[] args)
         {
-            var scenario = HttpScenario
+            //var scenario = HttpScenario
             //var scenario = HelloWorldScenario            
+            var scenario = HelloWorld2Scenario 
             //var scenario = MongoDbScenario
             //var scenario = WebSocketsScenario
                 .BuildScenario()
