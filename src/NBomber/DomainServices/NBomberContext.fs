@@ -4,7 +4,7 @@ open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
 
-let getScenariosSettings (context: NBomberContext) =    
+let getScenariosSettings (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.map(fun x -> x.ScenariosSettings)
@@ -15,13 +15,13 @@ let tryGetClusterSettings (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.ClusterSettings)
 
-let getNodeType (context: NBomberContext) = 
+let getNodeType (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.ClusterSettings)
-    |> Option.map(function 
+    |> Option.map(function
         | ClusterSettings.Coordinator _ -> NodeType.Coordinator
         | ClusterSettings.Agent _       -> NodeType.Agent)
-    |> Option.defaultValue NodeType.SingleNode        
+    |> Option.defaultValue NodeType.SingleNode
 
 let getTargetScenarios (context: NBomberContext) =
     context.NBomberConfig
@@ -34,10 +34,10 @@ let tryGetReportFileName (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
     let! settings = config.GlobalSettings
     return! settings.ReportFileName
-}   
+}
 
 let tryGetReportFormats (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
     let! settings = config.GlobalSettings
-    return! settings.ReportFormats    
+    return! settings.ReportFormats
 }

@@ -5,7 +5,7 @@ open System.Threading
 open System.Threading.Tasks
 open NBomber.Contracts
 
-module internal Constants =   
+module internal Constants =
 
     [<Literal>]
     let DefaultScenarioDurationInSec = 60.0
@@ -18,7 +18,7 @@ module internal Constants =
 
     [<Literal>]
     let DefaultConnectionsCount = 0
-    
+
     [<Literal>]
     let PauseStepName = "pause"
 
@@ -30,7 +30,7 @@ type internal Latency = int
 
 [<CustomEquality; NoComparison>]
 type internal ConnectionPool<'TConnection> = {
-    PoolName: string    
+    PoolName: string
     OpenConnection: unit -> 'TConnection
     CloseConnection: ('TConnection -> unit) option
     ConnectionsCount: int
@@ -38,7 +38,7 @@ type internal ConnectionPool<'TConnection> = {
 } with
   interface IConnectionPool<'TConnection>
   override x.GetHashCode() = x.PoolName.GetHashCode()
-  override x.Equals(b) = 
+  override x.Equals b =
     match b with
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false
@@ -59,14 +59,14 @@ type internal StepAssertion = {
     Label: string option
 }
 
-type internal Assertion = 
-    | Step of StepAssertion    
+type internal Assertion =
+    | Step of StepAssertion
     interface IAssertion
 
-type internal Scenario = {    
+type internal Scenario = {
     ScenarioName: ScenarioName
-    TestInit: (CancellationToken -> Task) option  
-    TestClean: (CancellationToken -> Task) option  
+    TestInit: (CancellationToken -> Task) option
+    TestClean: (CancellationToken -> Task) option
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int

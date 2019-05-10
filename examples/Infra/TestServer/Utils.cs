@@ -15,7 +15,7 @@ namespace TestServer.Utils
         public static T FromJsonByteArray<T>(byte[] msg)
         {
             var json = Encoding.ASCII.GetString(msg);
-            return JsonConvert.DeserializeObject<T>(json);            
-        }        
+            return JsonConvert.DeserializeObject<T>(json);
+        }
     }
 }

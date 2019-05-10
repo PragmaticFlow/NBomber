@@ -1,8 +1,9 @@
 ﻿namespace NBomber.Configuration
 
 open System
+open System.IO
 
-type ReportFormat = 
+type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
@@ -44,12 +45,17 @@ type ClusterSettings =
     | Agent       of AgentSettings
 
 type NBomberConfig = {
-    GlobalSettings: GlobalSettings option    
+    GlobalSettings: GlobalSettings option
     ClusterSettings: ClusterSettings option
 }
 
-module internal NBomberConfig =    
+module internal NBomberConfig =
     open FSharp.Json
 
-    let parse (json) = 
-        Json.deserialize<NBomberConfig>(json)
+    let parse  json =
+        Json.deserialize<NBomberConfig> json
+    let load path =
+        path
+        |> File.ReadAllText
+        |> parse
+        |> Some
