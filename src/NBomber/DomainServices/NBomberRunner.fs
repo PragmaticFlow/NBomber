@@ -7,6 +7,7 @@ open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Errors
+open NBomber.Extensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
@@ -108,9 +109,11 @@ let showErrors (dep: Dependency) (errors: AppError[]) =
 let showAsserts (dep: Dependency) (result: ExecutionResult) =
     match result.FailedAsserts with
     | [||]          -> ()
-    | failedAsserts -> failedAsserts |> Array.map(AppError.create) |> showErrors(dep)        
+    | failedAsserts -> failedAsserts
+                       |> Array.map AppError.create
+                       |> showErrors dep
 
-let run (dep: Dependency, context: NBomberContext) = 
+let run (dep: Dependency) (context: NBomberContext) =
     asyncResult {
         Dependency.Logger.initLogger(dep.ApplicationType)    
         Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
@@ -133,4 +136,9 @@ let run (dep: Dependency, context: NBomberContext) =
     |> AsyncResult.map(showAsserts(dep))
     |> AsyncResult.mapError(fun error -> showErrors dep [|error|]) 
     |> Async.RunSynchronously
-    |> ignore
+    |> Result.toExitCode
+
+let runAs (appType: ApplicationType) (context: NBomberContext) =
+    let nodeType = NBomberContext.getNodeType context
+    let dep = Dependency.create(appType, nodeType)
+    run dep context
