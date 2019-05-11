@@ -36,11 +36,11 @@ let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {
         context.Payload <- prevPayload
         let! resp = step.Execute(step.CurrentContext.Value)
         timer.Stop()
-        let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
+        let latency = int timer.Elapsed.TotalMilliseconds
         return (resp, latency)
     with
     | ex -> timer.Stop()
-            let latency = Convert.ToInt32(timer.Elapsed.TotalMilliseconds)
+            let latency = int timer.Elapsed.TotalMilliseconds
             return (Response.Fail(), latency)
 }
 

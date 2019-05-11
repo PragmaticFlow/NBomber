@@ -38,7 +38,7 @@ module internal Extensions =
                 | Error e, Ok items  -> Error [|e|]
                 | Error e, Error ers -> Error(Array.append ers [| e |])
         
-            Seq.foldBack folder results (Ok Array.empty)
+            Array.foldBack folder results (Ok Array.empty)
 
     type MaybeBuilder() =
     
@@ -58,8 +58,7 @@ module internal Extensions =
             str.Replace(oldValue, newValue)
 
         let concatWithCommaAndQuotes (strings: string seq) =
-            "'" + (strings |> String.concat("', '")) + "'"
-
+            strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
 
 namespace NBomber.Extensions.Operator
 

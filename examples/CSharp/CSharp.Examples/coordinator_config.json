@@ -2,24 +2,24 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "nbomber.com",
+        "ScenarioName": "test_gitter",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "nbomber.com" ]    
+    "TargetScenarios": [ "test_gitter" ]    
   },
 
   "ClusterSettings": {
     "Coordinator": {
       "ClusterId": "test_cluster",
-      "TargetScenarios": [ "nbomber.com" ],
+      "TargetScenarios": [ "test_gitter" ],
       "Agents": [
         {
           "Host": "localhost",
           "Port": 8080,
-          "TargetScenarios": [ "nbomber.com" ]
+          "TargetScenarios": [ "test_gitter" ]
         }
       ]
     }

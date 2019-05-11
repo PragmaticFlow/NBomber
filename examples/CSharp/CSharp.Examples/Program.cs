@@ -14,8 +14,8 @@ namespace CSharp.Examples
             //var scenario = MongoDbScenario
             //var scenario = WebSocketsScenario
                 .BuildScenario()
-                .WithConcurrentCopies(10)
-                //.WithWarmUpDuration(TimeSpan.FromSeconds(10))
+                .WithConcurrentCopies(100)
+                .WithWarmUpDuration(TimeSpan.FromSeconds(5))
                 .WithDuration(TimeSpan.FromSeconds(5));
 
             NBomberRunner.RegisterScenarios(scenario)

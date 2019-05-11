@@ -46,11 +46,10 @@ let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: Ag
 let runSingleNode (dep: Dependency, context: NBomberContext) =
     Log.Information("NBomber started as single node")
 
-    let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
+    let scnSettings, targetScns, registeredScns = getScenariosArgs context
     ScenariosHost.create(dep, registeredScns)
     |> ScenariosHost.run(scnSettings, targetScns)
-    |> AsyncResult.map(fun stats -> [|stats|])    
-    |> Some
+    |> AsyncResult.map(fun stats -> [|stats|])
 
 let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
     let scnSettings, _, registeredScns = getScenariosArgs(context)
@@ -117,15 +116,17 @@ let run (dep: Dependency, context: NBomberContext) =
         Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
 
         let! ctx = Validation.validateContext(context)
-        let! nodeStats =             
-            NBomberContext.tryGetClusterSettings(ctx)        
-            |> Option.map(function
-                | Coordinator c        -> runClusterCoordinator(dep, ctx, c)
-                | Agent a              -> runClusterAgent(dep, ctx, a))
-            |> Option.orElseWith(fun _ -> runSingleNode(dep, ctx))
-            |> Option.get
+        let! nodeStats =
+            match NBomberContext.tryGetClusterSettings(ctx) with
+            | Some (Coordinator c) -> runClusterCoordinator(dep, ctx, c)
+            | Some (Agent a)       -> runClusterAgent(dep, ctx, a)
+            | None                 -> runSingleNode(dep, ctx)
 
-        let result = nodeStats |> calcStatistics(dep, ctx) |> saveStatistics(ctx) |> applyAsserts(ctx)
+        let result = nodeStats
+                     |> calcStatistics(dep, ctx)
+                     |> saveStatistics(ctx)
+                     |> applyAsserts(ctx)
+
         result |> buildReport(dep) |> saveReport(dep, ctx)
         return result
     }

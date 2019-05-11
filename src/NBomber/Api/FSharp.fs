@@ -11,20 +11,32 @@ open NBomber.DomainServices
 
 type ConnectionPool =   
 
-    static member create<'TConnection>(name: string, openConnection: unit -> 'TConnection, ?closeConnection: 'TConnection -> unit, ?connectionsCount: int) =        
-        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount        
-        { PoolName = name; OpenConnection = openConnection; CloseConnection = closeConnection
-          ConnectionsCount = count; AliveConnections = Array.empty }
+    static member create<'TConnection>(name: string,
+                                       openConnection: unit -> 'TConnection,
+                                       ?closeConnection: 'TConnection -> unit,
+                                       ?connectionsCount: int) =
+        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount
+        { PoolName = name
+          OpenConnection = openConnection
+          CloseConnection = closeConnection
+          ConnectionsCount = count
+          AliveConnections = Array.empty }
           :> IConnectionPool<'TConnection>
 
     static member none =
-        { PoolName = "empty_pool"; OpenConnection = (fun _ -> ());
-          CloseConnection = None; ConnectionsCount = 1; AliveConnections = Array.empty }
+        { PoolName = "empty_pool"
+          OpenConnection = ignore
+          CloseConnection = None
+          ConnectionsCount = 1
+          AliveConnections = Array.empty }
           :> IConnectionPool<unit>
 
 module Step =        
 
-    let create (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
+    let create (name: string, 
+                pool: IConnectionPool<'TConnection>,
+                execute: StepContext<'TConnection> -> Task<Response>) =                
+
         let p = pool :?> ConnectionPool<'TConnection>
         
         let newOpen = fun () -> p.OpenConnection() :> obj
@@ -47,12 +59,19 @@ module Step =
                                    Payload = context.Payload }
                 execute(newContext)
 
-        { StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None } :> IStep
+        { StepName = name
+          ConnectionPool = newPool
+          Execute = newExecute
+          CurrentContext = None }
+          :> IStep
 
 type Assertion =
 
-    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =         
-        Domain.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
+    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =
+        { StepName = stepName
+          ScenarioName = ""
+          AssertFunc = assertion
+          Label = label } |> Domain.Assertion.Step :> IAssertion
 
 module Scenario =        
     open System.Threading
