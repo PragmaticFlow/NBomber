@@ -12,16 +12,16 @@ open NBomber.FSharp
 let buildScenario () =
 
     let step1 = Step.create("simple step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds 0.1)
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok(sizeBytes = 1024)
     })
 
     Scenario.create "xunit hello world" [step1]
 
 [<Fact>]
-let ``XUnit test`` () =
-
-    let assertions = [
+let ``XUnit test`` () =    
+    
+    let assertions = [       
        Assertion.forStep("simple step", (fun stats -> stats.OkCount > 2), "OkCount > 2")
        Assertion.forStep("simple step", (fun stats -> stats.RPS > 8), "RPS > 8")
        Assertion.forStep("simple step", (fun stats -> stats.Percent75 >= 102), "Percent75 >= 102")

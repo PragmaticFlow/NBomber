@@ -4,7 +4,7 @@ open NBomber.Configuration
 open NBomber.Errors
 
 type AgentCommand =
-    | NewSession  of sessionId:string * settings:ScenarioSetting[] * targetScenarios:string[]
+    | NewSession  of sessionId:string * settings:ScenarioSetting[] * targetScenarios:string[]    
     | IsWorking   of sessionId:string
     | StartWarmUp of sessionId:string
     | StartBombing  of sessionId:string

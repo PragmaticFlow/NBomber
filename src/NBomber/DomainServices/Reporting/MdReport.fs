@@ -7,20 +7,19 @@ open NBomber.Errors
 [<AutoOpen>]
 module private Impl =
     type Row2 = string * string
-
+    
     let sep n =
         System.String('-', n)
-
+    
     let sep2 l1 l2 =
         sprintf "|-%s-|-%s-|" (sep l1) (sep l2)
-
+    
     let asMdTable (s : StepStats) =
         let dataInfoAvailable = s.DataTransfer.AllMB > 0.0
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
         let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
         let percentile =
-                sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`"
-                        s.Percent50 s.Percent75 s.Percent95 s.StdDev
+                sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
         let transfer =
             if dataInfoAvailable
             then
@@ -59,17 +58,17 @@ module private Impl =
         | AssertionError (assertNumber,assertion,_) ->
             match assertion with
             | Step s ->
-                s.Label
-                |> Option.defaultValue ""
-                |> sprintf "- failed assertion nr `%i`, `%s`" assertNumber
+                let assertLabel = if s.Label.IsSome then s.Label.Value else String.Empty
+                sprintf "- failed assertion nr `%i`, `%s`" assertNumber assertLabel
         | _ -> String.Empty
 
 let print (stats: NodeStats, failedAsserts: DomainError[]) =
-
+    
     let assertErrors =
         failedAsserts
-        |> Array.map getAssertNumberAndLabel
-
+        |> Array.map(getAssertNumberAndLabel)            
+        |> List.ofArray
+    
     stats.AllScenariosStats
     |> Seq.collect (fun x ->
         seq {

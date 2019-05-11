@@ -19,23 +19,22 @@ type ReportResult = {
 }
 
 //todo: fix stats.[0]
-let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =
+let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =    
     { TxtReport = TxtReport.print(stats.[0], failedAsserts)
       HtmlReport = HtmlReport.print(dep, stats.[0], failedAsserts)
       CsvReport = CsvReport.print(stats.[0])
       MdReport = MdReport.print(stats.[0], failedAsserts) }
 
-let save (dep: Dependency, outPutDir: string,
-          reportFileName: string, reportFormats: ReportFormat list, report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, reportFileName: string, reportFormats: ReportFormat list, report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
-        reportsDir |> Directory.CreateDirectory |> ignore
-        reportsDir |> ResourceManager.saveAssets
+        Directory.CreateDirectory(reportsDir) |> ignore
+        ResourceManager.saveAssets(reportsDir)
 
-        [ ReportFormat.Txt,  report.TxtReport,  ".txt"
+        [ ReportFormat.Txt, report.TxtReport, ".txt"
           ReportFormat.Html, report.HtmlReport, ".html"
-          ReportFormat.Csv,  report.CsvReport,  ".csv"
-          ReportFormat.Md,   report.MdReport,   ".md" ]
+          ReportFormat.Csv, report.CsvReport, ".csv"
+          ReportFormat.Md, report.MdReport, ".md" ]
         |> List.iter
                (fun (format, report, ext) ->
                let filePath = reportsDir + "/" + reportFileName + ext
@@ -43,6 +42,6 @@ let save (dep: Dependency, outPutDir: string,
                    File.WriteAllText(filePath, report))
 
         Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-        Log.Information report.TxtReport
+        Log.Information(report.TxtReport)
     with
     | ex -> Log.Error(ex, "Report.save failed")

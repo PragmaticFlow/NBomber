@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
@@ -10,7 +10,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Configuration/ParseJson.fs" />
-    <Compile Include="Extensions.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="Statistics.fs" />
     <Compile Include="Scenario.fs" />

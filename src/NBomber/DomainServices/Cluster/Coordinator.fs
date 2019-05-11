@@ -19,13 +19,13 @@ type IClusterCoordinator =
     abstract GetStatistics:                    unit -> Async<Result<NodeStats[],AppError>>
 
 let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
-                    settings: ScenarioSetting[], targetScns: string[]) =
-
-    asyncResult {
-        do! cluster.SendStartNewSession settings
-        do! localHost.InitScenarios(settings, targetScns)
+                    settings: ScenarioSetting[], targetScns: string[]) = 
+    
+    asyncResult {    
+        do! cluster.SendStartNewSession(settings)
+        do! localHost.InitScenarios(settings, targetScns)    
         do! cluster.WaitOnAllAgentsReady()
-
+    
         do! cluster.SendStartWarmUp()
         do! localHost.WarmUpScenarios()
         do! cluster.WaitOnAllAgentsReady()
@@ -36,38 +36,38 @@ let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
 
         let localStats = localHost.GetStatistics()
         let! agentsStats = cluster.GetStatistics()
-        let allStats = Array.append [|localStats|] agentsStats
+        let allStats = Array.append [|localStats|] agentsStats     
         localHost.StopScenarios()
-        return allStats
+        return allStats    
     }
 
-let createStats (sessionId: string, nodeName: string,
+let createStats (sessionId: string, nodeName: string, 
                  registeredScenarios: Scenario[],
-                 scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) =
-
+                 scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) = 
+    
     let meta = { SessionId = sessionId
                  NodeName = nodeName
                  Sender = NodeType.Cluster }
-
-    registeredScenarios
-    |> Scenario.applySettings scnSettings
+                    
+    registeredScenarios 
+    |> Scenario.applySettings(scnSettings)
     |> NodeStats.merge(meta, allNodeStats)
 
-type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =
+type ClusterCoordinator(sessionId: string, scnHost: IScenariosHost, agents: AgentInfo[]) as this =       
 
     member x.Run(settings, targetScns) = runCoordinator(this, scnHost, settings, targetScns)
 
-    interface IClusterCoordinator with
-        member x.SendStartNewSession settings = Communication.startNewSession(sessionId, settings, agents)
+    interface IClusterCoordinator with        
+        member x.SendStartNewSession(settings) = Communication.startNewSession(sessionId, settings, agents)
         member x.WaitOnAllAgentsReady() = Communication.waitOnAllAgentsReady(sessionId, agents)
         member x.SendStartWarmUp() = Communication.startWarmUp(sessionId, agents)
         member x.SendStartBombing() = Communication.startBombing(sessionId, agents)
-        member x.GetStatistics() = Communication.getStatistics(sessionId, agents)
+        member x.GetStatistics() = Communication.getStatistics(sessionId, agents)        
 
 let create (dep: Dependency, registeredScenarios: Scenario[], settings: CoordinatorSettings) =
     let scnHost = ScenariosHost(dep, registeredScenarios)
-    let agents = settings.Agents |> List.toArray |> Array.map(AgentInfo.create settings.ClusterId)
-    ClusterCoordinator(dep.SessionId, scnHost, agents)
+    let agents = settings.Agents |> List.toArray |> Array.map(AgentInfo.create(settings.ClusterId))
+    ClusterCoordinator(dep.SessionId, scnHost, agents) 
 
-let run (scnSettings, targetScns) (coordinator: ClusterCoordinator) =
+let run (scnSettings, targetScns) (coordinator: ClusterCoordinator) = 
     coordinator.Run(scnSettings, targetScns)

@@ -49,7 +49,7 @@ namespace CSharp.Examples.Scenarios
             });
 
             return ScenarioBuilder.CreateScenario("test_mongo", step1)
-                                  .WithTestInit(initDb);
+                                  .WithTestInit(initDb);                                  
         }
     }
 }
