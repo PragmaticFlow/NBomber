@@ -4,27 +4,20 @@ module internal NBomber.Domain.Assertion
 open NBomber.Contracts
 open NBomber.Errors
 
-let create : IAssertion[] -> Assertion[] = 
-    Array.map(fun x -> x :?> Assertion)
-
-let matchStepAssertions :IAssertion[] -> StepAssertion[] =
-    create
-    >> Array.map(fun x ->
-        match x with
+let create : IAssertion[] -> StepAssertion[] = 
+    Array.map(fun x ->
+        match x :?> Assertion with
         | Step s -> s)
 
-let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =
+let apply (stepsStats: Statistics[]) (assertions: StepAssertion[]) =
     let errors = 
         assertions
-        |> Array.mapi(fun i assertion ->
-            let asrtNum = i + 1
-            match assertion with
-            | Step asrt -> 
-                let stats = stepsStats |> Array.find(fun x -> x.ScenarioName = asrt.ScenarioName && x.StepName = asrt.StepName)
-                if asrt.AssertFunc(stats) then
-                    None
-                else
-                    Some <| AssertionError(asrtNum, Step(asrt), stats))
+        |> Array.mapi(fun i asrt ->
+            let stats = stepsStats |> Array.find(fun x -> x.ScenarioName = asrt.ScenarioName && x.StepName = asrt.StepName)
+            if asrt.AssertFunc(stats) then
+                None
+            else
+                Some <| AssertionError(i + 1, Step(asrt), stats))
         |> Array.filter(Option.isSome)
     
     if Array.isEmpty(errors) then Array.empty

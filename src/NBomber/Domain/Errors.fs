@@ -22,7 +22,7 @@ type internal ValidationError =
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
-    | AssertionDoesntMatchScenario of scenarioNames:(ScenarioName *StepName)[]
+    | AssertNotFound of invalidAssertions:(ScenarioName * StepName)[]
 
 type internal CommunicationError =
     | HttpError            of url:Uri * message:string
@@ -88,8 +88,8 @@ type internal AppError =
         | DuplicateStepName stepNames -> 
             stepNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique: %s."
 
-        | AssertionDoesntMatchScenario scenarioStepNames ->
-            scenarioStepNames
+        | AssertNotFound invalidAssertions ->
+            invalidAssertions
             |> Array.map(fun (scenario, step) -> sprintf "%s:%s" scenario step)
             |> String.concatWithCommaAndQuotes
             |> sprintf "Orphaned assertions were found: %s"
