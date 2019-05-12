@@ -63,14 +63,14 @@ let private retrieveNodeInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
-                                .FrameworkName;
+                                .FrameworkName
 
     let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
 
     { NodeName = Environment.MachineName      
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
-      Processor = if isNull(processor) then String.Empty else processor      
+      Processor = if isNull processor then String.Empty else processor      
       CoresCount = Environment.ProcessorCount }
 
 let createSessionId () =

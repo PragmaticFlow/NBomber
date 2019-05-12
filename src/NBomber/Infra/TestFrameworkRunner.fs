@@ -20,26 +20,17 @@ let private printErrorMessage (framework: TestFramework) (errorsMessage: string)
         func.Invoke(errorsMessage)
 
 let tryGetCurrentFramework () =
-    let xUnit1 =
-        let xunitType = Type.GetType("Xunit.Assert, xunit")
-        if not (isNull xunitType) then Xunit(xunitType) |> Some
-        else None
-
-    let xUnit2 =
-        let xunitType = Type.GetType("Xunit.Assert, xunit.assert")
-        if not (isNull xunitType) then Xunit(xunitType) |> Some
-        else None
-
-    let nUnit =
-        let nunitType = Type.GetType("NUnit.Framework.Assert, nunit.framework")
-        if not (isNull nunitType) then Nunit(nunitType) |> Some
-        else None
-
-    [xUnit1; xUnit2; nUnit]
-    |> List.tryFind(Option.isSome)
-    |> Option.flatten    
+    ["Xunit.Assert, xunit", Xunit
+     "Xunit.Assert, xunit.assert", Xunit
+     "NUnit.Framework.Assert, nunit.framework", Nunit]
+     |> List.tryPick(fun (typeName, framework) ->
+        typeName |> Type.GetType |> Option.ofObj |> Option.map(framework))    
 
 let showErrors (error: AppError[]) =
-    let framework = tryGetCurrentFramework()
-    if framework.IsNone then failwith("Unknown framework")
-    error |> Array.map(AppError.toString) |> String.concat(", ") |> printErrorMessage(framework.Value)
+    match tryGetCurrentFramework() with
+    | None -> failwith "Unknown framework"
+    | Some framework -> 
+        error
+        |> Array.map(AppError.toString)
+        |> String.concat(", ")
+        |> printErrorMessage(framework)

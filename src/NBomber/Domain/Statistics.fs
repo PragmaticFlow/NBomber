@@ -55,7 +55,9 @@ let calcMax (latencies: Latency[]) =
     if Array.isEmpty latencies then 0 else Array.max(latencies)
 
 let calcPercentile (histogram: LongHistogram, percentile: float) =
-    if histogram.TotalCount > 0L then int(histogram.GetValueAtPercentile(percentile)) else 0
+    if histogram.TotalCount > 0L then 
+        percentile |> histogram.GetValueAtPercentile |> int
+    else 0
 
 let calcStdDev (histogram: LongHistogram) =
     if histogram.TotalCount > 0L then

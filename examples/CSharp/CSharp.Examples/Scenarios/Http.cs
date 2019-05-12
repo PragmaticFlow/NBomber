@@ -20,7 +20,7 @@ namespace CSharp.Examples.Scenarios
             }
 
             var httpClient = new HttpClient();
-            var url = new Uri("https://nbomber.com");
+            var url = new Uri("https://gitter.im");
 
             var step1 = Step.Create("GET html", ConnectionPool.None, async context =>
             {
@@ -29,7 +29,7 @@ namespace CSharp.Examples.Scenarios
                 var response = await httpClient.SendAsync(request, context.CancellationToken);
 
                 var responseSize = response.Content.Headers.ContentLength.HasValue
-                    ? Convert.ToInt32(response.Content.Headers.ContentLength.Value)
+                    ? (int) response.Content.Headers.ContentLength.Value
                     : 0;
 
                 return response.IsSuccessStatusCode
@@ -37,7 +37,7 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("nbomber.com", step1);                           
+            return ScenarioBuilder.CreateScenario("test_gitter", step1);                           
         }
     }
 }

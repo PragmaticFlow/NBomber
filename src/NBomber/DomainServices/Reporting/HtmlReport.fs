@@ -71,7 +71,7 @@ module StatisticsTable =
             let assertionsStr = HtmlBuilder.toListGroup(failedAsserts)
 
             let row = scnStats.StepsStats
-                      |> Array.map(fun step -> printStepRow(step))
+                      |> Array.map(printStepRow)
                       |> String.concat(String.Empty)                      
             
             let rowStr = row.Remove(0, 4)
@@ -89,8 +89,8 @@ module StatisticsTable =
 
 module ScenarioView =    
         
-    let createViewId (index: int) = String.Format("scenario-view-{0}", index)
-    let createName (index: int) = String.Format("Scenario {0}", index)
+    let createViewId (index: int) = sprintf "scenario-view-%i" index
+    let createName (index: int) = sprintf "Scenario %i" index
 
     let print (assets: Assets, index: int, scnStats: ScenarioStats, failedAsserts: DomainError[]) = 
 
