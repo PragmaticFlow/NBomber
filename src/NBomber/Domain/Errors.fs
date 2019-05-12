@@ -22,7 +22,7 @@ type internal ValidationError =
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
-    | AssertNotFound of invalidAssertions:(ScenarioName * StepName)[]
+    | AssertNotFound        of invalidAssertions:(ScenarioName * StepName)[]
 
 type internal CommunicationError =
     | HttpError            of url:Uri * message:string

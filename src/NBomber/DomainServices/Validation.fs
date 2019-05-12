@@ -77,22 +77,23 @@ module ScenarioValidation =
         |> Result.mapError(AppError.create)
 
 module AssertionValidation =
-    let private getInvalidAssertions (scenario: Contracts.Scenario) =
-        let scenarioStepNames = 
-            scenario.Steps 
-            |> Step.create 
-            |> Array.map(fun x -> (scenario.ScenarioName, x.StepName))
+    let internal checkForInvalidAssertions (scenarios: Contracts.Scenario[]) =
+        let invalidAssertions = 
+            scenarios
+            |> Array.collect(fun x ->
+                let scenarioStepNames =
+                    x.Steps 
+                    |> Step.create 
+                    |> Array.map(fun step -> (x.ScenarioName, step.StepName))
 
-        let assertionStepNames =
-            scenario.Assertions 
-            |> Assertion.create
-            |> Array.map(fun x -> (x.ScenarioName, x.StepName))
+                let assertionStepNames =
+                    x.Assertions 
+                    |> Assertion.create
+                    |> Array.map(fun asrt -> (asrt.ScenarioName, asrt.StepName))
     
-        set assertionStepNames - set scenarioStepNames
-        |> Seq.toArray
+                set assertionStepNames - set scenarioStepNames
+                |> Seq.toArray)
 
-    let private checkForInvalidAssertions (scenarios: Contracts.Scenario[]) =
-        let invalidAssertions = scenarios |> Array.collect(fun x -> getInvalidAssertions(x))
         if Array.isEmpty(invalidAssertions) then Ok scenarios
         else Error <| AssertNotFound invalidAssertions
 
