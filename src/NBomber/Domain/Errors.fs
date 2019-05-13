@@ -22,7 +22,7 @@ type internal ValidationError =
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
-    | AssertNotFound        of invalidAssertions:(ScenarioName * StepName)[]
+    | AssertNotFound        of invalidAssertions:StepAssertion[]
 
 type internal CommunicationError =
     | HttpError            of url:Uri * message:string
@@ -90,9 +90,8 @@ type internal AppError =
 
         | AssertNotFound invalidAssertions ->
             invalidAssertions
-            |> Array.map(fun (scenario, step) -> sprintf "%s:%s" scenario step)
+            |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
             |> String.concatWithCommaAndQuotes
-            |> sprintf "Orphaned assertions were found: %s"
 
     static member toString (error: CommunicationError) = 
         match error with
