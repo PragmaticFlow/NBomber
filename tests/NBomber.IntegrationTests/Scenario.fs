@@ -46,21 +46,14 @@ let ``runTest before starting test should validate assertion ScenarioName, StepN
 
     let assertions = [
         Assertion.forStep("Step1", fun stats -> stats.OkCount = 1)
-        Assertion.forStep("Step2", fun stats -> stats.OkCount = 1)
-        Assertion.forStep("Step3", fun stats -> stats.OkCount = 1)
-        Assertion.forStep("Step4", fun stats -> stats.OkCount = 1)
+        Assertion.forStep("not existed step", fun stats -> stats.OkCount = 1)        
     ]
 
-    let ex =
-        Assert.ThrowsAny(fun () -> 
+    let ex = Assert.ThrowsAny(fun () ->
         Scenario.create "Scenario1" [okStep]
         |> Scenario.withAssertions assertions
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
         |> NBomberRunner.registerScenario
         |> NBomberRunner.runTest)
 
-    Assert.True(
-        ex.Message.Contains("Assertion is not found for step"),
-        "Validation error message was not found in exception message")
-    
-
+    Assert.NotNull(ex)

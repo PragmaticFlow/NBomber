@@ -71,7 +71,8 @@ type Assertion =
         { StepName = stepName
           ScenarioName = ""
           AssertFunc = assertion
-          Label = label } |> Domain.Assertion.Step :> IAssertion
+          Label = label } 
+          :> IAssertion
 
 module Scenario =
     open System.Threading
@@ -95,8 +96,7 @@ module Scenario =
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
         let asrts = assertions
                     |> Seq.cast<Domain.Assertion>
-                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
-                    |> Seq.map(fun x -> x :> IAssertion)
+                    |> Seq.map(fun x -> { x with ScenarioName = scenario.ScenarioName} :> IAssertion)
                     |> Seq.toArray
 
         { scenario with Assertions = asrts }

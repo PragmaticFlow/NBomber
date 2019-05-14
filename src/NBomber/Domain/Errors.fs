@@ -22,7 +22,7 @@ type internal ValidationError =
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
-    | AssertNotFound        of invalidAssertions:StepAssertion[]
+    | AssertsNotFound       of Assertion[]
 
 type internal CommunicationError =
     | HttpError            of url:Uri * message:string
@@ -47,16 +47,14 @@ type internal AppError =
     
     static member toString (error: DomainError) = 
         match error with
-        | AssertionError (assertNumber, assertion, stats) -> 
-            let statsJson = sprintf "%A" stats        
-            match assertion with
-            | Step s -> 
-                let scenarioStr = sprintf "SCENARIO: '%s' %s" s.ScenarioName Environment.NewLine
-                let stepStr     = sprintf "STEP: '%s' %s" s.StepName Environment.NewLine
-                let labelStr = if s.Label.IsSome then sprintf "LABEL: '%s' %s" s.Label.Value Environment.NewLine
-                               else String.Empty 
-                let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
-                sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s" assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
+        | AssertionError (assertNumber, asrt, stats) -> 
+            let statsJson = sprintf "%A" stats                    
+            let scenarioStr = sprintf "SCENARIO: '%s' %s" asrt.ScenarioName Environment.NewLine
+            let stepStr     = sprintf "STEP: '%s' %s" asrt.StepName Environment.NewLine
+            let labelStr = if asrt.Label.IsSome then sprintf "LABEL: '%s' %s" asrt.Label.Value Environment.NewLine
+                            else String.Empty 
+            let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
+            sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s" assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
         
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
@@ -88,8 +86,8 @@ type internal AppError =
         | DuplicateStepName stepNames -> 
             stepNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique: %s."
 
-        | AssertNotFound invalidAssertions ->
-            invalidAssertions
+        | AssertsNotFound asserts ->
+            asserts
             |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
             |> String.concatWithCommaAndQuotes
 

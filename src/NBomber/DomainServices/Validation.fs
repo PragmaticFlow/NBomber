@@ -77,8 +77,10 @@ module ScenarioValidation =
         |> Result.mapError(AppError.create)
 
 module AssertionValidation =
-    let checkForInvalidAssertions (scenarios: Contracts.Scenario[]) =
-        let invalidAssertions = 
+    
+    let checkInvalidAsserts (scenarios: Contracts.Scenario[]) =
+        
+        let notFoundAsserts = 
             scenarios
             |> Array.collect(fun x ->
                 let stepNames =
@@ -87,15 +89,15 @@ module AssertionValidation =
                     |> Array.map(fun step -> step.StepName)
 
                 x.Assertions
-                |> Assertion.create
+                |> Assertion.create                
                 |> Array.filter(fun asrt -> stepNames |> Array.contains(asrt.StepName) |> not))
 
-        if Array.isEmpty(invalidAssertions) then Ok scenarios
-        else Error <| AssertNotFound invalidAssertions
+        if Array.isEmpty(notFoundAsserts) then Ok scenarios
+        else Error <| AssertsNotFound notFoundAsserts
 
     let validate (context: NBomberContext) =
         context.Scenarios
-        |> checkForInvalidAssertions
+        |> checkInvalidAsserts
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
