@@ -15,12 +15,14 @@ type internal ValidationError =
     | TargetScenarioNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]
+    
+    // ScenarioValidation errors
     | EmptyReportName 
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
-    | DuplicateStepName     of stepNames:string[]    
-    | AssertNotFound        of assertNumber:int * assertion:Assertion    
+    | DuplicateStepName     of stepNames:string[]  
+    | AssertNotFound        of invalidAssertions:StepAssertion[]
 
 type internal CommunicationError =
     | HttpError            of url:Uri * message:string
@@ -86,9 +88,10 @@ type internal AppError =
         | DuplicateStepName stepNames -> 
             stepNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique: %s."
 
-        | AssertNotFound (assertNumber, assertion) -> 
-            match assertion with
-            | Step s -> sprintf "Assertion #'%i' is not found for step: '%s' in scenario: '%s'" assertNumber s.StepName s.ScenarioName
+        | AssertNotFound invalidAssertions ->
+            invalidAssertions
+            |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
+            |> String.concatWithCommaAndQuotes
 
     static member toString (error: CommunicationError) = 
         match error with

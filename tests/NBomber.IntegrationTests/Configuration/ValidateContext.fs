@@ -129,3 +129,29 @@ let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentC
     match ScenarioValidation.checkConcurrentCopies([|scn|]) with
     | Error (ConcurrentCopiesIsWrong _) -> ()
     | _ -> failwith ""
+
+[<Fact>]
+let ``AssertionValidation.checkForInvalidAssertions should return fail if Assertions were created for non-exist steps`` () =
+    let asrt = Assertion.forStep("undefined_step_name", fun _ -> true)
+    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    
+    let scn = 
+        { scenario with Steps = [|step|] }
+        |> Scenario.withAssertions(Seq.toList([|asrt|]));
+
+    match AssertionValidation.checkForInvalidAssertions([|scn|]) with
+    | Error (AssertNotFound _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``AssertionValidation.checkForInvalidAssertions should Not return error if Assertions were created for exist steps`` () =
+    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let asrt = Assertion.forStep("step_1", fun _ -> true)
+    
+    let scn = 
+        { scenario with Steps = [|step|] }
+        |> Scenario.withAssertions(Seq.toList([|asrt|]));
+    
+    match AssertionValidation.checkForInvalidAssertions([|scn|]) with
+    | Error (_) -> failwith ""
+    | _ -> ()

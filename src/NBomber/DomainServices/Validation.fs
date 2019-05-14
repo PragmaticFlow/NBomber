@@ -76,6 +76,29 @@ module ScenarioValidation =
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
+module AssertionValidation =
+    let checkForInvalidAssertions (scenarios: Contracts.Scenario[]) =
+        let invalidAssertions = 
+            scenarios
+            |> Array.collect(fun x ->
+                let stepNames =
+                    x.Steps 
+                    |> Step.create 
+                    |> Array.map(fun step -> step.StepName)
+
+                x.Assertions
+                |> Assertion.create
+                |> Array.filter(fun asrt -> stepNames |> Array.contains(asrt.StepName) |> not))
+
+        if Array.isEmpty(invalidAssertions) then Ok scenarios
+        else Error <| AssertNotFound invalidAssertions
+
+    let validate (context: NBomberContext) =
+        context.Scenarios
+        |> checkForInvalidAssertions
+        >>= fun _ -> Ok context
+        |> Result.mapError(AppError.create)
+
 module GlobalSettingsValidation =
 
     let checkEmptyTarget (globalSettings: GlobalSettings) =
@@ -129,4 +152,6 @@ module GlobalSettingsValidation =
         |> Option.defaultValue(Ok context)        
 
 let validateContext = 
-    ScenarioValidation.validate >=> GlobalSettingsValidation.validate
+    ScenarioValidation.validate
+    >=> AssertionValidation.validate
+    >=> GlobalSettingsValidation.validate
