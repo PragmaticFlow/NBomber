@@ -50,7 +50,7 @@ type StepContext<'TConnection> = {
     CorrelationId: string
     CancellationToken: CancellationToken
     Connection: 'TConnection
-    mutable Payload: obj
+    mutable Data: obj
 }
 
 type IStep = interface end

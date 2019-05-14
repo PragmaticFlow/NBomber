@@ -15,7 +15,7 @@ type ConnectionPool =
                                        openConnection: unit -> 'TConnection,
                                        ?closeConnection: 'TConnection -> unit,
                                        ?connectionsCount: int) =
-        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount
+        let count = defaultArg connectionsCount Constants.ZeroConnectionsCount
         { PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
@@ -56,7 +56,7 @@ module Step =
                 let newContext = { CorrelationId = context.CorrelationId
                                    CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
-                                   Payload = context.Payload }
+                                   Data = context.Data }
                 execute(newContext)
 
         { StepName = name

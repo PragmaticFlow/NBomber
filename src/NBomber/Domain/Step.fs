@@ -25,15 +25,15 @@ let setStepContext (correlationId: string, actorIndex: int, cancelToken: Cancell
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Payload = Unchecked.defaultof<obj> }    
+                    Data = Unchecked.defaultof<obj> }    
     
     { step with CurrentContext = Some context }
     
-let execStep (step: Step, prevPayload: obj, timer: Stopwatch) = task {    
+let execStep (step: Step, data: obj, timer: Stopwatch) = task {    
     timer.Restart()
     try 
         let context = step.CurrentContext.Value
-        context.Payload <- prevPayload
+        context.Data <- data
         let! resp = step.Execute(step.CurrentContext.Value)
         timer.Stop()
         let latency = int timer.Elapsed.TotalMilliseconds
@@ -52,21 +52,21 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken) = task {
 
     while not cancelToken.ShouldCancel do
         
-        let mutable payload = Unchecked.defaultof<obj>
+        let mutable data = Unchecked.defaultof<obj>
         let mutable skipStep = false
         let mutable stepIndex = 0
 
         for st in steps do
             if not skipStep && not cancelToken.ShouldCancel then
 
-                let! response, latency = execStep(st, payload, timer)
+                let! response, latency = execStep(st, data, timer)
                         
                 if not cancelToken.ShouldCancel then
                     latencies.[stepIndex].Add(response,latency)
                     stepIndex <- stepIndex + 1
                     
                     if response.IsOk then 
-                        payload <- response.Payload                    
+                        data <- response.Payload                    
                     else
                         skipStep <- true                        
     return latencies              

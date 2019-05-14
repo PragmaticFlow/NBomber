@@ -17,10 +17,7 @@ module internal Constants =
     let DefaultWarmUpDurationInSec = 10.0
 
     [<Literal>]
-    let DefaultConnectionsCount = 0
-    
-    [<Literal>]
-    let PauseStepName = "pause"
+    let ZeroConnectionsCount = 0
 
 type internal CorrelationId = string
 type internal StepName = string

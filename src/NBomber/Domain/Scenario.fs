@@ -11,7 +11,7 @@ let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
     let updatePoolCount (pool) =
         let newCount = 
-            if pool.ConnectionsCount = Constants.DefaultConnectionsCount then concurrentCopies
+            if pool.ConnectionsCount = Constants.ZeroConnectionsCount then concurrentCopies
             else pool.ConnectionsCount        
 
         { pool with ConnectionsCount = newCount }
