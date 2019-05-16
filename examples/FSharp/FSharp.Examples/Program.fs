@@ -7,8 +7,8 @@ let main argv =
     HttpScenario.buildScenario()
     //HelloWorldScenario.buildScenario()
     |> Scenario.withConcurrentCopies(100)
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(5.0))    
-    |> Scenario.withDuration(TimeSpan.FromSeconds(5.0))        
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds(10.0))    
+    |> Scenario.withDuration(TimeSpan.FromSeconds(20.0))        
     |> NBomberRunner.registerScenario
     // |> NBomberRunner.registerScenarios
     // |> NBomberRunner.loadConfig "config.json"

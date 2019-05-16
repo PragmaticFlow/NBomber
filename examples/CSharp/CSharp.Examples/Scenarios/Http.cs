@@ -14,15 +14,16 @@ namespace CSharp.Examples.Scenarios
             // for production purposes use NBomber.Http which use performance optimizations
             // you can find more here: https://github.com/PragmaticFlow/NBomber.Http
 
-            var httpClient = new HttpClient();
-            var url = new Uri("https://gitter.im");
+            var httpClient = new HttpClient();            
 
             var step1 = Step.Create("GET html", ConnectionPool.None, async context =>
             {   
-                var response = await httpClient.GetAsync("https://gitter.im");
+                var response = await httpClient.GetAsync(
+                    "https://gitter.im", 
+                    context.CancellationToken);
 
                 return response.IsSuccessStatusCode
-                    ? Response.Ok()
+                    ? Response.Ok(sizeBytes: (int)response.Content.Headers.ContentLength.Value)
                     : Response.Fail();
             });
 

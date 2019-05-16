@@ -16,10 +16,13 @@ let buildScenario () =
     let httpClient = new HttpClient()
 
     let step1 = Step.create("GET html", ConnectionPool.none, fun context -> task {        
-        let! response = httpClient.GetAsync("https://gitter.im")        
-        return if response.IsSuccessStatusCode 
-                  then Response.Ok()
-               else Response.Fail() 
+        let! response = httpClient.GetAsync("https://gitter.im", 
+                                            context.CancellationToken)
+
+        match response.IsSuccessStatusCode with
+        | true  -> let size = int response.Content.Headers.ContentLength.Value
+                   return Response.Ok(sizeBytes = size)
+        | false -> return Response.Fail() 
     })
         
     Scenario.create "test_gitter" [step1]
