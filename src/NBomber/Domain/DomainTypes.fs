@@ -47,6 +47,12 @@ type internal Step = {
     CurrentContext: StepContext<obj> option
 } with interface IStep
 
+type internal StepResponse = {
+    Response: Response
+    StartTimeMs: float    
+    LatencyMs: int
+}
+
 type internal AssertFunc = Statistics -> bool
 
 type internal Assertion = {
