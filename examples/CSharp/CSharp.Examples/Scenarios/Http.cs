@@ -16,7 +16,7 @@ namespace CSharp.Examples.Scenarios
 
             var httpClient = new HttpClient();            
 
-            var step1 = Step.Create("GET html", ConnectionPool.None, async context =>
+            var step = Step.Create("GET html", async context =>
             {   
                 var response = await httpClient.GetAsync(
                     "https://gitter.im", 
@@ -27,7 +27,7 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("test_gitter", step1);                           
+            return ScenarioBuilder.CreateScenario("test_gitter", step);                           
         }
     }
 }

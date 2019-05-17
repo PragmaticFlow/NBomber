@@ -59,23 +59,25 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken,
         
       let mutable data = Unchecked.defaultof<obj>
       let mutable skipStep = false
-      let mutable stepIndex = 0
+      let mutable stepIndex = 0      
 
       for st in steps do
         if not skipStep && not cancelToken.ShouldCancel then
 
-          let! response = execStep(st, data, globalTimer)
-                        
-          if not cancelToken.ShouldCancel then
-             responses.[stepIndex].Add(response)
-             stepIndex <- stepIndex + 1
-                    
-             if response.Response.IsOk then
-                data <- response.Response.Payload
-             else
-                skipStep <- true
+          for i = 1 to st.RepeatCount do
+            let! response = execStep(st, data, globalTimer)
 
-    return responses              
+            if not cancelToken.ShouldCancel then
+               responses.[stepIndex].Add(response)
+
+               if st.RepeatCount = i then
+                 if response.Response.IsOk then
+                    stepIndex <- stepIndex + 1
+                    data <- response.Response.Payload
+                 else
+                    skipStep <- true
+
+    return responses
 }
 
 let filterInvalidResponses (responses: StepResponse[], duration: TimeSpan) =        

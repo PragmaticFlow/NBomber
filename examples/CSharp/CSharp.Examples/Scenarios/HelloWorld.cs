@@ -9,13 +9,15 @@ namespace CSharp.Examples.Scenarios
     {
         public static Scenario BuildScenario()
         {   
-            var step1 = Step.Create("simple step", ConnectionPool.None, async context =>
+            var step = Step.Create("step 1", async _ =>
             {
                 // you can do any logic here: go to http, websocket etc
-                await Task.Delay(TimeSpan.FromSeconds(0.1), context.CancellationToken);
+
+                await Task.Delay(TimeSpan.FromSeconds(0.1));
                 return Response.Ok();
             });
-            return ScenarioBuilder.CreateScenario("Hello World from NBomber!", step1);
+
+            return ScenarioBuilder.CreateScenario("Hello World!", step);
         }
     }
 }

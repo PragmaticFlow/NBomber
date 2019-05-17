@@ -19,6 +19,9 @@ module internal Constants =
     [<Literal>]
     let ZeroConnectionsCount = 0
 
+    [<Literal>]
+    let DefaultRepeatCount = 1
+
 type internal CorrelationId = string
 type internal StepName = string
 type internal FlowName = string
@@ -45,6 +48,7 @@ type internal Step = {
     ConnectionPool: ConnectionPool<obj>
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
+    RepeatCount: int
 } with interface IStep
 
 type internal StepResponse = {
