@@ -1,4 +1,7 @@
 ﻿{
+  "LogSetting": {
+    "LogToFile": "nbomber_execution.log"
+  },
   "GlobalSettings": {
     "ScenariosSettings": [
       {

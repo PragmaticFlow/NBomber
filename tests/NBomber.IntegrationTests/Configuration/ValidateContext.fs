@@ -16,6 +16,7 @@ let globalSettings = {
     TargetScenarios = ["1"]
     ReportFileName = None
     ReportFormats = None 
+    LogSetting = None
 }
 
 let scenarioSettings = { 
