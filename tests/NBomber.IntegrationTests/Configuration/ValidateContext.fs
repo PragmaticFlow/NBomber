@@ -99,7 +99,7 @@ let ``ScenarioValidation.checkDuplicateName should return fail if scenario has d
 
 [<Fact>]
 let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has empty step name`` () =    
-    let step = NBomber.FSharp.Step.create(" ", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.Ok()))
     let scn = { scenario with Steps = [|step|] }    
     
     match ScenarioValidation.checkEmptyStepName([|scn|]) with
@@ -108,7 +108,7 @@ let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has e
     
 [<Fact>]
 let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario has duplicate step name`` () =    
-    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let step = NBomber.FSharp.Step.create("step_1", fun _ -> Task.FromResult(Response.Ok()))
     let scn = { scenario with Steps = [|step; step|] }            
     
     match ScenarioValidation.checkDuplicateStepName([|scn|]) with
@@ -134,7 +134,7 @@ let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentC
 [<Fact>]
 let ``AssertionValidation.checkInvalidAsserts should return fail if Assertions were created for non-exist steps`` () =
     let asrt = Assertion.forStep("undefined_step_name", fun _ -> true)
-    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let step = NBomber.FSharp.Step.create("step_1", fun _ -> Task.FromResult(Response.Ok()))
     
     let scn = { scenario with Steps = [|step|] }
               |> Scenario.withAssertions([asrt])
@@ -145,7 +145,7 @@ let ``AssertionValidation.checkInvalidAsserts should return fail if Assertions w
 
 [<Fact>]
 let ``AssertionValidation.checkInvalidAsserts should Not return error if Assertions were created for exist steps`` () =
-    let step = NBomber.FSharp.Step.create("step_1", ConnectionPool.none, fun _ -> Task.FromResult(Response.Ok()))
+    let step = NBomber.FSharp.Step.create("step_1", fun _ -> Task.FromResult(Response.Ok()))
     let asrt = Assertion.forStep("step_1", fun _ -> true)
     
     let scn = { scenario with Steps = [|step|] }

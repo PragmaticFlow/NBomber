@@ -7,37 +7,27 @@ using NBomber.CSharp;
 namespace CSharp.Examples.Scenarios
 {
     class HttpScenario
-    {
+    {   
         public static Scenario BuildScenario()
         {
-            HttpRequestMessage CreateHttpRequest(Uri requestUrl)
-            {
-                var msg = new HttpRequestMessage();
-                msg.RequestUri = requestUrl;
-                msg.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-                msg.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36");
-                return msg;
-            }
+            // it's a very basic HTTP example, don't use it for production testing
+            // for production purposes use NBomber.Http which use performance optimizations
+            // you can find more here: https://github.com/PragmaticFlow/NBomber.Http
 
-            var httpClient = new HttpClient();
-            var url = new Uri("https://gitter.im");
+            var httpClient = new HttpClient();            
 
-            var step1 = Step.Create("GET html", ConnectionPool.None, async context =>
-            {
-                var request = CreateHttpRequest(url);
-
-                var response = await httpClient.SendAsync(request, context.CancellationToken);
-
-                var responseSize = response.Content.Headers.ContentLength.HasValue
-                    ? (int) response.Content.Headers.ContentLength.Value
-                    : 0;
+            var step = Step.Create("GET html", async context =>
+            {   
+                var response = await httpClient.GetAsync(
+                    "https://gitter.im", 
+                    context.CancellationToken);
 
                 return response.IsSuccessStatusCode
-                    ? Response.Ok(sizeBytes: responseSize)
+                    ? Response.Ok(sizeBytes: (int)response.Content.Headers.ContentLength.Value)
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("test_gitter", step1);                           
+            return ScenarioBuilder.CreateScenario("test_gitter", step);                           
         }
     }
 }

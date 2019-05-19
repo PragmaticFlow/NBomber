@@ -15,7 +15,7 @@ type ConnectionPool =
                                        openConnection: unit -> 'TConnection,
                                        ?closeConnection: 'TConnection -> unit,
                                        ?connectionsCount: int) =
-        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount
+        let count = defaultArg connectionsCount Constants.ZeroConnectionsCount
         { PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
@@ -31,19 +31,31 @@ type ConnectionPool =
           AliveConnections = Array.empty }
           :> IConnectionPool<unit>
 
-module Step =
+    static member internal internalNone<'TConnection> () =
+        { PoolName = "empty_pool"
+          OpenConnection = fun _ -> Unchecked.defaultof<'TConnection>
+          CloseConnection = None
+          ConnectionsCount = 1
+          AliveConnections = Array.empty }
+          :> IConnectionPool<'TConnection>
 
-    let create (name: string,
-                pool: IConnectionPool<'TConnection>,
-                execute: StepContext<'TConnection> -> Task<Response>) =
+type Step =
+    
+    static member create (name: string,
+                          execute: StepContext<'TConnection> -> Task<Response>,
+                          ?pool: IConnectionPool<'TConnection>,
+                          ?repeatCount: int) =
+        let p = defaultArg pool (ConnectionPool.internalNone<'TConnection>())
+                :?> ConnectionPool<'TConnection>
 
-        let p = pool :?> ConnectionPool<'TConnection>
+        let repeat = defaultArg repeatCount Constants.DefaultRepeatCount
 
         let newOpen = fun () -> p.OpenConnection() :> obj
-
-        let newClose = match p.CloseConnection with
-                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
-                       | None      -> None
+        
+        let newClose = 
+            match p.CloseConnection with
+            | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
+            | None      -> None
 
         let newPool = { PoolName = p.PoolName
                         OpenConnection = newOpen
@@ -56,13 +68,14 @@ module Step =
                 let newContext = { CorrelationId = context.CorrelationId
                                    CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
-                                   Payload = context.Payload }
+                                   Data = context.Data }
                 execute(newContext)
 
         { StepName = name
           ConnectionPool = newPool
           Execute = newExecute
-          CurrentContext = None }
+          CurrentContext = None
+          RepeatCount = repeat }
           :> IStep
 
 type Assertion =

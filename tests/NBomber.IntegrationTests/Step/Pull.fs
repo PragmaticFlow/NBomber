@@ -15,13 +15,13 @@ let ``Ok and Fail should be properly count`` () =
     let mutable okCnt = 0
     let mutable failCnt = 0
     
-    let okStep = Step.create("ok step", ConnectionPool.none, fun context -> task {
+    let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         okCnt <- okCnt + 1
         return Response.Ok()
     })
 
-    let failStep = Step.create("fail step", ConnectionPool.none, fun context -> task {
+    let failStep = Step.create("fail step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         failCnt <- failCnt + 1
         return Response.Fail()
@@ -46,12 +46,12 @@ let ``Ok and Fail should be properly count`` () =
 [<Fact>]
 let ``Warmup should not have effect on stats`` () =       
     
-    let okStep = Step.create("ok step", ConnectionPool.none, fun context -> task {
+    let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })
 
-    let failStep = Step.create("fail step", ConnectionPool.none, fun context -> task {
+    let failStep = Step.create("fail step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Fail()
     })
@@ -75,7 +75,7 @@ let ``Warmup should not have effect on stats`` () =
 [<Fact>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     
-    let pullStep = Step.create("pull step", ConnectionPool.none, fun context -> task {                
+    let pullStep = Step.create("pull step", fun _ -> task {                
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok(sizeBytes = 100)
     })
@@ -97,3 +97,33 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runTest
+
+[<Fact>]
+let ``repeatCount should set how many times one step will be repeated`` () =
+    
+    let mutable invokeCounter = 0    
+
+    let repeatStep = Step.create("repeat step", fun _ -> task {         
+        invokeCounter <- invokeCounter + 1
+
+        if invokeCounter = 5 then
+            invokeCounter <- 0
+
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))        
+        return Response.Ok()
+    }, repeatCount = 5)
+
+    let resetStep = Step.create("reset step", fun _ -> task {
+        if invokeCounter > 0 then
+            invokeCounter <- 20
+        return Response.Ok()
+    })
+
+    Scenario.create "latency count test" [repeatStep; resetStep]
+    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+    |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+    |> Scenario.withConcurrentCopies 1
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.runTest
+
+    Assert.True(invokeCounter <= 5)

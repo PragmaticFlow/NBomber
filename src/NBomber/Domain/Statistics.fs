@@ -80,11 +80,13 @@ let calcAllMB (sizesBytes: int[]) =
 
 module StepResults =
 
-    let calcDataTransfer (responses: (Response*Latency)[]) = 
-        let allSizesBytes = responses
-                            |> Array.map(fst)
-                            |> Array.filter(fun x -> x.SizeBytes > 0)
-                            |> Array.map(fun x -> x.SizeBytes)
+    let calcDataTransfer (responses: StepResponse[]) = 
+        let allSizesBytes = 
+            responses            
+            |> Array.choose(fun x ->
+                match x.Response.SizeBytes > 0 with
+                | true  -> Some x.Response.SizeBytes
+                | false -> None)
 
         { MinKb  = allSizesBytes |> calcMin |> fromBytesToKb
           MeanKb = allSizesBytes |> calcMean |> fromBytesToKb
@@ -109,25 +111,25 @@ module StepResults =
         |> Array.map(fun (stName, results) ->            
             let dataTransfer = results |> Array.map(fun x -> x.DataTransfer) |> mergeTraffic
             { StepName = stName
-              Results = results |> Array.collect(fun x -> x.Results)
+              Responses = results |> Array.collect(fun x -> x.Responses)
               DataTransfer = dataTransfer })
 
-    let create (stepName: string) (results: (Response*Latency)[]) =
+    let create (stepName: string, responses: StepResponse[]) =
         { StepName = stepName 
-          Results = results
-          DataTransfer = calcDataTransfer(results) }
+          Responses = responses
+          DataTransfer = calcDataTransfer(responses) }
 
 module StepStats = 
 
     let create (scnDuration: TimeSpan) (stepResults: StepResults) =        
-        let okLatencies = stepResults.Results |> Array.filter(fun (res,_) -> res.IsOk) |> Array.map(snd)       
+        let okLatencies = stepResults.Responses |> Array.choose(fun x -> if x.Response.IsOk then Some x.LatencyMs else None)
         let histogram = buildHistogram(okLatencies)
         
         { StepName = stepResults.StepName
           OkLatencies = okLatencies
-          ReqeustCount = stepResults.Results.Length          
+          ReqeustCount = stepResults.Responses.Length          
           OkCount = okLatencies.Length
-          FailCount = stepResults.Results.Length - okLatencies.Length
+          FailCount = stepResults.Responses.Length - okLatencies.Length
           RPS = calcRPS(okLatencies, scnDuration)
           Min = calcMin(okLatencies)
           Mean = calcMean(okLatencies)

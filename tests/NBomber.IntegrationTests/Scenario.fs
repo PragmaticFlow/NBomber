@@ -7,7 +7,6 @@ open Xunit
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
-open NBomber.Domain
 open NBomber.FSharp
 
 [<Fact>]
@@ -19,10 +18,8 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
         invokeCounter <- invokeCounter + 1
         failwith "exception was not handled"        
     }
-
-    let pool = ConnectionPool.none
-
-    let okStep = Step.create("ok step", pool, fun context -> task {
+    
+    let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })
@@ -37,9 +34,8 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
 
 [<Fact>]
 let ``runTest before starting test should validate assertion ScenarioName, StepName`` () =
-    let pool = ConnectionPool.none
-
-    let okStep = Step.create("Step1", pool, fun _ -> task {
+    
+    let okStep = Step.create("Step1", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })

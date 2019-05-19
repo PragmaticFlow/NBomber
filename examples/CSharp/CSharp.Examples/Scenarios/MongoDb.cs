@@ -40,7 +40,7 @@ namespace CSharp.Examples.Scenarios
 
             var usersCollection = db.GetCollection<User>("Users");
 
-            var step1 = Step.Create("read IsActive = true and TOP 500", ConnectionPool.None, async context =>
+            var step = Step.Create("read IsActive = true and TOP 500", async context =>
             {
                 await usersCollection.Find(u => u.IsActive == true)
                                      .Limit(500)
@@ -48,7 +48,7 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            return ScenarioBuilder.CreateScenario("test_mongo", step1)
+            return ScenarioBuilder.CreateScenario("test_mongo", step)
                                   .WithTestInit(initDb);                                  
         }
     }
