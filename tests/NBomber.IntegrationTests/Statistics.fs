@@ -11,9 +11,8 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
 
     if latencies.Length = 0 then
         Assert.Equal(0, result)    
-    elif latencies.Length <> 0 && scnDuration.TotalSeconds < 1.0 then
-        let expected = latencies.Length / 1
-        Assert.Equal(expected, result)
+    elif latencies.Length <> 0 && scnDuration.TotalSeconds < 1.0 then        
+        Assert.Equal(latencies.Length, result)
     else
         let expected = latencies.Length / int(scnDuration.TotalSeconds)
         Assert.Equal(expected, result)
@@ -29,7 +28,7 @@ let ``calcMin() should not fail and calculate correctly for any args values`` (l
 let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMean    
     let expected = if Array.isEmpty latencies then 0
-                   else latencies |> Array.map(float) |> Array.average |> int
+                   else (Array.averageBy float latencies) |> int
     Assert.Equal(expected, result)
 
 [<Property>]

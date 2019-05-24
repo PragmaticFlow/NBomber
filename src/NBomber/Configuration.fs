@@ -9,9 +9,9 @@ type ReportFormat =
     | Csv = 2
     | Md = 3
 
-type LogSetting = {
-    LogToFile: string
-    MinimumLevel: LogEventLevel option
+type LogSettings = {
+    FileName: string
+    MinimumLevel: LogEventLevel
 }
 
 type ScenarioSetting = {
@@ -21,8 +21,7 @@ type ScenarioSetting = {
     Duration: DateTime
 }
 
-type GlobalSettings = {
-    LogSetting: LogSetting option
+type GlobalSettings = {    
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
     ReportFileName: string option
@@ -53,7 +52,7 @@ type ClusterSettings =
 type NBomberConfig = {
     GlobalSettings: GlobalSettings option    
     ClusterSettings: ClusterSettings option
-    LogSetting: LogSetting option
+    LogSettings: LogSettings option
 }
 
 module internal NBomberConfig =    

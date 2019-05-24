@@ -115,7 +115,8 @@ let showAsserts (dep: Dependency) (result: ExecutionResult) =
 
 let run (dep: Dependency) (context: NBomberContext) =
     asyncResult {
-        Dependency.Logger.initLogger(dep.ApplicationType, context |> NBomberContext.tryGetLogSettings)    
+        let logSettings = NBomberContext.tryGetLogSettings(context)
+        Dependency.Logger.initLogger(dep.ApplicationType, logSettings)
         Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
 
         let! ctx = Validation.validateContext(context)

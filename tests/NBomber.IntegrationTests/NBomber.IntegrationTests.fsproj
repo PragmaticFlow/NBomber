@@ -6,7 +6,6 @@
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logger\FileLogger.fs" />
     <Compile Include="Extensions.fs" />
     <Content Include="Configuration\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

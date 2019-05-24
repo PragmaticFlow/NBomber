@@ -1,19 +1,19 @@
 ﻿module internal NBomber.Infra.Dependency
 
 open System
+open System.IO
 open System.Threading.Tasks
 open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
+open Serilog.Events
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Infra.ResourceManager
 open NBomber.Configuration
-open System.IO
-open Serilog.Events
 
 type ApplicationType =
     | Process
@@ -59,22 +59,23 @@ module Logger =
     let createLogger (config: LoggerConfiguration) =
         config.CreateLogger()
 
-    let appendConsoleOutput appType (config: LoggerConfiguration) =
+    let withConsoleOutput appType (config: LoggerConfiguration) =
         match appType with
         | Console -> config.WriteTo.Console()
         | _       -> config
 
-    let appendFileOutput (logSetting: LogSetting option) (config: LoggerConfiguration) =
-        match logSetting with
-        | Some lg when not << String.IsNullOrWhiteSpace <| lg.LogToFile ->
-            config.WriteTo.File(lg.LogToFile, lg.MinimumLevel |> Option.defaultValue LogEventLevel.Information)
-        | _       -> config
+    let withFileOutput (logSettings: LogSettings option) (config: LoggerConfiguration) =
+        match logSettings with
+        | Some v when v.FileName |> String.IsNullOrEmpty |> not ->                        
+                config.WriteTo.File(v.FileName, v.MinimumLevel)
+        | _  -> config
 
-    let initLogger (appType: ApplicationType, logSetting: LogSetting option) =
-        Log.Logger <- LoggerConfiguration()
-        |> appendConsoleOutput appType
-        |> appendFileOutput logSetting
-        |> createLogger
+    let initLogger (appType: ApplicationType, logSettings: LogSettings option) =
+        Log.Logger <- 
+            LoggerConfiguration()
+            |> withConsoleOutput appType
+            |> withFileOutput logSettings
+            |> createLogger
 
 let private retrieveNodeInfo () =
 

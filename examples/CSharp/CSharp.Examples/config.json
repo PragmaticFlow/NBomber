@@ -9,5 +9,9 @@
       }
     ],
     "TargetScenarios": [ "test_gitter" ]    
+  },
+  "LogSettings": {
+    "FileName": "nbomber_log.log",
+    "MinimumLevel": "Debug"
   }
 }

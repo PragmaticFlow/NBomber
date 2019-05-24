@@ -44,5 +44,5 @@ let tryGetReportFormats (context: NBomberContext) = maybe {
 
 let tryGetLogSettings (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
-    return! config.LogSetting
+    return! config.LogSettings
 }
