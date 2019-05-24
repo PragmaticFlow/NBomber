@@ -8,7 +8,9 @@
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "test_gitter" ]    
+    "TargetScenarios": [ "test_gitter" ],
+    "ReportFileName": "custom_report_name_from_json",
+    "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
   },
   "LogSettings": {
     "FileName": "nbomber_log.log",

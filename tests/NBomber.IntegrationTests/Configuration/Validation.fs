@@ -1,4 +1,4 @@
-﻿module Tests.Configuration.ValidateSettings
+﻿module Tests.Configuration.ValidationTests
 
 open System
 open System.Threading.Tasks
@@ -13,7 +13,7 @@ open NBomber.DomainServices.Validation
 
 let globalSettings = { 
     ScenariosSettings = List.empty
-    TargetScenarios = ["1"]
+    TargetScenarios = Some ["1"]
     ReportFileName = None
     ReportFormats = None
 }
@@ -38,16 +38,24 @@ let scenario = {
 
 [<Fact>]
 let ``GlobalSettingsValidation.checkEmptyTarget should return fail if TargetScenarios has empty value`` () =    
-    let glSettings = { globalSettings with TargetScenarios = [" "] }
+    let glSettings = { globalSettings with TargetScenarios = Some [" "] }
        
     match GlobalSettingsValidation.checkEmptyTarget(glSettings) with
     | Error (TargetScenarioIsEmpty _) -> ()
     | _ -> failwith ""
+
+[<Fact>]
+let ``GlobalSettingsValidation.checkEmptyTarget should return ok if TargetScenarios is not specified`` () =    
+    let glSettings = { globalSettings with TargetScenarios = None }
+       
+    match GlobalSettingsValidation.checkEmptyTarget(glSettings) with
+    | Ok _ -> ()
+    | _    -> failwith ""
     
 [<Fact>]
 let ``GlobalSettingsValidation.checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in registered scenarios`` () =    
     let scenarios = [| scenario |]    
-    let glSettings = { globalSettings with TargetScenarios = ["3"] }    
+    let glSettings = { globalSettings with TargetScenarios = Some ["3"] }    
         
     match GlobalSettingsValidation.checkAvailableTarget scenarios glSettings with
     | Error (TargetScenarioNotFound _) -> ()

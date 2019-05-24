@@ -1,4 +1,4 @@
-﻿module Tests.Configuration.ParseJson
+﻿module Tests.Configuration.ParseJsonTests
 
 open System.IO
 open Xunit

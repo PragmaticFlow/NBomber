@@ -104,13 +104,18 @@ module AssertionValidation =
 module GlobalSettingsValidation =
 
     let checkEmptyTarget (globalSettings: GlobalSettings) =
-        let emptyTarget = globalSettings.TargetScenarios |> List.exists(String.IsNullOrWhiteSpace)
+        let emptyTarget = globalSettings.TargetScenarios
+                          |> Option.map(fun x -> x |> List.exists String.IsNullOrWhiteSpace)
+                          |> Option.defaultValue false
+
         if emptyTarget then Error <| TargetScenarioIsEmpty
         else Ok globalSettings
 
     let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
-        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
-        let notFoundScenarios = globalSettings.TargetScenarios |> List.except allScenarios
+        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)        
+        let targetScn = defaultArg globalSettings.TargetScenarios []
+        let notFoundScenarios = targetScn |> List.except allScenarios
+
         if List.isEmpty(notFoundScenarios) then Ok globalSettings
         else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, allScenarios)
 
@@ -142,8 +147,8 @@ module GlobalSettingsValidation =
         context.NBomberConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 
-            glSettings 
-            |> checkEmptyTarget
+            glSettings
+            |> checkEmptyTarget             
             >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
             >>= checkConcurrentCopies

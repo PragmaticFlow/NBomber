@@ -24,10 +24,16 @@ let getNodeType (context: NBomberContext) =
     |> Option.defaultValue NodeType.SingleNode        
 
 let getTargetScenarios (context: NBomberContext) =
-    context.NBomberConfig
-    |> Option.bind(fun x -> x.GlobalSettings)
-    |> Option.map(fun x -> x.TargetScenarios)
-    |> Option.defaultValue List.empty
+    let targetScn =
+        context.NBomberConfig
+        |> Option.bind(fun x -> x.GlobalSettings)
+        |> Option.bind(fun x -> x.TargetScenarios)
+
+    let allScns = context.Scenarios 
+                  |> Array.map(fun x -> x.ScenarioName)
+                  |> Array.toList
+
+    defaultArg targetScn allScns
     |> List.toArray
 
 let tryGetReportFileName (context: NBomberContext) = maybe {
