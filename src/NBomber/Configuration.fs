@@ -1,12 +1,18 @@
 ﻿namespace NBomber.Configuration
 
 open System
+open Serilog.Events
 
 type ReportFormat = 
     | Txt = 0
     | Html = 1
     | Csv = 2
     | Md = 3
+
+type LogSetting = {
+    LogToFile: string
+    MinimumLevel: LogEventLevel option
+}
 
 type ScenarioSetting = {
     ScenarioName: string
@@ -16,6 +22,7 @@ type ScenarioSetting = {
 }
 
 type GlobalSettings = {
+    LogSetting: LogSetting option
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
     ReportFileName: string option
@@ -46,6 +53,7 @@ type ClusterSettings =
 type NBomberConfig = {
     GlobalSettings: GlobalSettings option    
     ClusterSettings: ClusterSettings option
+    LogSetting: LogSetting option
 }
 
 module internal NBomberConfig =    

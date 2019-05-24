@@ -11,6 +11,9 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Infra.ResourceManager
+open NBomber.Configuration
+open System.IO
+open Serilog.Events
 
 type ApplicationType =
     | Process
@@ -53,11 +56,25 @@ module ProgressBar =
 
 module Logger =
 
-    let initLogger (appType: ApplicationType) =
-        Log.Logger <- 
-            match appType with            
-            | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
-            | _       -> LoggerConfiguration().CreateLogger()
+    let createLogger (config: LoggerConfiguration) =
+        config.CreateLogger()
+
+    let appendConsoleOutput appType (config: LoggerConfiguration) =
+        match appType with
+        | Console -> config.WriteTo.Console()
+        | _       -> config
+
+    let appendFileOutput (logSetting: LogSetting option) (config: LoggerConfiguration) =
+        match logSetting with
+        | Some lg when not << String.IsNullOrWhiteSpace <| lg.LogToFile ->
+            config.WriteTo.File(lg.LogToFile, lg.MinimumLevel |> Option.defaultValue LogEventLevel.Information)
+        | _       -> config
+
+    let initLogger (appType: ApplicationType, logSetting: LogSetting option) =
+        Log.Logger <- LoggerConfiguration()
+        |> appendConsoleOutput appType
+        |> appendFileOutput logSetting
+        |> createLogger
 
 let private retrieveNodeInfo () =
 
