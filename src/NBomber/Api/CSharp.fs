@@ -13,7 +13,7 @@ open NBomber.Configuration
 
 type ConnectionPool =
     static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.Constants.ZeroConnectionsCount)>] ?connectionsCount: int) = 
-        let close = if isNull closeConnection then (new Action<'TConnection>(fun _ -> ()))
+        let close = if isNull closeConnection then (new Action<'TConnection>(ignore))
                     else closeConnection
         let count = defaultArg connectionsCount Domain.Constants.ZeroConnectionsCount
         FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)    
@@ -24,11 +24,11 @@ type Step =
     static member Create(name: string, 
                          execute: Func<StepContext<'TConnection>,Task<Response>>,
                          pool: IConnectionPool<'TConnection>,
-                         [<Optional;DefaultParameterValue(0:int)>]repeatCount: int) = 
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) = 
         FSharp.Step.create(name, execute.Invoke, pool, repeatCount)
 
     static member Create(name: string, execute: Func<StepContext<unit>,Task<Response>>,
-                         [<Optional;DefaultParameterValue(0:int)>]repeatCount: int) =
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) =
         Step.Create(name, execute, ConnectionPool.None, repeatCount)
 
 type Assertion =    

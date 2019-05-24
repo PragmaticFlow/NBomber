@@ -1,10 +1,15 @@
 ﻿namespace NBomber.FSharp
 
 open System
+open System.IO
+open System.Threading
 open System.Threading.Tasks
+
+open Serilog
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
@@ -48,7 +53,10 @@ type Step =
         let p = defaultArg pool (ConnectionPool.internalNone<'TConnection>())
                 :?> ConnectionPool<'TConnection>
 
-        let repeat = defaultArg repeatCount Constants.DefaultRepeatCount
+        let repeatCount = 
+            match defaultArg repeatCount Constants.DefaultRepeatCount with            
+            | x when x <= 0 -> 1
+            | x             -> x
 
         let newOpen = fun () -> p.OpenConnection() :> obj
         
@@ -75,7 +83,7 @@ type Step =
           ConnectionPool = newPool
           Execute = newExecute
           CurrentContext = None
-          RepeatCount = repeat }
+          RepeatCount = repeatCount }
           :> IStep
 
 type Assertion =
@@ -87,8 +95,7 @@ type Assertion =
           Label = label } 
           :> IAssertion
 
-module Scenario =
-    open System.Threading
+module Scenario =    
 
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
@@ -123,10 +130,7 @@ module Scenario =
     let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with Duration = duration }
 
-module NBomberRunner =
-    open System.IO
-    open Serilog
-    open NBomber.Configuration
+module NBomberRunner =    
 
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { Scenarios = List.toArray(scenarios)
@@ -166,4 +170,3 @@ module NBomberRunner =
     let runTest (context: NBomberContext) =
         NBomberRunner.runAs Test context
         |> ignore
-

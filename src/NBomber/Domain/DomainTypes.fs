@@ -20,7 +20,7 @@ module internal Constants =
     let ZeroConnectionsCount = 0
 
     [<Literal>]
-    let DefaultRepeatCount = 1
+    let DefaultRepeatCount = 0
 
 type internal CorrelationId = string
 type internal StepName = string
