@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +22,7 @@ namespace CSharp.Examples.Scenarios
             public bool IsActive { get; set; }
         }
 
-        public static Scenario BuildScenario()
+        public static void Run()
         {
             var db = new MongoClient().GetDatabase("Test");
 
@@ -48,8 +47,12 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            return ScenarioBuilder.CreateScenario("test_mongo", step)
-                                  .WithTestInit(initDb);                                  
+            var scenario = ScenarioBuilder.CreateScenario("test_mongo", step)
+                                          .WithTestInit(initDb);
+
+            NBomberRunner.RegisterScenarios(scenario)
+                         .WithConcurrentCopies(100)
+                         .RunInConsole();
         }
     }
 }

@@ -7,7 +7,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.FSharp
 
-let buildScenario () =    
+let run () =    
 
     // it's a very basic HTTP example, don't use it for production testing
     // for production purposes use NBomber.Http which use performance optimizations
@@ -24,5 +24,7 @@ let buildScenario () =
                    return Response.Ok(sizeBytes = size)
         | false -> return Response.Fail() 
     })
-        
-    Scenario.create "test_gitter" [step]
+    
+    NBomberRunner.registerSteps [step]
+    |> NBomberRunner.withConcurrentCopies 100
+    |> NBomberRunner.runInConsole

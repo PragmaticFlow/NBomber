@@ -24,10 +24,12 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
         return Response.Ok()
     })
 
-    Scenario.create "withTestClean test" [okStep]
-    |> Scenario.withTestClean testClean
-    |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        Scenario.create "withTestClean test" [okStep]
+        |> Scenario.withTestClean testClean
+        |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
+    
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
 
     Assert.Equal(1, invokeCounter)
@@ -46,10 +48,12 @@ let ``runTest before starting test should validate assertion ScenarioName, StepN
     ]
 
     let ex = Assert.ThrowsAny(fun () ->
-        Scenario.create "Scenario1" [okStep]
-        |> Scenario.withAssertions assertions
-        |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
-        |> NBomberRunner.registerScenario
+        let scenario = 
+            Scenario.create "Scenario1" [okStep]
+            |> Scenario.withAssertions assertions
+            |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
+
+        NBomberRunner.registerScenarios [scenario]
         |> NBomberRunner.runTest)
 
     Assert.NotNull(ex)

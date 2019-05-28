@@ -8,7 +8,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.FSharp
 
-let buildScenario () =    
+let run () =    
     
     let step = Step.create("simple step", fun _ -> task {        
         // you can do any logic here: go to http, websocket etc
@@ -17,4 +17,5 @@ let buildScenario () =
         return Response.Ok() 
     })
         
-    Scenario.create "Hello World!" [step]
+    NBomberRunner.registerSteps [step]
+    |> NBomberRunner.runInConsole

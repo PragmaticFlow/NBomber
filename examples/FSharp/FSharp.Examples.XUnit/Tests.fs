@@ -29,10 +29,12 @@ let ``XUnit test`` () =
        Assertion.forStep("simple step", (fun stats -> stats.AllDataMB >= 0.01), "AllDataMB >= 0.01")
     ]
 
-    buildScenario()
-    |> Scenario.withConcurrentCopies 1
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
-    |> Scenario.withAssertions assertions
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        buildScenario()
+        |> Scenario.withConcurrentCopies 1
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
+        |> Scenario.withAssertions assertions
+    
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest

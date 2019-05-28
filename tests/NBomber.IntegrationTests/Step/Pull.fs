@@ -35,12 +35,14 @@ let ``Ok and Fail should be properly count`` () =
        Assertion.forStep("fail step", fun stats -> [failCnt-1..failCnt] |> Seq.contains stats.FailCount)
     ]
     
-    Scenario.create "count test" [okStep; failStep]
-    |> Scenario.withConcurrentCopies 1
-    |> Scenario.withAssertions assertions
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        Scenario.create "count test" [okStep; failStep]
+        |> Scenario.withConcurrentCopies 1
+        |> Scenario.withAssertions assertions
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
+
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
 
 [<Fact>]
@@ -64,12 +66,14 @@ let ``Warmup should not have effect on stats`` () =
        Assertion.forStep("fail step", fun stats -> stats.FailCount <= 5)
     ]
     
-    Scenario.create "warmup test" [okStep; failStep]
-    |> Scenario.withConcurrentCopies 1
-    |> Scenario.withAssertions assertions
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        Scenario.create "warmup test" [okStep; failStep]
+        |> Scenario.withConcurrentCopies 1
+        |> Scenario.withAssertions assertions
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
+
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
 
 [<Fact>]
@@ -90,12 +94,14 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
        Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 0.0017), "AllDataMB >= 0.0017")
     ]
     
-    Scenario.create "latency count test" [pullStep]
-    |> Scenario.withConcurrentCopies 1
-    |> Scenario.withAssertions assertions
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        Scenario.create "latency count test" [pullStep]
+        |> Scenario.withConcurrentCopies 1
+        |> Scenario.withAssertions assertions
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
+    
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
 
 [<Fact>]
@@ -119,11 +125,13 @@ let ``repeatCount should set how many times one step will be repeated`` () =
         return Response.Ok()
     })
 
-    Scenario.create "latency count test" [repeatStep; resetStep]
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
-    |> Scenario.withConcurrentCopies 1
-    |> NBomberRunner.registerScenario
+    let scenario = 
+        Scenario.create "latency count test" [repeatStep; resetStep]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
 
     Assert.True(invokeCounter <= 5)

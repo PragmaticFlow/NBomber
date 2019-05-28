@@ -7,7 +7,7 @@ namespace CSharp.Examples.Scenarios
 {
     class HelloWorldScenario
     {
-        public static Scenario BuildScenario()
+        public static void Run()
         {   
             var step = Step.Create("step 1", async _ =>
             {
@@ -17,7 +17,8 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            return ScenarioBuilder.CreateScenario("Hello World!", step);
+            NBomberRunner.RegisterSteps(step)
+                         .RunInConsole();
         }
     }
 }

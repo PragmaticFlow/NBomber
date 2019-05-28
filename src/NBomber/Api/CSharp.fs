@@ -38,7 +38,8 @@ type Assertion =
 
 [<Extension>]
 type ScenarioBuilder =
-
+    
+    /// Creates scenario with steps which will be executed sequentially.
     static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
         FSharp.Scenario.create name (Seq.toList steps)
     
@@ -67,10 +68,32 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withDuration(duration)
 
 [<Extension>]
-type NBomberRunner =    
-        
+type NBomberRunner =
+    
+    /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     static member RegisterScenarios([<System.ParamArray>]scenarios: Contracts.Scenario[]) = 
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios    
+
+    /// Registers steps in NBomber environment. Steps will be run in parallel,
+    /// under the hood NBomber will create Scenario for every step with the name of step.   
+    static member RegisterSteps([<System.ParamArray>]steps: Contracts.IStep[]) = 
+        steps |> Seq.toList |> FSharp.NBomberRunner.registerSteps
+
+    [<Extension>]
+    static member WithAssertions(context: NBomberContext, [<System.ParamArray>]assertions: IAssertion[]) = 
+        context |> FSharp.NBomberRunner.withAssertions(Seq.toList assertions)    
+
+    [<Extension>]
+    static member WithConcurrentCopies(context: NBomberContext, concurrentCopies: int) = 
+        context |> FSharp.NBomberRunner.withConcurrentCopies concurrentCopies
+
+    [<Extension>]
+    static member WithWarmUpDuration(context: NBomberContext, duration: TimeSpan) = 
+        context |> FSharp.NBomberRunner.withWarmUpDuration duration
+    
+    [<Extension>]
+    static member WithDuration(context: NBomberContext, duration: TimeSpan) = 
+        context |> FSharp.NBomberRunner.withDuration duration
 
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =

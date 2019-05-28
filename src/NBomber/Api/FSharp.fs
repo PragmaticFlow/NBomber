@@ -97,6 +97,7 @@ type Assertion =
 
 module Scenario =    
 
+    /// Creates scenario with steps which will be executed sequentially.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
@@ -132,15 +133,65 @@ module Scenario =
 
 module NBomberRunner =    
 
+    /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
           ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
           StatisticsSink = None }
+    
+    /// Registers steps in NBomber environment. Steps will be run in parallel,
+    /// under the hood NBomber will create Scenario for every step with the name of step.   
+    let registerSteps (steps: Contracts.IStep list) = 
+        steps        
+        |> Step.create
+        |> Seq.map(fun x -> Scenario.create x.StepName [x])
+        |> Seq.toList
+        |> registerScenarios
 
-    let registerScenario (scenario: Contracts.Scenario) =
-        registerScenarios([scenario])
+    let withConcurrentCopies (concurrentCopies: int) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with ConcurrentCopies = concurrentCopies })
+
+        { context with Scenarios = scenarios }
+
+    let withWarmUpDuration (duration: TimeSpan) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with WarmUpDuration = duration })
+
+        { context with Scenarios = scenarios }
+
+    let withDuration (duration: TimeSpan) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with Duration = duration })
+
+        { context with Scenarios = scenarios }
+
+    let withAssertions (assertions: IAssertion list) (context: NBomberContext) =
+        let allAssertions = assertions |> Assertion.create                    
+
+        let scns = 
+            context.Scenarios
+            |> Array.map(fun x ->
+        
+                let stepNames =
+                    x.Steps 
+                    |> Step.create 
+                    |> Array.map(fun step -> step.StepName)
+
+                let asrts = 
+                    allAssertions
+                    |> Seq.filter(fun asrt -> stepNames |> Array.contains asrt.StepName)
+                    |> Seq.cast<IAssertion> 
+                    |> Seq.toList
+            
+                Scenario.withAssertions asrts x)
+
+        { context with Scenarios = scns }
 
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }

@@ -12,7 +12,7 @@ namespace CSharp.Examples.Scenarios
 {
     class WebSocketsScenario
     {
-        public static Scenario BuildScenario()
+        public static void Run()
         {
             var url = "ws://localhost:53231";
 
@@ -58,7 +58,11 @@ namespace CSharp.Examples.Scenarios
             },
             pool: webSocketsPool);
 
-            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);                          
+            var scenario = ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);
+
+            NBomberRunner.RegisterScenarios(scenario)
+                         .RunInConsole();
+
         }
     }
 }

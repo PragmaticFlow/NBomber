@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 
 using NBomber.Contracts;
 using NBomber.CSharp;
@@ -8,7 +7,7 @@ namespace CSharp.Examples.Scenarios
 {
     class HttpScenario
     {   
-        public static Scenario BuildScenario()
+        public static void Run()
         {
             // it's a very basic HTTP example, don't use it for production testing
             // for production purposes use NBomber.Http which use performance optimizations
@@ -16,7 +15,7 @@ namespace CSharp.Examples.Scenarios
 
             var httpClient = new HttpClient();            
 
-            var step = Step.Create("GET html", async context =>
+            var step = Step.Create("GET_gitter_html", async context =>
             {   
                 var response = await httpClient.GetAsync(
                     "https://gitter.im", 
@@ -27,7 +26,9 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            return ScenarioBuilder.CreateScenario("test_gitter", step);                           
+            NBomberRunner.RegisterSteps(step)
+                         .WithConcurrentCopies(100)
+                         .RunInConsole();
         }
     }
 }
