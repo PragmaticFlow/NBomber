@@ -18,7 +18,7 @@ type internal LatencyCount = {
 
 type internal StepResults = {     
     StepName: string
-    Results: (Response*Latency)[]    
+    Responses: StepResponse[]    
     DataTransfer: DataTransferCount
 }
 

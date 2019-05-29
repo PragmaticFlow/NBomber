@@ -32,7 +32,7 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
     let response (data) = { AgentId = agentId; Data = Some data; Error = None }    
 
     member private x.ErrorResponse (e: CommunicationError) = 
-        { AgentId = agentId; Data = None; Error = Some(Communication e) }
+        { AgentId = agentId; Data = None; Error = Some <| Communication e }
 
     member private x.ErrorResponse (e: AppError) = 
         { AgentId = agentId; Data = None; Error = Some e }
@@ -50,29 +50,28 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
 
             | IsWorking sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w    -> response(w)
+                | Ok v    -> response(v)
                 | Error e -> x.ErrorResponse(e) 
                 
             | StartWarmUp sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w when w = false -> scnHost.WarmUpScenarios() |> ignore
-                                         response(w)                
-                | Ok _    -> x.ErrorResponse(AgentIsWorking)
-                | Error e -> x.ErrorResponse(e)
+                | Ok false -> scnHost.WarmUpScenarios() |> ignore
+                              response(false)
+                | Ok true  -> x.ErrorResponse(AgentIsWorking)
+                | Error e  -> x.ErrorResponse(e)
 
             | StartBombing sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w when w = false -> scnHost.StartBombing() |> ignore
-                                         response(w)
-                | Ok _    -> x.ErrorResponse(AgentIsWorking)
-                | Error e -> x.ErrorResponse(e)
+                | Ok false -> scnHost.StartBombing() |> ignore
+                              response(false)
+                | Ok true  -> x.ErrorResponse(AgentIsWorking)
+                | Error e  -> x.ErrorResponse(e)
 
             | GetStatistics sessionId ->
                 match scnHost.IsWorking() with
-                | Ok w when w = false -> scnHost.GetStatistics()
-                                         |> response
-                | Ok _    -> x.ErrorResponse(AgentIsWorking)
-                | Error e -> x.ErrorResponse(e)
+                | Ok false -> scnHost.GetStatistics() |> response
+                | Ok true  -> x.ErrorResponse(AgentIsWorking)
+                | Error e  -> x.ErrorResponse(e)
 
 let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =        
     let listenUrl = Http.createUrl("*", settings.Port, settings.ClusterId)

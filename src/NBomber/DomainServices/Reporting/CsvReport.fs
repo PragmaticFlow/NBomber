@@ -20,9 +20,9 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats)
 let private printSteps (stats: ScenarioStats) =
     stats.StepsStats
     |> Array.map(fun x -> getLine(stats.ScenarioName, stats.Duration, x))
-    |> String.concat Environment.NewLine
+    |> String.concat(Environment.NewLine)
 
 let print (stats: NodeStats) =
     let header = getHeader()
-    let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat("")
+    let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat(String.Empty)
     header + Environment.NewLine + body

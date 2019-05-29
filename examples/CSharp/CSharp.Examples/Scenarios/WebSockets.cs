@@ -12,7 +12,7 @@ namespace CSharp.Examples.Scenarios
 {
     class WebSocketsScenario
     {
-        public static Scenario BuildScenario()
+        public static void Run()
         {
             var url = "ws://localhost:53231";
 
@@ -30,7 +30,7 @@ namespace CSharp.Examples.Scenarios
             });
             //connectionsCount: 50);
 
-            var pingStep = Step.Create("ping", webSocketsPool, async context =>
+            var pingStep = Step.Create("ping", async context =>
             {
                 var msg = new WebSocketRequest
                 {
@@ -40,9 +40,10 @@ namespace CSharp.Examples.Scenarios
                 var bytes = MsgConverter.ToJsonByteArray(msg);
                 await context.Connection.SendAsync(bytes, WebSocketMessageType.Text, true, context.CancellationToken);
                 return Response.Ok();
-            });
+            },
+            pool: webSocketsPool);
 
-            var pongStep = Step.Create("pong", webSocketsPool, async context =>
+            var pongStep = Step.Create("pong", async context =>
             {
                 while (true)
                 {
@@ -54,9 +55,14 @@ namespace CSharp.Examples.Scenarios
                         return Response.Ok(msg);
                     }
                 }
-            });
+            },
+            pool: webSocketsPool);
 
-            return ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);                          
+            var scenario = ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);
+
+            NBomberRunner.RegisterScenarios(scenario)
+                         .RunInConsole();
+
         }
     }
 }

@@ -18,11 +18,9 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
     let getAssertNumberAndLabel (failedAssert) =
         match failedAssert with
-        | AssertionError (assertNumber,assertion,_) ->
-            match assertion with
-            | Step s ->
-                let assertLabel = if s.Label.IsSome then s.Label.Value else String.Empty
-                sprintf "- failed assertion #%i" assertNumber, assertLabel
+        | AssertionError (assertNumber,asrt,_) ->            
+            let assertLabel = asrt.Label |> Option.defaultValue(String.Empty)
+            sprintf "- failed assertion #%i" assertNumber, assertLabel
         | _ -> String.Empty, String.Empty
 
     let dataInfoAvailable = steps |> Array.exists(fun x -> x.DataTransfer.AllMB > 0.0)

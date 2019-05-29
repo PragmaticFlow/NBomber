@@ -1,16 +1,19 @@
 ﻿module internal NBomber.Infra.Dependency
 
 open System
+open System.IO
 open System.Threading.Tasks
 open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
+open Serilog.Events
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.Infra.ResourceManager
+open NBomber.Configuration
 
 type ApplicationType =
     | Process
@@ -53,24 +56,39 @@ module ProgressBar =
 
 module Logger =
 
-    let initLogger (appType: ApplicationType) =
+    let createLogger (config: LoggerConfiguration) =
+        config.CreateLogger()
+
+    let withConsoleOutput appType (config: LoggerConfiguration) =
+        match appType with
+        | Console -> config.WriteTo.Console()
+        | _       -> config
+
+    let withFileOutput (logSettings: LogSettings option) (config: LoggerConfiguration) =
+        match logSettings with
+        | Some v when v.FileName |> String.IsNullOrEmpty |> not ->                        
+                config.WriteTo.File(v.FileName, v.MinimumLevel)
+        | _  -> config
+
+    let initLogger (appType: ApplicationType, logSettings: LogSettings option) =
         Log.Logger <- 
-            match appType with            
-            | Console -> LoggerConfiguration().WriteTo.Console().CreateLogger()
-            | _       -> LoggerConfiguration().CreateLogger()
+            LoggerConfiguration()
+            |> withConsoleOutput appType
+            |> withFileOutput logSettings
+            |> createLogger
 
 let private retrieveNodeInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
-                                .FrameworkName;
+                                .FrameworkName
 
     let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
 
     { NodeName = Environment.MachineName      
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
-      Processor = if isNull(processor) then String.Empty else processor      
+      Processor = if isNull processor then String.Empty else processor      
       CoresCount = Environment.ProcessorCount }
 
 let createSessionId () =

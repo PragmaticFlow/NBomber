@@ -1,4 +1,4 @@
-﻿module Tests.Configuration.ApplySettings
+﻿module Tests.Configuration.ApplySettingsTests
 
 open System
 

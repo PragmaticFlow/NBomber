@@ -2,12 +2,18 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "nbomber.com",
+        "ScenarioName": "test_gitter",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
         "ConcurrentCopies": 100
       }
     ],
-    "TargetScenarios": [ "nbomber.com" ]    
+    "TargetScenarios": [ "test_gitter" ],
+    "ReportFileName": "custom_report_name_from_json",
+    "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
+  },
+  "LogSettings": {
+    "FileName": "nbomber_log.log",
+    "MinimumLevel": "Debug"
   }
 }

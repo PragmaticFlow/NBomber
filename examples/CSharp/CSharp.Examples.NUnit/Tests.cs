@@ -12,13 +12,13 @@ namespace CSharp.Examples.NUnit
     {
         Scenario BuildScenario()
         {   
-            var step1 = Step.Create("simple step", ConnectionPool.None, async context =>
+            var step = Step.Create("simple step", async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
                 return Response.Ok(sizeBytes: 1024);
             });
 
-            return ScenarioBuilder.CreateScenario("nunit hello world", step1);                
+            return ScenarioBuilder.CreateScenario("nunit hello world", step);                
         }
 
         [Test]

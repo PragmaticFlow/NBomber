@@ -10,14 +10,18 @@ open NBomber.Errors
 let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
     
     let updatePoolCount (pool) =
-        let newCount = if pool.ConnectionsCount = Constants.DefaultConnectionsCount then concurrentCopies
-                       else pool.ConnectionsCount        
+        let newCount = 
+            if pool.ConnectionsCount = Constants.ZeroConnectionsCount then concurrentCopies
+            else pool.ConnectionsCount        
+
         { pool with ConnectionsCount = newCount }
     
     { step with ConnectionPool = updatePoolCount(step.ConnectionPool) }            
 
 let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =    
-    let findPool (poolName) = allPools |> Array.find(fun x -> x.PoolName = poolName)
+    let findPool (poolName) = 
+        allPools |> Array.find(fun x -> x.PoolName = poolName)
+
     { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }    
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
@@ -46,11 +50,8 @@ let getDistinctPools (scenario: Scenario) =
 let init (scenario: Scenario) =
 
     let initConnectionPool (pool: ConnectionPool<obj>) =
-        let connections = System.Collections.Generic.List<obj>()
-        for i = 1 to pool.ConnectionsCount do
-            let connection = pool.OpenConnection()
-            connections.Add(connection)
-        { pool with AliveConnections = connections.ToArray() }
+        let connections = Array.init pool.ConnectionsCount (fun _ -> pool.OpenConnection())
+        { pool with AliveConnections = connections }
 
     let initAllConnectionPools () = 
         getDistinctPools(scenario)
@@ -83,8 +84,7 @@ let clean (scenario: Scenario) =
             with
             | ex -> Serilog.Log.Error(ex, "CloseConnection")
     
-    getDistinctPools(scenario)
-    |> Array.iter(closePoolConnections) 
+    scenario |> getDistinctPools |> Array.iter(closePoolConnections) 
 
     try
         if scenario.TestClean.IsSome then

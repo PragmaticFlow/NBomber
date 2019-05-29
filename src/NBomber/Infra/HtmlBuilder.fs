@@ -39,9 +39,9 @@ let formatAssertion assertNumber assertLabel =
 
 let toListGroupItem (failedAssert: DomainError) =
     match failedAssert with    
-    | AssertionError (assertNumber,Step s, _) ->
-        let assertLabel = formatAssertion assertNumber s.Label
-        let stepName = htmlEncode s.StepName
+    | AssertionError (assertNumber, asrt, _) ->
+        let assertLabel = formatAssertion assertNumber asrt.Label
+        let stepName = htmlEncode asrt.StepName
         sprintf """<li class="list-group-item list-group-item-danger">Failed assertion %s for step <strong>%s</strong></li>""" assertLabel stepName
     | _ -> String.Empty
 

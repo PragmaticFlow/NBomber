@@ -17,10 +17,10 @@ module internal Constants =
     let DefaultWarmUpDurationInSec = 10.0
 
     [<Literal>]
-    let DefaultConnectionsCount = 0
-    
+    let ZeroConnectionsCount = 0
+
     [<Literal>]
-    let PauseStepName = "pause"
+    let DefaultRepeatCount = 0
 
 type internal CorrelationId = string
 type internal StepName = string
@@ -48,20 +48,23 @@ type internal Step = {
     ConnectionPool: ConnectionPool<obj>
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
+    RepeatCount: int
 } with interface IStep
+
+type internal StepResponse = {
+    Response: Response
+    StartTimeMs: float    
+    LatencyMs: int
+}
 
 type internal AssertFunc = Statistics -> bool
 
-type internal StepAssertion = {
+type internal Assertion = {
     StepName: StepName
     ScenarioName: ScenarioName
     AssertFunc: AssertFunc
     Label: string option
-}
-
-type internal Assertion = 
-    | Step of StepAssertion    
-    interface IAssertion
+} with interface IAssertion
 
 type internal Scenario = {    
     ScenarioName: ScenarioName

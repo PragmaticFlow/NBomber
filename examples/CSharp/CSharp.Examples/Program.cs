@@ -9,20 +9,11 @@ namespace CSharp.Examples
     {
         static void Main(string[] args)
         {
-            var scenario = HttpScenario
-            //var scenario = HelloWorldScenario            
-            //var scenario = MongoDbScenario
-            //var scenario = WebSocketsScenario
-                .BuildScenario()
-                .WithConcurrentCopies(10)
-                //.WithWarmUpDuration(TimeSpan.FromSeconds(10))
-                .WithDuration(TimeSpan.FromSeconds(5));
-
-            NBomberRunner.RegisterScenarios(scenario)
-                         //.LoadConfig("config.json")
-                         //.WithReportFileName("custom_report_name")
-                         //.WithReportFormats(ReportFormat.Txt, ReportFormat.Html, ReportFormat.Csv)
-                         .RunInConsole();
+            //HelloWorldScenario.Run();
+            HttpScenario.Run();
+            //MongoDbScenario.Run();
+            //WebSocketsScenario.Run();
+                       
         }
     }
 }

@@ -1,68 +1,109 @@
 ﻿namespace NBomber.FSharp
 
 open System
+open System.IO
+open System.Threading
 open System.Threading.Tasks
+
+open Serilog
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
-type ConnectionPool =   
+type ConnectionPool =
 
-    static member create<'TConnection>(name: string, openConnection: unit -> 'TConnection, ?closeConnection: 'TConnection -> unit, ?connectionsCount: int) =        
-        let count = defaultArg connectionsCount Constants.DefaultConnectionsCount        
-        { PoolName = name; OpenConnection = openConnection; CloseConnection = closeConnection
-          ConnectionsCount = count; AliveConnections = Array.empty }
+    static member create<'TConnection>(name: string,
+                                       openConnection: unit -> 'TConnection,
+                                       ?closeConnection: 'TConnection -> unit,
+                                       ?connectionsCount: int) =
+        let count = defaultArg connectionsCount Constants.ZeroConnectionsCount
+        { PoolName = name
+          OpenConnection = openConnection
+          CloseConnection = closeConnection
+          ConnectionsCount = count
+          AliveConnections = Array.empty }
           :> IConnectionPool<'TConnection>
 
     static member none =
-        { PoolName = "empty_pool"; OpenConnection = (fun _ -> ());
-          CloseConnection = None; ConnectionsCount = 1; AliveConnections = Array.empty }
+        { PoolName = "empty_pool"
+          OpenConnection = ignore
+          CloseConnection = None
+          ConnectionsCount = 1
+          AliveConnections = Array.empty }
           :> IConnectionPool<unit>
 
-module Step =        
+    static member internal internalNone<'TConnection> () =
+        { PoolName = "empty_pool"
+          OpenConnection = fun _ -> Unchecked.defaultof<'TConnection>
+          CloseConnection = None
+          ConnectionsCount = 1
+          AliveConnections = Array.empty }
+          :> IConnectionPool<'TConnection>
 
-    let create (name: string, pool: IConnectionPool<'TConnection>, execute: StepContext<'TConnection> -> Task<Response>) =                
-        let p = pool :?> ConnectionPool<'TConnection>
-        
+type Step =
+    
+    static member create (name: string,
+                          execute: StepContext<'TConnection> -> Task<Response>,
+                          ?pool: IConnectionPool<'TConnection>,
+                          ?repeatCount: int) =
+        let p = defaultArg pool (ConnectionPool.internalNone<'TConnection>())
+                :?> ConnectionPool<'TConnection>
+
+        let repeatCount = 
+            match defaultArg repeatCount Constants.DefaultRepeatCount with            
+            | x when x <= 0 -> 1
+            | x             -> x
+
         let newOpen = fun () -> p.OpenConnection() :> obj
-
-        let newClose = match p.CloseConnection with
-                       | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
-                       | None      -> None
         
+        let newClose = 
+            match p.CloseConnection with
+            | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
+            | None      -> None
+
         let newPool = { PoolName = p.PoolName
                         OpenConnection = newOpen
                         CloseConnection = newClose
                         ConnectionsCount = p.ConnectionsCount
-                        AliveConnections = Array.empty }        
-        
-        let newExecute = 
-            fun (context: StepContext<obj>) ->                 
+                        AliveConnections = Array.empty }
+
+        let newExecute =
+            fun (context: StepContext<obj>) ->
                 let newContext = { CorrelationId = context.CorrelationId
                                    CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
-                                   Payload = context.Payload }
+                                   Data = context.Data }
                 execute(newContext)
 
-        { StepName = name; ConnectionPool = newPool; Execute = newExecute; CurrentContext = None } :> IStep
+        { StepName = name
+          ConnectionPool = newPool
+          Execute = newExecute
+          CurrentContext = None
+          RepeatCount = repeatCount }
+          :> IStep
 
 type Assertion =
 
-    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =         
-        Domain.Assertion.Step({ StepName = stepName; ScenarioName = ""; AssertFunc = assertion; Label = label }) :> IAssertion
+    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =
+        { StepName = stepName
+          ScenarioName = ""
+          AssertFunc = assertion
+          Label = label } 
+          :> IAssertion
 
-module Scenario =        
-    open System.Threading
-    
+module Scenario =    
+
+    /// Creates scenario with steps which will be executed sequentially.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
           Steps = List.toArray(steps)
-          Assertions = Array.empty          
+          Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
@@ -73,45 +114,90 @@ module Scenario =
     let withTestClean (cleanFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
-    let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =        
+    let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
         let asrts = assertions
                     |> Seq.cast<Domain.Assertion>
-                    |> Seq.map(function | Step x -> Step({ x with ScenarioName = scenario.ScenarioName}))
-                    |> Seq.map(fun x -> x :> IAssertion)
+                    |> Seq.map(fun x -> { x with ScenarioName = scenario.ScenarioName} :> IAssertion)
                     |> Seq.toArray
 
-        { scenario with Assertions = asrts }    
+        { scenario with Assertions = asrts }
 
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
         { scenario with ConcurrentCopies = concurrentCopies }
 
-    let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
-        { scenario with WarmUpDuration = duration }    
+    let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+        { scenario with WarmUpDuration = duration }
 
-    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =        
+    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with Duration = duration }
 
-module NBomberRunner = 
-    open System.IO
-    open Serilog
-    open NBomber.Configuration    
-    open NBomber.Infra        
+module NBomberRunner =    
 
-    let registerScenarios (scenarios: Contracts.Scenario list) = 
+    /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
+    let registerScenarios (scenarios: Contracts.Scenario list) =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
           ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
           StatisticsSink = None }
+    
+    /// Registers steps in NBomber environment. Steps will be run in parallel,
+    /// under the hood NBomber will create Scenario for every step with the name of step.   
+    let registerSteps (steps: Contracts.IStep list) = 
+        steps        
+        |> Step.create
+        |> Seq.map(fun x -> Scenario.create x.StepName [x])
+        |> Seq.toList
+        |> registerScenarios
 
-    let registerScenario (scenario: Contracts.Scenario) = 
-        registerScenarios([scenario])
+    let withConcurrentCopies (concurrentCopies: int) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with ConcurrentCopies = concurrentCopies })
+
+        { context with Scenarios = scenarios }
+
+    let withWarmUpDuration (duration: TimeSpan) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with WarmUpDuration = duration })
+
+        { context with Scenarios = scenarios }
+
+    let withDuration (duration: TimeSpan) (context: NBomberContext) =
+        let scenarios = 
+            context.Scenarios 
+            |> Array.map(fun scn -> { scn with Duration = duration })
+
+        { context with Scenarios = scenarios }
+
+    let withAssertions (assertions: IAssertion list) (context: NBomberContext) =
+        let allAssertions = assertions |> Assertion.create                    
+
+        let scns = 
+            context.Scenarios
+            |> Array.map(fun x ->
+        
+                let stepNames =
+                    x.Steps 
+                    |> Step.create 
+                    |> Array.map(fun step -> step.StepName)
+
+                let asrts = 
+                    allAssertions
+                    |> Seq.filter(fun asrt -> stepNames |> Array.contains asrt.StepName)
+                    |> Seq.cast<IAssertion> 
+                    |> Seq.toList
+            
+                Scenario.withAssertions asrts x)
+
+        { context with Scenarios = scns }
 
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =        
-        { context with ReportFormats = reportFormats }    
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
+        { context with ReportFormats = reportFormats }
 
     let loadConfig (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
@@ -121,22 +207,17 @@ module NBomberRunner =
         { context with StatisticsSink = Some statisticsSink }
 
     let run (context: NBomberContext) =
-        let nodeType = NBomberContext.getNodeType(context)
-        let dep = Dependency.create(Process, nodeType)
-        NBomberRunner.run(dep, context)
+        NBomberRunner.runAs Process context
 
-    let runInConsole (context: NBomberContext) =
-        let mutable run = true
-        while run do
-            let nodeType = NBomberContext.getNodeType(context)
-            let dep = Dependency.create(Console, nodeType)
-            NBomberRunner.run(dep, context)
-            Log.Information("Repeat the same test one more time? (y/n)")
-        
-            let userInput = Console.ReadLine()
-            run <- List.contains userInput ["y"; "Y"; "yes"; "Yes"]
+    let rec runInConsole (context: NBomberContext) =
+        NBomberRunner.runAs Console context
+        |> ignore
+        Log.Information("Repeat the same test one more time? (y/n)")
+
+        let userInput = Console.ReadLine()
+        let repeat = List.contains userInput ["y"; "Y"; "yes"; "Yes"]
+        if repeat then runInConsole context
 
     let runTest (context: NBomberContext) =
-        let nodeType = NBomberContext.getNodeType(context)
-        let dep = Dependency.create(Test, nodeType)
-        NBomberRunner.run(dep, context)
+        NBomberRunner.runAs Test context
+        |> ignore

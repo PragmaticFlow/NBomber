@@ -76,16 +76,46 @@ module ScenarioValidation =
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
+module AssertionValidation =
+    
+    let checkInvalidAsserts (scenarios: Contracts.Scenario[]) =
+        
+        let notFoundAsserts = 
+            scenarios
+            |> Array.collect(fun x ->
+                let stepNames =
+                    x.Steps 
+                    |> Step.create 
+                    |> Array.map(fun step -> step.StepName)
+
+                x.Assertions
+                |> Assertion.create                
+                |> Array.filter(fun asrt -> stepNames |> Array.contains(asrt.StepName) |> not))
+
+        if Array.isEmpty(notFoundAsserts) then Ok scenarios
+        else Error <| AssertsNotFound notFoundAsserts
+
+    let validate (context: NBomberContext) =
+        context.Scenarios
+        |> checkInvalidAsserts
+        >>= fun _ -> Ok context
+        |> Result.mapError(AppError.create)
+
 module GlobalSettingsValidation =
 
     let checkEmptyTarget (globalSettings: GlobalSettings) =
-        let emptyTarget = globalSettings.TargetScenarios |> List.exists(String.IsNullOrWhiteSpace)
+        let emptyTarget = globalSettings.TargetScenarios
+                          |> Option.map(fun x -> x |> List.exists String.IsNullOrWhiteSpace)
+                          |> Option.defaultValue false
+
         if emptyTarget then Error <| TargetScenarioIsEmpty
         else Ok globalSettings
 
     let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
-        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
-        let notFoundScenarios = globalSettings.TargetScenarios |> List.except allScenarios
+        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)        
+        let targetScn = defaultArg globalSettings.TargetScenarios []
+        let notFoundScenarios = targetScn |> List.except allScenarios
+
         if List.isEmpty(notFoundScenarios) then Ok globalSettings
         else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, allScenarios)
 
@@ -117,8 +147,8 @@ module GlobalSettingsValidation =
         context.NBomberConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 
-            glSettings 
-            |> checkEmptyTarget
+            glSettings
+            |> checkEmptyTarget             
             >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
             >>= checkConcurrentCopies
@@ -129,4 +159,6 @@ module GlobalSettingsValidation =
         |> Option.defaultValue(Ok context)        
 
 let validateContext = 
-    ScenarioValidation.validate >=> GlobalSettingsValidation.validate
+    ScenarioValidation.validate
+    >=> AssertionValidation.validate
+    >=> GlobalSettingsValidation.validate
