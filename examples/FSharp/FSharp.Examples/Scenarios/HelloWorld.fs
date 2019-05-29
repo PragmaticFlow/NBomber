@@ -17,5 +17,7 @@ let run () =
         return Response.Ok() 
     })
         
-    NBomberRunner.registerSteps [step]
+    let scenario = Scenario.create "Hello World!" [step]
+
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runInConsole

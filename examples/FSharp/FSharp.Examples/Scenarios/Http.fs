@@ -25,6 +25,8 @@ let run () =
         | false -> return Response.Fail() 
     })
     
-    NBomberRunner.registerSteps [step]
-    |> NBomberRunner.withConcurrentCopies 100
+    let scenario = Scenario.create "test_gitter" [step]
+                   |> Scenario.withConcurrentCopies 100
+
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runInConsole

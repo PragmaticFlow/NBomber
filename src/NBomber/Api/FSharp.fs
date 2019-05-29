@@ -140,58 +140,6 @@ module NBomberRunner =
           ReportFileName = None
           ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
           StatisticsSink = None }
-    
-    /// Registers steps in NBomber environment. Steps will be run in parallel,
-    /// under the hood NBomber will create Scenario for every step with the name of step.   
-    let registerSteps (steps: Contracts.IStep list) = 
-        steps        
-        |> Step.create
-        |> Seq.map(fun x -> Scenario.create x.StepName [x])
-        |> Seq.toList
-        |> registerScenarios
-
-    let withConcurrentCopies (concurrentCopies: int) (context: NBomberContext) =
-        let scenarios = 
-            context.Scenarios 
-            |> Array.map(fun scn -> { scn with ConcurrentCopies = concurrentCopies })
-
-        { context with Scenarios = scenarios }
-
-    let withWarmUpDuration (duration: TimeSpan) (context: NBomberContext) =
-        let scenarios = 
-            context.Scenarios 
-            |> Array.map(fun scn -> { scn with WarmUpDuration = duration })
-
-        { context with Scenarios = scenarios }
-
-    let withDuration (duration: TimeSpan) (context: NBomberContext) =
-        let scenarios = 
-            context.Scenarios 
-            |> Array.map(fun scn -> { scn with Duration = duration })
-
-        { context with Scenarios = scenarios }
-
-    let withAssertions (assertions: IAssertion list) (context: NBomberContext) =
-        let allAssertions = assertions |> Assertion.create                    
-
-        let scns = 
-            context.Scenarios
-            |> Array.map(fun x ->
-        
-                let stepNames =
-                    x.Steps 
-                    |> Step.create 
-                    |> Array.map(fun step -> step.StepName)
-
-                let asrts = 
-                    allAssertions
-                    |> Seq.filter(fun asrt -> stepNames |> Array.contains asrt.StepName)
-                    |> Seq.cast<IAssertion> 
-                    |> Seq.toList
-            
-                Scenario.withAssertions asrts x)
-
-        { context with Scenarios = scns }
 
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
