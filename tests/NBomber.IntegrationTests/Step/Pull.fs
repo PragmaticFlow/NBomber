@@ -77,7 +77,7 @@ let ``Warmup should not have effect on stats`` () =
     |> NBomberRunner.runTest
 
 [<Fact>]
-let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
+let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =    
     
     let pullStep = Step.create("pull step", fun _ -> task {                
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -135,3 +135,32 @@ let ``repeatCount should set how many times one step will be repeated`` () =
     |> NBomberRunner.runTest
 
     Assert.True(invokeCounter <= 5)
+
+[<Fact>]
+let ``context.Data should store any payload data from latest step.Response`` () =
+
+    let mutable counter = 0
+    let mutable data = null
+
+    let step1 = Step.create("step 1", fun context -> task {                
+        counter <- counter + 1        
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))        
+        return Response.Ok(counter)
+    })
+
+    let step2 = Step.create("step 2", fun context -> task {                        
+        data <- context.Data
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok(counter)
+    })
+
+    let scenario = 
+        Scenario.create "test context.Data" [step1; step2]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest
+
+    Assert.Equal(Convert.ToInt32(data), counter)

@@ -55,9 +55,10 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken,
     let responses = ResizeArray<ResizeArray<StepResponse>>()
     steps |> Array.iter(fun _ -> responses.Add(ResizeArray<StepResponse>()))    
 
-    while not cancelToken.ShouldCancel do
-        
-      let mutable data = Unchecked.defaultof<obj>
+    let mutable data = Unchecked.defaultof<obj>
+
+    while not cancelToken.ShouldCancel do        
+      
       let mutable skipStep = false
       let mutable stepIndex = 0      
 
