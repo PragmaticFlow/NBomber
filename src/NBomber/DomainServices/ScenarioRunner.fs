@@ -39,17 +39,29 @@ type ScenarioActor(actorIndex: int, correlationId: string,
 
 type ScenarioRunner(scenario: Scenario) = 
     
+    let [<Literal>] TryCount = 20
     let globalTimer = Stopwatch()
     let mutable cancelToken = new CancellationTokenSource()
     let mutable actorsTasks = Array.empty<Task<_>>
     let fastCancelToken = { ShouldCancel = false }    
     let actors = scenario.CorrelationIds |> Array.mapi(fun i id -> ScenarioActor(i, id, scenario, globalTimer))
 
-    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {                        
-        let allFinish () = actorsTasks |> Array.forall(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted)        
-        while not (allFinish()) do            
-            Log.Information("waiting all steps to finish.")
+    let waitOnAllFinish (actorsTasks: Task<unit>[]) = task {
+
+        let getNotFinishedCount () =             
+            let runningActors = 
+                actorsTasks 
+                |> Array.filter(fun x -> x.IsCanceled || x.IsCompleted || x.IsFaulted) 
+                |> Array.length
+            
+            actorsTasks.Length - runningActors
+        
+        let mutable count = 0
+        while getNotFinishedCount() > 0 && count < TryCount do
+            Log.Information(sprintf "waiting all steps to finish. (not finished steps %i)" (getNotFinishedCount()))
             do! Task.Delay(TimeSpan.FromSeconds(1.0))
+            count <- count + 1
+            if count = TryCount then Log.Information(sprintf "hard stop of not finished steps. (not finished steps %i)" (getNotFinishedCount()))
     }
 
     let stop () = task {
