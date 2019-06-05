@@ -103,8 +103,9 @@ let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[])
         
 let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =        
     
-    let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
+    let updateScenario (scenario: Scenario, settings: ScenarioSetting) =        
         { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                        CorrelationIds = createCorrelationId(scenario.ScenarioName, settings.ConcurrentCopies)
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
                         Duration = settings.Duration.TimeOfDay }
 
