@@ -18,8 +18,10 @@ let setStepContext (correlationId: string, actorIndex: int, cancelToken: Cancell
                    (step: Step) =
     
     let getConnection (pool: ConnectionPool<obj>) =
-        let connectionIndex = actorIndex % pool.ConnectionsCount
-        pool.AliveConnections.[connectionIndex]
+        match pool.ConnectionsCount with
+        | Some v -> let connectionIndex = actorIndex % pool.ConnectionsCount.Value
+                    pool.AliveConnections.[connectionIndex]
+        | None   -> pool.AliveConnections.[actorIndex]
     
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId

@@ -10,7 +10,7 @@ open NBomber.Configuration
 open NBomber.Domain
 open NBomber.FSharp
 
-[<Property()>]
+[<Property>]
 let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: DateTime, duration: DateTime, concurrentCopies: int) =
 
     (concurrentCopies >= 0) ==> lazy

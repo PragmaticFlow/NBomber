@@ -5,18 +5,7 @@ open System
 open System.Threading
 open NBomber
 open NBomber.Configuration
-open NBomber.Errors
-
-let updateConnectionPoolCount (concurrentCopies: int) (step: Step) =
-    
-    let updatePoolCount (pool) =
-        let newCount = 
-            if pool.ConnectionsCount = Constants.ZeroConnectionsCount then concurrentCopies
-            else pool.ConnectionsCount        
-
-        { pool with ConnectionsCount = newCount }
-    
-    { step with ConnectionPool = updatePoolCount(step.ConnectionPool) }            
+open NBomber.Errors         
 
 let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =    
     let findPool (poolName) = 
@@ -29,7 +18,7 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     |> Array.map(fun i -> sprintf "%s_%i" scnName i)    
 
 let create (config: Contracts.Scenario) =
-    let steps = config.Steps |> Step.create |> Array.map(fun x -> x |> updateConnectionPoolCount(config.ConcurrentCopies))
+    let steps = config.Steps |> Step.create
     let assertions = config.Assertions |> Array.map(fun x -> x :?> Assertion) 
 
     { ScenarioName = config.ScenarioName
@@ -50,7 +39,12 @@ let getDistinctPools (scenario: Scenario) =
 let init (scenario: Scenario) =
 
     let initConnectionPool (pool: ConnectionPool<obj>) =
-        let connections = Array.init pool.ConnectionsCount (fun _ -> pool.OpenConnection())
+        let connectionCount = 
+            match pool.ConnectionsCount with
+            | Some v -> v
+            | None   -> scenario.ConcurrentCopies 
+
+        let connections = Array.init connectionCount (fun _ -> pool.OpenConnection())
         { pool with AliveConnections = connections }
 
     let initAllConnectionPools () = 

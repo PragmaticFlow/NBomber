@@ -19,12 +19,11 @@ type ConnectionPool =
     static member create<'TConnection>(name: string,
                                        openConnection: unit -> 'TConnection,
                                        ?closeConnection: 'TConnection -> unit,
-                                       ?connectionsCount: int) =
-        let count = defaultArg connectionsCount Constants.ZeroConnectionsCount
+                                       ?connectionsCount: int) =        
         { PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
-          ConnectionsCount = count
+          ConnectionsCount = connectionsCount
           AliveConnections = Array.empty }
           :> IConnectionPool<'TConnection>
 
@@ -32,7 +31,7 @@ type ConnectionPool =
         { PoolName = "empty_pool"
           OpenConnection = ignore
           CloseConnection = None
-          ConnectionsCount = 1
+          ConnectionsCount = None
           AliveConnections = Array.empty }
           :> IConnectionPool<unit>
 
@@ -40,7 +39,7 @@ type ConnectionPool =
         { PoolName = "empty_pool"
           OpenConnection = fun _ -> Unchecked.defaultof<'TConnection>
           CloseConnection = None
-          ConnectionsCount = 1
+          ConnectionsCount = None
           AliveConnections = Array.empty }
           :> IConnectionPool<'TConnection>
 

@@ -14,10 +14,7 @@ module internal Constants =
     let DefaultConcurrentCopies = 50
 
     [<Literal>]
-    let DefaultWarmUpDurationInSec = 10.0
-
-    [<Literal>]
-    let ZeroConnectionsCount = 0
+    let DefaultWarmUpDurationInSec = 10.0    
 
     [<Literal>]
     let DefaultRepeatCount = 0
@@ -33,7 +30,7 @@ type internal ConnectionPool<'TConnection> = {
     PoolName: string    
     OpenConnection: unit -> 'TConnection
     CloseConnection: ('TConnection -> unit) option
-    ConnectionsCount: int
+    ConnectionsCount: int option
     AliveConnections: 'TConnection[]
 } with
   interface IConnectionPool<'TConnection>
