@@ -80,8 +80,7 @@ let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =
     server.Start().Wait()
     server.Stop()
 
-let create (dep: Dependency, registeredScns: Scenario[]) =
-    let scnsWithoutInit = registeredScns |> Array.map(fun x -> { x with TestInit = None; TestClean = None } )
-    let scnHost = ScenariosHost(dep, scnsWithoutInit)
+let create (dep: Dependency, registeredScns: Scenario[]) =    
+    let scnHost = ScenariosHost(dep, registeredScns)
     let agentId = generateAgentId()    
     ClusterAgent(agentId, scnHost)
