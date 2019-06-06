@@ -36,8 +36,18 @@ let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
         
         match Result.sequence(responses) with
         | Ok data  -> 
-            let notReady = data |> Array.exists(fun x -> x.Error.IsSome)
-            if notReady then
+            let failed = data |> Array.exists(fun x -> x.Error.IsSome)
+            
+            let stillWorking = data |> Array.exists(fun x -> 
+                match x.Data with
+                | Some v -> v :? bool |> not
+                | None   -> true
+            )
+            
+            if failed then                
+                return! AppError.createResult(OperationFailed("WaitOnAllAgentsReady", Array.empty))
+            
+            if stillWorking then
                 do! Async.Sleep(2000)
                 return! start()            
 
