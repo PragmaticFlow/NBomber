@@ -76,8 +76,10 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
 let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
+    Log.Information("stopping bombing and cleaning resources...")
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
+    Log.Information("bombing stoped and resources cleaned")
 
 let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
     scnRunners
@@ -131,7 +133,8 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         member x.StartBombing() = task {
             if scnRunners.IsSome then
                 startedWork()
-                let! tasks = runBombing(dep, scnRunners.Value) 
+                let! tasks = runBombing(dep, scnRunners.Value)
+                scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
                 stoppedWork()                
         }
 
@@ -150,7 +153,6 @@ let run (scnSettings: ScenarioSetting[], targetScns: ScenarioName[])
     
     do! scnHost.InitScenarios(scnSettings, targetScns)
     do! scnHost.WarmUpScenarios()
-    do! scnHost.StartBombing()
-    scnHost.StopScenarios()
+    do! scnHost.StartBombing()    
     return scnHost.GetStatistics()
 }
