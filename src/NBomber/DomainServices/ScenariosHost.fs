@@ -114,8 +114,8 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                            |> initScenarios
             
             match results with
-            | Ok scns -> stoppedWork()
-                         scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
+            | Ok scns -> scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
+                         stoppedWork()
                          return Ok() 
             
             | Error e -> failed(e)
@@ -127,14 +127,14 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
             if scnRunners.IsSome then
                 startedWork()
                 warmUpScenarios(dep, scnRunners.Value)
-                stoppedWork()       
+                stoppedWork()                
         }
 
         member x.StartBombing() = task {
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value)
-                scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
+                scnRunners |> Option.map(stopAndCleanScenarios) |> ignore                
                 stoppedWork()                
         }
 

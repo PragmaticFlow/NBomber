@@ -44,11 +44,7 @@ type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
             match cmd with
             | NewSession (sessionId, scnSettings, targetScns) -> 
                 curSessionId <- sessionId
-                
-                match scnHost.IsWorking() with
-                | Ok w -> if w then scnHost.StopScenarios()
-                | _    -> ()
-
+                scnHost.StopScenarios()
                 scnHost.InitScenarios(scnSettings, targetScns) |> ignore
                 emptyResponse
 
