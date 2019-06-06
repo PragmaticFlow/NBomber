@@ -12,11 +12,14 @@ open NBomber.FSharp
 open NBomber.Configuration
 
 type ConnectionPool =
-    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(Domain.Constants.ZeroConnectionsCount)>] ?connectionsCount: int) = 
+    static member Create<'TConnection>(name: string, openConnection: Func<'TConnection>, [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>, [<Optional;DefaultParameterValue(0:int)>] connectionsCount: int) = 
         let close = if isNull closeConnection then (new Action<'TConnection>(ignore))
                     else closeConnection
-        let count = defaultArg connectionsCount Domain.Constants.ZeroConnectionsCount
-        FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, count)    
+        
+        if connectionsCount = 0 then
+            FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke)            
+        else 
+            FSharp.ConnectionPool.create(name, openConnection.Invoke, close.Invoke, connectionsCount)
     
     static member None = FSharp.ConnectionPool.none
 
@@ -73,27 +76,6 @@ type NBomberRunner =
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     static member RegisterScenarios([<System.ParamArray>]scenarios: Contracts.Scenario[]) = 
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios    
-
-    /// Registers steps in NBomber environment. Steps will be run in parallel,
-    /// under the hood NBomber will create Scenario for every step with the name of step.   
-    static member RegisterSteps([<System.ParamArray>]steps: Contracts.IStep[]) = 
-        steps |> Seq.toList |> FSharp.NBomberRunner.registerSteps
-
-    [<Extension>]
-    static member WithAssertions(context: NBomberContext, [<System.ParamArray>]assertions: IAssertion[]) = 
-        context |> FSharp.NBomberRunner.withAssertions(Seq.toList assertions)    
-
-    [<Extension>]
-    static member WithConcurrentCopies(context: NBomberContext, concurrentCopies: int) = 
-        context |> FSharp.NBomberRunner.withConcurrentCopies concurrentCopies
-
-    [<Extension>]
-    static member WithWarmUpDuration(context: NBomberContext, duration: TimeSpan) = 
-        context |> FSharp.NBomberRunner.withWarmUpDuration duration
-    
-    [<Extension>]
-    static member WithDuration(context: NBomberContext, duration: TimeSpan) = 
-        context |> FSharp.NBomberRunner.withDuration duration
 
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =

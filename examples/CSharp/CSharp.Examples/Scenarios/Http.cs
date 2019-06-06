@@ -26,8 +26,10 @@ namespace CSharp.Examples.Scenarios
                     : Response.Fail();
             });
 
-            NBomberRunner.RegisterSteps(step)
-                         .WithConcurrentCopies(100)
+            var scenario = ScenarioBuilder.CreateScenario("test_gitter", step)
+                                          .WithConcurrentCopies(100);
+
+            NBomberRunner.RegisterScenarios(scenario)                         
                          .RunInConsole();
         }
     }

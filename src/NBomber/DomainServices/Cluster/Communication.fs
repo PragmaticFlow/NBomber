@@ -1,5 +1,9 @@
 ﻿module internal NBomber.DomainServices.Cluster.Communication
 
+open System
+open System.Threading.Tasks
+
+open Serilog
 open FsToolkit.ErrorHandling
 
 open NBomber.Extensions
@@ -35,10 +39,17 @@ let waitOnAllAgentsReady (sessionId: string, agents: AgentInfo[]) =
             |> sendCommand(fun _ -> IsWorking(sessionId))            
         
         match Result.sequence(responses) with
-        | Ok data  -> 
-            let notReady = data |> Array.exists(fun x -> x.Error.IsSome)
-            if notReady then
-                do! Async.Sleep(2000)
+        | Ok data  ->             
+            
+            let stillWorking = data |> Array.exists(fun x -> 
+                match x.Data with
+                | Some working -> Convert.ToBoolean(working) = true
+                | None         -> true
+            )
+            
+            if stillWorking then
+                Log.Information("waiting on finishing agents...")
+                do! Task.Delay(2000)
                 return! start()            
 
         | Error es -> return! AppError.createResult(OperationFailed("WaitOnAllAgentsReady", es))

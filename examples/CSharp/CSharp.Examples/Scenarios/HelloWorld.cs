@@ -9,7 +9,7 @@ namespace CSharp.Examples.Scenarios
     {
         public static void Run()
         {   
-            var step = Step.Create("step 1", async _ =>
+            var step = Step.Create("step", async context =>
             {
                 // you can do any logic here: go to http, websocket etc
 
@@ -17,7 +17,9 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            NBomberRunner.RegisterSteps(step)
+            var scenario = ScenarioBuilder.CreateScenario("Hello World!", step);
+
+            NBomberRunner.RegisterScenarios(scenario)
                          .RunInConsole();
         }
     }

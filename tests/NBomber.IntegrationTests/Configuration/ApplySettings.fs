@@ -3,6 +3,7 @@
 open System
 
 open Xunit
+open FsCheck
 open FsCheck.Xunit
 
 open NBomber.Configuration
@@ -11,13 +12,18 @@ open NBomber.FSharp
 
 [<Property>]
 let ``applyScenariosSettings() should override initial settings`` (name: string, warmUpDuration: DateTime, duration: DateTime, concurrentCopies: int) =
+
+    (concurrentCopies >= 0) ==> lazy
+
     let settings = { ScenarioName = name; WarmUpDuration = warmUpDuration; Duration = duration; ConcurrentCopies = concurrentCopies }
     let scenario = Scenario.create name [] |> NBomber.Domain.Scenario.create
 
     let updatedScenarios = Scenario.applySettings [|settings|] [|scenario|]
     
     let result = updatedScenarios.[0].Duration = duration.TimeOfDay
+                 && updatedScenarios.[0].WarmUpDuration = warmUpDuration.TimeOfDay
                  && updatedScenarios.[0].ConcurrentCopies = concurrentCopies
+                 && updatedScenarios.[0].CorrelationIds.Length = concurrentCopies
     
     Assert.True(result)
 

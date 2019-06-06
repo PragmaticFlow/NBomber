@@ -32,12 +32,12 @@ let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
 
         do! cluster.SendStartBombing()
         do! localHost.StartBombing()
-        do! cluster.WaitOnAllAgentsReady()
+        do! cluster.WaitOnAllAgentsReady()        
 
         let localStats = localHost.GetStatistics()
         let! agentsStats = cluster.GetStatistics()
         let allStats = Array.append [|localStats|] agentsStats     
-        localHost.StopScenarios()
+        
         return allStats    
     }
 

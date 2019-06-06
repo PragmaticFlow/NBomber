@@ -50,8 +50,7 @@ namespace CSharp.Examples.Scenarios
             var scenario = ScenarioBuilder.CreateScenario("test_mongo", step)
                                           .WithTestInit(initDb);
 
-            NBomberRunner.RegisterScenarios(scenario)
-                         .WithConcurrentCopies(100)
+            NBomberRunner.RegisterScenarios(scenario)                         
                          .RunInConsole();
         }
     }

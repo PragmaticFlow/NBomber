@@ -18,8 +18,10 @@ let setStepContext (correlationId: string, actorIndex: int, cancelToken: Cancell
                    (step: Step) =
     
     let getConnection (pool: ConnectionPool<obj>) =
-        let connectionIndex = actorIndex % pool.ConnectionsCount
-        pool.AliveConnections.[connectionIndex]
+        match pool.ConnectionsCount with
+        | Some v -> let connectionIndex = actorIndex % pool.ConnectionsCount.Value
+                    pool.AliveConnections.[connectionIndex]
+        | None   -> pool.AliveConnections.[actorIndex]
     
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId
@@ -55,9 +57,10 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken,
     let responses = ResizeArray<ResizeArray<StepResponse>>()
     steps |> Array.iter(fun _ -> responses.Add(ResizeArray<StepResponse>()))    
 
-    while not cancelToken.ShouldCancel do
-        
-      let mutable data = Unchecked.defaultof<obj>
+    let mutable data = Unchecked.defaultof<obj>
+
+    while not cancelToken.ShouldCancel do        
+      
       let mutable skipStep = false
       let mutable stepIndex = 0      
 
