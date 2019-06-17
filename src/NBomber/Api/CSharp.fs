@@ -28,7 +28,7 @@ type Step =
                          execute: Func<StepContext<'TConnection>,Task<Response>>,
                          pool: IConnectionPool<'TConnection>,
                          [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) = 
-        FSharp.Step.create(name, execute.Invoke, pool, repeatCount)
+        FSharp.Step.create(name, pool, execute.Invoke, repeatCount)
 
     static member Create(name: string, execute: Func<StepContext<unit>,Task<Response>>,
                          [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) =

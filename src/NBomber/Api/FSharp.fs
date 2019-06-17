@@ -44,18 +44,18 @@ type ConnectionPool =
           :> IConnectionPool<'TConnection>
 
 type Step =
-    
-    static member create (name: string,
-                          execute: StepContext<'TConnection> -> Task<Response>,
-                          ?pool: IConnectionPool<'TConnection>,
-                          ?repeatCount: int) =
-        let p = defaultArg pool (ConnectionPool.internalNone<'TConnection>())
-                :?> ConnectionPool<'TConnection>
 
-        let repeatCount = 
-            match defaultArg repeatCount Constants.DefaultRepeatCount with            
-            | x when x <= 0 -> 1
-            | x             -> x
+    static member private getRepeatCount (repeatCount: int option) = 
+        match defaultArg repeatCount Constants.DefaultRepeatCount with
+        | x when x <= 0 -> 1
+        | x             -> x
+
+    static member create (name: string,                          
+                          pool: IConnectionPool<'TConnection>,
+                          execute: StepContext<'TConnection> -> Task<Response>,                          
+                          ?repeatCount: int) =
+        
+        let p = pool :?> ConnectionPool<'TConnection>        
 
         let newOpen = fun () -> p.OpenConnection() :> obj
         
@@ -82,8 +82,17 @@ type Step =
           ConnectionPool = newPool
           Execute = newExecute
           CurrentContext = None
-          RepeatCount = repeatCount }
+          RepeatCount = Step.getRepeatCount(repeatCount) }
           :> IStep
+
+    static member create (name: string,                          
+                          execute: StepContext<'TConnection> -> Task<Response>,
+                          ?repeatCount: int) =
+
+        Step.create(name, 
+                    ConnectionPool.internalNone<'TConnection>(),
+                    execute,                     
+                    Step.getRepeatCount(repeatCount))
 
 type Assertion =
 

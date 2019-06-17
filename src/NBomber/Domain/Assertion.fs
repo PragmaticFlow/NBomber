@@ -4,7 +4,7 @@ module internal NBomber.Domain.Assertion
 open NBomber.Contracts
 open NBomber.Errors
 
-let create (assertions: IAssertion seq) = 
+let cast (assertions: IAssertion seq) = 
     assertions |> Seq.map(fun x -> x :?> Assertion) |> Seq.toArray
 
 let apply (stepsStats: Statistics[]) (assertions: Assertion[]) =    

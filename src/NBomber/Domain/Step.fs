@@ -11,7 +11,7 @@ open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 
-let create (steps: IStep seq) = 
+let cast (steps: IStep seq) = 
     steps |> Seq.cast<Step> |> Seq.toArray
 
 let setStepContext (correlationId: string, actorIndex: int, cancelToken: CancellationToken)
