@@ -40,6 +40,25 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
 
     | None -> ()
 
+let buildInitConnectionPools (dep: Dependency) =
+    if dep.ApplicationType = ApplicationType.Console then
+        let mutable pb = Unchecked.defaultof<ShellProgressBar.ProgressBar>
+        
+        let onStartedInitPool = fun (_, connectionsCount) ->
+            pb <- dep.CreateProgressBar(connectionsCount)
+
+        let onConnectionOpened = fun _ ->
+            pb.Tick()
+
+        let onFinishInitPool = fun _ -> 
+            pb.Dispose()
+
+        fun scenario ->
+            ConnectionPool.init(scenario, onStartedInitPool, onConnectionOpened, onFinishInitPool)
+    else
+        fun scenario ->
+            ConnectionPool.init(scenario, ignore, ignore, ignore)
+
 let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {    
     let mutable failed = false    
     let mutable error = Unchecked.defaultof<_>
@@ -48,21 +67,8 @@ let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {
         for scn in scenarios do 
             if not failed then
                 Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
-                
-                let mutable pb = Unchecked.defaultof<ShellProgressBar.ProgressBar>
 
-                let onStartedInitPool = fun (_, connectionsCount) ->                    
-                    pb <- dep.CreateProgressBar(connectionsCount)
-
-                let onConnectionOpened = fun _ ->
-                    pb.Tick()
-
-                let onFinishInitPool = fun _ -> 
-                    pb.Dispose()
-
-                let initAllConnectionPools = fun scenario ->
-                    ConnectionPool.init(scenario, onStartedInitPool, onConnectionOpened, onFinishInitPool)
-
+                let initAllConnectionPools = buildInitConnectionPools(dep)
                 let initResult = Scenario.init(scn, initAllConnectionPools)
                 if Result.isError(initResult) then                    
                     failed <- true
