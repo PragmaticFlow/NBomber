@@ -3,15 +3,10 @@ module internal NBomber.Domain.Scenario
 
 open System
 open System.Threading
+
 open NBomber
 open NBomber.Configuration
-open NBomber.Errors         
-
-let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =    
-    let findPool (poolName) = 
-        allPools |> Array.find(fun x -> x.PoolName = poolName)
-
-    { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }    
+open NBomber.Errors            
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
@@ -31,60 +26,29 @@ let create (config: Contracts.Scenario) =
       WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
 
-let getDistinctPools (scenario: Scenario) =
-    scenario.Steps
-    |> Array.map(fun x -> x.ConnectionPool)
-    |> Array.distinct
-
-let init (scenario: Scenario) =
-
-    let initConnectionPool (pool: ConnectionPool<obj>) =
-        let connectionCount = 
-            match pool.ConnectionsCount with
-            | Some v -> v
-            | None   -> scenario.ConcurrentCopies 
-
-        let connections = Array.init connectionCount (fun _ -> pool.OpenConnection())
-        { pool with AliveConnections = connections }
-
-    let initAllConnectionPools () = 
-        getDistinctPools(scenario)
-        |> Array.map(initConnectionPool)    
-
+let init (scenario: Scenario, 
+          initAllConnectionPools: Scenario -> ConnectionPool<obj>[]) =
     try     
         // todo: refactor, pass token
         if scenario.TestInit.IsSome then
             let cancelToken = new CancellationTokenSource()
             scenario.TestInit.Value(cancelToken.Token).Wait()        
 
-        let allPools = initAllConnectionPools()            
-        let steps = scenario.Steps |> Array.map(setConnectionPool(allPools))
+        let allPools = initAllConnectionPools(scenario)
+        let steps = scenario.Steps |> Array.map(ConnectionPool.setConnectionPool(allPools))
         Ok { scenario with Steps = steps }
     with 
     | ex -> Error <| InitScenarioError ex
 
-let clean (scenario: Scenario) =     
-
-    let invokeDispose (connection: obj) =
-        if connection :? IDisposable then (connection :?> IDisposable).Dispose()
-
-    let closePoolConnections (pool) =
-        for connection in pool.AliveConnections do
-            try 
-                match pool.CloseConnection with
-                | Some close -> close(connection)
-                                invokeDispose(connection)
-                | None       -> invokeDispose(connection)
-            with
-            | ex -> Serilog.Log.Error(ex, "CloseConnection")
-    
-    scenario |> getDistinctPools |> Array.iter(closePoolConnections) 
+let clean (scenario: Scenario) =
 
     try
         if scenario.TestClean.IsSome then
             // todo: refacto, pass token
             let cancelToken = new CancellationTokenSource()
             scenario.TestClean.Value(cancelToken.Token).Wait()
+        
+        ConnectionPool.clean(scenario)
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
 

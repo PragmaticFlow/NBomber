@@ -35,17 +35,22 @@ type Dependency = {
     NodeInfo: NodeInfo
     Assets: Assets
     ShowProgressBar: TimeSpan -> unit
+    CreateProgressBar: int -> ProgressBar
 }
 
 module ProgressBar =
 
-    let show (scenarioDuration: TimeSpan) = task {    
-        let options = ProgressBarOptions(ProgressBarOnBottom = true,                                     
-                                         ForegroundColor = ConsoleColor.Yellow,
-                                         ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
-                                         BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
-                                         BackgroundCharacter = Nullable<char>('\u2593'))
+    let private options = 
+        ProgressBarOptions(ProgressBarOnBottom = true,                                     
+                           ForegroundColor = ConsoleColor.Yellow,
+                           ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
+                           BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
+                           BackgroundCharacter = Nullable<char>('\u2593'))
 
+    let create (ticks: int) = 
+        new ProgressBar(ticks, String.Empty, options)
+
+    let show (scenarioDuration: TimeSpan) = task {    
         let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
         use pbar = new ProgressBar(totalSeconds, String.Empty, options)
     
@@ -102,4 +107,5 @@ let create (appType: ApplicationType, nodeType: NodeType) =
       NodeType = nodeType
       NodeInfo = retrieveNodeInfo()
       Assets = ResourceManager.loadAssets()
-      ShowProgressBar = ProgressBar.show >> ignore }
+      ShowProgressBar = ProgressBar.show >> ignore
+      CreateProgressBar = fun ticks -> ProgressBar.create(ticks) }

@@ -40,7 +40,7 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
 
     | None -> ()
 
-let initScenarios (scenarios: Scenario[]) = task {    
+let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {    
     let mutable failed = false    
     let mutable error = Unchecked.defaultof<_>
     
@@ -48,12 +48,27 @@ let initScenarios (scenarios: Scenario[]) = task {
         for scn in scenarios do 
             if not failed then
                 Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
-                let initResult = Scenario.init(scn)
+                
+                let mutable pb = Unchecked.defaultof<ShellProgressBar.ProgressBar>
+
+                let onStartedInitPool = fun (_, connectionsCount) ->                    
+                    pb <- dep.CreateProgressBar(connectionsCount)
+
+                let onConnectionOpened = fun _ ->
+                    pb.Tick()
+
+                let onFinishInitPool = fun _ -> 
+                    pb.Dispose()
+
+                let initAllConnectionPools = fun scenario ->
+                    ConnectionPool.init(scenario, onStartedInitPool, onConnectionOpened, onFinishInitPool)
+
+                let initResult = Scenario.init(scn, initAllConnectionPools)
                 if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
                 yield initResult
-    }    
+    }
 
     let results = flow |> Seq.toArray
     let allOk   = results |> Array.forall(Result.isOk)
@@ -111,7 +126,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                            |> Scenario.applySettings(settings)
                            |> Scenario.filterTargetScenarios(targetScenarios)
                            |> printTargetScenarios
-                           |> initScenarios
+                           |> initScenarios(dep)
             
             match results with
             | Ok scns -> scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
