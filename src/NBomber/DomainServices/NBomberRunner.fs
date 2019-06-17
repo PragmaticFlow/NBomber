@@ -81,7 +81,7 @@ let applyAsserts (context: NBomberContext) (result: ExecutionResult) =
     let errors = 
         context.Scenarios 
         |> Array.collect(fun x -> x.Assertions)
-        |> Assertion.create
+        |> Assertion.cast
         |> Assertion.apply(result.Statistics)
     { result with FailedAsserts = errors }
     

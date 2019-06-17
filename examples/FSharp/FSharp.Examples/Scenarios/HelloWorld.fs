@@ -10,7 +10,7 @@ open NBomber.FSharp
 
 let run () =    
     
-    let step = Step.create("simple step", fun _ -> task {        
+    let step = Step.create("simple step", fun context -> task {        
         // you can do any logic here: go to http, websocket etc
         
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
