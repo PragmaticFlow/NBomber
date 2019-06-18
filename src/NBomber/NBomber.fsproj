@@ -32,6 +32,7 @@
     <Compile Include="Configuration.fs" />
     <Compile Include="Contracts.fs" />
     <Compile Include="Extensions.fs" />
+    <Compile Include="Helpers\ClientResponses.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
     <Compile Include="Domain\StatisticsTypes.fs" />
     <Compile Include="Domain\Errors.fs" />
