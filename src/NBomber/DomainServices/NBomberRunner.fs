@@ -89,16 +89,9 @@ let buildReport (dep: Dependency) (result: ExecutionResult) =
     Report.build(dep, result.AllNodeStats, result.FailedAsserts)
 
 let saveReport (dep: Dependency, context: NBomberContext) (report: ReportResult) =
-    let defaultFileName = context.ReportFileName 
-                          |> Option.defaultValue("report_" + dep.SessionId)
-    
-    let fileName = NBomberContext.tryGetReportFileName(context) 
-                   |> Option.defaultValue(defaultFileName)
-    
-    let formats = NBomberContext.tryGetReportFormats(context)
-                  |> Option.defaultValue context.ReportFormats
-    
-    Report.save(dep, "./", fileName, formats, report) 
+    let fileName = NBomberContext.getReportFileName(dep.SessionId, context)
+    let formats = NBomberContext.getReportFormats(context)
+    Report.save(dep, "./", fileName, formats, report)
     
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then

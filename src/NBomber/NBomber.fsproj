@@ -32,7 +32,6 @@
     <Compile Include="Configuration.fs" />
     <Compile Include="Contracts.fs" />
     <Compile Include="Extensions.fs" />
-    <Compile Include="Helpers\ClientResponses.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
     <Compile Include="Domain\StatisticsTypes.fs" />
     <Compile Include="Domain\Errors.fs" />
@@ -62,6 +61,7 @@
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
+    <Compile Include="Helpers\ClientResponses.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Json" Version="0.3.7" />

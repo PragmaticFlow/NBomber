@@ -146,7 +146,7 @@ module NBomberRunner =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           ReportFileName = None
-          ReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
+          ReportFormats = Domain.Constants.AllReportFormats
           StatisticsSink = None }
 
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
