@@ -28,7 +28,7 @@ type ConnectionPool =
           :> IConnectionPool<'TConnection>
 
     static member none =
-        { PoolName = "empty_pool"
+        { PoolName = Constants.EmptyPoolName
           OpenConnection = ignore
           CloseConnection = None
           ConnectionsCount = None
@@ -36,7 +36,7 @@ type ConnectionPool =
           :> IConnectionPool<unit>
 
     static member internal internalNone<'TConnection> () =
-        { PoolName = "empty_pool"
+        { PoolName = Constants.EmptyPoolName
           OpenConnection = fun _ -> Unchecked.defaultof<'TConnection>
           CloseConnection = None
           ConnectionsCount = None

@@ -22,6 +22,9 @@ module internal Constants =
 
     let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
 
+    [<Literal>]
+    let EmptyPoolName = "nbomber_empty_pool"
+
 type internal CorrelationId = string
 type internal StepName = string
 type internal FlowName = string
