@@ -1,4 +1,4 @@
-﻿namespace NBomber.Helpers
+﻿namespace NBomber.Extensions
 
 open System.Collections.Concurrent
 open System.Threading.Tasks

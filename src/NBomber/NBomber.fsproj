@@ -61,7 +61,8 @@
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
-    <Compile Include="Helpers\ClientResponses.fs" />
+    <Compile Include="Extensions\TaskExtensions.fs" />
+    <Compile Include="Extensions\ClientResponses.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
