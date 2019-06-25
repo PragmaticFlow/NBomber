@@ -1,5 +1,4 @@
-﻿module FSharp.Examples.Expecto
-open Expecto
+﻿open Expecto
 
 [<EntryPoint>]
 let main argv =
