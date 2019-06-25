@@ -3,6 +3,7 @@
 open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Domain
 
 let getScenariosSettings (context: NBomberContext) =    
     context.NBomberConfig
@@ -36,17 +37,29 @@ let getTargetScenarios (context: NBomberContext) =
     defaultArg targetScn allScns
     |> List.toArray
 
-let tryGetReportFileName (context: NBomberContext) = maybe {
-    let! config = context.NBomberConfig
-    let! settings = config.GlobalSettings
-    return! settings.ReportFileName
-}   
+let getReportFileName (sessionId: string, context: NBomberContext) = 
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.ReportFileName    
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.orElse(context.ReportFileName)
+    |> Option.defaultValue("report_" + sessionId)
 
-let tryGetReportFormats (context: NBomberContext) = maybe {
-    let! config = context.NBomberConfig
-    let! settings = config.GlobalSettings
-    return! settings.ReportFormats    
-}
+
+let getReportFormats (context: NBomberContext) = 
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.ReportFormats    
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.orElse(if List.isEmpty context.ReportFormats then None
+                     else Some context.ReportFormats)
+    |> Option.defaultValue Constants.AllReportFormats
 
 let tryGetLogSettings (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig

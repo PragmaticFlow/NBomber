@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open NBomber.Contracts
 
 module internal Constants =   
+    open NBomber.Configuration
 
     [<Literal>]
     let DefaultScenarioDurationInSec = 60.0
@@ -18,6 +19,11 @@ module internal Constants =
 
     [<Literal>]
     let DefaultRepeatCount = 0
+
+    let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
+
+    [<Literal>]
+    let EmptyPoolName = "nbomber_empty_pool"
 
 type internal CorrelationId = string
 type internal StepName = string

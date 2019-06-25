@@ -25,21 +25,23 @@ let build (dep: Dependency, stats: NodeStats[], failedAsserts: DomainError[]) =
       CsvReport = CsvReport.print(stats.[0])
       MdReport = MdReport.print(stats.[0], failedAsserts) }
 
-let save (dep: Dependency, outPutDir: string, reportFileName: string, reportFormats: ReportFormat list, report: ReportResult) =
+let save (dep: Dependency, outPutDir: string, reportFileName: string, 
+          reportFormats: ReportFormat list, report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
 
-        [ ReportFormat.Txt, report.TxtReport, ".txt"
-          ReportFormat.Html, report.HtmlReport, ".html"
-          ReportFormat.Csv, report.CsvReport, ".csv"
-          ReportFormat.Md, report.MdReport, ".md" ]
-        |> List.iter
-               (fun (format, report, ext) ->
-               let filePath = reportsDir + "/" + reportFileName + ext
-               if reportFormats |> List.contains format then
-                   File.WriteAllText(filePath, report))
+        reportFormats 
+        |> List.map(function            
+            | ReportFormat.Txt -> report.TxtReport, ".txt"
+            | ReportFormat.Html -> report.HtmlReport, ".html"
+            | ReportFormat.Csv -> report.CsvReport, ".csv"
+            | ReportFormat.Md -> report.MdReport, ".md")
+
+        |> List.iter(fun (content, fileExt) -> 
+            let filePath = reportsDir + "/" + reportFileName + fileExt
+            File.WriteAllText(filePath, content))
 
         Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
         Log.Information(report.TxtReport)
