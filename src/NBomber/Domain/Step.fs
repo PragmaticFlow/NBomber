@@ -83,7 +83,7 @@ let runSteps (steps: Step[], cancelToken: FastCancellationToken,
     return responses
 }
 
-let filterInvalidResponses (responses: StepResponse[], duration: TimeSpan) =        
+let filterLateResponses (responses: StepResponse[], duration: TimeSpan) =        
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
     

@@ -76,6 +76,7 @@ type internal Scenario = {
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int
+    ThreadCount: int
     CorrelationIds: CorrelationId[]
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
