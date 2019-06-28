@@ -28,8 +28,9 @@ type NodeInfo = {
     CoresCount: int    
 }
 
-type Dependency = {
+type Dependency = {    
     SessionId: string    
+    NBomberVersion: string
     ApplicationType: ApplicationType
     NodeType: NodeType
     NodeInfo: NodeInfo
@@ -102,7 +103,9 @@ let createSessionId () =
     date + "_" + guid
 
 let create (appType: ApplicationType, nodeType: NodeType) =
+    let version = typeof<ApplicationType>.Assembly.GetName().Version
     { SessionId = createSessionId()
+      NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType
       NodeInfo = retrieveNodeInfo()

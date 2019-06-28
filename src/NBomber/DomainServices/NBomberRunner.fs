@@ -110,7 +110,7 @@ let run (dep: Dependency) (context: NBomberContext) =
     asyncResult {
         let logSettings = NBomberContext.tryGetLogSettings(context)
         Dependency.Logger.initLogger(dep.ApplicationType, logSettings)
-        Log.Information("NBomber started a new session: '{0}'", dep.SessionId)
+        Log.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, dep.SessionId)
 
         let! ctx = Validation.validateContext(context)
         let! nodeStats =
