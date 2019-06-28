@@ -13,6 +13,8 @@ module internal Constants =
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
+        
+    let DefaultThreadCount = Environment.ProcessorCount
 
     [<Literal>]
     let DefaultWarmUpDurationInSec = 10.0    

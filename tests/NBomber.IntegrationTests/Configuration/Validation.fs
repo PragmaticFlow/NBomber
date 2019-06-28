@@ -21,6 +21,7 @@ let globalSettings = {
 let scenarioSettings = { 
     ScenarioName = "1"
     ConcurrentCopies = 1
+    ThreadCount = 1
     WarmUpDuration = DateTime.MinValue.AddSeconds(10.)
     Duration = DateTime.MinValue.AddSeconds(10.) 
 }
@@ -32,6 +33,7 @@ let scenario = {
     Steps = Array.empty
     Assertions = Array.empty
     ConcurrentCopies = 1
+    ThreadCount = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)
     Duration = TimeSpan.FromSeconds(10.)
 }

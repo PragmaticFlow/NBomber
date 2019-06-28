@@ -64,6 +64,7 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =
     
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =        
         { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                        ThreadCount = settings.ThreadCount
                         CorrelationIds = createCorrelationId(scenario.ScenarioName, settings.ConcurrentCopies)
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
                         Duration = settings.Duration.TimeOfDay }

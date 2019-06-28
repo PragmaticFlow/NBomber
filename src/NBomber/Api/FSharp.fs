@@ -113,7 +113,7 @@ module Scenario =
           Steps = List.toArray(steps)
           Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies
-          ThreadCount = Environment.ProcessorCount
+          ThreadCount = Constants.DefaultThreadCount
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 

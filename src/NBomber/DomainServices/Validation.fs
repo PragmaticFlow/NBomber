@@ -19,7 +19,7 @@ let private getDuplicates (data: string[]) =
 let private isDurationOk (duration: TimeSpan) =
     duration >= TimeSpan.FromSeconds 1.0
 
-let private isConcurrentCopiesOk (value: int) = 
+let private isPositiveNumber (value: int) = 
     value >= 1
 
 module ScenarioValidation =
@@ -61,9 +61,14 @@ module ScenarioValidation =
         else Error <| DurationIsWrong invalidScns
 
     let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
-        let invalidScns = scenarios |> Array.choose(fun x -> if isConcurrentCopiesOk(x.ConcurrentCopies) then None else Some x.ScenarioName)
+        let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
         if Array.isEmpty(invalidScns) then Ok scenarios
         else Error <| ConcurrentCopiesIsWrong invalidScns
+
+    let checkThreadCount (scenarios: Contracts.Scenario[]) =
+        let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ThreadCount) then None else Some x.ScenarioName)
+        if Array.isEmpty(invalidScns) then Ok scenarios
+        else Error <| ThreadCountIsWrong invalidScns
 
     let validate (context: NBomberContext) =
         context.Scenarios 
@@ -73,6 +78,7 @@ module ScenarioValidation =
         >>= checkDuplicateStepName
         >>= checkDuration
         >>= checkConcurrentCopies
+        >>= checkThreadCount
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
@@ -131,11 +137,20 @@ module GlobalSettingsValidation =
     let checkConcurrentCopies (globalSettings: GlobalSettings) =
         let invalidScns = 
             globalSettings.ScenariosSettings
-            |> List.choose(fun x -> if isConcurrentCopiesOk(x.ConcurrentCopies) then None else Some x.ScenarioName)
+            |> List.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
             |> List.toArray
         
         if Array.isEmpty(invalidScns) then Ok globalSettings
         else Error <| ConcurrentCopiesIsWrong invalidScns
+
+    let checkThreadCount (globalSettings: GlobalSettings) =
+        let invalidScns = 
+            globalSettings.ScenariosSettings
+            |> List.choose(fun x -> if isPositiveNumber(x.ThreadCount) then None else Some x.ScenarioName)
+            |> List.toArray
+        
+        if Array.isEmpty(invalidScns) then Ok globalSettings
+        else Error <| ThreadCountIsWrong invalidScns
 
     let checkEmptyReportName (globalSettings: GlobalSettings) =
         match globalSettings.ReportFileName with
@@ -152,6 +167,7 @@ module GlobalSettingsValidation =
             >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
             >>= checkConcurrentCopies
+            >>= checkThreadCount
             >>= checkEmptyReportName
             >>= fun _ -> Ok context
             |> Result.mapError(AppError.create)
