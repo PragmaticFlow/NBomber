@@ -63,6 +63,7 @@ type Scenario = {
     Steps: IStep[]
     Assertions: IAssertion[]
     ConcurrentCopies: int
+    ThreadCount: int
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }

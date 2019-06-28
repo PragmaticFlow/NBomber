@@ -17,6 +17,7 @@ type LogSettings = {
 type ScenarioSetting = {
     ScenarioName: string
     ConcurrentCopies: int
+    ThreadCount: int
     WarmUpDuration: DateTime
     Duration: DateTime
 }

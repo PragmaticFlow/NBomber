@@ -13,6 +13,8 @@ module internal Constants =
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
+        
+    let DefaultThreadCount = Environment.ProcessorCount
 
     [<Literal>]
     let DefaultWarmUpDurationInSec = 10.0    
@@ -76,6 +78,7 @@ type internal Scenario = {
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int
+    ThreadCount: int
     CorrelationIds: CorrelationId[]
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

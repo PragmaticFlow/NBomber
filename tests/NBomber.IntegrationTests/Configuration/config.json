@@ -5,13 +5,15 @@
         "ScenarioName": "test_youtube",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
-        "ConcurrentCopies": 100
+        "ConcurrentCopies": 100,
+        "ThreadCount": 10
       },
       {
         "ScenarioName": "test_mongo",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
-        "ConcurrentCopies": 100
+        "ConcurrentCopies": 100,
+        "ThreadCount": 10
       }
     ],
     "TargetScenarios": [ "test_youtube" ],

@@ -113,6 +113,7 @@ module Scenario =
           Steps = List.toArray(steps)
           Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies
+          ThreadCount = Constants.DefaultThreadCount
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
@@ -132,6 +133,9 @@ module Scenario =
 
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
         { scenario with ConcurrentCopies = concurrentCopies }
+
+    let withThreadCount (threadCount: int) (scenario: Contracts.Scenario) =
+        { scenario with ThreadCount = threadCount }
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }

@@ -66,7 +66,7 @@ let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {
     let flow = seq {
         for scn in scenarios do 
             if not failed then
-                Log.Information("initializing scenario: '{0}'", scn.ScenarioName)
+                Log.Information("initializing scenario: '{0}', concurrent copies: '{1}', thread count: '{2}'", scn.ScenarioName, scn.ConcurrentCopies, scn.ThreadCount)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
                 let initResult = Scenario.init(scn, initAllConnectionPools)
@@ -86,7 +86,7 @@ let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {
 let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners 
     |> Array.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
-    |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}' with duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
+    |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}', duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
                            let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar(duration)
                            x.WarmUp().Wait())    
@@ -143,20 +143,21 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                          return AppError.createResult(e)
         }
 
-        member x.WarmUpScenarios() = task {
-            do! Task.Delay(10)
+        member x.WarmUpScenarios() = task {            
             if scnRunners.IsSome then
                 startedWork()
                 warmUpScenarios(dep, scnRunners.Value)
-                stoppedWork()                
+                stoppedWork()       
+                do! Task.Delay(1000)
         }
 
-        member x.StartBombing() = task {
+        member x.StartBombing() = task {            
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value)
                 scnRunners |> Option.map(stopAndCleanScenarios) |> ignore                
-                stoppedWork()                
+                stoppedWork()
+                do! Task.Delay(1000)
         }
 
         member x.StopScenarios() = scnRunners |> Option.map(stopAndCleanScenarios) |> ignore

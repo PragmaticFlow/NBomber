@@ -21,7 +21,8 @@ let create (config: Contracts.Scenario) =
       TestClean = config.TestClean
       Steps = steps
       Assertions = assertions
-      ConcurrentCopies = config.ConcurrentCopies      
+      ConcurrentCopies = config.ConcurrentCopies
+      ThreadCount = config.ThreadCount
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
       WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
@@ -63,6 +64,7 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =
     
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =        
         { scenario with ConcurrentCopies = settings.ConcurrentCopies
+                        ThreadCount = settings.ThreadCount
                         CorrelationIds = createCorrelationId(scenario.ScenarioName, settings.ConcurrentCopies)
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
                         Duration = settings.Duration.TimeOfDay }

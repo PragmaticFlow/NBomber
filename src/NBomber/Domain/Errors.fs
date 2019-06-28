@@ -15,6 +15,7 @@ type internal ValidationError =
     | TargetScenarioNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]
+    | ThreadCountIsWrong      of scenarioNames:string[]
     
     // ScenarioValidation errors
     | EmptyReportName 
@@ -73,6 +74,9 @@ type internal AppError =
 
         | ConcurrentCopiesIsWrong scenarioNames -> 
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
+
+        | ThreadCountIsWrong scenarioNames ->
+            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Thread count for scenarios %s can not be less than 1."
 
         | EmptyReportName -> "Report File Name can not be empty string."
         | EmptyScenarioName -> "Scenario name can not be empty."

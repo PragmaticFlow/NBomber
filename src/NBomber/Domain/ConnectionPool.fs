@@ -27,7 +27,7 @@ let init (scenario: Scenario,
 
     let initPool (pool: ConnectionPool<obj>) =
         let connectionCount = getPoolCount(scenario, pool)
-        Log.Information("initializing connection pool: '{0}' with connections count '{1}'", pool.PoolName, connectionCount)
+        Log.Information("initializing connection pool: '{0}', connections count '{1}'", pool.PoolName, connectionCount)
         Log.Information("opening connections...")
         onStartedInitPool(pool.PoolName, connectionCount)
 

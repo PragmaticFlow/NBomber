@@ -49,6 +49,7 @@ Documentation is located [here](https://nbomber.com).
 | WebSockets | C# | [Test ping and pong on WebSockets](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/WebSockets.cs) |
 | HTTP | F# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/Http.fs) |
 | XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.XUnit/Tests.fs) |
+| Expecto integration | F# | [Simple Expecto test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.Expecto/Tests.fs) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.

@@ -63,6 +63,10 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withConcurrentCopies(concurrentCopies)
 
     [<Extension>]
+    static member WithThreadCount(scenario: Scenario, threadCount: int) = 
+        scenario |> FSharp.Scenario.withThreadCount(threadCount)
+
+    [<Extension>]
     static member WithWarmUpDuration(scenario: Scenario, duration: TimeSpan) = 
         scenario |> FSharp.Scenario.withWarmUpDuration(duration)
     

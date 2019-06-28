@@ -27,6 +27,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.Examples", "examples
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.Examples.XUnit", "examples\FSharp\FSharp.Examples.XUnit\FSharp.Examples.XUnit.fsproj", "{8AB69D95-B11C-43DD-A27A-9DD7CDBA06DD}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.Examples.Expecto", "examples\FSharp\FSharp.Examples.Expecto\FSharp.Examples.Expecto.fsproj", "{E66B88C5-2D92-479F-B719-0B3631F8C7DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,18 @@ Global
 		{8AB69D95-B11C-43DD-A27A-9DD7CDBA06DD}.Release|x64.Build.0 = Release|Any CPU
 		{8AB69D95-B11C-43DD-A27A-9DD7CDBA06DD}.Release|x86.ActiveCfg = Release|Any CPU
 		{8AB69D95-B11C-43DD-A27A-9DD7CDBA06DD}.Release|x86.Build.0 = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|x64.Build.0 = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Debug|x86.Build.0 = Debug|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|x64.ActiveCfg = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|x64.Build.0 = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|x86.ActiveCfg = Release|Any CPU
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,6 +148,7 @@ Global
 		{A4CDE309-39A5-424A-B96D-C7CA8363C54D} = {7185E0FE-4618-4401-94EB-225C11FB001E}
 		{2E505DBA-CA84-4EDC-B66F-B2E7AFC2B0D1} = {ACCA22D4-543E-41FC-892D-D3BC1554F29F}
 		{8AB69D95-B11C-43DD-A27A-9DD7CDBA06DD} = {ACCA22D4-543E-41FC-892D-D3BC1554F29F}
+		{E66B88C5-2D92-479F-B719-0B3631F8C7DA} = {ACCA22D4-543E-41FC-892D-D3BC1554F29F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7E9329B-84FE-436E-8A44-26D8176C5C6F}

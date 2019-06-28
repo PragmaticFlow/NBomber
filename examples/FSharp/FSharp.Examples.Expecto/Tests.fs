@@ -6,14 +6,13 @@ open System.Threading.Tasks
 open Expecto
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-
 open NBomber.Contracts
 open NBomber.FSharp
 
 let buildScenario () =
 
-    let step1 = Step.create("simple step", ConnectionPool.none, fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+    let step1 = Step.create("simple step", fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds 0.1)
         return Response.Ok(sizeBytes = 1024)
     })
 
@@ -22,6 +21,7 @@ let buildScenario () =
 [<Tests>]
 let tests =
   testCase "expecto tests" <| fun _ ->
+    
     let assertions = [       
        Assertion.forStep("simple step", (fun stats -> stats.OkCount > 2), "OkCount > 2")
        Assertion.forStep("simple step", (fun stats -> stats.RPS > 8), "RPS > 8")
@@ -29,10 +29,13 @@ let tests =
        Assertion.forStep("simple step", (fun stats -> stats.DataMinKb = 1.0), "DataMinKb = 1.0")
        Assertion.forStep("simple step", (fun stats -> stats.AllDataMB >= 0.01), "AllDataMB >= 0.01")
     ]
-    buildScenario()
-    |> Scenario.withConcurrentCopies 1
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
-    |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
-    |> Scenario.withAssertions assertions
-    |> NBomberRunner.registerScenario
+    
+    let scenario = 
+        buildScenario()
+        |> Scenario.withConcurrentCopies 1
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
+        |> Scenario.withAssertions assertions
+    
+    NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest

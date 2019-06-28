@@ -44,6 +44,7 @@ type internal ScenarioStats = {
     StepsStats: StepStats[]
     RPS: int
     ConcurrentCopies: int    
+    ThreadCount: int    
     OkCount: int
     FailCount: int
     LatencyCount: LatencyCount    

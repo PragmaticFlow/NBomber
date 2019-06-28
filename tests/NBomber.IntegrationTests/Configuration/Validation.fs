@@ -21,6 +21,7 @@ let globalSettings = {
 let scenarioSettings = { 
     ScenarioName = "1"
     ConcurrentCopies = 1
+    ThreadCount = 1
     WarmUpDuration = DateTime.MinValue.AddSeconds(10.)
     Duration = DateTime.MinValue.AddSeconds(10.) 
 }
@@ -32,6 +33,7 @@ let scenario = {
     Steps = Array.empty
     Assertions = Array.empty
     ConcurrentCopies = 1
+    ThreadCount = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)
     Duration = TimeSpan.FromSeconds(10.)
 }
@@ -77,6 +79,15 @@ let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if Concu
     
     match GlobalSettingsValidation.checkConcurrentCopies(glSettings) with
     | Error (ConcurrentCopiesIsWrong _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``GlobalSettingsValidation.checkThreadCount should return fail if ThreadCount < 1`` () =
+    let scnSettings = { scenarioSettings with ThreadCount = 0 }
+    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    
+    match GlobalSettingsValidation.checkThreadCount(glSettings) with
+    | Error (ThreadCountIsWrong _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
@@ -136,6 +147,14 @@ let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentC
     
     match ScenarioValidation.checkConcurrentCopies([|scn|]) with
     | Error (ConcurrentCopiesIsWrong _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkThreadCount should return fail if ThreadCount < 1`` () =        
+    let scn = { scenario with ThreadCount = 0 }
+    
+    match ScenarioValidation.checkThreadCount([|scn|]) with
+    | Error (ThreadCountIsWrong _) -> ()
     | _ -> failwith ""
 
 [<Fact>]

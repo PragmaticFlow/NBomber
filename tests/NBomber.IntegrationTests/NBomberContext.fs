@@ -25,6 +25,7 @@ let scenario = {
     Steps = Array.empty
     Assertions = Array.empty
     ConcurrentCopies = 1
+    ThreadCount = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)
     Duration = TimeSpan.FromSeconds(10.)
 }
