@@ -143,20 +143,21 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                          return AppError.createResult(e)
         }
 
-        member x.WarmUpScenarios() = task {
-            do! Task.Delay(10)
+        member x.WarmUpScenarios() = task {            
             if scnRunners.IsSome then
                 startedWork()
                 warmUpScenarios(dep, scnRunners.Value)
-                stoppedWork()                
+                stoppedWork()       
+                do! Task.Delay(1000)
         }
 
-        member x.StartBombing() = task {
+        member x.StartBombing() = task {            
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value)
                 scnRunners |> Option.map(stopAndCleanScenarios) |> ignore                
-                stoppedWork()                
+                stoppedWork()
+                do! Task.Delay(1000)
         }
 
         member x.StopScenarios() = scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
