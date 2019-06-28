@@ -82,6 +82,15 @@ let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if Concu
     | _ -> failwith ""
 
 [<Fact>]
+let ``GlobalSettingsValidation.checkThreadCount should return fail if ThreadCount < 1`` () =
+    let scnSettings = { scenarioSettings with ThreadCount = 0 }
+    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    
+    match GlobalSettingsValidation.checkThreadCount(glSettings) with
+    | Error (ThreadCountIsWrong _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
 let ``GlobalSettingsValidation.checkEmptyReportName should return fail if ReportFileName is empty`` () =    
     let glSettings = { globalSettings with ReportFileName = Some " " }
     
@@ -138,6 +147,14 @@ let ``ScenarioValidation.checkConcurrentCopies should return fail if ConcurrentC
     
     match ScenarioValidation.checkConcurrentCopies([|scn|]) with
     | Error (ConcurrentCopiesIsWrong _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkThreadCount should return fail if ThreadCount < 1`` () =        
+    let scn = { scenario with ThreadCount = 0 }
+    
+    match ScenarioValidation.checkThreadCount([|scn|]) with
+    | Error (ThreadCountIsWrong _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
