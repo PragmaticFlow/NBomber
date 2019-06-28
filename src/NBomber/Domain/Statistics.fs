@@ -187,6 +187,7 @@ module ScenarioStats =
           StepsStats = mergedStepsStats
           RPS = allRPS
           ConcurrentCopies = scenario.ConcurrentCopies
+          ThreadCount = scenario.ThreadCount
           OkCount = allOkCount
           FailCount = allFailCount
           LatencyCount = latencyCount          

@@ -76,7 +76,7 @@ module StatisticsTable =
             
             let rowStr = row.Remove(0, 4)
 
-            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>", scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
+            let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>, Thread Count: <b>{4}</b>", scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies, scnStats.ThreadCount)
             
             assets.StatisticsTableHtml
             |> String.replace("%assertions%", assertionsStr)
