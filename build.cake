@@ -1,8 +1,6 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 
-var version = EnvironmentVariable("APPVEYOR_BUILD_VERSION") ?? "0.1.0";
-
 var solution = File("./NBomber.sln");
 var project = File("./src/NBomber/NBomber.fsproj");
 
@@ -29,6 +27,7 @@ Task("Build")
     .IsDependentOn("Restore-NuGet-Packages")
     .Does(() =>
 {
+	var version = XmlPeek(project, "//Version");
     Information("NBomber Version: {0}", version);
 
     DotNetCoreBuild(solution, new DotNetCoreBuildSettings()
@@ -41,7 +40,6 @@ Task("Build")
     {
         Configuration = configuration,
         ArgumentCustomization = args => args.Append("--no-restore")
-                                            .Append($"/property:Version={version}"),
     });
 });
 
