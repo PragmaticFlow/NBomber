@@ -127,6 +127,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         member x.IsWorking() = isWorking                
         
         member x.InitScenarios(settings, targetScenarios) = task {            
+            do! Task.Yield()
             startedWork()
             let! results = registeredScenarios
                            |> Scenario.applySettings(settings)
@@ -144,6 +145,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         }
 
         member x.WarmUpScenarios() = task {            
+            do! Task.Yield()
             if scnRunners.IsSome then
                 startedWork()
                 warmUpScenarios(dep, scnRunners.Value)
@@ -151,7 +153,8 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                 do! Task.Delay(1000)
         }
 
-        member x.StartBombing() = task {            
+        member x.StartBombing() = task {  
+            do! Task.Yield()
             if scnRunners.IsSome then
                 startedWork()
                 let! tasks = runBombing(dep, scnRunners.Value)
