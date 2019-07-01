@@ -62,9 +62,9 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
           FailedAsserts = Array.empty }
     
     | NodeType.Coordinator -> 
-        let clusterNodeStats = ClusterCoordinator.createStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScns, scnSettings, allNodeStats)
-        let statistics = Statistics.create(clusterNodeStats)        
-        { AllNodeStats = allNodeStats |> Array.append [|clusterNodeStats|]
+        let mergedStats = ClusterCoordinator.mergeStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScns, scnSettings, allNodeStats)
+        let statistics = Statistics.create(mergedStats)        
+        { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]
           Statistics = statistics
           FailedAsserts = Array.empty }
     

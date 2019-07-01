@@ -41,7 +41,7 @@ let runCoordinator (cluster: IClusterCoordinator, localHost: IScenariosHost,
         return allStats    
     }
 
-let createStats (sessionId: string, nodeName: string, 
+let mergeStats (sessionId: string, nodeName: string, 
                  registeredScenarios: Scenario[],
                  scnSettings: ScenarioSetting[], allNodeStats: NodeStats[]) = 
     
