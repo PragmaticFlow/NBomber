@@ -222,10 +222,20 @@ module NodeStats =
           Meta = meta }
 
     let merge (meta: StatisticsMeta, allNodesStats: NodeStats[]) (allScenarios: Scenario[]) =
+        
+        let updateConcurrenyCounters (nodeCount: int) (scnStats: ScenarioStats) =
+            { scnStats with ConcurrentCopies = scnStats.ConcurrentCopies * nodeCount
+                            ThreadCount = scnStats.ThreadCount * nodeCount }
+
         allNodesStats 
         |> Array.collect(fun x -> x.AllScenariosStats)
         |> Array.groupBy(fun x -> x.ScenarioName)
         |> Array.map(fun (scnName, allStats) -> 
-            let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)
-            allStats |> Array.collect(fun x -> x.StepsStats) |> ScenarioStats.createByStepStats scn)             
+            let nodeCount = allStats.Length
+            let scn = allScenarios |> Array.find(fun x -> x.ScenarioName = scnName)            
+            allStats
+            |> Array.collect(fun x -> x.StepsStats)
+            |> ScenarioStats.createByStepStats scn
+            |> updateConcurrenyCounters nodeCount            
+        )            
         |> create meta
