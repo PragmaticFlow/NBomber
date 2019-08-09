@@ -1,4 +1,4 @@
-namespace NBomber.Extensions
+﻿namespace NBomber.Extensions
 
 open System.Threading.Tasks
 open FsToolkit.ErrorHandling

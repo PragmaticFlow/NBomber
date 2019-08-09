@@ -1,4 +1,4 @@
-module Tests.Statistics
+﻿module Tests.Statistics
 
 open System
 open Xunit
@@ -90,4 +90,3 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     
     Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)
     Assert.Equal(20, mergedStats.AllScenariosStats.[0].ThreadCount)
-

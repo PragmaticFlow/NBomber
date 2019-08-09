@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Statistics
+﻿module internal NBomber.Domain.Statistics
 
 open System
 
