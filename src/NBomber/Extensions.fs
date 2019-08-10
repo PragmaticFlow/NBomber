@@ -65,6 +65,28 @@ module internal Extensions =
         let concatWithCommaAndQuotes (strings: string seq) =
             strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
 
+    module Array =
+        /// Safe variant of `Array.min`
+        let minOrDefault defaultValue array =
+            if Array.isEmpty array then defaultValue
+            else Array.min array
+
+        /// Safe variant of `Array.max`
+        let maxOrDefault defaultValue array =
+            if Array.isEmpty array then defaultValue
+            else Array.max array
+
+        /// Safe variant of `Array.average`
+        let averageOrDefault (defaultValue : float) array =
+            if Array.isEmpty array then defaultValue
+            else array |> Array.average
+
+        /// Safe variant of `Array.average`
+        let averageByOrDefault (defaultValue : float) f array =
+            if Array.isEmpty array then defaultValue
+            else array |> Array.averageBy f
+
+
 namespace NBomber.Extensions.Operator
 
 module internal Result =

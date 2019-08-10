@@ -7,6 +7,7 @@ open FsCheck.Xunit
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Statistics
+open NBomber.Extensions
 
 let private meta = { SessionId = "1"; NodeName = "1"; Sender = NodeType.SingleNode }
 
@@ -54,22 +55,19 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
 [<Property>]
 let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result   = Statistics.calcMin(latencies)    
-    let expected = if Array.isEmpty latencies then 0
-                   else Array.min(latencies)
+    let expected = Array.minOrDefault 0 latencies
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMean    
-    let expected = if Array.isEmpty latencies then 0
-                   else (Array.averageBy float latencies) |> int
+    let expected = latencies |> Array.averageByOrDefault 0.0 float |> int
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMax    
-    let expected = if Array.isEmpty latencies then 0
-                   else Array.max(latencies)
+    let expected = Array.maxOrDefault 0 latencies
     Assert.Equal(expected, result)
 
 [<Fact>]
@@ -92,4 +90,3 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     
     Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)
     Assert.Equal(20, mergedStats.AllScenariosStats.[0].ThreadCount)
-
