@@ -78,7 +78,7 @@ module internal Extensions =
 
         /// Safe variant of `Array.average`
         let averageOrDefault (defaultValue : float) array =
-            if Array.isEmpty array then 0.0
+            if Array.isEmpty array then defaultValue
             else array |> Array.average
 
         /// Safe variant of `Array.average`
