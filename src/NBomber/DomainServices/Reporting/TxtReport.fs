@@ -13,7 +13,7 @@ let print (stats: NodeStats, failedAsserts: DomainError[]) =
     |> String.concat(Environment.NewLine)
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    sprintf "scenario: '%s', duration: '%A', RPS: '%i', concurrent Copies: '%i', thread count: '%i'" scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies scnStats.ThreadCount
+    sprintf "scenario: '%s', duration: '%A', RPS: '%i', concurrent Copies: '%i'" scnStats.ScenarioName scnStats.Duration scnStats.RPS scnStats.ConcurrentCopies
 
 let private printStepsTable (steps: StepStats[], failedAsserts: DomainError[]) = 
     let getAssertNumberAndLabel (failedAssert) =

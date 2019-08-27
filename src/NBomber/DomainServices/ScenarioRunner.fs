@@ -83,7 +83,7 @@ type ScenarioRunner(scenario: Scenario) =
             |> Array.mapi(fun i id -> ScenarioActor(i, id, scn, globalTimer))        
             |> Array.map(fun x -> x.Init(cancToken))
         
-        let envOptions = ExecutionDataflowBlockOptions(MaxDegreeOfParallelism = scn.ThreadCount)
+        let envOptions = ExecutionDataflowBlockOptions(MaxDegreeOfParallelism = 8)
         let actorsEnv = ActionBlock<ScenarioActor>((fun actor -> 
             actor.Run(fastToken, scn.Duration) :> Task), envOptions)
         

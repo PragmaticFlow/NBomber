@@ -63,12 +63,7 @@ module ScenarioValidation =
     let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
         let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
         if Array.isEmpty(invalidScns) then Ok scenarios
-        else Error <| ConcurrentCopiesIsWrong invalidScns
-
-    let checkThreadCount (scenarios: Contracts.Scenario[]) =
-        let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ThreadCount) then None else Some x.ScenarioName)
-        if Array.isEmpty(invalidScns) then Ok scenarios
-        else Error <| ThreadCountIsWrong invalidScns
+        else Error <| ConcurrentCopiesIsWrong invalidScns    
 
     let validate (context: NBomberContext) =
         context.Scenarios 
@@ -77,8 +72,7 @@ module ScenarioValidation =
         >>= checkEmptyStepName
         >>= checkDuplicateStepName
         >>= checkDuration
-        >>= checkConcurrentCopies
-        >>= checkThreadCount
+        >>= checkConcurrentCopies        
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
@@ -141,16 +135,7 @@ module GlobalSettingsValidation =
             |> List.toArray
         
         if Array.isEmpty(invalidScns) then Ok globalSettings
-        else Error <| ConcurrentCopiesIsWrong invalidScns
-
-    let checkThreadCount (globalSettings: GlobalSettings) =
-        let invalidScns = 
-            globalSettings.ScenariosSettings
-            |> List.choose(fun x -> if isPositiveNumber(x.ThreadCount) then None else Some x.ScenarioName)
-            |> List.toArray
-        
-        if Array.isEmpty(invalidScns) then Ok globalSettings
-        else Error <| ThreadCountIsWrong invalidScns
+        else Error <| ConcurrentCopiesIsWrong invalidScns    
 
     let checkEmptyReportName (globalSettings: GlobalSettings) =
         match globalSettings.ReportFileName with
@@ -166,8 +151,7 @@ module GlobalSettingsValidation =
             |> checkEmptyTarget             
             >>= checkAvailableTarget(context.Scenarios)
             >>= checkDuration
-            >>= checkConcurrentCopies
-            >>= checkThreadCount
+            >>= checkConcurrentCopies            
             >>= checkEmptyReportName
             >>= fun _ -> Ok context
             |> Result.mapError(AppError.create)

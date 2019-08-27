@@ -6,6 +6,7 @@ open HdrHistogram
 
 open NBomber.Contracts
 open NBomber.Domain
+open NBomber.Extensions
 
 let create (nodeStats: NodeStats) =
     
@@ -44,15 +45,15 @@ let calcRPS (latencies: Latency[], scnDuration: TimeSpan) =
     latencies.Length / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
-    if Array.isEmpty latencies then 0 else Array.min(latencies)
+    latencies |> Array.minOrDefault 0
 
 let calcMean (latencies: Latency[]) =        
-    if Array.isEmpty latencies 
-    then 0
-    else latencies |> Array.map(float) |> Array.average |> int
+    latencies
+    |> Array.map float
+    |> Array.averageOrDefault 0.0 |> int
 
 let calcMax (latencies: Latency[]) =
-    if Array.isEmpty latencies then 0 else Array.max(latencies)
+    Array.maxOrDefault 0 latencies
 
 let calcPercentile (histogram: LongHistogram, percentile: float) =
     if histogram.TotalCount > 0L then 
@@ -100,9 +101,9 @@ module StepResults =
             if result > 0.01 then result            
             else Math.Round(value, 4)
 
-        { MinKb  = counts |> Array.map(fun x -> x.MinKb) |> Array.min |> roundResult
-          MeanKb = counts |> Array.map(fun x -> x.MeanKb) |> Array.average |> roundResult
-          MaxKb  = counts |> Array.map(fun x -> x.MaxKb) |> Array.max |> roundResult
+        { MinKb  = counts |> Array.map(fun x -> x.MinKb) |> Array.minOrDefault 0.0 |> roundResult
+          MeanKb = counts |> Array.map(fun x -> x.MeanKb) |> Array.averageOrDefault 0.0 |> roundResult
+          MaxKb  = counts |> Array.map(fun x -> x.MaxKb) |> Array.maxOrDefault 0.0 |> roundResult
           AllMB  = counts |> Array.sumBy(fun x -> x.AllMB) |> roundResult }  
           
     let merge (stepsResults: StepResults[]) =
@@ -181,13 +182,12 @@ module ScenarioStats =
 
         let allOkCount = mergedStepsStats |> Array.sumBy(fun x -> x.OkCount)
         let allFailCount = mergedStepsStats |> Array.sumBy(fun x -> x.FailCount)
-        let allRPS = mergedStepsStats |> Array.map(fun x -> x.RPS) |> Array.min
+        let allRPS = mergedStepsStats |> Array.map(fun x -> x.RPS) |> Array.minOrDefault 0
 
         { ScenarioName = scenario.ScenarioName
           StepsStats = mergedStepsStats
           RPS = allRPS
-          ConcurrentCopies = scenario.ConcurrentCopies
-          ThreadCount = scenario.ThreadCount
+          ConcurrentCopies = scenario.ConcurrentCopies          
           OkCount = allOkCount
           FailCount = allFailCount
           LatencyCount = latencyCount          
@@ -224,8 +224,7 @@ module NodeStats =
     let merge (meta: StatisticsMeta, allNodesStats: NodeStats[]) (allScenarios: Scenario[]) =
         
         let updateConcurrenyCounters (nodeCount: int) (scnStats: ScenarioStats) =
-            { scnStats with ConcurrentCopies = scnStats.ConcurrentCopies * nodeCount
-                            ThreadCount = scnStats.ThreadCount * nodeCount }
+            { scnStats with ConcurrentCopies = scnStats.ConcurrentCopies * nodeCount }
 
         allNodesStats 
         |> Array.collect(fun x -> x.AllScenariosStats)

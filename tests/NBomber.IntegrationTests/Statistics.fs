@@ -7,6 +7,7 @@ open FsCheck.Xunit
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Statistics
+open NBomber.Extensions
 
 let private meta = { SessionId = "1"; NodeName = "1"; Sender = NodeType.SingleNode }
 
@@ -20,8 +21,7 @@ let private stepStats = {
 
 let private scenarioStats = { 
     ScenarioName = "Scenario1"; StepsStats = [| stepStats |]; RPS = 1;
-    ConcurrentCopies = 1; ThreadCount = 1;
-    OkCount = 1; FailCount = 1; LatencyCount = latencyCount
+    ConcurrentCopies = 1; OkCount = 1; FailCount = 1; LatencyCount = latencyCount
     Duration = TimeSpan.FromSeconds(1.0) 
 }
 
@@ -33,8 +33,7 @@ let private nodeStats = {
 
 let private scenario = { 
     ScenarioName = "Scenario1"; TestInit = None; TestClean = None; Steps = Array.empty
-    Assertions = Array.empty; ConcurrentCopies = 1; ThreadCount = 1
-    CorrelationIds = Array.empty;
+    Assertions = Array.empty; ConcurrentCopies = 1; CorrelationIds = Array.empty
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
     Duration = TimeSpan.FromSeconds(1.0) 
 }
@@ -54,22 +53,19 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
 [<Property>]
 let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result   = Statistics.calcMin(latencies)    
-    let expected = if Array.isEmpty latencies then 0
-                   else Array.min(latencies)
+    let expected = Array.minOrDefault 0 latencies
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMean    
-    let expected = if Array.isEmpty latencies then 0
-                   else (Array.averageBy float latencies) |> int
+    let expected = latencies |> Array.averageByOrDefault 0.0 float |> int
     Assert.Equal(expected, result)
 
 [<Property>]
 let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
     let result = latencies |> Statistics.calcMax    
-    let expected = if Array.isEmpty latencies then 0
-                   else Array.max(latencies)
+    let expected = Array.maxOrDefault 0 latencies
     Assert.Equal(expected, result)
 
 [<Fact>]
@@ -78,8 +74,7 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     let meta = { meta with SessionId = "1"; NodeName = "1"; Sender = NodeType.Cluster }    
     
     let scn = { scenario with ScenarioName = "merge_test"
-                              ConcurrentCopies = 50
-                              ThreadCount = 10 }
+                              ConcurrentCopies = 50 }
 
     let scnStats = { scenarioStats with ScenarioName = scn.ScenarioName } 
     let agentNode1 = { nodeStats with AllScenariosStats = [| scnStats |]}
@@ -91,5 +86,3 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     let mergedStats = NodeStats.merge(meta, allNodesStats) allScenarios
     
     Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)
-    Assert.Equal(20, mergedStats.AllScenariosStats.[0].ThreadCount)
-

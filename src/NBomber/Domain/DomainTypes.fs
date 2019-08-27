@@ -13,8 +13,6 @@ module internal Constants =
 
     [<Literal>]
     let DefaultConcurrentCopies = 50
-        
-    let DefaultThreadCount = Environment.ProcessorCount
 
     [<Literal>]
     let DefaultWarmUpDurationInSec = 10.0    
@@ -77,8 +75,7 @@ type internal Scenario = {
     TestClean: (CancellationToken -> Task) option  
     Steps: Step[]
     Assertions: Assertion[]
-    ConcurrentCopies: int
-    ThreadCount: int
+    ConcurrentCopies: int    
     CorrelationIds: CorrelationId[]
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

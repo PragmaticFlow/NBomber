@@ -47,12 +47,11 @@ module private Impl =
         } |> String.concat Environment.NewLine
 
     let scenarioHeader (scnStats: ScenarioStats) =
-        sprintf "# Scenario: `%s`\n\n- Duration: `%A`\n- RPS: `%i`\n- Concurrent Copies: `%i`\n- Thread Count: `%i`\n"
+        sprintf "# Scenario: `%s`\n\n- Duration: `%A`\n- RPS: `%i`\n- Concurrent Copies: `%i`\n"
                 (scnStats.ScenarioName.Replace('_', ' '))
                 scnStats.Duration
                 scnStats.RPS
                 scnStats.ConcurrentCopies
-                scnStats.ThreadCount
 
     let getAssertNumberAndLabel (failedAssert: DomainError) =
         match failedAssert with
