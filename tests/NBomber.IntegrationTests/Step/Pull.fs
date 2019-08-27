@@ -8,7 +8,6 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
-open Xunit
 
 [<Fact>]
 let ``Ok, Fail, and Skip should be properly count`` () =       
