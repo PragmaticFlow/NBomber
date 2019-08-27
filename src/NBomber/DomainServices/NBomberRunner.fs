@@ -62,7 +62,7 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
           FailedAsserts = Array.empty }
     
     | NodeType.Coordinator -> 
-        let mergedStats = ClusterCoordinator.mergeStats(dep.SessionId, dep.NodeInfo.NodeName, registeredScns, scnSettings, allNodeStats)
+        let mergedStats = ClusterCoordinator.mergeStats(dep.SessionId, dep.MachineInfo.MachineName, registeredScns, scnSettings, allNodeStats)
         let statistics = Statistics.create(mergedStats)        
         { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]
           Statistics = statistics

@@ -1,13 +1,11 @@
 ﻿module internal NBomber.Infra.Dependency
 
 open System
-open System.IO
 open System.Threading.Tasks
 open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
-open Serilog.Events
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -20,8 +18,8 @@ type ApplicationType =
     | Console    
     | Test
 
-type NodeInfo = {
-    NodeName: string    
+type MachineInfo = {
+    MachineName: string    
     OS: OperatingSystem
     DotNetVersion: string    
     Processor: string    
@@ -33,7 +31,7 @@ type Dependency = {
     NBomberVersion: string
     ApplicationType: ApplicationType
     NodeType: NodeType
-    NodeInfo: NodeInfo
+    MachineInfo: MachineInfo
     Assets: Assets
     ShowProgressBar: TimeSpan -> unit
     CreateProgressBar: int -> ProgressBar
@@ -83,7 +81,7 @@ module Logger =
             |> withFileOutput logSettings
             |> createLogger
 
-let private retrieveNodeInfo () =
+let private retrieveMachineInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
@@ -91,7 +89,7 @@ let private retrieveNodeInfo () =
 
     let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
 
-    { NodeName = Environment.MachineName      
+    { MachineName = Environment.MachineName      
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
       Processor = if isNull processor then String.Empty else processor      
@@ -108,7 +106,7 @@ let create (appType: ApplicationType, nodeType: NodeType) =
       NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType
-      NodeInfo = retrieveNodeInfo()
+      MachineInfo = retrieveMachineInfo()
       Assets = ResourceManager.loadAssets()
       ShowProgressBar = ProgressBar.show >> ignore
       CreateProgressBar = fun ticks -> ProgressBar.create(ticks) }

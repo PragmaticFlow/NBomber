@@ -1,10 +1,10 @@
 ﻿module internal NBomber.DomainServices.ScenarioRunner
 
 open System
+open System.Collections.Generic
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-open System.Threading.Tasks.Dataflow
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -13,108 +13,155 @@ open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Domain.Statistics
 
-type ScenarioActor(actorIndex: int, correlationId: string, 
-                   scenario: Scenario, globalTimer: Stopwatch) =    
+type ScenarioActor(actorIndex: int, correlationId: string,
+                   scenario: Scenario, globalTimer: Stopwatch,
+                   fastCancelToken: FastCancellationToken, cancelToken: CancellationToken) =    
     
-    let mutable stepResponses = Array.empty
-    let mutable steps = Array.empty
+    let allResponses = Array.create scenario.Steps.Length (ResizeArray<StepResponse>())    
+    let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
+    let mutable working = false
+    
+    member x.Working = working 
 
-    member x.Init(cancelToken) =
-        stepResponses <- Array.empty
-        steps <- scenario.Steps
-                 |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
-        x
-
-    member x.Run(fastCancelToken, duration: TimeSpan) = task {                
-        let! responses = Step.runSteps(steps, fastCancelToken, globalTimer)        
-        stepResponses <- 
-            responses
-            |> Seq.map(fun x -> Step.filterLateResponses(x.ToArray(), duration))
-            |> Seq.toArray
+    member x.ExecSteps() = task {
+        working <- true
+        do! Step.execSteps(steps, allResponses, fastCancelToken, globalTimer)
+        working <- false
     }
 
-    member x.GetResults() =        
-        if Array.isEmpty stepResponses then Array.empty
-        else            
-            scenario.Steps
-            |> Array.mapi(fun i st -> StepResults.create(st.StepName, stepResponses.[i]))
+    member x.GetResults(duration) =
+        let filteredResponses =
+            allResponses |> Array.map(fun x -> Step.filterLateResponses(x, duration))
+        
+        scenario.Steps
+        |> Array.mapi(fun i step -> StepResults.create(step.StepName, filteredResponses.[i]))        
+
+type ActorTaskId = int
+
+type ActorTask = {
+    Actor: ScenarioActor
+    mutable Task: Task<unit>
+}
+
+type ScenarioScheduler(allActors: ScenarioActor[], fastCancelToken: FastCancellationToken) =
+    
+    let threadCount = Environment.ProcessorCount * 2
+    
+    let calcActorBulkSize (concurrencyCount, threadCount) =
+        let result = concurrencyCount / threadCount
+        if concurrencyCount % threadCount = 0 then result
+        else result + 1
+    
+    let startActorsTasks (actorsBulk: ScenarioActor[]) =
+        let actorsTasks = Dictionary<ActorTaskId, ActorTask>()
+        
+        actorsBulk
+        |> Array.map(fun x -> { Actor = x; Task = x.ExecSteps() })
+        |> Array.iter(fun x -> actorsTasks.[x.Task.Id] <- x)
+        
+        actorsTasks
+    
+    let startEventLoop (actorsBulk: ScenarioActor[]) =        
+        
+        let actorsTasks = startActorsTasks(actorsBulk)
+        
+        task {
+            while not fastCancelToken.ShouldCancel do
+                let! finishedTask = Task.WhenAny(actorsTasks.Values |> Seq.map(fun x -> x.Task))
+                
+                let item = actorsTasks.[finishedTask.Id]
+                item.Task <- item.Actor.ExecSteps()
+                
+                actorsTasks.Remove(finishedTask.Id) |> ignore
+                actorsTasks.[item.Task.Id] <- item
+                
+            let allTasks = actorsTasks.Values |> Seq.map(fun x -> x.Task :> Task)
+            do! Task.WhenAll(allTasks)
+        }
+    
+    member x.Run() =        
+        let actorBulkSize = calcActorBulkSize(allActors.Length, threadCount)            
+        allActors
+        |> Array.chunkBySize actorBulkSize
+        |> Array.map(fun actorBulks -> startEventLoop(actorBulks) :> Task)        
+        |> Task.WhenAll
 
 type ScenarioRunner(scenario: Scenario) = 
     
     let [<Literal>] TryCount = 20
-    let mutable curntCancToken = new CancellationTokenSource()
-    let curntFastCancelToken = { ShouldCancel = false }
-    let mutable curntActors = Array.empty<ScenarioActor>
-    let mutable curntActorsEnv: Option<ActionBlock<ScenarioActor>> = None
-
-    let waitOnFinish (actorsEnv: ActionBlock<ScenarioActor>) = task {
+    let mutable curCancelToken = new CancellationTokenSource()
+    let curFastCancelToken = { ShouldCancel = false }
+    let mutable curActors = Array.empty<ScenarioActor>    
+    let mutable curJob: Task option = None
+    
+    let waitOnFinish (job: Task, actors: ScenarioActor[]) = task {
 
         let mutable count = 0        
         while count < TryCount do
-            let! completedTask = Task.WhenAny(actorsEnv.Completion, Task.Delay(TimeSpan.FromSeconds(2.0)))
-            match completedTask.Equals(actorsEnv.Completion) with
+            let! completedTask = Task.WhenAny(job, Task.Delay(TimeSpan.FromSeconds(2.0)))
+            match completedTask.Equals(job) with
             | true -> count <- TryCount
 
             | false when count = TryCount ->
                 Log.Information("hard stop of not finished steps.")
                 count <- count + 1
                 
-            | false -> Log.Information("waiting all steps to finish...")
+            | false -> let workingSteps = actors |> Array.filter(fun x -> x.Working) |> Array.length
+                       Log.Information(sprintf "waiting on '%i' working steps to finish..." workingSteps)
                        count <- count + 1
     }
 
-    let stop (actorsEnv: ActionBlock<ScenarioActor> option) = task {
-        if not curntCancToken.IsCancellationRequested then            
-           curntFastCancelToken.ShouldCancel <- true
-           curntCancToken.Cancel()
+    let stop (job: Task option, actors: ScenarioActor[]) = task {
+        if not curCancelToken.IsCancellationRequested then            
+           curFastCancelToken.ShouldCancel <- true
+           curCancelToken.Cancel()
            
-           if actorsEnv.IsSome then 
-              do! waitOnFinish(actorsEnv.Value)
+           if job.IsSome then
+               do! waitOnFinish(job.Value, actors)
 
-           curntCancToken <- new CancellationTokenSource()
-           curntFastCancelToken.ShouldCancel <- false
-    }
+           curCancelToken <- new CancellationTokenSource()
+           curFastCancelToken.ShouldCancel <- false
+    }    
 
-    let createActors (scn: Scenario, fastToken: FastCancellationToken, cancToken: CancellationToken) = 
+    let createActors (scenario, fastCancelToken: FastCancellationToken, cancelToken: CancellationTokenSource) = 
 
-        let globalTimer = Stopwatch()
+        let globalTimer = Stopwatch()                
+        
         let actors = 
-            scn.CorrelationIds
-            |> Array.mapi(fun i id -> ScenarioActor(i, id, scn, globalTimer))        
-            |> Array.map(fun x -> x.Init(cancToken))
+            scenario.CorrelationIds
+            |> Array.mapi(fun actorIndex correlationId ->
+                ScenarioActor(actorIndex, correlationId, scenario, globalTimer,
+                              fastCancelToken, cancelToken.Token)
+            )
         
-        let envOptions = ExecutionDataflowBlockOptions(MaxDegreeOfParallelism = 8)
-        let actorsEnv = ActionBlock<ScenarioActor>((fun actor -> 
-            actor.Run(fastToken, scn.Duration) :> Task), envOptions)
+        globalTimer, actors
         
-        globalTimer, actors, actorsEnv
-
-    let run (scn: Scenario, duration: TimeSpan) = task {
+    let run (duration: TimeSpan) = task {
         
-        do! stop curntActorsEnv
-
-        let globalTimer, actors, actorsEnv = createActors(scn, curntFastCancelToken, curntCancToken.Token)
-        curntActors <- actors
-        curntActorsEnv <- Some actorsEnv
-
+        do! stop(curJob, curActors)
+        
+        let globalTimer, actors = createActors(scenario, curFastCancelToken, curCancelToken)        
+        let scheduler = ScenarioScheduler(actors, curFastCancelToken)
         globalTimer.Start()
-        actors |> Array.iter(actorsEnv.Post >> ignore)
-        actorsEnv.Complete()
+        let job = scheduler.Run()
+        
+        curActors <- actors
+        curJob <- Some job
         
         // wait on finish
-        do! Task.Delay(duration, curntCancToken.Token)        
+        do! Task.Delay(duration, curCancelToken.Token)
         
         // stop execution
         globalTimer.Stop()
-        do! stop curntActorsEnv
+        do! stop(curJob, actors)
     }
 
     member x.Scenario = scenario
-    member x.WarmUp() = run(scenario, scenario.WarmUpDuration)
-    member x.Run() = run(scenario, scenario.Duration)
-    member x.Stop() = stop curntActorsEnv
+    member x.WarmUp() = run(scenario.WarmUpDuration)
+    member x.Run() = run(scenario.Duration)
+    member x.Stop() = stop(curJob, curActors)
     
-    member x.GetResult() =        
-        curntActors
-        |> Array.collect(fun actor -> actor.GetResults())
+    member x.GetResult() =
+        curActors        
+        |> Array.collect(fun x -> x.GetResults scenario.Duration) 
         |> ScenarioStats.create scenario

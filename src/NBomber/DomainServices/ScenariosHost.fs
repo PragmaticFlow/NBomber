@@ -117,7 +117,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable scnRunners = None
     let mutable isWorking = Ok false
-    let statsMeta = { SessionId = dep.SessionId; NodeName = dep.NodeInfo.NodeName; Sender = dep.NodeType }
+    let statsMeta = { SessionId = dep.SessionId; NodeName = dep.MachineInfo.MachineName; Sender = dep.NodeType }
     let startedWork () = isWorking <- Ok true
     let stoppedWork () = isWorking <- Ok false
     let failed (error: DomainError) = isWorking <- AppError.createResult(error)

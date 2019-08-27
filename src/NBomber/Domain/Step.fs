@@ -51,44 +51,37 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
                      LatencyMs = int latency }
 }
 
-let runSteps (steps: Step[], cancelToken: FastCancellationToken,
-              globalTimer: Stopwatch) = task {
-        
-    let responses = ResizeArray<ResizeArray<StepResponse>>()
-    steps |> Array.iter(fun _ -> responses.Add(ResizeArray<StepResponse>()))    
+let execSteps (steps: Step[], responses: ResizeArray<StepResponse>[],
+               cancelToken: FastCancellationToken, globalTimer: Stopwatch) = task {
 
     let mutable data = Unchecked.defaultof<obj>
+    let mutable skipStep = false
+    let mutable stepIndex = 0      
 
-    while not cancelToken.ShouldCancel do        
-      
-      let mutable skipStep = false
-      let mutable stepIndex = 0      
-
-      for st in steps do
+    for st in steps do
         if not skipStep && not cancelToken.ShouldCancel then
+            
+            for i = 1 to st.RepeatCount do
+                let! response = execStep(st, data, globalTimer)
 
-          for i = 1 to st.RepeatCount do
-            let! response = execStep(st, data, globalTimer)
+                if not cancelToken.ShouldCancel then
+                    responses.[stepIndex].Add(response)
 
-            if not cancelToken.ShouldCancel then
-               responses.[stepIndex].Add(response)
-
-               if st.RepeatCount = i then
-                 if response.Response.IsOk then
-                    stepIndex <- stepIndex + 1
-                    data <- response.Response.Payload
-                 else
-                    skipStep <- true
-
-    return responses
+                if st.RepeatCount = i then
+                    if response.Response.IsOk then
+                        stepIndex <- stepIndex + 1
+                        data <- response.Response.Payload
+                    else
+                        skipStep <- true    
 }
 
-let filterLateResponses (responses: StepResponse[], duration: TimeSpan) =        
+let filterLateResponses (responses: StepResponse seq, duration: TimeSpan) =        
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
     
     responses
-    |> Array.choose(fun x ->
+    |> Seq.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
+    |> Seq.toArray

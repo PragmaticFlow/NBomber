@@ -132,15 +132,15 @@ module GlobalView =
 
 module EnvView =
     
-    let print (assets: Assets, nodeInfo: NodeInfo) =            
+    let print (assets: Assets, machineInfo: MachineInfo) =            
         
         let title = "Cluster info"
 
-        let row = [nodeInfo.NodeName                   
-                   nodeInfo.OS.VersionString
-                   nodeInfo.DotNetVersion
-                   nodeInfo.Processor
-                   nodeInfo.CoresCount.ToString()]
+        let row = [machineInfo.MachineName                   
+                   machineInfo.OS.VersionString
+                   machineInfo.DotNetVersion
+                   machineInfo.Processor
+                   machineInfo.CoresCount.ToString()]
                   |> HtmlBuilder.toTableRow
 
         let envTable =
@@ -155,7 +155,7 @@ module EnvView =
 module ContentView =
 
     let print (dep: Dependency, stats: NodeStats, failedAsserts: DomainError[]) =        
-        let envHtml = EnvView.print(dep.Assets, dep.NodeInfo)
+        let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
         let globalView = GlobalView.print(dep.Assets, stats, failedAsserts)
         
         let scnViews =
