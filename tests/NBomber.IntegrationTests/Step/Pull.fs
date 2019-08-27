@@ -8,9 +8,10 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
+open Xunit
 
 [<Fact>]
-let ``Ok and Fail should be properly count`` () =       
+let ``Ok, Fail, and Skip should be properly count`` () =       
     
     let mutable okCnt = 0
     let mutable failCnt = 0
@@ -27,16 +28,23 @@ let ``Ok and Fail should be properly count`` () =
         return Response.Fail()
     })
 
+    let skipStep = Step.create("skip step", fun _ -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Skip();
+    })
+
     let assertions = [
        Assertion.forStep("ok step", fun stats -> [okCnt-1..okCnt] |> Seq.contains stats.OkCount)
        Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
 
        Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
        Assertion.forStep("fail step", fun stats -> [failCnt-1..failCnt] |> Seq.contains stats.FailCount)
+
+       Assertion.forStep("skip step", fun stats -> stats.OkCount = 0 && stats.FailCount = 0)
     ]
     
     let scenario = 
-        Scenario.create "count test" [okStep; failStep]
+        Scenario.create "count test" [okStep; failStep; skipStep]
         |> Scenario.withConcurrentCopies 1
         |> Scenario.withAssertions assertions
         |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
@@ -58,16 +66,23 @@ let ``Warmup should not have effect on stats`` () =
         return Response.Fail()
     })
 
+    let skipStep = Step.create("skip step", fun _ -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Skip();
+    })
+
     let assertions = [
        Assertion.forStep("ok step", fun stats -> stats.OkCount <= 5)
        Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
 
        Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
        Assertion.forStep("fail step", fun stats -> stats.FailCount <= 5)
+
+       Assertion.forStep("skip step", fun stats -> stats.OkCount = 0 && stats.FailCount = 0)
     ]
     
     let scenario = 
-        Scenario.create "warmup test" [okStep; failStep]
+        Scenario.create "warmup test" [okStep; failStep; skipStep]
         |> Scenario.withConcurrentCopies 1
         |> Scenario.withAssertions assertions
         |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
@@ -136,6 +151,33 @@ let ``repeatCount should set how many times one step will be repeated`` () =
 
     Assert.True(invokeCounter <= 5)
 
+    
+[<Fact>]
+let ``Skipped steps should not be repeated`` () =
+    
+    let mutable invokeCounter = 0    
+
+    let repeatStep = Step.create("repeat step", fun _ -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        
+        if invokeCounter = 5 then
+            return Response.Skip()
+        else
+            invokeCounter <- invokeCounter + 1
+            return Response.Ok()
+    }, repeatCount = 5)
+
+    let scenario = 
+        Scenario.create "latency count test" [repeatStep]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest
+
+    Assert.StrictEqual(5, invokeCounter)
+
 [<Fact>]
 let ``context.Data should store any payload data from latest step.Response`` () =
 
@@ -164,3 +206,31 @@ let ``context.Data should store any payload data from latest step.Response`` () 
     |> NBomberRunner.runTest
 
     Assert.Equal(Convert.ToInt32(data), counter)
+
+[<Fact>]
+let ``context.Data should be null when the previous step was skipped`` () =
+
+    let mutable data = null
+
+    let step1 = Step.create("step 1", fun context -> task {                
+        data <- context.Data
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Skip();
+    })
+
+    let step2 = Step.create("step 2", fun context -> task {                        
+        data <- context.Data
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })
+
+    let scenario = 
+        Scenario.create "test context.Data" [step1; step2]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest
+
+    Assert.Equal(null, data)

@@ -8,6 +8,7 @@ open NBomber.Configuration
 
 type Response = {
     IsOk: bool
+    IsSkipped: bool
     Payload: obj
     SizeBytes: int
 }
@@ -83,15 +84,24 @@ type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
                      [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) =
         { IsOk = true
+          IsSkipped = false
           Payload = payload
           SizeBytes = sizeBytes }
     
     static member Ok(payload: byte[]) =
         { IsOk = true
+          IsSkipped = false
           Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length }
     
     static member Fail() =
         { IsOk = false
+          IsSkipped = false
           Payload = null
           SizeBytes = 0 }
+
+    static member Skip() =
+        {   IsOk = false
+            IsSkipped = true
+            Payload = null
+            SizeBytes = 0 }
