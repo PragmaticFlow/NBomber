@@ -21,8 +21,7 @@ let private stepStats = {
 
 let private scenarioStats = { 
     ScenarioName = "Scenario1"; StepsStats = [| stepStats |]; RPS = 1;
-    ConcurrentCopies = 1; ThreadCount = 1;
-    OkCount = 1; FailCount = 1; LatencyCount = latencyCount
+    ConcurrentCopies = 1; OkCount = 1; FailCount = 1; LatencyCount = latencyCount
     Duration = TimeSpan.FromSeconds(1.0) 
 }
 
@@ -34,8 +33,7 @@ let private nodeStats = {
 
 let private scenario = { 
     ScenarioName = "Scenario1"; TestInit = None; TestClean = None; Steps = Array.empty
-    Assertions = Array.empty; ConcurrentCopies = 1; ThreadCount = 1
-    CorrelationIds = Array.empty;
+    Assertions = Array.empty; ConcurrentCopies = 1; CorrelationIds = Array.empty
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
     Duration = TimeSpan.FromSeconds(1.0) 
 }
@@ -76,8 +74,7 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     let meta = { meta with SessionId = "1"; NodeName = "1"; Sender = NodeType.Cluster }    
     
     let scn = { scenario with ScenarioName = "merge_test"
-                              ConcurrentCopies = 50
-                              ThreadCount = 10 }
+                              ConcurrentCopies = 50 }
 
     let scnStats = { scenarioStats with ScenarioName = scn.ScenarioName } 
     let agentNode1 = { nodeStats with AllScenariosStats = [| scnStats |]}
@@ -89,4 +86,3 @@ let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     let mergedStats = NodeStats.merge(meta, allNodesStats) allScenarios
     
     Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)
-    Assert.Equal(20, mergedStats.AllScenariosStats.[0].ThreadCount)

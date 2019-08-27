@@ -66,7 +66,7 @@ let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {
     let flow = seq {
         for scn in scenarios do 
             if not failed then
-                Log.Information("initializing scenario: '{0}', concurrent copies: '{1}', thread count: '{2}'", scn.ScenarioName, scn.ConcurrentCopies, scn.ThreadCount)                
+                Log.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
                 let initResult = Scenario.init(scn, initAllConnectionPools)

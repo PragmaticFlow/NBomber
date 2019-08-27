@@ -62,8 +62,7 @@ type Scenario = {
     TestClean: (CancellationToken -> Task) option
     Steps: IStep[]
     Assertions: IAssertion[]
-    ConcurrentCopies: int
-    ThreadCount: int
+    ConcurrentCopies: int    
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }

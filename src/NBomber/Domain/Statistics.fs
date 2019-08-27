@@ -187,8 +187,7 @@ module ScenarioStats =
         { ScenarioName = scenario.ScenarioName
           StepsStats = mergedStepsStats
           RPS = allRPS
-          ConcurrentCopies = scenario.ConcurrentCopies
-          ThreadCount = scenario.ThreadCount
+          ConcurrentCopies = scenario.ConcurrentCopies          
           OkCount = allOkCount
           FailCount = allFailCount
           LatencyCount = latencyCount          
@@ -225,8 +224,7 @@ module NodeStats =
     let merge (meta: StatisticsMeta, allNodesStats: NodeStats[]) (allScenarios: Scenario[]) =
         
         let updateConcurrenyCounters (nodeCount: int) (scnStats: ScenarioStats) =
-            { scnStats with ConcurrentCopies = scnStats.ConcurrentCopies * nodeCount
-                            ThreadCount = scnStats.ThreadCount * nodeCount }
+            { scnStats with ConcurrentCopies = scnStats.ConcurrentCopies * nodeCount }
 
         allNodesStats 
         |> Array.collect(fun x -> x.AllScenariosStats)

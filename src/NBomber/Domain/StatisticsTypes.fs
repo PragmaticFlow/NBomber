@@ -43,8 +43,7 @@ type internal ScenarioStats = {
     ScenarioName: string    
     StepsStats: StepStats[]
     RPS: int
-    ConcurrentCopies: int    
-    ThreadCount: int    
+    ConcurrentCopies: int
     OkCount: int
     FailCount: int
     LatencyCount: LatencyCount    
