@@ -20,7 +20,7 @@ type NodeType =
 
 type StatisticsMeta = {
     SessionId: string
-    NodeName: string
+    MachineName: string
     Sender: NodeType
 }
 

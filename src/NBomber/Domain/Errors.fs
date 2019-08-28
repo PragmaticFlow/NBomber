@@ -23,11 +23,12 @@ type internal ValidationError =
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
     | AssertsNotFound       of Assertion[]
+    | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
+    | SessionIsWrong
 
 type internal CommunicationError =
-    | HttpError            of url:Uri * message:string
-    | AgentIsWorking
-    | OperationFailed      of operationName:string * CommunicationError[]
+    | SendMqttMsgFailed    
+    | NotAllStatsReceived
 
 type internal AppError =
     | Domain        of DomainError
@@ -72,7 +73,7 @@ type internal AppError =
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
 
         | ConcurrentCopiesIsWrong scenarioNames -> 
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."        
+            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
 
         | EmptyReportName -> "Report File Name can not be empty string."
         | EmptyScenarioName -> "Scenario name can not be empty."
@@ -91,15 +92,18 @@ type internal AppError =
             |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
             |> String.concatWithCommaAndQuotes
 
+        | TargetGroupsAreNotFound notFoundGroups ->            
+            notFoundGroups
+            |> String.concatWithCommaAndQuotes
+            |> sprintf "Target groups are not found: %s"
+            
+        | SessionIsWrong ->
+            "Session is wrong"
+
     static member toString (error: CommunicationError) = 
         match error with
-        | HttpError (url, msg) -> sprintf "HttpError url: '%s', error: '%s'." (url.ToString()) msg
-        | AgentIsWorking -> "AgentError error: agent is working"
-        | OperationFailed (operationName, ers) -> 
-            ers
-            |> Array.map(AppError.toString)
-            |> String.concatWithCommaAndQuotes
-            |> sprintf "OperationFailed: '%s', %s %s" operationName Environment.NewLine
+        | SendMqttMsgFailed -> "Error during sending request."        
+        | NotAllStatsReceived -> "Not all agents statistics received."
 
     static member toString (error: AppError) =
         match error with

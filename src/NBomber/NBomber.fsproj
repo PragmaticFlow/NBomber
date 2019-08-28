@@ -29,6 +29,7 @@
     <EmbeddedResource Include="assets\js\num_req_chart.js" />
     <EmbeddedResource Include="assets\js\indicators_chart.js" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="InternalExtensions.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="Contracts.fs" />
     <Compile Include="Extensions.fs" />
@@ -40,11 +41,11 @@
     <Compile Include="Domain\Assertion.fs" />
     <Compile Include="Domain\Scenario.fs" />
     <Compile Include="Domain\Statistics.fs" />
-    <Compile Include="Infra\Http.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />
     <Compile Include="Infra\HtmlBuilder.fs" />
     <Compile Include="Infra\ResourceManager.fs" />
     <Compile Include="Infra\Dependency.fs" />
+    <Compile Include="Infra\Mqtt.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
@@ -56,18 +57,17 @@
     <Compile Include="DomainServices\ScenariosHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />
     <Compile Include="DomainServices\Cluster\Agent.fs" />
-    <Compile Include="DomainServices\Cluster\Communication.fs" />
     <Compile Include="DomainServices\Cluster\Coordinator.fs" />
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
-    <Compile Include="Extensions\TaskExtensions.fs" />
-    <Compile Include="Extensions\ClientResponses.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
     <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.1" />    
     <PackageReference Include="HdrHistogram" Version="2.5.0" />    
+    <PackageReference Include="MQTTnet" Version="3.0.8" />    
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />    
     <PackageReference Include="Serilog" Version="2.8.0" />
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />

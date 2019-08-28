@@ -9,7 +9,7 @@ open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Extensions
 
-let private meta = { SessionId = "1"; NodeName = "1"; Sender = NodeType.SingleNode }
+let private meta = { SessionId = "1"; MachineName = "1"; Sender = NodeType.SingleNode }
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }
 
@@ -71,7 +71,7 @@ let ``calcMax() should not fail and calculate correctly for any args values`` (l
 [<Fact>]
 let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     
-    let meta = { meta with SessionId = "1"; NodeName = "1"; Sender = NodeType.Cluster }    
+    let meta = { meta with SessionId = "1"; MachineName = "1"; Sender = NodeType.Cluster }    
     
     let scn = { scenario with ScenarioName = "merge_test"
                               ConcurrentCopies = 50 }

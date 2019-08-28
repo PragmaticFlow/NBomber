@@ -17,11 +17,13 @@ type ScenarioActor(actorIndex: int, correlationId: string,
                    scenario: Scenario, globalTimer: Stopwatch,
                    fastCancelToken: FastCancellationToken, cancelToken: CancellationToken) =    
     
-    let allResponses = Array.create scenario.Steps.Length (ResizeArray<StepResponse>())    
+    let allResponses = ResizeArray<ResizeArray<StepResponse>>(scenario.Steps.Length)    
     let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
     let mutable working = false
     
-    member x.Working = working 
+    do steps |> Array.iter(fun _ -> allResponses.Add(ResizeArray<StepResponse>()))
+    
+    member x.Working = working
 
     member x.ExecSteps() = task {
         working <- true
@@ -31,7 +33,7 @@ type ScenarioActor(actorIndex: int, correlationId: string,
 
     member x.GetResults(duration) =
         let filteredResponses =
-            allResponses |> Array.map(fun x -> Step.filterLateResponses(x, duration))
+            allResponses |> Seq.map(fun x -> Step.filterLateResponses(x, duration)) |> Seq.toArray
         
         scenario.Steps
         |> Array.mapi(fun i step -> StepResults.create(step.StepName, filteredResponses.[i]))        

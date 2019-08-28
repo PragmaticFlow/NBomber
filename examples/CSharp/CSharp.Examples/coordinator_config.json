@@ -7,18 +7,18 @@
         "Duration": "00:00:20",
         "ConcurrentCopies": 100        
       }
-    ],
-    "TargetScenarios": [ "test_gitter" ]    
+    ]
   },
 
   "ClusterSettings": {
     "Coordinator": {
       "ClusterId": "test_cluster",
       "TargetScenarios": [ "test_gitter" ],
+      "MqttServer": "localhost",
+
       "Agents": [
         {
-          "Host": "localhost",
-          "Port": 8080,
+          "TargetGroup": "1",
           "TargetScenarios": [ "test_gitter" ]
         }
       ]

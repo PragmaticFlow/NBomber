@@ -1,97 +1,63 @@
 ﻿namespace NBomber.Extensions
 
+open System
+open System.Collections.Concurrent
+open System.Threading
 open System.Threading.Tasks
-open FsToolkit.ErrorHandling
+open System.Runtime.CompilerServices
 
-[<AutoOpen>]
-module internal Extensions =
+open FSharp.Control.Tasks.V2.ContextInsensitive
+open Newtonsoft.Json
 
-    type FastCancellationToken = { mutable ShouldCancel: bool }
+open NBomber.Contracts
 
-    type Task<'T> with
-        static member map f (m: Task<_>) =
-            m.ContinueWith(fun (t: Task<_>) -> f t.Result)
+[<Extension>]
+type StringExtensions() =
+    
+    [<Extension>]
+    static member DeserializeObject<'T>(json: string) =
+        JsonConvert.DeserializeObject<'T>(json)
 
-    type Result<'T,'TError> with
-        static member isOk (result) =
-            match result with
-            | Ok _    -> true
-            | Error _ -> false
+[<Extension>]
+type TaskExtensions() =
 
-        static member getOk (result) =
-            match result with
-            | Ok v    -> v
-            | Error _ -> failwith "result is error"
+    [<Extension>]
+    static member TimeoutAfter(request: Task<'T>, 
+                               duration: TimeSpan, 
+                               cancellationToken: CancellationToken,
+                               response: 'T -> Response) = task {
+        let! completedTask = Task.WhenAny(request, Task.Delay(duration, cancellationToken))
+        match completedTask.Equals(request) with
+        | true  -> return response(request.Result)
+        | false -> return Response.Fail()
+    }
 
-        static member isError (result) = not(Result.isOk(result))
+    [<Extension>]
+    static member TimeoutAfter(request: Task, 
+                               duration: TimeSpan, 
+                               cancellationToken: CancellationToken,
+                               response: unit -> Response) = task {
+        let! completedTask = Task.WhenAny(request, Task.Delay(duration, cancellationToken))
+        match completedTask.Equals(request) with
+        | true  -> return response()
+        | false -> return Response.Fail()
+    }
+    
+type ClientResponses() =
 
-        static member getError (result) =
-            match result with
-            | Ok _     -> failwith "result is not error"
-            | Error er -> er
+    let responses = ConcurrentDictionary<string, TaskCompletionSource<byte[]>>()
 
-        static member toExitCode result =
-            match result with
-            | Ok _    -> 0
-            | Error _ -> 1
+    member x.InitClientId(clientId: string) =
+        responses.TryAdd(clientId, TaskCompletionSource<byte[]>())
+        |> ignore
 
-        static member sequence (results: Result<'a,'e>[]) =
-            let folder state (acc: Result<'a [],'e []>) =
-                match state, acc with
-                | Ok v, Ok items     -> Ok(Array.append items [| v |])
-                | Ok r, Error ers    -> Error ers
-                | Error e, Ok items  -> Error [|e|]
-                | Error e, Error ers -> Error(Array.append ers [| e |])
-
-            Array.foldBack folder results (Ok Array.empty)
-
-    type MaybeBuilder() =
-
-        member x.Bind(m, bind) =
-            match m with
-            | Some value -> bind value
-            | None       -> None
-
-        member x.Return(value) = Some value
-        member x.ReturnFrom(value) = value
-
-    let maybe = MaybeBuilder()
-
-    module String =
-
-        let replace (oldValue: string, newValue: string) (str: string) =
-            str.Replace(oldValue, newValue)
-
-        let concatWithCommaAndQuotes (strings: string seq) =
-            strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
-
-    module Array =
-        /// Safe variant of `Array.min`
-        let minOrDefault defaultValue array =
-            if Array.isEmpty array then defaultValue
-            else Array.min array
-
-        /// Safe variant of `Array.max`
-        let maxOrDefault defaultValue array =
-            if Array.isEmpty array then defaultValue
-            else Array.max array
-
-        /// Safe variant of `Array.average`
-        let averageOrDefault (defaultValue : float) array =
-            if Array.isEmpty array then defaultValue
-            else array |> Array.average
-
-        /// Safe variant of `Array.average`
-        let averageByOrDefault (defaultValue : float) f array =
-            if Array.isEmpty array then defaultValue
-            else array |> Array.averageBy f
-
-
-namespace NBomber.Extensions.Operator
-
-module internal Result =
-
-    let (>=>) f1 f2 arg =
-        match f1 arg with
-        | Ok data -> f2 data
-        | Error e -> Error e
+    member x.SetResponse(clientId: string, payload: byte[]) =
+        responses.[clientId].TrySetResult(payload) |> ignore
+        x.InitClientId(clientId)
+        
+    member x.GetResponse(clientId: string) =
+        match responses.ContainsKey(clientId) with
+        | true  -> responses.[clientId].Task
+        
+        | false -> x.InitClientId(clientId)
+                   responses.[clientId].Task

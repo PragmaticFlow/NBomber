@@ -26,6 +26,14 @@ services:
       - "GF_SERVER_ROOT_URL=http://grafana:6082"
     depends_on:
       - influxdb
+
+  emqx:
+    image: "emqx/emqx:v3.2.1"
+    networks:
+      - local
+    ports:
+      - "1883:1883"
+      - "18083:18083"
   
 networks:
   local:

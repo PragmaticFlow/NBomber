@@ -12,6 +12,7 @@
     "ReportFileName": "custom_report_name_from_json",
     "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
   },
+
   "LogSettings": {
     "FileName": "nbomber_log.log",
     "MinimumLevel": "Debug"

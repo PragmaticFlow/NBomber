@@ -51,7 +51,7 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
                      LatencyMs = int latency }
 }
 
-let execSteps (steps: Step[], responses: ResizeArray<StepResponse>[],
+let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
                cancelToken: FastCancellationToken, globalTimer: Stopwatch) = task {
 
     let mutable data = Unchecked.defaultof<obj>

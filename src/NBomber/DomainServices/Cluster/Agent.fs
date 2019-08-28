@@ -1,86 +1,113 @@
-﻿module internal NBomber.DomainServices.Cluster.ClusterAgent
+﻿module internal NBomber.DomainServices.Cluster.Agent
 
 open System
+open System.Threading.Tasks
+
+open MQTTnet.Client
+open FsToolkit.ErrorHandling
 
 open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
-open NBomber.Infra.Http
-open NBomber.DomainServices.Cluster.Contracts
 open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.Cluster.Contracts
 
-type IClusterAgent = 
-    abstract AgentId: string
-    abstract Receive: AgentCommand -> AgentResponse   
+type State = {    
+    ClientId: string
+    AgentsTopic: string
+    CoordinatorTopic: string
+    NodeInfo: ClusterNodeInfo    
+    Settings: AgentSettings
+    MqttClient: IMqttClient
+    ScenariosHost: IScenariosHost
+}
 
-type AgentInfo = {
-    Url: Uri
-    TargetScenarios: string[]
-} with
-  static member create (clusterId: string) (settings: AgentInfoSettings) = 
-    let url = Http.createUrl(settings.Host, settings.Port, clusterId)
-    { Url = Uri(url); TargetScenarios = settings.TargetScenarios |> List.toArray }
+let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =    
+    st.MqttClient.SubscribeAsync(st.AgentsTopic).Wait()
+    st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
+        msg.ApplicationMessage.Payload
+        |> Mqtt.deserialize<RequestMessage>
+        |> handle        
+    )
+    |> ignore
 
-let generateAgentId () = Guid.NewGuid().ToString("N") 
+let validate (state: State, msg: RequestMessage) =
+    match msg.Payload with
+    | GetAgentInfo -> Ok msg.Payload
+    | NewSession _ -> Ok msg.Payload
+    | _ -> 
+        if msg.Headers.SessionId = state.ScenariosHost.SessionId then
+            Ok msg.Payload
+        else
+            AppError.createResult SessionIsWrong
 
-type ClusterAgent(agentId: string, scnHost: IScenariosHost) =
+let receive (st: State, msg: RequestMessage) = asyncResult {
+
+    let getCurrentInfo () = 
+        { st.NodeInfo with HostStatus = st.ScenariosHost.Status }
+
+    let sendToCoordinator (st: State) (res: Response) =
+        Contracts.createResponseMsg(msg.Headers.CorrelationId, st.ClientId, 
+                                    st.ScenariosHost.SessionId, Some res, None)
+        |> Mqtt.toMqttMsg(st.CoordinatorTopic)
+        |> Mqtt.publishToBroker(st.MqttClient)        
+
+    match! validate(st, msg) with
+    | GetAgentInfo ->       
+        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
     
-    let mutable curSessionId = ""
-    let emptyResponse = { AgentId = agentId; Data = None; Error = None }
-    let response (data) = { AgentId = agentId; Data = Some data; Error = None }    
+    | NewSession (scnSettings, agentSettings) -> 
+        let targetScns = [||]
+        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScns) |> ignore        
+        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
-    member private x.ErrorResponse (e: CommunicationError) = 
-        { AgentId = agentId; Data = None; Error = Some <| Communication e }
+    | StartWarmUp ->
+        st.ScenariosHost.WarmUpScenarios() |> ignore                
+        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
+            
+    | StartBombing ->
+        st.ScenariosHost.StartBombing() |> ignore
+        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
-    member private x.ErrorResponse (e: AppError) = 
-        { AgentId = agentId; Data = None; Error = Some e }
+    | GetStatistics ->
+        do! Response.AgentStats(st.ScenariosHost.GetStatistics()) |> sendToCoordinator(st)        
+}
 
-    interface IClusterAgent with
-        member x.AgentId = agentId  
+let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
+    
+    let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
+    let! mqttClient = Mqtt.connect(clientId, settings.MqttServer)
+
+    let nodeInfo = { 
+        MachineName = dep.MachineInfo.MachineName
+        TargetGroup = settings.TargetGroup
+        HostStatus = ScenarioHostStatus.Ready 
+    }
+
+    let state = {            
+        ClientId = clientId
+        AgentsTopic = Contracts.createAgentsTopic(settings.ClusterId)
+        CoordinatorTopic = Contracts.createCoordinatorTopic(settings.ClusterId)
+        NodeInfo = nodeInfo   
+        Settings = settings
+        MqttClient = mqttClient
+        ScenariosHost = ScenariosHost(dep, registeredScenarios)
+    }
         
-        member x.Receive(cmd) = 
-            match cmd with
-            | NewSession (sessionId, scnSettings, targetScns) -> 
-                curSessionId <- sessionId
-                scnHost.StopScenarios()
-                scnHost.InitScenarios(scnSettings, targetScns) |> ignore
-                emptyResponse
+    return state
+}
 
-            | IsWorking sessionId ->
-                match scnHost.IsWorking() with
-                | Ok v    -> response(v)
-                | Error e -> x.ErrorResponse(e) 
-                
-            | StartWarmUp sessionId ->
-                match scnHost.IsWorking() with
-                | Ok false -> scnHost.WarmUpScenarios() |> ignore
-                              response(false)
-                | Ok true  -> x.ErrorResponse(AgentIsWorking)
-                | Error e  -> x.ErrorResponse(e)
+let run (st: State) = async {    
+     
+    subscribeOnTopics(st, fun msg ->
+        receive(st, msg)
+        |> AsyncResult.mapError(fun e -> ())
+        |> Async.RunSynchronously
+        |> ignore
+    )
 
-            | StartBombing sessionId ->
-                match scnHost.IsWorking() with
-                | Ok false -> scnHost.StartBombing() |> ignore
-                              response(false)
-                | Ok true  -> x.ErrorResponse(AgentIsWorking)
-                | Error e  -> x.ErrorResponse(e)
-
-            | GetStatistics sessionId ->
-                match scnHost.IsWorking() with
-                | Ok false -> scnHost.GetStatistics() |> response
-                | Ok true  -> x.ErrorResponse(AgentIsWorking)
-                | Error e  -> x.ErrorResponse(e)
-
-let runAgentListener (settings: AgentSettings) (agent: IClusterAgent) =        
-    let listenUrl = Http.createUrl("*", settings.Port, settings.ClusterId)
-    let httpHandler = Http.createHandler(agent.Receive)
-    let server = HttpServer(listenUrl, httpHandler)
-    server.Start().Wait()
-    server.Stop()
-
-let create (dep: Dependency, registeredScns: Scenario[]) =    
-    let scnHost = ScenariosHost(dep, registeredScns)
-    let agentId = generateAgentId()    
-    ClusterAgent(agentId, scnHost)
+    let listenTask = TaskCompletionSource<unit>()
+    return! listenTask.Task |> Async.AwaitTask
+}

@@ -158,6 +158,20 @@ module GlobalSettingsValidation =
         )
         |> Option.defaultValue(Ok context)        
 
+module CoordinatorValidation =
+
+    let validateTargetGroups (allTargetGroups: string[], agentTargetGroups: string[]) = 
+        let all = Set.ofArray allTargetGroups
+        let agents = Set.ofArray agentTargetGroups        
+        
+        let notFoundGroups = 
+            Set.difference agents all
+            |> Set.toArray
+
+        match Array.isEmpty notFoundGroups with
+        | true  -> Ok()
+        | false -> AppError.createResult(TargetGroupsAreNotFound notFoundGroups)
+
 let validateContext = 
     ScenarioValidation.validate
     >=> AssertionValidation.validate

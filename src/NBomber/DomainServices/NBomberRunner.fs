@@ -27,29 +27,35 @@ let getScenariosArgs (context: NBomberContext) =
     scnSettings, targetScns, registeredScns
 
 let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
-                           crdSettings: CoordinatorSettings) =
+                           crdSettings: CoordinatorSettings) = asyncResult {
     sprintf "NBomber started as cluster coordinator: %A" crdSettings
     |> Log.Information
 
-    let scnSettings, targetScns, registeredScns = getScenariosArgs(context)
-    ClusterCoordinator.create(dep, registeredScns, crdSettings)
-    |> ClusterCoordinator.run(scnSettings, targetScns)
+    let scnSettings, _, registeredScns = getScenariosArgs(context)
+    
+    let! state = Coordinator.init(dep, registeredScns, crdSettings, scnSettings)
+    let! stats = Coordinator.run state
+    Coordinator.stop state
+    return stats
+}
 
-let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: AgentSettings) = 
+let runClusterAgent (dep: Dependency, context: NBomberContext, 
+                     agentSettings: AgentSettings) = asyncResult {
     sprintf "NBomber started as cluster agent: %A" agentSettings
     |> Log.Information
 
     let _, _, registeredScns = getScenariosArgs(context)
-    ClusterAgent.create(dep, registeredScns)
-    |> ClusterAgent.runAgentListener(agentSettings)
-    Array.empty<NodeStats> |> Ok |> Async.singleton
+    let! state = Agent.init(dep, registeredScns, agentSettings)    
+    do! Agent.run(state)
+    return Array.empty<NodeStats>
+}
 
 let runSingleNode (dep: Dependency, context: NBomberContext) =
     Log.Information("NBomber started as single node")
 
     let scnSettings, targetScns, registeredScns = getScenariosArgs context
     ScenariosHost.create(dep, registeredScns)
-    |> ScenariosHost.run(scnSettings, targetScns)
+    |> ScenariosHost.run dep.SessionId scnSettings targetScns
     |> AsyncResult.map(fun stats -> [|stats|])
 
 let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
@@ -62,7 +68,8 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
           FailedAsserts = Array.empty }
     
     | NodeType.Coordinator -> 
-        let mergedStats = ClusterCoordinator.mergeStats(dep.SessionId, dep.MachineInfo.MachineName, registeredScns, scnSettings, allNodeStats)
+        let mergedStats = Coordinator.mergeStats(dep.SessionId, dep.MachineInfo.MachineName, 
+                                                 registeredScns, scnSettings, allNodeStats)
         let statistics = Statistics.create(mergedStats)        
         { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]
           Statistics = statistics

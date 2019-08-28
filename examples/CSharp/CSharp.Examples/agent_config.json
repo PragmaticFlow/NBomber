@@ -2,7 +2,8 @@
   "ClusterSettings": {
     "Agent": {
       "ClusterId": "test_cluster",
-      "Port": 8080
+      "TargetGroup": "1",
+      "MqttServer": "localhost"
     }
   }
 }

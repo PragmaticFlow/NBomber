@@ -16,7 +16,7 @@ type LogSettings = {
 
 type ScenarioSetting = {
     ScenarioName: string
-    ConcurrentCopies: int    
+    ConcurrentCopies: int
     WarmUpDuration: DateTime
     Duration: DateTime
 }
@@ -30,19 +30,20 @@ type GlobalSettings = {
 
 type AgentSettings = {
     ClusterId: string
-    Port: int
+    TargetGroup: string
+    MqttServer: string
 }
 
-type AgentInfoSettings = {
-    Host: string
-    Port: int
+type TargetGroupSettings = {
+    TargetGroup: string
     TargetScenarios: string list
 }
 
 type CoordinatorSettings = {
     ClusterId: string
     TargetScenarios: string list
-    Agents: AgentInfoSettings list
+    MqttServer: string    
+    Agents: TargetGroupSettings list
 }
 
 type ClusterSettings =
