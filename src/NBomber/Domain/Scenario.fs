@@ -27,12 +27,17 @@ let create (config: Contracts.Scenario) =
       Duration = config.Duration }
 
 let init (scenario: Scenario, 
-          initAllConnectionPools: Scenario -> ConnectionPool<obj>[]) =
+          initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
+          customSettings: string) =
     try     
         // todo: refactor, pass token
         if scenario.TestInit.IsSome then
             let cancelToken = new CancellationTokenSource()
-            scenario.TestInit.Value(cancelToken.Token).Wait()        
+            let context = {
+                Contracts.ScenarioContext.CustomSettings = customSettings
+                Contracts.ScenarioContext.CancellationToken = cancelToken.Token
+            }
+            scenario.TestInit.Value(context).Wait()        
 
         let allPools = initAllConnectionPools(scenario)
         let steps = scenario.Steps |> Array.map(ConnectionPool.setConnectionPool(allPools))
@@ -46,7 +51,11 @@ let clean (scenario: Scenario) =
         if scenario.TestClean.IsSome then
             // todo: refacto, pass token
             let cancelToken = new CancellationTokenSource()
-            scenario.TestClean.Value(cancelToken.Token).Wait()
+            let context = {
+                Contracts.ScenarioContext.CustomSettings = ""
+                Contracts.ScenarioContext.CancellationToken = cancelToken.Token
+            }
+            scenario.TestClean.Value(context).Wait()
         
         ConnectionPool.clean(scenario)
     with

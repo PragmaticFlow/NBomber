@@ -47,11 +47,11 @@ type ScenarioBuilder =
         FSharp.Scenario.create name (Seq.toList steps)
     
     [<Extension>]
-    static member WithTestInit(scenario: Scenario, initFunc: Func<CancellationToken,Task>) = 
+    static member WithTestInit(scenario: Scenario, initFunc: Func<ScenarioContext,Task>) = 
         { scenario with TestInit = Some initFunc.Invoke }
 
     [<Extension>]
-    static member WithTestClean(scenario: Scenario, cleanFunc: Func<CancellationToken,Task>) = 
+    static member WithTestClean(scenario: Scenario, cleanFunc: Func<ScenarioContext,Task>) = 
         { scenario with TestClean = Some cleanFunc.Invoke }
 
     [<Extension>]

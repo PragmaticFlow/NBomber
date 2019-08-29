@@ -65,3 +65,10 @@ let tryGetLogSettings (context: NBomberContext) = maybe {
     let! config = context.NBomberConfig
     return! config.LogSettings
 }
+
+let tryGetCustomSettings (context: NBomberContext) =
+    maybe {
+        let! config = context.NBomberConfig
+        return! config.CustomSettings
+    }
+    |> function Some v -> v | None -> ""

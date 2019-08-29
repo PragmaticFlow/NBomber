@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using MongoDB.Bson;
@@ -26,22 +25,22 @@ namespace CSharp.Examples.Scenarios
         {
             var db = new MongoClient().GetDatabase("Test");
 
-            Task initDb(CancellationToken token)
+            Task initDb(ScenarioContext context)
             {
                 var testData = Enumerable.Range(0, 2000)
                     .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
                     .ToList();
 
-                db.DropCollection("Users", token);
+                db.DropCollection("Users", context.CancellationToken);
                 return db.GetCollection<User>("Users")
-                         .InsertManyAsync(testData, cancellationToken: token);
+                         .InsertManyAsync(testData, cancellationToken: context.CancellationToken);
             }
 
             var usersCollection = db.GetCollection<User>("Users");
 
             var step = Step.Create("read IsActive = true and TOP 500", async context =>
             {
-                await usersCollection.Find(u => u.IsActive == true)
+                await usersCollection.Find(u => u.IsActive)
                                      .Limit(500)
                                      .ToListAsync(context.CancellationToken);
                 return Response.Ok();

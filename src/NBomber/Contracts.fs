@@ -53,13 +53,18 @@ type StepContext<'TConnection> = {
     mutable Data: obj
 }
 
+type ScenarioContext = {
+    CustomSettings: string
+    CancellationToken: CancellationToken
+}
+
 type IStep = interface end
 type IAssertion = interface end  
 
 type Scenario = {
     ScenarioName: string
-    TestInit: (CancellationToken -> Task) option
-    TestClean: (CancellationToken -> Task) option
+    TestInit: (ScenarioContext -> Task) option
+    TestClean: (ScenarioContext -> Task) option
     Steps: IStep[]
     Assertions: IAssertion[]
     ConcurrentCopies: int    

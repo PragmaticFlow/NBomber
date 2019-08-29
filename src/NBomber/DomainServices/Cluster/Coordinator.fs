@@ -25,7 +25,8 @@ type State = {
     Agents: Dictionary<ClientId, ClusterNodeInfo>
     AgentsStats: Dictionary<ClientId, NodeStats>
     Settings: CoordinatorSettings
-    ScenariosSettings: ScenarioSetting[]    
+    ScenariosSettings: ScenarioSetting[]
+    CustomSettings: string
     MqttClient: IMqttClient
     ScenariosHost: IScenariosHost
 }
@@ -52,7 +53,7 @@ module Communication =
     }
 
     let sendStartNewSession (st: State) = 
-        Request.NewSession(st.ScenariosSettings, st.Settings.Agents |> Seq.toArray)
+        Request.NewSession(st.ScenariosSettings, st.Settings.Agents |> Seq.toArray, st.CustomSettings)
         |> sendToAgents st
 
     let sendStartWarmUp (st: State) =
@@ -124,7 +125,8 @@ let receive (st: State, msg: ResponseMessage) = result {
 }
 
 let init (dep: Dependency, registeredScenarios: Scenario[],
-          settings: CoordinatorSettings, scenariosSettings: ScenarioSetting[]) = async {
+          settings: CoordinatorSettings, scenariosSettings: ScenarioSetting[],
+          customSettings: string) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.connect(clientId, settings.MqttServer)
@@ -137,7 +139,8 @@ let init (dep: Dependency, registeredScenarios: Scenario[],
         Agents = Dictionary<_,_>()
         AgentsStats = Dictionary<_,_>()
         Settings = settings
-        ScenariosSettings = scenariosSettings            
+        ScenariosSettings = scenariosSettings
+        CustomSettings = customSettings
         MqttClient = mqttClient
         ScenariosHost = ScenariosHost(dep, registeredScenarios)
     }
@@ -159,7 +162,8 @@ let run (st: State) = asyncResult {
     
     do! Communication.sendStartNewSession(st)
     do! st.ScenariosHost.InitScenarios(st.SessionId, st.ScenariosSettings,
-                                       st.Settings.TargetScenarios |> Seq.toArray)
+                                       st.Settings.TargetScenarios |> Seq.toArray,
+                                       st.CustomSettings)
     do! Communication.waitOnAllAgentsReady(st)    
 
     do! Communication.sendStartWarmUp(st)

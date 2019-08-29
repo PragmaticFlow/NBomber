@@ -33,6 +33,7 @@ let config = {
     GlobalSettings = None
     ClusterSettings = None
     LogSettings = None
+    CustomSettings = None
 }
 
 let context = {

@@ -58,9 +58,9 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
     | GetAgentInfo ->       
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
     
-    | NewSession (scnSettings, agentSettings) -> 
+    | NewSession (scnSettings, agentSettings, customSettings) -> 
         let targetScns = [||]
-        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScns) |> ignore        
+        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScns, customSettings) |> ignore        
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
     | StartWarmUp ->

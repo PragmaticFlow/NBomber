@@ -24,7 +24,7 @@ type IScenariosHost =
     abstract SessionId: string
     abstract Status: ScenarioHostStatus
     abstract GetRegisteredScenarios: unit -> Scenario[]
-    abstract InitScenarios: sessionId:string * ScenarioSetting[] * targetScenarios:string[] -> Task<Result<unit,AppError>>
+    abstract InitScenarios: sessionId:string * ScenarioSetting[] * targetScenarios:string[] * customSettings:string -> Task<Result<unit,AppError>>
     abstract WarmUpScenarios: unit -> Task<unit>
     abstract StartBombing: unit -> Task<unit>
     abstract StopScenarios: unit -> unit
@@ -65,7 +65,7 @@ let buildInitConnectionPools (dep: Dependency) =
         fun scenario ->
             ConnectionPool.init(scenario, ignore, ignore, ignore)
 
-let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {    
+let initScenarios (dep: Dependency) (customSettings: string) (scenarios: Scenario[]) = task {    
     let mutable failed = false    
     let mutable error = Unchecked.defaultof<_>
     
@@ -75,7 +75,7 @@ let initScenarios (dep: Dependency) (scenarios: Scenario[]) = task {
                 Log.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
-                let initResult = Scenario.init(scn, initAllConnectionPools)
+                let initResult = Scenario.init(scn, initAllConnectionPools, customSettings)
                 if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
@@ -132,7 +132,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         member x.Status = _status
         member x.GetRegisteredScenarios() = registeredScenarios        
         
-        member x.InitScenarios(sessionId, settings, targetScenarios) = task {            
+        member x.InitScenarios(sessionId, settings, targetScenarios, customSettings) = task {            
             _sessionId <- sessionId
             _status <- ScenarioHostStatus.Working("InitScenarios")
             do! Task.Yield()            
@@ -140,7 +140,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                            |> Scenario.applySettings(settings)
                            |> Scenario.filterTargetScenarios(targetScenarios)
                            |> printTargetScenarios
-                           |> initScenarios(dep)
+                           |> initScenarios dep customSettings
             
             match results with
             | Ok scns -> scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
@@ -184,9 +184,10 @@ let create (dep: Dependency, registeredScns: Scenario[]) =
     ScenariosHost(dep, registeredScns) :> IScenariosHost
 
 let run (sessionId) (scnSettings: ScenarioSetting[]) (targetScns: ScenarioName[])
+        (customSettings: string)
         (scnHost: IScenariosHost) = asyncResult {    
     
-    do! scnHost.InitScenarios(sessionId, scnSettings, targetScns)
+    do! scnHost.InitScenarios(sessionId, scnSettings, targetScns, customSettings)
     do! scnHost.WarmUpScenarios()
     do! scnHost.StartBombing()    
     return scnHost.GetStatistics()

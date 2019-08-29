@@ -15,7 +15,7 @@ type ClusterNodeInfo = {
 
 type Request =
     | GetAgentInfo
-    | NewSession of scnSettings:ScenarioSetting[] * agentSettings:TargetGroupSettings[]
+    | NewSession of scnSettings:ScenarioSetting[] * agentSettings:TargetGroupSettings[] * customSettings:string
     | StartWarmUp
     | StartBombing
     | GetStatistics

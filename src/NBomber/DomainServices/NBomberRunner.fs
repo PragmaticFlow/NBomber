@@ -20,20 +20,32 @@ type ExecutionResult = {
     FailedAsserts: DomainError[]
 }
 
+type ScenariosArgs = {
+    ScenariosSettings: ScenarioSetting[]
+    TargetScenarios: string[]
+    CustomSettings: string
+    RegisteredScenarios: Scenario[]
+}
+
 let getScenariosArgs (context: NBomberContext) =
     let scnSettings = NBomberContext.getScenariosSettings(context)
     let targetScns = NBomberContext.getTargetScenarios(context)
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)    
-    scnSettings, targetScns, registeredScns
+    let customSettings = NBomberContext.tryGetCustomSettings context
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+    { ScenariosSettings = scnSettings
+      TargetScenarios = targetScns
+      CustomSettings = customSettings
+      RegisteredScenarios = registeredScns } 
 
 let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
                            crdSettings: CoordinatorSettings) = asyncResult {
     sprintf "NBomber started as cluster coordinator: %A" crdSettings
     |> Log.Information
 
-    let scnSettings, _, registeredScns = getScenariosArgs(context)
+    let scnArgs = getScenariosArgs(context)
     
-    let! state = Coordinator.init(dep, registeredScns, crdSettings, scnSettings)
+    let! state = Coordinator.init(dep, scnArgs.RegisteredScenarios, crdSettings,
+                                  scnArgs.ScenariosSettings, scnArgs.CustomSettings)
     let! stats = Coordinator.run state
     Coordinator.stop state
     return stats
@@ -44,8 +56,8 @@ let runClusterAgent (dep: Dependency, context: NBomberContext,
     sprintf "NBomber started as cluster agent: %A" agentSettings
     |> Log.Information
 
-    let _, _, registeredScns = getScenariosArgs(context)
-    let! state = Agent.init(dep, registeredScns, agentSettings)    
+    let scnArgs = getScenariosArgs(context)
+    let! state = Agent.init(dep, scnArgs.RegisteredScenarios, agentSettings)    
     do! Agent.run(state)
     return Array.empty<NodeStats>
 }
@@ -53,13 +65,13 @@ let runClusterAgent (dep: Dependency, context: NBomberContext,
 let runSingleNode (dep: Dependency, context: NBomberContext) =
     Log.Information("NBomber started as single node")
 
-    let scnSettings, targetScns, registeredScns = getScenariosArgs context
-    ScenariosHost.create(dep, registeredScns)
-    |> ScenariosHost.run dep.SessionId scnSettings targetScns
+    let scnArgs = getScenariosArgs(context)
+    ScenariosHost.create(dep, scnArgs.RegisteredScenarios)
+    |> ScenariosHost.run dep.SessionId scnArgs.ScenariosSettings scnArgs.TargetScenarios scnArgs.CustomSettings
     |> AsyncResult.map(fun stats -> [|stats|])
 
 let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
-    let scnSettings, _, registeredScns = getScenariosArgs(context)
+    let scnArgs = getScenariosArgs(context)
     match dep.NodeType with
     | NodeType.SingleNode  -> 
         let statistics = allNodeStats |> Array.exactlyOne |> Statistics.create
@@ -68,8 +80,9 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
           FailedAsserts = Array.empty }
     
     | NodeType.Coordinator -> 
-        let mergedStats = Coordinator.mergeStats(dep.SessionId, dep.MachineInfo.MachineName, 
-                                                 registeredScns, scnSettings, allNodeStats)
+        let mergedStats = Coordinator.mergeStats(dep.SessionId,dep.MachineInfo.MachineName, 
+                                                 scnArgs.RegisteredScenarios, scnArgs.ScenariosSettings,
+                                                 allNodeStats)
         let statistics = Statistics.create(mergedStats)        
         { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]
           Statistics = statistics

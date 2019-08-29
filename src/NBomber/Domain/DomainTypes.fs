@@ -71,8 +71,8 @@ type internal Assertion = {
 
 type internal Scenario = {    
     ScenarioName: ScenarioName
-    TestInit: (CancellationToken -> Task) option  
-    TestClean: (CancellationToken -> Task) option  
+    TestInit: (ScenarioContext -> Task) option  
+    TestClean: (ScenarioContext -> Task) option  
     Steps: Step[]
     Assertions: Assertion[]
     ConcurrentCopies: int    

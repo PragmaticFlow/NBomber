@@ -116,10 +116,10 @@ module Scenario =
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
-    let withTestInit (initFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
+    let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
 
-    let withTestClean (cleanFunc: CancellationToken -> Task<unit>) (scenario: Contracts.Scenario) =
+    let withTestClean (cleanFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
     let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
