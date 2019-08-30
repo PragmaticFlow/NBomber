@@ -6,6 +6,7 @@ open System.Runtime.Serialization.Formatters.Binary
 open System.Threading
 open System.Threading.Tasks
 
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Serilog
 open MQTTnet
 open MQTTnet.Client
@@ -47,13 +48,16 @@ let connect (clientId: string, mqttServer: string) =
             .WithCleanSession()
             .Build()                          
 
-    let reconnect () =
+    let reconnect () = task {
         while not client.IsConnected do
             try
-                client.ConnectAsync(options, CancellationToken.None).Wait()
+                let! result = client.ConnectAsync(options, CancellationToken.None)
+                return ()
             with
             | _ -> Log.Error("can't connect to the mqtt broker")
-            Task.Delay(5_000).Wait()
+            
+            do! Task.Delay(5_000)
+    }
 
     client.UseConnectedHandler(fun _ -> 
         Log.Information("connection with mqtt broker is established")
@@ -66,12 +70,12 @@ let connect (clientId: string, mqttServer: string) =
         | :? OperationCanceledException -> ()
         | _ ->
             if args.ClientWasConnected then
-                reconnect()
+                reconnect() |> ignore
     )
     |> ignore
 
-    reconnect()
-
+    reconnect() |> ignore
+    
     tsc.Task |> Async.AwaitTask
 
 let publishToBroker (mqttClient: IMqttClient) (msg: MqttApplicationMessage) = async {

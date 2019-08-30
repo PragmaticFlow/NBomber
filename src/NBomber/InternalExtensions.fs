@@ -1,7 +1,6 @@
 namespace NBomber.Extensions
 
 open System.Threading.Tasks
-open FsToolkit.ErrorHandling
 
 [<AutoOpen>]
 module internal Extensions =
@@ -13,17 +12,10 @@ module internal Extensions =
             m.ContinueWith(fun (t: Task<_>) -> f t.Result)
 
     type Result<'T,'TError> with
-        static member isOk (result) =
-            match result with
-            | Ok _    -> true
-            | Error _ -> false
-
         static member getOk (result) =
             match result with
             | Ok v    -> v
-            | Error _ -> failwith "result is error"
-
-        static member isError (result) = not(Result.isOk(result))
+            | Error _ -> failwith "result is error"        
 
         static member getError (result) =
             match result with
