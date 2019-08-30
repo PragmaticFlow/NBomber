@@ -42,12 +42,13 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
         |> Seq.exists(fun x -> x.Level = LogEventLevel.Information
                                && x.MessageTemplate.Text.Contains("connection with mqtt broker is established"))
     
+    do! Async.Sleep(10_000)
     let clientConnected = client.IsConnected
     do! server.StopAsync() |> Async.AwaitTask
     
     test <@ reconnectCount >= 1 @>    
     test <@ clientConnected = true @>
-//    test <@ successfulConnect = true @>
+    test <@ successfulConnect = true @>
 }
 
 [<Fact>]
