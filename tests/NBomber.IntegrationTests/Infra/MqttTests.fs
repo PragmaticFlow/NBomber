@@ -39,12 +39,17 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
 
     let successfulConnect =
         InMemorySink.Instance.LogEvents
-        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information
-                               && x.MessageTemplate.Text = "connection with mqtt broker is established")
+        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information)
+        
+    let msg =
+        InMemorySink.Instance.LogEvents
+        |> Seq.filter(fun x -> x.Level = LogEventLevel.Information)
+        |> Seq.item 0
         
     let clientConnected = client.IsConnected
     server.StopAsync().Wait()
     
+    test <@ msg.MessageTemplate.Text = "aaa" @>
     test <@ reconnectCount >= 1 @>    
     test <@ successfulConnect = true @>
     test <@ clientConnected = true @>
@@ -57,9 +62,12 @@ let ``Mqtt.publishToBroker should return error in case of server is down`` () = 
     let server = initTestMqttServer()
     let! client = Mqtt.connect("clientId", "localhost")
     
-    // stopping server to prevent client send a message
-    server.StopAsync().Wait()
-    do! Async.Sleep(1_000)
+    // stopping server to disconnect client and prevent to send a message
+    server.StopAsync().Wait()    
+    
+    // waiting on client disconnect
+    while client.IsConnected do
+        do! Async.Sleep(100)
     
     let msg = Mqtt.toMqttMsg "testTopic" 777
     let! response = Mqtt.publishToBroker client msg
