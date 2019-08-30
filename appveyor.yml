@@ -5,6 +5,7 @@ branches:
   only:
     - master    
     - tests
+    - dev
 
 build_script:
   - ps: .\build.ps1 -target=Pack
