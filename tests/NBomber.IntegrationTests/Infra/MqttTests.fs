@@ -20,8 +20,7 @@ let initTestMqttServer () =
 [<Fact>]
 let ``Mqtt.connect client should reconnect automatically`` () = async {
     
-    Dependency.Logger.initLogger(Dependency.ApplicationType.Test, None)
-    
+    Dependency.Logger.initLogger(Dependency.ApplicationType.Test, None)    
     use context = TestCorrelator.CreateContext()
     
     // init mqtt client which can't connect since server is down        
@@ -36,22 +35,17 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     let reconnectCount =        
         TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
         |> Seq.filter(fun x -> x.Level = LogEventLevel.Error
-                               && x.MessageTemplate.Text.Contains("can't connect to the mqtt broker"))
+                               && x.MessageTemplate.Text = "can't connect to the mqtt broker")
         |> Seq.length
 
     let successfulConnect =
         TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
-        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information)
-        
-    let msg =
-        TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
-        |> Seq.filter(fun x -> x.Level = LogEventLevel.Information)
-        |> Seq.item 0
+        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information
+                               && x.MessageTemplate.Text = "connection with mqtt broker is established")
         
     let clientConnected = client.IsConnected
     server.StopAsync().Wait()
-    
-    test <@ msg.MessageTemplate.Text = "aaa" @>
+        
     test <@ reconnectCount >= 1 @>    
     test <@ successfulConnect = true @>
     test <@ clientConnected = true @>
