@@ -6,7 +6,7 @@ open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
-open Serilog.Sinks.InMemory
+open Serilog.Sinks.TestCorrelator
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -77,7 +77,7 @@ module Logger =
         
     let withInMemory appType (config: LoggerConfiguration) =
         match appType with
-        | Test -> config.WriteTo.InMemory()
+        | Test -> config.WriteTo.TestCorrelator()
         | _    -> config
 
     let initLogger (appType: ApplicationType, logSettings: LogSettings option) =

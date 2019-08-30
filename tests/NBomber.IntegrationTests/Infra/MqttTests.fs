@@ -3,7 +3,7 @@ module Tests.MqttTests
 open Xunit
 open Swensen.Unquote
 open Serilog.Events
-open Serilog.Sinks.InMemory
+open Serilog.Sinks.TestCorrelator
 open MQTTnet
 open MQTTnet.Server
 open FsToolkit.ErrorHandling
@@ -22,6 +22,8 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     
     Dependency.Logger.initLogger(Dependency.ApplicationType.Test, None)
     
+    use context = TestCorrelator.CreateContext()
+    
     // init mqtt client which can't connect since server is down        
     let task = Mqtt.connect("clientId", "localhost")
     
@@ -31,18 +33,18 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     let server = initTestMqttServer()
     let! client = task
 
-    let reconnectCount =
-        InMemorySink.Instance.LogEvents
+    let reconnectCount =        
+        TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
         |> Seq.filter(fun x -> x.Level = LogEventLevel.Error
                                && x.MessageTemplate.Text.Contains("can't connect to the mqtt broker"))
         |> Seq.length
 
     let successfulConnect =
-        InMemorySink.Instance.LogEvents
+        TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
         |> Seq.exists(fun x -> x.Level = LogEventLevel.Information)
         
     let msg =
-        InMemorySink.Instance.LogEvents
+        TestCorrelator.GetLogEventsFromContextGuid(context.Guid)
         |> Seq.filter(fun x -> x.Level = LogEventLevel.Information)
         |> Seq.item 0
         
@@ -57,8 +59,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
 
 [<Fact>]
 let ``Mqtt.publishToBroker should return error in case of server is down`` () = async {
-    
-    Dependency.Logger.initLogger(Dependency.ApplicationType.Test, None)
+        
     let server = initTestMqttServer()
     let! client = Mqtt.connect("clientId", "localhost")
     
