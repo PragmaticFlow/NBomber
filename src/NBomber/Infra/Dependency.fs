@@ -6,6 +6,7 @@ open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
+open Serilog.Sinks.InMemory
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -73,12 +74,18 @@ module Logger =
         | Some v when v.FileName |> String.IsNullOrEmpty |> not ->                        
                 config.WriteTo.File(v.FileName, v.MinimumLevel)
         | _  -> config
+        
+    let withInMemory appType (config: LoggerConfiguration) =
+        match appType with
+        | Test -> config.WriteTo.InMemory()
+        | _    -> config
 
     let initLogger (appType: ApplicationType, logSettings: LogSettings option) =
         Log.Logger <- 
             LoggerConfiguration()
             |> withConsoleOutput appType
             |> withFileOutput logSettings
+            |> withInMemory appType
             |> createLogger
 
 let private retrieveMachineInfo () =
