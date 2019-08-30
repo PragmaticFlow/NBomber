@@ -25,7 +25,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     // init mqtt client which can't connect since server is down        
     let task = Mqtt.connect("clientId", "localhost")
     
-    do! Async.Sleep(10_000)
+    do! Async.Sleep(5_000)
     
     // now client should be reconnected automatically
     let server = initTestMqttServer()
@@ -45,8 +45,8 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     let clientConnected = client.IsConnected
     do! server.StopAsync() |> Async.AwaitTask
     
-    test <@ reconnectCount >= 2 @>
-    test <@ length >= 3 @>
+    test <@ reconnectCount >= 1 @>
+    test <@ length >= 2 @>
     test <@ successfulConnect = true @>
     test <@ clientConnected = true @>
 }
