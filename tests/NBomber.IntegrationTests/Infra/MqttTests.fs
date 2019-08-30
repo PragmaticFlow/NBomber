@@ -39,8 +39,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
 
     let successfulConnect =
         InMemorySink.Instance.LogEvents
-        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information
-                               && x.MessageTemplate.Text.Contains("connection with mqtt broker is established"))
+        |> Seq.exists(fun x -> x.Level = LogEventLevel.Information)
     
     let length = InMemorySink.Instance.LogEvents |> Seq.length
     let clientConnected = client.IsConnected
