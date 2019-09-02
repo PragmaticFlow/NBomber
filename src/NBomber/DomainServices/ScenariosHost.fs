@@ -82,7 +82,7 @@ let initScenarios (dep: Dependency) (customSettings: string) (scenarios: Scenari
                 Log.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
-                let initResult = Scenario.init(scn, initAllConnectionPools, customSettings)
+                let initResult = Scenario.init(scn, initAllConnectionPools, customSettings, dep.NodeType)
                 if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
@@ -109,10 +109,10 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     if dep.ApplicationType = ApplicationType.Console then displayProgress(dep, scnRunners)
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
-let stopAndCleanScenarios (scnRunners: ScenarioRunner[]) =
+let stopAndCleanScenarios (dep: Dependency) (scnRunners: ScenarioRunner[]) =
     Log.Information("stopping bombing and cleaning resources...")
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
-    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario))
+    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType))
     Log.Information("bombing stoped and resources cleaned")
 
 let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
@@ -176,14 +176,14 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
                 _status <- ScenarioHostStatus.Working(StartBombing)
                 do! Task.Yield()
                 let! tasks = runBombing(dep, scnRunners.Value)
-                scnRunners |> Option.map(stopAndCleanScenarios) |> ignore                
+                scnRunners |> Option.map(stopAndCleanScenarios dep) |> ignore                
                 _status <- ScenarioHostStatus.Ready
                 do! Task.Delay(1000)
         }
 
         member x.StopScenarios() = 
             _status <- ScenarioHostStatus.Working(StopScenarios)
-            scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
+            scnRunners |> Option.map(stopAndCleanScenarios dep) |> ignore
             _status <- ScenarioHostStatus.Ready
 
         member x.GetStatistics() =            

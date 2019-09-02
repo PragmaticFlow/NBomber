@@ -54,6 +54,7 @@ type StepContext<'TConnection> = {
 }
 
 type ScenarioContext = {
+    NodeType: NodeType
     CustomSettings: string
     CancellationToken: CancellationToken
 }
