@@ -15,15 +15,22 @@ open NBomber.Errors
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenarioRunner
 
+type WorkingState =
+    | InitScenarios
+    | WarmUpScenarios
+    | StartBombing
+    | StopScenarios
+
 type ScenarioHostStatus =    
     | Ready
-    | Working of state:string
+    | Working of WorkingState
     | Stopped of reason:string
 
 type IScenariosHost =
     abstract SessionId: string
     abstract Status: ScenarioHostStatus
     abstract GetRegisteredScenarios: unit -> Scenario[]
+    abstract GetRunningScenarios: unit -> Scenario[]
     abstract InitScenarios: sessionId:string * ScenarioSetting[] * targetScenarios:string[] * customSettings:string -> Task<Result<unit,AppError>>
     abstract WarmUpScenarios: unit -> Task<unit>
     abstract StartBombing: unit -> Task<unit>
@@ -123,18 +130,22 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable _sessionId = ""
     let mutable _status = ScenarioHostStatus.Ready
-    let mutable scnRunners = None
+    let mutable scnRunners: ScenarioRunner[] option = None
     
     let statsMeta = { SessionId = dep.SessionId; MachineName = dep.MachineInfo.MachineName; Sender = dep.NodeType }    
 
     interface IScenariosHost with
         member x.SessionId = _sessionId
         member x.Status = _status
-        member x.GetRegisteredScenarios() = registeredScenarios        
+        member x.GetRegisteredScenarios() = registeredScenarios
+        member x.GetRunningScenarios() =
+            match scnRunners with
+            | Some runners -> runners |> Array.map(fun x -> x.Scenario)
+            | None         -> Array.empty
         
         member x.InitScenarios(sessionId, settings, targetScenarios, customSettings) = task {            
             _sessionId <- sessionId
-            _status <- ScenarioHostStatus.Working("InitScenarios")
+            _status <- ScenarioHostStatus.Working(InitScenarios)
             do! Task.Yield()            
             let! results = registeredScenarios
                            |> Scenario.applySettings(settings)
@@ -153,7 +164,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         member x.WarmUpScenarios() = task {             
             if scnRunners.IsSome then
-                _status <- ScenarioHostStatus.Working("WarmUpScenarios")
+                _status <- ScenarioHostStatus.Working(WarmUpScenarios)
                 do! Task.Yield()
                 warmUpScenarios(dep, scnRunners.Value)                
                 _status <- ScenarioHostStatus.Ready
@@ -162,7 +173,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         member x.StartBombing() = task {              
             if scnRunners.IsSome then
-                _status <- ScenarioHostStatus.Working("StartBombing")
+                _status <- ScenarioHostStatus.Working(StartBombing)
                 do! Task.Yield()
                 let! tasks = runBombing(dep, scnRunners.Value)
                 scnRunners |> Option.map(stopAndCleanScenarios) |> ignore                
@@ -171,7 +182,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         }
 
         member x.StopScenarios() = 
-            _status <- ScenarioHostStatus.Working("StopScenarios")
+            _status <- ScenarioHostStatus.Working(StopScenarios)
             scnRunners |> Option.map(stopAndCleanScenarios) |> ignore
             _status <- ScenarioHostStatus.Ready
 

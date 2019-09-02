@@ -58,7 +58,7 @@ let ``GlobalSettingsValidation.checkAvailableTarget should return fail if Target
     let glSettings = { globalSettings with TargetScenarios = Some ["3"] }    
         
     match GlobalSettingsValidation.checkAvailableTarget scenarios glSettings with
-    | Error (TargetScenarioNotFound _) -> ()
+    | Error (TargetScenariosNotFound _) -> ()
     | _ -> failwith ""
 
 [<Fact>]

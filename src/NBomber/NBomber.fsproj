@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.1" />    
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.3" />    
     <PackageReference Include="HdrHistogram" Version="2.5.0" />    
     <PackageReference Include="MQTTnet" Version="3.0.8" />    
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />    

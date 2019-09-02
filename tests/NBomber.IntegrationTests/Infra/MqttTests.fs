@@ -10,15 +10,18 @@ open FsToolkit.ErrorHandling
 
 open NBomber.Infra
 
-let initTestMqttServer () =
+let startMqttServer () =
     let factory = MqttFactory()
     let server = factory.CreateMqttServer()    
     let serverOptions = MqttServerOptionsBuilder().Build()
     server.StartAsync(serverOptions).Wait()
     server
+    
+let stopMqttServer (server: IMqttServer) =
+    server.StopAsync().Wait()    
 
 [<Fact>]
-let ``Mqtt.connect client should reconnect automatically`` () = async {
+let ``Mqtt.connect should return client which will reconnect automatically`` () = async {
     
     Dependency.Logger.initLogger(Dependency.ApplicationType.Test, None)    
     use context = TestCorrelator.CreateContext()
@@ -29,7 +32,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
     do! Async.Sleep(5_000)
     
     // now client should be reconnected automatically
-    let server = initTestMqttServer()
+    let server = startMqttServer()
     let! client = task
 
     let reconnectCount =        
@@ -44,7 +47,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
                                && x.MessageTemplate.Text = "connection with mqtt broker is established")
         
     let clientConnected = client.IsConnected
-    server.StopAsync().Wait()
+    stopMqttServer server
         
     test <@ reconnectCount >= 1 @>    
     test <@ successfulConnect = true @>
@@ -54,7 +57,7 @@ let ``Mqtt.connect client should reconnect automatically`` () = async {
 [<Fact>]
 let ``Mqtt.publishToBroker should return error in case of server is down`` () = async {
         
-    let server = initTestMqttServer()
+    let server = startMqttServer()
     let! client = Mqtt.connect("clientId", "localhost")
     
     // stopping server to disconnect client and prevent to send a message

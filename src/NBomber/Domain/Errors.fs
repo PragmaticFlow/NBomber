@@ -12,7 +12,7 @@ type internal DomainError =
 
 type internal ValidationError =
     | TargetScenarioIsEmpty
-    | TargetScenarioNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
+    | TargetScenariosNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]    
     
@@ -23,6 +23,7 @@ type internal ValidationError =
     | EmptyStepName         of scenarioNames:string[]
     | DuplicateStepName     of stepNames:string[]  
     | AssertsNotFound       of Assertion[]
+    | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
 
@@ -64,7 +65,7 @@ type internal AppError =
         match error with
         | TargetScenarioIsEmpty -> "Target scenario can't be empty."
         
-        | TargetScenarioNotFound (notFoundScenarios, registeredScenarios) -> 
+        | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) -> 
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
             |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes(registeredScenarios)
@@ -92,6 +93,9 @@ type internal AppError =
             |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
             |> String.concatWithCommaAndQuotes
 
+        | CurrentTargetGroupNotMatched currentTargetGroup ->
+            sprintf "The current target group not matched, current target group is %s" currentTargetGroup
+        
         | TargetGroupsAreNotFound notFoundGroups ->            
             notFoundGroups
             |> String.concatWithCommaAndQuotes

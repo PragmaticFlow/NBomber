@@ -46,9 +46,9 @@ let runClusterCoordinator (dep: Dependency, context: NBomberContext,
     
     let! state = Coordinator.init(dep, scnArgs.RegisteredScenarios, crdSettings,
                                   scnArgs.ScenariosSettings, scnArgs.CustomSettings)
-    let! stats = Coordinator.run state
+    let! allStats = Coordinator.run state
     Coordinator.stop state
-    return stats
+    return allStats
 }
 
 let runClusterAgent (dep: Dependency, context: NBomberContext, 

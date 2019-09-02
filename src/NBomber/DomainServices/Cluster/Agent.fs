@@ -13,6 +13,7 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster.Contracts
+open NBomber.DomainServices.Validation
 
 type State = {    
     ClientId: string
@@ -36,7 +37,21 @@ let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =
 let validate (state: State, msg: RequestMessage) =
     match msg.Payload with
     | GetAgentInfo -> Ok msg.Payload
-    | NewSession _ -> Ok msg.Payload
+    | NewSession (_, agentSettings, _) ->
+        let registeredScenarios =
+            state.ScenariosHost.GetRegisteredScenarios() |> Array.map(fun x -> x.ScenarioName)
+        
+        agentSettings
+        |> Array.tryFind(fun x -> state.Settings.TargetGroup = x.TargetGroup)
+        |> function
+            | Some matchedTargetGroup ->
+                ClusterValidation.validateTargetGroupScenarios(
+                    matchedTargetGroup.TargetScenarios |> Seq.toArray,
+                    registeredScenarios
+                )
+                |> Result.bind(fun _ -> Ok msg.Payload)
+            | None ->
+                AppError.createResult(CurrentTargetGroupNotMatched(state.Settings.TargetGroup))            
     | _ -> 
         if msg.Headers.SessionId = state.ScenariosHost.SessionId then
             Ok msg.Payload
@@ -59,8 +74,14 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
     
     | NewSession (scnSettings, agentSettings, customSettings) -> 
-        let targetScns = [||]
-        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScns, customSettings) |> ignore        
+        let targetScenarios =
+            agentSettings
+            |> Array.tryFind(fun x -> x.TargetGroup = st.Settings.TargetGroup)
+            |> Option.map(fun x -> x.TargetScenarios)
+            |> Option.defaultValue []
+            |> Seq.toArray
+        
+        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScenarios, customSettings) |> ignore        
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
     | StartWarmUp ->
@@ -111,3 +132,8 @@ let run (st: State) = async {
     let listenTask = TaskCompletionSource<unit>()
     return! listenTask.Task |> Async.AwaitTask
 }
+
+let stop (st: State) =
+    st.ScenariosHost.StopScenarios()
+    st.MqttClient.DisconnectAsync().Wait()
+    st.MqttClient.Dispose()

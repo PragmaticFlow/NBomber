@@ -117,7 +117,7 @@ module GlobalSettingsValidation =
         let notFoundScenarios = targetScn |> List.except allScenarios
 
         if List.isEmpty(notFoundScenarios) then Ok globalSettings
-        else Error <| TargetScenarioNotFound(List.toArray notFoundScenarios, allScenarios)
+        else Error <| TargetScenariosNotFound(List.toArray notFoundScenarios, allScenarios)
 
     let checkDuration (globalSettings: GlobalSettings) =
         let invalidScns =
@@ -158,7 +158,7 @@ module GlobalSettingsValidation =
         )
         |> Option.defaultValue(Ok context)        
 
-module CoordinatorValidation =
+module ClusterValidation =
 
     let validateTargetGroups (allTargetGroups: string[], agentTargetGroups: string[]) = 
         let all = Set.ofArray allTargetGroups
@@ -171,6 +171,18 @@ module CoordinatorValidation =
         match Array.isEmpty notFoundGroups with
         | true  -> Ok()
         | false -> AppError.createResult(TargetGroupsAreNotFound notFoundGroups)
+
+    let validateTargetGroupScenarios (targetScenarios: string[], registeredScenarios: string[]) = 
+        let targetScenarios = targetScenarios |> Set.ofSeq
+        let agentScenarios = registeredScenarios |> Set.ofSeq
+        
+        let notFoundScenarios = 
+            Set.difference targetScenarios agentScenarios
+            |> Set.toArray
+        
+        match Array.isEmpty notFoundScenarios with
+        | true  -> Ok()
+        | false -> AppError.createResult(TargetScenariosNotFound(notFoundScenarios, registeredScenarios)) 
 
 let validateContext = 
     ScenarioValidation.validate
