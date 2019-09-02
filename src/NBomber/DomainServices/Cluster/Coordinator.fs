@@ -125,7 +125,7 @@ let init (dep: Dependency, registeredScenarios: Scenario[],
           customSettings: string) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.connect(clientId, settings.MqttServer)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
 
     let state = {
         SessionId = dep.SessionId

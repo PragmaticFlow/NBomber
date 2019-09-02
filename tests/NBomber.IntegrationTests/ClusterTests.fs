@@ -17,12 +17,10 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster
 open NBomber.FSharp
-
-// todo: reconnect of agent and join cluster
+ 
 // todo: test on very big message limit
 // todo: test on two concurrent coordinators
 // todo: test that agent can stop attack if coordinator restarts
-// todo: test that custom, scenarios settings properly propagated and applied
 // todo: test coordinator waitOnAllAgentsReady
 
 // todo: test NbomberRunner that if warmup duration = 0 than it will not run 
@@ -119,7 +117,7 @@ let ``Coordinator and agents should attack together`` () = async {
     let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
                                         [| scenarioSettings |], customSettings)
     let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
-    Agent.run(agent) |> Async.Start
+    Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)    
     let allStats = statsResult |> Result.defaultValue Array.empty
     
@@ -147,7 +145,7 @@ let ``Changing cluster topology should not affect a current test execution`` () 
     let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
                                         [| scenarioSettings |], customSettings)
     let! agent1 = Agent.init(agentDep, [| scenario |], agentSettings)
-    Agent.run(agent1) |> Async.Start
+    Agent.startListening(agent1) |> Async.Start
     let coordinatorTask = Coordinator.run(coordinator) |> Async.StartAsTask
     
     // waiting until agent starts bombing
@@ -156,7 +154,7 @@ let ``Changing cluster topology should not affect a current test execution`` () 
         
     // spin up a new agent
     let! agent2 = Agent.init(agentDep, [| scenario |], agentSettings)
-    Agent.run(agent2) |> Async.Start
+    Agent.startListening(agent2) |> Async.Start
     
     let! statsResult = coordinatorTask |> Async.AwaitTask
     let allStats = statsResult |> Result.defaultValue Array.empty
@@ -205,7 +203,7 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
                                         [| scenarioSettings |], customSettings)
     let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
-    Agent.run(agent) |> Async.Start
+    Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     
     Agent.stop agent
@@ -244,7 +242,7 @@ let ``Agent should run test only under their agent group`` () = async {
     let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
                                         [| scenarioSettings |], customSettings)
     let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
-    Agent.run(agent) |> Async.Start
+    Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty
     let agentStats = allStats |> Array.tryFind(fun x -> x.Meta.Sender = NodeType.Agent)
@@ -284,7 +282,7 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
     let! coordinator = Coordinator.init(coordinatorDep, [| scenario_111; scenario_222 |], coordinatorSettings,
                                         [| scenarioSettings |], customSettings)
     let! agent = Agent.init(agentDep, [| scenario_111; scenario_222 |], agentSettings)
-    Agent.run(agent) |> Async.Start
+    Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty             
     let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
@@ -296,4 +294,41 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
     
     test <@ coordinatorStats.AllScenariosStats.[0].ScenarioName = "test_scenario_111" @>
     test <@ agentStats.AllScenariosStats.[0].ScenarioName = "test_scenario_222" @>    
+}
+
+[<Fact>]
+let ``Agent should be able to reconnect automatically and join the cluster`` () = async {    
+    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
+    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let server = MqttTests.startMqttServer()
+    
+    // we start one agent    
+    let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
+    Agent.startListening(agent) |> Async.Start    
+    
+    // we stop mqtt server
+    MqttTests.stopMqttServer server
+    
+    // and wait some time
+    do! Async.Sleep(5_000)
+    
+    // spin up the mqtt server again to see that agent will reconnect
+    let server = MqttTests.startMqttServer()
+    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
+                                        [| scenarioSettings |], customSettings)
+    
+    // waiting on reconnect
+    do! Async.Sleep(2_000)
+    
+    let! statsResult = Coordinator.run(coordinator)
+    let allStats = statsResult |> Result.defaultValue Array.empty             
+    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
+    let agentStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Agent)
+    
+    Agent.stop agent    
+    MqttTests.stopMqttServer server
+    
+    test <@ allStats.Length = 2 @>
+    test <@ coordinatorStats.OkCount > 1 @>
+    test <@ agentStats.OkCount > 1 @>
 }

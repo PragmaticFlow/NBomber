@@ -14,6 +14,7 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster.Contracts
 open NBomber.DomainServices.Validation
+open Serilog
 
 type State = {    
     ClientId: string
@@ -23,16 +24,20 @@ type State = {
     Settings: AgentSettings
     MqttClient: IMqttClient
     ScenariosHost: IScenariosHost
+    mutable Working: bool
 }
 
-let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =    
-    st.MqttClient.SubscribeAsync(st.AgentsTopic).Wait()
-    st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
-        msg.ApplicationMessage.Payload
-        |> Mqtt.deserialize<RequestMessage>
-        |> handle        
-    )
-    |> ignore
+let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =
+    try
+        st.MqttClient.SubscribeAsync(st.AgentsTopic).Wait()
+        st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
+            msg.ApplicationMessage.Payload
+            |> Mqtt.deserialize<RequestMessage>
+            |> handle        
+        )
+        |> ignore
+    with
+    | ex -> Log.Error(ex, "Agent.subscribeOnTopics failed")
 
 let validate (state: State, msg: RequestMessage) =
     match msg.Payload with
@@ -99,7 +104,7 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
 let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
     
     let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.connect(clientId, settings.MqttServer)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
 
     let nodeInfo = { 
         MachineName = dep.MachineInfo.MachineName
@@ -115,25 +120,53 @@ let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSetti
         Settings = settings
         MqttClient = mqttClient
         ScenariosHost = ScenariosHost(dep, registeredScenarios)
+        Working = false
     }
         
     return state
 }
 
-let run (st: State) = async {    
-     
-    subscribeOnTopics(st, fun msg ->
-        receive(st, msg)
-        |> AsyncResult.mapError(fun e -> ())
-        |> Async.RunSynchronously
-        |> ignore
-    )
-
+let startListening (st: State) = async {
+    
+    st.Working <- true
     let listenTask = TaskCompletionSource<unit>()
+    
+    let subscribe () =        
+        subscribeOnTopics(st, fun msg ->
+            receive(st, msg)
+            |> AsyncResult.mapError(fun e -> ())
+            |> Async.RunSynchronously
+            |> ignore
+        )
+    
+    let createReconnectTimer () =
+        let mutable reconnecting = false    
+        let reconnectionTimer = new System.Timers.Timer(2_000.0)
+        
+        reconnectionTimer.Elapsed.Add(fun x ->
+            
+            if not st.Working then
+                reconnectionTimer.Stop()
+                listenTask.SetResult()
+            elif
+                not reconnecting && not st.MqttClient.IsConnected then
+                reconnecting <- true
+                Mqtt.reconnect(st.MqttClient, None).Wait()                
+                subscribe()
+                reconnecting <- false
+        )
+        reconnectionTimer
+
+    let timer = createReconnectTimer()
+    timer.Start()
+    
+    subscribe()   
+    
     return! listenTask.Task |> Async.AwaitTask
 }
 
 let stop (st: State) =
+    st.Working <- false
     st.ScenariosHost.StopScenarios()
     st.MqttClient.DisconnectAsync().Wait()
     st.MqttClient.Dispose()
