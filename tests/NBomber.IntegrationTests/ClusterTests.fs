@@ -9,6 +9,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
 open System
+open System.Collections.Concurrent
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Infra
@@ -190,13 +191,13 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     let customSettings = "{ Age: 28 }"
     
     // set up scenarios
-    let customSettingsList = ResizeArray<string>()
+    let customSettingsList = ConcurrentDictionary<NodeType, string>()
     let scenario =
         Scenario.create "test_scenario" [okStep]
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
         |> Scenario.withTestInit(fun context -> task {
             // TestInit will be invoked on agent and on coordinator
-            customSettingsList.Add(context.CustomSettings)
+            customSettingsList.[context.NodeType] <- context.CustomSettings
         })
         |> NBomber.Domain.Scenario.create
     
@@ -211,7 +212,7 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     Coordinator.stop coordinator
     MqttTests.stopMqttServer server          
         
-    let customSettings = customSettingsList |> Seq.filter(fun x -> x = customSettings) |> Seq.toArray
+    let customSettings = customSettingsList |> Seq.filter(fun x -> x.Value = customSettings) |> Seq.toArray
     let agentScenario = agent.ScenariosHost.GetRunningScenarios() |> Array.item 0
         
     test <@ customSettings.Length = 2 @> // because one from coordinator and one from agent
