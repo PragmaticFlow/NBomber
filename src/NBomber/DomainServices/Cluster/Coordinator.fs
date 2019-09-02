@@ -79,7 +79,7 @@ module Communication =
     let validateAgents (st: State) =
         let allGroups = st.Settings.Agents |> Seq.map(fun x -> x.TargetGroup) |> Seq.toArray
         let receivedGroups = st.Agents |> Seq.map(fun x -> x.Value.TargetGroup) |> Seq.toArray
-        CoordinatorValidation.validateTargetGroups(allGroups, receivedGroups)    
+        ClusterValidation.validateTargetGroups(allGroups, receivedGroups)    
 
 let mergeStats (sessionId, machineName, registeredScenarios, 
                 scenariosSettings, allNodeStats: NodeStats[]) = 
@@ -94,13 +94,9 @@ let mergeStats (sessionId, machineName, registeredScenarios,
 
 let buildStats (st: State) = 
     let localStats = st.ScenariosHost.GetStatistics()
-    let agentsStats = st.AgentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray
-
-    if agentsStats.Length = st.Agents.Count then
-        let allStats = Array.append [|localStats|] agentsStats
-        Ok allStats
-    else
-        AppError.createResult NotAllStatsReceived
+    let agentsStats = st.AgentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray    
+    let allStats = Array.append [|localStats|] agentsStats
+    Ok allStats
 
 let printAvailableAgents (st: State) =
     Log.Information(sprintf "available agents: %i" st.Agents.Count)
@@ -129,7 +125,7 @@ let init (dep: Dependency, registeredScenarios: Scenario[],
           customSettings: string) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.connect(clientId, settings.MqttServer)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
 
     let state = {
         SessionId = dep.SessionId
@@ -157,8 +153,7 @@ let run (st: State) = asyncResult {
     )
     
     do! Communication.sendGetAgentInfo(st)
-    printAvailableAgents(st)
-    do! Communication.validateAgents(st)
+    printAvailableAgents(st)    
     
     do! Communication.sendStartNewSession(st)
     do! st.ScenariosHost.InitScenarios(st.SessionId, st.ScenariosSettings,
@@ -178,6 +173,7 @@ let run (st: State) = asyncResult {
     return! buildStats(st)
 }
 
-let stop (st: State) =    
+let stop (st: State) =
+    st.ScenariosHost.StopScenarios()
     st.MqttClient.DisconnectAsync().Wait()
     st.MqttClient.Dispose()

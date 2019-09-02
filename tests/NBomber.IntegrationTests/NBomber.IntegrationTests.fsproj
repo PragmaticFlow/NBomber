@@ -6,6 +6,7 @@
     <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions.fs" />
     <Content Include="Configuration\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -15,11 +16,11 @@
     <Compile Include="Statistics.fs" />    
     <Compile Include="Scenario.fs" />    
     <Compile Include="Infra\MqttTests.fs" />
-    <Compile Include="Cluster\CoordinatorTests.fs" />
     <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration\ParseJson.fs" />
     <Compile Include="Configuration\ApplySettings.fs" />
     <Compile Include="Configuration\Validation.fs" />
+    <Compile Include="ClusterTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.0" />

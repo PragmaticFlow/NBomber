@@ -33,50 +33,39 @@ let toMqttMsg (topic: string) (data: obj) =
         .WithPayload(bytes)
         .Build()
 
-let connect (clientId: string, mqttServer: string) =
+let reconnect (client: IMqttClient, options: IMqttClientOptions option) = task {
+    while not client.IsConnected do
+        try
+            if options.IsSome then
+                let! result = client.ConnectAsync(options.Value, CancellationToken.None)
+                ignore result
+            else
+                do! client.ReconnectAsync()
+                
+            Log.Information("connection with mqtt broker is established")            
+        with
+        | ex -> Log.Error(ex, "can't connect to the mqtt broker")
+    
+    return client        
+}
+
+let initClient (clientId: string, mqttServer: string) =
     
     let createMqttClient () =
         let factory = MqttFactory()
         factory.CreateMqttClient()
-
-    let tsc = TaskCompletionSource<IMqttClient>()
+    
     let client = createMqttClient()
     let options = 
         MqttClientOptionsBuilder()
             .WithClientId(clientId)                            
             .WithTcpServer(mqttServer)
             .WithCleanSession()
-            .Build()                          
-
-    let reconnect () = task {
-        while not client.IsConnected do
-            try
-                let! result = client.ConnectAsync(options, CancellationToken.None)
-                return ()
-            with
-            | _ -> Log.Error("can't connect to the mqtt broker")
-            
-            do! Task.Delay(5_000)
-    }
-
-    client.UseConnectedHandler(fun _ -> 
-        Log.Information("connection with mqtt broker is established")
-        tsc.TrySetResult(client) |> ignore
-    )
-    |> ignore
-
-    client.UseDisconnectedHandler(fun args -> 
-        match args.Exception with
-        | :? OperationCanceledException -> ()
-        | _ ->
-            if args.ClientWasConnected then
-                reconnect() |> ignore
-    )
-    |> ignore
-
-    reconnect() |> ignore
+            .WithCommunicationTimeout(TimeSpan.FromSeconds(1.0))
+            .Build()
+            |> Some
     
-    tsc.Task |> Async.AwaitTask
+    reconnect(client, options) |> Async.AwaitTask
 
 let publishToBroker (mqttClient: IMqttClient) (msg: MqttApplicationMessage) = async {
     try

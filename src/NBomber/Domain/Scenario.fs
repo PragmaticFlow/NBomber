@@ -26,14 +26,14 @@ let create (config: Contracts.Scenario) =
       WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
 
-let init (scenario: Scenario, 
-          initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
-          customSettings: string) =
+let init (scenario: Scenario, initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
+          customSettings: string, nodeType: Contracts.NodeType) =
     try     
         // todo: refactor, pass token
         if scenario.TestInit.IsSome then
             let cancelToken = new CancellationTokenSource()
             let context = {
+                Contracts.NodeType = nodeType
                 Contracts.ScenarioContext.CustomSettings = customSettings
                 Contracts.ScenarioContext.CancellationToken = cancelToken.Token
             }
@@ -45,13 +45,14 @@ let init (scenario: Scenario,
     with 
     | ex -> Error <| InitScenarioError ex
 
-let clean (scenario: Scenario) =
+let clean (scenario: Scenario, nodeType: Contracts.NodeType) =
 
     try
         if scenario.TestClean.IsSome then
             // todo: refacto, pass token
             let cancelToken = new CancellationTokenSource()
             let context = {
+                Contracts.NodeType = nodeType
                 Contracts.ScenarioContext.CustomSettings = ""
                 Contracts.ScenarioContext.CancellationToken = cancelToken.Token
             }

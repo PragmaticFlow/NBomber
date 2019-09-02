@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
     <Company>PragmaticFlow</Company>
-    <Version>0.13.0</Version>
+    <Version>0.14.0-beta</Version>
     <Copyright>PragmaticFlow@2019</Copyright>
     <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.1" />    
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.3" />    
     <PackageReference Include="HdrHistogram" Version="2.5.0" />    
     <PackageReference Include="MQTTnet" Version="3.0.8" />    
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />    
