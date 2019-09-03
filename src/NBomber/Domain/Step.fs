@@ -56,14 +56,23 @@ let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
 
     let mutable data = Unchecked.defaultof<obj>
     let mutable skipStep = false
-    let mutable stepIndex = 0      
+    let mutable stepIndex = 0
+    let resourcesToDispose = ResizeArray<IDisposable>(steps.Length)
 
+    let cleanResources () =
+        for rs in resourcesToDispose do
+            try rs.Dispose()
+            with _ -> ()
+    
     for st in steps do
         if not skipStep && not cancelToken.ShouldCancel then
             
             for i = 1 to st.RepeatCount do
                 let! response = execStep(st, data, globalTimer)
-
+                
+                if response.Response.Payload :? IDisposable then
+                    resourcesToDispose.Add(response.Response.Payload :?> IDisposable)                
+                    
                 if not cancelToken.ShouldCancel then
                     responses.[stepIndex].Add(response)
 
@@ -72,7 +81,9 @@ let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
                         stepIndex <- stepIndex + 1
                         data <- response.Response.Payload
                     else
-                        skipStep <- true    
+                        skipStep <- true
+    
+    cleanResources()
 }
 
 let filterLateResponses (responses: StepResponse seq, duration: TimeSpan) =        
