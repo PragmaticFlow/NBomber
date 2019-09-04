@@ -68,6 +68,8 @@ type ScenarioScheduler(allActors: ScenarioActor[], fastCancelToken: FastCancella
         let actorsTasks = startActorsTasks(actorsBulk)
         
         task {
+            do! Task.Yield()
+
             while not fastCancelToken.ShouldCancel do
                 let! finishedTask = Task.WhenAny(actorsTasks.Values |> Seq.map(fun x -> x.Task))
                 
@@ -85,7 +87,7 @@ type ScenarioScheduler(allActors: ScenarioActor[], fastCancelToken: FastCancella
         let actorBulkSize = calcActorBulkSize(allActors.Length, threadCount)            
         allActors
         |> Array.chunkBySize actorBulkSize
-        |> Array.map(fun actorBulks -> startEventLoop(actorBulks) :> Task)        
+        |> Array.map(fun actorBulks -> startEventLoop(actorBulks) :> Task)
         |> Task.WhenAll
 
 type ScenarioRunner(scenario: Scenario) = 
