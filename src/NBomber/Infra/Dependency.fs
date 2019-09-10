@@ -6,7 +6,6 @@ open System.Reflection
 open System.Runtime.Versioning
 
 open Serilog
-open Serilog.Sinks.TestCorrelator
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -36,6 +35,7 @@ type Dependency = {
     Assets: Assets
     ShowProgressBar: TimeSpan -> unit
     CreateProgressBar: int -> ProgressBar
+    Logger: ILogger
 }
 
 module ProgressBar =
@@ -61,9 +61,6 @@ module ProgressBar =
 
 module Logger =
 
-    let createLogger (config: LoggerConfiguration) =
-        config.CreateLogger()
-
     let withConsoleOutput appType (config: LoggerConfiguration) =
         match appType with
         | Console -> config.WriteTo.Console()
@@ -74,19 +71,12 @@ module Logger =
         | Some v when v.FileName |> String.IsNullOrEmpty |> not ->                        
                 config.WriteTo.File(v.FileName, v.MinimumLevel)
         | _  -> config
-        
-    let withInMemory appType (config: LoggerConfiguration) =
-        match appType with
-        | Test -> config.WriteTo.TestCorrelator()
-        | _    -> config
 
-    let initLogger (appType: ApplicationType, logSettings: LogSettings option) =
-        Log.Logger <- 
-            LoggerConfiguration()
-            |> withConsoleOutput appType
-            |> withFileOutput logSettings
-            |> withInMemory appType
-            |> createLogger
+    let createLogger (appType: ApplicationType, logSettings: LogSettings option) =     
+        LoggerConfiguration()
+        |> withConsoleOutput appType
+        |> withFileOutput logSettings            
+        |> fun config -> config.CreateLogger()
 
 let private retrieveMachineInfo () =
 
@@ -107,8 +97,13 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType, nodeType: NodeType) =
+let create (appType: ApplicationType, nodeType: NodeType, logSettings: LogSettings option) =
+    let logger = Logger.createLogger(appType, logSettings)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
+    
+    // todo: start use instance instead of shared log
+    Log.Logger <- logger
+    
     { SessionId = createSessionId()
       NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
@@ -116,4 +111,5 @@ let create (appType: ApplicationType, nodeType: NodeType) =
       MachineInfo = retrieveMachineInfo()
       Assets = ResourceManager.loadAssets()
       ShowProgressBar = ProgressBar.show >> ignore
-      CreateProgressBar = fun ticks -> ProgressBar.create(ticks) }
+      CreateProgressBar = fun ticks -> ProgressBar.create(ticks)
+      Logger = logger }

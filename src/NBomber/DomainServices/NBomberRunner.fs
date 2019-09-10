@@ -127,9 +127,7 @@ let showAsserts (dep: Dependency) (result: ExecutionResult) =
                        |> showErrors dep
 
 let run (dep: Dependency) (context: NBomberContext) =
-    asyncResult {
-        let logSettings = NBomberContext.tryGetLogSettings(context)
-        Dependency.Logger.initLogger(dep.ApplicationType, logSettings)
+    asyncResult {        
         Log.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, dep.SessionId)
 
         let! ctx = Validation.validateContext(context)
@@ -153,6 +151,7 @@ let run (dep: Dependency) (context: NBomberContext) =
     |> Result.toExitCode
 
 let runAs (appType: ApplicationType) (context: NBomberContext) =
-    let nodeType = NBomberContext.getNodeType context
-    let dep = Dependency.create(appType, nodeType)
+    let logSettings = NBomberContext.tryGetLogSettings(context)
+    let nodeType = NBomberContext.getNodeType(context)
+    let dep = Dependency.create(appType, nodeType, logSettings)
     run dep context
