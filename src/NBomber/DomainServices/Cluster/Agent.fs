@@ -123,6 +123,8 @@ let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSetti
         Working = false
     }
         
+    Log.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)        
+        
     return state
 }
 
@@ -151,7 +153,9 @@ let startListening (st: State) = async {
             elif
                 not reconnecting && not st.MqttClient.IsConnected then
                 reconnecting <- true
-                Mqtt.reconnect(st.MqttClient, None).Wait()                
+                Log.Logger.Error("{agent} disconnected from {cluster}", st.ClientId, st.Settings.ClusterId)
+                Mqtt.reconnect(st.MqttClient, None).Wait()
+                Log.Logger.Information("{agent} established connection with {cluster}", st.ClientId, st.Settings.ClusterId)
                 subscribe()
                 reconnecting <- false
         )

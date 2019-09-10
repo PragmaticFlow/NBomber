@@ -2,8 +2,6 @@ module Tests.MqttTests
 
 open Xunit
 open Swensen.Unquote
-open Serilog.Events
-open Serilog.Sinks.TestCorrelator
 open MQTTnet
 open MQTTnet.Server
 open FsToolkit.ErrorHandling
