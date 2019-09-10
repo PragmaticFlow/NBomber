@@ -1,6 +1,7 @@
 module Tests.ClusterTests
 
 open System
+open System.Collections.Concurrent
 open System.Threading.Tasks
 
 open Xunit
@@ -8,15 +9,13 @@ open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
-open System
-open System.Collections.Concurrent
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster
 open NBomber.FSharp
+open Tests.TestHelper
  
 // todo: test on very big message limit
 // todo: test on two concurrent coordinators
@@ -69,7 +68,7 @@ let internal isWarmUpScenarios (status) =
 
 [<Fact>]
 let ``Coordinator can run as single bomber`` () = async {
-    let dep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
+    let dep = Dependency.createFor(NodeType.Coordinator)
     let server = MqttTests.startMqttServer()
     // specified no agents
     let settings = { coordinatorSettings with Agents = List.empty }
@@ -89,7 +88,7 @@ let ``Coordinator can run as single bomber`` () = async {
 
 [<Fact>]
 let ``Coordinator should be able to start bombing even when agents are offline`` () = async {
-    let dep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
+    let dep = Dependency.createFor(NodeType.Coordinator)
     let server = MqttTests.startMqttServer()
     // specified agents in config
     let settings = { coordinatorSettings with Agents = agents }
@@ -109,8 +108,8 @@ let ``Coordinator should be able to start bombing even when agents are offline``
 
 [<Fact>]
 let ``Coordinator and agents should attack together`` () = async {
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
     // we start coordinator with one agent
@@ -136,8 +135,8 @@ let ``Coordinator and agents should attack together`` () = async {
 [<Fact>]
 let ``Changing cluster topology should not affect a current test execution`` () = async {
     
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     let scenarioSettings = { scenarioSettings with WarmUpDuration = DateTime(TimeSpan.FromSeconds(5.0).Ticks) }
     
@@ -176,8 +175,8 @@ let ``Changing cluster topology should not affect a current test execution`` () 
 [<Fact>]
 let ``Coordinator should be able to propagate all types of settings among the agents`` () = async {
     
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
     // set up custom settings
@@ -221,8 +220,8 @@ let ``Coordinator should be able to propagate all types of settings among the ag
 [<Fact>]
 let ``Agent should run test only under their agent group`` () = async {
     
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
     // set up agent group
@@ -257,8 +256,8 @@ let ``Agent should run test only under their agent group`` () = async {
 [<Fact>]
 let ``Coordinator and Agent should run tests only from TargetScenarios`` () = async {
     
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
     // set up agent group
@@ -297,9 +296,10 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
 }
 
 [<Fact>]
-let ``Agent should be able to reconnect automatically and join the cluster`` () = async {    
-    let coordinatorDep = Dependency.create(ApplicationType.Test, NodeType.Coordinator)
-    let agentDep = Dependency.create(ApplicationType.Test, NodeType.Agent)
+let ``Agent should be able to reconnect automatically and join the cluster`` () = async {
+    
+    let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
+    let (agentDep, loggerBuffer) = Dependency.createWithInMemoryLogger(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
     // we start one agent    
@@ -325,10 +325,22 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
     let agentStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Agent)
     
+    let logEvents = loggerBuffer.LogEvents |> Seq.toArray
+    
+    let agentDisconnectedEvents =
+        logEvents
+        |> Array.filter(fun x -> x.MessageTemplate.Text.Contains("{agent} disconnected from {cluster}"))
+        
+    let agentConnectedEvents =
+        logEvents
+        |> Array.filter(fun x -> x.MessageTemplate.Text.Contains("{agent} established connection with {cluster}"))
+    
     Agent.stop agent    
     MqttTests.stopMqttServer server
     
     test <@ allStats.Length = 2 @>
     test <@ coordinatorStats.OkCount > 1 @>
     test <@ agentStats.OkCount > 1 @>
+    test <@ agentDisconnectedEvents.Length = 1 @>
+    test <@ agentConnectedEvents.Length = 2 @>
 }
