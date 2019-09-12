@@ -1,7 +1,6 @@
-﻿using System.Net.Http;
-
-using NBomber.Contracts;
+﻿using System;
 using NBomber.CSharp;
+using NBomber.Http.CSharp;
 
 namespace CSharp.Examples.Scenarios
 {
@@ -9,28 +8,22 @@ namespace CSharp.Examples.Scenarios
     {   
         public static void Run()
         {
-            // it's a very basic HTTP example, don't use it for production testing
-            // for production purposes use NBomber.Http which use performance optimizations
-            // you can find more here: https://github.com/PragmaticFlow/NBomber.Http
-
-            var httpClient = new HttpClient();            
-
-            var step = Step.Create("GET_gitter_html", async context =>
-            {   
-                var response = await httpClient.GetAsync(
-                    "https://gitter.im", 
-                    context.CancellationToken);
-
-                return response.IsSuccessStatusCode
-                    ? Response.Ok(sizeBytes: (int)response.Content.Headers.ContentLength.Value)
-                    : Response.Fail();
-            });
+            var step = HttpStep.Create("simple step", async (context) =>
+                    Http.CreateRequest("GET", "https://gitter.im")
+                        .WithHeader("Accept", "text/html")
+                //.WithHeader("Cookie", "cookie1=value1; cookie2=value2")
+                //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"))
+                //.WithCheck(response => Task.FromResult(response.IsSuccessStatusCode))
+            );
 
             var scenario = ScenarioBuilder.CreateScenario("test_gitter", step)
-                                          .WithConcurrentCopies(100);
-
-            NBomberRunner.RegisterScenarios(scenario)                         
-                         .RunInConsole();
+                .WithConcurrentCopies(100)
+                .WithWarmUpDuration(TimeSpan.FromSeconds(10))
+                .WithDuration(TimeSpan.FromSeconds(20));
+            
+            NBomberRunner.RegisterScenarios(scenario)
+                //.LoadConfig("config.json")
+                .RunInConsole();
         }
     }
 }

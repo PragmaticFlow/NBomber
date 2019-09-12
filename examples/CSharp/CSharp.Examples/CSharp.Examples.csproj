@@ -2,27 +2,20 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="4.6.2" />
+  <ItemGroup>    
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.1.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
+    <PackageReference Include="NBomber.Http" Version="0.14.0-beta2" />    
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
+  <ItemGroup>    
     <ProjectReference Include="..\..\Infra\TestServer\TestServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="coordinator_config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="agent_config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
