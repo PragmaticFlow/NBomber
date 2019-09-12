@@ -1,0 +1,9 @@
+﻿{
+  "ClusterSettings": {
+    "Agent": {
+      "ClusterId": "test_cluster",
+      "TargetGroup": "1",
+      "MqttServer": "localhost"
+    }
+  }
+}
