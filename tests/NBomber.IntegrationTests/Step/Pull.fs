@@ -140,7 +140,8 @@ let ``repeatCount should set how many times one step will be repeated`` () =
 let ``context.Data should store any payload data from latest step.Response`` () =
 
     let mutable counter = 0
-    let mutable data = null
+    let mutable step2Counter = 0
+    let mutable counterFromStep1 = null
 
     let step1 = Step.create("step 1", fun context -> task {                
         counter <- counter + 1        
@@ -148,10 +149,11 @@ let ``context.Data should store any payload data from latest step.Response`` () 
         return Response.Ok(counter)
     })
 
-    let step2 = Step.create("step 2", fun context -> task {                        
-        data <- context.Data
+    let step2 = Step.create("step 2", fun context -> task {
+        step2Counter <- counter
+        counterFromStep1 <- context.Data
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Ok(counter)
+        return Response.Ok()
     })
 
     let scenario = 
@@ -162,5 +164,5 @@ let ``context.Data should store any payload data from latest step.Response`` () 
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
-
-    Assert.Equal(Convert.ToInt32(data), counter)
+    
+    Assert.Equal(Convert.ToInt32(counterFromStep1), step2Counter)
