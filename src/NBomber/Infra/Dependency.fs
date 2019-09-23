@@ -36,6 +36,7 @@ type Dependency = {
     ShowProgressBar: TimeSpan -> unit
     CreateProgressBar: int -> ProgressBar
     Logger: ILogger
+    StatisticsSink: IStatisticsSink option
 }
 
 module ProgressBar =
@@ -112,4 +113,5 @@ let create (appType: ApplicationType, nodeType: NodeType, logSettings: LogSettin
       Assets = ResourceManager.loadAssets()
       ShowProgressBar = ProgressBar.show >> ignore
       CreateProgressBar = fun ticks -> ProgressBar.create(ticks)
-      Logger = logger }
+      Logger = logger
+      StatisticsSink = None }

@@ -71,10 +71,18 @@ let ``Coordinator can run as single bomber`` () = async {
     let dep = Dependency.createFor(NodeType.Coordinator)
     let server = MqttTests.startMqttServer()
     // specified no agents
-    let settings = { coordinatorSettings with Agents = List.empty }
+    
+    let coordinatorSettings = { coordinatorSettings with Agents = List.empty }
+    let scnArgs = {
+        SessionId = dep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
     
     // we start coordinator without agents
-    let! coordinator = Coordinator.init(dep, [| scenario |], settings, [| scenarioSettings |], customSettings)
+    let! coordinator = Coordinator.init(dep, registeredScenarios, coordinatorSettings, scnArgs)
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty
     
@@ -91,10 +99,18 @@ let ``Coordinator should be able to start bombing even when agents are offline``
     let dep = Dependency.createFor(NodeType.Coordinator)
     let server = MqttTests.startMqttServer()
     // specified agents in config
-    let settings = { coordinatorSettings with Agents = agents }
+    
+    let coordinatorSettings = { coordinatorSettings with Agents = agents }
+    let scnArgs = {
+        SessionId = dep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
     
     // we start coordinator without agents even though we specified agents in config
-    let! coordinator = Coordinator.init(dep, [| scenario |], settings, [| scenarioSettings |], customSettings)
+    let! coordinator = Coordinator.init(dep, registeredScenarios, coordinatorSettings, scnArgs)
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty
         
@@ -112,9 +128,16 @@ let ``Coordinator and agents should attack together`` () = async {
     let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
+    
     // we start coordinator with one agent
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
     let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
     Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)    
@@ -140,9 +163,16 @@ let ``Changing cluster topology should not affect a current test execution`` () 
     let server = MqttTests.startMqttServer()
     let scenarioSettings = { scenarioSettings with WarmUpDuration = DateTime(TimeSpan.FromSeconds(5.0).Ticks) }
     
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
+    
     // we start coordinator with one agent    
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
     let! agent1 = Agent.init(agentDep, [| scenario |], agentSettings)
     Agent.startListening(agent1) |> Async.Start
     let coordinatorTask = Coordinator.run(coordinator) |> Async.StartAsTask
@@ -186,6 +216,13 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     let coordinatorSettings = { coordinatorSettings with Agents = agents }
     let scenarioSettings = { scenarioSettings with ConcurrentCopies = 5 }
     let customSettings = "{ Age: 28 }"
+        
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
     
     // set up scenarios
     let customSettingsList = ConcurrentDictionary<NodeType, string>()
@@ -197,11 +234,11 @@ let ``Coordinator should be able to propagate all types of settings among the ag
             customSettingsList.[context.NodeType] <- context.CustomSettings
         })
         |> NBomber.Domain.Scenario.create
+    let registeredScenarios = [| scenario |]
     
     // we start coordinator which will propagate settings to agent
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
-    let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! agent = Agent.init(agentDep, registeredScenarios, agentSettings)
     Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     
@@ -237,10 +274,17 @@ let ``Agent should run test only under their agent group`` () = async {
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)        
         |> NBomber.Domain.Scenario.create
     
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
+    
     // we start coordinator which will propagate settings to agent
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
-    let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! agent = Agent.init(agentDep, registeredScenarios, agentSettings)
     Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty
@@ -268,6 +312,12 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
     ]
     // coordinator will run only test_scenario_111
     let coordinatorSettings = { coordinatorSettings with Agents = agents; TargetScenarios = ["test_scenario_111"] }
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
     
     // set up scenarios    
     let scenario_111 =
@@ -276,11 +326,11 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
         |> NBomber.Domain.Scenario.create
     
     let scenario_222 = { scenario_111 with ScenarioName = "test_scenario_222"  }
+    let registeredScenarios = [| scenario_111; scenario_222 |]
     
     // we start coordinator which will propagate settings to agent
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario_111; scenario_222 |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
-    let! agent = Agent.init(agentDep, [| scenario_111; scenario_222 |], agentSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! agent = Agent.init(agentDep, registeredScenarios, agentSettings)
     Agent.startListening(agent) |> Async.Start
     let! statsResult = Coordinator.run(coordinator)
     let allStats = statsResult |> Result.defaultValue Array.empty             
@@ -302,6 +352,14 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     let (agentDep, loggerBuffer) = Dependency.createWithInMemoryLogger(NodeType.Agent)
     let server = MqttTests.startMqttServer()
     
+    let scnArgs = {
+        SessionId = coordinatorDep.SessionId
+        ScenariosSettings = [| scenarioSettings |]
+        TargetScenarios = Array.empty
+        CustomSettings = customSettings
+    }
+    let registeredScenarios = [| scenario |]
+    
     // we start one agent    
     let! agent = Agent.init(agentDep, [| scenario |], agentSettings)
     Agent.startListening(agent) |> Async.Start    
@@ -314,8 +372,7 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     
     // spin up the mqtt server again to see that agent will reconnect
     let server = MqttTests.startMqttServer()
-    let! coordinator = Coordinator.init(coordinatorDep, [| scenario |], coordinatorSettings,
-                                        [| scenarioSettings |], customSettings)
+    let! coordinator = Coordinator.init(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
     
     // waiting on reconnect
     do! Async.Sleep(2_000)

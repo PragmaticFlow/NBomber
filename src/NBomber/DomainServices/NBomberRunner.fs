@@ -13,41 +13,25 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.Cluster
+open NBomber.DomainServices.ScenariosHost
 
 type ExecutionResult = {     
     AllNodeStats: NodeStats[]
     Statistics: Statistics[]
     FailedAsserts: DomainError[]
-}
-
-type ScenariosArgs = {
-    ScenariosSettings: ScenarioSetting[]
-    TargetScenarios: string[]
-    CustomSettings: string
-    RegisteredScenarios: Scenario[]
-}
-
-let getScenariosArgs (context: NBomberContext) =
-    let scnSettings = NBomberContext.getScenariosSettings(context)
-    let targetScns = NBomberContext.getTargetScenarios(context)
-    let customSettings = NBomberContext.tryGetCustomSettings context
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
-    { ScenariosSettings = scnSettings
-      TargetScenarios = targetScns
-      CustomSettings = customSettings
-      RegisteredScenarios = registeredScns } 
+} 
 
 let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
                            crdSettings: CoordinatorSettings) = asyncResult {
     sprintf "NBomber started as cluster coordinator: %A" crdSettings
     |> Log.Information
 
-    let scnArgs = getScenariosArgs(context)
+    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
     
-    let! state = Coordinator.init(dep, scnArgs.RegisteredScenarios, crdSettings,
-                                  scnArgs.ScenariosSettings, scnArgs.CustomSettings)
-    let! allStats = Coordinator.run state
-    Coordinator.stop state
+    let! state = Coordinator.init(dep, registeredScns, crdSettings, scnArgs)
+    let! allStats = Coordinator.run(state)
+    Coordinator.stop(state)
     return allStats
 }
 
@@ -55,9 +39,10 @@ let runClusterAgent (dep: Dependency, context: NBomberContext,
                      agentSettings: AgentSettings) = asyncResult {
     sprintf "NBomber started as cluster agent: %A" agentSettings
     |> Log.Information
-
-    let scnArgs = getScenariosArgs(context)
-    let! state = Agent.init(dep, scnArgs.RegisteredScenarios, agentSettings)    
+    
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+    
+    let! state = Agent.init(dep, registeredScns, agentSettings)    
     do! Agent.startListening(state)
     return Array.empty<NodeStats>
 }
@@ -65,13 +50,17 @@ let runClusterAgent (dep: Dependency, context: NBomberContext,
 let runSingleNode (dep: Dependency, context: NBomberContext) =
     Log.Information("NBomber started as single node")
 
-    let scnArgs = getScenariosArgs(context)
-    ScenariosHost.create(dep, scnArgs.RegisteredScenarios)
-    |> ScenariosHost.run dep.SessionId scnArgs.ScenariosSettings scnArgs.TargetScenarios scnArgs.CustomSettings
+    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+    
+    let scnHost = ScenariosHost(dep, registeredScns)
+    scnHost.RunSession(scnArgs)
     |> AsyncResult.map(fun stats -> [|stats|])
 
 let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
-    let scnArgs = getScenariosArgs(context)
+    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
+    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+    
     match dep.NodeType with
     | NodeType.SingleNode  -> 
         let statistics = allNodeStats |> Array.exactlyOne |> Statistics.create
@@ -81,7 +70,7 @@ let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: Nod
     
     | NodeType.Coordinator -> 
         let mergedStats = Coordinator.mergeStats(dep.SessionId,dep.MachineInfo.MachineName, 
-                                                 scnArgs.RegisteredScenarios, scnArgs.ScenariosSettings,
+                                                 registeredScns, scnArgs.ScenariosSettings,
                                                  allNodeStats)
         let statistics = Statistics.create(mergedStats)        
         { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]

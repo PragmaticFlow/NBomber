@@ -17,18 +17,16 @@ open NBomber.DomainServices.Validation
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster.Contracts
 
-type State = {
-    SessionId: string
+type State = {    
     ClientId: string
     AgentsTopic: string
     CoordinatorTopic: string
     Agents: Dictionary<ClientId, ClusterNodeInfo>
     AgentsStats: Dictionary<ClientId, NodeStats>
-    Settings: CoordinatorSettings
-    ScenariosSettings: ScenarioSetting[]
-    CustomSettings: string
+    ScenariosArgs: ScenariosArgs
+    Settings: CoordinatorSettings    
     MqttClient: IMqttClient
-    ScenariosHost: IScenariosHost
+    ScenariosHost: ScenariosHost
 }
 
 module Communication =    
@@ -43,7 +41,7 @@ module Communication =
         |> ignore
 
     let sendToAgents (st: State) (req: Request) =        
-        Contracts.createRequestMsg(st.ClientId, st.SessionId, req)
+        Contracts.createRequestMsg(st.ClientId, st.ScenariosArgs.SessionId, req)
         |> Mqtt.toMqttMsg(st.AgentsTopic)
         |> Mqtt.publishToBroker(st.MqttClient)
 
@@ -52,8 +50,10 @@ module Communication =
         do! Async.Sleep(1_000)
     }
 
-    let sendStartNewSession (st: State) = 
-        Request.NewSession(st.ScenariosSettings, st.Settings.Agents |> Seq.toArray, st.CustomSettings)
+    let sendStartNewSession (st: State) =        
+        Request.NewSession(st.ScenariosArgs.ScenariosSettings,
+                           st.Settings.Agents |> Seq.toArray,
+                           st.ScenariosArgs.CustomSettings)
         |> sendToAgents st
 
     let sendStartWarmUp (st: State) =
@@ -121,22 +121,20 @@ let receive (st: State, msg: ResponseMessage) = result {
 }
 
 let init (dep: Dependency, registeredScenarios: Scenario[],
-          settings: CoordinatorSettings, scenariosSettings: ScenarioSetting[],
-          customSettings: string) = async {
+          settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
-
-    let state = {
-        SessionId = dep.SessionId
+    let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }
+    
+    let state = {        
         ClientId = clientId
         AgentsTopic = Contracts.createAgentsTopic(settings.ClusterId)
         CoordinatorTopic = Contracts.createCoordinatorTopic(settings.ClusterId)
         Agents = Dictionary<_,_>()
         AgentsStats = Dictionary<_,_>()
-        Settings = settings
-        ScenariosSettings = scenariosSettings
-        CustomSettings = customSettings
+        ScenariosArgs = scnArgs
+        Settings = settings        
         MqttClient = mqttClient
         ScenariosHost = ScenariosHost(dep, registeredScenarios)
     }
@@ -156,9 +154,7 @@ let run (st: State) = asyncResult {
     printAvailableAgents(st)    
     
     do! Communication.sendStartNewSession(st)
-    do! st.ScenariosHost.InitScenarios(st.SessionId, st.ScenariosSettings,
-                                       st.Settings.TargetScenarios |> Seq.toArray,
-                                       st.CustomSettings)
+    do! st.ScenariosHost.InitScenarios(st.ScenariosArgs)
     do! Communication.waitOnAllAgentsReady(st)    
 
     do! Communication.sendStartWarmUp(st)

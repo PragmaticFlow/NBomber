@@ -15,6 +15,29 @@ open NBomber.Errors
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenarioRunner
 
+type ScenariosArgs = {
+    SessionId: string
+    ScenariosSettings: ScenarioSetting[]
+    TargetScenarios: string[]
+    CustomSettings: string    
+} with
+  
+  static member empty = {
+      SessionId = ""
+      ScenariosSettings = Array.empty
+      TargetScenarios = Array.empty
+      CustomSettings = ""
+  }
+  
+  static member getFromContext (sessionId, context: NBomberContext) =
+      let scnSettings = NBomberContext.getScenariosSettings(context)
+      let targetScns = NBomberContext.getTargetScenarios(context)
+      let customSettings = NBomberContext.tryGetCustomSettings context    
+      { SessionId = sessionId
+        ScenariosSettings = scnSettings
+        TargetScenarios = targetScns
+        CustomSettings = customSettings }
+
 type WorkingState =
     | InitScenarios
     | WarmUpScenarios
@@ -25,17 +48,6 @@ type ScenarioHostStatus =
     | Ready
     | Working of WorkingState
     | Stopped of reason:string
-
-type IScenariosHost =
-    abstract SessionId: string
-    abstract Status: ScenarioHostStatus
-    abstract GetRegisteredScenarios: unit -> Scenario[]
-    abstract GetRunningScenarios: unit -> Scenario[]
-    abstract InitScenarios: sessionId:string * ScenarioSetting[] * targetScenarios:string[] * customSettings:string -> Task<Result<unit,AppError>>
-    abstract WarmUpScenarios: unit -> Task<unit>
-    abstract StartBombing: unit -> Task<unit>
-    abstract StopScenarios: unit -> unit
-    abstract GetStatistics: unit -> NodeStats
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     let runnerWithLongestScenario = scnRunners
@@ -109,7 +121,7 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     if dep.ApplicationType = ApplicationType.Console then displayProgress(dep, scnRunners)
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
-let stopAndCleanScenarios (dep: Dependency) (scnRunners: ScenarioRunner[]) =
+let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     Log.Information("stopping bombing and cleaning resources...")
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType))
@@ -128,78 +140,66 @@ let printTargetScenarios (scenarios: Scenario[]) =
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
-    let mutable _sessionId = ""
+    let mutable _scnArgs = ScenariosArgs.empty  
     let mutable _status = ScenarioHostStatus.Ready
-    let mutable scnRunners: ScenarioRunner[] option = None
+    let mutable _scnRunners = Array.empty<ScenarioRunner>
     
-    let statsMeta = { SessionId = dep.SessionId; MachineName = dep.MachineInfo.MachineName; Sender = dep.NodeType }    
+    let _statsMeta = { SessionId = dep.SessionId
+                       MachineName = dep.MachineInfo.MachineName
+                       Sender = dep.NodeType }
 
-    interface IScenariosHost with
-        member x.SessionId = _sessionId
-        member x.Status = _status
-        member x.GetRegisteredScenarios() = registeredScenarios
-        member x.GetRunningScenarios() =
-            match scnRunners with
-            | Some runners -> runners |> Array.map(fun x -> x.Scenario)
-            | None         -> Array.empty
+    member x.SessionId = _scnArgs.SessionId
+    member x.Status = _status
+    member x.GetRegisteredScenarios() = registeredScenarios    
+    member x.GetRunningScenarios() = _scnRunners |> Array.map(fun x -> x.Scenario)
+    
+    member x.InitScenarios(args: ScenariosArgs) = task {
+        _scnArgs <- args
+        _status <- ScenarioHostStatus.Working(InitScenarios)
+        do! Task.Yield()            
+        let! results = registeredScenarios
+                       |> Scenario.applySettings(args.ScenariosSettings)
+                       |> Scenario.filterTargetScenarios(args.TargetScenarios)
+                       |> printTargetScenarios
+                       |> initScenarios dep args.CustomSettings
         
-        member x.InitScenarios(sessionId, settings, targetScenarios, customSettings) = task {            
-            _sessionId <- sessionId
-            _status <- ScenarioHostStatus.Working(InitScenarios)
-            do! Task.Yield()            
-            let! results = registeredScenarios
-                           |> Scenario.applySettings(settings)
-                           |> Scenario.filterTargetScenarios(targetScenarios)
-                           |> printTargetScenarios
-                           |> initScenarios dep customSettings
-            
-            match results with
-            | Ok scns -> scnRunners <- scns |> Array.map(ScenarioRunner) |> Some
-                         _status <- ScenarioHostStatus.Ready
-                         return Ok() 
-            
-            | Error e -> _status <- ScenarioHostStatus.Stopped(AppError.toString e)
-                         return AppError.createResult(e)
-        }
+        match results with
+        | Ok scns -> _scnRunners <- scns |> Array.map(ScenarioRunner)
+                     _status <- ScenarioHostStatus.Ready
+                     return Ok()
+        
+        | Error e -> _status <- ScenarioHostStatus.Stopped(AppError.toString e)
+                     return AppError.createResult(e)
+    }
 
-        member x.WarmUpScenarios() = task {             
-            if scnRunners.IsSome then
-                _status <- ScenarioHostStatus.Working(WarmUpScenarios)
-                do! Task.Yield()
-                warmUpScenarios(dep, scnRunners.Value)                
-                _status <- ScenarioHostStatus.Ready
-                do! Task.Delay(1000)
-        }
+    member x.WarmUpScenarios() = task {
+        _status <- ScenarioHostStatus.Working(WarmUpScenarios)
+        do! Task.Yield()
+        warmUpScenarios(dep, _scnRunners)                
+        _status <- ScenarioHostStatus.Ready
+        do! Task.Delay(1_000)
+    }
 
-        member x.StartBombing() = task {              
-            if scnRunners.IsSome then
-                _status <- ScenarioHostStatus.Working(StartBombing)
-                do! Task.Yield()
-                let! tasks = runBombing(dep, scnRunners.Value)
-                scnRunners |> Option.map(stopAndCleanScenarios dep) |> ignore                
-                _status <- ScenarioHostStatus.Ready
-                do! Task.Delay(1000)
-        }
+    member x.StartBombing() = task {
+        _status <- ScenarioHostStatus.Working(StartBombing)
+        do! Task.Yield()
+        let! tasks = runBombing(dep, _scnRunners)
+        stopAndCleanScenarios(dep, _scnRunners)                
+        _status <- ScenarioHostStatus.Ready
+        do! Task.Delay(1000)
+    }
 
-        member x.StopScenarios() = 
-            _status <- ScenarioHostStatus.Working(StopScenarios)
-            scnRunners |> Option.map(stopAndCleanScenarios dep) |> ignore
-            _status <- ScenarioHostStatus.Ready
+    member x.StopScenarios() = 
+        _status <- ScenarioHostStatus.Working(StopScenarios)
+        stopAndCleanScenarios(dep, _scnRunners)
+        _status <- ScenarioHostStatus.Ready
 
-        member x.GetStatistics() =            
-            match scnRunners with
-            | Some v -> getResults(statsMeta, v)
-            | None   -> NodeStats.create statsMeta Array.empty
-
-let create (dep: Dependency, registeredScns: Scenario[]) =
-    ScenariosHost(dep, registeredScns) :> IScenariosHost
-
-let run (sessionId) (scnSettings: ScenarioSetting[]) (targetScns: ScenarioName[])
-        (customSettings: string)
-        (scnHost: IScenariosHost) = asyncResult {    
-    
-    do! scnHost.InitScenarios(sessionId, scnSettings, targetScns, customSettings)
-    do! scnHost.WarmUpScenarios()
-    do! scnHost.StartBombing()    
-    return scnHost.GetStatistics()
-}
+    member x.GetStatistics() =
+        getResults(_statsMeta, _scnRunners)        
+        
+    member x.RunSession(args: ScenariosArgs) = asyncResult {
+        do! x.InitScenarios(args)
+        do! x.WarmUpScenarios()
+        do! x.StartBombing()
+        return x.GetStatistics()
+    }

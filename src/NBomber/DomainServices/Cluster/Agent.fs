@@ -23,7 +23,7 @@ type State = {
     NodeInfo: ClusterNodeInfo    
     Settings: AgentSettings
     MqttClient: IMqttClient
-    ScenariosHost: IScenariosHost
+    ScenariosHost: ScenariosHost
     mutable Working: bool
 }
 
@@ -86,7 +86,13 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
             |> Option.defaultValue []
             |> Seq.toArray
         
-        st.ScenariosHost.InitScenarios(msg.Headers.SessionId, scnSettings, targetScenarios, customSettings) |> ignore        
+        let scnArgs = {
+            SessionId = msg.Headers.SessionId
+            ScenariosSettings = scnSettings
+            TargetScenarios = targetScenarios
+            CustomSettings = customSettings
+        } 
+        st.ScenariosHost.InitScenarios(scnArgs) |> ignore        
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
     | StartWarmUp ->
