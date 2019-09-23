@@ -1,7 +1,8 @@
 ﻿namespace NBomber.CSharp
 
+#nowarn "3211"
+
 open System
-open System.Threading
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices

@@ -1,5 +1,7 @@
 ﻿module internal NBomber.DomainServices.Reporting.Report
 
+#nowarn "0104"
+
 open System
 open System.IO
 
