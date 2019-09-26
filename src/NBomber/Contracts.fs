@@ -59,7 +59,9 @@ type ScenarioContext = {
     CancellationToken: CancellationToken
 }
 
-type IStep = interface end
+type IStep =
+    abstract StepName: string
+    
 type IAssertion = interface end  
 
 type Scenario = {

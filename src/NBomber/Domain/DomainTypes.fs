@@ -52,7 +52,9 @@ type internal Step = {
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
     RepeatCount: int
-} with interface IStep
+} with
+    interface IStep with
+        member x.StepName = x.StepName
 
 type internal StepResponse = {
     Response: Response
