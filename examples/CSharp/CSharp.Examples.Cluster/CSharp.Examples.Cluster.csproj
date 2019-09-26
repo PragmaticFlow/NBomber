@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="NBomber.Http" Version="0.14.0-beta2" />
+        <PackageReference Include="NBomber.Http" Version="0.14.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,6 +16,10 @@
       <None Update="coordinator_config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
     </ItemGroup>
 
 </Project>

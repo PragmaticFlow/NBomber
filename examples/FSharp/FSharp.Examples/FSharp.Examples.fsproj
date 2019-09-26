@@ -14,11 +14,12 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup />  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
+  </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="NBomber" Version="0.14.0-beta2" />
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />    
   </ItemGroup>
 
 </Project>

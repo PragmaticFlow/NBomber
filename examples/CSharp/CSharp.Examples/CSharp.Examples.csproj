@@ -8,10 +8,11 @@
   <ItemGroup>    
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.1.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
-    <PackageReference Include="NBomber.Http" Version="0.14.0-beta2" />    
+    <PackageReference Include="NBomber.Http" Version="0.14.1" />    
   </ItemGroup>
 
   <ItemGroup>    
+    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />    
     <ProjectReference Include="..\..\Infra\TestServer\TestServer.csproj" />
   </ItemGroup>
 
