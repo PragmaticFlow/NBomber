@@ -50,7 +50,7 @@ type internal ScenarioStats = {
     Duration: TimeSpan
 }
 
-type internal NodeStats = {    
+type internal RawNodeStats = {    
     AllScenariosStats: ScenarioStats[]
     OkCount: int
     FailCount: int

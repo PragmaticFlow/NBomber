@@ -23,7 +23,7 @@ let private printSteps (stats: ScenarioStats) =
     |> Array.map(fun x -> getLine(stats.ScenarioName, stats.Duration, stats.ConcurrentCopies, x))
     |> String.concat(Environment.NewLine)
 
-let print (stats: NodeStats) =
+let print (stats: RawNodeStats) =
     let header = getHeader()
     let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat(String.Empty)
     header + Environment.NewLine + body

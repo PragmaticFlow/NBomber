@@ -5,7 +5,7 @@ open ConsoleTables
 open NBomber.Domain
 open NBomber.Errors
 
-let print (stats: NodeStats, failedAsserts: DomainError[]) = 
+let print (stats: RawNodeStats, failedAsserts: DomainError[]) = 
     stats.AllScenariosStats
     |> Array.map(fun x -> let header = printScenarioHeader(x)
                           let stepsTable = printStepsTable(x.StepsStats, failedAsserts)

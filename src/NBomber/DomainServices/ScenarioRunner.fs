@@ -31,7 +31,7 @@ type ScenarioActor(actorIndex: int, correlationId: string,
         working <- false
     }
 
-    member x.GetResults(duration) =
+    member x.GetStepResults(duration) =
         let filteredResponses =
             allResponses |> Seq.map(fun x -> Step.filterLateResponses(x, duration)) |> Seq.toArray
         
@@ -165,7 +165,10 @@ type ScenarioRunner(scenario: Scenario) =
     member x.Run() = run(scenario.Duration)
     member x.Stop() = stop(curJob, curActors)
     
-    member x.GetResult() =
-        curActors        
-        |> Array.collect(fun x -> x.GetResults scenario.Duration) 
-        |> ScenarioStats.create scenario
+    member x.GetScenarioStats() =
+        x.GetScenarioStats(scenario.Duration)        
+        
+    member x.GetScenarioStats(executionTime) =
+        curActors
+        |> Array.collect(fun x -> x.GetStepResults executionTime) 
+        |> ScenarioStats.create scenario executionTime

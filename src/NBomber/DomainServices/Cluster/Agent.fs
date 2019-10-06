@@ -20,14 +20,14 @@ type State = {
     ClientId: string
     AgentsTopic: string
     CoordinatorTopic: string
-    NodeInfo: ClusterNodeInfo    
+    NodeInfo: AgentNodeInfo    
     Settings: AgentSettings
     MqttClient: IMqttClient
     ScenariosHost: ScenariosHost
-    mutable Working: bool
+    mutable ReconnectTimer: System.Timers.Timer
 }
 
-let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =
+let private subscribeOnCoordinatorRequests (st: State, handle: RequestMessage -> unit) =
     try
         st.MqttClient.SubscribeAsync(st.AgentsTopic).Wait()
         st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
@@ -41,7 +41,15 @@ let private subscribeOnTopics (st: State, handle: RequestMessage -> unit) =
 
 let validate (state: State, msg: RequestMessage) =
     match msg.Payload with
-    | GetAgentInfo -> Ok msg.Payload
+    | GetAgentInfo onlyForSessionId ->
+        match onlyForSessionId with
+        | Some sessionId ->
+            if sessionId = state.ScenariosHost.SessionId then Ok msg.Payload
+            else AppError.createResult(SessionIsWrong)
+                
+        | None -> Ok msg.Payload
+        
+        
     | NewSession (_, agentSettings, _) ->
         let registeredScenarios =
             state.ScenariosHost.GetRegisteredScenarios() |> Array.map(fun x -> x.ScenarioName)
@@ -63,7 +71,7 @@ let validate (state: State, msg: RequestMessage) =
         else
             AppError.createResult SessionIsWrong
 
-let receive (st: State, msg: RequestMessage) = asyncResult {
+let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
 
     let getCurrentInfo () = 
         { st.NodeInfo with HostStatus = st.ScenariosHost.Status }
@@ -75,7 +83,7 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
         |> Mqtt.publishToBroker(st.MqttClient)        
 
     match! validate(st, msg) with
-    | GetAgentInfo ->       
+    | GetAgentInfo _ ->       
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
     
     | NewSession (scnSettings, agentSettings, customSettings) -> 
@@ -103,11 +111,15 @@ let receive (st: State, msg: RequestMessage) = asyncResult {
         st.ScenariosHost.StartBombing() |> ignore
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
-    | GetStatistics ->
-        do! Response.AgentStats(st.ScenariosHost.GetStatistics()) |> sendToCoordinator(st)        
+    | GetStatistics duration ->
+        let stats =
+            if duration.IsSome then st.ScenariosHost.GetNodeStats(duration.Value)
+            else st.ScenariosHost.GetNodeStats()
+            
+        do! Response.AgentStats(stats) |> sendToCoordinator(st)        
 }
 
-let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
+let initAgent (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
     
     let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
@@ -125,8 +137,8 @@ let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSetti
         NodeInfo = nodeInfo   
         Settings = settings
         MqttClient = mqttClient
-        ScenariosHost = ScenariosHost(dep, registeredScenarios)
-        Working = false
+        ScenariosHost = new ScenariosHost(dep, registeredScenarios)
+        ReconnectTimer = new System.Timers.Timer()
     }
         
     Log.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)        
@@ -136,12 +148,11 @@ let init (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSetti
 
 let startListening (st: State) = async {
     
-    st.Working <- true
     let listenTask = TaskCompletionSource<unit>()
     
-    let subscribe () =        
-        subscribeOnTopics(st, fun msg ->
-            receive(st, msg)
+    let subscribeOnCoordinatorRequests() =        
+        subscribeOnCoordinatorRequests(st, fun request ->
+            receiveCoordinatorRequest(st, request)
             |> AsyncResult.mapError(fun e -> ())
             |> Async.RunSynchronously
             |> ignore
@@ -152,31 +163,41 @@ let startListening (st: State) = async {
         let reconnectionTimer = new System.Timers.Timer(2_000.0)
         
         reconnectionTimer.Elapsed.Add(fun x ->
-            
-            if not st.Working then
-                reconnectionTimer.Stop()
-                listenTask.SetResult()
-            elif
-                not reconnecting && not st.MqttClient.IsConnected then
+            if not reconnecting && not st.MqttClient.IsConnected then
                 reconnecting <- true
                 Log.Logger.Error("{agent} disconnected from {cluster}", st.ClientId, st.Settings.ClusterId)
                 Mqtt.reconnect(st.MqttClient, None).Wait()
                 Log.Logger.Information("{agent} established connection with {cluster}", st.ClientId, st.Settings.ClusterId)
-                subscribe()
+                subscribeOnCoordinatorRequests()
                 reconnecting <- false
         )
         reconnectionTimer
 
-    let timer = createReconnectTimer()
-    timer.Start()
+    st.ReconnectTimer <- createReconnectTimer()
+    st.ReconnectTimer.Start()
     
-    subscribe()   
+    subscribeOnCoordinatorRequests()
     
     return! listenTask.Task |> Async.AwaitTask
 }
-
-let stop (st: State) =
-    st.Working <- false
-    st.ScenariosHost.StopScenarios()
-    st.MqttClient.DisconnectAsync().Wait()
-    st.MqttClient.Dispose()
+    
+type ClusterAgent() =
+    
+    let mutable _state: Option<State> = None
+    member x.State = _state
+    
+    member x.StartListening(dep: Dependency, registeredScenarios: Scenario[],
+                            settings: AgentSettings) =
+        async {
+            let! state = initAgent(dep, registeredScenarios, settings)
+            _state <- Some state
+            return! startListening(state)
+        }
+        
+    interface IDisposable with
+        member x.Dispose() =
+            if _state.IsSome then
+                use reconnectTimer = _state.Value.ReconnectTimer
+                use client = _state.Value.MqttClient
+                use scnHost = _state.Value.ScenariosHost
+                ()

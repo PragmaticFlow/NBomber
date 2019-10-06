@@ -1,4 +1,5 @@
 ﻿module internal NBomber.DomainServices.Reporting.Report
+open FsToolkit.ErrorHandling
 
 #nowarn "0104"
 
@@ -7,6 +8,7 @@ open System.IO
 
 open Serilog
 
+open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
 open NBomber.Infra
@@ -18,16 +20,35 @@ type ReportResult = {
     HtmlReport: string
     CsvReport: string
     MdReport: string
-}
+} with
+  static member empty =
+      { TxtReport = ""
+        HtmlReport = ""
+        CsvReport = ""
+        MdReport = "" }
 
-//todo: fix stats.[0]
-let build (dep: Dependency, nodeStats: NodeStats[], failedAsserts: DomainError[]) =    
-    { TxtReport = TxtReport.print(nodeStats.[0], failedAsserts)
-      HtmlReport = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
-      CsvReport = CsvReport.print(nodeStats.[0])
-      MdReport = MdReport.print(nodeStats.[0], failedAsserts) }
+let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainError[]) =
+    match dep.NodeType with
+    | NodeType.SingleNode when nodeStats.Length > 0 ->
+        { TxtReport = TxtReport.print(nodeStats.[0], failedAsserts)
+          HtmlReport = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
+          CsvReport = CsvReport.print(nodeStats.[0])
+          MdReport = MdReport.print(nodeStats.[0], failedAsserts) }
+    
+    | NodeType.Coordinator when nodeStats.Length > 0 ->
+          nodeStats
+          |> Array.tryFind(fun x -> x.Meta.Sender = NodeType.Cluster)
+          |> Option.map(fun clusterStats ->
+              { TxtReport = TxtReport.print(clusterStats, failedAsserts)
+                HtmlReport = HtmlReport.print(dep, clusterStats, failedAsserts)
+                CsvReport = CsvReport.print(clusterStats)
+                MdReport = MdReport.print(clusterStats, failedAsserts) }
+          )
+          |> Option.defaultValue(ReportResult.empty)
+    
+    | _ -> ReportResult.empty        
 
-let save (dep: Dependency, outPutDir: string, reportFileName: string, 
+let save (outPutDir: string, reportFileName: string, 
           reportFormats: ReportFormat list, report: ReportResult) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")

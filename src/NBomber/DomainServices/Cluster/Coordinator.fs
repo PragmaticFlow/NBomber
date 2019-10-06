@@ -9,6 +9,7 @@ open Serilog
 
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Extensions
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Infra
@@ -20,18 +21,19 @@ open NBomber.DomainServices.Cluster.Contracts
 type State = {    
     ClientId: string
     AgentsTopic: string
-    CoordinatorTopic: string
-    Agents: Dictionary<ClientId, ClusterNodeInfo>
-    AgentsStats: Dictionary<ClientId, NodeStats>
+    CoordinatorTopic: string    
+    Agents: Dictionary<ClientId, AgentNodeInfo>
+    AgentsStats: Dictionary<ClientId, RawNodeStats>
     ScenariosArgs: ScenariosArgs
     Settings: CoordinatorSettings    
     MqttClient: IMqttClient
     ScenariosHost: ScenariosHost
+    StatisticsSink: IStatisticsSink option
 }
 
 module Communication =    
 
-    let subscribeOnTopics (st: State, handle: ResponseMessage -> unit) =        
+    let subscribeOnAgentResponses (st: State, handle: ResponseMessage -> unit) =        
         st.MqttClient.SubscribeAsync(st.CoordinatorTopic).Wait()
         st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
             msg.ApplicationMessage.Payload
@@ -45,8 +47,13 @@ module Communication =
         |> Mqtt.toMqttMsg(st.AgentsTopic)
         |> Mqtt.publishToBroker(st.MqttClient)
 
-    let sendGetAgentInfo (st: State) = asyncResult {
-        do! Request.GetAgentInfo |> sendToAgents(st)
+    let sendGetAllAgentInfo (st: State) = asyncResult {        
+        do! Request.GetAgentInfo(onlyForSessionId = None) |> sendToAgents(st)
+        do! Async.Sleep(1_000)
+    }
+    
+    let sendGetAgentInfoForCurrentSession (st: State) = asyncResult {
+        do! Request.GetAgentInfo(Some st.ScenariosArgs.SessionId) |> sendToAgents(st)
         do! Async.Sleep(1_000)
     }
 
@@ -62,15 +69,31 @@ module Communication =
     let sendStartBombing (st: State) =
         Request.StartBombing |> sendToAgents st
 
-    let sendGetStatistics (st: State) = asyncResult {
-        do! Request.GetStatistics |> sendToAgents st
-        do! Async.Sleep(2_000)
+    let getAgentsStats (st: State, forDuration: TimeSpan option) = asyncResult {
+        st.AgentsStats.Clear()
+        do! Request.GetStatistics(forDuration) |> sendToAgents st
+        
+        let mutable allAgentsResponded = false
+        let mutable failCounter = 0
+        while not allAgentsResponded do
+            do! Async.Sleep(2_000)
+            if st.Agents.Count = st.AgentsStats.Count then
+                allAgentsResponded <- true
+            else
+                failCounter <- failCounter + 1
+                if failCounter > 5 then
+                    allAgentsResponded <- true
+        
+        if failCounter > 5 then
+            return! AppError.createResult(CommunicationError.NotAllStatsReceived)
+        else
+            return st.AgentsStats |> Map.fromDictionary              
     }
 
     let waitOnAllAgentsReady (st: State) = asyncResult {
         let mutable stop = false
         while not stop do
-            do! sendGetAgentInfo(st)
+            do! sendGetAgentInfoForCurrentSession(st)
             stop <- st.Agents
                     |> Seq.map(fun x -> x.Value) 
                     |> Seq.forall(fun x -> x.HostStatus = ScenarioHostStatus.Ready)        
@@ -81,23 +104,55 @@ module Communication =
         let receivedGroups = st.Agents |> Seq.map(fun x -> x.Value.TargetGroup) |> Seq.toArray
         ClusterValidation.validateTargetGroups(allGroups, receivedGroups)    
 
-let mergeStats (sessionId, machineName, registeredScenarios, 
-                scenariosSettings, allNodeStats: NodeStats[]) = 
+module ClusterStats =    
+
+    let combineAllNodeStats (coordinatorStats: RawNodeStats, agentsStats: Map<ClientId, RawNodeStats>) =
+        let agentsStats = agentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray    
+        let allNodesStats = Array.append [|coordinatorStats|] agentsStats
+        allNodesStats
+        
+    let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =
+        
+        let meta = { SessionId = st.ScenariosArgs.SessionId
+                     MachineName = st.ScenariosHost.NodeInfo.MachineName
+                     Sender = NodeType.Cluster }
+        
+        st.ScenariosHost.GetRegisteredScenarios()
+        |> Scenario.applySettings(st.ScenariosArgs.ScenariosSettings)
+        |> Statistics.NodeStats.merge meta allNodeStats executionTime       
+        
+    let fetchClusterStats (st: State, executionTime: TimeSpan option) = asyncResult {
+        let! agentsStats = Communication.getAgentsStats(st, executionTime)
+        let coordinatorStats = st.ScenariosHost.GetNodeStats()
+        let allNodeStats = combineAllNodeStats(coordinatorStats, agentsStats)
+        let clusterStats = buildClusterStats(st, allNodeStats, executionTime)
+        return Array.append [|clusterStats|] allNodeStats
+    }
     
-    let meta = { SessionId = sessionId
-                 MachineName = machineName
-                 Sender = NodeType.Cluster }
-                    
-    registeredScenarios
-    |> Scenario.applySettings(scenariosSettings)
-    |> Statistics.NodeStats.merge(meta, allNodeStats)
-
-let buildStats (st: State) = 
-    let localStats = st.ScenariosHost.GetStatistics()
-    let agentsStats = st.AgentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray    
-    let allStats = Array.append [|localStats|] agentsStats
-    Ok allStats
-
+    let saveClusterStats (allClusterStats: RawNodeStats[], statisticsSink: IStatisticsSink) =    
+        saveStats(allClusterStats, statisticsSink)        
+    
+    let startSaveStatsTimer (statisticsSink: IStatisticsSink option,
+                             getClusterStatsAtTimer: TimeSpan -> Async<Result<RawNodeStats[],AppError>>) =    
+        match statisticsSink with
+        | Some statsSink->        
+            let mutable executionTime = TimeSpan.Zero
+            let timer = new System.Timers.Timer(Constants.GetStatsInterval)
+            timer.Elapsed.Add(fun _ ->
+                asyncResult {
+                    // moving time forward
+                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
+                    let! clusterStats = getClusterStatsAtTimer(executionTime)                    
+                    saveClusterStats(clusterStats, statsSink) |> ignore                    
+                }
+                |> Async.RunSynchronously
+                |> ignore
+            )
+            timer.Start()
+            timer
+        
+        | None -> new System.Timers.Timer()
+        
 let printAvailableAgents (st: State) =
     Log.Information(sprintf "available agents: %i" st.Agents.Count)
     if st.Agents.Count > 0 then
@@ -112,20 +167,21 @@ let validate (msg: ResponseMessage) =
     | Some v -> Ok v
     | None   -> Error msg.Error.Value
 
-let receive (st: State, msg: ResponseMessage) = result {    
+let receiveAgentResponse (st: State, msg: ResponseMessage) = result {    
     match! validate(msg) with
-    | AgentInfo info -> 
-        return st.Agents.[msg.Headers.ClientId] <- info
+    | AgentInfo info ->
+        st.Agents.[msg.Headers.ClientId] <- info
+            
     | AgentStats stats ->
-        return st.AgentsStats.[msg.Headers.ClientId] <- stats
+        st.AgentsStats.[msg.Headers.ClientId] <- stats
 }
 
-let init (dep: Dependency, registeredScenarios: Scenario[],
-          settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
+let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
+                     settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
-    let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }
+    let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
     
     let state = {        
         ClientId = clientId
@@ -136,21 +192,21 @@ let init (dep: Dependency, registeredScenarios: Scenario[],
         ScenariosArgs = scnArgs
         Settings = settings        
         MqttClient = mqttClient
-        ScenariosHost = ScenariosHost(dep, registeredScenarios)
+        ScenariosHost = new ScenariosHost(dep, registeredScenarios)
+        StatisticsSink = dep.StatisticsSink        
     }
-
     return state    
 }
 
-let run (st: State) = asyncResult {    
+let runSession (st: State) = asyncResult {    
         
-    Communication.subscribeOnTopics(st, fun msg ->
-        receive(st, msg)
+    Communication.subscribeOnAgentResponses(st, fun response ->
+        receiveAgentResponse(st, response)
         |> Result.mapError(AppError.toString)
         |> ignore
     )
-    
-    do! Communication.sendGetAgentInfo(st)
+            
+    do! Communication.sendGetAllAgentInfo(st)
     printAvailableAgents(st)    
     
     do! Communication.sendStartNewSession(st)
@@ -160,16 +216,45 @@ let run (st: State) = asyncResult {
     do! Communication.sendStartWarmUp(st)
     do! st.ScenariosHost.WarmUpScenarios()
     do! Communication.waitOnAllAgentsReady(st)
-
+    
     do! Communication.sendStartBombing(st)
-    do! st.ScenariosHost.StartBombing()
-    do! Communication.waitOnAllAgentsReady(st)
-
-    do! Communication.sendGetStatistics(st)    
-    return! buildStats(st)
+    let bombingTask = st.ScenariosHost.StartBombing()
+    
+    use saveStatsTimer =        
+        ClusterStats.startSaveStatsTimer(
+            st.StatisticsSink,
+            fun executionTime -> ClusterStats.fetchClusterStats(st, Some executionTime)
+        )
+    
+    do! bombingTask
+    saveStatsTimer.Stop()
+        
+    // saving final stats results
+    do! Communication.waitOnAllAgentsReady(st)    
+    let! allStats = ClusterStats.fetchClusterStats(st, None)
+    if st.StatisticsSink.IsSome then
+        do! ClusterStats.saveClusterStats(allStats, st.StatisticsSink.Value)
+    
+    return allStats
 }
 
-let stop (st: State) =
-    st.ScenariosHost.StopScenarios()
-    st.MqttClient.DisconnectAsync().Wait()
-    st.MqttClient.Dispose()
+type ClusterCoordinator() =
+    
+    let mutable _state: Option<State> = None    
+    member x.State = _state
+    
+    member x.RunSession(dep: Dependency, registeredScenarios: Scenario[],
+                        settings: CoordinatorSettings, scnArgs: ScenariosArgs) =
+        asyncResult {
+            let! state = initCoordinator(dep, registeredScenarios, settings, scnArgs)        
+            _state <- Some state
+            let! clusterStats = runSession(state)
+            return clusterStats
+        }
+    
+    interface IDisposable with
+        member x.Dispose() =
+            if _state.IsSome then
+                use client = _state.Value.MqttClient
+                use scnHost = _state.Value.ScenariosHost
+                ()

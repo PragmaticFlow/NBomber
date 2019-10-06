@@ -113,7 +113,7 @@ module ScenarioView =
 
 module GlobalView =  
 
-    let print (assets: Assets, stats: NodeStats, failedAsserts: DomainError[]) =        
+    let print (assets: Assets, stats: RawNodeStats, failedAsserts: DomainError[]) =        
         
         let viewId = "global-view"
         let indicatorsChart = IndicatorsChart.print(assets, viewId, "All Scenarios", stats.LatencyCount, stats.FailCount)
@@ -154,7 +154,7 @@ module EnvView =
 
 module ContentView =
 
-    let print (dep: Dependency, stats: NodeStats, failedAsserts: DomainError[]) =        
+    let print (dep: Dependency, stats: RawNodeStats, failedAsserts: DomainError[]) =        
         let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
         let globalView = GlobalView.print(dep.Assets, stats, failedAsserts)
         
@@ -173,7 +173,7 @@ module ContentView =
 
 module SideBar =
 
-    let print (assets: Assets, stats: NodeStats) =
+    let print (assets: Assets, stats: RawNodeStats) =
 
         let printItem (assets, viewId, name, iconCss) =
             assets.SidebarItemHtml
@@ -202,7 +202,7 @@ module SideBar =
         let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: Dependency, stats: NodeStats, failedAsserts: DomainError[]) =
+let print (dep: Dependency, stats: RawNodeStats, failedAsserts: DomainError[]) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
     let contentView = ContentView.print(dep, stats, failedAsserts)

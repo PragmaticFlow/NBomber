@@ -1,5 +1,6 @@
 ﻿module internal NBomber.DomainServices.Cluster.Contracts
 
+open System
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
@@ -7,22 +8,22 @@ open NBomber.DomainServices.ScenariosHost
 
 type ClientId = string
 
-type ClusterNodeInfo = {    
+type AgentNodeInfo = {    
     MachineName: string
     TargetGroup: string
     HostStatus: ScenarioHostStatus
 }
 
 type Request =
-    | GetAgentInfo
+    | GetAgentInfo of onlyForSessionId:string option
     | NewSession of scnSettings:ScenarioSetting[] * agentSettings:TargetGroupSettings[] * customSettings:string
     | StartWarmUp
     | StartBombing
-    | GetStatistics
+    | GetStatistics of executionTime:TimeSpan option
 
 type Response =
-    | AgentInfo of ClusterNodeInfo
-    | AgentStats of NodeStats
+    | AgentInfo of AgentNodeInfo
+    | AgentStats of RawNodeStats
 
 type MessageHeaders = {
     CorrelationId: string 

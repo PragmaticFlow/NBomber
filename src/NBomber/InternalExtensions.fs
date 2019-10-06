@@ -76,7 +76,14 @@ module internal Extensions =
         /// Safe variant of `Array.average`
         let averageByOrDefault (defaultValue : float) f array =
             if Array.isEmpty array then defaultValue
-            else array |> Array.averageBy f            
+            else array |> Array.averageBy f
+            
+    module Map =
+        
+        let inline fromDictionary (dictionary) =
+            dictionary
+            |> Seq.map (|KeyValue|)
+            |> Map.ofSeq
 
 namespace NBomber.Extensions.Operator
 

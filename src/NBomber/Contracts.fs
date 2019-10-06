@@ -24,7 +24,7 @@ type StatisticsMeta = {
     Sender: NodeType
 }
 
-type Statistics = {    
+type Statistics = {
     ScenarioName: string
     StepName: string
     OkCount: int

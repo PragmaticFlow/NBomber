@@ -13,7 +13,7 @@ namespace CSharp.Examples
             HttpScenario.Run();
             //MongoDbScenario.Run();
             //WebSocketsScenario.Run();
-                       
+            //RealtimeStatistics.Run();                       
         }
     }
 }

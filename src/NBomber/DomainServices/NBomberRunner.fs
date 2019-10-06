@@ -12,79 +12,55 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.Reporting.Report
-open NBomber.DomainServices.Cluster
 open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.Cluster.Agent
+open NBomber.DomainServices.Cluster.Coordinator
 
 type ExecutionResult = {     
-    AllNodeStats: NodeStats[]
+    RawNodeStats: RawNodeStats[]
     Statistics: Statistics[]
     FailedAsserts: DomainError[]
-} 
+} with
+  static member init (nodeStats: RawNodeStats[]) =
+      let stats = nodeStats |> Array.collect(Statistics.create)
+      { RawNodeStats = nodeStats; Statistics = stats; FailedAsserts = Array.empty }
 
-let runClusterCoordinator (dep: Dependency, context: NBomberContext, 
-                           crdSettings: CoordinatorSettings) = asyncResult {
-    sprintf "NBomber started as cluster coordinator: %A" crdSettings
-    |> Log.Information
+let runClusterCoordinator (dep: Dependency, context: NBomberContext, crdSettings: CoordinatorSettings) =
+    asyncResult {
+        sprintf "NBomber started as cluster coordinator: %A" crdSettings
+        |> Log.Information
 
-    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
-    
-    let! state = Coordinator.init(dep, registeredScns, crdSettings, scnArgs)
-    let! allStats = Coordinator.run(state)
-    Coordinator.stop(state)
-    return allStats
-}
+        let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
+        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+        
+        use coordinator = new ClusterCoordinator()
+        let! clusterStats = coordinator.RunSession(dep, registeredScns, crdSettings, scnArgs)        
+        return clusterStats
+    }
 
-let runClusterAgent (dep: Dependency, context: NBomberContext, 
-                     agentSettings: AgentSettings) = asyncResult {
-    sprintf "NBomber started as cluster agent: %A" agentSettings
-    |> Log.Information
-    
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
-    
-    let! state = Agent.init(dep, registeredScns, agentSettings)    
-    do! Agent.startListening(state)
-    return Array.empty<NodeStats>
-}
+let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: AgentSettings) =
+    asyncResult {
+        sprintf "NBomber started as cluster agent: %A" agentSettings
+        |> Log.Information
+        
+        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+        
+        use agent = new ClusterAgent()
+        do! agent.StartListening(dep, registeredScns, agentSettings)
+        return Array.empty<RawNodeStats>
+    }
 
 let runSingleNode (dep: Dependency, context: NBomberContext) =
-    Log.Information("NBomber started as single node")
+    asyncResult {
+        Log.Information("NBomber started as single node")
 
-    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
-    
-    let scnHost = ScenariosHost(dep, registeredScns)
-    scnHost.RunSession(scnArgs)
-    |> AsyncResult.map(fun stats -> [|stats|])
+        let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
+        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
 
-let calcStatistics (dep: Dependency, context: NBomberContext) (allNodeStats: NodeStats[]) =     
-    let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
-    let registeredScns = context.Scenarios |> Array.map(Scenario.create)
-    
-    match dep.NodeType with
-    | NodeType.SingleNode  -> 
-        let statistics = allNodeStats |> Array.exactlyOne |> Statistics.create
-        { AllNodeStats = allNodeStats
-          Statistics = statistics
-          FailedAsserts = Array.empty }
-    
-    | NodeType.Coordinator -> 
-        let mergedStats = Coordinator.mergeStats(dep.SessionId,dep.MachineInfo.MachineName, 
-                                                 registeredScns, scnArgs.ScenariosSettings,
-                                                 allNodeStats)
-        let statistics = Statistics.create(mergedStats)        
-        { AllNodeStats = allNodeStats |> Array.append [|mergedStats|]
-          Statistics = statistics
-          FailedAsserts = Array.empty }
-    
-    | _ -> { AllNodeStats = Array.empty
-             Statistics = Array.empty
-             FailedAsserts = Array.empty }
-
-let saveStatistics (context: NBomberContext) (result: ExecutionResult) =    
-    if context.StatisticsSink.IsSome then
-        context.StatisticsSink.Value.SaveStatistics(result.Statistics).Wait()    
-    result
+        use scnHost = new ScenariosHost(dep, registeredScns)
+        let! rawNodeStats = scnHost.RunSession(scnArgs)
+        return [|rawNodeStats|]
+    }
 
 let applyAsserts (context: NBomberContext) (result: ExecutionResult) = 
     let errors = 
@@ -93,15 +69,15 @@ let applyAsserts (context: NBomberContext) (result: ExecutionResult) =
         |> Assertion.cast
         |> Assertion.apply(result.Statistics)
     { result with FailedAsserts = errors }
-    
-let buildReport (dep: Dependency) (result: ExecutionResult) =    
-    Report.build(dep, result.AllNodeStats, result.FailedAsserts)
 
-let saveReport (dep: Dependency, context: NBomberContext) (report: ReportResult) =
+let buildReport (dep: Dependency) (result: ExecutionResult) =    
+    Report.build(dep, result.RawNodeStats, result.FailedAsserts)
+
+let saveReport (dep: Dependency) (context: NBomberContext) (report: ReportResult) =
     let fileName = NBomberContext.getReportFileName(dep.SessionId, context)
     let formats = NBomberContext.getReportFormats(context)
-    Report.save(dep, "./", fileName, formats, report)
-    
+    Report.save("./", fileName, formats, report)
+
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
         TestFrameworkRunner.showErrors(errors)
@@ -127,20 +103,20 @@ let run (dep: Dependency) (context: NBomberContext) =
             | None                 -> runSingleNode(dep, ctx)
 
         let result = nodeStats
-                     |> calcStatistics(dep, ctx)
-                     |> saveStatistics(ctx)
-                     |> applyAsserts(ctx)
+                     |> ExecutionResult.init
+                     |> applyAsserts ctx
 
-        result |> buildReport(dep) |> saveReport(dep, ctx)
+        result |> buildReport dep |> saveReport dep ctx
         return result
     }
-    |> AsyncResult.map(showAsserts(dep))
+    |> AsyncResult.map(showAsserts dep)
     |> AsyncResult.mapError(fun error -> showErrors dep [|error|]) 
     |> Async.RunSynchronously
     |> Result.toExitCode
 
 let runAs (appType: ApplicationType) (context: NBomberContext) =
     let logSettings = NBomberContext.tryGetLogSettings(context)
-    let nodeType = NBomberContext.getNodeType(context)
+    let nodeType = NBomberContext.getNodeType(context)    
     let dep = Dependency.create(appType, nodeType, logSettings)
+    let dep = { dep with StatisticsSink = context.StatisticsSink }
     run dep context

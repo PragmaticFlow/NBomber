@@ -1,5 +1,6 @@
-﻿module internal NBomber.DomainServices.ScenariosHost
+﻿module internal rec NBomber.DomainServices.ScenariosHost
 
+open System
 open System.Threading.Tasks
 
 open Serilog
@@ -46,7 +47,7 @@ type WorkingState =
 
 type ScenarioHostStatus =    
     | Ready
-    | Working of WorkingState
+    | Working of WorkingState    
     | Stopped of reason:string
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
@@ -127,16 +128,33 @@ let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType))
     Log.Information("bombing stoped and resources cleaned")
 
-let getResults (meta: StatisticsMeta, scnRunners: ScenarioRunner[]) =
-    scnRunners
-    |> Array.map(fun x -> x.GetResult())
-    |> NodeStats.create(meta)
-
 let printTargetScenarios (scenarios: Scenario[]) = 
     scenarios
     |> Array.map(fun x -> x.ScenarioName)
     |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
     |> fun _ -> scenarios
+
+let saveStats (nodeStats: RawNodeStats[], statsSink: IStatisticsSink) =
+    nodeStats
+    |> Array.map(Statistics.create >> statsSink.SaveStatistics >> Async.AwaitTask)
+    |> Async.Parallel
+    |> Async.StartAsTask    
+
+let startSaveStatsTimer (dep: Dependency, getStatsAtTime: TimeSpan -> RawNodeStats) =    
+    match dep.StatisticsSink with
+    | Some statsSink ->
+        let mutable executionTime = TimeSpan.Zero
+        let timer = new System.Timers.Timer(Constants.GetStatsInterval)
+        timer.Elapsed.Add(fun _ ->
+            // moving time forward
+            executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
+            let rawNodeStats = getStatsAtTime(executionTime)
+            saveStats([|rawNodeStats|], statsSink) |> ignore
+        )
+        timer.Start()
+        timer
+        
+    | None -> new System.Timers.Timer()    
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
@@ -150,6 +168,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
     member x.SessionId = _scnArgs.SessionId
     member x.Status = _status
+    member x.NodeInfo = _statsMeta
     member x.GetRegisteredScenarios() = registeredScenarios    
     member x.GetRunningScenarios() = _scnRunners |> Array.map(fun x -> x.Scenario)
     
@@ -184,7 +203,7 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         _status <- ScenarioHostStatus.Working(StartBombing)
         do! Task.Yield()
         let! tasks = runBombing(dep, _scnRunners)
-        stopAndCleanScenarios(dep, _scnRunners)                
+        x.StopScenarios()
         _status <- ScenarioHostStatus.Ready
         do! Task.Delay(1000)
     }
@@ -194,12 +213,35 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         stopAndCleanScenarios(dep, _scnRunners)
         _status <- ScenarioHostStatus.Ready
 
-    member x.GetStatistics() =
-        getResults(_statsMeta, _scnRunners)        
+    member x.GetNodeStats() =
+        _scnRunners
+        |> Array.map(fun x -> x.GetScenarioStats())
+        |> NodeStats.create(_statsMeta)
+    
+    member x.GetNodeStats(duration) =
+        _scnRunners
+        |> Array.map(fun x -> x.GetScenarioStats(duration))
+        |> NodeStats.create(_statsMeta)
         
     member x.RunSession(args: ScenariosArgs) = asyncResult {
+        
         do! x.InitScenarios(args)
-        do! x.WarmUpScenarios()
-        do! x.StartBombing()
-        return x.GetStatistics()
+        do! x.WarmUpScenarios()                     
+        let bombingTask = x.StartBombing()
+        
+        use saveStatsTimer = startSaveStatsTimer(dep, fun executionTime -> x.GetNodeStats(executionTime))
+        
+        do! bombingTask
+        saveStatsTimer.Stop()
+
+        // saving final stats results
+        let rawNodeStats = x.GetNodeStats()
+        if dep.StatisticsSink.IsSome then
+            do! saveStats([|rawNodeStats|], dep.StatisticsSink.Value)
+        
+        return rawNodeStats
     }
+    
+    interface IDisposable with
+        member x.Dispose() =
+            if _status <> ScenarioHostStatus.Ready then x.StopScenarios()
