@@ -6,7 +6,6 @@ open System.Runtime.Serialization.Formatters.Binary
 open System.Threading
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open Serilog
 open MQTTnet
 open MQTTnet.Client
 open MQTTnet.Client.Options
@@ -32,7 +31,7 @@ let toMqttMsg (topic: string) (data: obj) =
         .WithPayload(bytes)
         .Build()
 
-let reconnect (client: IMqttClient, options: IMqttClientOptions option) = task {
+let reconnect (client: IMqttClient, options: IMqttClientOptions option, logger: Serilog.ILogger) = task {
     while not client.IsConnected do
         try
             if options.IsSome then
@@ -41,14 +40,15 @@ let reconnect (client: IMqttClient, options: IMqttClientOptions option) = task {
             else
                 do! client.ReconnectAsync()
                 
-            Log.Information("connection with mqtt broker is established")            
+            logger.Information("connection with mqtt broker is established")            
         with
-        | ex -> Log.Error(ex, "can't connect to the mqtt broker")
+        | ex -> logger.Error(ex, "can't connect to the mqtt broker")
     
     return client        
 }
 
-let initClient (clientId: string, mqttServer: string, mqttPort: int option) =
+let initClient (clientId: string, mqttServer: string,
+                mqttPort: int option, logger: Serilog.ILogger) =
     
     let createMqttClient () =
         let factory = MqttFactory()
@@ -64,7 +64,7 @@ let initClient (clientId: string, mqttServer: string, mqttPort: int option) =
             .Build()
             |> Some
     
-    reconnect(client, options) |> Async.AwaitTask
+    reconnect(client, options, logger) |> Async.AwaitTask
 
 let publishToBroker (mqttClient: IMqttClient) (msg: MqttApplicationMessage) = async {
     try

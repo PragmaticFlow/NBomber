@@ -1,7 +1,6 @@
 ﻿namespace NBomber.Domain
 
 open System
-open System.Threading
 open System.Threading.Tasks
 open NBomber.Contracts
 

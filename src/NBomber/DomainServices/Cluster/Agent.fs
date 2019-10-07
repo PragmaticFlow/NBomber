@@ -14,7 +14,6 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.ScenariosHost
 open NBomber.DomainServices.Cluster.Contracts
 open NBomber.DomainServices.Validation
-open Serilog
 
 type State = {    
     ClientId: string
@@ -25,6 +24,7 @@ type State = {
     MqttClient: IMqttClient
     ScenariosHost: ScenariosHost
     mutable ReconnectTimer: System.Timers.Timer
+    Logger: Serilog.ILogger
 }
 
 let private subscribeOnCoordinatorRequests (st: State, handle: RequestMessage -> unit) =
@@ -37,7 +37,7 @@ let private subscribeOnCoordinatorRequests (st: State, handle: RequestMessage ->
         )
         |> ignore
     with
-    | ex -> Log.Error(ex, "Agent.subscribeOnTopics failed")
+    | ex -> st.Logger.Error(ex, "Agent.subscribeOnTopics failed")
 
 let validate (state: State, msg: RequestMessage) =
     match msg.Payload with
@@ -122,7 +122,7 @@ let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
 let initAgent (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
     
     let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort, dep.Logger)
 
     let nodeInfo = { 
         MachineName = dep.MachineInfo.MachineName
@@ -139,9 +139,10 @@ let initAgent (dep: Dependency, registeredScenarios: Scenario[], settings: Agent
         MqttClient = mqttClient
         ScenariosHost = new ScenariosHost(dep, registeredScenarios)
         ReconnectTimer = new System.Timers.Timer()
+        Logger = dep.Logger
     }
         
-    Log.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)        
+    dep.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)        
         
     return state
 }
@@ -165,9 +166,9 @@ let startListening (st: State) = async {
         reconnectionTimer.Elapsed.Add(fun x ->
             if not reconnecting && not st.MqttClient.IsConnected then
                 reconnecting <- true
-                Log.Logger.Error("{agent} disconnected from {cluster}", st.ClientId, st.Settings.ClusterId)
-                Mqtt.reconnect(st.MqttClient, None).Wait()
-                Log.Logger.Information("{agent} established connection with {cluster}", st.ClientId, st.Settings.ClusterId)
+                st.Logger.Error("{agent} disconnected from {cluster}", st.ClientId, st.Settings.ClusterId)
+                Mqtt.reconnect(st.MqttClient, None, st.Logger).Wait()
+                st.Logger.Information("{agent} established connection with {cluster}", st.ClientId, st.Settings.ClusterId)
                 subscribeOnCoordinatorRequests()
                 reconnecting <- false
         )

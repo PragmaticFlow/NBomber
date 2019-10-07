@@ -102,9 +102,6 @@ let create (appType: ApplicationType, nodeType: NodeType, logSettings: LogSettin
     let logger = Logger.createLogger(appType, logSettings)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
     
-    // todo: start use instance instead of shared log
-    Log.Logger <- logger
-    
     { SessionId = createSessionId()
       NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType

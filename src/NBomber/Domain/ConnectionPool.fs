@@ -2,7 +2,6 @@
 module internal NBomber.Domain.ConnectionPool
 
 open System
-open Serilog
 
 let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =
     let findPool (poolName) = 
@@ -22,13 +21,14 @@ let getPoolCount (scenario: Scenario, pool: ConnectionPool<obj>) =
 
 let init (scenario: Scenario, 
           onStartedInitPool: (string * int) -> unit, // PoolName * ConnectionsCount
-          onConnectionOpened: int -> unit,           // ConnectionNumber
-          onFinishInitPool: string -> unit) =        // PoolName
+          onConnectionOpened: int -> unit,
+          onFinishInitPool: string -> unit,
+          logger: Serilog.ILogger) =
 
     let initPool (pool: ConnectionPool<obj>) =
         let connectionCount = getPoolCount(scenario, pool)
-        Log.Information("initializing connection pool: '{0}', connections count '{1}'", pool.PoolName, connectionCount)
-        Log.Information("opening connections...")
+        logger.Information("initializing connection pool: '{0}', connections count '{1}'", pool.PoolName, connectionCount)
+        logger.Information("opening connections...")
         onStartedInitPool(pool.PoolName, connectionCount)
 
         let connections = Array.init connectionCount (fun i -> 
@@ -44,13 +44,13 @@ let init (scenario: Scenario,
     getDistinctPools(scenario)
     |> Array.map(initPool)
 
-let clean (scenario: Scenario) =
+let clean (scenario: Scenario, logger: Serilog.ILogger) =
 
     let invokeDispose (connection: obj) =
         if connection :? IDisposable then (connection :?> IDisposable).Dispose()
 
     let closeConnections (pool: ConnectionPool<obj>) =
-        Log.Information("closing connections for connection pool: '{0}'", pool.PoolName)
+        logger.Information("closing connections for connection pool: '{0}'", pool.PoolName)
 
         for connection in pool.AliveConnections do
             try 
@@ -59,6 +59,6 @@ let clean (scenario: Scenario) =
                                 invokeDispose(connection)
                 | None       -> invokeDispose(connection)
             with
-            | ex -> Log.Error(ex, "CloseConnection")
+            | ex -> logger.Error(ex, "CloseConnection")
     
     scenario |> getDistinctPools |> Array.iter(closeConnections)

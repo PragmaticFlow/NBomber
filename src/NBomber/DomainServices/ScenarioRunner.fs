@@ -6,7 +6,6 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
-open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Extensions
@@ -90,7 +89,7 @@ type ScenarioScheduler(allActors: ScenarioActor[], fastCancelToken: FastCancella
         |> Array.map(fun actorBulks -> startEventLoop(actorBulks) :> Task)
         |> Task.WhenAll
 
-type ScenarioRunner(scenario: Scenario) = 
+type ScenarioRunner(scenario: Scenario, logger: Serilog.ILogger) =
     
     let [<Literal>] TryCount = 20
     let mutable curCancelToken = new CancellationTokenSource()
@@ -107,11 +106,11 @@ type ScenarioRunner(scenario: Scenario) =
             | true -> count <- TryCount
 
             | false when count = TryCount ->
-                Log.Information("hard stop of not finished steps.")
+                logger.Information("hard stop of not finished steps.")
                 count <- count + 1
                 
             | false -> let workingSteps = actors |> Array.filter(fun x -> x.Working) |> Array.length
-                       Log.Information(sprintf "waiting on '%i' working steps to finish..." workingSteps)
+                       logger.Information(sprintf "waiting on '%i' working steps to finish..." workingSteps)
                        count <- count + 1
     }
 

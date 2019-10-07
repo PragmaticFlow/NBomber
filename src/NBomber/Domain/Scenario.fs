@@ -1,7 +1,6 @@
 ﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.Scenario
 
-open System
 open System.Threading
 
 open NBomber
@@ -45,7 +44,7 @@ let init (scenario: Scenario, initAllConnectionPools: Scenario -> ConnectionPool
     with 
     | ex -> Error <| InitScenarioError ex
 
-let clean (scenario: Scenario, nodeType: Contracts.NodeType) =
+let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: Serilog.ILogger) =
 
     try
         if scenario.TestClean.IsSome then
@@ -58,7 +57,7 @@ let clean (scenario: Scenario, nodeType: Contracts.NodeType) =
             }
             scenario.TestClean.Value(context).Wait()
         
-        ConnectionPool.clean(scenario)
+        ConnectionPool.clean(scenario, logger)
     with
     | ex -> Serilog.Log.Error(ex, "TestClean")
 

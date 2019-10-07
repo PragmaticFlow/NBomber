@@ -2,10 +2,7 @@
 
 open System
 open System.IO
-open System.Threading
 open System.Threading.Tasks
-
-open Serilog
 
 open NBomber
 open NBomber.Contracts
@@ -168,7 +165,7 @@ module NBomberRunner =
     let rec runInConsole (context: NBomberContext) =
         NBomberRunner.runAs Console context
         |> ignore
-        Log.Information("Repeat the same test one more time? (y/n)")
+        Serilog.Log.Information("Repeat the same test one more time? (y/n)")
 
         let userInput = Console.ReadLine()
         let repeat = List.contains userInput ["y"; "Y"; "yes"; "Yes"]

@@ -3,7 +3,6 @@
 open System
 open System.Threading.Tasks
 
-open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
@@ -58,9 +57,9 @@ let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     match runnerWithLongestScenario with
     | Some runner ->
         if scnRunners.Length > 1 then
-            Log.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+            dep.Logger.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
         else
-            Log.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
+            dep.Logger.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
 
         dep.ShowProgressBar(runner.Scenario.Duration)
 
@@ -80,10 +79,10 @@ let buildInitConnectionPools (dep: Dependency) =
             pb.Dispose()
 
         fun scenario ->
-            ConnectionPool.init(scenario, onStartedInitPool, onConnectionOpened, onFinishInitPool)
+            ConnectionPool.init(scenario, onStartedInitPool, onConnectionOpened, onFinishInitPool, dep.Logger)
     else
         fun scenario ->
-            ConnectionPool.init(scenario, ignore, ignore, ignore)
+            ConnectionPool.init(scenario, ignore, ignore, ignore, dep.Logger)
 
 let initScenarios (dep: Dependency) (customSettings: string) (scenarios: Scenario[]) = task {    
     let mutable failed = false    
@@ -92,7 +91,7 @@ let initScenarios (dep: Dependency) (customSettings: string) (scenarios: Scenari
     let flow = seq {
         for scn in scenarios do 
             if not failed then
-                Log.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
+                dep.Logger.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
                 let initResult = Scenario.init(scn, initAllConnectionPools, customSettings, dep.NodeType)
@@ -112,26 +111,26 @@ let initScenarios (dep: Dependency) (customSettings: string) (scenarios: Scenari
 let warmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners 
     |> Array.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
-    |> Array.iter(fun x -> Log.Information("warming up scenario: '{0}', duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
+    |> Array.iter(fun x -> dep.Logger.Information("warming up scenario: '{0}', duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
                            let duration = x.Scenario.WarmUpDuration
                            if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar(duration)
                            x.WarmUp().Wait())    
 
 let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
-    Log.Information("starting bombing...")    
+    dep.Logger.Information("starting bombing...")    
     if dep.ApplicationType = ApplicationType.Console then displayProgress(dep, scnRunners)
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
 let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
-    Log.Information("stopping bombing and cleaning resources...")
+    dep.Logger.Information("stopping bombing and cleaning resources...")
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
-    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType))
-    Log.Information("bombing stoped and resources cleaned")
+    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType, dep.Logger))
+    dep.Logger.Information("bombing stoped and resources cleaned")
 
-let printTargetScenarios (scenarios: Scenario[]) = 
+let printTargetScenarios (dep: Dependency) (scenarios: Scenario[]) = 
     scenarios
     |> Array.map(fun x -> x.ScenarioName)
-    |> fun targets -> Log.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
+    |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
     |> fun _ -> scenarios
 
 let saveStats (nodeStats: RawNodeStats[], statsSink: IStatisticsSink) =
@@ -177,13 +176,13 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         _status <- ScenarioHostStatus.Working(InitScenarios)
         do! Task.Yield()            
         let! results = registeredScenarios
-                       |> Scenario.applySettings(args.ScenariosSettings)
-                       |> Scenario.filterTargetScenarios(args.TargetScenarios)
-                       |> printTargetScenarios
+                       |> Scenario.applySettings args.ScenariosSettings
+                       |> Scenario.filterTargetScenarios args.TargetScenarios
+                       |> printTargetScenarios dep
                        |> initScenarios dep args.CustomSettings
         
         match results with
-        | Ok scns -> _scnRunners <- scns |> Array.map(ScenarioRunner)
+        | Ok scns -> _scnRunners <- scns |> Array.map(fun x -> ScenarioRunner(x, dep.Logger))
                      _status <- ScenarioHostStatus.Ready
                      return Ok()
         

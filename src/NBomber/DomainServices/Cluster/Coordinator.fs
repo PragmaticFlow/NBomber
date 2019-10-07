@@ -5,7 +5,6 @@ open System.Collections.Generic
 
 open FsToolkit.ErrorHandling
 open MQTTnet.Client
-open Serilog
 
 open NBomber.Configuration
 open NBomber.Contracts
@@ -29,6 +28,7 @@ type State = {
     MqttClient: IMqttClient
     ScenariosHost: ScenariosHost
     StatisticsSink: IStatisticsSink option
+    Logger: Serilog.ILogger
 }
 
 module Communication =    
@@ -154,13 +154,13 @@ module ClusterStats =
         | None -> new System.Timers.Timer()
         
 let printAvailableAgents (st: State) =
-    Log.Information(sprintf "available agents: %i" st.Agents.Count)
+    st.Logger.Information(sprintf "available agents: %i" st.Agents.Count)
     if st.Agents.Count > 0 then
        st.Agents
        |> Seq.map(fun x -> x.Value)
        |> Seq.map(sprintf "%A \n")
        |> String.concat ""
-       |> Log.Information
+       |> st.Logger.Information
 
 let validate (msg: ResponseMessage) =
     match msg.Payload with
@@ -180,7 +180,7 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
                      settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort, dep.Logger)
     let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
     
     let state = {        
@@ -193,7 +193,8 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
         Settings = settings        
         MqttClient = mqttClient
         ScenariosHost = new ScenariosHost(dep, registeredScenarios)
-        StatisticsSink = dep.StatisticsSink        
+        StatisticsSink = dep.StatisticsSink
+        Logger = dep.Logger
     }
     return state    
 }

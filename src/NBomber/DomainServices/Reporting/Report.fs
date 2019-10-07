@@ -6,8 +6,6 @@ open FsToolkit.ErrorHandling
 open System
 open System.IO
 
-open Serilog
-
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
@@ -49,7 +47,8 @@ let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainErro
     | _ -> ReportResult.empty        
 
 let save (outPutDir: string, reportFileName: string, 
-          reportFormats: ReportFormat list, report: ReportResult) =
+          reportFormats: ReportFormat list, report: ReportResult,
+          logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
@@ -66,7 +65,7 @@ let save (outPutDir: string, reportFileName: string,
             let filePath = reportsDir + "/" + reportFileName + fileExt
             File.WriteAllText(filePath, content))
 
-        Log.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-        Log.Information(report.TxtReport)
+        logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+        logger.Information(report.TxtReport)
     with
-    | ex -> Log.Error(ex, "Report.save failed")
+    | ex -> logger.Error(ex, "Report.save failed")

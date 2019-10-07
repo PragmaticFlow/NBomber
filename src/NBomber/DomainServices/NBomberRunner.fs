@@ -1,6 +1,5 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
-open Serilog
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
@@ -28,7 +27,7 @@ type ExecutionResult = {
 let runClusterCoordinator (dep: Dependency, context: NBomberContext, crdSettings: CoordinatorSettings) =
     asyncResult {
         sprintf "NBomber started as cluster coordinator: %A" crdSettings
-        |> Log.Information
+        |> dep.Logger.Information
 
         let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
         let registeredScns = context.Scenarios |> Array.map(Scenario.create)
@@ -41,7 +40,7 @@ let runClusterCoordinator (dep: Dependency, context: NBomberContext, crdSettings
 let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: AgentSettings) =
     asyncResult {
         sprintf "NBomber started as cluster agent: %A" agentSettings
-        |> Log.Information
+        |> dep.Logger.Information
         
         let registeredScns = context.Scenarios |> Array.map(Scenario.create)
         
@@ -52,7 +51,7 @@ let runClusterAgent (dep: Dependency, context: NBomberContext, agentSettings: Ag
 
 let runSingleNode (dep: Dependency, context: NBomberContext) =
     asyncResult {
-        Log.Information("NBomber started as single node")
+        dep.Logger.Information("NBomber started as single node")
 
         let scnArgs = ScenariosArgs.getFromContext(dep.SessionId, context)
         let registeredScns = context.Scenarios |> Array.map(Scenario.create)
@@ -76,13 +75,13 @@ let buildReport (dep: Dependency) (result: ExecutionResult) =
 let saveReport (dep: Dependency) (context: NBomberContext) (report: ReportResult) =
     let fileName = NBomberContext.getReportFileName(dep.SessionId, context)
     let formats = NBomberContext.getReportFormats(context)
-    Report.save("./", fileName, formats, report)
+    Report.save("./", fileName, formats, report, dep.Logger)
 
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
         TestFrameworkRunner.showErrors(errors)
     else
-        errors |> Array.iter(AppError.toString >> Log.Error)
+        errors |> Array.iter(AppError.toString >> dep.Logger.Error)
 
 let showAsserts (dep: Dependency) (result: ExecutionResult) =
     match result.FailedAsserts with
@@ -93,7 +92,7 @@ let showAsserts (dep: Dependency) (result: ExecutionResult) =
 
 let run (dep: Dependency) (context: NBomberContext) =
     asyncResult {        
-        Log.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, dep.SessionId)
+        dep.Logger.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, dep.SessionId)
 
         let! ctx = Validation.validateContext(context)
         let! nodeStats =
