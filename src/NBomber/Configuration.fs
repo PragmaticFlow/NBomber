@@ -33,6 +33,7 @@ type AgentSettings = {
     ClusterId: string
     TargetGroup: string
     MqttServer: string
+    MqttPort: int option
 }
 
 type TargetGroupSettings = {
@@ -43,7 +44,8 @@ type TargetGroupSettings = {
 type CoordinatorSettings = {
     ClusterId: string
     TargetScenarios: string list
-    MqttServer: string    
+    MqttServer: string
+    MqttPort: int option
     Agents: TargetGroupSettings list
 }
 

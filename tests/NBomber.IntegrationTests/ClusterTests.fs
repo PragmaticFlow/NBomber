@@ -35,6 +35,7 @@ let coordinatorSettings = {
     ClusterId = "test_cluster"
     TargetScenarios = ["test_scenario"]
     MqttServer = "localhost"
+    MqttPort = None
     Agents = agents
 }
 
@@ -42,6 +43,7 @@ let agentSettings = {
     ClusterId = "test_cluster"
     TargetGroup = "1"
     MqttServer = "localhost"
+    MqttPort = None
 }
 
 let customSettings = ""
@@ -70,11 +72,12 @@ let internal isWarmUpScenarios (status) =
 
 [<Fact>]
 let ``Coordinator can run as single bomber`` () = async {
+    let randomPort = Random().Next(65000)
     let dep = Dependency.createFor(NodeType.Coordinator)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     // specified no agents
-    let coordinatorSettings = { coordinatorSettings with Agents = List.empty }
+    let coordinatorSettings = { coordinatorSettings with Agents = List.empty; MqttPort = Some randomPort }
     
     let scnArgs = {
         SessionId = dep.SessionId
@@ -100,11 +103,12 @@ let ``Coordinator can run as single bomber`` () = async {
 
 [<Fact>]
 let ``Coordinator should be able to start bombing even when agents are offline`` () = async {
+    let randomPort = Random().Next(65000)
     let dep = Dependency.createFor(NodeType.Coordinator)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     // specified agents in config which are not connected
-    let coordinatorSettings = { coordinatorSettings with Agents = agents }
+    let coordinatorSettings = { coordinatorSettings with Agents = agents; MqttPort = Some randomPort }
     
     let scnArgs = {
         SessionId = dep.SessionId
@@ -115,7 +119,7 @@ let ``Coordinator should be able to start bombing even when agents are offline``
     let registeredScenarios = [| scenario |]
     
     // we start coordinator without agents even though we specified agents in config
-    use coordinator = new ClusterCoordinator()    
+    use coordinator = new ClusterCoordinator()
     let! statsResult = coordinator.RunSession(dep, registeredScenarios, coordinatorSettings, scnArgs)    
     MqttTests.stopMqttServer server
     
@@ -130,9 +134,12 @@ let ``Coordinator should be able to start bombing even when agents are offline``
 
 [<Fact>]
 let ``Coordinator and agents should attack together`` () = async {
+    let randomPort = Random().Next(65000)
+    let coordinatorSettings = { coordinatorSettings with MqttPort = Some randomPort }
+    let agentSettings = { agentSettings with MqttPort = Some randomPort }
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let agentDep = Dependency.createFor(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     let scnArgs = {
         SessionId = coordinatorDep.SessionId
@@ -161,9 +168,13 @@ let ``Coordinator and agents should attack together`` () = async {
 [<Fact>]
 let ``Changing cluster topology should not affect a current test execution`` () = async {
     
+    let randomPort = Random().Next(65000)
+    let coordinatorSettings = { coordinatorSettings with MqttPort = Some randomPort }
+    let agentSettings = { agentSettings with MqttPort = Some randomPort }
+    
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let agentDep = Dependency.createFor(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     let scenarioSettings = { scenarioSettings with WarmUpDuration = DateTime(TimeSpan.FromSeconds(5.0).Ticks) }
     
     let scnArgs = {
@@ -207,15 +218,18 @@ let ``Changing cluster topology should not affect a current test execution`` () 
 [<Fact>]
 let ``Coordinator should be able to propagate all types of settings among the agents`` () = async {
     
+    let randomPort = Random().Next(65000)    
+    let coordinatorSettings = { coordinatorSettings with Agents = agents; MqttPort = Some randomPort }
+    let agentSettings = { agentSettings with MqttPort = Some randomPort }
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let agentDep = Dependency.createFor(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     // set up custom settings
     let agents = [
         { TargetGroup = "1"; TargetScenarios = ["test_scenario"] }
     ]
-    let coordinatorSettings = { coordinatorSettings with Agents = agents }
+    
     let scenarioSettings = { scenarioSettings with ConcurrentCopies = 5 }
     let customSettings = "{ Age: 28 }"
         
@@ -256,16 +270,17 @@ let ``Coordinator should be able to propagate all types of settings among the ag
 [<Fact>]
 let ``Agent should run test only under their agent group`` () = async {
     
+    let randomPort = Random().Next(65000)
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let agentDep = Dependency.createFor(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     // set up agent group
-    let agentSettings = { agentSettings with TargetGroup = "not_matched_group" }
+    let agentSettings = { agentSettings with TargetGroup = "not_matched_group"; MqttPort = Some randomPort }
     let agents = [
         { TargetGroup = "222"; TargetScenarios = ["test_scenario"] }
     ]
-    let coordinatorSettings = { coordinatorSettings with Agents = agents }
+    let coordinatorSettings = { coordinatorSettings with Agents = agents; MqttPort = Some randomPort }
     
     // set up scenarios    
     let scenario =
@@ -298,18 +313,21 @@ let ``Agent should run test only under their agent group`` () = async {
 [<Fact>]
 let ``Coordinator and Agent should run tests only from TargetScenarios`` () = async {
     
+    let randomPort = Random().Next(65000)
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let agentDep = Dependency.createFor(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     // set up agent group
-    let agentSettings = { agentSettings with TargetGroup = "222" }
+    let agentSettings = { agentSettings with TargetGroup = "222"; MqttPort = Some randomPort }
     // agent will run only test_scenario_222
     let agents = [
         { TargetGroup = "222"; TargetScenarios = ["test_scenario_222"] }        
     ]
     // coordinator will run only test_scenario_111
-    let coordinatorSettings = { coordinatorSettings with Agents = agents; TargetScenarios = ["test_scenario_111"] }
+    let coordinatorSettings = { coordinatorSettings with Agents = agents
+                                                         TargetScenarios = ["test_scenario_111"]
+                                                         MqttPort = Some randomPort }
     let scnArgs = {
         SessionId = coordinatorDep.SessionId
         ScenariosSettings = [| scenarioSettings |]
@@ -345,9 +363,12 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
 [<Fact>]
 let ``Agent should be able to reconnect automatically and join the cluster`` () = async {
     
+    let randomPort = Random().Next(65000)
+    let coordinatorSettings = { coordinatorSettings with MqttPort = Some randomPort }
+    let agentSettings = { agentSettings with MqttPort = Some randomPort }
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
     let (agentDep, loggerBuffer) = Dependency.createWithInMemoryLogger(NodeType.Agent)
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     
     let scnArgs = {
         SessionId = coordinatorDep.SessionId
@@ -367,7 +388,7 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     do! Async.Sleep(5_000)
     
     // spin up the mqtt server again to see that agent will reconnect
-    let server = MqttTests.startMqttServer()
+    let server = MqttTests.startMqttServer(randomPort)
     do! Async.Sleep(2_000) // waiting on reconnect
     
     use coordinator = new ClusterCoordinator()

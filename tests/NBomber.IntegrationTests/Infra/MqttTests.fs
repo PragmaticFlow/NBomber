@@ -1,5 +1,7 @@
 module Tests.MqttTests
 
+open System
+
 open Xunit
 open Swensen.Unquote
 open MQTTnet
@@ -8,24 +10,25 @@ open FsToolkit.ErrorHandling
 
 open NBomber.Infra
 
-let startMqttServer () =
+let startMqttServer (port: int) =
     let factory = MqttFactory()
     let server = factory.CreateMqttServer()    
-    let serverOptions = MqttServerOptionsBuilder().Build()
+    let serverOptions = MqttServerOptionsBuilder().WithDefaultEndpointPort(port).Build()
     server.StartAsync(serverOptions).Wait()
     server
-    
+
 let stopMqttServer (server: IMqttServer) =
     server.StopAsync().Wait()    
 
 [<Fact>]
 let ``Mqtt.publishToBroker should return error in case of server is down`` () = async {
         
-    let server = startMqttServer()
-    let! client = Mqtt.initClient("clientId", "localhost")
+    let randomPort = Random().Next(65000)        
+    let server = startMqttServer(randomPort)
+    let! client = Mqtt.initClient("clientId", "localhost", Some randomPort)
     
     // stopping server to disconnect client and prevent to send a message
-    server.StopAsync().Wait()    
+    server.StopAsync().Wait()
     
     // waiting on client disconnect
     while client.IsConnected do

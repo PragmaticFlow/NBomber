@@ -122,7 +122,7 @@ let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
 let initAgent (dep: Dependency, registeredScenarios: Scenario[], settings: AgentSettings) = async {
     
     let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort)
 
     let nodeInfo = { 
         MachineName = dep.MachineInfo.MachineName

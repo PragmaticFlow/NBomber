@@ -180,7 +180,7 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
                      settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
-    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer)
+    let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort)
     let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
     
     let state = {        

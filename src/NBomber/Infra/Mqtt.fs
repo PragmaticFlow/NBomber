@@ -4,7 +4,6 @@ open System
 open System.IO
 open System.Runtime.Serialization.Formatters.Binary
 open System.Threading
-open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Serilog
@@ -49,7 +48,7 @@ let reconnect (client: IMqttClient, options: IMqttClientOptions option) = task {
     return client        
 }
 
-let initClient (clientId: string, mqttServer: string) =
+let initClient (clientId: string, mqttServer: string, mqttPort: int option) =
     
     let createMqttClient () =
         let factory = MqttFactory()
@@ -58,8 +57,8 @@ let initClient (clientId: string, mqttServer: string) =
     let client = createMqttClient()
     let options = 
         MqttClientOptionsBuilder()
-            .WithClientId(clientId)                            
-            .WithTcpServer(mqttServer)
+            .WithClientId(clientId)
+            .WithTcpServer(mqttServer, Option.toNullable(mqttPort))
             .WithCleanSession()
             .WithCommunicationTimeout(TimeSpan.FromSeconds(1.0))
             .Build()
