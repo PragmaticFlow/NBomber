@@ -113,14 +113,14 @@ let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has e
     | Error (EmptyStepName _) -> ()
     | _ -> failwith ""
     
-[<Fact>]
-let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario has duplicate step name`` () =    
-    let step = NBomber.FSharp.Step.create("step_1", fun _ -> Task.FromResult(Response.Ok()))
-    let scn = { scenario with Steps = [|step; step|] }            
-    
-    match ScenarioValidation.checkDuplicateStepName([|scn|]) with
-    | Error (DuplicateStepName _) -> ()
-    | _ -> failwith ""
+//[<Fact>]
+//let ``ScenarioValidation.checkDuplicateStepName should return fail if scenario has duplicate step name`` () =    
+//    let step = NBomber.FSharp.Step.create("step_1", fun _ -> Task.FromResult(Response.Ok()))
+//    let scn = { scenario with Steps = [|step; step|] }            
+//    
+//    match ScenarioValidation.checkDuplicateStepName([|scn|]) with
+//    | Error (DuplicateStepName _) -> ()
+//    | _ -> failwith ""
 
 [<Fact>]
 let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` () =        

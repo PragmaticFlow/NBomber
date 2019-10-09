@@ -225,3 +225,35 @@ let ``Step.CreatePause should work correctly and not printed in statistics`` () 
     
     test <@ step1Invoked = false @>    
     test <@ result.Statistics.Length = 1 @>
+    
+[<Fact>]
+let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
+    
+    let step1 = Step.create("step 1", fun context -> task {        
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })
+    
+    let step2 = Step.create("step 2", fun context -> task {        
+        do! Task.Delay(TimeSpan.FromSeconds(0.5))
+        return Response.Ok()
+    })
+    
+    let scenario1 = 
+        Scenario.create "scenario 1" [step1; step2]
+        |> Scenario.withOutWarmUp
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+        
+    let scenario2 = 
+        Scenario.create "scenario 2" [step2; step1]
+        |> Scenario.withOutWarmUp
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1        
+        
+    let result =
+        NBomberRunner.registerScenarios [scenario1; scenario2]
+        |> NBomberRunner.runWithResult
+        |> Result.getOk
+            
+    test <@ result.Statistics.Length = 4 @>

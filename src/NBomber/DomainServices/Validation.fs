@@ -39,21 +39,13 @@ module ScenarioValidation =
             scenarios
             |> Array.choose(fun x -> 
                 let emptyStepExist = 
-                    x.Steps |> Step.cast
+                    x.Steps
                     |> Array.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
             
                 if emptyStepExist then Some x.ScenarioName else None)
 
         if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
         else Error <| EmptyStepName scnWithEmptySteps
-
-    let checkDuplicateStepName (scenarios: Contracts.Scenario[]) =    
-        let duplicates = 
-            scenarios
-            |> Array.collect(fun x -> x.Steps |> Step.cast |> Array.map(fun x -> x.StepName) |> getDuplicates)
-    
-        if Array.isEmpty(duplicates) then Ok scenarios
-        else Error <| DuplicateStepName duplicates
 
     let checkDuration (scenarios: Contracts.Scenario[]) =
         let invalidScns = scenarios |> Array.choose(fun x -> if isDurationOk(x.Duration) then None else Some x.ScenarioName)
@@ -69,8 +61,7 @@ module ScenarioValidation =
         context.Scenarios 
         |> checkEmptyName
         >>= checkDuplicateName
-        >>= checkEmptyStepName
-        >>= checkDuplicateStepName
+        >>= checkEmptyStepName        
         >>= checkDuration
         >>= checkConcurrentCopies        
         >>= fun _ -> Ok context
@@ -84,8 +75,7 @@ module AssertionValidation =
             scenarios
             |> Array.collect(fun x ->
                 let stepNames =
-                    x.Steps 
-                    |> Step.cast 
+                    x.Steps
                     |> Array.map(fun step -> step.StepName)
 
                 x.Assertions

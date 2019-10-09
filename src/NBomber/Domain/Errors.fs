@@ -20,8 +20,7 @@ type internal ValidationError =
     | EmptyReportName 
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string[]
-    | EmptyStepName         of scenarioNames:string[]
-    | DuplicateStepName     of stepNames:string[]  
+    | EmptyStepName         of scenarioNames:string[]      
     | AssertsNotFound       of Assertion[]
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
@@ -84,9 +83,6 @@ type internal AppError =
         
         | EmptyStepName scenarioNames -> 
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s."
-            
-        | DuplicateStepName stepNames -> 
-            stepNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are not unique: %s."
 
         | AssertsNotFound asserts ->
             asserts
