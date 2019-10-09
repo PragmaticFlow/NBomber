@@ -41,7 +41,7 @@ let ``Ok and Fail should be properly count`` () =
         Scenario.create "count test" [okStep; failStep]
         |> Scenario.withConcurrentCopies 1
         |> Scenario.withAssertions assertions
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
 
     NBomberRunner.registerScenarios [scenario]
@@ -129,7 +129,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
 
     let scenario = 
         Scenario.create "latency count test" [repeatStep; resetStep]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
         |> Scenario.withConcurrentCopies 1
 
@@ -160,7 +160,7 @@ let ``context.Data should store any payload data from latest step.Response`` () 
 
     let scenario = 
         Scenario.create "test context.Data" [step1; step2]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
         |> Scenario.withConcurrentCopies 1
 
@@ -184,7 +184,7 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
     
     let scenario = 
         Scenario.create "test context.Data" [step1; step2]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
         |> Scenario.withConcurrentCopies 1
 
@@ -214,7 +214,7 @@ let ``Step.CreatePause should work correctly and not printed in statistics`` () 
     
     let scenario = 
         Scenario.create "test context.Data" [pause4sec; step1]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
         |> Scenario.withConcurrentCopies 1    
         

@@ -74,6 +74,10 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withWarmUpDuration(duration)
     
     [<Extension>]
+    static member WithOutWarmUp(scenario: Scenario) = 
+        scenario |> FSharp.Scenario.withOutWarmUp
+    
+    [<Extension>]
     static member WithDuration(scenario: Scenario, duration: TimeSpan) = 
         scenario |> FSharp.Scenario.withDuration(duration)
 

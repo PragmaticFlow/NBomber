@@ -144,6 +144,9 @@ module Scenario =
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
+        
+    let withOutWarmUp (scenario: Contracts.Scenario) =
+        { scenario with WarmUpDuration = TimeSpan.Zero }        
 
     let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with Duration = duration }
