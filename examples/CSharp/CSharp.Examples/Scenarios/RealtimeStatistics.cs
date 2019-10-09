@@ -11,7 +11,7 @@ namespace CSharp.Examples.Scenarios
         {
             var influxDb = new InfluxDBSink(url: "http://localhost:8086", dbName: "default");
             
-            var step = HttpStep.Create("simple step", async (context) =>
+            var step = HttpStep.Create("simple step", (context) =>
                     Http.CreateRequest("GET", "https://gitter.im")
                         .WithHeader("Accept", "text/html")
             );
