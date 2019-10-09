@@ -45,12 +45,13 @@ type Step =
     static member private getRepeatCount (repeatCount: int option) = 
         match defaultArg repeatCount Constants.DefaultRepeatCount with
         | x when x <= 0 -> 1
-        | x             -> x
-
+        | x             -> x       
+    
     static member create (name: string,                          
                           pool: IConnectionPool<'TConnection>,
                           execute: StepContext<'TConnection> -> Task<Response>,                          
-                          ?repeatCount: int) =
+                          ?repeatCount: int,
+                          ?doNotTrack: bool) =
         
         let p = pool :?> ConnectionPool<'TConnection>        
 
@@ -79,17 +80,20 @@ type Step =
           ConnectionPool = newPool
           Execute = newExecute
           CurrentContext = None
-          RepeatCount = Step.getRepeatCount(repeatCount) }
+          RepeatCount = Step.getRepeatCount(repeatCount)
+          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
     static member create (name: string,                          
                           execute: StepContext<'TConnection> -> Task<Response>,
-                          ?repeatCount: int) =
+                          ?repeatCount: int,
+                          ?doNotTrack: bool) =
 
         Step.create(name, 
                     ConnectionPool.internalNone<'TConnection>(),
                     execute,                     
-                    Step.getRepeatCount(repeatCount))
+                    Step.getRepeatCount(repeatCount),
+                    defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
 type Assertion =
 
@@ -161,6 +165,7 @@ module NBomberRunner =
 
     let run (context: NBomberContext) =
         NBomberRunner.runAs Process context
+        |> ignore
 
     let rec runInConsole (context: NBomberContext) =
         NBomberRunner.runAs Console context
@@ -174,3 +179,6 @@ module NBomberRunner =
     let runTest (context: NBomberContext) =
         NBomberRunner.runAs Test context
         |> ignore
+        
+    let internal runWithResult (context: NBomberContext) =
+        NBomberRunner.runAs Process context

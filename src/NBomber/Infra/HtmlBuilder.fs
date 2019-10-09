@@ -27,10 +27,9 @@ let toJsArray (rawData: 'T list) =
 let toPrettyHtml (html: string) =
     let newHtml = html.Replace("<!DOCTYPE HTML>", String.Empty)
     let rootWrapper = "<root>" + newHtml + "</root>"
-    XElement.Parse(rootWrapper)
-            .ToString()
-            |> String.replace("<root>", "<!DOCTYPE HTML>")
-            |> String.replace("</root>", String.Empty)
+    XElement.Parse(rootWrapper).ToString()
+        |> String.replace("<root>", "<!DOCTYPE HTML>")
+        |> String.replace("</root>", String.Empty)
 
 let formatAssertion assertNumber assertLabel =
     match assertLabel with

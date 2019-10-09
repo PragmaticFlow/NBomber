@@ -18,6 +18,9 @@ module internal Constants =
 
     [<Literal>]
     let DefaultRepeatCount = 0
+    
+    [<Literal>]
+    let DefaultDoNotTrack = false
 
     let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
 
@@ -54,6 +57,7 @@ type internal Step = {
     Execute: StepContext<obj> -> Task<Response>
     CurrentContext: StepContext<obj> option
     RepeatCount: int
+    DoNotTrack: bool
 } with
     interface IStep with
         member x.StepName = x.StepName

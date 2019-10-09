@@ -35,7 +35,8 @@ type ScenarioActor(actorIndex: int, correlationId: string,
             allResponses |> Seq.map(fun x -> Step.filterLateResponses(x, duration)) |> Seq.toArray
         
         scenario.Steps
-        |> Array.mapi(fun i step -> StepResults.create(step.StepName, filteredResponses.[i]))        
+        |> Array.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
+        |> Array.choose(fun (step, results) -> if step.DoNotTrack then None else Some results)
 
 type ActorTaskId = int
 

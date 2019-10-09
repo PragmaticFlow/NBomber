@@ -28,12 +28,15 @@ type Step =
     static member Create(name: string, 
                          execute: Func<StepContext<'TConnection>,Task<Response>>,
                          pool: IConnectionPool<'TConnection>,
-                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) = 
-        FSharp.Step.create(name, pool, execute.Invoke, repeatCount)
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int,
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) = 
+        FSharp.Step.create(name, pool, execute.Invoke, repeatCount, doNotTrack)
 
-    static member Create(name: string, execute: Func<StepContext<unit>,Task<Response>>,
-                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int) =
-        Step.Create(name, execute, ConnectionPool.None, repeatCount)
+    static member Create(name: string,
+                         execute: Func<StepContext<unit>,Task<Response>>,
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultRepeatCount:int)>]repeatCount: int,
+                         [<Optional;DefaultParameterValue(Domain.Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+        Step.Create(name, execute, ConnectionPool.None, repeatCount, doNotTrack)
 
 type Assertion =    
     static member ForStep(stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         

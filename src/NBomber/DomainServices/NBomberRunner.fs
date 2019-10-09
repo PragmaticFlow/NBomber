@@ -83,12 +83,12 @@ let showErrors (dep: Dependency) (errors: AppError[]) =
     else
         errors |> Array.iter(AppError.toString >> dep.Logger.Error)
 
-let showAsserts (dep: Dependency) (result: ExecutionResult) =
+let showAsserts (dep: Dependency, result: ExecutionResult) =
     match result.FailedAsserts with
     | [||]          -> ()
     | failedAsserts -> failedAsserts
                        |> Array.map AppError.create
-                       |> showErrors dep
+                       |> showErrors dep                           
 
 let run (dep: Dependency) (context: NBomberContext) =
     asyncResult {        
@@ -108,10 +108,11 @@ let run (dep: Dependency) (context: NBomberContext) =
         result |> buildReport dep |> saveReport dep ctx
         return result
     }
-    |> AsyncResult.map(showAsserts dep)
-    |> AsyncResult.mapError(fun error -> showErrors dep [|error|]) 
     |> Async.RunSynchronously
-    |> Result.toExitCode
+    |> Result.map(fun result -> showAsserts(dep, result)
+                                result)
+    |> Result.mapError(fun error -> showErrors dep [|error|]
+                                    error)
 
 let runAs (appType: ApplicationType) (context: NBomberContext) =
     let logSettings = NBomberContext.tryGetLogSettings(context)

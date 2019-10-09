@@ -22,11 +22,6 @@ module internal Extensions =
             | Ok _     -> failwith "result is not error"
             | Error er -> er
 
-        static member toExitCode result =
-            match result with
-            | Ok _    -> 0
-            | Error _ -> 1
-
         static member sequence (results: Result<'a,'e>[]) =
             let folder state (acc: Result<'a [],'e []>) =
                 match state, acc with

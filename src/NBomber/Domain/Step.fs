@@ -73,7 +73,7 @@ let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
                 if response.Response.Payload :? IDisposable then
                     resourcesToDispose.Add(response.Response.Payload :?> IDisposable)                
                     
-                if not cancelToken.ShouldCancel then
+                if not cancelToken.ShouldCancel && st.DoNotTrack = false then
                     responses.[stepIndex].Add(response)
 
                 if st.RepeatCount = i then

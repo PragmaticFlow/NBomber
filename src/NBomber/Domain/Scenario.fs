@@ -59,7 +59,7 @@ let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: Serilog.ILo
         
         ConnectionPool.clean(scenario, logger)
     with
-    | ex -> Serilog.Log.Error(ex, "TestClean")
+    | ex -> logger.Error(ex, "TestClean")
 
 let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[]) =
     match targetScenarios with

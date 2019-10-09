@@ -4,10 +4,12 @@ open System
 open System.Threading.Tasks
 
 open Xunit
+open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Extensions
 
 [<Fact>]
 let ``Ok and Fail should be properly count`` () =       
@@ -166,3 +168,33 @@ let ``context.Data should store any payload data from latest step.Response`` () 
     |> NBomberRunner.runTest
     
     Assert.Equal(Convert.ToInt32(counterFromStep1), step2Counter)
+    
+[<Fact>]
+let ``Step with DoNotTrack = true should has empty stats and not be printed`` () =
+    
+    let step1 = Step.create("step 1", fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })
+    
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    }, doNotTrack = true)
+    
+    let scenario = 
+        Scenario.create "test context.Data" [step1; step2]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1
+
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runWithResult
+        |> Result.getOk
+    
+    
+    test <@ result.Statistics.Length = 1 @>
+    test <@ result.Statistics
+            |> Array.tryFind(fun x -> x.StepName = "step 2")
+            |> Option.isNone  @>

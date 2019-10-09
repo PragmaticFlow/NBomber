@@ -72,16 +72,16 @@ module StatisticsTable =
 
             let row = scnStats.StepsStats
                       |> Array.map(printStepRow)
-                      |> String.concat(String.Empty)                      
+                      |> String.concat("")                      
             
-            let rowStr = row.Remove(0, 4)
+            let rowStr = if row <> "" then row else "<tr></tr>"
 
             let tableTitle = String.Format("Statistics for Scenario: <b>{0}</b>, Duration: <b>{1}</b>, RPS: <b>{2}</b>, Concurrent Copies: <b>{3}</b>", scnStats.ScenarioName, scnStats.Duration, scnStats.RPS, scnStats.ConcurrentCopies)
             
             assets.StatisticsTableHtml
             |> String.replace("%assertions%", assertionsStr)
             |> String.replace("%table_title%", tableTitle)
-            |> String.replace("%table_body%", "<tr>" + rowStr)
+            |> String.replace("%table_body%", rowStr)
 
         scnStats
         |> Array.map(printScenarioTable)
