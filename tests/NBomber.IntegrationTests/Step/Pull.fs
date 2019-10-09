@@ -198,3 +198,30 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
     test <@ result.Statistics
             |> Array.tryFind(fun x -> x.StepName = "step 2")
             |> Option.isNone  @>
+    
+[<Fact>]
+let ``Step.CreatePause should work correctly and not printed in statistics`` () =
+    
+    let mutable step1Invoked = false
+    
+    let step1 = Step.create("step 1", fun context -> task {
+        step1Invoked <- true
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok()
+    })
+    
+    let pause4sec = Step.createPause(TimeSpan.FromSeconds 4.0)    
+    
+    let scenario = 
+        Scenario.create "test context.Data" [pause4sec; step1]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 0.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 3.0)
+        |> Scenario.withConcurrentCopies 1    
+        
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runWithResult
+        |> Result.getOk
+    
+    test <@ step1Invoked = false @>    
+    test <@ result.Statistics.Length = 1 @>

@@ -4,6 +4,8 @@ open System
 open System.IO
 open System.Threading.Tasks
 
+open FSharp.Control.Tasks.V2.ContextInsensitive
+
 open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
@@ -91,9 +93,15 @@ type Step =
 
         Step.create(name, 
                     ConnectionPool.internalNone<'TConnection>(),
-                    execute,                     
+                    execute,
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
+        
+    static member createPause (duration: TimeSpan) =
+        Step.create(name = sprintf "pause %A" duration,
+                    execute = (fun _ -> task { do! Task.Delay(duration)
+                                               return Response.Ok() }),
+                    doNotTrack = true)
 
 type Assertion =
 

@@ -38,6 +38,9 @@ type Step =
                          [<Optional;DefaultParameterValue(Domain.Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
         Step.Create(name, execute, ConnectionPool.None, repeatCount, doNotTrack)
 
+    static member CreatePause(duration: TimeSpan) =
+        FSharp.Step.createPause(duration)
+
 type Assertion =    
     static member ForStep(stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
         if isNull label then Assertion.forStep(stepName, assertion.Invoke)
