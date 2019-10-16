@@ -55,7 +55,12 @@ module ScenarioValidation =
     let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
         let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
         if Array.isEmpty(invalidScns) then Ok scenarios
-        else Error <| ConcurrentCopiesIsWrong invalidScns    
+        else Error <| ConcurrentCopiesIsWrong invalidScns
+        
+    let validateWarmUpStats (nodeStats: RawNodeStats) =
+        if nodeStats.FailCount > nodeStats.OkCount then
+            AppError.createResult(WarmUpErrorWithManyFailedSteps(nodeStats.OkCount, nodeStats.FailCount))
+        else Ok()              
 
     let validate (context: NBomberContext) =
         context.Scenarios 

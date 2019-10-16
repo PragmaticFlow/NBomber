@@ -7,8 +7,9 @@ open NBomber.Domain
 
 type internal DomainError =
     | AssertionError     of assertNumber:int * assertion:Assertion * stats:Statistics
-    | InitScenarioError  of ex:exn    
+    | InitScenarioError  of ex:exn           
     | CleanScenarioError of ex:exn
+    | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
 
 type internal ValidationError =
     | TargetScenarioIsEmpty
@@ -59,6 +60,8 @@ type internal AppError =
         
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
+        | WarmUpErrorWithManyFailedSteps (okCount, failedCount) ->
+            sprintf "WarmUp scenario error: to many failed steps: OK:'%i', Failed:'%i'" okCount failedCount
 
     static member toString (error: ValidationError) =
         match error with

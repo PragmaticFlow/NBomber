@@ -153,6 +153,12 @@ module ClusterStats =
         
         | None -> new System.Timers.Timer()
         
+    let validateWarmUpStats (st: State) = asyncResult {
+        let! allStats = fetchClusterStats(st, None)
+        let clusterStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Cluster)
+        do! ScenarioValidation.validateWarmUpStats(clusterStats)
+    }
+        
 let printAvailableAgents (st: State) =
     st.Logger.Information(sprintf "available agents: %i" st.Agents.Count)
     if st.Agents.Count > 0 then
@@ -216,8 +222,9 @@ let runSession (st: State) = asyncResult {
 
     do! Communication.sendStartWarmUp(st)
     do! st.ScenariosHost.WarmUpScenarios()
-    do! Communication.waitOnAllAgentsReady(st)
-    
+    do! Communication.waitOnAllAgentsReady(st)    
+    do! ClusterStats.validateWarmUpStats(st)
+
     do! Communication.sendStartBombing(st)
     let bombingTask = st.ScenariosHost.StartBombing()
     

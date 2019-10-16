@@ -13,6 +13,7 @@ open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Errors
 open NBomber.Infra.Dependency
+open NBomber.DomainServices.Validation
 open NBomber.DomainServices.ScenarioRunner
 
 type ScenariosArgs = {
@@ -153,7 +154,11 @@ let startSaveStatsTimer (dep: Dependency, getStatsAtTime: TimeSpan -> RawNodeSta
         timer.Start()
         timer
         
-    | None -> new System.Timers.Timer()    
+    | None -> new System.Timers.Timer()
+    
+let validateWarmUpStats (scnHost: ScenariosHost) =
+    let rawNodeStats = scnHost.GetNodeStats()
+    ScenarioValidation.validateWarmUpStats(rawNodeStats)
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
@@ -225,9 +230,10 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     member x.RunSession(args: ScenariosArgs) = asyncResult {
         
         do! x.InitScenarios(args)
-        do! x.WarmUpScenarios()                     
-        let bombingTask = x.StartBombing()
-        
+        do! x.WarmUpScenarios()
+        do! validateWarmUpStats(x)
+    
+        let bombingTask = x.StartBombing()        
         use saveStatsTimer = startSaveStatsTimer(dep, fun executionTime -> x.GetNodeStats(executionTime))
         
         do! bombingTask

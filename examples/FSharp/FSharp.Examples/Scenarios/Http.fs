@@ -16,7 +16,7 @@ let run () =
     let httpClient = new HttpClient()
 
     let step = Step.create("GET html", fun context -> task {        
-        let! response = httpClient.GetAsync("https://gitter.im",
+        let! response = httpClient.GetAsync("https://gitter.immmm",
                                             context.CancellationToken)
         
         match response.IsSuccessStatusCode with

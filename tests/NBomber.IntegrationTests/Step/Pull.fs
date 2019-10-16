@@ -8,6 +8,7 @@ open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
+open NBomber.Errors
 open NBomber.FSharp
 open NBomber.Extensions
 
@@ -257,3 +258,31 @@ let ``NBomber should support to run and share the same step within one scenario 
         |> Result.getOk
             
     test <@ result.Statistics.Length = 4 @>
+    
+[<Fact>]
+let ``NBomber should stop execution scenario if too many failed results on a warm-up`` () =
+    
+    let step = Step.create("step", fun context -> task {        
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Fail()
+    })
+    
+    let scenario = 
+        Scenario.create "scenario" [step]
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 60.0)
+        |> Scenario.withConcurrentCopies 1
+        
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runWithResult
+        |> Result.getError
+    
+    let warmUpErrorFound =
+        match result with
+        | Domain error -> match error with
+                          | WarmUpErrorWithManyFailedSteps _ -> true
+                          | _ -> false            
+        | _ -> false
+    
+    test <@ warmUpErrorFound = true @>
