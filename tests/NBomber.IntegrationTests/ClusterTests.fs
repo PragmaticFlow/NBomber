@@ -82,7 +82,7 @@ let private scenarioArguments = {
 
 let internal isWarmUpStarted (status) =
     match status with
-    | ScenarioHostStatus.Working st when st = WorkingState.WarmUpScenarios -> true
+    | ScenarioHostStatus.Working st when st = WorkingOperation.WarmUpScenarios -> true
     | _ -> false
 
 [<Fact>]

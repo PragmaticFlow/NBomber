@@ -17,11 +17,16 @@ type NodeType =
     | Coordinator
     | Agent
     | Cluster
+    
+type OperationType =
+    | WarmUp
+    | Bombing
 
 type StatisticsMeta = {
     SessionId: string
     MachineName: string
     Sender: NodeType
+    Operation: OperationType
 }
 
 type Statistics = {

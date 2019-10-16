@@ -1,4 +1,4 @@
-﻿module Tests.Statistics
+﻿module Tests.StatisticsTests
 
 open System
 open Xunit
@@ -11,7 +11,7 @@ open NBomber.Extensions
 
 // todo: add test on NodeStats.merge with custom execution duration
 
-let private meta = { SessionId = "1"; MachineName = "1"; Sender = NodeType.SingleNode }
+let private meta = { SessionId = "1"; MachineName = "1"; Sender = NodeType.SingleNode; Operation = OperationType.Bombing }
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }
 

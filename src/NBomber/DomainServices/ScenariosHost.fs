@@ -39,7 +39,7 @@ type ScenariosArgs = {
         TargetScenarios = targetScns
         CustomSettings = customSettings }
 
-type WorkingState =
+type WorkingOperation =
     | InitScenarios
     | WarmUpScenarios
     | StartBombing
@@ -47,7 +47,7 @@ type WorkingState =
 
 type ScenarioHostStatus =    
     | Ready
-    | Working of WorkingState    
+    | Working of WorkingOperation    
     | Stopped of reason:string
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
@@ -144,7 +144,7 @@ let startSaveStatsTimer (dep: Dependency, getStatsAtTime: TimeSpan -> RawNodeSta
     match dep.StatisticsSink with
     | Some statsSink ->
         let mutable executionTime = TimeSpan.Zero
-        let timer = new System.Timers.Timer(Constants.GetStatsInterval)
+        let timer = new System.Timers.Timer(Constants.GetStatsInterval - 1_000.0)
         timer.Elapsed.Add(fun _ ->
             // moving time forward
             executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
@@ -160,19 +160,25 @@ let validateWarmUpStats (scnHost: ScenariosHost) =
     let rawNodeStats = scnHost.GetNodeStats()
     ScenarioValidation.validateWarmUpStats(rawNodeStats)
 
+let mapToOperationType (scnHostStatus: ScenarioHostStatus) =
+    if scnHostStatus = ScenarioHostStatus.Working(WorkingOperation.WarmUpScenarios) then OperationType.WarmUp
+    else OperationType.Bombing  
+
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable _scnArgs = ScenariosArgs.empty  
     let mutable _status = ScenarioHostStatus.Ready
     let mutable _scnRunners = Array.empty<ScenarioRunner>
     
-    let _statsMeta = { SessionId = dep.SessionId
-                       MachineName = dep.MachineInfo.MachineName
-                       Sender = dep.NodeType }
+    let getStatsMeta () =
+        { SessionId = dep.SessionId
+          MachineName = dep.MachineInfo.MachineName
+          Sender = dep.NodeType
+          Operation = mapToOperationType(_status) }
 
     member x.SessionId = _scnArgs.SessionId
     member x.Status = _status
-    member x.NodeInfo = _statsMeta
+    member x.NodeInfo = getStatsMeta()
     member x.GetRegisteredScenarios() = registeredScenarios    
     member x.GetRunningScenarios() = _scnRunners |> Array.map(fun x -> x.Scenario)
     
@@ -220,23 +226,27 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     member x.GetNodeStats() =
         _scnRunners
         |> Array.map(fun x -> x.GetScenarioStats())
-        |> NodeStats.create(_statsMeta)
+        |> NodeStats.create(getStatsMeta())
     
     member x.GetNodeStats(duration) =
         _scnRunners
         |> Array.map(fun x -> x.GetScenarioStats(duration))
-        |> NodeStats.create(_statsMeta)
+        |> NodeStats.create(getStatsMeta())
         
     member x.RunSession(args: ScenariosArgs) = asyncResult {
         
-        do! x.InitScenarios(args)
-        do! x.WarmUpScenarios()
-        do! validateWarmUpStats(x)
-    
-        let bombingTask = x.StartBombing()        
-        use saveStatsTimer = startSaveStatsTimer(dep, fun executionTime -> x.GetNodeStats(executionTime))
+        // init
+        do! x.InitScenarios(args)        
         
-        do! bombingTask
+        // warm-up
+        use saveStatsTimer = startSaveStatsTimer(dep, fun executionTime -> x.GetNodeStats(executionTime))
+        do! x.WarmUpScenarios()
+        saveStatsTimer.Stop()
+        do! validateWarmUpStats(x)        
+    
+        // bombing
+        saveStatsTimer.Start()
+        do! x.StartBombing()
         saveStatsTimer.Stop()
 
         // saving final stats results

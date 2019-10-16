@@ -111,11 +111,12 @@ module ClusterStats =
         let allNodesStats = Array.append [|coordinatorStats|] agentsStats
         allNodesStats
         
-    let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =
+    let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =       
         
         let meta = { SessionId = st.ScenariosArgs.SessionId
                      MachineName = st.ScenariosHost.NodeInfo.MachineName
-                     Sender = NodeType.Cluster }
+                     Sender = NodeType.Cluster
+                     Operation = NBomber.DomainServices.ScenariosHost.mapToOperationType(st.ScenariosHost.Status) }
         
         st.ScenariosHost.GetRegisteredScenarios()
         |> Scenario.applySettings(st.ScenariosArgs.ScenariosSettings)
@@ -141,7 +142,7 @@ module ClusterStats =
             timer.Elapsed.Add(fun _ ->
                 asyncResult {
                     // moving time forward
-                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
+                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds(Constants.GetStatsInterval - 1_000.0))
                     let! clusterStats = getClusterStatsAtTimer(executionTime)                    
                     saveClusterStats(clusterStats, statsSink) |> ignore                    
                 }
@@ -220,25 +221,26 @@ let runSession (st: State) = asyncResult {
     do! st.ScenariosHost.InitScenarios(st.ScenariosArgs)
     do! Communication.waitOnAllAgentsReady(st)    
 
+    // warm-up
     do! Communication.sendStartWarmUp(st)
-    do! st.ScenariosHost.WarmUpScenarios()
-    do! Communication.waitOnAllAgentsReady(st)    
-    do! ClusterStats.validateWarmUpStats(st)
-
-    do! Communication.sendStartBombing(st)
-    let bombingTask = st.ScenariosHost.StartBombing()
-    
-    use saveStatsTimer =        
+    use saveStatsTimer =
         ClusterStats.startSaveStatsTimer(
             st.StatisticsSink,
             fun executionTime -> ClusterStats.fetchClusterStats(st, Some executionTime)
         )
-    
-    do! bombingTask
+    do! st.ScenariosHost.WarmUpScenarios()
+    do! Communication.waitOnAllAgentsReady(st)
     saveStatsTimer.Stop()
-        
+    do! ClusterStats.validateWarmUpStats(st)
+
+    // bombing
+    do! Communication.sendStartBombing(st)
+    saveStatsTimer.Start()
+    do! st.ScenariosHost.StartBombing()
+    do! Communication.waitOnAllAgentsReady(st)
+    saveStatsTimer.Stop()
+    
     // saving final stats results
-    do! Communication.waitOnAllAgentsReady(st)    
     let! allStats = ClusterStats.fetchClusterStats(st, None)
     if st.StatisticsSink.IsSome then
         do! ClusterStats.saveClusterStats(allStats, st.StatisticsSink.Value)
