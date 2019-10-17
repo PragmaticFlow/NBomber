@@ -21,6 +21,7 @@ type NodeType =
 type OperationType =
     | WarmUp
     | Bombing
+    | Complete
 
 type StatisticsMeta = {
     SessionId: string

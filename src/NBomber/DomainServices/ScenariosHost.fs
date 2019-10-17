@@ -140,7 +140,7 @@ let saveStats (nodeStats: RawNodeStats[], statsSink: IStatisticsSink) =
     |> Async.Parallel
     |> Async.StartAsTask    
 
-let startSaveStatsTimer (dep: Dependency, getStatsAtTime: TimeSpan -> RawNodeStats) =    
+let startSaveStatsTimer (dep: Dependency, duration: TimeSpan, getStatsAtTime: TimeSpan -> RawNodeStats) =    
     match dep.StatisticsSink with
     | Some statsSink ->
         let mutable executionTime = TimeSpan.Zero
@@ -148,8 +148,11 @@ let startSaveStatsTimer (dep: Dependency, getStatsAtTime: TimeSpan -> RawNodeSta
         timer.Elapsed.Add(fun _ ->
             // moving time forward
             executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
-            let rawNodeStats = getStatsAtTime(executionTime)
-            saveStats([|rawNodeStats|], statsSink) |> ignore
+            
+            if executionTime >= duration then timer.Stop() 
+            else
+                let rawNodeStats = getStatsAtTime(executionTime)
+                saveStats([|rawNodeStats|], statsSink) |> ignore
         )
         timer.Start()
         timer
@@ -161,8 +164,17 @@ let validateWarmUpStats (scnHost: ScenariosHost) =
     ScenarioValidation.validateWarmUpStats(rawNodeStats)
 
 let mapToOperationType (scnHostStatus: ScenarioHostStatus) =
-    if scnHostStatus = ScenarioHostStatus.Working(WorkingOperation.WarmUpScenarios) then OperationType.WarmUp
-    else OperationType.Bombing  
+    match scnHostStatus with
+    | ScenarioHostStatus.Working(WorkingOperation.WarmUpScenarios) ->
+        OperationType.WarmUp
+    
+    | ScenarioHostStatus.Working(WorkingOperation.StartBombing) ->            
+        OperationType.Bombing
+    
+    | _ -> OperationType.Complete
+    
+let getMaxDuration (allDurations: TimeSpan[]) =
+    Array.max allDurations    
 
 type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
@@ -181,6 +193,8 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
     member x.NodeInfo = getStatsMeta()
     member x.GetRegisteredScenarios() = registeredScenarios    
     member x.GetRunningScenarios() = _scnRunners |> Array.map(fun x -> x.Scenario)
+    member x.GetScenarioMaxWarmUpDuration() = x.GetRunningScenarios() |> Array.map(fun x -> x.WarmUpDuration) |> getMaxDuration
+    member x.GetScenarioMaxDuration() = x.GetRunningScenarios() |> Array.map(fun x -> x.Duration) |> getMaxDuration
     
     member x.InitScenarios(args: ScenariosArgs) = task {
         _scnArgs <- args
@@ -239,15 +253,17 @@ type ScenariosHost(dep: Dependency, registeredScenarios: Scenario[]) =
         do! x.InitScenarios(args)        
         
         // warm-up
-        use saveStatsTimer = startSaveStatsTimer(dep, fun executionTime -> x.GetNodeStats(executionTime))
-        do! x.WarmUpScenarios()
-        saveStatsTimer.Stop()
-        do! validateWarmUpStats(x)        
+        let timerDuration = x.GetScenarioMaxWarmUpDuration()
+        use warmUpStatsTimer = startSaveStatsTimer(dep, timerDuration, fun executionTime -> x.GetNodeStats(executionTime))
+        do! x.WarmUpScenarios()        
+        do! validateWarmUpStats(x)
+        warmUpStatsTimer.Stop()
     
         // bombing
-        saveStatsTimer.Start()
+        let timerDuration = x.GetScenarioMaxWarmUpDuration()
+        use bombingStatsTimer = startSaveStatsTimer(dep, timerDuration, fun executionTime -> x.GetNodeStats(executionTime))
         do! x.StartBombing()
-        saveStatsTimer.Stop()
+        bombingStatsTimer.Stop()
 
         // saving final stats results
         let rawNodeStats = x.GetNodeStats()
