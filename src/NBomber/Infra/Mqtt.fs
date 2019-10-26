@@ -60,7 +60,7 @@ let initClient (clientId: string, mqttServer: string,
             .WithClientId(clientId)
             .WithTcpServer(mqttServer, Option.toNullable(mqttPort))
             .WithCleanSession()
-            .WithCommunicationTimeout(TimeSpan.FromSeconds(1.0))
+            .WithCommunicationTimeout(TimeSpan.FromSeconds(5.0))
             .Build()
             |> Some
     
