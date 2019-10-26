@@ -32,8 +32,8 @@ Documentation is located [here](https://nbomber.com).
 - [x] Sequential flow
 - [x] Test runner support: [XUnit; NUnit]
 - [x] Cluster support (run scenario from several nodes in parallel)
-- [x] Reporting: [Plain text; HTML; Csv; Md]
-- [x] Statistics sinks: (analyze and monitor performance trends via sinking statistics to any data storage)
+- [x] Realtime Reporting: [Plain text; HTML; Csv; Md]
+- [x] Statistics sinks: [InfluxDb]
 
 ### Supported technologies
 - Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
@@ -43,13 +43,16 @@ Documentation is located [here](https://nbomber.com).
 ### Examples
 |Scenario|Language|Example|
 |--|--|--|
-| HTTP | C# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/Http.cs) |
+| HTTP | C# | [Test HTTP](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/Http.cs) |
 | MongoDb | C# | [Test MongoDb with 2 READ queries](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/MongoDb.cs)|
 | NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.NUnit/Tests.cs) |
 | WebSockets | C# | [Test ping and pong on WebSockets](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/WebSockets.cs) |
-| HTTP | F# | [Test HTTP (https://github.com)](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/Http.fs) |
+| Realtime Statistics | C# | [Realtime Statistics with InfluxDb sink](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/RealtimeStatistics.cs) |
+| Cluster | C# | [Test HTTP with Cluster](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.Cluster/Scenarios/Http.cs) |
+| HTTP | F# | [Test HTTP](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/Http.fs) |
 | XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.XUnit/Tests.fs) |
 | Expecto integration | F# | [Simple Expecto test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.Expecto/Tests.fs) |
+| Realtime Statistics | F# | [Realtime Statistics with InfluxDb sink](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/RealtimeStatistics.fs) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
