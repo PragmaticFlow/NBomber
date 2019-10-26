@@ -114,7 +114,7 @@ module ClusterStats =
     let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =       
         
         let meta = { SessionId = st.ScenariosArgs.SessionId
-                     MachineName = st.ScenariosHost.NodeInfo.MachineName
+                     MachineName = st.ScenariosHost.NodeStatsMeta.MachineName
                      Sender = NodeType.Cluster
                      Operation = NBomber.DomainServices.ScenariosHost.mapToOperationType(st.ScenariosHost.Status) }
         
@@ -124,18 +124,17 @@ module ClusterStats =
         
     let fetchClusterStats (st: State, executionTime: TimeSpan option) = asyncResult {
         let! agentsStats = Communication.getAgentsStats(st, executionTime)
-        let coordinatorStats = st.ScenariosHost.GetNodeStats()
+        let coordinatorStats = st.ScenariosHost.GetNodeStats(executionTime)
         let allNodeStats = combineAllNodeStats(coordinatorStats, agentsStats)
         let clusterStats = buildClusterStats(st, allNodeStats, executionTime)
         return Array.append [|clusterStats|] allNodeStats
     }
     
     let saveClusterStats (allClusterStats: RawNodeStats[], statisticsSink: IStatisticsSink) =    
-        saveStats(allClusterStats, statisticsSink)        
+        ScenarioHostStats.saveStats(allClusterStats, statisticsSink)        
     
-    let startSaveStatsTimer (statisticsSink: IStatisticsSink option,
-                             getClusterStatsAtTimer: TimeSpan -> Async<Result<RawNodeStats[],AppError>>) =    
-        match statisticsSink with
+    let startSaveStatsTimer (st: State) =    
+        match st.StatisticsSink with
         | Some statsSink->        
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
@@ -143,7 +142,7 @@ module ClusterStats =
                 asyncResult {
                     // moving time forward
                     executionTime <- executionTime.Add(TimeSpan.FromMilliseconds(Constants.GetStatsInterval - 1_000.0))
-                    let! clusterStats = getClusterStatsAtTimer(executionTime)                    
+                    let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
                     saveClusterStats(clusterStats, statsSink) |> ignore                    
                 }
                 |> Async.RunSynchronously
@@ -156,7 +155,7 @@ module ClusterStats =
         
     let validateWarmUpStats (st: State) = asyncResult {
         let! allStats = fetchClusterStats(st, None)
-        let clusterStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Cluster)
+        let clusterStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
         do! ScenarioValidation.validateWarmUpStats(clusterStats)
     }
         
@@ -223,22 +222,18 @@ let runSession (st: State) = asyncResult {
 
     // warm-up
     do! Communication.sendStartWarmUp(st)
-    use saveStatsTimer =
-        ClusterStats.startSaveStatsTimer(
-            st.StatisticsSink,
-            fun executionTime -> ClusterStats.fetchClusterStats(st, Some executionTime)
-        )
+    use warmUpStatsTimer = ClusterStats.startSaveStatsTimer(st)
     do! st.ScenariosHost.WarmUpScenarios()
     do! Communication.waitOnAllAgentsReady(st)
-    saveStatsTimer.Stop()
+    warmUpStatsTimer.Stop()
     do! ClusterStats.validateWarmUpStats(st)
 
     // bombing
     do! Communication.sendStartBombing(st)
-    saveStatsTimer.Start()
+    use bombingStatsTimer = ClusterStats.startSaveStatsTimer(st)
     do! st.ScenariosHost.StartBombing()
     do! Communication.waitOnAllAgentsReady(st)
-    saveStatsTimer.Stop()
+    bombingStatsTimer.Stop()
     
     // saving final stats results
     let! allStats = ClusterStats.fetchClusterStats(st, None)

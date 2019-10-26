@@ -112,10 +112,7 @@ let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
         do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
 
     | GetStatistics duration ->
-        let stats =
-            if duration.IsSome then st.ScenariosHost.GetNodeStats(duration.Value)
-            else st.ScenariosHost.GetNodeStats()
-            
+        let stats = st.ScenariosHost.GetNodeStats(duration)
         do! Response.AgentStats(stats) |> sendToCoordinator(st)        
 }
 

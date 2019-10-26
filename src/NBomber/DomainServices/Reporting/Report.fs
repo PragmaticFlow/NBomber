@@ -35,7 +35,7 @@ let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainErro
     
     | NodeType.Coordinator when nodeStats.Length > 0 ->
           nodeStats
-          |> Array.tryFind(fun x -> x.Meta.Sender = NodeType.Cluster)
+          |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
           |> Option.map(fun clusterStats ->
               { TxtReport = TxtReport.print(clusterStats, failedAsserts)
                 HtmlReport = HtmlReport.print(dep, clusterStats, failedAsserts)

@@ -55,5 +55,5 @@ type internal RawNodeStats = {
     OkCount: int
     FailCount: int
     LatencyCount: LatencyCount
-    Meta: StatisticsMeta
+    NodeStatsInfo: NodeStatsInfo
 }

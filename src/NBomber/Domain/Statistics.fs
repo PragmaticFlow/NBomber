@@ -27,7 +27,7 @@ let create (nodeStats: RawNodeStats) =
           DataMeanKb = step.DataTransfer.MeanKb
           DataMaxKb = step.DataTransfer.MaxKb
           AllDataMB = step.DataTransfer.AllMB
-          Meta = nodeStats.Meta }        
+          NodeStatsInfo = nodeStats.NodeStatsInfo }        
 
     nodeStats.AllScenariosStats
     |> Array.collect(fun scn -> 
@@ -201,7 +201,7 @@ module ScenarioStats =
 
 module NodeStats =
 
-    let create (meta: StatisticsMeta) (allScnStats: ScenarioStats[]) =
+    let create (nodeInfo: NodeStatsInfo) (allScnStats: ScenarioStats[]) =
         
         let allOkCount = allScnStats
                          |> Array.collect(fun x -> x.StepsStats)
@@ -219,9 +219,9 @@ module NodeStats =
           OkCount = allOkCount
           FailCount = allFailCount
           LatencyCount = latencyCount
-          Meta = meta }
+          NodeStatsInfo = nodeInfo }
 
-    let merge (meta: StatisticsMeta)
+    let merge (nodeInfo: NodeStatsInfo)
               (allNodesStats: RawNodeStats[])
               (executionTime: TimeSpan option)
               (allScenarios: Scenario[]) =
@@ -244,4 +244,4 @@ module NodeStats =
             |> ScenarioStats.createByStepStats scn execTime
             |> updateConcurrenyCounters nodeCount            
         )            
-        |> create meta
+        |> create nodeInfo

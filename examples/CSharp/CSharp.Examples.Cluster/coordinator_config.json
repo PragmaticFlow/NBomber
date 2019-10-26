@@ -2,9 +2,9 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "test_gitter",
-        "WarmUpDuration": "00:00:10",
-        "Duration": "00:00:30",
+        "ScenarioName": "cluster_test_gitter",
+        "WarmUpDuration": "00:00:30",
+        "Duration": "00:00:59",
         "ConcurrentCopies": 50        
       }
     ]
@@ -13,13 +13,13 @@
   "ClusterSettings": {
     "Coordinator": {
       "ClusterId": "test_cluster",
-      "TargetScenarios": [ "test_gitter" ],
+      "TargetScenarios": [ "cluster_test_gitter" ],
       "MqttServer": "localhost",
 
       "Agents": [
         {
           "TargetGroup": "1",
-          "TargetScenarios": [ "test_gitter" ]
+          "TargetScenarios": [ "cluster_test_gitter" ]
         }
       ]
     }

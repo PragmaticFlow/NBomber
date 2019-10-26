@@ -165,10 +165,9 @@ type ScenarioRunner(scenario: Scenario, logger: Serilog.ILogger) =
     member x.Run() = run(scenario.Duration)
     member x.Stop() = stop(curJob, curActors)
     
-    member x.GetScenarioStats() =
-        x.GetScenarioStats(scenario.Duration)        
-        
-    member x.GetScenarioStats(executionTime) =
+    member x.GetScenarioStats(executionTime: TimeSpan option) =
+        let duration = if executionTime.IsSome then executionTime.Value
+                       else scenario.Duration
         curActors
-        |> Array.collect(fun x -> x.GetStepResults executionTime) 
-        |> ScenarioStats.create scenario executionTime
+        |> Array.collect(fun x -> x.GetStepResults duration) 
+        |> ScenarioStats.create scenario duration

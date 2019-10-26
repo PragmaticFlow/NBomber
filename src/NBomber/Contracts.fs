@@ -23,7 +23,7 @@ type OperationType =
     | Bombing
     | Complete
 
-type StatisticsMeta = {
+type NodeStatsInfo = {
     SessionId: string
     MachineName: string
     Sender: NodeType
@@ -47,7 +47,7 @@ type Statistics = {
     DataMeanKb: float
     DataMaxKb: float
     AllDataMB: float
-    Meta: StatisticsMeta
+    NodeStatsInfo: NodeStatsInfo
 }
 
 type IConnectionPool<'TConnection> = interface end
