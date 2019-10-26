@@ -1,5 +1,6 @@
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
+using NBomber.Sinks.InfluxDB;
 
 namespace CSharp.Examples.Cluster.Scenarios
 {
@@ -7,7 +8,9 @@ namespace CSharp.Examples.Cluster.Scenarios
     {
         public static void Run(string configPath)
         {
-            var step = HttpStep.Create("simple step", (context) =>
+            var influxDb = new InfluxDBSink(url: "http://localhost:8086", dbName: "default");
+            
+            var step = HttpStep.Create("cluster simple step", (context) =>
                 Http.CreateRequest("GET", "https://gitter.im")
                     .WithHeader("Accept", "text/html")
                     //.WithHeader("Cookie", "cookie1=value1; cookie2=value2")
@@ -15,10 +18,11 @@ namespace CSharp.Examples.Cluster.Scenarios
                     //.WithCheck(response => Task.FromResult(response.IsSuccessStatusCode))
             );
 
-            var scenario = ScenarioBuilder.CreateScenario("test_gitter", step);
+            var scenario = ScenarioBuilder.CreateScenario("cluster_test_gitter", step);
             
             NBomberRunner.RegisterScenarios(scenario)
                          .LoadConfig(configPath)
+                         .SaveStatisticsTo(influxDb)
                          //.LoadConfig("agent_config.json")
                          //.LoadConfig("coordinator_config.json")
                          .RunInConsole();

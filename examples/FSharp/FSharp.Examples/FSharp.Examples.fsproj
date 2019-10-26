@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Scenarios\HelloWorld.fs" />
     <Compile Include="Scenarios\Http.fs" />
+    <Compile Include="Scenarios\RealtimeStatistics.fs" />
     <Compile Include="Program.fs" />
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -19,7 +20,8 @@
   </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />    
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
+    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.15.0-beta3" />    
   </ItemGroup>
 
 </Project>

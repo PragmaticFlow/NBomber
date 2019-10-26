@@ -56,7 +56,7 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
 
     let statsSync = { new IStatisticsSink with
                         member x.SaveStatistics(stats) =
-                            match stats.[0].Meta.Operation with
+                            match stats.[0].NodeStatsInfo.Operation with
                             | WarmUp   -> warmUpCounter <- warmUpCounter + 1
                             | Bombing  -> bombingCounter <- bombingCounter + 1
                             | Complete -> completeCounter <- completeCounter + 1 
