@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.15.0-beta3" />    
+    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.15.0" />    
   </ItemGroup>
 
 </Project>
