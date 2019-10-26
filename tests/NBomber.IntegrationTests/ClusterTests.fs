@@ -103,8 +103,8 @@ let ``Coordinator can run as single bomber`` () = async {
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let clusterStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Cluster)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let clusterStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
     
     test <@ allStats.Length = 2 @>
     test <@ coordinatorStats.OkCount > 1 @>
@@ -129,8 +129,8 @@ let ``Coordinator should be able to start bombing even when agents are offline``
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let clusterStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Cluster)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let clusterStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
     
     test <@ allStats.Length = 2 @>
     test <@ coordinatorStats.OkCount > 1 @>
@@ -157,8 +157,8 @@ let ``Coordinator and agents should attack together`` () = async {
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty    
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let agentStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Agent)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let agentStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
     
     test <@ allStats.Length = 3 @>
     test <@ coordinatorStats.OkCount > 1 @>
@@ -205,8 +205,8 @@ let ``Changing cluster topology should not affect a current test execution`` () 
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty    
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let agentStats = allStats |> Array.filter(fun x -> x.Meta.Sender = NodeType.Agent)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let agentStats = allStats |> Array.filter(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
 
     test <@ agentStats.Length = 1 @> // it should be '2' if agent2 joined the test
     test <@ agentStats.[0].OkCount > 1 @>
@@ -295,7 +295,7 @@ let ``Agent should run test only under their agent group`` () = async {
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
-    let agentStats = allStats |> Array.tryFind(fun x -> x.Meta.Sender = NodeType.Agent)
+    let agentStats = allStats |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
         
     test <@ agentStats.IsNone @>
 }
@@ -339,8 +339,8 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty             
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let agentStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Agent)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let agentStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
     
     test <@ coordinatorStats.AllScenariosStats.[0].ScenarioName = "test_scenario_111" @>
     test <@ agentStats.AllScenariosStats.[0].ScenarioName = "test_scenario_222" @>    
@@ -377,8 +377,8 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty             
-    let coordinatorStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Coordinator)
-    let agentStats = allStats |> Array.find(fun x -> x.Meta.Sender = NodeType.Agent)
+    let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
+    let agentStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
     let logEvents = loggerBuffer.LogEvents |> Seq.toArray
     
     let agentDisconnectedEvents =
