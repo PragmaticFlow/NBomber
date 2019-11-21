@@ -141,7 +141,7 @@ module ClusterStats =
             timer.Elapsed.Add(fun _ ->
                 asyncResult {
                     // moving time forward
-                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds(Constants.GetStatsInterval - 1_000.0))
+                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
                     let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
                     saveClusterStats(clusterStats, statsSink) |> ignore                    
                 }

@@ -162,7 +162,7 @@ module ScenarioHostStats =
         match dep.StatisticsSink with
         | Some statsSink ->
             let mutable executionTime = TimeSpan.Zero
-            let timer = new System.Timers.Timer(Constants.GetStatsInterval - 1_000.0)
+            let timer = new System.Timers.Timer(Constants.GetStatsInterval)
             timer.Elapsed.Add(fun _ ->
                 // moving time forward
                 executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
