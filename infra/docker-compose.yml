@@ -2,24 +2,19 @@
 services:
 
   mongo: 
-    image: mongo:4.0.3
-    container_name: mongo_db_1
+    image: mongo:4.0.3    
     ports:
       - "27017:27017"
   
   influxdb:
-    image: "influxdb:1.5.4"
-    networks:
-      - local
+    image: "influxdb:1.5.4"        
     ports:
      - "8086:8086"
     environment:
        INFLUXDB_DB: "\"default\""
 
   grafana:
-    image: "grafana/grafana:5.4.3"
-    networks:
-      - local
+    image: "grafana/grafana:5.4.3"    
     ports:
      - "3000:3000"
     environment:
@@ -27,14 +22,8 @@ services:
     depends_on:
       - influxdb
 
-  emqx:
-    image: "emqx/emqx:v3.2.1"
-    networks:
-      - local
+  eclipse-mosquitto:
+    image: "eclipse-mosquitto:1.6.8"    
     ports:
       - "1883:1883"
-      - "18083:18083"
-  
-networks:
-  local:
-    driver: bridge
+      - "9001:9001"
