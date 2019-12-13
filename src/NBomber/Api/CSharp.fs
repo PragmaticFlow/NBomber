@@ -91,6 +91,10 @@ type NBomberRunner =
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
+        
+    [<Extension>]
+    static member LoadInfraConfig(context: NBomberContext, path: string) =
+        context |> FSharp.NBomberRunner.loadInfraConfig(path)        
 
     [<Extension>]
     static member WithReportFileName(context: NBomberContext, reportFileName: string) =

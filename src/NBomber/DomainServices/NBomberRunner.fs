@@ -114,9 +114,8 @@ let run (dep: Dependency) (context: NBomberContext) =
     |> Result.mapError(fun error -> showErrors dep [|error|]
                                     error)
 
-let runAs (appType: ApplicationType) (context: NBomberContext) =
-    let logSettings = NBomberContext.tryGetLogSettings(context)
-    let nodeType = NBomberContext.getNodeType(context)    
-    let dep = Dependency.create(appType, nodeType, logSettings)
+let runAs (appType: ApplicationType) (context: NBomberContext) =    
+    let nodeType = NBomberContext.getNodeType(context)
+    let dep = Dependency.create(appType, nodeType, context.InfraConfig)
     let dep = { dep with StatisticsSink = context.StatisticsSink }
     run dep context

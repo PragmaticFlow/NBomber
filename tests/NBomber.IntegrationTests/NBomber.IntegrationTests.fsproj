@@ -11,6 +11,9 @@
     <Compile Include="ExtensionsTests.fs" />
     <Content Include="Configuration\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Configuration\infra_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>    
     <Compile Include="NBomberContext.fs" />    
     <Compile Include="Response.fs" />    
@@ -19,7 +22,7 @@
     <Compile Include="Statistics\StatisticsSinkTests.fs" />    
     <Compile Include="Infra\MqttTests.fs" />
     <Compile Include="Step\Pull.fs" />
-    <Compile Include="Configuration\ParseJson.fs" />
+    <Compile Include="Configuration\LoadConfig.fs" />
     <Compile Include="Configuration\ApplySettings.fs" />
     <Compile Include="Configuration\Validation.fs" />
     <Compile Include="ClusterTests.fs" />

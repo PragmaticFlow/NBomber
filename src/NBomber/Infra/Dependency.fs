@@ -8,10 +8,10 @@ open System.Runtime.Versioning
 open Serilog
 open ShellProgressBar
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts
 open NBomber.Infra.ResourceManager
-open NBomber.Configuration
 
 type ApplicationType =
     | Process
@@ -60,24 +60,18 @@ module ProgressBar =
             pbar.Tick()
     }
 
-module Logger =
-
-    let withConsoleOutput appType (config: LoggerConfiguration) =
-        match appType with
-        | Console -> config.WriteTo.Console()
-        | _       -> config
-
-    let withFileOutput (logSettings: LogSettings option) (config: LoggerConfiguration) =
-        match logSettings with
-        | Some v when v.FileName |> String.IsNullOrEmpty |> not ->                        
-                config.WriteTo.File(v.FileName, v.MinimumLevel)
-        | _  -> config
-
-    let createLogger (appType: ApplicationType, logSettings: LogSettings option) =     
-        LoggerConfiguration()
-        |> withConsoleOutput appType
-        |> withFileOutput logSettings            
-        |> fun config -> config.CreateLogger()
+module Logger =      
+    
+    let createLogger (configPath: IConfiguration option) =
+        match configPath with
+        | Some path ->            
+            LoggerConfiguration()
+                .ReadFrom.Configuration(path)
+                .CreateLogger()
+        | None ->
+            LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger()
 
 let private retrieveMachineInfo () =
 
@@ -98,8 +92,8 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType, nodeType: NodeType, logSettings: LogSettings option) =
-    let logger = Logger.createLogger(appType, logSettings)
+let create (appType: ApplicationType, nodeType: NodeType, infraConfig: IConfiguration option) =
+    let logger = Logger.createLogger(infraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
     
     Serilog.Log.Logger <- logger

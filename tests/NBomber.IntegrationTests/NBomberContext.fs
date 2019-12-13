@@ -31,14 +31,14 @@ let scenario = {
 
 let config = {
     GlobalSettings = None
-    ClusterSettings = None
-    LogSettings = None
+    ClusterSettings = None    
     CustomSettings = None
 }
 
 let context = {
     Scenarios = [| scenario |]
     NBomberConfig = None
+    InfraConfig = None
     ReportFileName = None
     ReportFormats = []
     StatisticsSink = None

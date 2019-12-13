@@ -5,6 +5,7 @@ open System.IO
 open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
@@ -157,6 +158,7 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { Scenarios = List.toArray(scenarios)
           NBomberConfig = None
+          InfraConfig = None
           ReportFileName = None
           ReportFormats = Domain.Constants.AllReportFormats
           StatisticsSink = None }
@@ -171,6 +173,10 @@ module NBomberRunner =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
         { context with NBomberConfig = Some config }
 
+    let loadInfraConfig (path: string) (context: NBomberContext) =
+        let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+        { context with InfraConfig = Some config }
+    
     let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
         { context with StatisticsSink = Some statisticsSink }
 

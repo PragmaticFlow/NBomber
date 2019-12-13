@@ -1,7 +1,6 @@
 ﻿namespace rec NBomber.Configuration
 
 open System
-open Serilog.Events
 open FSharp.Json
 
 type ReportFormat = 
@@ -9,11 +8,6 @@ type ReportFormat =
     | Html = 1
     | Csv = 2
     | Md = 3
-
-type LogSettings = {
-    FileName: string
-    MinimumLevel: LogEventLevel
-}
 
 type ScenarioSetting = {
     ScenarioName: string
@@ -55,10 +49,9 @@ type ClusterSettings =
 
 type NBomberConfig = {
     GlobalSettings: GlobalSettings option    
-    ClusterSettings: ClusterSettings option
-    LogSettings: LogSettings option
+    ClusterSettings: ClusterSettings option    
     [<JsonField(Transform=typeof<NBomberConfig.JsonStringTransform>)>]
-    CustomSettings: string option
+    CustomSettings: string option    
 }
 
 module internal NBomberConfig =

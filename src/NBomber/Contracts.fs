@@ -4,6 +4,7 @@ open System
 open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
+open Microsoft.Extensions.Configuration
 open NBomber.Configuration
 
 type Response = {
@@ -86,7 +87,8 @@ type IStatisticsSink =
 
 type NBomberContext = {
     Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option  
+    NBomberConfig: NBomberConfig option
+    InfraConfig: IConfiguration option
     ReportFileName: string option
     ReportFormats: ReportFormat list
     StatisticsSink: IStatisticsSink option
