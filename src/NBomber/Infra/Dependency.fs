@@ -60,19 +60,6 @@ module ProgressBar =
             pbar.Tick()
     }
 
-module Logger =      
-    
-    let createLogger (configPath: IConfiguration option) =
-        match configPath with
-        | Some path ->            
-            LoggerConfiguration()
-                .ReadFrom.Configuration(path)
-                .CreateLogger()
-        | None ->
-            LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger()
-
 let private retrieveMachineInfo () =
 
     let dotNetVersion = Assembly.GetEntryAssembly()
@@ -92,13 +79,16 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType, nodeType: NodeType, infraConfig: IConfiguration option) =
-    let logger = Logger.createLogger(infraConfig)
+let create (appType: ApplicationType, nodeType: NodeType,
+            testName: string, infraConfig: IConfiguration option) =
+    
+    let sessionId = createSessionId()
+    let logger = Logger.createLogger(sessionId, testName, infraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
     
     Serilog.Log.Logger <- logger
     
-    { SessionId = createSessionId()
+    { SessionId = sessionId
       NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType

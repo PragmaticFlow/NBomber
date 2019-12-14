@@ -116,6 +116,7 @@ let run (dep: Dependency) (context: NBomberContext) =
 
 let runAs (appType: ApplicationType) (context: NBomberContext) =    
     let nodeType = NBomberContext.getNodeType(context)
-    let dep = Dependency.create(appType, nodeType, context.InfraConfig)
+    let testName = "NBomberLoadTest"
+    let dep = Dependency.create(appType, nodeType, testName, context.InfraConfig)
     let dep = { dep with StatisticsSink = context.StatisticsSink }
     run dep context

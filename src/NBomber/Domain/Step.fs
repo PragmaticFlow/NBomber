@@ -5,6 +5,7 @@ open System
 open System.Diagnostics
 open System.Threading
 
+open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Extensions
@@ -43,13 +44,16 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
     with
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
-            return { Response = Response.Fail()
+            return { Response = Response.Fail(ex)
                      StartTimeMs = startTime                     
                      LatencyMs = int latency }
 }
 
-let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
-               cancelToken: FastCancellationToken, globalTimer: Stopwatch) = task {
+let execSteps (logger: ILogger,
+               steps: Step[],
+               responses: ResizeArray<ResizeArray<StepResponse>>,
+               cancelToken: FastCancellationToken,
+               globalTimer: Stopwatch) = task {
 
     let mutable data = Unchecked.defaultof<obj>
     let mutable skipStep = false
@@ -74,10 +78,11 @@ let execSteps (steps: Step[], responses: ResizeArray<ResizeArray<StepResponse>>,
                     responses.[stepIndex].Add(response)
 
                 if st.RepeatCount = i then
-                    if response.Response.IsOk then
+                    if response.Response.Exception.IsNone then
                         stepIndex <- stepIndex + 1
                         data <- response.Response.Payload
                     else
+                        logger.Error(response.Response.Exception.Value, "step '{Step}' is failed", st.StepName)
                         skipStep <- true
     
     cleanResources()

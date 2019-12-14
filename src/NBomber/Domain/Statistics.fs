@@ -123,7 +123,7 @@ module StepResults =
 module StepStats = 
 
     let create (executionTime: TimeSpan) (stepResults: StepResults) =        
-        let okLatencies = stepResults.Responses |> Array.choose(fun x -> if x.Response.IsOk then Some x.LatencyMs else None)
+        let okLatencies = stepResults.Responses |> Array.choose(fun x -> if x.Response.Exception.IsNone then Some x.LatencyMs else None)
         let histogram = buildHistogram(okLatencies)
         
         { StepName = stepResults.StepName

@@ -1,4 +1,4 @@
-﻿module internal NBomber.DomainServices.TestFrameworkRunner
+﻿module internal NBomber.Infra.TestFrameworkRunner
 
 open System
 open NBomber.Errors

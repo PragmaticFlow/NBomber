@@ -4,13 +4,15 @@ open System
 open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
+
 open Microsoft.Extensions.Configuration
+
 open NBomber.Configuration
 
-type Response = {
-    IsOk: bool
+type Response = {    
     Payload: obj
     SizeBytes: int
+    Exception: exn option
 }
 
 type NodeType = 
@@ -97,16 +99,26 @@ type NBomberContext = {
 type Response with
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
                      [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) =
-        { IsOk = true
-          Payload = payload
-          SizeBytes = sizeBytes }
+        { Payload = payload
+          SizeBytes = sizeBytes
+          Exception = None }
     
     static member Ok(payload: byte[]) =
-        { IsOk = true
-          Payload = payload
-          SizeBytes = if isNull payload then 0 else payload.Length }
+        { Payload = payload
+          SizeBytes = if isNull payload then 0 else payload.Length
+          Exception = None }
     
     static member Fail() =
-        { IsOk = false
-          Payload = null
-          SizeBytes = 0 }
+        { Payload = null
+          SizeBytes = 0
+          Exception = Some(Exception()) }
+    
+    static member Fail(ex: Exception) =
+        { Payload = null
+          SizeBytes = 0
+          Exception = Some(ex) }
+        
+    static member Fail(reason: string) =
+        { Payload = null
+          SizeBytes = 0
+          Exception = Some(Exception(reason)) }

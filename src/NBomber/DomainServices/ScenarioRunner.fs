@@ -6,15 +6,20 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
+open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Domain.Statistics
 
-type ScenarioActor(actorIndex: int, correlationId: string,
-                   scenario: Scenario, globalTimer: Stopwatch,
-                   fastCancelToken: FastCancellationToken, cancelToken: CancellationToken) =    
+type ScenarioActor(logger: ILogger,
+                   actorIndex: int,
+                   correlationId: string,
+                   scenario: Scenario,
+                   globalTimer: Stopwatch,
+                   fastCancelToken: FastCancellationToken,
+                   cancelToken: CancellationToken) =    
     
     let allResponses = ResizeArray<ResizeArray<StepResponse>>(scenario.Steps.Length)    
     let steps = scenario.Steps |> Array.map(Step.setStepContext(correlationId, actorIndex, cancelToken))
@@ -26,7 +31,7 @@ type ScenarioActor(actorIndex: int, correlationId: string,
 
     member x.ExecSteps() = task {
         working <- true
-        do! Step.execSteps(steps, allResponses, fastCancelToken, globalTimer)
+        do! Step.execSteps(logger, steps, allResponses, fastCancelToken, globalTimer)
         working <- false
     }
 
@@ -134,7 +139,7 @@ type ScenarioRunner(scenario: Scenario, logger: Serilog.ILogger) =
         let actors = 
             scenario.CorrelationIds
             |> Array.mapi(fun actorIndex correlationId ->
-                ScenarioActor(actorIndex, correlationId, scenario, globalTimer,
+                ScenarioActor(logger, actorIndex, correlationId, scenario, globalTimer,
                               fastCancelToken, cancelToken.Token)
             )
         

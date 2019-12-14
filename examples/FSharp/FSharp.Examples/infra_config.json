@@ -4,6 +4,7 @@
       "Serilog.Sinks.Console"
     ],
     "MinimumLevel": "Debug",
+    "Enrich": ["FromLogContext", "WithMachineName"],
     "WriteTo": [
       {
         "Name": "Console"
@@ -12,7 +13,8 @@
         "Name": "File",
         "Args": {
           "path": "./logs/log.txt",
-          "rollingInterval": "Day"
+          "rollingInterval": "Day",
+          "outputTemplate": "{Timestamp:HH:mm:ss} [{Level:u3}] [{MachineName}] [{SessionId}/{TestName}] {NewLine}{Message}{NewLine}{Exception}"
         }
       }
     ]

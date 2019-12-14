@@ -29,5 +29,5 @@ let ``TimeoutAfter should work correctly`` () =
                                  CancellationToken.None, 
                                  fun () -> Response.Ok())
 
-    Assert.False(timeoutResponse.Result.IsOk)
-    Assert.True(okResponse.Result.IsOk)
+    Assert.False(timeoutResponse.Result.Exception.IsNone)
+    Assert.True(okResponse.Result.Exception.IsNone)
