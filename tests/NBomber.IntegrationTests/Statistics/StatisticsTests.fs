@@ -11,7 +11,11 @@ open NBomber.Extensions
 
 // todo: add test on NodeStats.merge with custom execution duration
 
-let private nodeStatsInfo = { SessionId = "1"; MachineName = "1"; Sender = NodeType.SingleNode; Operation = OperationType.Bombing }
+let private nodeStatsInfo = {    
+    MachineName = "1"
+    Sender = NodeType.SingleNode
+    Operation = OperationType.Bombing
+}
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }
 
@@ -73,7 +77,7 @@ let ``calcMax() should not fail and calculate correctly for any args values`` (l
 [<Fact>]
 let ``NodeStats.merge should correctly calculate concurrency counters`` () =
     
-    let meta = { nodeStatsInfo with SessionId = "1"; MachineName = "1"; Sender = NodeType.Cluster }    
+    let meta = { nodeStatsInfo with MachineName = "1"; Sender = NodeType.Cluster }    
     
     let scn = { scenario with ScenarioName = "merge_test"
                               ConcurrentCopies = 50 }

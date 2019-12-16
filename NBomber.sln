@@ -13,9 +13,6 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NBomber.IntegrationTests", "tests\NBomber.IntegrationTests\NBomber.IntegrationTests.fsproj", "{1CD9AA0E-5EF7-45E9-8987-4A6279DC2693}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infra", "Infra", "{217FB7D6-EA9C-4472-98D1-65C4F0A7C634}"
-	ProjectSection(SolutionItems) = preProject
-		examples\Infra\docker-compose.yml = examples\Infra\docker-compose.yml
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestServer", "examples\Infra\TestServer\TestServer.csproj", "{77F0C21E-24A3-4C89-920A-3A0F230990C0}"
 EndProject

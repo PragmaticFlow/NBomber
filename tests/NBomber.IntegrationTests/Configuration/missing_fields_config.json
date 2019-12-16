@@ -1,7 +1,4 @@
-﻿{
-  "TestSuite": "gitter.io",
-  "TestName": "test http api",
-  
+﻿{ 
   "GlobalSettings": {
     "ScenariosSettings": [
       {

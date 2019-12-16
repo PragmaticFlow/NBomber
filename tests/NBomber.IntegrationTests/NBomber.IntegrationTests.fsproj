@@ -12,10 +12,13 @@
     <Content Include="Configuration\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Configuration\missing_fields_config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Configuration\infra_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>    
-    <Compile Include="NBomberContext.fs" />    
+    <Compile Include="NBomberContextTests.fs" />    
     <Compile Include="Response.fs" />    
     <Compile Include="Scenario.fs" />    
     <Compile Include="Statistics\StatisticsTests.fs" />    

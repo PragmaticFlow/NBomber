@@ -14,7 +14,7 @@ open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Validation
-open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.Cluster.Contracts
 
 type State = {    
@@ -23,10 +23,10 @@ type State = {
     CoordinatorTopic: string    
     Agents: Dictionary<ClientId, AgentNodeInfo>
     AgentsStats: Dictionary<ClientId, RawNodeStats>
-    ScenariosArgs: ScenariosArgs
+    TestSessionArgs: TestSessionArgs
     Settings: CoordinatorSettings    
     MqttClient: IMqttClient
-    ScenariosHost: ScenariosHost
+    TestHost: TestHost
     StatisticsSink: IStatisticsSink option
     Logger: Serilog.ILogger
 }
@@ -43,7 +43,7 @@ module Communication =
         |> ignore
 
     let sendToAgents (st: State) (req: Request) =        
-        Contracts.createRequestMsg(st.ClientId, st.ScenariosArgs.SessionId, req)
+        Contracts.createRequestMsg(st.ClientId, st.TestSessionArgs.TestInfo.SessionId, req)
         |> Mqtt.toMqttMsg(st.AgentsTopic)
         |> Mqtt.publishToBroker(st.MqttClient)
 
@@ -53,14 +53,12 @@ module Communication =
     }
     
     let sendGetAgentInfoForCurrentSession (st: State) = asyncResult {
-        do! Request.GetAgentInfo(Some st.ScenariosArgs.SessionId) |> sendToAgents(st)
+        do! Request.GetAgentInfo(Some st.TestSessionArgs.TestInfo.SessionId) |> sendToAgents(st)
         do! Async.Sleep(1_000)
     }
 
-    let sendStartNewSession (st: State) =        
-        Request.NewSession(st.ScenariosArgs.ScenariosSettings,
-                           st.Settings.Agents |> Seq.toArray,
-                           st.ScenariosArgs.CustomSettings)
+    let sendStartNewSession (st: State) =
+        Request.NewSession(st.TestSessionArgs, st.Settings.Agents |> Seq.toArray)
         |> sendToAgents st
 
     let sendStartWarmUp (st: State) =
@@ -113,25 +111,24 @@ module ClusterStats =
         
     let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =       
         
-        let meta = { SessionId = st.ScenariosArgs.SessionId
-                     MachineName = st.ScenariosHost.NodeStatsMeta.MachineName
+        let meta = { MachineName = st.TestHost.NodeStatsMeta.MachineName
                      Sender = NodeType.Cluster
-                     Operation = NBomber.DomainServices.ScenariosHost.mapToOperationType(st.ScenariosHost.Status) }
+                     Operation = NBomber.DomainServices.TestHost.mapToOperationType(st.TestHost.Status) }
         
-        st.ScenariosHost.GetRegisteredScenarios()
-        |> Scenario.applySettings(st.ScenariosArgs.ScenariosSettings)
+        st.TestHost.GetRegisteredScenarios()
+        |> Scenario.applySettings(st.TestSessionArgs.ScenariosSettings)
         |> Statistics.NodeStats.merge meta allNodeStats executionTime       
         
     let fetchClusterStats (st: State, executionTime: TimeSpan option) = asyncResult {
         let! agentsStats = Communication.getAgentsStats(st, executionTime)
-        let coordinatorStats = st.ScenariosHost.GetNodeStats(executionTime)
+        let coordinatorStats = st.TestHost.GetNodeStats(executionTime)
         let allNodeStats = combineAllNodeStats(coordinatorStats, agentsStats)
         let clusterStats = buildClusterStats(st, allNodeStats, executionTime)
         return Array.append [|clusterStats|] allNodeStats
     }
     
-    let saveClusterStats (allClusterStats: RawNodeStats[], statisticsSink: IStatisticsSink) =    
-        ScenarioHostStats.saveStats(allClusterStats, statisticsSink)        
+    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], statisticsSink: IStatisticsSink) =    
+        TestHostStats.saveStats(testInfo, allClusterStats, statisticsSink)        
     
     let startSaveStatsTimer (st: State) =    
         match st.StatisticsSink with
@@ -143,7 +140,7 @@ module ClusterStats =
                     // moving time forward
                     executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
                     let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
-                    saveClusterStats(clusterStats, statsSink) |> ignore                    
+                    saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, statsSink) |> ignore                    
                 }
                 |> Async.RunSynchronously
                 |> ignore
@@ -183,22 +180,22 @@ let receiveAgentResponse (st: State, msg: ResponseMessage) = result {
 }
 
 let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
-                     settings: CoordinatorSettings, scnArgs: ScenariosArgs) = async {
+                     settings: CoordinatorSettings, testArgs: TestSessionArgs) = async {
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort, dep.Logger)
-    let scnArgs = { scnArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
+    let args = { testArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
     
-    let state = {        
+    let state = {
         ClientId = clientId
         AgentsTopic = Contracts.createAgentsTopic(settings.ClusterId)
         CoordinatorTopic = Contracts.createCoordinatorTopic(settings.ClusterId)
         Agents = Dictionary<_,_>()
         AgentsStats = Dictionary<_,_>()
-        ScenariosArgs = scnArgs
-        Settings = settings        
+        TestSessionArgs = args
+        Settings = settings
         MqttClient = mqttClient
-        ScenariosHost = new ScenariosHost(dep, registeredScenarios)
+        TestHost = new TestHost(dep, registeredScenarios)
         StatisticsSink = dep.StatisticsSink
         Logger = dep.Logger
     }
@@ -217,13 +214,13 @@ let runSession (st: State) = asyncResult {
     printAvailableAgents(st)    
     
     do! Communication.sendStartNewSession(st)
-    do! st.ScenariosHost.InitScenarios(st.ScenariosArgs)
+    do! st.TestHost.InitScenarios(st.TestSessionArgs)
     do! Communication.waitOnAllAgentsReady(st)    
 
     // warm-up
     do! Communication.sendStartWarmUp(st)
     use warmUpStatsTimer = ClusterStats.startSaveStatsTimer(st)
-    do! st.ScenariosHost.WarmUpScenarios()
+    do! st.TestHost.WarmUpScenarios()
     do! Communication.waitOnAllAgentsReady(st)
     warmUpStatsTimer.Stop()
     do! ClusterStats.validateWarmUpStats(st)
@@ -231,14 +228,14 @@ let runSession (st: State) = asyncResult {
     // bombing
     do! Communication.sendStartBombing(st)
     use bombingStatsTimer = ClusterStats.startSaveStatsTimer(st)
-    do! st.ScenariosHost.StartBombing()
+    do! st.TestHost.StartBombing()
     do! Communication.waitOnAllAgentsReady(st)
     bombingStatsTimer.Stop()
     
     // saving final stats results
     let! allStats = ClusterStats.fetchClusterStats(st, None)
     if st.StatisticsSink.IsSome then
-        do! ClusterStats.saveClusterStats(allStats, st.StatisticsSink.Value)
+        do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.StatisticsSink.Value)
     
     return allStats
 }
@@ -249,9 +246,9 @@ type ClusterCoordinator() =
     member x.State = _state
     
     member x.RunSession(dep: Dependency, registeredScenarios: Scenario[],
-                        settings: CoordinatorSettings, scnArgs: ScenariosArgs) =
+                        settings: CoordinatorSettings, sessionArgs: TestSessionArgs) =
         asyncResult {
-            let! state = initCoordinator(dep, registeredScenarios, settings, scnArgs)        
+            let! state = initCoordinator(dep, registeredScenarios, settings, sessionArgs)        
             _state <- Some state
             let! clusterStats = runSession(state)
             return clusterStats
@@ -261,5 +258,5 @@ type ClusterCoordinator() =
         member x.Dispose() =
             if _state.IsSome then
                 use client = _state.Value.MqttClient
-                use scnHost = _state.Value.ScenariosHost
+                use testHost = _state.Value.TestHost
                 ()

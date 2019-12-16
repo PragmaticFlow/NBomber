@@ -14,7 +14,7 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Extensions
 open NBomber.Infra
-open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.Cluster.Coordinator
 open NBomber.DomainServices.Cluster.Agent
 open NBomber.FSharp
@@ -48,8 +48,6 @@ let agentSettings = {
     MqttPort = None
 }
 
-let customSettings = ""
-
 let okStep = Step.create("ok step", fun _ -> task {
     do! Task.Delay(TimeSpan.FromSeconds(0.1))
     return Response.Ok()
@@ -73,11 +71,11 @@ let scenarioSettings = {
     Duration = DateTime(TimeSpan.FromSeconds(1.0).Ticks)
 }
 
-let private scenarioArguments = {
-    SessionId = ""
+let private testSessionArgs = {
+    TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
     ScenariosSettings = [| scenarioSettings |]
     TargetScenarios = Array.empty
-    CustomSettings = customSettings
+    CustomSettings = ""
 }
 
 let internal isWarmUpStarted (status) =
@@ -94,12 +92,12 @@ let ``Coordinator can run as single bomber`` () = async {
     // specified no agents
     let coordinatorSettings = { coordinatorSettings with Agents = List.empty; MqttPort = Some randomPort }
     
-    let scnArgs = { scenarioArguments with SessionId = dep.SessionId }        
+    let sessionArgs = { testSessionArgs with TestInfo = dep.TestInfo }        
     let registeredScenarios = [| scenario |]
     
     // we start coordinator without agents
     use coordinator = new ClusterCoordinator()
-    let! statsResult = coordinator.RunSession(dep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! statsResult = coordinator.RunSession(dep.Dep, registeredScenarios, coordinatorSettings, sessionArgs)
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
@@ -120,12 +118,12 @@ let ``Coordinator should be able to start bombing even when agents are offline``
     // specified agents in config which are not connected
     let coordinatorSettings = { coordinatorSettings with Agents = agents; MqttPort = Some randomPort }
     
-    let scnArgs = { scenarioArguments with SessionId = dep.SessionId }
+    let scnArgs = { testSessionArgs with TestInfo = dep.TestInfo }
     let registeredScenarios = [| scenario |]
     
     // we start coordinator without agents even though we specified agents in config
     use coordinator = new ClusterCoordinator()
-    let! statsResult = coordinator.RunSession(dep, registeredScenarios, coordinatorSettings, scnArgs)    
+    let! statsResult = coordinator.RunSession(dep.Dep, registeredScenarios, coordinatorSettings, scnArgs)    
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
@@ -146,14 +144,14 @@ let ``Coordinator and agents should attack together`` () = async {
     let agentDep = Dependency.createFor(NodeType.Agent)
     let server = MqttTests.startMqttServer(randomPort)
     
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId }
+    let scnArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo }
     let registeredScenarios = [| scenario |]
     
     // we start coordinator with one agent    
     use coordinator = new ClusterCoordinator()
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)    
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, scnArgs)    
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty    
@@ -179,8 +177,8 @@ let ``Changing cluster topology should not affect a current test execution`` () 
     // we specify long warm-up to be able to inject a second agent in the middle of the execution
     let scnSettings = { scenarioSettings with WarmUpDuration = DateTime(TimeSpan.FromSeconds(5.0).Ticks)
                                               Duration = DateTime(TimeSpan.FromSeconds(5.0).Ticks) }    
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId
-                                           ScenariosSettings = [| scnSettings |] }
+    let sessionArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo
+                                             ScenariosSettings = [| scnSettings |] }
     let registeredScenarios = [| scenario |]
     
     // we start coordinator with one agent
@@ -188,19 +186,20 @@ let ``Changing cluster topology should not affect a current test execution`` () 
     use agent1 = new ClusterAgent()    
     
     // for now we start only agent1 
-    agent1.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
+    agent1.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
     do! Async.Sleep(1_000) // wait on init agent1.State to be abe to access it
     
-    let coordinatorTask = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let coordinatorTask = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios,
+                                                 coordinatorSettings, sessionArgs)
                           |> Async.StartAsTask
     
     // waiting until warm-up starts
-    while not <| isWarmUpStarted(agent1.State.Value.ScenariosHost.Status) do
+    while not <| isWarmUpStarted(agent1.State.Value.TestHost.Status) do
         do! Async.Sleep(1_000)
         
     // spin up a new agent2
     use agent2 = new ClusterAgent()
-    agent2.StartListening(agentDep, [| scenario |], agentSettings) |> Async.Start
+    agent2.StartListening(agentDep.Dep, [| scenario |], agentSettings) |> Async.Start
     let! statsResult = coordinatorTask |> Async.AwaitTask    
     MqttTests.stopMqttServer server
     
@@ -228,8 +227,8 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     let scenarioSettings = { scenarioSettings with ConcurrentCopies = 5 }
     let customSettings = "{ Age: 28 }"     
        
-    let scnArgs = {
-        SessionId = coordinatorDep.SessionId
+    let sessionArgs = {
+        TestInfo = coordinatorDep.TestInfo
         ScenariosSettings = [| scenarioSettings |]
         TargetScenarios = Array.empty
         CustomSettings = customSettings
@@ -250,12 +249,12 @@ let ``Coordinator should be able to propagate all types of settings among the ag
     // we start coordinator which will propagate settings to agent
     use coordinator = new ClusterCoordinator()
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start    
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)        
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start    
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, sessionArgs)        
     MqttTests.stopMqttServer server
         
     let customSettings = customSettingsList |> Seq.filter(fun x -> x.Value = customSettings) |> Seq.toArray
-    let agentScenario = agent.State.Value.ScenariosHost.GetRunningScenarios() |> Array.item 0
+    let agentScenario = agent.State.Value.TestHost.GetRunningScenarios() |> Array.item 0
         
     test <@ customSettings.Length = 2 @> // because one from coordinator and one from agent
     test <@ scenario.ConcurrentCopies = NBomber.Domain.Constants.DefaultConcurrentCopies @>
@@ -283,15 +282,15 @@ let ``Agent should run test only under their agent group`` () = async {
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)        
         |> NBomber.Domain.Scenario.create
     
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId }
+    let scnArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo }
     let registeredScenarios = [| scenario |]
     
     // we start coordinator which will propagate settings to agent
     use coordinator = new ClusterCoordinator()
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
     
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)    
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, scnArgs)    
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty
@@ -319,7 +318,7 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
                                                          TargetScenarios = ["test_scenario_111"]
                                                          MqttPort = Some randomPort }
     
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId }
+    let scnArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo }
     
     // set up scenarios    
     let scenario_111 =
@@ -333,9 +332,9 @@ let ``Coordinator and Agent should run tests only from TargetScenarios`` () = as
     // we start coordinator which will propagate settings to agent
     use coordinator = new ClusterCoordinator()
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
     
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, scnArgs)
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty             
@@ -353,15 +352,15 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     let coordinatorSettings = { coordinatorSettings with MqttPort = Some randomPort }
     let agentSettings = { agentSettings with MqttPort = Some randomPort }
     let coordinatorDep = Dependency.createFor(NodeType.Coordinator)
-    let (agentDep, loggerBuffer) = Dependency.createWithInMemoryLogger(NodeType.Agent)
+    let agentDep = Dependency.createWithInMemoryLogger(NodeType.Agent)    
     let server = MqttTests.startMqttServer(randomPort)
     
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId }
+    let sessionArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo }
     let registeredScenarios = [| scenario |]
     
     // we start one agent    
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
     do! Async.Sleep(1_000) // waiting on establish connection
     
     // we stop mqtt server and wait some time
@@ -373,13 +372,13 @@ let ``Agent should be able to reconnect automatically and join the cluster`` () 
     do! Async.Sleep(2_000) // waiting on reconnect
     
     use coordinator = new ClusterCoordinator()
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, sessionArgs)
     MqttTests.stopMqttServer server
     
     let allStats = statsResult |> Result.defaultValue Array.empty             
     let coordinatorStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Coordinator)
     let agentStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Agent)
-    let logEvents = loggerBuffer.LogEvents |> Seq.toArray
+    let logEvents = agentDep.MemorySink.LogEvents |> Seq.toArray
     
     let agentDisconnectedEvents =
         logEvents
@@ -416,14 +415,14 @@ let ``Coordinator should stop session execution if too many failed results on a 
         |> NBomber.Domain.Scenario.create
     
     let registeredScenarios = [| scenario |]    
-    let scnArgs = { scenarioArguments with SessionId = coordinatorDep.SessionId }
+    let scnArgs = { testSessionArgs with TestInfo = coordinatorDep.TestInfo }
     
     // we start coordinator and agent
     use coordinator = new ClusterCoordinator()
     use agent = new ClusterAgent()
-    agent.StartListening(agentDep, registeredScenarios, agentSettings) |> Async.Start
+    agent.StartListening(agentDep.Dep, registeredScenarios, agentSettings) |> Async.Start
         
-    let! statsResult = coordinator.RunSession(coordinatorDep, registeredScenarios, coordinatorSettings, scnArgs)    
+    let! statsResult = coordinator.RunSession(coordinatorDep.Dep, registeredScenarios, coordinatorSettings, scnArgs)    
     MqttTests.stopMqttServer server
     
     let warmUpErrorFound =
@@ -433,5 +432,5 @@ let ``Coordinator should stop session execution if too many failed results on a 
                           | _ -> false            
         | _ -> false
     
-    test <@ warmUpErrorFound = true @>    
+    test <@ warmUpErrorFound = true @>
 }

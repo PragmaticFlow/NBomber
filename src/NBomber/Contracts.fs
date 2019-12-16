@@ -26,14 +26,20 @@ type OperationType =
     | Bombing
     | Complete
 
-type NodeStatsInfo = {
-    SessionId: string
+type NodeStatsInfo = {    
     MachineName: string
     Sender: NodeType
     Operation: OperationType
 }
 
+type TestInfo = {
+    SessionId: string
+    TestSuite: string
+    TestName: string
+}
+
 type Statistics = {
+    TestInfo: TestInfo
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -87,7 +93,9 @@ type Scenario = {
 type IStatisticsSink =
     abstract SaveStatistics: Statistics[] -> Task
 
-type NBomberContext = {
+type NBomberTestContext = {
+    TestSuite: string
+    TestName: string
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option

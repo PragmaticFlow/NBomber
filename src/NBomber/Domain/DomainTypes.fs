@@ -28,6 +28,12 @@ module internal Constants =
     let EmptyPoolName = "nbomber_empty_pool"
     
     [<Literal>]
+    let DefaultTestSuite = "NBomberTestSuite"
+    
+    [<Literal>]
+    let DefaultTestName = "NBomberLoadTest"
+
+    [<Literal>]
     let GetStatsInterval = 5_000.0
 
 type internal CorrelationId = string

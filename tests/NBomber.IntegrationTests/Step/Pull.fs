@@ -94,7 +94,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
        Assertion.forStep("pull step", (fun stats -> stats.Mean <= 120), "Mean <= 120")
        Assertion.forStep("pull step", (fun stats -> stats.Max <= 150), "Max <= 150")
        Assertion.forStep("pull step", (fun stats -> stats.DataMinKb = 0.1), "DataMinKb = 0.1")
-       Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 0.0017), "AllDataMB >= 0.0017")
+       Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 0.0015), "AllDataMB >= 0.0015")
     ]
     
     let scenario = 

@@ -62,7 +62,7 @@ module ScenarioValidation =
             AppError.createResult(WarmUpErrorWithManyFailedSteps(nodeStats.OkCount, nodeStats.FailCount))
         else Ok()              
 
-    let validate (context: NBomberContext) =
+    let validate (context: NBomberTestContext) =
         context.Scenarios 
         |> checkEmptyName
         >>= checkDuplicateName
@@ -90,7 +90,7 @@ module AssertionValidation =
         if Array.isEmpty(notFoundAsserts) then Ok scenarios
         else Error <| AssertsNotFound notFoundAsserts
 
-    let validate (context: NBomberContext) =
+    let validate (context: NBomberTestContext) =
         context.Scenarios
         |> checkInvalidAsserts
         >>= fun _ -> Ok context
@@ -117,6 +117,7 @@ module GlobalSettingsValidation =
     let checkDuration (globalSettings: GlobalSettings) =
         let invalidScns =
             globalSettings.ScenariosSettings
+            |> Option.defaultValue List.empty
             |> List.choose(fun x -> if isDurationOk(x.Duration.TimeOfDay) then None else Some(x.ScenarioName))
             |> List.toArray                
 
@@ -126,6 +127,7 @@ module GlobalSettingsValidation =
     let checkConcurrentCopies (globalSettings: GlobalSettings) =
         let invalidScns = 
             globalSettings.ScenariosSettings
+            |> Option.defaultValue List.empty
             |> List.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
             |> List.toArray
         
@@ -138,7 +140,7 @@ module GlobalSettingsValidation =
                        else Ok globalSettings
         | None      -> Ok globalSettings
 
-    let validate (context: NBomberContext) =        
+    let validate (context: NBomberTestContext) =        
         context.NBomberConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 

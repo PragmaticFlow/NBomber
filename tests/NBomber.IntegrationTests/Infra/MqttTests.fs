@@ -26,7 +26,7 @@ let ``Mqtt.publishToBroker should return error in case of server is down`` () = 
     let randomPort = Random().Next(65000)        
     let server = startMqttServer(randomPort)
     let dep = TestHelper.Dependency.createFor(NBomber.Contracts.NodeType.SingleNode)
-    let! client = Mqtt.initClient("clientId", "localhost", Some randomPort, dep.Logger)
+    let! client = Mqtt.initClient("clientId", "localhost", Some randomPort, dep.Dep.Logger)
     
     // stopping server to disconnect client and prevent to send a message
     server.StopAsync().Wait()

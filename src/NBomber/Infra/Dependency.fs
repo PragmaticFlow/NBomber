@@ -26,8 +26,7 @@ type MachineInfo = {
     CoresCount: int    
 }
 
-type Dependency = {    
-    SessionId: string    
+type Dependency = {
     NBomberVersion: string
     ApplicationType: ApplicationType
     NodeType: NodeType
@@ -79,17 +78,17 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType, nodeType: NodeType,
-            testName: string, infraConfig: IConfiguration option) =
+let create (appType: ApplicationType,
+            nodeType: NodeType,
+            testInfo: TestInfo,
+            infraConfig: IConfiguration option) =    
     
-    let sessionId = createSessionId()
-    let logger = Logger.createLogger(sessionId, testName, infraConfig)
+    let logger = Logger.createLogger(testInfo, infraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
     
     Serilog.Log.Logger <- logger
     
-    { SessionId = sessionId
-      NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
+    { NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType
       MachineInfo = retrieveMachineInfo()

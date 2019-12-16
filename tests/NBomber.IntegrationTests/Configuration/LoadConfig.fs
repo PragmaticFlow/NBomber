@@ -2,6 +2,7 @@
 
 open System.IO
 open Xunit
+open FSharp.Json
 open NBomber.Configuration
 open NBomber.FSharp
 
@@ -10,6 +11,15 @@ let ``NBomberConfig.parse() should read json file successfully`` () =
     "Configuration/config.json"
     |> File.ReadAllText
     |> NBomberConfig.parse
+    
+[<Fact>]
+let ``NBomberConfig.parse() should throw ex if mandatory json fields are missing`` () =
+    Assert.Throws(typeof<JsonDeserializationError>,
+                  fun _ -> "Configuration/missing_fields_config.json"
+                            |> File.ReadAllText
+                            |> NBomberConfig.parse
+                            |> ignore
+    )
     
 [<Fact>]
 let ``NBomberRunner.loadInfraConfig should parse config successfully`` () =    

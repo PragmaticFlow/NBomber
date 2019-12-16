@@ -14,7 +14,7 @@
         "Args": {
           "path": "./logs/log.txt",
           "rollingInterval": "Day",
-          "outputTemplate": "{Timestamp:HH:mm:ss} [{Level:u3}] [{MachineName}] [{SessionId}/{TestName}] {NewLine}{Message}{NewLine}{Exception}"
+          "outputTemplate": "{Timestamp:HH:mm:ss} [{Level:u3}] [{MachineName}/{SessionId}/{TestSuite}/{TestName}] {NewLine}{Message}{NewLine}{Exception}"
         }
       }
     ]

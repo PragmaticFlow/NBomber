@@ -16,8 +16,8 @@ type ScenarioSetting = {
     Duration: DateTime
 }
 
-type GlobalSettings = {    
-    ScenariosSettings: ScenarioSetting list
+type GlobalSettings = {
+    ScenariosSettings: ScenarioSetting list option
     TargetScenarios: string list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
@@ -48,6 +48,8 @@ type ClusterSettings =
     | Agent       of AgentSettings
 
 type NBomberConfig = {
+    TestSuite: string
+    TestName: string
     GlobalSettings: GlobalSettings option    
     ClusterSettings: ClusterSettings option    
     [<JsonField(Transform=typeof<NBomberConfig.JsonStringTransform>)>]

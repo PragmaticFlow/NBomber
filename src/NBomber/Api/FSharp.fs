@@ -156,35 +156,43 @@ module NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     let registerScenarios (scenarios: Contracts.Scenario list) =
-        { Scenarios = List.toArray(scenarios)
+        { TestSuite = Domain.Constants.DefaultTestSuite
+          TestName = Domain.Constants.DefaultTestName
+          Scenarios = List.toArray(scenarios)
           NBomberConfig = None
           InfraConfig = None
           ReportFileName = None
           ReportFormats = Domain.Constants.AllReportFormats
           StatisticsSink = None }
 
-    let withReportFileName (reportFileName: string) (context: NBomberContext) =
+    let withReportFileName (reportFileName: string) (context: NBomberTestContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberTestContext) =
         { context with ReportFormats = reportFormats }
+        
+    let withTestSuite (testSuite: string) (context: NBomberTestContext) =
+        { context with TestSuite = testSuite }
+    
+    let withTestName (testName: string) (context: NBomberTestContext) =
+        { context with TestName = testName }
 
-    let loadConfig (path: string) (context: NBomberContext) =
+    let loadConfig (path: string) (context: NBomberTestContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
         { context with NBomberConfig = Some config }
 
-    let loadInfraConfig (path: string) (context: NBomberContext) =
+    let loadInfraConfig (path: string) (context: NBomberTestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
     
-    let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberContext) =
+    let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberTestContext) =
         { context with StatisticsSink = Some statisticsSink }
 
-    let run (context: NBomberContext) =
+    let run (context: NBomberTestContext) =
         NBomberRunner.runAs Process context
         |> ignore
 
-    let rec runInConsole (context: NBomberContext) =
+    let rec runInConsole (context: NBomberTestContext) =
         NBomberRunner.runAs Console context
         |> ignore
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
@@ -193,9 +201,9 @@ module NBomberRunner =
         let repeat = List.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole context
 
-    let runTest (context: NBomberContext) =
+    let runTest (context: NBomberTestContext) =
         NBomberRunner.runAs Test context
         |> ignore
         
-    let internal runWithResult (context: NBomberContext) =
+    let internal runWithResult (context: NBomberTestContext) =
         NBomberRunner.runAs Process context

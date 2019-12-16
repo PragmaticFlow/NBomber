@@ -4,7 +4,7 @@ open System
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
-open NBomber.DomainServices.ScenariosHost
+open NBomber.DomainServices.TestHost
 
 type ClientId = string
 
@@ -16,7 +16,7 @@ type AgentNodeInfo = {
 
 type Request =
     | GetAgentInfo of onlyForSessionId:string option
-    | NewSession of scnSettings:ScenarioSetting[] * agentSettings:TargetGroupSettings[] * customSettings:string
+    | NewSession of sessionArgs:TestSessionArgs * agentSettings:TargetGroupSettings[]
     | StartWarmUp
     | StartBombing
     | GetStatistics of executionTime:TimeSpan option

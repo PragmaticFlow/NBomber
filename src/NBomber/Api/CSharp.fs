@@ -89,34 +89,42 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios    
 
     [<Extension>]
-    static member LoadConfig(context: NBomberContext, path: string) =
+    static member LoadConfig(context: NBomberTestContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
         
     [<Extension>]
-    static member LoadInfraConfig(context: NBomberContext, path: string) =
+    static member LoadInfraConfig(context: NBomberTestContext, path: string) =
         context |> FSharp.NBomberRunner.loadInfraConfig(path)        
 
     [<Extension>]
-    static member WithReportFileName(context: NBomberContext, reportFileName: string) =
+    static member WithReportFileName(context: NBomberTestContext, reportFileName: string) =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     [<Extension>]
-    static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+    static member WithReportFormats(context: NBomberTestContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)   
 
     [<Extension>]
-    static member SaveStatisticsTo(context: NBomberContext, statisticsSink: IStatisticsSink) = 
+    static member WithTestSuite(context: NBomberTestContext, testSuite: string) =        
+        context |> FSharp.NBomberRunner.withTestSuite(testSuite)
+    
+    [<Extension>]
+    static member WithTestName(context: NBomberTestContext, testName: string) =        
+        context |> FSharp.NBomberRunner.withTestName(testName)
+    
+    [<Extension>]
+    static member SaveStatisticsTo(context: NBomberTestContext, statisticsSink: IStatisticsSink) = 
         context |> FSharp.NBomberRunner.saveStatisticsTo(statisticsSink)
 
     [<Extension>]
-    static member Run(context: NBomberContext) =
+    static member Run(context: NBomberTestContext) =
         FSharp.NBomberRunner.run(context)
         
     [<Extension>]
-    static member RunInConsole(context: NBomberContext) =
+    static member RunInConsole(context: NBomberTestContext) =
         FSharp.NBomberRunner.runInConsole(context)
 
     [<Extension>]
-    static member RunTest(context: NBomberContext) =
+    static member RunTest(context: NBomberTestContext) =
         FSharp.NBomberRunner.runTest(context)

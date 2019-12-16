@@ -2,18 +2,13 @@
 
 open Serilog
 open Microsoft.Extensions.Configuration
+open NBomber.Contracts
 
-let createLogger (sessionId: string, testName: string, configPath: IConfiguration option) =
+let createLogger (testInfo: TestInfo, configPath: IConfiguration option) =
+    let loggerConfig = LoggerConfiguration()
+                        .Enrich.WithProperty("SessionId", testInfo.SessionId)
+                        .Enrich.WithProperty("TestSuite", testInfo.TestSuite)
+                        .Enrich.WithProperty("TestName", testInfo.TestName)                        
     match configPath with
-    | Some path ->            
-        LoggerConfiguration()
-            .Enrich.WithProperty("SessionId", sessionId)
-            .Enrich.WithProperty("TestName", testName)
-            .ReadFrom.Configuration(path)            
-            .CreateLogger()
-    | None ->
-        LoggerConfiguration()
-            .WriteTo.Console()
-            .Enrich.WithProperty("SessionId", sessionId)
-            .Enrich.WithProperty("TestName", testName)
-            .CreateLogger()
+    | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger()
+    | None      -> loggerConfig.WriteTo.Console().CreateLogger()

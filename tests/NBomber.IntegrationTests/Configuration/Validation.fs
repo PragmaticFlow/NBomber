@@ -12,7 +12,7 @@ open NBomber.Errors
 open NBomber.DomainServices.Validation
 
 let globalSettings = { 
-    ScenariosSettings = List.empty
+    ScenariosSettings = None
     TargetScenarios = Some ["1"]
     ReportFileName = None
     ReportFormats = None
@@ -64,7 +64,7 @@ let ``GlobalSettingsValidation.checkAvailableTarget should return fail if Target
 [<Fact>]
 let ``GlobalSettingsValidation.checkDuration should return fail if Duration < 1 sec`` () =
     let scnSettings = { scenarioSettings with Duration = DateTime.MinValue.AddSeconds(0.5) }
-    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    let glSettings = { globalSettings with ScenariosSettings = Some [scnSettings] }
     
     match GlobalSettingsValidation.checkDuration(glSettings) with
     | Error (DurationIsWrong _) -> ()
@@ -73,7 +73,7 @@ let ``GlobalSettingsValidation.checkDuration should return fail if Duration < 1 
 [<Fact>]
 let ``GlobalSettingsValidation.checkConcurrentCopies should return fail if ConcurrentCopies < 1`` () =
     let scnSettings = { scenarioSettings with ConcurrentCopies = 0 }
-    let glSettings = { globalSettings with ScenariosSettings = [scnSettings] }
+    let glSettings = { globalSettings with ScenariosSettings = Some [scnSettings] }
     
     match GlobalSettingsValidation.checkConcurrentCopies(glSettings) with
     | Error (ConcurrentCopiesIsWrong _) -> ()
