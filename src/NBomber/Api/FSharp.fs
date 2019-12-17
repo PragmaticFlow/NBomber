@@ -163,7 +163,7 @@ module NBomberRunner =
           InfraConfig = None
           ReportFileName = None
           ReportFormats = Domain.Constants.AllReportFormats
-          StatisticsSink = None }
+          ReportingSink = None }
 
     let withReportFileName (reportFileName: string) (context: NBomberTestContext) =
         { context with ReportFileName = Some reportFileName }
@@ -185,8 +185,8 @@ module NBomberRunner =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
     
-    let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberTestContext) =
-        { context with StatisticsSink = Some statisticsSink }
+    let withReportingTo (reportingSink: IReportingSink) (context: NBomberTestContext) =
+        { context with ReportingSink = Some reportingSink }
 
     let run (context: NBomberTestContext) =
         NBomberRunner.runAs Process context

@@ -150,7 +150,7 @@ module TestHostStats =
           Sender = dep.NodeType
           Operation = mapToOperationType(status) }
         
-    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], statsSink: IStatisticsSink) =
+    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], statsSink: IReportingSink) =
         nodeStats
         |> Array.map(Statistics.create testInfo
                      >> statsSink.SaveStatistics
@@ -158,7 +158,7 @@ module TestHostStats =
         |> Async.Parallel
         |> Async.StartAsTask
         
-    let startSaveStatsTimer (statsSink: IStatisticsSink option,
+    let startSaveStatsTimer (statsSink: IReportingSink option,
                              testInfo: TestInfo, getNodeStats: TimeSpan -> RawNodeStats) =    
         match statsSink with
         | Some statsSink ->
@@ -242,7 +242,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         do! x.InitScenarios(args)        
         
         // warm-up
-        use warmUpStatsTimer = TestHostStats.startSaveStatsTimer(dep.StatisticsSink,
+        use warmUpStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSink,
                                                                  x.TestInfo,
                                                                  fun duration -> x.GetNodeStats(Some duration))
         do! x.WarmUpScenarios()
@@ -250,7 +250,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         do! ScenarioValidation.validateWarmUpStats(x.GetNodeStats(None))        
     
         // bombing        
-        use bombingStatsTimer = TestHostStats.startSaveStatsTimer(dep.StatisticsSink,
+        use bombingStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSink,
                                                                   x.TestInfo,
                                                                   fun duration -> x.GetNodeStats(Some duration))
         do! x.StartBombing()
@@ -258,8 +258,8 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         // saving final stats results
         let rawNodeStats = x.GetNodeStats(None)
-        if dep.StatisticsSink.IsSome then
-            do! TestHostStats.saveStats(x.TestInfo, [|rawNodeStats|], dep.StatisticsSink.Value)
+        if dep.ReportingSink.IsSome then
+            do! TestHostStats.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSink.Value)
         
         return rawNodeStats
     }

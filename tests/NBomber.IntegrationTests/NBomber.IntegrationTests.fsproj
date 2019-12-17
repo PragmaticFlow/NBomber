@@ -21,8 +21,8 @@
     <Compile Include="NBomberContextTests.fs" />    
     <Compile Include="Response.fs" />    
     <Compile Include="Scenario.fs" />    
-    <Compile Include="Statistics\StatisticsTests.fs" />    
-    <Compile Include="Statistics\StatisticsSinkTests.fs" />    
+    <Compile Include="StatisticsTests.fs" />    
+    <Compile Include="Reporting\ReportingSinkTests.fs" />    
     <Compile Include="Infra\MqttTests.fs" />
     <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration\LoadConfig.fs" />

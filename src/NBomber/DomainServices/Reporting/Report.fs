@@ -13,38 +13,28 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Configuration
 
-type ReportResult = {
-    TxtReport: string
-    HtmlReport: string
-    CsvReport: string
-    MdReport: string
-} with
-  static member empty =
-      { TxtReport = ""
-        HtmlReport = ""
-        CsvReport = ""
-        MdReport = "" }
+let emptyReport = { TxtReportPath = ""; HtmlReportPath = ""; CsvReportPath = ""; MdReportPath = "" }
 
 let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainError[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = TxtReport.print(nodeStats.[0], failedAsserts)
-          HtmlReport = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
-          CsvReport = CsvReport.print(nodeStats.[0])
-          MdReport = MdReport.print(nodeStats.[0], failedAsserts) }
+        { TxtReportPath = TxtReport.print(nodeStats.[0], failedAsserts)
+          HtmlReportPath = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
+          CsvReportPath = CsvReport.print(nodeStats.[0])
+          MdReportPath = MdReport.print(nodeStats.[0], failedAsserts) }
     
     | NodeType.Coordinator when nodeStats.Length > 0 ->
           nodeStats
           |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
           |> Option.map(fun clusterStats ->
-              { TxtReport = TxtReport.print(clusterStats, failedAsserts)
-                HtmlReport = HtmlReport.print(dep, clusterStats, failedAsserts)
-                CsvReport = CsvReport.print(clusterStats)
-                MdReport = MdReport.print(clusterStats, failedAsserts) }
+              { TxtReportPath = TxtReport.print(clusterStats, failedAsserts)
+                HtmlReportPath = HtmlReport.print(dep, clusterStats, failedAsserts)
+                CsvReportPath = CsvReport.print(clusterStats)
+                MdReportPath = MdReport.print(clusterStats, failedAsserts) }
           )
-          |> Option.defaultValue(ReportResult.empty)
+          |> Option.defaultValue(emptyReport)
     
-    | _ -> ReportResult.empty        
+    | _ -> emptyReport
 
 let save (outPutDir: string, reportFileName: string, 
           reportFormats: ReportFormat list, report: ReportResult,
@@ -56,16 +46,16 @@ let save (outPutDir: string, reportFileName: string,
 
         reportFormats 
         |> List.map(function            
-            | ReportFormat.Txt -> report.TxtReport, ".txt"
-            | ReportFormat.Html -> report.HtmlReport, ".html"
-            | ReportFormat.Csv -> report.CsvReport, ".csv"
-            | ReportFormat.Md -> report.MdReport, ".md")
+            | ReportFormat.Txt -> report.TxtReportPath, ".txt"
+            | ReportFormat.Html -> report.HtmlReportPath, ".html"
+            | ReportFormat.Csv -> report.CsvReportPath, ".csv"
+            | ReportFormat.Md -> report.MdReportPath, ".md")
 
         |> List.iter(fun (content, fileExt) -> 
             let filePath = reportsDir + "/" + reportFileName + fileExt
             File.WriteAllText(filePath, content))
 
         logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-        logger.Information(report.TxtReport)
+        logger.Information(report.TxtReportPath)
     with
     | ex -> logger.Error(ex, "Report.save failed")

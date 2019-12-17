@@ -46,7 +46,7 @@ let context = {
     InfraConfig = None
     ReportFileName = None
     ReportFormats = []
-    StatisticsSink = None
+    ReportingSink = None
 }
 
 [<Fact>]

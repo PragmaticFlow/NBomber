@@ -77,6 +77,7 @@ let saveReport (dep: Dependency) (testInfo: TestInfo) (context: NBomberTestConte
     let fileName = NBomberTestContext.getReportFileName(testInfo.SessionId, context)
     let formats = NBomberTestContext.getReportFormats(context)
     Report.save("./", fileName, formats, report, dep.Logger)
+    report
 
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
@@ -91,11 +92,35 @@ let showAsserts (dep: Dependency, result: ExecutionResult) =
                        |> Array.map AppError.create
                        |> showErrors dep                           
 
+let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
+    try
+        if dep.ReportingSink.IsSome then
+            dep.ReportingSink.Value.StartTest(testInfo).Wait()
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
+        
+let sendSaveReportsToReportingSink (dep: Dependency) (report: ReportResult) =
+    try
+        if dep.ReportingSink.IsSome then
+            dep.ReportingSink.Value.SaveReports(report).Wait()
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.SaveReports failed")            
+
+let sendFinishTestToReportingSink (dep: Dependency) =
+    try
+        if dep.ReportingSink.IsSome then
+            dep.ReportingSink.Value.FinishTest().Wait()
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.FinishTest failed")
+
 let run (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
     asyncResult {        
         dep.Logger.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, testInfo.SessionId)
 
         let! ctx = Validation.validateContext(context)
+        
+        sendStartTestToReportingSink(dep, testInfo)
+        
         let! nodeStats =
             match NBomberTestContext.tryGetClusterSettings(ctx) with
             | Some (Coordinator c) -> runClusterCoordinator(dep, testInfo, ctx, c)
@@ -106,7 +131,12 @@ let run (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
                      |> ExecutionResult.init(testInfo)
                      |> applyAsserts ctx
 
-        result |> buildReport dep |> saveReport dep testInfo ctx
+        result
+        |> buildReport dep
+        |> saveReport dep testInfo ctx
+        |> sendSaveReportsToReportingSink dep
+        |> fun () -> sendFinishTestToReportingSink(dep)
+        
         return result
     }
     |> Async.RunSynchronously
@@ -125,5 +155,5 @@ let runAs (appType: ApplicationType) (context: NBomberTestContext) =
     let nodeType = NBomberTestContext.getNodeType(context)    
     
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with StatisticsSink = context.StatisticsSink }
+    let dep = { dep with ReportingSink = context.ReportingSink }
     run(dep, testInfo, context)

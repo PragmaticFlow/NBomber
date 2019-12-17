@@ -1,4 +1,4 @@
-module Tests.StatisticsSinkTests
+module Tests.ReportingSinkTests
 
 open System
 open System.Threading.Tasks
@@ -25,14 +25,17 @@ let ``NBomberRunner.saveStatisticsTo should be invoked many times during test ex
 
     let mutable statsInvokedCounter = 0
 
-    let statsSync = { new IStatisticsSink with
-                        member x.SaveStatistics(stats) =
-                            // 1 invoke per 5 sec
-                            statsInvokedCounter <- statsInvokedCounter + 1
-                            Task.CompletedTask }
+    let reportingSink = { new IReportingSink with
+                            member x.StartTest(_) = Task.CompletedTask
+                            member x.SaveStatistics(stats) =
+                                // 1 invoke per 5 sec
+                                statsInvokedCounter <- statsInvokedCounter + 1
+                                Task.CompletedTask
+                            member x.SaveReports(_) = Task.CompletedTask
+                            member x.FinishTest() = Task.CompletedTask }                        
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.saveStatisticsTo(statsSync)
+    |> NBomberRunner.withReportingTo(reportingSink)
     |> NBomberRunner.runTest
     
     test <@ statsInvokedCounter >= 2 @> // 1 invoke as realtime and 1 invoke at the end
@@ -54,17 +57,21 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
     let mutable bombingCounter = 0
     let mutable completeCounter = 0
 
-    let statsSync = { new IStatisticsSink with
-                        member x.SaveStatistics(stats) =
-                            match stats.[0].NodeStatsInfo.Operation with
-                            | WarmUp   -> warmUpCounter <- warmUpCounter + 1
-                            | Bombing  -> bombingCounter <- bombingCounter + 1
-                            | Complete -> completeCounter <- completeCounter + 1 
+    let reportingSink = { new IReportingSink with
+                            member x.StartTest(_) = Task.CompletedTask
+                            
+                            member x.SaveStatistics(stats) =
+                                match stats.[0].NodeStatsInfo.Operation with
+                                | WarmUp   -> warmUpCounter <- warmUpCounter + 1
+                                | Bombing  -> bombingCounter <- bombingCounter + 1
+                                | Complete -> completeCounter <- completeCounter + 1
+                                Task.CompletedTask
                                 
-                            Task.CompletedTask }
+                            member x.SaveReports(_) = Task.CompletedTask
+                            member x.FinishTest() = Task.CompletedTask }    
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.saveStatisticsTo(statsSync)
+    |> NBomberRunner.withReportingTo(reportingSink)
     |> NBomberRunner.runTest
     
     test <@ warmUpCounter > 0 && bombingCounter > 0 && completeCounter = 1 @>

@@ -90,8 +90,18 @@ type Scenario = {
     Duration: TimeSpan
 }
 
-type IStatisticsSink =
+type ReportResult = {
+    TxtReportPath: string
+    HtmlReportPath: string
+    CsvReportPath: string
+    MdReportPath: string
+}
+
+type IReportingSink =
+    abstract StartTest: TestInfo -> Task
     abstract SaveStatistics: Statistics[] -> Task
+    abstract SaveReports: ReportResult -> Task
+    abstract FinishTest: unit -> Task
 
 type NBomberTestContext = {
     TestSuite: string
@@ -101,7 +111,7 @@ type NBomberTestContext = {
     InfraConfig: IConfiguration option
     ReportFileName: string option
     ReportFormats: ReportFormat list
-    StatisticsSink: IStatisticsSink option
+    ReportingSink: IReportingSink option
 }
 
 type Response with

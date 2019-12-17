@@ -27,7 +27,7 @@ type State = {
     Settings: CoordinatorSettings    
     MqttClient: IMqttClient
     TestHost: TestHost
-    StatisticsSink: IStatisticsSink option
+    ReportingSink: IReportingSink option
     Logger: Serilog.ILogger
 }
 
@@ -127,11 +127,11 @@ module ClusterStats =
         return Array.append [|clusterStats|] allNodeStats
     }
     
-    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], statisticsSink: IStatisticsSink) =    
-        TestHostStats.saveStats(testInfo, allClusterStats, statisticsSink)        
+    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], reportingSink: IReportingSink) =    
+        TestHostStats.saveStats(testInfo, allClusterStats, reportingSink)        
     
     let startSaveStatsTimer (st: State) =    
-        match st.StatisticsSink with
+        match st.ReportingSink with
         | Some statsSink->        
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
@@ -196,7 +196,7 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
         Settings = settings
         MqttClient = mqttClient
         TestHost = new TestHost(dep, registeredScenarios)
-        StatisticsSink = dep.StatisticsSink
+        ReportingSink = dep.ReportingSink
         Logger = dep.Logger
     }
     return state    
@@ -234,8 +234,8 @@ let runSession (st: State) = asyncResult {
     
     // saving final stats results
     let! allStats = ClusterStats.fetchClusterStats(st, None)
-    if st.StatisticsSink.IsSome then
-        do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.StatisticsSink.Value)
+    if st.ReportingSink.IsSome then
+        do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSink.Value)
     
     return allStats
 }
