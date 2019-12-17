@@ -11,6 +11,9 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp
 
+//todo: test that multiply sink will be invoked correctly
+//todo: test that stop timer stops sending metrics in case when stopping is still executing
+
 [<Fact>]
 let ``NBomberRunner.saveStatisticsTo should be invoked many times during test execution to send realtime stats`` () =
     

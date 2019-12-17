@@ -22,7 +22,7 @@ module internal Constants =
     [<Literal>]
     let DefaultDoNotTrack = false
 
-    let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
+    let AllReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|]
 
     [<Literal>]
     let EmptyPoolName = "nbomber_empty_pool"

@@ -62,11 +62,12 @@ let getReportFormats (context: NBomberTestContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.ReportFormats    
+        let! formats = settings.ReportFormats
+        return formats |> List.toArray
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(if List.isEmpty context.ReportFormats then None
+    |> Option.orElse(if Array.isEmpty context.ReportFormats then None
                      else Some context.ReportFormats)
     |> Option.defaultValue Constants.AllReportFormats
 

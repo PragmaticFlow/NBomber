@@ -45,7 +45,7 @@ let context = {
     NBomberConfig = None
     InfraConfig = None
     ReportFileName = None
-    ReportFormats = []
+    ReportFormats = Array.empty
     ReportingSink = None
 }
 
@@ -84,7 +84,7 @@ let ``NBomberContext.getReportFileName should return from GlobalSettings, if emp
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = [ReportFormat.Txt]
+                             ReportFormats = [|ReportFormat.Txt|]
                              ReportFileName = contextValue }
     
     let fileName = NBomberTestContext.getReportFileName("sessionId", ctx)
@@ -100,20 +100,20 @@ let ``NBomberContext.getReportFormats should return from GlobalSettings, if empt
 
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
-
+    
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = contextValue
+                             ReportFormats = List.toArray contextValue
                              ReportFileName = None }
     
     let formats = NBomberTestContext.getReportFormats(ctx)
 
     match configValue, contextValue with
-    | Some v, _ -> Assert.True((formats = v))
+    | Some v, _ -> Assert.True((formats = List.toArray v))
     
     | None, v when List.isEmpty v -> 
         Assert.True((formats = NBomber.Domain.Constants.AllReportFormats))
     
-    | None, v -> Assert.True((formats = contextValue))
+    | None, v -> Assert.True((formats = List.toArray contextValue))
     
 [<Property>]
 let ``NBomberContext.getTestSuite should return from Config, if empty then from NBomberContext`` (configValue: string option, contextValue: string) =

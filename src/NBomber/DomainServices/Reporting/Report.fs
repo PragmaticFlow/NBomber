@@ -43,9 +43,8 @@ let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainErro
     
     | _ -> ReportsContent.empty
 
-let save (outPutDir: string, reportFileName: string, 
-          reportFormats: ReportFormat list, report: ReportsContent,
-          logger: Serilog.ILogger) =
+let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat[],
+          report: ReportsContent, logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore

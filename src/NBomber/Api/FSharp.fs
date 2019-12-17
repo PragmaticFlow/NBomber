@@ -169,7 +169,7 @@ module NBomberRunner =
         { context with ReportFileName = Some reportFileName }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberTestContext) =
-        { context with ReportFormats = reportFormats }
+        { context with ReportFormats = List.toArray reportFormats }
         
     let withTestSuite (testSuite: string) (context: NBomberTestContext) =
         { context with TestSuite = testSuite }

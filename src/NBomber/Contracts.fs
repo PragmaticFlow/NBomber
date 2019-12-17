@@ -107,7 +107,7 @@ type NBomberTestContext = {
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     ReportFileName: string option
-    ReportFormats: ReportFormat list
+    ReportFormats: ReportFormat[]
     ReportingSink: IReportingSink option
 }
 
