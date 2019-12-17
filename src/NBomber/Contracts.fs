@@ -38,8 +38,7 @@ type TestInfo = {
     TestName: string
 }
 
-type Statistics = {
-    TestInfo: TestInfo
+type Statistics = {    
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -90,18 +89,16 @@ type Scenario = {
     Duration: TimeSpan
 }
 
-type ReportResult = {
-    TxtReportPath: string
-    HtmlReportPath: string
-    CsvReportPath: string
-    MdReportPath: string
+type ReportFile = {
+    FilePath: string
+    ReportFormat: ReportFormat
 }
 
 type IReportingSink =
-    abstract StartTest: TestInfo -> Task
-    abstract SaveStatistics: Statistics[] -> Task
-    abstract SaveReports: ReportResult -> Task
-    abstract FinishTest: unit -> Task
+    abstract StartTest: testInfo:TestInfo -> Task
+    abstract SaveStatistics: testInfo:TestInfo * stats:Statistics[] -> Task
+    abstract SaveReports: testInfo:TestInfo * reportFiles:ReportFile[] -> Task
+    abstract FinishTest: testInfo:TestInfo -> Task
 
 type NBomberTestContext = {
     TestSuite: string

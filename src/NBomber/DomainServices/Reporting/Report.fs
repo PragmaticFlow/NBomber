@@ -13,49 +13,70 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Configuration
 
-let emptyReport = { TxtReportPath = ""; HtmlReportPath = ""; CsvReportPath = ""; MdReportPath = "" }
+type ReportsContent = {
+    TxtReport: string
+    HtmlReport: string
+    CsvReport: string
+    MdReport: string
+}
+ with
+ static member empty = { TxtReport = ""; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
 let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainError[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReportPath = TxtReport.print(nodeStats.[0], failedAsserts)
-          HtmlReportPath = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
-          CsvReportPath = CsvReport.print(nodeStats.[0])
-          MdReportPath = MdReport.print(nodeStats.[0], failedAsserts) }
+        { TxtReport = TxtReport.print(nodeStats.[0], failedAsserts)
+          HtmlReport = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
+          CsvReport = CsvReport.print(nodeStats.[0])
+          MdReport = MdReport.print(nodeStats.[0], failedAsserts) }
     
     | NodeType.Coordinator when nodeStats.Length > 0 ->
           nodeStats
           |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
           |> Option.map(fun clusterStats ->
-              { TxtReportPath = TxtReport.print(clusterStats, failedAsserts)
-                HtmlReportPath = HtmlReport.print(dep, clusterStats, failedAsserts)
-                CsvReportPath = CsvReport.print(clusterStats)
-                MdReportPath = MdReport.print(clusterStats, failedAsserts) }
+              { TxtReport = TxtReport.print(clusterStats, failedAsserts)
+                HtmlReport = HtmlReport.print(dep, clusterStats, failedAsserts)
+                CsvReport = CsvReport.print(clusterStats)
+                MdReport = MdReport.print(clusterStats, failedAsserts) }
           )
-          |> Option.defaultValue(emptyReport)
+          |> Option.defaultValue(ReportsContent.empty)
     
-    | _ -> emptyReport
+    | _ -> ReportsContent.empty
 
 let save (outPutDir: string, reportFileName: string, 
-          reportFormats: ReportFormat list, report: ReportResult,
+          reportFormats: ReportFormat list, report: ReportsContent,
           logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
         ResourceManager.saveAssets(reportsDir)
 
-        reportFormats 
-        |> List.map(function            
-            | ReportFormat.Txt -> report.TxtReportPath, ".txt"
-            | ReportFormat.Html -> report.HtmlReportPath, ".html"
-            | ReportFormat.Csv -> report.CsvReportPath, ".csv"
-            | ReportFormat.Md -> report.MdReportPath, ".md")
-
-        |> List.iter(fun (content, fileExt) -> 
-            let filePath = reportsDir + "/" + reportFileName + fileExt
-            File.WriteAllText(filePath, content))
+        let buildReportFile (format: ReportFormat) =
+            let fileExt =
+                match format with
+                | ReportFormat.Txt  -> ".txt"
+                | ReportFormat.Html -> ".html"
+                | ReportFormat.Csv  -> ".csv"
+                | ReportFormat.Md   -> ".md"
+            
+            let filePath = Path.Combine(reportsDir, reportFileName) + fileExt
+            { FilePath = filePath; ReportFormat = format }            
+            
+        let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray        
+    
+        reportFiles
+        |> Array.map(fun x ->
+            match x.ReportFormat with
+            | ReportFormat.Txt  -> {| Content = report.TxtReport; FilePath = x.FilePath |}
+            | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
+            | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
+            | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
+        )
+        |> Array.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
         logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-        logger.Information(report.TxtReportPath)
+        logger.Information(report.TxtReport)
+        reportFiles
     with
     | ex -> logger.Error(ex, "Report.save failed")
+            Array.empty

@@ -152,9 +152,8 @@ module TestHostStats =
         
     let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], statsSink: IReportingSink) =
         nodeStats
-        |> Array.map(Statistics.create testInfo
-                     >> statsSink.SaveStatistics
-                     >> Async.AwaitTask)
+        |> Array.map(fun x -> let stats = Statistics.create(x)
+                              statsSink.SaveStatistics(testInfo, stats) |> Async.AwaitTask)
         |> Async.Parallel
         |> Async.StartAsTask
         

@@ -8,11 +8,10 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Extensions
 
-let create (testInfo: TestInfo) (nodeStats: RawNodeStats) =
+let create (nodeStats: RawNodeStats) =
     
     let mapStep (scnName: string, step: StepStats) =
-        { TestInfo = testInfo
-          ScenarioName = scnName
+        { ScenarioName = scnName
           StepName = step.StepName
           OkCount = step.OkCount
           FailCount = step.FailCount

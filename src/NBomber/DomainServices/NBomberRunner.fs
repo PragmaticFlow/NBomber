@@ -1,5 +1,7 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
+open System
+
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
@@ -21,7 +23,7 @@ type ExecutionResult = {
     FailedAsserts: DomainError[]
 } with
   static member init (testInfo: TestInfo) (nodeStats: RawNodeStats[]) =
-      let stats = nodeStats |> Array.collect(Statistics.create testInfo)
+      let stats = nodeStats |> Array.collect(Statistics.create)
       { RawNodeStats = nodeStats; Statistics = stats; FailedAsserts = Array.empty }
 
 let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
@@ -73,11 +75,10 @@ let applyAsserts (context: NBomberTestContext) (result: ExecutionResult) =
 let buildReport (dep: Dependency) (result: ExecutionResult) =    
     Report.build(dep, result.RawNodeStats, result.FailedAsserts)
 
-let saveReport (dep: Dependency) (testInfo: TestInfo) (context: NBomberTestContext) (report: ReportResult) =
+let saveReport (dep: Dependency) (testInfo: TestInfo) (context: NBomberTestContext) (report: ReportsContent) =
     let fileName = NBomberTestContext.getReportFileName(testInfo.SessionId, context)
     let formats = NBomberTestContext.getReportFormats(context)
-    Report.save("./", fileName, formats, report, dep.Logger)
-    report
+    Report.save("./", fileName, formats, report, dep.Logger)    
 
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
@@ -99,17 +100,17 @@ let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
         
-let sendSaveReportsToReportingSink (dep: Dependency) (report: ReportResult) =
+let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (reportFiles: ReportFile[]) =
     try
         if dep.ReportingSink.IsSome then
-            dep.ReportingSink.Value.SaveReports(report).Wait()
+            dep.ReportingSink.Value.SaveReports(testInfo, reportFiles).Wait()
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.SaveReports failed")            
 
-let sendFinishTestToReportingSink (dep: Dependency) =
+let sendFinishTestToReportingSink (dep: Dependency) (testInfo: TestInfo) =
     try
         if dep.ReportingSink.IsSome then
-            dep.ReportingSink.Value.FinishTest().Wait()
+            dep.ReportingSink.Value.FinishTest(testInfo).Wait()
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.FinishTest failed")
 
@@ -134,8 +135,8 @@ let run (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
         result
         |> buildReport dep
         |> saveReport dep testInfo ctx
-        |> sendSaveReportsToReportingSink dep
-        |> fun () -> sendFinishTestToReportingSink(dep)
+        |> sendSaveReportsToReportingSink dep testInfo
+        |> fun () -> sendFinishTestToReportingSink dep testInfo
         
         return result
     }

@@ -15,7 +15,7 @@ let run () =
     // for production purposes use NBomber.Http which use performance optimizations
     // you can find more here: https://github.com/PragmaticFlow/NBomber.Http
 
-    let influxDb = InfluxDBSink(url = "http://localhost:8086", dbName = "default")
+    //let influxDb = InfluxDBSink(url = "http://localhost:8086", dbName = "default")
     
     let httpClient = new HttpClient()
 
@@ -35,5 +35,5 @@ let run () =
                    |> Scenario.withDuration(TimeSpan.FromSeconds 60.0)
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.saveStatisticsTo influxDb
+    //|> NBomberRunner.saveStatisticsTo influxDb
     |> NBomberRunner.runInConsole

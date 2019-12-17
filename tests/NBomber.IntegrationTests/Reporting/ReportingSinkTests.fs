@@ -27,12 +27,12 @@ let ``NBomberRunner.saveStatisticsTo should be invoked many times during test ex
 
     let reportingSink = { new IReportingSink with
                             member x.StartTest(_) = Task.CompletedTask
-                            member x.SaveStatistics(stats) =
+                            member x.SaveStatistics(_, stats) =
                                 // 1 invoke per 5 sec
                                 statsInvokedCounter <- statsInvokedCounter + 1
                                 Task.CompletedTask
-                            member x.SaveReports(_) = Task.CompletedTask
-                            member x.FinishTest() = Task.CompletedTask }                        
+                            member x.SaveReports(_, _) = Task.CompletedTask
+                            member x.FinishTest(_) = Task.CompletedTask }                        
     
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingTo(reportingSink)
@@ -60,15 +60,15 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
     let reportingSink = { new IReportingSink with
                             member x.StartTest(_) = Task.CompletedTask
                             
-                            member x.SaveStatistics(stats) =
+                            member x.SaveStatistics(_, stats) =
                                 match stats.[0].NodeStatsInfo.Operation with
                                 | WarmUp   -> warmUpCounter <- warmUpCounter + 1
                                 | Bombing  -> bombingCounter <- bombingCounter + 1
                                 | Complete -> completeCounter <- completeCounter + 1
                                 Task.CompletedTask
                                 
-                            member x.SaveReports(_) = Task.CompletedTask
-                            member x.FinishTest() = Task.CompletedTask }    
+                            member x.SaveReports(_, _) = Task.CompletedTask
+                            member x.FinishTest(_) = Task.CompletedTask }    
     
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingTo(reportingSink)
