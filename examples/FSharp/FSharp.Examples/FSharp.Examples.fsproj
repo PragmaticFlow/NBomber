@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Scenarios\HelloWorld.fs" />
     <Compile Include="Scenarios\Http.fs" />
-    <Compile Include="Scenarios\RealtimeStatistics.fs" />
+    <Compile Include="Scenarios\CustomReportingSink.fs" />
     <Compile Include="Program.fs" />
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -23,8 +23,7 @@
   </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.15.0" />    
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />            
   </ItemGroup>
 
 </Project>
