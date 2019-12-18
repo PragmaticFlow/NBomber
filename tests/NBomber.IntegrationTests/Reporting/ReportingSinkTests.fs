@@ -38,7 +38,7 @@ let ``NBomberRunner.saveStatisticsTo should be invoked many times during test ex
                             member x.FinishTest(_) = Task.CompletedTask }                        
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingTo(reportingSink)
+    |> NBomberRunner.withReportingSinks [reportingSink]
     |> NBomberRunner.runTest
     
     test <@ statsInvokedCounter >= 2 @> // 1 invoke as realtime and 1 invoke at the end
@@ -74,7 +74,7 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
                             member x.FinishTest(_) = Task.CompletedTask }    
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingTo(reportingSink)
+    |> NBomberRunner.withReportingSinks [reportingSink]
     |> NBomberRunner.runTest
     
     test <@ warmUpCounter > 0 && bombingCounter > 0 && completeCounter = 1 @>

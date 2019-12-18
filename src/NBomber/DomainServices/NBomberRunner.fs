@@ -4,6 +4,7 @@ open System
 
 open FsToolkit.ErrorHandling
 
+open System.Threading.Tasks
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
@@ -95,22 +96,28 @@ let showAsserts (dep: Dependency, result: ExecutionResult) =
 
 let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
     try
-        if dep.ReportingSink.IsSome then
-            dep.ReportingSink.Value.StartTest(testInfo).Wait()
+        dep.ReportingSinks
+        |> Array.iter(fun sink -> sink.StartTest(testInfo) |> ignore)            
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
         
 let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (reportFiles: ReportFile[]) =
     try
-        if dep.ReportingSink.IsSome then
-            dep.ReportingSink.Value.SaveReports(testInfo, reportFiles).Wait()
+        dep.ReportingSinks
+        |> Array.map(fun sink -> sink.SaveReports(testInfo, reportFiles))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.SaveReports failed")            
 
 let sendFinishTestToReportingSink (dep: Dependency) (testInfo: TestInfo) =
     try
-        if dep.ReportingSink.IsSome then
-            dep.ReportingSink.Value.FinishTest(testInfo).Wait()
+        dep.ReportingSinks
+        |> Array.map(fun sink -> sink.FinishTest(testInfo))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.FinishTest failed")
 
@@ -156,5 +163,5 @@ let runAs (appType: ApplicationType) (context: NBomberTestContext) =
     let nodeType = NBomberTestContext.getNodeType(context)    
     
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with ReportingSink = context.ReportingSink }
+    let dep = { dep with ReportingSinks = context.ReportingSinks }
     run(dep, testInfo, context)

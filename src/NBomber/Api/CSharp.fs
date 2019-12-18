@@ -114,8 +114,9 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withTestName(testName)
     
     [<Extension>]
-    static member WithReportingTo(context: NBomberTestContext, reportingSink: IReportingSink) = 
-        context |> FSharp.NBomberRunner.withReportingTo(reportingSink)
+    static member WithReportingSinks(context: NBomberTestContext, [<System.ParamArray>]reportingSinks: IReportingSink[]) =
+        let sinks = reportingSinks |> Seq.toList
+        context |> FSharp.NBomberRunner.withReportingSinks(sinks)
 
     [<Extension>]
     static member Run(context: NBomberTestContext) =

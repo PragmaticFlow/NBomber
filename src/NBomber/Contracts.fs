@@ -108,7 +108,7 @@ type NBomberTestContext = {
     InfraConfig: IConfiguration option
     ReportFileName: string option
     ReportFormats: ReportFormat[]
-    ReportingSink: IReportingSink option
+    ReportingSinks: IReportingSink[]
 }
 
 type Response with

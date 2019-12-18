@@ -27,7 +27,7 @@ type State = {
     Settings: CoordinatorSettings    
     MqttClient: IMqttClient
     TestHost: TestHost
-    ReportingSink: IReportingSink option
+    ReportingSinks: IReportingSink[]
     Logger: Serilog.ILogger
 }
 
@@ -127,12 +127,11 @@ module ClusterStats =
         return Array.append [|clusterStats|] allNodeStats
     }
     
-    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], reportingSink: IReportingSink) =    
-        TestHostStats.saveStats(testInfo, allClusterStats, reportingSink)        
+    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], sinks: IReportingSink[]) =    
+        TestHostStats.saveStats(testInfo, allClusterStats, sinks)
     
-    let startSaveStatsTimer (st: State) =    
-        match st.ReportingSink with
-        | Some statsSink->        
+    let startSaveStatsTimer (st: State) =
+        if not (Array.isEmpty st.ReportingSinks) then            
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
             timer.Elapsed.Add(fun _ ->
@@ -140,15 +139,15 @@ module ClusterStats =
                     // moving time forward
                     executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
                     let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
-                    saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, statsSink) |> ignore                    
+                    saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, st.ReportingSinks) |> ignore                    
                 }
                 |> Async.RunSynchronously
                 |> ignore
             )
             timer.Start()
-            timer
-        
-        | None -> new System.Timers.Timer()
+            timer        
+        else
+            new System.Timers.Timer()
         
     let validateWarmUpStats (st: State) = asyncResult {
         let! allStats = fetchClusterStats(st, None)
@@ -196,7 +195,7 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
         Settings = settings
         MqttClient = mqttClient
         TestHost = new TestHost(dep, registeredScenarios)
-        ReportingSink = dep.ReportingSink
+        ReportingSinks = dep.ReportingSinks
         Logger = dep.Logger
     }
     return state    
@@ -234,8 +233,7 @@ let runSession (st: State) = asyncResult {
     
     // saving final stats results
     let! allStats = ClusterStats.fetchClusterStats(st, None)
-    if st.ReportingSink.IsSome then
-        do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSink.Value)
+    do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSinks)
     
     return allStats
 }

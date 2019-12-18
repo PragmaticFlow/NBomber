@@ -150,30 +150,29 @@ module TestHostStats =
           Sender = dep.NodeType
           Operation = mapToOperationType(status) }
         
-    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], statsSink: IReportingSink) =
+    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], sinks: IReportingSink[]) =
         nodeStats
-        |> Array.map(fun x -> let stats = Statistics.create(x)
-                              statsSink.SaveStatistics(testInfo, stats) |> Async.AwaitTask)
-        |> Async.Parallel
-        |> Async.StartAsTask
+        |> Array.collect(fun x ->
+            let stats = Statistics.create(x)
+            sinks |> Array.map(fun snk -> snk.SaveStatistics(testInfo, stats))
+        )
+        |> Task.WhenAll
         
-    let startSaveStatsTimer (statsSink: IReportingSink option,
-                             testInfo: TestInfo, getNodeStats: TimeSpan -> RawNodeStats) =    
-        match statsSink with
-        | Some statsSink ->
+    let startSaveStatsTimer (sinks: IReportingSink[], testInfo: TestInfo, getNodeStats: TimeSpan -> RawNodeStats) =        
+        if not (Array.isEmpty sinks) then
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
             timer.Elapsed.Add(fun _ ->
                 // moving time forward
                 executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
                 let rawNodeStats = getNodeStats(executionTime)
-                saveStats(testInfo, [|rawNodeStats|], statsSink)
+                saveStats(testInfo, [|rawNodeStats|], sinks)
                 |> ignore
             )
             timer.Start()
-            timer
-            
-        | None -> new System.Timers.Timer()        
+            timer            
+        else
+            new System.Timers.Timer()        
 
 type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
@@ -241,7 +240,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         do! x.InitScenarios(args)        
         
         // warm-up
-        use warmUpStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSink,
+        use warmUpStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSinks,
                                                                  x.TestInfo,
                                                                  fun duration -> x.GetNodeStats(Some duration))
         do! x.WarmUpScenarios()
@@ -249,7 +248,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         do! ScenarioValidation.validateWarmUpStats(x.GetNodeStats(None))        
     
         // bombing        
-        use bombingStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSink,
+        use bombingStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSinks,
                                                                   x.TestInfo,
                                                                   fun duration -> x.GetNodeStats(Some duration))
         do! x.StartBombing()
@@ -257,8 +256,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
         // saving final stats results
         let rawNodeStats = x.GetNodeStats(None)
-        if dep.ReportingSink.IsSome then
-            do! TestHostStats.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSink.Value)
+        do! TestHostStats.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSinks)
         
         return rawNodeStats
     }

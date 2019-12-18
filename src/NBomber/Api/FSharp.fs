@@ -120,7 +120,7 @@ module Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = List.toArray(steps)
+          Steps = Seq.toArray(steps)
           Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies          
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
@@ -158,18 +158,18 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { TestSuite = Domain.Constants.DefaultTestSuite
           TestName = Domain.Constants.DefaultTestName
-          Scenarios = List.toArray(scenarios)
+          Scenarios = Seq.toArray(scenarios)
           NBomberConfig = None
           InfraConfig = None
           ReportFileName = None
           ReportFormats = Domain.Constants.AllReportFormats
-          ReportingSink = None }
+          ReportingSinks = Array.empty }
 
     let withReportFileName (reportFileName: string) (context: NBomberTestContext) =
         { context with ReportFileName = Some reportFileName }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberTestContext) =
-        { context with ReportFormats = List.toArray reportFormats }
+        { context with ReportFormats = Seq.toArray reportFormats }
         
     let withTestSuite (testSuite: string) (context: NBomberTestContext) =
         { context with TestSuite = testSuite }
@@ -185,8 +185,8 @@ module NBomberRunner =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
     
-    let withReportingTo (reportingSink: IReportingSink) (context: NBomberTestContext) =
-        { context with ReportingSink = Some reportingSink }
+    let withReportingSinks (reportingSinks: IReportingSink list) (context: NBomberTestContext) =
+        { context with ReportingSinks = Seq.toArray reportingSinks }
 
     let run (context: NBomberTestContext) =
         NBomberRunner.runAs Process context
@@ -198,7 +198,7 @@ module NBomberRunner =
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
 
         let userInput = Console.ReadLine()
-        let repeat = List.contains userInput ["y"; "Y"; "yes"; "Yes"]
+        let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole context
 
     let runTest (context: NBomberTestContext) =
