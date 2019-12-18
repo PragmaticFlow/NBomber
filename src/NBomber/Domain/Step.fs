@@ -4,6 +4,7 @@ module internal NBomber.Domain.Step
 open System
 open System.Diagnostics
 open System.Threading
+open System.Threading.Tasks
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -42,6 +43,13 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
                  StartTimeMs = startTime                 
                  LatencyMs = latency }
     with
+    | :? TaskCanceledException as ex ->
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
+        let latency = int(endTime - startTime)
+        return { Response = Response.Ok()
+                 StartTimeMs = startTime
+                 LatencyMs = latency }
+        
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
             return { Response = Response.Fail(ex)
