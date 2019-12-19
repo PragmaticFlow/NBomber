@@ -13,9 +13,10 @@ open NBomber.FSharp
 
 //todo: test that multiply sink will be invoked correctly
 //todo: test that stop timer stops sending metrics in case when stopping is still executing
+//todo: test cluster stats
 
 [<Fact>]
-let ``NBomberRunner.saveStatisticsTo should be invoked many times during test execution to send realtime stats`` () =
+let ``IReportingSink.SaveStatistics should be invoked many times during test execution to send realtime stats`` () =
     
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -64,10 +65,11 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
                             member x.StartTest(_) = Task.CompletedTask
                             
                             member x.SaveStatistics(_, stats) =
-                                match stats.[0].NodeStatsInfo.Operation with
-                                | WarmUp   -> warmUpCounter <- warmUpCounter + 1
-                                | Bombing  -> bombingCounter <- bombingCounter + 1
-                                | Complete -> completeCounter <- completeCounter + 1
+                                match stats.[0].NodeInfo.CurrentOperation with
+                                | NodeOperationType.WarmUp   -> warmUpCounter <- warmUpCounter + 1
+                                | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
+                                | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
+                                | _        -> failwith "operation type is invalid for SaveStatistics"
                                 Task.CompletedTask
                                 
                             member x.SaveReports(_, _) = Task.CompletedTask

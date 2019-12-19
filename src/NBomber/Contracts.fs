@@ -21,15 +21,18 @@ type NodeType =
     | Agent
     | Cluster
     
-type OperationType =
-    | WarmUp
-    | Bombing
-    | Complete
+type NodeOperationType =
+    | None = 0
+    | Init = 1
+    | WarmUp = 2
+    | Bombing = 3
+    | Stop = 4
+    | Complete = 5
 
-type NodeStatsInfo = {    
+type NodeInfo = {
     MachineName: string
     Sender: NodeType
-    Operation: OperationType
+    CurrentOperation: NodeOperationType
 }
 
 type TestInfo = {
@@ -55,7 +58,7 @@ type Statistics = {
     DataMeanKb: float
     DataMaxKb: float
     AllDataMB: float
-    NodeStatsInfo: NodeStatsInfo
+    NodeInfo: NodeInfo
 }
 
 type IConnectionPool<'TConnection> = interface end

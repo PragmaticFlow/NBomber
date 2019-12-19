@@ -88,21 +88,24 @@ module Communication =
             return st.AgentsStats |> Map.fromDictionary              
     }
 
-    let waitOnAllAgentsReady (st: State) = asyncResult {
+    let waitOnAllAgents (st: State, operation: NodeOperationType) = asyncResult {
         let mutable stop = false
         while not stop do
             do! sendGetAgentInfoForCurrentSession(st)
             stop <- st.Agents
                     |> Seq.map(fun x -> x.Value) 
-                    |> Seq.forall(fun x -> x.HostStatus = ScenarioHostStatus.Ready)        
+                    |> Seq.forall(fun x -> x.NodeInfo.CurrentOperation = operation)        
     }
+    
+    let waitOnAllAgentsReady (st: State) = waitOnAllAgents(st, NodeOperationType.None)
+    let waitOnAllAgentsComplete (st: State) = waitOnAllAgents(st, NodeOperationType.Complete)
 
     let validateAgents (st: State) =
         let allGroups = st.Settings.Agents |> Seq.map(fun x -> x.TargetGroup) |> Seq.toArray
         let receivedGroups = st.Agents |> Seq.map(fun x -> x.Value.TargetGroup) |> Seq.toArray
         ClusterValidation.validateTargetGroups(allGroups, receivedGroups)    
 
-module ClusterStats =    
+module ClusterReporting =    
 
     let combineAllNodeStats (coordinatorStats: RawNodeStats, agentsStats: Map<ClientId, RawNodeStats>) =
         let agentsStats = agentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray    
@@ -111,9 +114,9 @@ module ClusterStats =
         
     let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =       
         
-        let meta = { MachineName = st.TestHost.NodeStatsMeta.MachineName
+        let meta = { MachineName = st.TestHost.CurrentNodeInfo.MachineName
                      Sender = NodeType.Cluster
-                     Operation = NBomber.DomainServices.TestHost.mapToOperationType(st.TestHost.Status) }
+                     CurrentOperation = st.TestHost.CurrentOperation }
         
         st.TestHost.GetRegisteredScenarios()
         |> Scenario.applySettings(st.TestSessionArgs.ScenariosSettings)
@@ -128,9 +131,9 @@ module ClusterStats =
     }
     
     let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], sinks: IReportingSink[]) =    
-        TestHostStats.saveStats(testInfo, allClusterStats, sinks)
+        TestHostReporting.saveStats(testInfo, allClusterStats, sinks)
     
-    let startSaveStatsTimer (st: State) =
+    let startRealtimeTimer (st: State) =
         if not (Array.isEmpty st.ReportingSinks) then            
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
@@ -138,8 +141,13 @@ module ClusterStats =
                 asyncResult {
                     // moving time forward
                     executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
-                    let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
-                    saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, st.ReportingSinks) |> ignore                    
+                    match st.TestHost.CurrentNodeInfo.CurrentOperation with
+                    | NodeOperationType.WarmUp 
+                    | NodeOperationType.Bombing ->                            
+                        let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
+                        saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, st.ReportingSinks) |> ignore
+                    
+                    | _ -> ()
                 }
                 |> Async.RunSynchronously
                 |> ignore
@@ -218,22 +226,22 @@ let runSession (st: State) = asyncResult {
 
     // warm-up
     do! Communication.sendStartWarmUp(st)
-    use warmUpStatsTimer = ClusterStats.startSaveStatsTimer(st)
+    use warmUpReportingTimer = ClusterReporting.startRealtimeTimer(st)
     do! st.TestHost.WarmUpScenarios()
+    warmUpReportingTimer.Stop()
     do! Communication.waitOnAllAgentsReady(st)
-    warmUpStatsTimer.Stop()
-    do! ClusterStats.validateWarmUpStats(st)
+    do! ClusterReporting.validateWarmUpStats(st)
 
     // bombing
     do! Communication.sendStartBombing(st)
-    use bombingStatsTimer = ClusterStats.startSaveStatsTimer(st)
+    use bombingReportingTimer = ClusterReporting.startRealtimeTimer(st)
     do! st.TestHost.StartBombing()
-    do! Communication.waitOnAllAgentsReady(st)
-    bombingStatsTimer.Stop()
+    bombingReportingTimer.Stop()
+    do! Communication.waitOnAllAgentsComplete(st)
     
     // saving final stats results
-    let! allStats = ClusterStats.fetchClusterStats(st, None)
-    do! ClusterStats.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSinks)
+    let! allStats = ClusterReporting.fetchClusterStats(st, None)
+    do! ClusterReporting.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSinks)
     
     return allStats
 }

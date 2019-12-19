@@ -7,6 +7,7 @@ open MQTTnet.Client
 open FsToolkit.ErrorHandling
 
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
 open NBomber.Infra
@@ -15,11 +16,10 @@ open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.Cluster.Contracts
 open NBomber.DomainServices.Validation
 
-type State = {    
+type State = {
     ClientId: string
     AgentsTopic: string
-    CoordinatorTopic: string
-    NodeInfo: AgentNodeInfo    
+    CoordinatorTopic: string        
     Settings: AgentSettings
     MqttClient: IMqttClient
     TestHost: TestHost
@@ -73,18 +73,18 @@ let validate (state: State, msg: RequestMessage) =
 
 let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
 
-    let getCurrentInfo () = 
-        { st.NodeInfo with HostStatus = st.TestHost.Status }
+    let getAgentInfo () =
+        { NodeInfo = st.TestHost.CurrentNodeInfo; TargetGroup = st.Settings.TargetGroup }
 
     let sendToCoordinator (st: State) (res: Response) =
         Contracts.createResponseMsg(msg.Headers.CorrelationId, st.ClientId, 
                                     st.TestHost.TestInfo.SessionId, Some res, None)
         |> Mqtt.toMqttMsg(st.CoordinatorTopic)
-        |> Mqtt.publishToBroker(st.MqttClient)        
+        |> Mqtt.publishToBroker(st.MqttClient)
 
     match! validate(st, msg) with
     | GetAgentInfo _ ->       
-        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
+        do! Response.AgentInfo(getAgentInfo()) |> sendToCoordinator(st)        
     
     | NewSession (sessionArgs, agentSettings) -> 
         let targetScenarios =
@@ -96,15 +96,15 @@ let receiveCoordinatorRequest (st: State, msg: RequestMessage) = asyncResult {
         
         let args = { sessionArgs with TargetScenarios = targetScenarios } 
         st.TestHost.InitScenarios(args) |> ignore
-        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
+        do! Response.AgentInfo(getAgentInfo()) |> sendToCoordinator(st)        
 
     | StartWarmUp ->
         st.TestHost.WarmUpScenarios() |> ignore                
-        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
+        do! Response.AgentInfo(getAgentInfo()) |> sendToCoordinator(st)        
             
     | StartBombing ->
         st.TestHost.StartBombing() |> ignore
-        do! Response.AgentInfo(getCurrentInfo()) |> sendToCoordinator(st)        
+        do! Response.AgentInfo(getAgentInfo()) |> sendToCoordinator(st)        
 
     | GetStatistics duration ->
         let stats = st.TestHost.GetNodeStats(duration)
@@ -116,26 +116,20 @@ let initAgent (dep: Dependency, registeredScenarios: Scenario[], settings: Agent
     let clientId = sprintf "agent_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort, dep.Logger)
 
-    let nodeInfo = { 
-        MachineName = dep.MachineInfo.MachineName
-        TargetGroup = settings.TargetGroup
-        HostStatus = ScenarioHostStatus.Ready 
-    }
+    let testHost = new TestHost(dep, registeredScenarios)
 
     let state = {            
         ClientId = clientId
         AgentsTopic = Contracts.createAgentsTopic(settings.ClusterId)
-        CoordinatorTopic = Contracts.createCoordinatorTopic(settings.ClusterId)
-        NodeInfo = nodeInfo   
+        CoordinatorTopic = Contracts.createCoordinatorTopic(settings.ClusterId)          
         Settings = settings
         MqttClient = mqttClient
-        TestHost = new TestHost(dep, registeredScenarios)
+        TestHost = testHost
         ReconnectTimer = new System.Timers.Timer()
         Logger = dep.Logger
     }
         
-    dep.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)        
-        
+    dep.Logger.Information("{agent} established connection with {cluster}", state.ClientId, state.Settings.ClusterId)
     return state
 }
 

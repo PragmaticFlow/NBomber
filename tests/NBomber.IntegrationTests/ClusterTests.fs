@@ -78,10 +78,10 @@ let private testSessionArgs = {
     CustomSettings = ""
 }
 
-let internal isWarmUpStarted (status) =
-    match status with
-    | ScenarioHostStatus.Working st when st = WorkingOperation.WarmUpScenarios -> true
-    | _ -> false
+let internal isWarmUpStarted (currentOperation) =
+    match currentOperation with
+    | NodeOperationType.WarmUp -> true
+    | _                    -> false
 
 [<Fact>]
 let ``Coordinator can run as single bomber`` () = async {
@@ -194,7 +194,7 @@ let ``Changing cluster topology should not affect a current test execution`` () 
                           |> Async.StartAsTask
     
     // waiting until warm-up starts
-    while not <| isWarmUpStarted(agent1.State.Value.TestHost.Status) do
+    while not <| isWarmUpStarted(agent1.State.Value.TestHost.CurrentOperation) do
         do! Async.Sleep(1_000)
         
     // spin up a new agent2

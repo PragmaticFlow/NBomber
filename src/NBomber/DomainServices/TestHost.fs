@@ -38,17 +38,6 @@ type TestSessionArgs = {
         TargetScenarios = targetScns
         CustomSettings = customSettings }
 
-type WorkingOperation =
-    | InitScenarios
-    | WarmUpScenarios
-    | StartBombing
-    | StopScenarios
-
-type ScenarioHostStatus =    
-    | Ready
-    | Working of WorkingOperation    
-    | Stopped of reason:string
-
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     let runnerWithLongestScenario = scnRunners
                                     |> Array.sortByDescending(fun x -> x.Scenario.Duration)
@@ -133,22 +122,12 @@ let printTargetScenarios (dep: Dependency) (scenarios: Scenario[]) =
     |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
     |> fun _ -> scenarios
     
-let mapToOperationType (scnHostStatus: ScenarioHostStatus) =
-    match scnHostStatus with
-    | ScenarioHostStatus.Working(WorkingOperation.WarmUpScenarios) ->
-        OperationType.WarmUp
-    
-    | ScenarioHostStatus.Working(WorkingOperation.StartBombing) ->            
-        OperationType.Bombing
-        
-    | _ -> OperationType.Complete    
+let createNodeInfo (dep: Dependency, currentOperation: NodeOperationType) =        
+    { MachineName = dep.MachineInfo.MachineName
+      Sender = dep.NodeType
+      CurrentOperation = currentOperation }    
 
-module TestHostStats =    
-        
-    let getNodeStatsMeta (dep: Dependency, status: ScenarioHostStatus) =
-        { MachineName = dep.MachineInfo.MachineName
-          Sender = dep.NodeType
-          Operation = mapToOperationType(status) }
+module TestHostReporting =
         
     let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], sinks: IReportingSink[]) =
         nodeStats
@@ -158,16 +137,23 @@ module TestHostStats =
         )
         |> Task.WhenAll
         
-    let startSaveStatsTimer (sinks: IReportingSink[], testInfo: TestInfo, getNodeStats: TimeSpan -> RawNodeStats) =        
+    let startRealtimeTimer (sinks: IReportingSink[], testInfo: TestInfo,
+                            getCurrentOperation: unit -> NodeOperationType,
+                            getNodeStats: TimeSpan -> RawNodeStats) =        
         if not (Array.isEmpty sinks) then
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(Constants.GetStatsInterval)
             timer.Elapsed.Add(fun _ ->
                 // moving time forward
                 executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
-                let rawNodeStats = getNodeStats(executionTime)
-                saveStats(testInfo, [|rawNodeStats|], sinks)
-                |> ignore
+                match getCurrentOperation() with
+                | NodeOperationType.WarmUp 
+                | NodeOperationType.Bombing ->
+                    let rawNodeStats = getNodeStats(executionTime)
+                    saveStats(testInfo, [|rawNodeStats|], sinks)
+                    |> ignore                
+                
+                | _ -> ()
             )
             timer.Start()
             timer            
@@ -177,23 +163,23 @@ module TestHostStats =
 type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
     
     let mutable _scnArgs = TestSessionArgs.empty  
-    let mutable _status = ScenarioHostStatus.Ready
+    let mutable _currentOperation = NodeOperationType.None
     let mutable _scnRunners = Array.empty<ScenarioRunner>    
     
     let getNodeStats (duration: TimeSpan option) =
         _scnRunners
         |> Array.map(fun x -> x.GetScenarioStats duration)
-        |> NodeStats.create(TestHostStats.getNodeStatsMeta(dep, _status))
+        |> NodeStats.create(TestHost.createNodeInfo(dep, _currentOperation))
 
     member x.TestInfo = _scnArgs.TestInfo
-    member x.Status = _status
-    member x.NodeStatsMeta = TestHostStats.getNodeStatsMeta(dep, _status)
+    member x.CurrentOperation = _currentOperation
+    member x.CurrentNodeInfo = TestHost.createNodeInfo(dep, _currentOperation)
     member x.GetRegisteredScenarios() = registeredScenarios    
     member x.GetRunningScenarios() = _scnRunners |> Array.map(fun x -> x.Scenario)    
     
     member x.InitScenarios(args: TestSessionArgs) = task {
         _scnArgs <- args
-        _status <- ScenarioHostStatus.Working(InitScenarios)
+        _currentOperation <- NodeOperationType.Init
         do! Task.Yield()            
         let! results = registeredScenarios
                        |> Scenario.applySettings args.ScenariosSettings
@@ -203,64 +189,68 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         
         match results with
         | Ok scns -> _scnRunners <- scns |> Array.map(fun x -> ScenarioRunner(x, dep.Logger))
-                     _status <- ScenarioHostStatus.Ready
+                     _currentOperation <- NodeOperationType.None
                      return Ok()
         
-        | Error e -> _status <- ScenarioHostStatus.Stopped(AppError.toString e)
+        | Error e -> _currentOperation <- NodeOperationType.Stop
                      return AppError.createResult(e)
     }
 
     member x.WarmUpScenarios() = task {
-        _status <- ScenarioHostStatus.Working(WarmUpScenarios)
+        _currentOperation <- NodeOperationType.WarmUp
         do! Task.Yield()
-        runWarmUpScenarios(dep, _scnRunners)                
-        _status <- ScenarioHostStatus.Ready
+        runWarmUpScenarios(dep, _scnRunners)
+        _currentOperation <- NodeOperationType.None
         do! Task.Delay(1_000)
     }
 
     member x.StartBombing() = task {
-        _status <- ScenarioHostStatus.Working(StartBombing)
+        _currentOperation <- NodeOperationType.Bombing
         do! Task.Yield()
         let! tasks = runBombing(dep, _scnRunners)
         x.StopScenarios()
-        _status <- ScenarioHostStatus.Ready
+        _currentOperation <- NodeOperationType.Complete        
         do! Task.Delay(1000)
     }
 
     member x.StopScenarios() = 
-        _status <- ScenarioHostStatus.Working(StopScenarios)
+        _currentOperation <- NodeOperationType.Stop
         stopAndCleanScenarios(dep, _scnRunners)
-        _status <- ScenarioHostStatus.Ready
+        _currentOperation <- NodeOperationType.None
 
     member x.GetNodeStats(duration) = getNodeStats(duration)
     
     member x.RunSession(args: TestSessionArgs) = asyncResult {
         
+        let startRealtimeTimer () =
+            TestHostReporting.startRealtimeTimer(
+                dep.ReportingSinks,
+                x.TestInfo,
+                (fun () -> _currentOperation),
+                (fun duration -> x.GetNodeStats(Some duration))
+            )
+        
         // init
         do! x.InitScenarios(args)        
         
         // warm-up
-        use warmUpStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSinks,
-                                                                 x.TestInfo,
-                                                                 fun duration -> x.GetNodeStats(Some duration))
+        use warmUpReportingTimer = startRealtimeTimer()
         do! x.WarmUpScenarios()
-        warmUpStatsTimer.Stop()
+        warmUpReportingTimer.Stop()
         do! ScenarioValidation.validateWarmUpStats(x.GetNodeStats(None))        
     
         // bombing        
-        use bombingStatsTimer = TestHostStats.startSaveStatsTimer(dep.ReportingSinks,
-                                                                  x.TestInfo,
-                                                                  fun duration -> x.GetNodeStats(Some duration))
+        use bombingReportingTimer = startRealtimeTimer()
         do! x.StartBombing()
-        bombingStatsTimer.Stop()
+        bombingReportingTimer.Stop()
 
-        // saving final stats results
+        // saving final stats results        
         let rawNodeStats = x.GetNodeStats(None)
-        do! TestHostStats.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSinks)
+        do! TestHostReporting.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSinks)
         
         return rawNodeStats
     }
     
     interface IDisposable with
         member x.Dispose() =
-            if _status <> ScenarioHostStatus.Ready then x.StopScenarios()
+            if _currentOperation <> NodeOperationType.Complete then x.StopScenarios()
