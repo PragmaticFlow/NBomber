@@ -26,6 +26,7 @@ type internal ValidationError =
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
+    | SendStatsIntervalIsWrong of minSendStatsInterval:float
 
 type internal CommunicationError =
     | SendMqttMsgFailed    
@@ -102,6 +103,9 @@ type internal AppError =
             
         | SessionIsWrong ->
             "Session is wrong"
+            
+        | SendStatsIntervalIsWrong minSendStatsInterval ->
+            sprintf "SendStatsInterval should be bigger than min value: '%f'" minSendStatsInterval
 
     static member toString (error: CommunicationError) = 
         match error with

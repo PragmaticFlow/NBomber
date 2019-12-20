@@ -21,15 +21,18 @@ type NodeType =
     | Agent
     | Cluster
     
-type OperationType =
-    | WarmUp
-    | Bombing
-    | Complete
+type NodeOperationType =
+    | None = 0
+    | Init = 1
+    | WarmUp = 2
+    | Bombing = 3
+    | Stop = 4
+    | Complete = 5
 
-type NodeStatsInfo = {    
+type NodeInfo = {
     MachineName: string
     Sender: NodeType
-    Operation: OperationType
+    CurrentOperation: NodeOperationType
 }
 
 type TestInfo = {
@@ -38,8 +41,7 @@ type TestInfo = {
     TestName: string
 }
 
-type Statistics = {
-    TestInfo: TestInfo
+type Statistics = {    
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -56,7 +58,7 @@ type Statistics = {
     DataMeanKb: float
     DataMaxKb: float
     AllDataMB: float
-    NodeStatsInfo: NodeStatsInfo
+    NodeInfo: NodeInfo
 }
 
 type IConnectionPool<'TConnection> = interface end
@@ -90,18 +92,27 @@ type Scenario = {
     Duration: TimeSpan
 }
 
-type IStatisticsSink =
-    abstract SaveStatistics: Statistics[] -> Task
+type ReportFile = {
+    FilePath: string
+    ReportFormat: ReportFormat
+}
 
-type NBomberTestContext = {
+type IReportingSink =
+    abstract StartTest: testInfo:TestInfo -> Task
+    abstract SaveStatistics: testInfo:TestInfo * stats:Statistics[] -> Task
+    abstract SaveReports: testInfo:TestInfo * reportFiles:ReportFile[] -> Task
+    abstract FinishTest: testInfo:TestInfo -> Task
+
+type TestContext = {
     TestSuite: string
     TestName: string
     Scenarios: Scenario[]
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     ReportFileName: string option
-    ReportFormats: ReportFormat list
-    StatisticsSink: IStatisticsSink option
+    ReportFormats: ReportFormat[]
+    ReportingSinks: IReportingSink[]
+    SendStatsInterval: TimeSpan
 }
 
 type Response with

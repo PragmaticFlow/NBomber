@@ -1,7 +1,10 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
+open System
+
 open FsToolkit.ErrorHandling
 
+open System.Threading.Tasks
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
@@ -21,11 +24,11 @@ type ExecutionResult = {
     FailedAsserts: DomainError[]
 } with
   static member init (testInfo: TestInfo) (nodeStats: RawNodeStats[]) =
-      let stats = nodeStats |> Array.collect(Statistics.create testInfo)
+      let stats = nodeStats |> Array.collect(Statistics.create)
       { RawNodeStats = nodeStats; Statistics = stats; FailedAsserts = Array.empty }
 
 let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
-                           context: NBomberTestContext, crdSettings: CoordinatorSettings) =
+                           context: TestContext, crdSettings: CoordinatorSettings) =
     asyncResult {
         sprintf "NBomber started as cluster coordinator: %A" crdSettings
         |> dep.Logger.Information
@@ -38,7 +41,7 @@ let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
         return clusterStats
     }
 
-let runClusterAgent (dep: Dependency, context: NBomberTestContext, agentSettings: AgentSettings) =
+let runClusterAgent (dep: Dependency, context: TestContext, agentSettings: AgentSettings) =
     asyncResult {
         sprintf "NBomber started as cluster agent: %A" agentSettings
         |> dep.Logger.Information
@@ -50,7 +53,7 @@ let runClusterAgent (dep: Dependency, context: NBomberTestContext, agentSettings
         return Array.empty<RawNodeStats>
     }
 
-let runSingleNode (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
+let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
         dep.Logger.Information("NBomber started as single node")
 
@@ -62,7 +65,7 @@ let runSingleNode (dep: Dependency, testInfo: TestInfo, context: NBomberTestCont
         return [|rawNodeStats|]
     }
 
-let applyAsserts (context: NBomberTestContext) (result: ExecutionResult) = 
+let applyAsserts (context: TestContext) (result: ExecutionResult) = 
     let errors = 
         context.Scenarios 
         |> Array.collect(fun x -> x.Assertions)
@@ -73,10 +76,10 @@ let applyAsserts (context: NBomberTestContext) (result: ExecutionResult) =
 let buildReport (dep: Dependency) (result: ExecutionResult) =    
     Report.build(dep, result.RawNodeStats, result.FailedAsserts)
 
-let saveReport (dep: Dependency) (testInfo: TestInfo) (context: NBomberTestContext) (report: ReportResult) =
-    let fileName = NBomberTestContext.getReportFileName(testInfo.SessionId, context)
-    let formats = NBomberTestContext.getReportFormats(context)
-    Report.save("./", fileName, formats, report, dep.Logger)
+let saveReport (dep: Dependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
+    let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
+    let formats = TestContext.getReportFormats(context)
+    Report.save("./", fileName, formats, report, dep.Logger)    
 
 let showErrors (dep: Dependency) (errors: AppError[]) = 
     if dep.ApplicationType = ApplicationType.Test then
@@ -91,22 +94,57 @@ let showAsserts (dep: Dependency, result: ExecutionResult) =
                        |> Array.map AppError.create
                        |> showErrors dep                           
 
-let run (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
+let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
+    try
+        dep.ReportingSinks
+        |> Array.iter(fun sink -> sink.StartTest(testInfo) |> ignore)            
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
+        
+let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (reportFiles: ReportFile[]) =
+    try
+        dep.ReportingSinks
+        |> Array.map(fun sink -> sink.SaveReports(testInfo, reportFiles))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.SaveReports failed")            
+
+let sendFinishTestToReportingSink (dep: Dependency) (testInfo: TestInfo) =
+    try
+        dep.ReportingSinks
+        |> Array.map(fun sink -> sink.FinishTest(testInfo))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+    with
+    | ex -> dep.Logger.Error(ex, "ReportingSink.FinishTest failed")
+
+let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {        
         dep.Logger.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, testInfo.SessionId)
 
         let! ctx = Validation.validateContext(context)
+        
+        sendStartTestToReportingSink(dep, testInfo)
+        
         let! nodeStats =
-            match NBomberTestContext.tryGetClusterSettings(ctx) with
-            | Some (Coordinator c) -> runClusterCoordinator(dep, testInfo, ctx, c)
-            | Some (Agent a)       -> runClusterAgent(dep, ctx, a)
-            | None                 -> runSingleNode(dep, testInfo, ctx)
+            match TestContext.tryGetClusterSettings(ctx) with
+            | Some (Coordinator cSettings) -> runClusterCoordinator(dep, testInfo, ctx, cSettings)
+            | Some (Agent aSettings)       -> runClusterAgent(dep, ctx, aSettings)
+            | None                         -> runSingleNode(dep, testInfo, ctx)
 
         let result = nodeStats
                      |> ExecutionResult.init(testInfo)
                      |> applyAsserts ctx
 
-        result |> buildReport dep |> saveReport dep testInfo ctx
+        result
+        |> buildReport dep
+        |> saveReport dep testInfo ctx
+        |> sendSaveReportsToReportingSink dep testInfo
+        |> fun () -> sendFinishTestToReportingSink dep testInfo
+        
         return result
     }
     |> Async.RunSynchronously
@@ -115,15 +153,15 @@ let run (dep: Dependency, testInfo: TestInfo, context: NBomberTestContext) =
     |> Result.mapError(fun error -> showErrors dep [|error|]
                                     error)
 
-let runAs (appType: ApplicationType) (context: NBomberTestContext) =    
+let runAs (appType: ApplicationType, context: TestContext) =    
     let testInfo = {
         SessionId = Dependency.createSessionId()
-        TestSuite = NBomberTestContext.getTestSuite(context)
-        TestName = NBomberTestContext.getTestName(context)
+        TestSuite = TestContext.getTestSuite(context)
+        TestName = TestContext.getTestName(context)
     }
     
-    let nodeType = NBomberTestContext.getNodeType(context)    
+    let nodeType = TestContext.getNodeType(context)    
     
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with StatisticsSink = context.StatisticsSink }
+    let dep = { dep with ReportingSinks = context.ReportingSinks }
     run(dep, testInfo, context)

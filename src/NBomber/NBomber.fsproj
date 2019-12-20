@@ -53,7 +53,7 @@
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
-    <Compile Include="DomainServices\NBomberTestContext.fs" />
+    <Compile Include="DomainServices\TestContext.fs" />
     <Compile Include="DomainServices\ScenarioRunner.fs" />
     <Compile Include="DomainServices\TestHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />

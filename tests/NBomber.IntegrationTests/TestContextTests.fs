@@ -17,6 +17,7 @@ let globalSettings = {
     TargetScenarios = Some ["1"]
     ReportFileName = None
     ReportFormats = None
+    SendStatsInterval = None
 }
 
 let scenario = {
@@ -45,8 +46,9 @@ let context = {
     NBomberConfig = None
     InfraConfig = None
     ReportFileName = None
-    ReportFormats = []
-    StatisticsSink = None
+    ReportFormats = Array.empty
+    ReportingSinks = Array.empty
+    SendStatsInterval = TimeSpan.FromSeconds(NBomber.Domain.Constants.MinSendStatsIntervalSec)
 }
 
 [<Fact>]
@@ -55,7 +57,7 @@ let ``NBomberContext.getTargetScenarios should return all registered scenarios i
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
        
-    match NBomberTestContext.getTargetScenarios(context) with
+    match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
     | _ -> failwith ""
 
@@ -70,7 +72,7 @@ let ``NBomberContext.getTargetScenarios should return only target scenarios if T
     let context = { context with NBomberConfig = Some config
                                  Scenarios = [| scn1; scn2 |] }
        
-    match NBomberTestContext.getTargetScenarios(context) with
+    match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 && scenarios.[0] = "10" -> ()
     | _ -> failwith ""
 
@@ -84,10 +86,10 @@ let ``NBomberContext.getReportFileName should return from GlobalSettings, if emp
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = [ReportFormat.Txt]
+                             ReportFormats = [|ReportFormat.Txt|]
                              ReportFileName = contextValue }
     
-    let fileName = NBomberTestContext.getReportFileName("sessionId", ctx)
+    let fileName = TestContext.getReportFileName("sessionId", ctx)
 
     match configValue, contextValue with
     | Some v1, Some v2 -> Assert.True(fileName.Equals v1)
@@ -100,20 +102,20 @@ let ``NBomberContext.getReportFormats should return from GlobalSettings, if empt
 
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
-
+    
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = contextValue
+                             ReportFormats = List.toArray contextValue
                              ReportFileName = None }
     
-    let formats = NBomberTestContext.getReportFormats(ctx)
+    let formats = TestContext.getReportFormats(ctx)
 
     match configValue, contextValue with
-    | Some v, _ -> Assert.True((formats = v))
+    | Some v, _ -> Assert.True((formats = List.toArray v))
     
     | None, v when List.isEmpty v -> 
         Assert.True((formats = NBomber.Domain.Constants.AllReportFormats))
     
-    | None, v -> Assert.True((formats = contextValue))
+    | None, v -> Assert.True((formats = List.toArray contextValue))
     
 [<Property>]
 let ``NBomberContext.getTestSuite should return from Config, if empty then from NBomberContext`` (configValue: string option, contextValue: string) =
@@ -122,11 +124,11 @@ let ``NBomberContext.getTestSuite should return from Config, if empty then from 
     | Some value ->
         let config = { config with TestSuite = value }
         let ctx = { context with NBomberConfig = Some config }    
-        let testSuite = NBomberTestContext.getTestSuite(ctx)
+        let testSuite = TestContext.getTestSuite(ctx)
         test <@ testSuite = value  @>
     
     | None ->
-        let testSuite = NBomberTestContext.getTestSuite(context)
+        let testSuite = TestContext.getTestSuite(context)
         test <@ testSuite = context.TestSuite @>
         
 [<Property>]
@@ -136,9 +138,9 @@ let ``NBomberContext.getTestName should return from Config, if empty then from N
     | Some value ->
         let config = { config with TestName = value }
         let ctx = { context with NBomberConfig = Some config }    
-        let testSuite = NBomberTestContext.getTestName(ctx)
+        let testSuite = TestContext.getTestName(ctx)
         test <@ testSuite = value  @>
     
     | None ->
-        let testSuite = NBomberTestContext.getTestName(context)
+        let testSuite = TestContext.getTestName(context)
         test <@ testSuite = context.TestName @>

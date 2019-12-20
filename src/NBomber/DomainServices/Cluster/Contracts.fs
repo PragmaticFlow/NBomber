@@ -2,16 +2,16 @@
 
 open System
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.DomainServices.TestHost
 
 type ClientId = string
 
-type AgentNodeInfo = {    
-    MachineName: string
-    TargetGroup: string
-    HostStatus: ScenarioHostStatus
+type AgentNodeInfo = {
+    NodeInfo: NodeInfo
+    TargetGroup: string    
 }
 
 type Request =

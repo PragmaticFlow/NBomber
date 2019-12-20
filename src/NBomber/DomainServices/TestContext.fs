@@ -1,32 +1,45 @@
-﻿module internal NBomber.DomainServices.NBomberTestContext
+﻿module internal NBomber.DomainServices.TestContext
+
+open System
 
 open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
 
-let getTestSuite (context: NBomberTestContext) =
+let empty =
+    { TestSuite = Constants.DefaultTestSuite
+      TestName = Constants.DefaultTestName
+      Scenarios = Array.empty
+      NBomberConfig = None
+      InfraConfig = None
+      ReportFileName = None
+      ReportFormats = Constants.AllReportFormats
+      ReportingSinks = Array.empty
+      SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec }
+
+let getTestSuite (context: TestContext) =
     context.NBomberConfig
     |> Option.map(fun x -> x.TestSuite)
     |> Option.defaultValue context.TestSuite
 
-let getTestName (context: NBomberTestContext) =
+let getTestName (context: TestContext) =
     context.NBomberConfig
     |> Option.map(fun x -> x.TestName)
     |> Option.defaultValue context.TestName
 
-let getScenariosSettings (context: NBomberTestContext) =    
+let getScenariosSettings (context: TestContext) =    
     context.NBomberConfig
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.bind(fun x -> x.ScenariosSettings)
     |> Option.defaultValue List.empty
     |> List.toArray
 
-let tryGetClusterSettings (context: NBomberTestContext) =
+let tryGetClusterSettings (context: TestContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.ClusterSettings)
 
-let getNodeType (context: NBomberTestContext) = 
+let getNodeType (context: TestContext) = 
     context.NBomberConfig
     |> Option.bind(fun x -> x.ClusterSettings)
     |> Option.map(function 
@@ -34,7 +47,7 @@ let getNodeType (context: NBomberTestContext) =
         | ClusterSettings.Agent _       -> NodeType.Agent)
     |> Option.defaultValue NodeType.SingleNode        
 
-let getTargetScenarios (context: NBomberTestContext) =
+let getTargetScenarios (context: TestContext) =
     let targetScn =
         context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
@@ -47,7 +60,7 @@ let getTargetScenarios (context: NBomberTestContext) =
     defaultArg targetScn allScns
     |> List.toArray
 
-let getReportFileName (sessionId: string, context: NBomberTestContext) = 
+let getReportFileName (sessionId: string, context: TestContext) = 
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -58,21 +71,33 @@ let getReportFileName (sessionId: string, context: NBomberTestContext) =
     |> Option.orElse(context.ReportFileName)
     |> Option.defaultValue("report_" + sessionId)
 
-let getReportFormats (context: NBomberTestContext) = 
+let getReportFormats (context: TestContext) = 
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.ReportFormats    
+        let! formats = settings.ReportFormats
+        return formats |> List.toArray
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(if List.isEmpty context.ReportFormats then None
+    |> Option.orElse(if Array.isEmpty context.ReportFormats then None
                      else Some context.ReportFormats)
     |> Option.defaultValue Constants.AllReportFormats
 
-let tryGetCustomSettings (context: NBomberTestContext) =
+let getCustomSettings (context: TestContext) =
     maybe {
         let! config = context.NBomberConfig
         return! config.CustomSettings
     }
     |> function Some v -> v | None -> ""
+    
+let getSendStatsInterval (context: TestContext) = 
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        let! intervalInDataTime = settings.SendStatsInterval
+        return intervalInDataTime.TimeOfDay
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue(TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec)    

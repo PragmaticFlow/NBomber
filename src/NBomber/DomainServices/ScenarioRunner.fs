@@ -17,7 +17,7 @@ type ScenarioActor(logger: ILogger,
                    actorIndex: int,
                    correlationId: string,
                    scenario: Scenario,
-                   globalTimer: Stopwatch,
+                   scenarioTimer: Stopwatch,
                    fastCancelToken: FastCancellationToken,
                    cancelToken: CancellationToken) =    
     
@@ -31,7 +31,7 @@ type ScenarioActor(logger: ILogger,
 
     member x.ExecSteps() = task {
         working <- true
-        do! Step.execSteps(logger, steps, allResponses, fastCancelToken, globalTimer)
+        do! Step.execSteps(logger, steps, allResponses, fastCancelToken, scenarioTimer)
         working <- false
     }
 
@@ -132,37 +132,37 @@ type ScenarioRunner(scenario: Scenario, logger: Serilog.ILogger) =
            curFastCancelToken.ShouldCancel <- false
     }    
 
-    let createActors (scenario, fastCancelToken: FastCancellationToken, cancelToken: CancellationTokenSource) = 
+    let createActorsEnv (scenario, fastCancelToken: FastCancellationToken, cancelToken: CancellationTokenSource) = 
 
-        let globalTimer = Stopwatch()                
+        let scenarioTimer = Stopwatch()                
         
         let actors = 
             scenario.CorrelationIds
             |> Array.mapi(fun actorIndex correlationId ->
-                ScenarioActor(logger, actorIndex, correlationId, scenario, globalTimer,
+                ScenarioActor(logger, actorIndex, correlationId, scenario, scenarioTimer,
                               fastCancelToken, cancelToken.Token)
             )
         
-        globalTimer, actors
+        {| ScenarioTimer = scenarioTimer; Actors = actors |}
         
     let run (duration: TimeSpan) = task {
         
         do! stop(curJob, curActors)
         
-        let globalTimer, actors = createActors(scenario, curFastCancelToken, curCancelToken)        
-        let scheduler = ScenarioScheduler(actors, curFastCancelToken)
-        globalTimer.Start()
+        let env = createActorsEnv(scenario, curFastCancelToken, curCancelToken)        
+        let scheduler = ScenarioScheduler(env.Actors, curFastCancelToken)
+        env.ScenarioTimer.Start()
         let job = scheduler.Run()
         
-        curActors <- actors
+        curActors <- env.Actors
         curJob <- Some job
         
         // wait on finish
         do! Task.Delay(duration, curCancelToken.Token)
         
         // stop execution
-        globalTimer.Stop()
-        do! stop(curJob, actors)
+        env.ScenarioTimer.Stop()
+        do! stop(curJob, env.Actors)
     }
 
     member x.Scenario = scenario

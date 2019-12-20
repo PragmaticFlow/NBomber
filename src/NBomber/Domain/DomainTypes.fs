@@ -22,7 +22,7 @@ module internal Constants =
     [<Literal>]
     let DefaultDoNotTrack = false
 
-    let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
+    let AllReportFormats = [|ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md|]
 
     [<Literal>]
     let EmptyPoolName = "nbomber_empty_pool"
@@ -34,7 +34,7 @@ module internal Constants =
     let DefaultTestName = "NBomberLoadTest"
 
     [<Literal>]
-    let GetStatsInterval = 5_000.0
+    let MinSendStatsIntervalSec = 5.0
 
 type internal CorrelationId = string
 type internal StepName = string

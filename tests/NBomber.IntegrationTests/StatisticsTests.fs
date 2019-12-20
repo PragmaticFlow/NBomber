@@ -14,7 +14,7 @@ open NBomber.Extensions
 let private nodeStatsInfo = {    
     MachineName = "1"
     Sender = NodeType.SingleNode
-    Operation = OperationType.Bombing
+    CurrentOperation = NodeOperationType.Bombing
 }
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }

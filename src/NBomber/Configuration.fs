@@ -7,7 +7,7 @@ type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
-    | Md = 3
+    | Md = 3    
 
 type ScenarioSetting = {
     ScenarioName: string
@@ -21,6 +21,7 @@ type GlobalSettings = {
     TargetScenarios: string list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
+    SendStatsInterval: DateTime option
 }
 
 type AgentSettings = {

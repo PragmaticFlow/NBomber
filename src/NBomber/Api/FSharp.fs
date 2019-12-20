@@ -120,7 +120,7 @@ module Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = List.toArray(steps)
+          Steps = Seq.toArray(steps)
           Assertions = Array.empty
           ConcurrentCopies = Constants.DefaultConcurrentCopies          
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
@@ -155,55 +155,49 @@ module Scenario =
 module NBomberRunner =    
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
-    let registerScenarios (scenarios: Contracts.Scenario list) =
-        { TestSuite = Domain.Constants.DefaultTestSuite
-          TestName = Domain.Constants.DefaultTestName
-          Scenarios = List.toArray(scenarios)
-          NBomberConfig = None
-          InfraConfig = None
-          ReportFileName = None
-          ReportFormats = Domain.Constants.AllReportFormats
-          StatisticsSink = None }
+    let registerScenarios (scenarios: Contracts.Scenario list) =        
+        { TestContext.empty with Scenarios = scenarios |> Seq.toArray  }        
 
-    let withReportFileName (reportFileName: string) (context: NBomberTestContext) =
+    let withReportFileName (reportFileName: string) (context: TestContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberTestContext) =
-        { context with ReportFormats = reportFormats }
+    let withReportFormats (reportFormats: ReportFormat list) (context: TestContext) =
+        { context with ReportFormats = Seq.toArray reportFormats }
         
-    let withTestSuite (testSuite: string) (context: NBomberTestContext) =
+    let withTestSuite (testSuite: string) (context: TestContext) =
         { context with TestSuite = testSuite }
     
-    let withTestName (testName: string) (context: NBomberTestContext) =
+    let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
 
-    let loadConfig (path: string) (context: NBomberTestContext) =
+    let loadConfig (path: string) (context: TestContext) =
         let config = path |> File.ReadAllText |> NBomberConfig.parse
         { context with NBomberConfig = Some config }
 
-    let loadInfraConfig (path: string) (context: NBomberTestContext) =
+    let loadInfraConfig (path: string) (context: TestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
     
-    let saveStatisticsTo (statisticsSink: IStatisticsSink) (context: NBomberTestContext) =
-        { context with StatisticsSink = Some statisticsSink }
+    let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =
+        { context with ReportingSinks = Seq.toArray reportingSinks
+                       SendStatsInterval = sendStatsInterval }
 
-    let run (context: NBomberTestContext) =
-        NBomberRunner.runAs Process context
+    let run (context: TestContext) =
+        NBomberRunner.runAs(Process, context)
         |> ignore
 
-    let rec runInConsole (context: NBomberTestContext) =
-        NBomberRunner.runAs Console context
+    let rec runInConsole (context: TestContext) =
+        NBomberRunner.runAs(Console, context)
         |> ignore
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
 
         let userInput = Console.ReadLine()
-        let repeat = List.contains userInput ["y"; "Y"; "yes"; "Yes"]
+        let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole context
 
-    let runTest (context: NBomberTestContext) =
-        NBomberRunner.runAs Test context
+    let runTest (context: TestContext) =
+        NBomberRunner.runAs(Test, context)
         |> ignore
         
-    let internal runWithResult (context: NBomberTestContext) =
-        NBomberRunner.runAs Process context
+    let internal runWithResult (context: TestContext) =
+        NBomberRunner.runAs(Process, context)
