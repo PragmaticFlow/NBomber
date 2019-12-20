@@ -46,6 +46,9 @@ let run () =
                    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 30.0)
                    |> Scenario.withDuration(TimeSpan.FromSeconds 60.0)
 
+    let customReportingSink = CustomReportingSink()
+    let sendStatsInterval = TimeSpan.FromSeconds 10.0
+    
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks([CustomReportingSink()], TimeSpan.FromSeconds 10.0)    
+    |> NBomberRunner.withReportingSinks([customReportingSink], sendStatsInterval)    
     |> NBomberRunner.runInConsole

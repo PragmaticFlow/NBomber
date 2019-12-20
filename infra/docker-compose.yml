@@ -2,28 +2,45 @@
 services:
 
   mongo: 
-    image: mongo:4.0.3    
+    image: "mongo:4.0.3"
     ports:
-      - "27017:27017"
+      - 27017:27017
   
   influxdb:
-    image: "influxdb:1.5.4"        
-    ports:
-     - "8086:8086"
+    image: "influxdb:1.5.4"            
     environment:
-       INFLUXDB_DB: "\"default\""
+       INFLUXDB_DB: "\"NBomberDb\""
+    ports:
+      - 8086:8086       
+
+  influxdb_createNBomberDb:
+    image: "byrnedo/alpine-curl"
+    command: curl -i -XPOST http://influxdb:8086/query --data-urlencode "q=CREATE DATABASE NBomberDb"
+    depends_on:
+      - "influxdb"
 
   grafana:
-    image: "grafana/grafana:5.4.3"    
-    ports:
-     - "3000:3000"
+    image: "grafana/grafana:6.5.2"    
     environment:
       - "GF_SERVER_ROOT_URL=http://grafana:6082"
+    ports:
+     - 3000:3000    
     depends_on:
-      - influxdb
+      - "influxdb"
 
   eclipse-mosquitto:
     image: "eclipse-mosquitto:1.6.8"    
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - 1883:1883
+      - 9001:9001
+
+  elasticsearch:
+    image: "elasticsearch:6.8.6"
+    ports:
+      - 9200:9200
+      - 9300:9300
+  
+  kibana:
+    image: "kibana:6.8.6"    
+    ports:
+      - 5601:5601

@@ -29,4 +29,5 @@ let run () =
                    |> Scenario.withConcurrentCopies 100
 
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.loadInfraConfig "infra_config.json"
     |> NBomberRunner.runInConsole
