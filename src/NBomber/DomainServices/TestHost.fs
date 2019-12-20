@@ -20,23 +20,27 @@ type TestSessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
-    CustomSettings: string    
+    CustomSettings: string
+    SendStatsInterval: TimeSpan
 } with  
   static member empty = {
       TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
       ScenariosSettings = Array.empty
       TargetScenarios = Array.empty
       CustomSettings = ""
+      SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
   }
   
-  static member getFromContext (testInfo: TestInfo, context: NBomberTestContext) =
-      let scnSettings = NBomberTestContext.getScenariosSettings(context)
-      let targetScns = NBomberTestContext.getTargetScenarios(context)
-      let customSettings = NBomberTestContext.tryGetCustomSettings(context)
+  static member getFromContext (testInfo: TestInfo, context: TestContext) =
+      let scnSettings = TestContext.getScenariosSettings(context)
+      let targetScns = TestContext.getTargetScenarios(context)
+      let customSettings = TestContext.getCustomSettings(context)
+      let statsInterval = TestContext.getSendStatsInterval(context)
       { TestInfo = testInfo
         ScenariosSettings = scnSettings
         TargetScenarios = targetScns
-        CustomSettings = customSettings }
+        CustomSettings = customSettings
+        SendStatsInterval = statsInterval }
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
     let runnerWithLongestScenario = scnRunners
@@ -137,15 +141,17 @@ module TestHostReporting =
         )
         |> Task.WhenAll
         
-    let startRealtimeTimer (sinks: IReportingSink[], testInfo: TestInfo,
+    let startRealtimeTimer (sinks: IReportingSink[],
+                            timerInterval: TimeSpan,
+                            testInfo: TestInfo,
                             getCurrentOperation: unit -> NodeOperationType,
                             getNodeStats: TimeSpan -> RawNodeStats) =        
         if not (Array.isEmpty sinks) then
             let mutable executionTime = TimeSpan.Zero
-            let timer = new System.Timers.Timer(Constants.GetStatsInterval)
+            let timer = new System.Timers.Timer(timerInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
                 // moving time forward
-                executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
+                executionTime <- executionTime.Add(timerInterval)
                 match getCurrentOperation() with
                 | NodeOperationType.WarmUp 
                 | NodeOperationType.Bombing ->
@@ -225,6 +231,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         let startRealtimeTimer () =
             TestHostReporting.startRealtimeTimer(
                 dep.ReportingSinks,
+                args.SendStatsInterval,
                 x.TestInfo,
                 (fun () -> _currentOperation),
                 (fun duration -> x.GetNodeStats(Some duration))

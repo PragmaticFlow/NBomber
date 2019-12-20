@@ -62,7 +62,7 @@ module ScenarioValidation =
             AppError.createResult(WarmUpErrorWithManyFailedSteps(nodeStats.OkCount, nodeStats.FailCount))
         else Ok()              
 
-    let validate (context: NBomberTestContext) =
+    let validate (context: TestContext) =
         context.Scenarios 
         |> checkEmptyName
         >>= checkDuplicateName
@@ -90,7 +90,7 @@ module AssertionValidation =
         if Array.isEmpty(notFoundAsserts) then Ok scenarios
         else Error <| AssertsNotFound notFoundAsserts
 
-    let validate (context: NBomberTestContext) =
+    let validate (context: TestContext) =
         context.Scenarios
         |> checkInvalidAsserts
         >>= fun _ -> Ok context
@@ -139,8 +139,17 @@ module GlobalSettingsValidation =
         | Some name -> if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
                        else Ok globalSettings
         | None      -> Ok globalSettings
+        
+    let checkSendStatsInterval (globalSettings: GlobalSettings) =
+        match globalSettings.SendStatsInterval with
+        | Some interval ->
+            if interval.TimeOfDay.TotalMinutes < NBomber.Domain.Constants.MinSendStatsIntervalSec
+                then Error <| SendStatsIntervalIsWrong(NBomber.Domain.Constants.MinSendStatsIntervalSec)
+            else
+                Ok globalSettings
+        | None -> Ok globalSettings
 
-    let validate (context: NBomberTestContext) =        
+    let validate (context: TestContext) =        
         context.NBomberConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 
@@ -150,6 +159,7 @@ module GlobalSettingsValidation =
             >>= checkDuration
             >>= checkConcurrentCopies            
             >>= checkEmptyReportName
+            >>= checkSendStatsInterval
             >>= fun _ -> Ok context
             |> Result.mapError(AppError.create)
         )

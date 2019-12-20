@@ -18,16 +18,17 @@
     <Content Include="Configuration\infra_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>    
-    <Compile Include="NBomberContextTests.fs" />    
+    <Compile Include="TestContextTests.fs" />    
     <Compile Include="Response.fs" />    
     <Compile Include="Scenario.fs" />    
     <Compile Include="StatisticsTests.fs" />    
     <Compile Include="Reporting\ReportingSinkTests.fs" />    
     <Compile Include="Infra\MqttTests.fs" />
     <Compile Include="Step\Pull.fs" />
-    <Compile Include="Configuration\LoadConfig.fs" />
-    <Compile Include="Configuration\ApplySettings.fs" />
-    <Compile Include="Configuration\Validation.fs" />
+    <Compile Include="Configuration\LoadConfigTests.fs" />
+    <Compile Include="Configuration\ApplySettingsTests.fs" />
+    <Compile Include="Configuration\ValidationTests.fs" />
+    <Compile Include="Configuration\AssertionValidation.fs" />
     <Compile Include="ClusterTests.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -136,11 +136,11 @@ module ClusterReporting =
     let startRealtimeTimer (st: State) =
         if not (Array.isEmpty st.ReportingSinks) then            
             let mutable executionTime = TimeSpan.Zero
-            let timer = new System.Timers.Timer(Constants.GetStatsInterval)
+            let timer = new System.Timers.Timer(st.TestSessionArgs.SendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
                 asyncResult {
                     // moving time forward
-                    executionTime <- executionTime.Add(TimeSpan.FromMilliseconds Constants.GetStatsInterval)
+                    executionTime <- executionTime.Add(st.TestSessionArgs.SendStatsInterval)
                     match st.TestHost.CurrentNodeInfo.CurrentOperation with
                     | NodeOperationType.WarmUp 
                     | NodeOperationType.Bombing ->                            

@@ -47,5 +47,5 @@ let run () =
                    |> Scenario.withDuration(TimeSpan.FromSeconds 60.0)
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks [CustomReportingSink()]    
+    |> NBomberRunner.withReportingSinks([CustomReportingSink()], TimeSpan.FromSeconds 10.0)    
     |> NBomberRunner.runInConsole

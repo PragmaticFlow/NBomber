@@ -24,8 +24,9 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
     })
 
     let scenario =
-        Scenario.create "realtime stats scenario" [okStep]
-        |> Scenario.withDuration(TimeSpan.FromSeconds 10.0)
+        Scenario.create "realtime stats scenario" [okStep]        
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 15.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 15.0)
 
     let mutable statsInvokedCounter = 0
 
@@ -39,13 +40,13 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
                             member x.FinishTest(_) = Task.CompletedTask }                        
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
     
-    test <@ statsInvokedCounter >= 2 @> // 1 invoke as realtime and 1 invoke at the end
+    test <@ statsInvokedCounter >= 5 @> // 1 invoke as realtime and 1 invoke at the end
     
 [<Fact>]
-let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation type = WarmUp or Bombing`` () =
+let ``IReportingSink.SaveStatistics should be invoked with correct operation type = WarmUp or Bombing`` () =
     
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -54,8 +55,8 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
 
     let scenario =
         Scenario.create "realtime stats scenario" [okStep]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 10.0)
-        |> Scenario.withDuration(TimeSpan.FromSeconds 10.0)
+        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 8.0)
+        |> Scenario.withDuration(TimeSpan.FromSeconds 8.0)
 
     let mutable warmUpCounter = 0
     let mutable bombingCounter = 0
@@ -76,7 +77,7 @@ let ``NBomberRunner.saveStatisticsTo should be invoked with correct operation ty
                             member x.FinishTest(_) = Task.CompletedTask }    
     
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
     
     test <@ warmUpCounter > 0 && bombingCounter > 0 && completeCounter = 1 @>

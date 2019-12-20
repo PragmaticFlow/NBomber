@@ -21,6 +21,7 @@ type GlobalSettings = {
     TargetScenarios: string list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
+    SendStatsInterval: DateTime option
 }
 
 type AgentSettings = {

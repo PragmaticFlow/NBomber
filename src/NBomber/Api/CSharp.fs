@@ -89,43 +89,43 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios    
 
     [<Extension>]
-    static member LoadConfig(context: NBomberTestContext, path: string) =
+    static member LoadConfig(context: TestContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
         
     [<Extension>]
-    static member LoadInfraConfig(context: NBomberTestContext, path: string) =
+    static member LoadInfraConfig(context: TestContext, path: string) =
         context |> FSharp.NBomberRunner.loadInfraConfig(path)        
 
     [<Extension>]
-    static member WithReportFileName(context: NBomberTestContext, reportFileName: string) =
+    static member WithReportFileName(context: TestContext, reportFileName: string) =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     [<Extension>]
-    static member WithReportFormats(context: NBomberTestContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+    static member WithReportFormats(context: TestContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)   
 
     [<Extension>]
-    static member WithTestSuite(context: NBomberTestContext, testSuite: string) =        
+    static member WithTestSuite(context: TestContext, testSuite: string) =        
         context |> FSharp.NBomberRunner.withTestSuite(testSuite)
     
     [<Extension>]
-    static member WithTestName(context: NBomberTestContext, testName: string) =        
+    static member WithTestName(context: TestContext, testName: string) =        
         context |> FSharp.NBomberRunner.withTestName(testName)
     
     [<Extension>]
-    static member WithReportingSinks(context: NBomberTestContext, [<System.ParamArray>]reportingSinks: IReportingSink[]) =
+    static member WithReportingSinks(context: TestContext, reportingSinks: IReportingSink[], sendStatsInterval: TimeSpan) =
         let sinks = reportingSinks |> Seq.toList
-        context |> FSharp.NBomberRunner.withReportingSinks(sinks)
+        context |> FSharp.NBomberRunner.withReportingSinks(sinks, sendStatsInterval)
 
     [<Extension>]
-    static member Run(context: NBomberTestContext) =
+    static member Run(context: TestContext) =
         FSharp.NBomberRunner.run(context)
         
     [<Extension>]
-    static member RunInConsole(context: NBomberTestContext) =
+    static member RunInConsole(context: TestContext) =
         FSharp.NBomberRunner.runInConsole(context)
 
     [<Extension>]
-    static member RunTest(context: NBomberTestContext) =
+    static member RunTest(context: TestContext) =
         FSharp.NBomberRunner.runTest(context)

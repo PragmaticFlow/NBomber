@@ -17,6 +17,7 @@ let globalSettings = {
     TargetScenarios = Some ["1"]
     ReportFileName = None
     ReportFormats = None
+    SendStatsInterval = None
 }
 
 let scenario = {
@@ -47,6 +48,7 @@ let context = {
     ReportFileName = None
     ReportFormats = Array.empty
     ReportingSinks = Array.empty
+    SendStatsInterval = TimeSpan.FromSeconds(NBomber.Domain.Constants.MinSendStatsIntervalSec)
 }
 
 [<Fact>]
@@ -55,7 +57,7 @@ let ``NBomberContext.getTargetScenarios should return all registered scenarios i
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
        
-    match NBomberTestContext.getTargetScenarios(context) with
+    match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
     | _ -> failwith ""
 
@@ -70,7 +72,7 @@ let ``NBomberContext.getTargetScenarios should return only target scenarios if T
     let context = { context with NBomberConfig = Some config
                                  Scenarios = [| scn1; scn2 |] }
        
-    match NBomberTestContext.getTargetScenarios(context) with
+    match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 && scenarios.[0] = "10" -> ()
     | _ -> failwith ""
 
@@ -87,7 +89,7 @@ let ``NBomberContext.getReportFileName should return from GlobalSettings, if emp
                              ReportFormats = [|ReportFormat.Txt|]
                              ReportFileName = contextValue }
     
-    let fileName = NBomberTestContext.getReportFileName("sessionId", ctx)
+    let fileName = TestContext.getReportFileName("sessionId", ctx)
 
     match configValue, contextValue with
     | Some v1, Some v2 -> Assert.True(fileName.Equals v1)
@@ -105,7 +107,7 @@ let ``NBomberContext.getReportFormats should return from GlobalSettings, if empt
                              ReportFormats = List.toArray contextValue
                              ReportFileName = None }
     
-    let formats = NBomberTestContext.getReportFormats(ctx)
+    let formats = TestContext.getReportFormats(ctx)
 
     match configValue, contextValue with
     | Some v, _ -> Assert.True((formats = List.toArray v))
@@ -122,11 +124,11 @@ let ``NBomberContext.getTestSuite should return from Config, if empty then from 
     | Some value ->
         let config = { config with TestSuite = value }
         let ctx = { context with NBomberConfig = Some config }    
-        let testSuite = NBomberTestContext.getTestSuite(ctx)
+        let testSuite = TestContext.getTestSuite(ctx)
         test <@ testSuite = value  @>
     
     | None ->
-        let testSuite = NBomberTestContext.getTestSuite(context)
+        let testSuite = TestContext.getTestSuite(context)
         test <@ testSuite = context.TestSuite @>
         
 [<Property>]
@@ -136,9 +138,9 @@ let ``NBomberContext.getTestName should return from Config, if empty then from N
     | Some value ->
         let config = { config with TestName = value }
         let ctx = { context with NBomberConfig = Some config }    
-        let testSuite = NBomberTestContext.getTestName(ctx)
+        let testSuite = TestContext.getTestName(ctx)
         test <@ testSuite = value  @>
     
     | None ->
-        let testSuite = NBomberTestContext.getTestName(context)
+        let testSuite = TestContext.getTestName(context)
         test <@ testSuite = context.TestName @>

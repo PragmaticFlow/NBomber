@@ -76,6 +76,7 @@ let private testSessionArgs = {
     ScenariosSettings = [| scenarioSettings |]
     TargetScenarios = Array.empty
     CustomSettings = ""
+    SendStatsInterval = TimeSpan.FromSeconds(NBomber.Domain.Constants.MinSendStatsIntervalSec)
 }
 
 let internal isWarmUpStarted (currentOperation) =
@@ -232,6 +233,7 @@ let ``Coordinator should be able to propagate all types of settings among the ag
         ScenariosSettings = [| scenarioSettings |]
         TargetScenarios = Array.empty
         CustomSettings = customSettings
+        SendStatsInterval = TimeSpan.FromSeconds(NBomber.Domain.Constants.MinSendStatsIntervalSec)
     }
     
     // set up scenarios

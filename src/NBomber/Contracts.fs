@@ -103,7 +103,7 @@ type IReportingSink =
     abstract SaveReports: testInfo:TestInfo * reportFiles:ReportFile[] -> Task
     abstract FinishTest: testInfo:TestInfo -> Task
 
-type NBomberTestContext = {
+type TestContext = {
     TestSuite: string
     TestName: string
     Scenarios: Scenario[]
@@ -112,6 +112,7 @@ type NBomberTestContext = {
     ReportFileName: string option
     ReportFormats: ReportFormat[]
     ReportingSinks: IReportingSink[]
+    SendStatsInterval: TimeSpan
 }
 
 type Response with
