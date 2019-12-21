@@ -18,7 +18,7 @@ namespace CSharp.Examples.NUnit
                 return Response.Ok(sizeBytes: 1024);
             });
 
-            return ScenarioBuilder.CreateScenario("nunit hello world", step);                
+            return ScenarioBuilder.CreateScenario("nunit hello world", new[] { step });                
         }
 
         [Test]

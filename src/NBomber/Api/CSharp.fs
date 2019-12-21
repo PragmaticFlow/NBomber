@@ -50,7 +50,7 @@ type Assertion =
 type ScenarioBuilder =
     
     /// Creates scenario with steps which will be executed sequentially.
-    static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
+    static member CreateScenario(name: string, steps: IStep[]) =
         FSharp.Scenario.create name (Seq.toList steps)
     
     [<Extension>]
