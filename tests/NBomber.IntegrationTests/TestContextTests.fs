@@ -1,4 +1,4 @@
-﻿module Tests.NBomberContextTests
+﻿module Tests.TestContextTests
 
 open System
 
@@ -52,7 +52,7 @@ let context = {
 }
 
 [<Fact>]
-let ``NBomberContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =    
+let ``TestContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =    
     let glSettings = { globalSettings with TargetScenarios = None }
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
@@ -62,7 +62,7 @@ let ``NBomberContext.getTargetScenarios should return all registered scenarios i
     | _ -> failwith ""
 
 [<Fact>]
-let ``NBomberContext.getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =    
+let ``TestContext.getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =    
     let glSettings = { globalSettings with TargetScenarios = Some ["10"] }
     let config = { config with GlobalSettings = Some glSettings }
     
@@ -77,7 +77,7 @@ let ``NBomberContext.getTargetScenarios should return only target scenarios if T
     | _ -> failwith ""
 
 [<Property>]
-let ``NBomberContext.getReportFileName should return from GlobalSettings, if empty then from NBomberContext, if empty then default name`` (configValue: string option, contextValue: string option) =
+let ``TestContext.getReportFileName should return from GlobalSettings, if empty then from TestContext, if empty then default name`` (configValue: string option, contextValue: string option) =
 
     (configValue.IsNone || configValue.IsSome && not (isNull configValue.Value)) ==> lazy
     (contextValue.IsNone || contextValue.IsSome && not (isNull contextValue.Value)) ==> lazy
@@ -98,7 +98,7 @@ let ``NBomberContext.getReportFileName should return from GlobalSettings, if emp
     | None, None    -> Assert.True(fileName.Equals "report_sessionId")
 
 [<Property>]
-let ``NBomberContext.getReportFormats should return from GlobalSettings, if empty then from NBomberContext, if empty then all supported formats`` (configValue: ReportFormat list option, contextValue: ReportFormat list) =
+let ``TestContext.getReportFormats should return from GlobalSettings, if empty then from TestContext, if empty then all supported formats`` (configValue: ReportFormat list option, contextValue: ReportFormat list) =
 
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
@@ -118,7 +118,7 @@ let ``NBomberContext.getReportFormats should return from GlobalSettings, if empt
     | None, v -> Assert.True((formats = List.toArray contextValue))
     
 [<Property>]
-let ``NBomberContext.getTestSuite should return from Config, if empty then from NBomberContext`` (configValue: string option, contextValue: string) =
+let ``TestContext.getTestSuite should return from Config, if empty then from TestContext`` (configValue: string option, contextValue: string) =
 
     match configValue with
     | Some value ->
@@ -132,7 +132,7 @@ let ``NBomberContext.getTestSuite should return from Config, if empty then from 
         test <@ testSuite = context.TestSuite @>
         
 [<Property>]
-let ``NBomberContext.getTestName should return from Config, if empty then from NBomberContext`` (configValue: string option, contextValue: string) =
+let ``TestContext.getTestName should return from Config, if empty then from TestContext`` (configValue: string option, contextValue: string) =
 
     match configValue with
     | Some value ->

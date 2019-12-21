@@ -100,4 +100,4 @@ let getSendStatsInterval (context: TestContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue(TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec)    
+    |> Option.defaultValue context.SendStatsInterval    
