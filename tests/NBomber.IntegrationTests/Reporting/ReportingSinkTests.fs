@@ -32,11 +32,15 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
 
     let reportingSink = { new IReportingSink with
                             member x.StartTest(_) = Task.CompletedTask
-                            member x.SaveStatistics(_, stats) =
+                            member x.SaveRealtimeStats(_, stats) =
                                 // 1 invoke per 5 sec
                                 statsInvokedCounter <- statsInvokedCounter + 1
                                 Task.CompletedTask
-                            member x.SaveReports(_, _) = Task.CompletedTask
+                                
+                            member x.SaveFinalStats(_, _, _) =
+                                statsInvokedCounter <- statsInvokedCounter + 1
+                                Task.CompletedTask
+                                
                             member x.FinishTest(_) = Task.CompletedTask }                        
     
     NBomberRunner.registerScenarios [scenario]
@@ -64,14 +68,16 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
     let reportingSink = { new IReportingSink with
                             member x.StartTest(_) = Task.CompletedTask
                             
-                            member x.SaveStatistics(_, stats) =
+                            member x.SaveRealtimeStats(_, stats) =
                                 match stats.[0].NodeInfo.CurrentOperation with                                
                                 | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
                                 | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
                                 | _        -> failwith "operation type is invalid for SaveStatistics"
                                 Task.CompletedTask
                                 
-                            member x.SaveReports(_, _) = Task.CompletedTask
+                            member x.SaveFinalStats(_, _, _) =
+                                completeCounter <- completeCounter + 1
+                                Task.CompletedTask
                             member x.FinishTest(_) = Task.CompletedTask }    
     
     NBomberRunner.registerScenarios [scenario]

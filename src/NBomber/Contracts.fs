@@ -99,8 +99,8 @@ type ReportFile = {
 
 type IReportingSink =
     abstract StartTest: testInfo:TestInfo -> Task
-    abstract SaveStatistics: testInfo:TestInfo * stats:Statistics[] -> Task
-    abstract SaveReports: testInfo:TestInfo * reportFiles:ReportFile[] -> Task
+    abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
+    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * reportFiles:ReportFile[] -> Task
     abstract FinishTest: testInfo:TestInfo -> Task
 
 type TestContext = {

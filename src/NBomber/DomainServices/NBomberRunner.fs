@@ -101,10 +101,10 @@ let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
         
-let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (reportFiles: ReportFile[]) =
+let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (stats: Statistics[]) (reportFiles: ReportFile[]) =
     try
         dep.ReportingSinks
-        |> Array.map(fun sink -> sink.SaveReports(testInfo, reportFiles))
+        |> Array.map(fun sink -> sink.SaveFinalStats(testInfo, stats, reportFiles))
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -142,7 +142,7 @@ let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
         result
         |> buildReport dep
         |> saveReport dep testInfo ctx
-        |> sendSaveReportsToReportingSink dep testInfo
+        |> sendSaveReportsToReportingSink dep testInfo result.Statistics
         |> fun () -> sendFinishTestToReportingSink dep testInfo
         
         return result

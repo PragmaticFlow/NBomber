@@ -138,7 +138,7 @@ module TestHostReporting =
         nodeStats
         |> Array.collect(fun x ->
             let stats = Statistics.create(x)
-            sinks |> Array.map(fun snk -> snk.SaveStatistics(testInfo, stats))
+            sinks |> Array.map(fun snk -> snk.SaveRealtimeStats(testInfo, stats))
         )
         |> Task.WhenAll
         
@@ -249,11 +249,8 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         use bombingReportingTimer = startRealtimeTimer()
         do! x.StartBombing()
         bombingReportingTimer.Stop()
-
-        // saving final stats results        
-        let rawNodeStats = x.GetNodeStats(None)
-        do! TestHostReporting.saveStats(x.TestInfo, [|rawNodeStats|], dep.ReportingSinks)
         
+        let rawNodeStats = x.GetNodeStats(None)
         return rawNodeStats
     }
     

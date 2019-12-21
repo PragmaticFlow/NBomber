@@ -236,11 +236,8 @@ let runSession (st: State) = asyncResult {
     do! st.TestHost.StartBombing()
     bombingReportingTimer.Stop()
     do! Communication.waitOnAllAgentsComplete(st)
-    
-    // saving final stats results
+        
     let! allStats = ClusterReporting.fetchClusterStats(st, None)
-    do! ClusterReporting.saveClusterStats(st.TestSessionArgs.TestInfo, allStats, st.ReportingSinks)
-    
     return allStats
 }
 
