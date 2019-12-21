@@ -1,4 +1,4 @@
-﻿module internal NBomber.DomainServices.TestContext
+﻿module internal NBomber.Infra.TestContext
 
 open System
 

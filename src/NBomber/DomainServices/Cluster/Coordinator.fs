@@ -225,10 +225,8 @@ let runSession (st: State) = asyncResult {
     do! Communication.waitOnAllAgentsReady(st)    
 
     // warm-up
-    do! Communication.sendStartWarmUp(st)
-    use warmUpReportingTimer = ClusterReporting.startRealtimeTimer(st)
-    do! st.TestHost.WarmUpScenarios()
-    warmUpReportingTimer.Stop()
+    do! Communication.sendStartWarmUp(st)    
+    do! st.TestHost.WarmUpScenarios()    
     do! Communication.waitOnAllAgentsReady(st)
     do! ClusterReporting.validateWarmUpStats(st)
 

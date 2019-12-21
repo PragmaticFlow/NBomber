@@ -12,6 +12,7 @@ open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Errors
+open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Validation
 open NBomber.DomainServices.ScenarioRunner
@@ -240,10 +241,8 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
         // init
         do! x.InitScenarios(args)        
         
-        // warm-up
-        use warmUpReportingTimer = startRealtimeTimer()
-        do! x.WarmUpScenarios()
-        warmUpReportingTimer.Stop()
+        // warm-up        
+        do! x.WarmUpScenarios()        
         do! ScenarioValidation.validateWarmUpStats(x.GetNodeStats(None))        
     
         // bombing        

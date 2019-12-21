@@ -11,6 +11,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
+open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 

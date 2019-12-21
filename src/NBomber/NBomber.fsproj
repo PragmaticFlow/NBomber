@@ -47,13 +47,13 @@
     <Compile Include="Infra\ResourceManager.fs" />
     <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\Mqtt.fs" />
+    <Compile Include="Infra\TestContext.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
-    <Compile Include="DomainServices\TestContext.fs" />
     <Compile Include="DomainServices\ScenarioRunner.fs" />
     <Compile Include="DomainServices\TestHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />

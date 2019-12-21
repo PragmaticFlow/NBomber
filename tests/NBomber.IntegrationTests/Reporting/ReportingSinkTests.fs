@@ -25,7 +25,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
 
     let scenario =
         Scenario.create "realtime stats scenario" [okStep]        
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 15.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 15.0)
 
     let mutable statsInvokedCounter = 0
@@ -43,7 +43,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
     
-    test <@ statsInvokedCounter >= 5 @> // 1 invoke as realtime and 1 invoke at the end
+    test <@ statsInvokedCounter >= 3 @> // 1 invoke as realtime and 1 invoke at the end
     
 [<Fact>]
 let ``IReportingSink.SaveStatistics should be invoked with correct operation type = WarmUp or Bombing`` () =
@@ -55,10 +55,9 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
 
     let scenario =
         Scenario.create "realtime stats scenario" [okStep]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 8.0)
+        |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 8.0)
-
-    let mutable warmUpCounter = 0
+    
     let mutable bombingCounter = 0
     let mutable completeCounter = 0
 
@@ -66,8 +65,7 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
                             member x.StartTest(_) = Task.CompletedTask
                             
                             member x.SaveStatistics(_, stats) =
-                                match stats.[0].NodeInfo.CurrentOperation with
-                                | NodeOperationType.WarmUp   -> warmUpCounter <- warmUpCounter + 1
+                                match stats.[0].NodeInfo.CurrentOperation with                                
                                 | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
                                 | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
                                 | _        -> failwith "operation type is invalid for SaveStatistics"
@@ -80,5 +78,4 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
     
-    test <@ warmUpCounter > 0 && bombingCounter > 0 && completeCounter = 1 @>
-    test <@ warmUpCounter = bombingCounter @>
+    test <@ bombingCounter > 0 && completeCounter = 1 @>

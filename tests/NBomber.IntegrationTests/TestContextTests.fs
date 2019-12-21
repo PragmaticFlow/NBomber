@@ -7,7 +7,7 @@ open Swensen.Unquote
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.DomainServices
+open NBomber.Infra
 
 open FsCheck
 open FsCheck.Xunit
