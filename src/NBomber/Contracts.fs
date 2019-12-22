@@ -130,7 +130,7 @@ type Response with
     static member Fail() =
         { Payload = null
           SizeBytes = 0
-          Exception = Some(Exception()) }
+          Exception = Some(Exception("unknown client's error")) }
     
     static member Fail(ex: Exception) =
         { Payload = null

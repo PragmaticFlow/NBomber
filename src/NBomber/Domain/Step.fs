@@ -38,23 +38,16 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
         let! resp = step.Execute(step.CurrentContext.Value)
         
         let endTime = globalTimer.Elapsed.TotalMilliseconds
-        let latency = int(endTime - startTime)        
-        return { Response = resp
-                 StartTimeMs = startTime                 
-                 LatencyMs = latency }
-    with
-    | :? TaskCanceledException as ex ->
-        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = int(endTime - startTime)
-        return { Response = Response.Ok()
-                 StartTimeMs = startTime
-                 LatencyMs = latency }
-        
+        return { Response = resp; StartTimeMs = startTime; LatencyMs = latency }
+    with
+    | :? TaskCanceledException
+    | :? OperationCanceledException ->
+        return { Response = Response.Ok(); StartTimeMs = -1.0; LatencyMs = 0 }
+    
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
-            return { Response = Response.Fail(ex)
-                     StartTimeMs = startTime                     
-                     LatencyMs = int latency }
+            return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
 let execSteps (logger: ILogger,
@@ -90,17 +83,18 @@ let execSteps (logger: ILogger,
                         stepIndex <- stepIndex + 1
                         data <- response.Response.Payload
                     else
-                        logger.Error(response.Response.Exception.Value, "step '{Step}' is failed", st.StepName)
+                        logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", st.StepName)
                         skipStep <- true
     
     cleanResources()
 }
 
-let filterLateResponses (responses: StepResponse seq, duration: TimeSpan) =        
+let filterByDuration (responses: StepResponse seq, duration: TimeSpan) =        
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
     
     responses
+    |> Seq.filter(fun x -> x.LatencyMs <> 0)
     |> Seq.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
