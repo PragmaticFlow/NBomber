@@ -1,4 +1,7 @@
 ﻿{
+  "TestSuite": "",
+  "TestName": "",
+  
   "ClusterSettings": {
     "Agent": {
       "ClusterId": "test_cluster",

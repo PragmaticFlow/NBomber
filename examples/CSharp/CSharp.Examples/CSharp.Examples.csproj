@@ -8,8 +8,8 @@
   <ItemGroup>    
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.1.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
-    <PackageReference Include="NBomber.Http" Version="0.16.0-beta2" />    
-    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta2" />    
+    <PackageReference Include="NBomber.Http" Version="0.16.0-beta3" />    
+    <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta3" />    
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1" />    
   </ItemGroup>
 

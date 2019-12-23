@@ -52,12 +52,12 @@ type Step =
         | x             -> x       
     
     static member create (name: string,                          
-                          pool: IConnectionPool<'TConnection>,
+                          connectionPool: IConnectionPool<'TConnection>,
                           execute: StepContext<'TConnection> -> Task<Response>,                          
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
         
-        let p = pool :?> ConnectionPool<'TConnection>        
+        let p = connectionPool :?> ConnectionPool<'TConnection>        
 
         let newOpen = fun () -> p.OpenConnection() :> obj
         

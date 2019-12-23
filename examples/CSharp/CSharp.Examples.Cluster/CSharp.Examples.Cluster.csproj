@@ -6,16 +6,35 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Http" Version="0.16.0-beta2" />        
-        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta2" />
+        <PackageReference Include="NBomber.Http" Version="0.16.0-beta3" />        
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta3" />        
+        <PackageReference Include="Serilog.Sinks.ElasticSearch" Version="8.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="agent_config.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Content Include="infra_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Scenarios\SimpleHttp\agent_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="coordinator_config.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <None Update="Scenarios\SimpleHttp\coordinator_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tests\SimpleHttp\agent_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tests\SimpleHttp\coordinator_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tests\MqttReqResponse\agent_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tests\MqttReqResponse\coordinator_config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>    
 

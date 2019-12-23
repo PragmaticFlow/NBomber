@@ -1,11 +1,14 @@
 ﻿{
+  "TestSuite": "http tests",
+  "TestName": "simple cluster http test",
+  
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "cluster_test_gitter",
+        "ScenarioName": "simple http scenario",
         "WarmUpDuration": "00:00:30",
-        "Duration": "00:00:59",
-        "ConcurrentCopies": 50        
+        "Duration": "00:01:00",
+        "ConcurrentCopies": 100        
       }
     ]
   },
@@ -13,13 +16,13 @@
   "ClusterSettings": {
     "Coordinator": {
       "ClusterId": "test_cluster",
-      "TargetScenarios": [ "cluster_test_gitter" ],
+      "TargetScenarios": [ "simple http scenario" ],
       "MqttServer": "localhost",
 
       "Agents": [
         {
           "TargetGroup": "1",
-          "TargetScenarios": [ "cluster_test_gitter" ]
+          "TargetScenarios": [ "simple http scenario" ]
         }
       ]
     }

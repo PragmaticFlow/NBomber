@@ -25,22 +25,22 @@ type TaskExtensions() =
     static member TimeoutAfter(request: Task<'T>, 
                                duration: TimeSpan, 
                                cancellationToken: CancellationToken,
-                               response: 'T -> Response) = task {
+                               response: Func<'T,Response>) = task {
         let! completedTask = Task.WhenAny(request, Task.Delay(duration, cancellationToken))
         match completedTask.Equals(request) with
-        | true  -> return response(request.Result)
-        | false -> return Response.Fail()
+        | true  -> return response.Invoke(request.Result)
+        | false -> return Response.Fail("response failed: timeout")
     }
 
     [<Extension>]
     static member TimeoutAfter(request: Task, 
                                duration: TimeSpan, 
                                cancellationToken: CancellationToken,
-                               response: unit -> Response) = task {
+                               response: Func<Response>) = task {
         let! completedTask = Task.WhenAny(request, Task.Delay(duration, cancellationToken))
         match completedTask.Equals(request) with
-        | true  -> return response()
-        | false -> return Response.Fail()
+        | true  -> return response.Invoke()
+        | false -> return Response.Fail("response failed: timeout")
     }
     
 type ClientResponses() =
@@ -55,7 +55,7 @@ type ClientResponses() =
         responses.[clientId].TrySetResult(payload) |> ignore
         x.InitClientId(clientId)
         
-    member x.GetResponse(clientId: string) =
+    member x.GetResponseAsync(clientId: string) =
         match responses.ContainsKey(clientId) with
         | true  -> responses.[clientId].Task
         

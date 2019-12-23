@@ -20,5 +20,10 @@
     "TargetScenarios": [ "test_youtube" ],
     "ReportFileName": "custom_report_name_from_json",
     "ReportFormats": ["Html", "Txt"]
+  },
+
+  "CustomSettings": {
+    "TargetMqttBrokerHost": "localhost",
+    "MsgPayloadSizeInBytes": 1000
   }
 }
