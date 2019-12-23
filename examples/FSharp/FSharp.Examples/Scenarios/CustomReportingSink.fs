@@ -15,6 +15,8 @@ open NBomber.FSharp
 type CustomReportingSink() =
     
     interface IReportingSink with
+        member x.Init(logger, infraConfig) = ()
+        
         member x.StartTest(testInfo: TestInfo) =
             Task.CompletedTask
             
@@ -41,8 +43,8 @@ let run () =
         | false -> return Response.Fail() 
     })
     
-    let scenario = Scenario.create "test_gitter" [step]
-                   |> Scenario.withConcurrentCopies 10
+    let scenario = Scenario.create "test_nbomber" [step]
+                   |> Scenario.withConcurrentCopies 200
                    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 30.0)
                    |> Scenario.withDuration(TimeSpan.FromSeconds 60.0)
 

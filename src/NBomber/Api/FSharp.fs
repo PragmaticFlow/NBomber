@@ -77,7 +77,8 @@ type Step =
                 let newContext = { CorrelationId = context.CorrelationId
                                    CancellationToken = context.CancellationToken
                                    Connection = context.Connection :?> 'TConnection
-                                   Data = context.Data }
+                                   Data = context.Data
+                                   Logger = context.Logger }
                 execute(newContext)
 
         { StepName = name
@@ -157,7 +158,7 @@ module NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     let registerScenarios (scenarios: Contracts.Scenario list) =        
-        { TestContext.empty with Scenarios = scenarios |> Seq.toArray  }        
+        { TestContext.empty with RegisteredScenarios = scenarios |> Seq.toArray  }        
 
     let withReportFileName (reportFileName: string) (context: TestContext) =
         { context with ReportFileName = Some reportFileName }
@@ -170,10 +171,10 @@ module NBomberRunner =
     
     let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
-
-    let loadConfig (path: string) (context: TestContext) =
-        let config = path |> File.ReadAllText |> NBomberConfig.parse
-        { context with NBomberConfig = Some config }
+        
+    let loadTestConfig (path: string) (context: TestContext) =
+        let config = path |> File.ReadAllText |> TestConfig.parse
+        { context with TestConfig = Some config }
 
     let loadInfraConfig (path: string) (context: TestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration

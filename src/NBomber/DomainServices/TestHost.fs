@@ -88,7 +88,7 @@ let runInitScenarios (dep: Dependency) (customSettings: string) (scenarios: Scen
                 dep.Logger.Information("initializing scenario: '{0}', concurrent copies: '{1}'", scn.ScenarioName, scn.ConcurrentCopies)                
 
                 let initAllConnectionPools = buildInitConnectionPools(dep)
-                let initResult = Scenario.init(scn, initAllConnectionPools, customSettings, dep.NodeType)
+                let initResult = Scenario.init(scn, initAllConnectionPools, customSettings, dep.NodeType, dep.Logger)
                 if Result.isError(initResult) then                    
                     failed <- true
                     error <- initResult
@@ -115,10 +115,10 @@ let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     if dep.ApplicationType = ApplicationType.Console then displayProgress(dep, scnRunners)
     scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
 
-let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
+let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[], customSettings: string) =
     dep.Logger.Information("stopping bombing and cleaning resources...")
     scnRunners |> Array.iter(fun x -> x.Stop().Wait())    
-    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType, dep.Logger))
+    scnRunners |> Array.iter(fun x -> Scenario.clean(x.Scenario, dep.NodeType, dep.Logger, customSettings))
     dep.Logger.Information("bombing stoped and resources cleaned")
 
 let printTargetScenarios (dep: Dependency) (scenarios: Scenario[]) = 
@@ -222,7 +222,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
 
     member x.StopScenarios() = 
         _currentOperation <- NodeOperationType.Stop
-        stopAndCleanScenarios(dep, _scnRunners)
+        stopAndCleanScenarios(dep, _scnRunners, _scnArgs.CustomSettings)
         _currentOperation <- NodeOperationType.None
 
     member x.GetNodeStats(duration) = getNodeStats(duration)

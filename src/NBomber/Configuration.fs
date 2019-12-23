@@ -48,16 +48,16 @@ type ClusterSettings =
     | Coordinator of CoordinatorSettings
     | Agent       of AgentSettings
 
-type NBomberConfig = {
+type TestConfig = {
     TestSuite: string
     TestName: string
     GlobalSettings: GlobalSettings option    
     ClusterSettings: ClusterSettings option    
-    [<JsonField(Transform=typeof<NBomberConfig.JsonStringTransform>)>]
+    [<JsonField(Transform=typeof<TestConfig.JsonStringTransform>)>]
     CustomSettings: string option    
 }
 
-module internal NBomberConfig =
+module internal TestConfig =
 
     type JsonStringTransform() =
         interface ITypeTransform with
@@ -69,4 +69,4 @@ module internal NBomberConfig =
                 str :> obj
     
     let parse (json) = 
-        Json.deserialize<NBomberConfig>(json)
+        Json.deserialize<TestConfig>(json)

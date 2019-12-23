@@ -13,7 +13,10 @@ open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 
-let setStepContext (correlationId: string, actorIndex: int, cancelToken: CancellationToken)
+let setStepContext (correlationId: string)
+                   (actorIndex: int)
+                   (cancelToken: CancellationToken)
+                   (logger: ILogger)
                    (step: Step) =
     
     let getConnection (pool: ConnectionPool<obj>) =
@@ -26,7 +29,8 @@ let setStepContext (correlationId: string, actorIndex: int, cancelToken: Cancell
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Data = Unchecked.defaultof<obj> }    
+                    Data = Unchecked.defaultof<obj>
+                    Logger = logger }    
     
     { step with CurrentContext = Some context }
     

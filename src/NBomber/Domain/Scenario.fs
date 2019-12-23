@@ -3,9 +3,11 @@ module internal NBomber.Domain.Scenario
 
 open System.Threading
 
+open Serilog
+
 open NBomber
 open NBomber.Configuration
-open NBomber.Errors            
+open NBomber.Errors
 
 let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
@@ -24,8 +26,11 @@ let create (config: Contracts.Scenario) =
       WarmUpDuration = config.WarmUpDuration
       Duration = config.Duration }
 
-let init (scenario: Scenario, initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
-          customSettings: string, nodeType: Contracts.NodeType) =
+let init (scenario: Scenario,
+          initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
+          customSettings: string,
+          nodeType: Contracts.NodeType,
+          logger: ILogger) =
     try     
         // todo: refactor, pass token
         if scenario.TestInit.IsSome then
@@ -34,6 +39,7 @@ let init (scenario: Scenario, initAllConnectionPools: Scenario -> ConnectionPool
                 Contracts.NodeType = nodeType
                 Contracts.ScenarioContext.CustomSettings = customSettings
                 Contracts.ScenarioContext.CancellationToken = cancelToken.Token
+                Contracts.ScenarioContext.Logger = logger
             }
             scenario.TestInit.Value(context).Wait()        
 
@@ -43,7 +49,7 @@ let init (scenario: Scenario, initAllConnectionPools: Scenario -> ConnectionPool
     with 
     | ex -> Error <| InitScenarioError ex
 
-let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: Serilog.ILogger) =
+let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: ILogger, customSettings: string) =
 
     try
         if scenario.TestClean.IsSome then
@@ -51,8 +57,9 @@ let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: Serilog.ILo
             let cancelToken = new CancellationTokenSource()
             let context = {
                 Contracts.NodeType = nodeType
-                Contracts.ScenarioContext.CustomSettings = ""
+                Contracts.ScenarioContext.CustomSettings = customSettings
                 Contracts.ScenarioContext.CancellationToken = cancelToken.Token
+                Contracts.ScenarioContext.Logger = logger
             }
             scenario.TestClean.Value(context).Wait()
         

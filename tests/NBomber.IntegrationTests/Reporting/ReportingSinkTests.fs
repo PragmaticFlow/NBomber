@@ -31,6 +31,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
     let mutable statsInvokedCounter = 0
 
     let reportingSink = { new IReportingSink with
+                            member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
                             member x.SaveRealtimeStats(_, stats) =
                                 // 1 invoke per 5 sec
@@ -66,6 +67,7 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
     let mutable completeCounter = 0
 
     let reportingSink = { new IReportingSink with
+                            member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
                             
                             member x.SaveRealtimeStats(_, stats) =

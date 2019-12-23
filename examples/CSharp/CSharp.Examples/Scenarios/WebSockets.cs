@@ -58,7 +58,7 @@ namespace CSharp.Examples.Scenarios
             },
             pool: webSocketsPool);
 
-            var scenario = ScenarioBuilder.CreateScenario("web_socket test", pingStep, pongStep);
+            var scenario = ScenarioBuilder.CreateScenario("web_socket test", new[] { pingStep, pongStep });
 
             NBomberRunner.RegisterScenarios(scenario)
                          .RunInConsole();

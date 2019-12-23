@@ -34,7 +34,7 @@ let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
         |> dep.Logger.Information
 
         let testArgs = TestSessionArgs.getFromContext(testInfo, context)
-        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+        let registeredScns = context.RegisteredScenarios |> Array.map(Scenario.create)
         
         use coordinator = new ClusterCoordinator()
         let! clusterStats = coordinator.RunSession(dep, registeredScns, crdSettings, testArgs)        
@@ -46,7 +46,7 @@ let runClusterAgent (dep: Dependency, context: TestContext, agentSettings: Agent
         sprintf "NBomber started as cluster agent: %A" agentSettings
         |> dep.Logger.Information
         
-        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+        let registeredScns = context.RegisteredScenarios |> Array.map(Scenario.create)
         
         use agent = new ClusterAgent()
         do! agent.StartListening(dep, registeredScns, agentSettings)
@@ -58,7 +58,7 @@ let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
         dep.Logger.Information("NBomber started as single node")
 
         let scnArgs = TestSessionArgs.getFromContext(testInfo, context)
-        let registeredScns = context.Scenarios |> Array.map(Scenario.create)
+        let registeredScns = context.RegisteredScenarios |> Array.map(Scenario.create)
 
         use scnHost = new TestHost(dep, registeredScns)
         let! rawNodeStats = scnHost.RunSession(scnArgs)
@@ -67,7 +67,7 @@ let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
 
 let applyAsserts (context: TestContext) (result: ExecutionResult) = 
     let errors = 
-        context.Scenarios 
+        context.RegisteredScenarios 
         |> Array.collect(fun x -> x.Assertions)
         |> Assertion.cast
         |> Assertion.apply(result.Statistics)
@@ -153,7 +153,8 @@ let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
     |> Result.mapError(fun error -> showErrors dep [|error|]
                                     error)
 
-let runAs (appType: ApplicationType, context: TestContext) =    
+let runAs (appType: ApplicationType, context: TestContext) =
+    
     let testInfo = {
         SessionId = Dependency.createSessionId()
         TestSuite = TestContext.getTestSuite(context)
@@ -163,5 +164,7 @@ let runAs (appType: ApplicationType, context: TestContext) =
     let nodeType = TestContext.getNodeType(context)    
     
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with ReportingSinks = context.ReportingSinks }
+    let dep = { dep with ReportingSinks = context.ReportingSinks }    
+    dep.ReportingSinks |> Array.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
+    
     run(dep, testInfo, context)

@@ -5,6 +5,7 @@ open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
+open Serilog
 open Microsoft.Extensions.Configuration
 
 open NBomber.Configuration
@@ -68,12 +69,14 @@ type StepContext<'TConnection> = {
     CancellationToken: CancellationToken
     Connection: 'TConnection
     mutable Data: obj
+    Logger: ILogger
 }
 
 type ScenarioContext = {
     NodeType: NodeType
     CustomSettings: string
     CancellationToken: CancellationToken
+    Logger: ILogger
 }
 
 type IStep =
@@ -98,6 +101,7 @@ type ReportFile = {
 }
 
 type IReportingSink =
+    abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
     abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * reportFiles:ReportFile[] -> Task
@@ -106,8 +110,8 @@ type IReportingSink =
 type TestContext = {
     TestSuite: string
     TestName: string
-    Scenarios: Scenario[]
-    NBomberConfig: NBomberConfig option
+    RegisteredScenarios: Scenario[]
+    TestConfig: TestConfig option
     InfraConfig: IConfiguration option
     ReportFileName: string option
     ReportFormats: ReportFormat[]

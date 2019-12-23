@@ -17,7 +17,7 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok();
             });
 
-            var scenario = ScenarioBuilder.CreateScenario("Hello World!", step);
+            var scenario = ScenarioBuilder.CreateScenario("Hello World!", new[] { step });
 
             NBomberRunner.RegisterScenarios(scenario)
                          .RunInConsole();

@@ -5,7 +5,7 @@ open NBomber.FSharp
 let main argv =
     
     //HelloWorldScenario.run()
-    //HttpScenario.run()
-    CustomReportingScenario.run()
+    HttpScenario.run()
+    //CustomReportingScenario.run()
 
     0

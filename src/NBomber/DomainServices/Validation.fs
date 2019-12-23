@@ -63,7 +63,7 @@ module ScenarioValidation =
         else Ok()              
 
     let validate (context: TestContext) =
-        context.Scenarios 
+        context.RegisteredScenarios 
         |> checkEmptyName
         >>= checkDuplicateName
         >>= checkEmptyStepName        
@@ -91,7 +91,7 @@ module AssertionValidation =
         else Error <| AssertsNotFound notFoundAsserts
 
     let validate (context: TestContext) =
-        context.Scenarios
+        context.RegisteredScenarios
         |> checkInvalidAsserts
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
@@ -150,12 +150,12 @@ module GlobalSettingsValidation =
         | None -> Ok globalSettings
 
     let validate (context: TestContext) =        
-        context.NBomberConfig 
+        context.TestConfig 
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings -> 
             glSettings
             |> checkEmptyTarget             
-            >>= checkAvailableTarget(context.Scenarios)
+            >>= checkAvailableTarget(context.RegisteredScenarios)
             >>= checkDuration
             >>= checkConcurrentCopies            
             >>= checkEmptyReportName

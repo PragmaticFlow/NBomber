@@ -1,3 +1,4 @@
+using System;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
 using NBomber.Sinks.InfluxDB;
@@ -18,11 +19,11 @@ namespace CSharp.Examples.Cluster.Scenarios
                     //.WithCheck(response => Task.FromResult(response.IsSuccessStatusCode))
             );
 
-            var scenario = ScenarioBuilder.CreateScenario("cluster_test_gitter", step);
+            var scenario = ScenarioBuilder.CreateScenario("cluster_test_gitter", new[] { step });
             
             NBomberRunner.RegisterScenarios(scenario)
                          .LoadConfig(configPath)
-                         .SaveStatisticsTo(influxDb)
+                         .WithReportingSinks(new[] {influxDb }, sendStatsInterval: TimeSpan.FromSeconds(20))
                          //.LoadConfig("agent_config.json")
                          //.LoadConfig("coordinator_config.json")
                          .RunInConsole();

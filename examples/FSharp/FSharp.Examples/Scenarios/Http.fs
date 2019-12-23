@@ -15,8 +15,8 @@ let run () =
 
     let httpClient = new HttpClient()
 
-    let step = Step.create("GET html", fun context -> task {        
-        let! response = httpClient.GetAsync("https://gitter.im",
+    let step = Step.create("pull html", fun context -> task {        
+        let! response = httpClient.GetAsync("https://nbomber.com",
                                             context.CancellationToken)
         
         match response.IsSuccessStatusCode with
@@ -25,7 +25,7 @@ let run () =
         | false -> return Response.Fail() 
     })
     
-    let scenario = Scenario.create "test_gitter" [step]
+    let scenario = Scenario.create "test_nbomber" [step]
                    |> Scenario.withConcurrentCopies 100
 
     NBomberRunner.registerScenarios [scenario]
