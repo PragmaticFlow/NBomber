@@ -41,7 +41,7 @@ namespace CSharp.Examples.Scenarios
                 await context.Connection.SendAsync(bytes, WebSocketMessageType.Text, true, context.CancellationToken);
                 return Response.Ok();
             },
-            pool: webSocketsPool);
+            connectionPool: webSocketsPool);
 
             var pongStep = Step.Create("pong", async context =>
             {
@@ -56,7 +56,7 @@ namespace CSharp.Examples.Scenarios
                     }
                 }
             },
-            pool: webSocketsPool);
+                connectionPool: webSocketsPool);
 
             var scenario = ScenarioBuilder.CreateScenario("web_socket test", new[] { pingStep, pongStep });
 

@@ -9,15 +9,9 @@ services:
   influxdb:
     image: "influxdb:1.5.4"            
     environment:
-       INFLUXDB_DB: "\"NBomberDb\""
+       INFLUXDB_DB: "\"default\""
     ports:
-      - 8086:8086       
-
-  influxdb_createNBomberDb:
-    image: "byrnedo/alpine-curl"
-    command: curl -i -XPOST http://influxdb:8086/query --data-urlencode "q=CREATE DATABASE NBomberDb"
-    depends_on:
-      - "influxdb"
+      - 8086:8086         
 
   grafana:
     image: "grafana/grafana:6.5.2"    
