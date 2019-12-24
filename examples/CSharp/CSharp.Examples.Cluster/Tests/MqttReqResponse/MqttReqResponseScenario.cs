@@ -22,7 +22,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
         {
             public byte[] MsgPayload { get; set; }
             public string TargetMqttBrokerHost { get; set; }
-            public ClientResponses ClientResponses { get; set; }
+            public ClientResponses ClientResponses { get; set; } = new ClientResponses();
         }
 
         public static Scenario Create()
@@ -43,29 +43,27 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
                 await context.Connection.PublishAsync(msg);
                 return Response.Ok(sizeBytes: state.MsgPayload.Length);
             }, 
-            pool: mqttConectionPool);
+            connectionPool: mqttConectionPool);
 
             var responseStep = Step.Create("response step", async context =>
             {
                 var clientId = context.Connection.Options.ClientId;
-                var response = state.ClientResponses.GetResponse(clientId);
-                
-                var completedTask = await Task.WhenAny(response, Task.Delay(TimeSpan.FromSeconds(2)));
-                return completedTask == response
-                    ? Response.Ok(sizeBytes: response.Result.Length)
-                    : Response.Fail("timeout");
+                var response = await state.ClientResponses.GetResponseAsync(clientId);
+                return Response.Ok(sizeBytes: response.Length);
             }, 
-            pool: mqttConectionPool);
+            connectionPool: mqttConectionPool);
 
             var scenario = ScenarioBuilder
                 .CreateScenario("request response scenario", new[] {requestStep, responseStep})
                 .WithTestInit(context =>
                 {
-                    var settings = context.CustomSettings.DeserializeObject<CustomSettings>();
-                    
+                    var settings = context.CustomSettings.DeserializeJson<CustomSettings>();
+
                     state.MsgPayload = GeneratePayload(settings.MsgPayloadSizeInBytes);
                     state.TargetMqttBrokerHost = settings.TargetMqttBrokerHost;
 
+                    context.Logger.Information("MsgPayloadSizeInBytes:'{MsgPayloadSizeInBytes}'", settings.MsgPayloadSizeInBytes);
+                    
                     return Task.CompletedTask;
                 });
 
@@ -89,7 +87,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
                         .WithClientId(clientId)
                         .Build();
 
-                    client.UseConnectedHandler(async e => { await client.SubscribeAsync($"requests/{clientId}"); });
+                    client.UseConnectedHandler(e => client.SubscribeAsync($"requests/{clientId}"));
 
                     client.UseApplicationMessageReceivedHandler(msg =>
                     {

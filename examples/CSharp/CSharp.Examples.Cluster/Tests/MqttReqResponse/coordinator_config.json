@@ -6,12 +6,11 @@
     "ScenariosSettings": [
       {
         "ScenarioName": "request response scenario",
-        "WarmUpDuration": "00:00:20",
-        "Duration": "00:01:00",
-        "ConcurrentCopies": 100
+        "WarmUpDuration": "00:00:10",
+        "Duration": "00:00:10",
+        "ConcurrentCopies": 50
       }
-    ],    
-    "ReportFileName": "custom_report_name_from_json",
+    ],
     "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
   },
   
