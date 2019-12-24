@@ -6,8 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-<!--        <PackageReference Include="NBomber.Http" Version="0.16.0-beta4" />        -->
-<!--        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta4" />        -->
+        <PackageReference Include="NBomber.Http" Version="0.16.0-beta5" />        
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="0.16.0-beta5" />        
         <PackageReference Include="Serilog.Sinks.ElasticSearch" Version="8.0.1" />
     </ItemGroup>
 

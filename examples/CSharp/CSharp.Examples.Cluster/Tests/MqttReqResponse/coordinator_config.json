@@ -9,6 +9,12 @@
         "WarmUpDuration": "00:00:10",
         "Duration": "00:00:10",
         "ConcurrentCopies": 50
+      },
+      {
+        "ScenarioName": "simple http scenario",
+        "WarmUpDuration": "00:00:20",
+        "Duration": "00:00:10",
+        "ConcurrentCopies": 50
       }
     ],
     "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
