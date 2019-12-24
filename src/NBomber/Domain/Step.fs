@@ -47,7 +47,7 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        return { Response = Response.Ok(); StartTimeMs = -1.0; LatencyMs = 0 }
+        return { Response = Response.Ok(); StartTimeMs = -1.0; LatencyMs = -1 }
     
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
@@ -98,7 +98,7 @@ let filterByDuration (responses: StepResponse seq, duration: TimeSpan) =
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
     
     responses
-    |> Seq.filter(fun x -> x.LatencyMs <> 0)
+    |> Seq.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
     |> Seq.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
