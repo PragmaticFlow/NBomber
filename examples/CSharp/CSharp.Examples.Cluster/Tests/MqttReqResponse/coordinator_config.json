@@ -6,15 +6,15 @@
     "ScenariosSettings": [
       {
         "ScenarioName": "request response scenario",
-        "WarmUpDuration": "00:00:10",
-        "Duration": "00:00:10",
-        "ConcurrentCopies": 50
+        "WarmUpDuration": "00:00:00",
+        "Duration": "00:00:15",
+        "ConcurrentCopies": 10
       },
       {
         "ScenarioName": "simple http scenario",
-        "WarmUpDuration": "00:00:20",
-        "Duration": "00:00:10",
-        "ConcurrentCopies": 50
+        "WarmUpDuration": "00:00:00",
+        "Duration": "00:00:15",
+        "ConcurrentCopies": 10
       }
     ],
     "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
