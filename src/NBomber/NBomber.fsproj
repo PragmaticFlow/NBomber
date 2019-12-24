@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
     <Company>PragmaticFlow</Company>
-    <Version>0.16.0-beta4</Version>
+    <Version>0.16.0-beta5</Version>
     <Copyright>PragmaticFlow@2019</Copyright>
     <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
