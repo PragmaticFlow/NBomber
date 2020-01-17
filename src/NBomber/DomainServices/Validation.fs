@@ -72,30 +72,6 @@ module ScenarioValidation =
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
-module AssertionValidation =
-    
-    let checkInvalidAsserts (scenarios: Contracts.Scenario[]) =
-        
-        let notFoundAsserts = 
-            scenarios
-            |> Array.collect(fun x ->
-                let stepNames =
-                    x.Steps
-                    |> Array.map(fun step -> step.StepName)
-
-                x.Assertions
-                |> Assertion.cast                
-                |> Array.filter(fun asrt -> stepNames |> Array.contains(asrt.StepName) |> not))
-
-        if Array.isEmpty(notFoundAsserts) then Ok scenarios
-        else Error <| AssertsNotFound notFoundAsserts
-
-    let validate (context: TestContext) =
-        context.RegisteredScenarios
-        |> checkInvalidAsserts
-        >>= fun _ -> Ok context
-        |> Result.mapError(AppError.create)
-
 module GlobalSettingsValidation =
 
     let checkEmptyTarget (globalSettings: GlobalSettings) =
@@ -193,5 +169,4 @@ module ClusterValidation =
 
 let validateContext = 
     ScenarioValidation.validate
-    >=> AssertionValidation.validate
     >=> GlobalSettingsValidation.validate

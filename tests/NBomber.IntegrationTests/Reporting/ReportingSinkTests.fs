@@ -47,6 +47,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
+    |> ignore
     
     test <@ statsInvokedCounter >= 3 @> // 1 invoke as realtime and 1 invoke at the end
     
@@ -85,5 +86,6 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
     |> NBomberRunner.runTest
+    |> ignore
     
     test <@ bombingCounter > 0 && completeCounter = 1 @>

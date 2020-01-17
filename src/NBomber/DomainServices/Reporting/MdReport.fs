@@ -2,7 +2,6 @@ module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
 open NBomber.Domain
-open NBomber.Errors
 
 [<AutoOpen>]
 module private Impl =
@@ -14,7 +13,7 @@ module private Impl =
     let sep2 l1 l2 =
         sprintf "|-%s-|-%s-|" (sep l1) (sep l2)
     
-    let asMdTable (s : StepStats) =
+    let asMdTable (s: StepStats) =
         let dataInfoAvailable = s.DataTransfer.AllMB > 0.0
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
         let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
@@ -53,25 +52,12 @@ module private Impl =
                 scnStats.RPS
                 scnStats.ConcurrentCopies
 
-    let getAssertNumberAndLabel (failedAssert: DomainError) =
-        match failedAssert with
-        | AssertionError (assertNumber,asrt,_) ->            
-            let assertLabel = if asrt.Label.IsSome then asrt.Label.Value else String.Empty
-            sprintf "- failed assertion nr `%i`, `%s`" assertNumber assertLabel
-        | _ -> String.Empty
-
-let print (stats: RawNodeStats, failedAsserts: DomainError[]) =
-    
-    let assertErrors =
-        failedAsserts
-        |> Array.map(getAssertNumberAndLabel)            
-        |> List.ofArray
+let print (stats: RawNodeStats) =
     
     stats.AllScenariosStats
     |> Seq.collect (fun x ->
         seq {
-            yield scenarioHeader x
-            yield! assertErrors
+            yield scenarioHeader x    
             yield x.StepsStats
                   |> List.ofArray
                   |> List.collect asMdTable

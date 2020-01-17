@@ -1,7 +1,5 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
-open System
-
 open FsToolkit.ErrorHandling
 
 open System.Threading.Tasks
@@ -20,12 +18,11 @@ open NBomber.DomainServices.Cluster.Coordinator
 
 type ExecutionResult = {     
     RawNodeStats: RawNodeStats[]
-    Statistics: Statistics[]
-    FailedAsserts: DomainError[]
+    Statistics: Statistics[]    
 } with
-  static member init (testInfo: TestInfo) (nodeStats: RawNodeStats[]) =
+  static member init (nodeStats: RawNodeStats[]) =
       let stats = nodeStats |> Array.collect(Statistics.create)
-      { RawNodeStats = nodeStats; Statistics = stats; FailedAsserts = Array.empty }
+      { RawNodeStats = nodeStats; Statistics = stats }
 
 let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
                            context: TestContext, crdSettings: CoordinatorSettings) =
@@ -65,16 +62,8 @@ let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
         return [|rawNodeStats|]
     }
 
-let applyAsserts (context: TestContext) (result: ExecutionResult) = 
-    let errors = 
-        context.RegisteredScenarios 
-        |> Array.collect(fun x -> x.Assertions)
-        |> Assertion.cast
-        |> Assertion.apply(result.Statistics)
-    { result with FailedAsserts = errors }
-
 let buildReport (dep: Dependency) (result: ExecutionResult) =    
-    Report.build(dep, result.RawNodeStats, result.FailedAsserts)
+    Report.build(dep, result.RawNodeStats)
 
 let saveReport (dep: Dependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
     let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
@@ -86,13 +75,6 @@ let showErrors (dep: Dependency) (errors: AppError[]) =
         TestFrameworkRunner.showErrors(errors)
     else
         errors |> Array.iter(AppError.toString >> dep.Logger.Error)
-
-let showAsserts (dep: Dependency, result: ExecutionResult) =
-    match result.FailedAsserts with
-    | [||]          -> ()
-    | failedAsserts -> failedAsserts
-                       |> Array.map AppError.create
-                       |> showErrors dep                           
 
 let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
     try
@@ -135,9 +117,7 @@ let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
             | Some (Agent aSettings)       -> runClusterAgent(dep, ctx, aSettings)
             | None                         -> runSingleNode(dep, testInfo, ctx)
 
-        let result = nodeStats
-                     |> ExecutionResult.init(testInfo)
-                     |> applyAsserts ctx
+        let result = ExecutionResult.init(nodeStats)                     
 
         result
         |> buildReport dep
@@ -147,9 +127,7 @@ let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
         
         return result
     }
-    |> Async.RunSynchronously
-    |> Result.map(fun result -> showAsserts(dep, result)
-                                result)
+    |> Async.RunSynchronously    
     |> Result.mapError(fun error -> showErrors dep [|error|]
                                     error)
 

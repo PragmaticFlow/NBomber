@@ -4,8 +4,6 @@ open System
 open System.Xml.Linq
 
 open NBomber.Extensions
-open NBomber.Domain
-open NBomber.Errors
 
 let htmlEncode (t: 'T) = System.Web.HttpUtility.HtmlEncode t
 
@@ -30,22 +28,3 @@ let toPrettyHtml (html: string) =
     XElement.Parse(rootWrapper).ToString()
         |> String.replace("<root>", "<!DOCTYPE HTML>")
         |> String.replace("</root>", String.Empty)
-
-let formatAssertion assertNumber assertLabel =
-    match assertLabel with
-    | Some value -> value |> htmlEncode |> sprintf "<strong>%s</strong>"
-    | None -> sprintf "<strong>#%i</strong>" assertNumber
-
-let toListGroupItem (failedAssert: DomainError) =
-    match failedAssert with    
-    | AssertionError (assertNumber, asrt, _) ->
-        let assertLabel = formatAssertion assertNumber asrt.Label
-        let stepName = htmlEncode asrt.StepName
-        sprintf """<li class="list-group-item list-group-item-danger">Failed assertion %s for step <strong>%s</strong></li>""" assertLabel stepName
-    | _ -> String.Empty
-
-let toListGroup (failedAsserts: DomainError[]) =
-    failedAsserts
-    |> Array.map toListGroupItem
-    |> String.concat String.Empty
-    |> sprintf """<ul class="list-group">%s</ul><br/>"""

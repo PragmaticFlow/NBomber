@@ -81,15 +81,12 @@ type ScenarioContext = {
 
 type IStep =
     abstract StepName: string
-    
-type IAssertion = interface end  
 
 type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
-    Steps: IStep[]
-    Assertions: IAssertion[]
+    Steps: IStep[]    
     ConcurrentCopies: int    
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

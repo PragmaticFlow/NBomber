@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
@@ -24,22 +25,19 @@ namespace CSharp.Examples.NUnit
         [Test]
         public void Test()
         {
-            var assertions = new[] {               
-               Assertion.ForStep("simple step", stats => stats.OkCount > 2, "OkCount > 2"),
-               Assertion.ForStep("simple step", stats => stats.RPS > 8, "RPS > 8"),
-               Assertion.ForStep("simple step", stats => stats.Percent75 >= 102, "Percent75 >= 1000"),
-               Assertion.ForStep("simple step", stats => stats.DataMinKb == 1.0, "DataMinKb == 1.0"),
-               Assertion.ForStep("simple step", stats => stats.AllDataMB >= 0.01, "AllDataMB >= 0.01")
-            };
-
             var scenario = BuildScenario()
                 .WithConcurrentCopies(1)
-                .WithWarmUpDuration(TimeSpan.FromSeconds(0))
-                .WithDuration(TimeSpan.FromSeconds(2))
-                .WithAssertions(assertions);
+                .WithOutWarmUp()
+                .WithDuration(TimeSpan.FromSeconds(2));
 
-            NBomberRunner.RegisterScenarios(scenario)
-                         .RunTest();            
+            var allStats = NBomberRunner.RegisterScenarios(scenario).RunTest();
+            var stepStats = allStats.First(x => x.StepName == "simple step");
+            
+            Assert.IsTrue(stepStats.OkCount > 2, "OkCount > 2");
+            Assert.IsTrue(stepStats.RPS > 8, "RPS > 8");
+            Assert.IsTrue(stepStats.Percent75 >= 100, "Percent75 >= 100");
+            Assert.IsTrue(stepStats.DataMinKb == 1.0, "DataMinKb == 1.0");
+            Assert.IsTrue(stepStats.AllDataMB >= 0.01, "AllDataMB >= 0.01");
         }
     }
 }

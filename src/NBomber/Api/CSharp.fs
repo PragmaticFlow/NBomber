@@ -9,7 +9,6 @@ open System.Runtime.InteropServices
 
 open NBomber
 open NBomber.Contracts
-open NBomber.FSharp
 open NBomber.Configuration
 
 type ConnectionPool =
@@ -41,11 +40,6 @@ type Step =
     static member CreatePause(duration: TimeSpan) =
         FSharp.Step.createPause(duration)
 
-type Assertion =    
-    static member ForStep(stepName, assertion: Func<Statistics, bool>, [<Optional;DefaultParameterValue(null:string)>]label: string) =         
-        if isNull label then Assertion.forStep(stepName, assertion.Invoke)
-        else Assertion.forStep(stepName, assertion.Invoke, label)
-
 [<Extension>]
 type ScenarioBuilder =
     
@@ -60,11 +54,7 @@ type ScenarioBuilder =
     [<Extension>]
     static member WithTestClean(scenario: Scenario, cleanFunc: Func<ScenarioContext,Task>) = 
         { scenario with TestClean = Some cleanFunc.Invoke }
-
-    [<Extension>]
-    static member WithAssertions(scenario: Scenario, [<System.ParamArray>]assertions: IAssertion[]) = 
-        scenario |> FSharp.Scenario.withAssertions(Seq.toList(assertions))    
-
+    
     [<Extension>]
     static member WithConcurrentCopies(scenario: Scenario, concurrentCopies: int) = 
         scenario |> FSharp.Scenario.withConcurrentCopies(concurrentCopies)    
@@ -128,4 +118,6 @@ type NBomberRunner =
 
     [<Extension>]
     static member RunTest(context: TestContext) =
-        FSharp.NBomberRunner.runTest(context)
+        match FSharp.NBomberRunner.runTest(context) with
+        | Ok stats  -> stats
+        | Error msg -> failwith msg

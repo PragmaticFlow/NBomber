@@ -14,6 +14,7 @@ open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
+open NBomber.Errors
 
 type ConnectionPool =
 
@@ -106,24 +107,14 @@ type Step =
                                                return Response.Ok() }),
                     doNotTrack = true)
 
-type Assertion =
-
-    static member forStep (stepName, assertion: Statistics -> bool, ?label: string) =
-        { StepName = stepName
-          ScenarioName = ""
-          AssertFunc = assertion
-          Label = label } 
-          :> IAssertion
-
-module Scenario =    
+module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = Seq.toArray(steps)
-          Assertions = Array.empty
+          Steps = Seq.toArray(steps)          
           ConcurrentCopies = Constants.DefaultConcurrentCopies          
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
@@ -134,16 +125,8 @@ module Scenario =
     let withTestClean (cleanFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
-    let withAssertions (assertions: IAssertion list) (scenario: Contracts.Scenario) =
-        let asrts = assertions
-                    |> Seq.cast<Domain.Assertion>
-                    |> Seq.map(fun x -> { x with ScenarioName = scenario.ScenarioName} :> IAssertion)
-                    |> Seq.toArray
-
-        { scenario with Assertions = asrts }
-
     let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
-        { scenario with ConcurrentCopies = concurrentCopies }    
+        { scenario with ConcurrentCopies = concurrentCopies }
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
@@ -199,7 +182,8 @@ module NBomberRunner =
 
     let runTest (context: TestContext) =
         NBomberRunner.runAs(Test, context)
-        |> ignore
+        |> Result.map(fun x -> x.Statistics)
+        |> Result.mapError(AppError.toString)
         
     let internal runWithResult (context: TestContext) =
         NBomberRunner.runAs(Process, context)

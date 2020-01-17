@@ -8,7 +8,6 @@ open System.IO
 
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Configuration
@@ -22,22 +21,22 @@ type ReportsContent = {
  with
  static member empty = { TxtReport = ""; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let build (dep: Dependency, nodeStats: RawNodeStats[], failedAsserts: DomainError[]) =
+let build (dep: Dependency, nodeStats: RawNodeStats[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = TxtReport.print(nodeStats.[0], failedAsserts)
-          HtmlReport = HtmlReport.print(dep, nodeStats.[0], failedAsserts)
+        { TxtReport = TxtReport.print(nodeStats.[0])
+          HtmlReport = HtmlReport.print(dep, nodeStats.[0])
           CsvReport = CsvReport.print(nodeStats.[0])
-          MdReport = MdReport.print(nodeStats.[0], failedAsserts) }
+          MdReport = MdReport.print(nodeStats.[0]) }
     
     | NodeType.Coordinator when nodeStats.Length > 0 ->
           nodeStats
           |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
           |> Option.map(fun clusterStats ->
-              { TxtReport = TxtReport.print(clusterStats, failedAsserts)
-                HtmlReport = HtmlReport.print(dep, clusterStats, failedAsserts)
+              { TxtReport = TxtReport.print(clusterStats)
+                HtmlReport = HtmlReport.print(dep, clusterStats)
                 CsvReport = CsvReport.print(clusterStats)
-                MdReport = MdReport.print(clusterStats, failedAsserts) }
+                MdReport = MdReport.print(clusterStats) }
           )
           |> Option.defaultValue(ReportsContent.empty)
     

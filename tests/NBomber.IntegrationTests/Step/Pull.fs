@@ -28,25 +28,28 @@ let ``Ok and Fail should be properly count`` () =
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         failCnt <- failCnt + 1
         return Response.Fail()
-    })
-
-    let assertions = [
-       Assertion.forStep("ok step", fun stats -> [okCnt-1..okCnt] |> Seq.contains stats.OkCount)
-       Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
-
-       Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
-       Assertion.forStep("fail step", fun stats -> [failCnt-1..failCnt] |> Seq.contains stats.FailCount)
-    ]
+    })    
     
     let scenario = 
         Scenario.create "count test" [okStep; failStep]
-        |> Scenario.withConcurrentCopies 1
-        |> Scenario.withAssertions assertions
+        |> Scenario.withConcurrentCopies 1        
         |> Scenario.withOutWarmUp
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
 
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest
+    let result = NBomberRunner.registerScenarios [scenario]
+                 |> NBomberRunner.runTest
+
+    match result with
+    | Ok allStats ->
+        let okStats = allStats |> Array.find(fun x -> x.StepName = "ok step")
+        let failStats = allStats |> Array.find(fun x -> x.StepName = "fail step")
+        
+        test <@ [okCnt-1..okCnt] |> Seq.contains okStats.OkCount @>
+        test <@ okStats.FailCount = 0 @>
+        test <@ failStats.OkCount = 0 @>
+        test <@ [failCnt-1..failCnt] |> Seq.contains failStats.FailCount @>
+    
+    | Error msg -> failwith msg        
 
 [<Fact>]
 let ``Warmup should not have effect on stats`` () =       
@@ -60,24 +63,27 @@ let ``Warmup should not have effect on stats`` () =
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Fail()
     })
-
-    let assertions = [
-       Assertion.forStep("ok step", fun stats -> stats.OkCount <= 5)
-       Assertion.forStep("ok step", fun stats -> stats.FailCount = 0)
-
-       Assertion.forStep("fail step", fun stats -> stats.OkCount = 0)
-       Assertion.forStep("fail step", fun stats -> stats.FailCount <= 5)
-    ]
     
     let scenario = 
         Scenario.create "warmup test" [okStep; failStep]
-        |> Scenario.withConcurrentCopies 1
-        |> Scenario.withAssertions assertions
+        |> Scenario.withConcurrentCopies 1        
         |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
         |> Scenario.withDuration(TimeSpan.FromSeconds 1.0)
 
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest
+    let result = NBomberRunner.registerScenarios [scenario]
+                 |> NBomberRunner.runTest
+                 
+    match result with
+    | Ok allStats ->
+        let okStats = allStats |> Array.find(fun x -> x.StepName = "ok step")
+        let failStats = allStats |> Array.find(fun x -> x.StepName = "fail step")
+        
+        test <@ okStats.OkCount <= 5 @>
+        test <@ okStats.FailCount = 0 @>
+        test <@ failStats.OkCount = 0 @>
+        test <@ failStats.FailCount <= 5 @>
+    
+    | Error msg -> failwith msg                  
 
 [<Fact>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =    
@@ -85,27 +91,30 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     let pullStep = Step.create("pull step", fun _ -> task {                
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok(sizeBytes = 100)
-    })
-
-    let assertions = [
-       Assertion.forStep("pull step", (fun stats -> stats.RPS >= 8), "RPS >= 8")
-       Assertion.forStep("pull step", (fun stats -> stats.RPS <= 10), "RPS <= 10")        
-       Assertion.forStep("pull step", (fun stats -> stats.Min <= 110), "Min <= 110")
-       Assertion.forStep("pull step", (fun stats -> stats.Mean <= 120), "Mean <= 120")
-       Assertion.forStep("pull step", (fun stats -> stats.Max <= 150), "Max <= 150")
-       Assertion.forStep("pull step", (fun stats -> stats.DataMinKb = 0.1), "DataMinKb = 0.1")
-       Assertion.forStep("pull step", (fun stats -> stats.AllDataMB >= 0.0015), "AllDataMB >= 0.0015")
-    ]
+    })    
     
     let scenario = 
         Scenario.create "latency count test" [pullStep]
-        |> Scenario.withConcurrentCopies 1
-        |> Scenario.withAssertions assertions
+        |> Scenario.withConcurrentCopies 1        
         |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
         |> Scenario.withDuration(TimeSpan.FromSeconds 2.0)
     
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest
+    let result = NBomberRunner.registerScenarios [scenario]
+                 |> NBomberRunner.runTest
+                 
+    match result with
+    | Ok allStats ->
+        let stats = allStats |> Array.find(fun x -> x.StepName = "pull step")        
+        
+        test <@ stats.RPS >= 8 @>
+        test <@ stats.RPS <= 10 @>
+        test <@ stats.Min <= 110 @>
+        test <@ stats.Mean <= 120 @>
+        test <@ stats.Max <= 150 @>
+        test <@ stats.DataMinKb = 0.1 @>
+        test <@ stats.AllDataMB >= 0.0015 @>
+    
+    | Error msg -> failwith msg                 
 
 [<Fact>]
 let ``repeatCount should set how many times one step will be repeated`` () =
@@ -136,6 +145,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
+    |> ignore
 
     Assert.True(invokeCounter <= 5)
 
@@ -167,6 +177,7 @@ let ``context.Data should store any payload data from latest step.Response`` () 
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runTest
+    |> ignore
     
     Assert.Equal(Convert.ToInt32(counterFromStep1), step2Counter)
     

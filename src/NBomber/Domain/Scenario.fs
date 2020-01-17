@@ -13,14 +13,11 @@ let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
     [|0 .. concurrentCopies - 1|] 
     |> Array.map(fun i -> sprintf "%s_%i" scnName i)    
 
-let create (config: Contracts.Scenario) =     
-    let assertions = config.Assertions |> Assertion.cast
-
+let create (config: Contracts.Scenario) =
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
       TestClean = config.TestClean
-      Steps = config.Steps |> Seq.cast<Step> |> Seq.toArray
-      Assertions = assertions
+      Steps = config.Steps |> Seq.cast<Step> |> Seq.toArray      
       ConcurrentCopies = config.ConcurrentCopies      
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
       WarmUpDuration = config.WarmUpDuration

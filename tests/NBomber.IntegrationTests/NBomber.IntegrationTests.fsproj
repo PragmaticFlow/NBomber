@@ -28,7 +28,6 @@
     <Compile Include="Configuration\LoadConfigTests.fs" />
     <Compile Include="Configuration\ApplySettingsTests.fs" />
     <Compile Include="Configuration\ValidationTests.fs" />
-    <Compile Include="Configuration\AssertionValidation.fs" />
     <Compile Include="ClusterTests.fs" />
   </ItemGroup>
   <ItemGroup>

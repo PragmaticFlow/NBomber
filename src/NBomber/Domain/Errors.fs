@@ -1,12 +1,8 @@
 ﻿namespace NBomber.Errors
 
-open System
-open NBomber.Contracts
 open NBomber.Extensions
-open NBomber.Domain
 
-type internal DomainError =
-    | AssertionError     of assertNumber:int * assertion:Assertion * stats:Statistics
+type internal DomainError =    
     | InitScenarioError  of ex:exn           
     | CleanScenarioError of ex:exn
     | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
@@ -21,8 +17,7 @@ type internal ValidationError =
     | EmptyReportName 
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string[]
-    | EmptyStepName         of scenarioNames:string[]      
-    | AssertsNotFound       of Assertion[]
+    | EmptyStepName         of scenarioNames:string[]
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
@@ -50,15 +45,6 @@ type internal AppError =
     
     static member toString (error: DomainError) = 
         match error with
-        | AssertionError (assertNumber, asrt, stats) -> 
-            let statsJson = sprintf "%A" stats                    
-            let scenarioStr = sprintf "SCENARIO: '%s' %s" asrt.ScenarioName Environment.NewLine
-            let stepStr     = sprintf "STEP: '%s' %s" asrt.StepName Environment.NewLine
-            let labelStr = if asrt.Label.IsSome then sprintf "LABEL: '%s' %s" asrt.Label.Value Environment.NewLine
-                            else String.Empty 
-            let statsStr = sprintf "STATS: %s %s %s" Environment.NewLine statsJson Environment.NewLine
-            sprintf "Assertion #'%i' FAILED for: %s %s %s %s %s" assertNumber Environment.NewLine scenarioStr stepStr labelStr statsStr
-        
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
         | WarmUpErrorWithManyFailedSteps (okCount, failedCount) ->
@@ -87,11 +73,6 @@ type internal AppError =
         
         | EmptyStepName scenarioNames -> 
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s."
-
-        | AssertsNotFound asserts ->
-            asserts
-            |> Array.map(fun a ->  sprintf "Assertion is not found for step: '%s' in scenario: '%s'" a.StepName a.ScenarioName)
-            |> String.concatWithCommaAndQuotes
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
             sprintf "The current target group not matched, current target group is %s" currentTargetGroup

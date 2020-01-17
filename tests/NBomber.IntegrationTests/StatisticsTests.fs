@@ -38,10 +38,10 @@ let private nodeStats = {
 }
 
 let private scenario = { 
-    ScenarioName = "Scenario1"; TestInit = None; TestClean = None; Steps = Array.empty
-    Assertions = Array.empty; ConcurrentCopies = 1; CorrelationIds = Array.empty
+    ScenarioName = "Scenario1"; TestInit = None; TestClean = None
+    Steps = Array.empty; ConcurrentCopies = 1; CorrelationIds = Array.empty
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
-    Duration = TimeSpan.FromSeconds(1.0) 
+    Duration = TimeSpan.FromSeconds(1.0)
 }
 
 [<Property>]

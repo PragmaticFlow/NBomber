@@ -74,21 +74,11 @@ type internal StepResponse = {
     LatencyMs: int
 }
 
-type internal AssertFunc = Statistics -> bool
-
-type internal Assertion = {
-    StepName: StepName
-    ScenarioName: ScenarioName
-    AssertFunc: AssertFunc
-    Label: string option
-} with interface IAssertion
-
 type internal Scenario = {    
     ScenarioName: ScenarioName
     TestInit: (ScenarioContext -> Task) option  
     TestClean: (ScenarioContext -> Task) option  
     Steps: Step[]
-    Assertions: Assertion[]
     ConcurrentCopies: int    
     CorrelationIds: CorrelationId[]
     WarmUpDuration: TimeSpan
