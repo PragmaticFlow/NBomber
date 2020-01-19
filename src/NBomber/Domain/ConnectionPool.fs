@@ -4,7 +4,7 @@ module internal NBomber.Domain.ConnectionPool
 open System
 
 let setConnectionPool (allPools: ConnectionPool<obj>[]) (step: Step) =
-    let findPool (poolName) = 
+    let findPool (poolName) =
         allPools |> Array.find(fun x -> x.PoolName = poolName)
 
     { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }
@@ -14,12 +14,12 @@ let getDistinctPools (scenario: Scenario) =
     |> Array.map(fun x -> x.ConnectionPool)
     |> Array.distinct
 
-let getPoolCount (scenario: Scenario, pool: ConnectionPool<obj>) =    
+let getPoolCount (scenario: Scenario, pool: ConnectionPool<obj>) =
     match pool.ConnectionsCount with
     | Some v -> v
     | None   -> scenario.ConcurrentCopies
 
-let init (scenario: Scenario, 
+let init (scenario: Scenario,
           onStartedInitPool: (string * int) -> unit, // PoolName * ConnectionsCount
           onConnectionOpened: int -> unit,
           onFinishInitPool: string -> unit,
@@ -31,12 +31,12 @@ let init (scenario: Scenario,
         logger.Information("opening connections...")
         onStartedInitPool(pool.PoolName, connectionCount)
 
-        let connections = Array.init connectionCount (fun i -> 
+        let connections = Array.init connectionCount (fun i ->
             let connection = pool.OpenConnection()
             onConnectionOpened(i)
             connection
         )
-                
+
         onFinishInitPool(pool.PoolName)
 
         { pool with AliveConnections = connections }
@@ -53,12 +53,12 @@ let clean (scenario: Scenario, logger: Serilog.ILogger) =
         logger.Information("closing connections for connection pool: '{0}'", pool.PoolName)
 
         for connection in pool.AliveConnections do
-            try 
+            try
                 match pool.CloseConnection with
                 | Some close -> close(connection)
                                 invokeDispose(connection)
                 | None       -> invokeDispose(connection)
             with
             | ex -> logger.Error(ex, "CloseConnection")
-    
+
     scenario |> getDistinctPools |> Array.iter(closeConnections)

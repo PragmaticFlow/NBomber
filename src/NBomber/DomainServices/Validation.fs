@@ -19,7 +19,7 @@ let private getDuplicates (data: string[]) =
 let private isDurationOk (duration: TimeSpan) =
     duration >= TimeSpan.FromSeconds 1.0
 
-let private isPositiveNumber (value: int) = 
+let private isPositiveNumber (value: int) =
     value >= 1
 
 module ScenarioValidation =
@@ -37,11 +37,11 @@ module ScenarioValidation =
     let checkEmptyStepName (scenarios: Contracts.Scenario[]) =
         let scnWithEmptySteps =
             scenarios
-            |> Array.choose(fun x -> 
-                let emptyStepExist = 
+            |> Array.choose(fun x ->
+                let emptyStepExist =
                     x.Steps
                     |> Array.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
-            
+
                 if emptyStepExist then Some x.ScenarioName else None)
 
         if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
@@ -56,19 +56,19 @@ module ScenarioValidation =
         let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
         if Array.isEmpty(invalidScns) then Ok scenarios
         else Error <| ConcurrentCopiesIsWrong invalidScns
-        
+
     let validateWarmUpStats (nodeStats: RawNodeStats) =
         if nodeStats.FailCount > nodeStats.OkCount then
             AppError.createResult(WarmUpErrorWithManyFailedSteps(nodeStats.OkCount, nodeStats.FailCount))
-        else Ok()              
+        else Ok()
 
     let validate (context: TestContext) =
-        context.RegisteredScenarios 
+        context.RegisteredScenarios
         |> checkEmptyName
         >>= checkDuplicateName
-        >>= checkEmptyStepName        
+        >>= checkEmptyStepName
         >>= checkDuration
-        >>= checkConcurrentCopies        
+        >>= checkConcurrentCopies
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 
@@ -83,7 +83,7 @@ module GlobalSettingsValidation =
         else Ok globalSettings
 
     let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
-        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)        
+        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
         let targetScn = defaultArg globalSettings.TargetScenarios []
         let notFoundScenarios = targetScn |> List.except allScenarios
 
@@ -95,27 +95,27 @@ module GlobalSettingsValidation =
             globalSettings.ScenariosSettings
             |> Option.defaultValue List.empty
             |> List.choose(fun x -> if isDurationOk(x.Duration.TimeOfDay) then None else Some(x.ScenarioName))
-            |> List.toArray                
+            |> List.toArray
 
         if Array.isEmpty(invalidScns) then Ok globalSettings
         else Error <| DurationIsWrong invalidScns
 
     let checkConcurrentCopies (globalSettings: GlobalSettings) =
-        let invalidScns = 
+        let invalidScns =
             globalSettings.ScenariosSettings
             |> Option.defaultValue List.empty
             |> List.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
             |> List.toArray
-        
+
         if Array.isEmpty(invalidScns) then Ok globalSettings
-        else Error <| ConcurrentCopiesIsWrong invalidScns    
+        else Error <| ConcurrentCopiesIsWrong invalidScns
 
     let checkEmptyReportName (globalSettings: GlobalSettings) =
         match globalSettings.ReportFileName with
         | Some name -> if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
                        else Ok globalSettings
         | None      -> Ok globalSettings
-        
+
     let checkSendStatsInterval (globalSettings: GlobalSettings) =
         match globalSettings.SendStatsInterval with
         | Some interval ->
@@ -125,29 +125,29 @@ module GlobalSettingsValidation =
                 Ok globalSettings
         | None -> Ok globalSettings
 
-    let validate (context: TestContext) =        
-        context.TestConfig 
+    let validate (context: TestContext) =
+        context.TestConfig
         |> Option.bind(fun x -> x.GlobalSettings)
-        |> Option.map(fun glSettings -> 
+        |> Option.map(fun glSettings ->
             glSettings
-            |> checkEmptyTarget             
+            |> checkEmptyTarget
             >>= checkAvailableTarget(context.RegisteredScenarios)
             >>= checkDuration
-            >>= checkConcurrentCopies            
+            >>= checkConcurrentCopies
             >>= checkEmptyReportName
             >>= checkSendStatsInterval
             >>= fun _ -> Ok context
             |> Result.mapError(AppError.create)
         )
-        |> Option.defaultValue(Ok context)        
+        |> Option.defaultValue(Ok context)
 
 module ClusterValidation =
 
-    let validateTargetGroups (allTargetGroups: string[], agentTargetGroups: string[]) = 
+    let validateTargetGroups (allTargetGroups: string[], agentTargetGroups: string[]) =
         let all = Set.ofArray allTargetGroups
-        let agents = Set.ofArray agentTargetGroups        
-        
-        let notFoundGroups = 
+        let agents = Set.ofArray agentTargetGroups
+
+        let notFoundGroups =
             Set.difference agents all
             |> Set.toArray
 
@@ -155,18 +155,18 @@ module ClusterValidation =
         | true  -> Ok()
         | false -> AppError.createResult(TargetGroupsAreNotFound notFoundGroups)
 
-    let validateTargetGroupScenarios (targetScenarios: string[], registeredScenarios: string[]) = 
+    let validateTargetGroupScenarios (targetScenarios: string[], registeredScenarios: string[]) =
         let targetScenarios = targetScenarios |> Set.ofSeq
         let agentScenarios = registeredScenarios |> Set.ofSeq
-        
-        let notFoundScenarios = 
+
+        let notFoundScenarios =
             Set.difference targetScenarios agentScenarios
             |> Set.toArray
-        
+
         match Array.isEmpty notFoundScenarios with
         | true  -> Ok()
-        | false -> AppError.createResult(TargetScenariosNotFound(notFoundScenarios, registeredScenarios)) 
+        | false -> AppError.createResult(TargetScenariosNotFound(notFoundScenarios, registeredScenarios))
 
-let validateContext = 
+let validateContext =
     ScenarioValidation.validate
     >=> GlobalSettingsValidation.validate

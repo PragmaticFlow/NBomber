@@ -11,7 +11,7 @@ namespace TestServer.WebSockets
     public class WebSocketsMiddleware
     {
         public static readonly int BufferSize = 4096;
-        readonly RequestDelegate _next;        
+        readonly RequestDelegate _next;
 
         public WebSocketsMiddleware(RequestDelegate next)
         {
@@ -40,7 +40,7 @@ namespace TestServer.WebSockets
                 var (response, message) = await ReadFullMessage(socket, CancellationToken.None);
 
                 if (response.MessageType == WebSocketMessageType.Close)
-                {   
+                {
                     break;
                 }
                 else
@@ -51,7 +51,7 @@ namespace TestServer.WebSockets
                     var msgResponse = new WebSocketResponse
                     {
                         CorrelationId = msg.CorrelationId,
-                        ResponseType = ResponseType.Pong                        
+                        ResponseType = ResponseType.Pong
                     };
                     var bytes = MsgConverter.ToJsonByteArray(msgResponse);
                     await socket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);

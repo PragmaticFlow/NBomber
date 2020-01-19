@@ -28,7 +28,7 @@ let build (dep: Dependency, nodeStats: RawNodeStats[]) =
           HtmlReport = HtmlReport.print(dep, nodeStats.[0])
           CsvReport = CsvReport.print(nodeStats.[0])
           MdReport = MdReport.print(nodeStats.[0]) }
-    
+
     | NodeType.Coordinator when nodeStats.Length > 0 ->
           nodeStats
           |> Array.tryFind(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
@@ -39,7 +39,7 @@ let build (dep: Dependency, nodeStats: RawNodeStats[]) =
                 MdReport = MdReport.print(clusterStats) }
           )
           |> Option.defaultValue(ReportsContent.empty)
-    
+
     | _ -> ReportsContent.empty
 
 let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat[],
@@ -56,12 +56,12 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
                 | ReportFormat.Html -> ".html"
                 | ReportFormat.Csv  -> ".csv"
                 | ReportFormat.Md   -> ".md"
-            
+
             let filePath = Path.Combine(reportsDir, reportFileName) + fileExt
-            { FilePath = filePath; ReportFormat = format }            
-            
-        let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray        
-    
+            { FilePath = filePath; ReportFormat = format }
+
+        let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray
+
         reportFiles
         |> Array.map(fun x ->
             match x.ReportFormat with

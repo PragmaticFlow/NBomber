@@ -12,7 +12,7 @@ open NBomber.Infra
 open FsCheck
 open FsCheck.Xunit
 
-let globalSettings = { 
+let globalSettings = {
     ScenariosSettings = None
     TargetScenarios = Some ["1"]
     ReportFileName = None
@@ -24,7 +24,7 @@ let scenario = {
     ScenarioName = "1"
     TestInit = None
     TestClean = None
-    Steps = Array.empty    
+    Steps = Array.empty
     ConcurrentCopies = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)
     Duration = TimeSpan.FromSeconds(10.)
@@ -34,7 +34,7 @@ let config = {
     TestSuite = NBomber.Domain.Constants.DefaultTestSuite
     TestName = NBomber.Domain.Constants.DefaultTestName
     GlobalSettings = None
-    ClusterSettings = None    
+    ClusterSettings = None
     CustomSettings = None
 }
 
@@ -51,26 +51,26 @@ let context = {
 }
 
 [<Fact>]
-let ``TestContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =    
+let ``TestContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
     let glSettings = { globalSettings with TargetScenarios = None }
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with TestConfig = Some config }
-       
+
     match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
     | _ -> failwith ""
 
 [<Fact>]
-let ``TestContext.getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =    
+let ``TestContext.getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =
     let glSettings = { globalSettings with TargetScenarios = Some ["10"] }
     let config = { config with GlobalSettings = Some glSettings }
-    
+
     let scn1 = { scenario with ScenarioName = "1" }
-    let scn2 = { scenario with ScenarioName = "2" }    
-    
+    let scn2 = { scenario with ScenarioName = "2" }
+
     let context = { context with TestConfig = Some config
                                  RegisteredScenarios = [| scn1; scn2 |] }
-       
+
     match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 && scenarios.[0] = "10" -> ()
     | _ -> failwith ""
@@ -87,7 +87,7 @@ let ``TestContext.getReportFileName should return from GlobalSettings, if empty 
     let ctx = { context with TestConfig = Some config
                              ReportFormats = [|ReportFormat.Txt|]
                              ReportFileName = contextValue }
-    
+
     let fileName = TestContext.getReportFileName("sessionId", ctx)
 
     match configValue, contextValue with
@@ -101,45 +101,45 @@ let ``TestContext.getReportFormats should return from GlobalSettings, if empty t
 
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
-    
+
     let ctx = { context with TestConfig = Some config
                              ReportFormats = List.toArray contextValue
                              ReportFileName = None }
-    
+
     let formats = TestContext.getReportFormats(ctx)
 
     match configValue, contextValue with
     | Some v, _ -> Assert.True((formats = List.toArray v))
-    
-    | None, v when List.isEmpty v -> 
+
+    | None, v when List.isEmpty v ->
         Assert.True((formats = NBomber.Domain.Constants.AllReportFormats))
-    
+
     | None, v -> Assert.True((formats = List.toArray contextValue))
-    
+
 [<Property>]
 let ``TestContext.getTestSuite should return from Config, if empty then from TestContext`` (configValue: string option, contextValue: string) =
 
     match configValue with
     | Some value ->
         let config = { config with TestSuite = value }
-        let ctx = { context with TestConfig = Some config }    
+        let ctx = { context with TestConfig = Some config }
         let testSuite = TestContext.getTestSuite(ctx)
         test <@ testSuite = value  @>
-    
+
     | None ->
         let testSuite = TestContext.getTestSuite(context)
         test <@ testSuite = context.TestSuite @>
-        
+
 [<Property>]
 let ``TestContext.getTestName should return from Config, if empty then from TestContext`` (configValue: string option, contextValue: string) =
 
     match configValue with
     | Some value ->
         let config = { config with TestName = value }
-        let ctx = { context with TestConfig = Some config }    
+        let ctx = { context with TestConfig = Some config }
         let testSuite = TestContext.getTestName(ctx)
         test <@ testSuite = value  @>
-    
+
     | None ->
         let testSuite = TestContext.getTestName(context)
         test <@ testSuite = context.TestName @>

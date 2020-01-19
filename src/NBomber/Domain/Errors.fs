@@ -2,8 +2,8 @@
 
 open NBomber.Extensions
 
-type internal DomainError =    
-    | InitScenarioError  of ex:exn           
+type internal DomainError =
+    | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn
     | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
 
@@ -11,10 +11,10 @@ type internal ValidationError =
     | TargetScenarioIsEmpty
     | TargetScenariosNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
     | DurationIsWrong         of scenarioNames:string[]
-    | ConcurrentCopiesIsWrong of scenarioNames:string[]    
-    
+    | ConcurrentCopiesIsWrong of scenarioNames:string[]
+
     // ScenarioValidation errors
-    | EmptyReportName 
+    | EmptyReportName
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string[]
     | EmptyStepName         of scenarioNames:string[]
@@ -24,13 +24,13 @@ type internal ValidationError =
     | SendStatsIntervalIsWrong of minSendStatsInterval:float
 
 type internal CommunicationError =
-    | SendMqttMsgFailed    
+    | SendMqttMsgFailed
     | NotAllStatsReceived
 
 type internal AppError =
     | Domain        of DomainError
     | Validation    of ValidationError
-    | Communication of CommunicationError        
+    | Communication of CommunicationError
     static member create (e: DomainError) = Domain e
     static member create (e: ValidationError) = Validation e
     static member create (e: CommunicationError) = Communication e
@@ -42,8 +42,8 @@ type internal AppError =
         | Domain e        -> AppError.createResult(e)
         | Validation e    -> AppError.createResult(e)
         | Communication e -> AppError.createResult(e)
-    
-    static member toString (error: DomainError) = 
+
+    static member toString (error: DomainError) =
         match error with
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
@@ -53,44 +53,44 @@ type internal AppError =
     static member toString (error: ValidationError) =
         match error with
         | TargetScenarioIsEmpty -> "Target scenario can't be empty."
-        
-        | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) -> 
+
+        | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) ->
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
             |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes(registeredScenarios)
 
-        | DurationIsWrong scenarioNames -> 
+        | DurationIsWrong scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
 
-        | ConcurrentCopiesIsWrong scenarioNames -> 
+        | ConcurrentCopiesIsWrong scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
 
         | EmptyReportName -> "Report File Name can not be empty string."
         | EmptyScenarioName -> "Scenario name can not be empty."
-        
-        | DuplicateScenarioName scenarioNames -> 
+
+        | DuplicateScenarioName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
-        
-        | EmptyStepName scenarioNames -> 
+
+        | EmptyStepName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s."
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
             sprintf "The current target group not matched, current target group is %s" currentTargetGroup
-        
-        | TargetGroupsAreNotFound notFoundGroups ->            
+
+        | TargetGroupsAreNotFound notFoundGroups ->
             notFoundGroups
             |> String.concatWithCommaAndQuotes
             |> sprintf "Target groups are not found: %s"
-            
+
         | SessionIsWrong ->
             "Session is wrong"
-            
+
         | SendStatsIntervalIsWrong minSendStatsInterval ->
             sprintf "SendStatsInterval should be bigger than min value: '%f'" minSendStatsInterval
 
-    static member toString (error: CommunicationError) = 
+    static member toString (error: CommunicationError) =
         match error with
-        | SendMqttMsgFailed -> "Error during sending request."        
+        | SendMqttMsgFailed -> "Error during sending request."
         | NotAllStatsReceived -> "Not all agents statistics received."
 
     static member toString (error: AppError) =

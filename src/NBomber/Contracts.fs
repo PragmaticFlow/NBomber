@@ -10,18 +10,18 @@ open Microsoft.Extensions.Configuration
 
 open NBomber.Configuration
 
-type Response = {    
+type Response = {
     Payload: obj
     SizeBytes: int
     Exception: exn option
 }
 
-type NodeType = 
+type NodeType =
     | SingleNode
     | Coordinator
     | Agent
     | Cluster
-    
+
 type NodeOperationType =
     | None = 0
     | Init = 1
@@ -42,7 +42,7 @@ type TestInfo = {
     TestName: string
 }
 
-type Statistics = {    
+type Statistics = {
     ScenarioName: string
     StepName: string
     OkCount: int
@@ -86,8 +86,8 @@ type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
-    Steps: IStep[]    
-    ConcurrentCopies: int    
+    Steps: IStep[]
+    ConcurrentCopies: int
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }
@@ -122,22 +122,22 @@ type Response with
         { Payload = payload
           SizeBytes = sizeBytes
           Exception = None }
-    
+
     static member Ok(payload: byte[]) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None }
-    
+
     static member Fail() =
         { Payload = null
           SizeBytes = 0
           Exception = Some(Exception("unknown client's error")) }
-    
+
     static member Fail(ex: Exception) =
         { Payload = null
           SizeBytes = 0
           Exception = Some(ex) }
-        
+
     static member Fail(reason: string) =
         { Payload = null
           SizeBytes = 0

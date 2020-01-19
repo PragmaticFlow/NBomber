@@ -17,41 +17,41 @@ open NBomber.DomainServices.Validation
 open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.Cluster.Contracts
 
-type State = {    
+type State = {
     ClientId: string
     AgentsTopic: string
-    CoordinatorTopic: string    
+    CoordinatorTopic: string
     Agents: Dictionary<ClientId, AgentNodeInfo>
     AgentsStats: Dictionary<ClientId, RawNodeStats>
     TestSessionArgs: TestSessionArgs
-    Settings: CoordinatorSettings    
+    Settings: CoordinatorSettings
     MqttClient: IMqttClient
     TestHost: TestHost
     ReportingSinks: IReportingSink[]
     Logger: Serilog.ILogger
 }
 
-module Communication =    
+module Communication =
 
-    let subscribeOnAgentResponses (st: State, handle: ResponseMessage -> unit) =        
+    let subscribeOnAgentResponses (st: State, handle: ResponseMessage -> unit) =
         st.MqttClient.SubscribeAsync(st.CoordinatorTopic).Wait()
-        st.MqttClient.UseApplicationMessageReceivedHandler(fun msg -> 
+        st.MqttClient.UseApplicationMessageReceivedHandler(fun msg ->
             msg.ApplicationMessage.Payload
             |> Mqtt.deserialize<ResponseMessage>
             |> handle
         )
         |> ignore
 
-    let sendToAgents (st: State) (req: Request) =        
+    let sendToAgents (st: State) (req: Request) =
         Contracts.createRequestMsg(st.ClientId, st.TestSessionArgs.TestInfo.SessionId, req)
         |> Mqtt.toMqttMsg(st.AgentsTopic)
         |> Mqtt.publishToBroker(st.MqttClient)
 
-    let sendGetAllAgentInfo (st: State) = asyncResult {        
+    let sendGetAllAgentInfo (st: State) = asyncResult {
         do! Request.GetAgentInfo(onlyForSessionId = None) |> sendToAgents(st)
         do! Async.Sleep(1_000)
     }
-    
+
     let sendGetAgentInfoForCurrentSession (st: State) = asyncResult {
         do! Request.GetAgentInfo(Some st.TestSessionArgs.TestInfo.SessionId) |> sendToAgents(st)
         do! Async.Sleep(1_000)
@@ -62,7 +62,7 @@ module Communication =
         |> sendToAgents st
 
     let sendStartWarmUp (st: State) =
-        Request.StartWarmUp |> sendToAgents st    
+        Request.StartWarmUp |> sendToAgents st
 
     let sendStartBombing (st: State) =
         Request.StartBombing |> sendToAgents st
@@ -70,7 +70,7 @@ module Communication =
     let getAgentsStats (st: State, forDuration: TimeSpan option) = asyncResult {
         st.AgentsStats.Clear()
         do! Request.GetStatistics(forDuration) |> sendToAgents st
-        
+
         let mutable allAgentsResponded = false
         let mutable failCounter = 0
         while not allAgentsResponded do
@@ -81,11 +81,11 @@ module Communication =
                 failCounter <- failCounter + 1
                 if failCounter > 5 then
                     allAgentsResponded <- true
-        
+
         if failCounter > 5 then
             return! AppError.createResult(CommunicationError.NotAllStatsReceived)
         else
-            return st.AgentsStats |> Map.fromDictionary              
+            return st.AgentsStats |> Map.fromDictionary
     }
 
     let waitOnAllAgents (st: State, operation: NodeOperationType) = asyncResult {
@@ -93,35 +93,35 @@ module Communication =
         while not stop do
             do! sendGetAgentInfoForCurrentSession(st)
             stop <- st.Agents
-                    |> Seq.map(fun x -> x.Value) 
-                    |> Seq.forall(fun x -> x.NodeInfo.CurrentOperation = operation)        
+                    |> Seq.map(fun x -> x.Value)
+                    |> Seq.forall(fun x -> x.NodeInfo.CurrentOperation = operation)
     }
-    
+
     let waitOnAllAgentsReady (st: State) = waitOnAllAgents(st, NodeOperationType.None)
     let waitOnAllAgentsComplete (st: State) = waitOnAllAgents(st, NodeOperationType.Complete)
 
     let validateAgents (st: State) =
         let allGroups = st.Settings.Agents |> Seq.map(fun x -> x.TargetGroup) |> Seq.toArray
         let receivedGroups = st.Agents |> Seq.map(fun x -> x.Value.TargetGroup) |> Seq.toArray
-        ClusterValidation.validateTargetGroups(allGroups, receivedGroups)    
+        ClusterValidation.validateTargetGroups(allGroups, receivedGroups)
 
-module ClusterReporting =    
+module ClusterReporting =
 
     let combineAllNodeStats (coordinatorStats: RawNodeStats, agentsStats: Map<ClientId, RawNodeStats>) =
-        let agentsStats = agentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray    
+        let agentsStats = agentsStats |> Seq.map(fun x -> x.Value) |> Seq.toArray
         let allNodesStats = Array.append [|coordinatorStats|] agentsStats
         allNodesStats
-        
-    let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =       
-        
+
+    let buildClusterStats (st: State, allNodeStats: RawNodeStats[], executionTime: TimeSpan option) =
+
         let meta = { MachineName = st.TestHost.CurrentNodeInfo.MachineName
                      Sender = NodeType.Cluster
                      CurrentOperation = st.TestHost.CurrentOperation }
-        
+
         st.TestHost.GetRegisteredScenarios()
         |> Scenario.applySettings(st.TestSessionArgs.ScenariosSettings)
-        |> Statistics.NodeStats.merge meta allNodeStats executionTime       
-        
+        |> Statistics.NodeStats.merge meta allNodeStats executionTime
+
     let fetchClusterStats (st: State, executionTime: TimeSpan option) = asyncResult {
         let! agentsStats = Communication.getAgentsStats(st, executionTime)
         let coordinatorStats = st.TestHost.GetNodeStats(executionTime)
@@ -129,12 +129,12 @@ module ClusterReporting =
         let clusterStats = buildClusterStats(st, allNodeStats, executionTime)
         return Array.append [|clusterStats|] allNodeStats
     }
-    
-    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], sinks: IReportingSink[]) =    
+
+    let saveClusterStats (testInfo: TestInfo, allClusterStats: RawNodeStats[], sinks: IReportingSink[]) =
         TestHostReporting.saveStats(testInfo, allClusterStats, sinks)
-    
+
     let startRealtimeTimer (st: State) =
-        if not (Array.isEmpty st.ReportingSinks) then            
+        if not (Array.isEmpty st.ReportingSinks) then
             let mutable executionTime = TimeSpan.Zero
             let timer = new System.Timers.Timer(st.TestSessionArgs.SendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
@@ -142,27 +142,27 @@ module ClusterReporting =
                     // moving time forward
                     executionTime <- executionTime.Add(st.TestSessionArgs.SendStatsInterval)
                     match st.TestHost.CurrentNodeInfo.CurrentOperation with
-                    | NodeOperationType.WarmUp 
-                    | NodeOperationType.Bombing ->                            
-                        let! clusterStats = fetchClusterStats(st, Some executionTime)                                        
+                    | NodeOperationType.WarmUp
+                    | NodeOperationType.Bombing ->
+                        let! clusterStats = fetchClusterStats(st, Some executionTime)
                         saveClusterStats(st.TestSessionArgs.TestInfo, clusterStats, st.ReportingSinks) |> ignore
-                    
+
                     | _ -> ()
                 }
                 |> Async.RunSynchronously
                 |> ignore
             )
             timer.Start()
-            timer        
+            timer
         else
             new System.Timers.Timer()
-        
+
     let validateWarmUpStats (st: State) = asyncResult {
         let! allStats = fetchClusterStats(st, None)
         let clusterStats = allStats |> Array.find(fun x -> x.NodeStatsInfo.Sender = NodeType.Cluster)
         do! ScenarioValidation.validateWarmUpStats(clusterStats)
     }
-        
+
 let printAvailableAgents (st: State) =
     st.Logger.Information(sprintf "available agents: %i" st.Agents.Count)
     if st.Agents.Count > 0 then
@@ -177,11 +177,11 @@ let validate (msg: ResponseMessage) =
     | Some v -> Ok v
     | None   -> Error msg.Error.Value
 
-let receiveAgentResponse (st: State, msg: ResponseMessage) = result {    
+let receiveAgentResponse (st: State, msg: ResponseMessage) = result {
     match! validate(msg) with
     | AgentInfo info ->
         st.Agents.[msg.Headers.ClientId] <- info
-            
+
     | AgentStats stats ->
         st.AgentsStats.[msg.Headers.ClientId] <- stats
 }
@@ -191,8 +191,8 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
 
     let clientId = sprintf "coordinator_%s" (Guid.NewGuid().ToString("N"))
     let! mqttClient = Mqtt.initClient(clientId, settings.MqttServer, settings.MqttPort, dep.Logger)
-    let args = { testArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }    
-    
+    let args = { testArgs with TargetScenarios = settings.TargetScenarios |> List.toArray }
+
     let state = {
         ClientId = clientId
         AgentsTopic = Contracts.createAgentsTopic(settings.ClusterId)
@@ -206,27 +206,27 @@ let initCoordinator (dep: Dependency, registeredScenarios: Scenario[],
         ReportingSinks = dep.ReportingSinks
         Logger = dep.Logger
     }
-    return state    
+    return state
 }
 
-let runSession (st: State) = asyncResult {    
-        
+let runSession (st: State) = asyncResult {
+
     Communication.subscribeOnAgentResponses(st, fun response ->
         receiveAgentResponse(st, response)
         |> Result.mapError(AppError.toString)
         |> ignore
     )
-            
+
     do! Communication.sendGetAllAgentInfo(st)
-    printAvailableAgents(st)    
-    
+    printAvailableAgents(st)
+
     do! Communication.sendStartNewSession(st)
     do! st.TestHost.InitScenarios(st.TestSessionArgs)
-    do! Communication.waitOnAllAgentsReady(st)    
+    do! Communication.waitOnAllAgentsReady(st)
 
     // warm-up
-    do! Communication.sendStartWarmUp(st)    
-    do! st.TestHost.WarmUpScenarios()    
+    do! Communication.sendStartWarmUp(st)
+    do! st.TestHost.WarmUpScenarios()
     do! Communication.waitOnAllAgentsReady(st)
     do! ClusterReporting.validateWarmUpStats(st)
 
@@ -236,25 +236,25 @@ let runSession (st: State) = asyncResult {
     do! st.TestHost.StartBombing()
     bombingReportingTimer.Stop()
     do! Communication.waitOnAllAgentsComplete(st)
-        
+
     let! allStats = ClusterReporting.fetchClusterStats(st, None)
     return allStats
 }
 
 type ClusterCoordinator() =
-    
-    let mutable _state: Option<State> = None    
+
+    let mutable _state: Option<State> = None
     member x.State = _state
-    
+
     member x.RunSession(dep: Dependency, registeredScenarios: Scenario[],
                         settings: CoordinatorSettings, sessionArgs: TestSessionArgs) =
         asyncResult {
-            let! state = initCoordinator(dep, registeredScenarios, settings, sessionArgs)        
+            let! state = initCoordinator(dep, registeredScenarios, settings, sessionArgs)
             _state <- Some state
             let! clusterStats = runSession(state)
             return clusterStats
         }
-    
+
     interface IDisposable with
         member x.Dispose() =
             if _state.IsSome then

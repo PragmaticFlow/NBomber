@@ -4,7 +4,7 @@ open System.IO
 open System.IO.Compression
 open System.Reflection
 
-module Constants =    
+module Constants =
 
     [<Literal>]
     let AssetsHtml = "NBomber.assets.html."
@@ -14,7 +14,7 @@ module Constants =
 
     [<Literal>]
     let AssetsZip = "NBomber.assets.assets.zip"
-    
+
     [<Literal>]
     let IndexHtml = "index.html"
 
@@ -25,16 +25,16 @@ module Constants =
     let SidebarItemHtml = "sidebar_item.html"
 
     [<Literal>]
-    let GlobalViewHtml = "global_view.html"    
+    let GlobalViewHtml = "global_view.html"
 
     [<Literal>]
-    let ScenarioViewHtml = "scenario_view.html"        
+    let ScenarioViewHtml = "scenario_view.html"
 
     [<Literal>]
     let EnvTableHtml = "env_table.html"
 
     [<Literal>]
-    let EnvViewHtml = "env_view.html"    
+    let EnvViewHtml = "env_view.html"
 
     [<Literal>]
     let StatisticsTableHtml = "statistics_table.html"
@@ -52,12 +52,12 @@ module Constants =
     let IndicatorsChartJs = "indicators_chart.js"
 
 type Assets = {
-    IndexHtml: string    
+    IndexHtml: string
     SidebarHtml: string
     SidebarItemHtml: string
     GlobalViewHtml: string
     ScenarioViewHtml: string
-    StatisticsTableHtml: string    
+    StatisticsTableHtml: string
     EnvTableHtml: string
     EnvViewHtml: string
     NumReqChartHtml: string
@@ -69,14 +69,14 @@ type Assets = {
 let loadAssets () =
 
     let readResource (assembly: Assembly, resourceName) =
-        use stream = assembly.GetManifestResourceStream(resourceName)    
+        use stream = assembly.GetManifestResourceStream(resourceName)
         use reader = new StreamReader(stream)
         reader.ReadToEnd()
 
     let assembly = typedefof<Assets>.Assembly
 
-    { IndexHtml = readResource(assembly, Constants.AssetsHtml + Constants.IndexHtml)            
-      SidebarHtml = readResource(assembly, Constants.AssetsHtml + Constants.SidebarHtml)  
+    { IndexHtml = readResource(assembly, Constants.AssetsHtml + Constants.IndexHtml)
+      SidebarHtml = readResource(assembly, Constants.AssetsHtml + Constants.SidebarHtml)
       SidebarItemHtml = readResource(assembly, Constants.AssetsHtml + Constants.SidebarItemHtml)
       GlobalViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.GlobalViewHtml)
       ScenarioViewHtml = readResource(assembly, Constants.AssetsHtml + Constants.ScenarioViewHtml)
@@ -91,12 +91,12 @@ let loadAssets () =
 let saveAssets (outputDir: string) =
 
     let assetsDir = Path.Combine(outputDir, "assets")
-    let assetsZip = Path.Combine(outputDir, "assets.zip")    
-    
+    let assetsZip = Path.Combine(outputDir, "assets.zip")
+
     let saveResource (assembly: Assembly, resourceName, outputFilePath) =
         use stream = assembly.GetManifestResourceStream(resourceName)
         use file = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write)
-        stream.CopyTo(file)        
+        stream.CopyTo(file)
 
     if not(Directory.Exists assetsDir) then
         let assembly = typedefof<Assets>.Assembly

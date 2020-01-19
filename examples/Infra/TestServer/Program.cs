@@ -13,9 +13,9 @@ namespace TestServer
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args)                
+            return WebHost.CreateDefaultBuilder(args)
                 .UseKestrel(options =>
-                {                    
+                {
                     options.ListenLocalhost(5000);
                 })
                 .UseStartup<Startup>();

@@ -15,7 +15,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
         public string TargetMqttBrokerHost { get; set; }
         public int MsgPayloadSizeInBytes { get; set; }
     }
-    
+
     public class MqttReqResponseScenario
     {
         class State
@@ -33,7 +33,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
             var requestStep = Step.Create("request step", async context =>
             {
                 var clientId = context.Connection.Options.ClientId;
-                
+
                 var msg = new MqttApplicationMessage
                 {
                     Topic = $"requests/{clientId}",
@@ -42,7 +42,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
 
                 await context.Connection.PublishAsync(msg);
                 return Response.Ok(sizeBytes: state.MsgPayload.Length);
-            }, 
+            },
             connectionPool: mqttConectionPool);
 
             var responseStep = Step.Create("response step", async context =>
@@ -50,7 +50,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
                 var clientId = context.Connection.Options.ClientId;
                 var response = await state.ClientResponses.GetResponseAsync(clientId);
                 return Response.Ok(sizeBytes: response.Length);
-            }, 
+            },
             connectionPool: mqttConectionPool);
 
             var scenario = ScenarioBuilder
@@ -63,7 +63,7 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
                     state.TargetMqttBrokerHost = settings.TargetMqttBrokerHost;
 
                     context.Logger.Information("MsgPayloadSizeInBytes:'{MsgPayloadSizeInBytes}'", settings.MsgPayloadSizeInBytes);
-                    
+
                     return Task.CompletedTask;
                 });
 
@@ -96,11 +96,11 @@ namespace CSharp.Examples.Cluster.Tests.MqttReqResponse
 
                     client.ConnectAsync(clientOptions, CancellationToken.None).Wait();
                     state.ClientResponses.InitClientId(clientId);
-                    
+
                     return client;
                 });
         }
-        
+
         static byte[] GeneratePayload(int payloadSizeInBytes)
         {
             var buffer = new byte[payloadSizeInBytes];

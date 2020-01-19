@@ -6,13 +6,13 @@ open NBomber.Domain
 [<AutoOpen>]
 module private Impl =
     type Row2 = string * string
-    
+
     let sep n =
         System.String('-', n)
-    
+
     let sep2 l1 l2 =
         sprintf "|-%s-|-%s-|" (sep l1) (sep l2)
-    
+
     let asMdTable (s: StepStats) =
         let dataInfoAvailable = s.DataTransfer.AllMB > 0.0
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
@@ -53,11 +53,11 @@ module private Impl =
                 scnStats.ConcurrentCopies
 
 let print (stats: RawNodeStats) =
-    
+
     stats.AllScenariosStats
     |> Seq.collect (fun x ->
         seq {
-            yield scenarioHeader x    
+            yield scenarioHeader x
             yield x.StepsStats
                   |> List.ofArray
                   |> List.collect asMdTable

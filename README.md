@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px"> 
+  <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
 [![Build status](https://ci.appveyor.com/api/projects/status/kko2ro88xry274do?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
@@ -62,7 +62,7 @@ The main reasons are:
  - **To be technology agnostic** as much as possible (**no dependency on any protocol: HTTP, WebSockets, SSE etc**).
  - To be able to test .NET implementation of specific driver. During testing, it was identified many times that the performance could be slightly different because of the virtual machine(.NET, Java, PHP, Js, Erlang, different settings for GC) or just quality of drivers. For example there were cases that drivers written in C++ and invoked from NodeJs app worked faster than drivers written in C#/.NET. Therefore, it does make sense to load test your app using your concrete driver and runtime.
 
- ### What makes it very simple? 
+ ### What makes it very simple?
 NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
 var step = Step.Create("step", async context =>

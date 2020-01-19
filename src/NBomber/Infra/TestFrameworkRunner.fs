@@ -10,12 +10,12 @@ type TestFramework =
 
 let private printErrorMessage (framework: TestFramework) (errorsMessage: string) =
     match framework with
-    | Xunit xType -> 
+    | Xunit xType ->
         let m = xType.GetMethod("True", [|typeof<bool>; typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<bool,string>>, m) :?> (Action<bool,string>)
-        func.Invoke(false, errorsMessage)            
+        func.Invoke(false, errorsMessage)
 
-    | Nunit nType -> 
+    | Nunit nType ->
         let m = nType.GetMethod("Fail", [|typeof<string>|])
         let func = Delegate.CreateDelegate(typeof<Action<string>>, m) :?> (Action<string>)
         func.Invoke(errorsMessage)
@@ -30,12 +30,12 @@ let tryGetCurrentFramework () =
      "NUnit.Framework.Assert, nunit.framework", Nunit
      "Expecto.AssertException, expecto", Expecto
     ] |> List.tryPick(fun (typeName, framework) ->
-        typeName |> Type.GetType |> Option.ofObj |> Option.map(framework))    
+        typeName |> Type.GetType |> Option.ofObj |> Option.map(framework))
 
 let showErrors (error: AppError[]) =
     match tryGetCurrentFramework() with
     | None -> failwith "No supported test framework found. Supported are Xunit, NUnit, Expecto"
-    | Some framework -> 
+    | Some framework ->
         error
         |> Array.map(AppError.toString)
         |> String.concat(", ")

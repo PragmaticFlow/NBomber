@@ -19,7 +19,7 @@ let serialize (data: obj) =
     formatter.Serialize(ms, data)
     ms.ToArray()
 
-let deserialize<'T> (data: byte[]) = 
+let deserialize<'T> (data: byte[]) =
     use ms = new MemoryStream(data)
     let formatter = BinaryFormatter()
     formatter.Deserialize(ms) :?> 'T
@@ -39,23 +39,23 @@ let reconnect (client: IMqttClient, options: IMqttClientOptions option, logger: 
                 ignore result
             else
                 do! client.ReconnectAsync()
-                
-            logger.Information("connection with mqtt broker is established")            
+
+            logger.Information("connection with mqtt broker is established")
         with
         | ex -> logger.Error(ex, "can't connect to the mqtt broker")
-    
-    return client        
+
+    return client
 }
 
 let initClient (clientId: string, mqttServer: string,
                 mqttPort: int option, logger: Serilog.ILogger) =
-    
+
     let createMqttClient () =
         let factory = MqttFactory()
         factory.CreateMqttClient()
-    
+
     let client = createMqttClient()
-    let options = 
+    let options =
         MqttClientOptionsBuilder()
             .WithClientId(clientId)
             .WithTcpServer(mqttServer, Option.toNullable(mqttPort))
@@ -63,7 +63,7 @@ let initClient (clientId: string, mqttServer: string,
             .WithCommunicationTimeout(TimeSpan.FromSeconds(5.0))
             .Build()
             |> Some
-    
+
     reconnect(client, options, logger) |> Async.AwaitTask
 
 let publishToBroker (mqttClient: IMqttClient) (msg: MqttApplicationMessage) = async {

@@ -18,29 +18,29 @@ let setStepContext (correlationId: string)
                    (cancelToken: CancellationToken)
                    (logger: ILogger)
                    (step: Step) =
-    
+
     let getConnection (pool: ConnectionPool<obj>) =
         match pool.ConnectionsCount with
         | Some v -> let connectionIndex = actorIndex % pool.ConnectionsCount.Value
                     pool.AliveConnections.[connectionIndex]
         | None   -> pool.AliveConnections.[actorIndex]
-    
+
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
                     Data = Unchecked.defaultof<obj>
-                    Logger = logger }    
-    
+                    Logger = logger }
+
     { step with CurrentContext = Some context }
-    
-let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {    
+
+let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
-    try 
+    try
         step.CurrentContext.Value.Data <- data
-        
+
         let! resp = step.Execute(step.CurrentContext.Value)
-        
+
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = int(endTime - startTime)
         return { Response = resp; StartTimeMs = startTime; LatencyMs = latency }
@@ -48,7 +48,7 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
     | :? TaskCanceledException
     | :? OperationCanceledException ->
         return { Response = Response.Ok(); StartTimeMs = -1.0; LatencyMs = -1 }
-    
+
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
@@ -69,16 +69,16 @@ let execSteps (logger: ILogger,
         for rs in resourcesToDispose do
             try rs.Dispose()
             with _ -> ()
-    
+
     for st in steps do
         if not skipStep && not cancelToken.ShouldCancel then
-            
+
             for i = 1 to st.RepeatCount do
                 let! response = execStep(st, data, globalTimer)
-                
+
                 if response.Response.Payload :? IDisposable then
-                    resourcesToDispose.Add(response.Response.Payload :?> IDisposable)                
-                    
+                    resourcesToDispose.Add(response.Response.Payload :?> IDisposable)
+
                 if not cancelToken.ShouldCancel && st.DoNotTrack = false then
                     responses.[stepIndex].Add(response)
 
@@ -89,14 +89,14 @@ let execSteps (logger: ILogger,
                     else
                         logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", st.StepName)
                         skipStep <- true
-    
+
     cleanResources()
 }
 
-let filterByDuration (responses: StepResponse seq, duration: TimeSpan) =        
+let filterByDuration (responses: StepResponse seq, duration: TimeSpan) =
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
-    
+
     responses
     |> Seq.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
     |> Seq.choose(fun x ->

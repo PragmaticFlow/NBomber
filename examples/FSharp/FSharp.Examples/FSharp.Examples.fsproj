@@ -20,11 +20,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1" />            
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1" />
   </ItemGroup>
 
 </Project>

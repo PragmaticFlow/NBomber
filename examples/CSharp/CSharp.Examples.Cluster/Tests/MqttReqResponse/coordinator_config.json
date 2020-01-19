@@ -19,7 +19,7 @@
     ],
     "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
   },
-  
+
   "ClusterSettings": {
     "Coordinator": {
       "ClusterId": "test_cluster",
@@ -34,7 +34,7 @@
       ]
     }
   },
-  
+
   "CustomSettings": {
     "TargetMqttBrokerHost": "localhost",
     "MsgPayloadSizeInBytes": 1000

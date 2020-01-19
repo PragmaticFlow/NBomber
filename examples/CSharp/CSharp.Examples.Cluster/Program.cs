@@ -11,9 +11,9 @@ namespace CSharp.Examples.Cluster
         static void Main(string[] args)
         {
             var configPath = args[0]; // agent_config.json or coordinator_config.json
-            
+
             var influxDb = new InfluxDBSink(url: "http://localhost:8086", dbName: "default");
-            
+
             NBomberRunner.RegisterScenarios(
                     SimpleHttpScenario.Create(),
                     MqttReqResponseScenario.Create()

@@ -8,7 +8,7 @@ namespace CSharp.Examples.Scenarios
     class HelloWorldScenario
     {
         public static void Run()
-        {   
+        {
             var step = Step.Create("step", async context =>
             {
                 // you can do any logic here: go to http, websocket etc

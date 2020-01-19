@@ -15,15 +15,15 @@ open NBomber.Infra.ResourceManager
 
 type ApplicationType =
     | Process
-    | Console    
+    | Console
     | Test
 
 type MachineInfo = {
-    MachineName: string    
+    MachineName: string
     OS: OperatingSystem
-    DotNetVersion: string    
-    Processor: string    
-    CoresCount: int    
+    DotNetVersion: string
+    Processor: string
+    CoresCount: int
 }
 
 type Dependency = {
@@ -40,21 +40,21 @@ type Dependency = {
 
 module ProgressBar =
 
-    let private options = 
-        ProgressBarOptions(ProgressBarOnBottom = true,                                     
+    let private options =
+        ProgressBarOptions(ProgressBarOnBottom = true,
                            ForegroundColor = ConsoleColor.Yellow,
                            ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
                            BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
                            BackgroundCharacter = Nullable<char>('\u2593'))
 
-    let create (ticks: int) = 
+    let create (ticks: int) =
         new ProgressBar(ticks, String.Empty, options)
 
-    let show (scenarioDuration: TimeSpan) = task {    
-        let totalSeconds = int(scenarioDuration.TotalSeconds)                                        
+    let show (scenarioDuration: TimeSpan) = task {
+        let totalSeconds = int(scenarioDuration.TotalSeconds)
         use pbar = new ProgressBar(totalSeconds, String.Empty, options)
-    
-        for i = 1 to totalSeconds do        
+
+        for i = 1 to totalSeconds do
             do! Task.Delay(TimeSpan.FromSeconds(1.0))
             pbar.Tick()
     }
@@ -65,12 +65,12 @@ let private retrieveMachineInfo () =
                                 .GetCustomAttribute<TargetFrameworkAttribute>()
                                 .FrameworkName
 
-    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")    
+    let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
 
-    { MachineName = Environment.MachineName      
+    { MachineName = Environment.MachineName
       OS = Environment.OSVersion
       DotNetVersion = dotNetVersion
-      Processor = if isNull processor then String.Empty else processor      
+      Processor = if isNull processor then String.Empty else processor
       CoresCount = Environment.ProcessorCount }
 
 let createSessionId () =
@@ -81,13 +81,13 @@ let createSessionId () =
 let create (appType: ApplicationType,
             nodeType: NodeType,
             testInfo: TestInfo,
-            infraConfig: IConfiguration option) =    
-    
+            infraConfig: IConfiguration option) =
+
     let logger = Logger.createLogger(testInfo, infraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
-    
+
     Serilog.Log.Logger <- logger
-    
+
     { NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType
