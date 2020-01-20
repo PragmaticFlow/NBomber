@@ -15,7 +15,7 @@ module internal Extensions =
         static member getOk (result) =
             match result with
             | Ok v    -> v
-            | Error _ -> failwith "result is error"        
+            | Error _ -> failwith "result is error"
 
         static member getError (result) =
             match result with
@@ -51,7 +51,7 @@ module internal Extensions =
 
         let concatWithCommaAndQuotes (strings: string seq) =
             strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
-            
+
     module Array =
         /// Safe variant of `Array.min`
         let minOrDefault defaultValue array =
@@ -72,9 +72,9 @@ module internal Extensions =
         let averageByOrDefault (defaultValue : float) f array =
             if Array.isEmpty array then defaultValue
             else array |> Array.averageBy f
-            
+
     module Map =
-        
+
         let inline fromDictionary (dictionary) =
             dictionary
             |> Seq.map (|KeyValue|)

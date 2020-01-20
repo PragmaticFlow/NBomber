@@ -1,14 +1,14 @@
-﻿{  
+﻿{
   "TestSuite": "nbomber tests",
   "TestName": "test http",
-  
-  "GlobalSettings": {    
+
+  "GlobalSettings": {
     "ScenariosSettings": [
       {
         "ScenarioName": "test_nbomber",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
-        "ConcurrentCopies": 100        
+        "ConcurrentCopies": 100
       }
     ],
     "TargetScenarios": [ "test_gitter" ],

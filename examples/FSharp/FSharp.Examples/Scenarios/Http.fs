@@ -7,7 +7,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.FSharp
 
-let run () =    
+let run () =
 
     // it's a very basic HTTP example, don't use it for production testing
     // for production purposes use NBomber.Http which use performance optimizations
@@ -15,16 +15,16 @@ let run () =
 
     let httpClient = new HttpClient()
 
-    let step = Step.create("pull html", fun context -> task {        
+    let step = Step.create("pull html", fun context -> task {
         let! response = httpClient.GetAsync("https://nbomber.com",
                                             context.CancellationToken)
-        
+
         match response.IsSuccessStatusCode with
         | true  -> let size = int response.Content.Headers.ContentLength.Value
                    return Response.Ok(sizeBytes = size)
-        | false -> return Response.Fail() 
+        | false -> return Response.Fail()
     })
-    
+
     let scenario = Scenario.create "test_nbomber" [step]
                    |> Scenario.withConcurrentCopies 100
 

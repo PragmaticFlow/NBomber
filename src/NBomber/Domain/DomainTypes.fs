@@ -4,7 +4,7 @@ open System
 open System.Threading.Tasks
 open NBomber.Contracts
 
-module internal Constants =   
+module internal Constants =
     open NBomber.Configuration
 
     [<Literal>]
@@ -14,11 +14,11 @@ module internal Constants =
     let DefaultConcurrentCopies = 50
 
     [<Literal>]
-    let DefaultWarmUpDurationInSec = 10.0    
+    let DefaultWarmUpDurationInSec = 10.0
 
     [<Literal>]
     let DefaultRepeatCount = 0
-    
+
     [<Literal>]
     let DefaultDoNotTrack = false
 
@@ -26,10 +26,10 @@ module internal Constants =
 
     [<Literal>]
     let EmptyPoolName = "nbomber_empty_pool"
-    
+
     [<Literal>]
     let DefaultTestSuite = "NBomberTestSuite"
-    
+
     [<Literal>]
     let DefaultTestName = "NBomberLoadTest"
 
@@ -44,7 +44,7 @@ type internal Latency = int
 
 [<CustomEquality; NoComparison>]
 type internal ConnectionPool<'TConnection> = {
-    PoolName: string    
+    PoolName: string
     OpenConnection: unit -> 'TConnection
     CloseConnection: ('TConnection -> unit) option
     ConnectionsCount: int option
@@ -52,7 +52,7 @@ type internal ConnectionPool<'TConnection> = {
 } with
   interface IConnectionPool<'TConnection>
   override x.GetHashCode() = x.PoolName.GetHashCode()
-  override x.Equals(b) = 
+  override x.Equals(b) =
     match b with
     | :? ConnectionPool<'TConnection> as pool -> x.PoolName = pool.PoolName
     | _ -> false
@@ -70,16 +70,16 @@ type internal Step = {
 
 type internal StepResponse = {
     Response: Response
-    StartTimeMs: float    
+    StartTimeMs: float
     LatencyMs: int
 }
 
-type internal Scenario = {    
+type internal Scenario = {
     ScenarioName: ScenarioName
-    TestInit: (ScenarioContext -> Task) option  
-    TestClean: (ScenarioContext -> Task) option  
+    TestInit: (ScenarioContext -> Task) option
+    TestClean: (ScenarioContext -> Task) option
     Steps: Step[]
-    ConcurrentCopies: int    
+    ConcurrentCopies: int
     CorrelationIds: CorrelationId[]
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

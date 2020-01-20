@@ -1,7 +1,7 @@
 ﻿{
   "Serilog": {
     "Using": [
-      "Serilog.Sinks.Console", 
+      "Serilog.Sinks.Console",
       "Serilog.Sinks.Elasticsearch"
     ],
     "MinimumLevel": "Debug",

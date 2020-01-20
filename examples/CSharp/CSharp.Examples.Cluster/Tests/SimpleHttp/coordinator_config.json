@@ -1,14 +1,14 @@
 ﻿{
   "TestSuite": "http tests",
   "TestName": "simple cluster http test",
-  
+
   "GlobalSettings": {
     "ScenariosSettings": [
       {
         "ScenarioName": "simple http scenario",
         "WarmUpDuration": "00:00:30",
         "Duration": "00:01:00",
-        "ConcurrentCopies": 100        
+        "ConcurrentCopies": 100
       }
     ]
   },

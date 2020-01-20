@@ -3,11 +3,11 @@
 open System
 open FSharp.Json
 
-type ReportFormat = 
+type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
-    | Md = 3    
+    | Md = 3
 
 type ScenarioSetting = {
     ScenarioName: string
@@ -51,10 +51,10 @@ type ClusterSettings =
 type TestConfig = {
     TestSuite: string
     TestName: string
-    GlobalSettings: GlobalSettings option    
-    ClusterSettings: ClusterSettings option    
+    GlobalSettings: GlobalSettings option
+    ClusterSettings: ClusterSettings option
     [<JsonField(Transform=typeof<TestConfig.JsonStringTransform>)>]
-    CustomSettings: string option    
+    CustomSettings: string option
 }
 
 module internal TestConfig =
@@ -67,7 +67,7 @@ module internal TestConfig =
                 let config = JsonConfig.create(allowUntyped = true)
                 let str = Json.serializeEx config value
                 str :> obj
-    
-    let parse (json) =        
+
+    let parse (json) =
         let config = JsonConfig.create(allowUntyped = true)
         Json.deserializeEx<TestConfig> config json

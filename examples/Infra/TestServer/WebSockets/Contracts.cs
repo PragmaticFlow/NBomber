@@ -2,13 +2,13 @@
 {
     public enum RequestType
     {
-        Ping        
+        Ping
     }
 
     public class WebSocketRequest
     {
         public string CorrelationId { get; set; }
-        public RequestType RequestType { get; set; }        
+        public RequestType RequestType { get; set; }
     }
 
     public enum ResponseType
@@ -19,6 +19,6 @@
     public class WebSocketResponse
     {
         public string CorrelationId { get; set; }
-        public ResponseType ResponseType { get; set; }        
+        public ResponseType ResponseType { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using NBomber.Http.CSharp;
 namespace CSharp.Examples.Scenarios
 {
     class HttpScenario
-    {   
+    {
         public static void Run()
         {
             var step = HttpStep.Create("http pull", context =>
@@ -20,7 +20,7 @@ namespace CSharp.Examples.Scenarios
                 .WithConcurrentCopies(100)
                 .WithWarmUpDuration(TimeSpan.FromSeconds(10))
                 .WithDuration(TimeSpan.FromSeconds(20));
-            
+
             NBomberRunner.RegisterScenarios(scenario)
                 .RunInConsole();
         }

@@ -3,7 +3,7 @@ image: Visual Studio 2019
 
 branches:
   only:
-    - master    
+    - master
     - tests
     - dev
 
@@ -13,8 +13,8 @@ build_script:
 test_script:
   - ps: .\build.ps1 -target=Test
 
-artifacts:	
-  - path: ./artifacts/*.nupkg	
+artifacts:
+  - path: ./artifacts/*.nupkg
     name: NBomber
 
 deploy:

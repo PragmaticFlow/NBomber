@@ -21,7 +21,7 @@ type ConnectionPool =
     static member create<'TConnection>(name: string,
                                        openConnection: unit -> 'TConnection,
                                        ?closeConnection: 'TConnection -> unit,
-                                       ?connectionsCount: int) =        
+                                       ?connectionsCount: int) =
         { PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
@@ -47,22 +47,22 @@ type ConnectionPool =
 
 type Step =
 
-    static member private getRepeatCount (repeatCount: int option) = 
+    static member private getRepeatCount (repeatCount: int option) =
         match defaultArg repeatCount Constants.DefaultRepeatCount with
         | x when x <= 0 -> 1
-        | x             -> x       
-    
-    static member create (name: string,                          
+        | x             -> x
+
+    static member create (name: string,
                           connectionPool: IConnectionPool<'TConnection>,
-                          execute: StepContext<'TConnection> -> Task<Response>,                          
+                          execute: StepContext<'TConnection> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
-        
-        let p = connectionPool :?> ConnectionPool<'TConnection>        
+
+        let p = connectionPool :?> ConnectionPool<'TConnection>
 
         let newOpen = fun () -> p.OpenConnection() :> obj
-        
-        let newClose = 
+
+        let newClose =
             match p.CloseConnection with
             | Some func -> Some <| fun (c: obj) -> c :?> 'TConnection |> func
             | None      -> None
@@ -90,17 +90,17 @@ type Step =
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
-    static member create (name: string,                          
+    static member create (name: string,
                           execute: StepContext<'TConnection> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
-        Step.create(name, 
+        Step.create(name,
                     ConnectionPool.internalNone<'TConnection>(),
                     execute,
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
-        
+
     static member createPause (duration: TimeSpan) =
         Step.create(name = sprintf "pause %A" duration,
                     execute = (fun _ -> task { do! Task.Delay(duration)
@@ -114,8 +114,8 @@ module Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = Seq.toArray(steps)          
-          ConcurrentCopies = Constants.DefaultConcurrentCopies          
+          Steps = Seq.toArray(steps)
+          ConcurrentCopies = Constants.DefaultConcurrentCopies
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
@@ -130,31 +130,31 @@ module Scenario =
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
-        
+
     let withOutWarmUp (scenario: Contracts.Scenario) =
-        { scenario with WarmUpDuration = TimeSpan.Zero }        
+        { scenario with WarmUpDuration = TimeSpan.Zero }
 
     let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with Duration = duration }
 
-module NBomberRunner =    
+module NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
-    let registerScenarios (scenarios: Contracts.Scenario list) =        
-        { TestContext.empty with RegisteredScenarios = scenarios |> Seq.toArray  }        
+    let registerScenarios (scenarios: Contracts.Scenario list) =
+        { TestContext.empty with RegisteredScenarios = scenarios |> Seq.toArray  }
 
     let withReportFileName (reportFileName: string) (context: TestContext) =
         { context with ReportFileName = Some reportFileName }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: TestContext) =
         { context with ReportFormats = Seq.toArray reportFormats }
-        
+
     let withTestSuite (testSuite: string) (context: TestContext) =
         { context with TestSuite = testSuite }
-    
+
     let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
-        
+
     let loadTestConfig (path: string) (context: TestContext) =
         let config = path |> File.ReadAllText |> TestConfig.parse
         { context with TestConfig = Some config }
@@ -162,7 +162,7 @@ module NBomberRunner =
     let loadInfraConfig (path: string) (context: TestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
-    
+
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =
         { context with ReportingSinks = Seq.toArray reportingSinks
                        SendStatsInterval = sendStatsInterval }
@@ -184,6 +184,6 @@ module NBomberRunner =
         NBomberRunner.runAs(Test, context)
         |> Result.map(fun x -> x.Statistics)
         |> Result.mapError(AppError.toString)
-        
+
     let internal runWithResult (context: TestContext) =
         NBomberRunner.runAs(Process, context)

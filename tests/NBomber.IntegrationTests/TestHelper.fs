@@ -9,7 +9,7 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 
 module internal Dependency =
-    
+
     let createFor (nodeType: NodeType) =
         let testInfo = {
             SessionId = Dependency.createSessionId()
@@ -18,7 +18,7 @@ module internal Dependency =
         }
         {| TestInfo = testInfo
            Dep = Dependency.create(ApplicationType.Process, nodeType, testInfo, None) |}
-    
+
     let createWithInMemoryLogger(nodeType: NodeType) =
         let testInfo = {
             SessionId = Dependency.createSessionId()

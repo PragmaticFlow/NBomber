@@ -28,7 +28,7 @@ let getTestName (context: TestContext) =
     |> Option.map(fun x -> x.TestName)
     |> Option.defaultValue context.TestName
 
-let getScenariosSettings (context: TestContext) =    
+let getScenariosSettings (context: TestContext) =
     context.TestConfig
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.bind(fun x -> x.ScenariosSettings)
@@ -39,13 +39,13 @@ let tryGetClusterSettings (context: TestContext) =
     context.TestConfig
     |> Option.bind(fun x -> x.ClusterSettings)
 
-let getNodeType (context: TestContext) = 
+let getNodeType (context: TestContext) =
     context.TestConfig
     |> Option.bind(fun x -> x.ClusterSettings)
-    |> Option.map(function 
+    |> Option.map(function
         | ClusterSettings.Coordinator _ -> NodeType.Coordinator
         | ClusterSettings.Agent _       -> NodeType.Agent)
-    |> Option.defaultValue NodeType.SingleNode        
+    |> Option.defaultValue NodeType.SingleNode
 
 let getTargetScenarios (context: TestContext) =
     let targetScn =
@@ -53,25 +53,25 @@ let getTargetScenarios (context: TestContext) =
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.bind(fun x -> x.TargetScenarios)
 
-    let allScns = context.RegisteredScenarios 
+    let allScns = context.RegisteredScenarios
                   |> Array.map(fun x -> x.ScenarioName)
                   |> Array.toList
 
     defaultArg targetScn allScns
     |> List.toArray
 
-let getReportFileName (sessionId: string, context: TestContext) = 
+let getReportFileName (sessionId: string, context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.TestConfig
         let! settings = config.GlobalSettings
-        return! settings.ReportFileName    
+        return! settings.ReportFileName
     }
     context
     |> tryGetFromConfig
     |> Option.orElse(context.ReportFileName)
     |> Option.defaultValue("report_" + sessionId)
 
-let getReportFormats (context: TestContext) = 
+let getReportFormats (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.TestConfig
         let! settings = config.GlobalSettings
@@ -90,8 +90,8 @@ let getCustomSettings (context: TestContext) =
         return! config.CustomSettings
     }
     |> function Some v -> v | None -> ""
-    
-let getSendStatsInterval (context: TestContext) = 
+
+let getSendStatsInterval (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.TestConfig
         let! settings = config.GlobalSettings
@@ -100,4 +100,4 @@ let getSendStatsInterval (context: TestContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.SendStatsInterval    
+    |> Option.defaultValue context.SendStatsInterval
