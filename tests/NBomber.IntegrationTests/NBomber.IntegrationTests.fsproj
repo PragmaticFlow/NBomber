@@ -23,6 +23,7 @@
     <Compile Include="Scenario.fs" />
     <Compile Include="StatisticsTests.fs" />
     <Compile Include="Reporting\ReportingSinkTests.fs" />
+    <Compile Include="Reporting\TextReportTests.fs" />
     <Compile Include="Infra\MqttTests.fs" />
     <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration\LoadConfigTests.fs" />
