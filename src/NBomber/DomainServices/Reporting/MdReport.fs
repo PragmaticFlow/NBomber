@@ -14,25 +14,23 @@ module private Impl =
         sprintf "|-%s-|-%s-|" (sep l1) (sep l2)
 
     let asMdTable (s: StepStats) =
-        let dataInfoAvailable = s.DataTransfer.AllMB > 0.0
         let count = sprintf "all = `%i`, OK = `%i`, failed = `%i`" s.ReqeustCount s.OkCount s.FailCount
         let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
         let percentile =
-                sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
-        let transfer =
-            if dataInfoAvailable
-            then
-                sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`"
-                    s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB
-            else "min = - , mean = - , max = - , all = -"
+            sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
+
         [ "name", ("`" + s.StepName + "`")
           "request count", count
           "response time", times
           "response time percentile", percentile
-          "data transfer", transfer
+          if s.DataTransfer.AllMB > 0.0 then
+            "data transfer",
+                    sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`"
+                        s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB
+          else ()
         ]
 
-    let concat (rows : Row2 list) =
+    let concatRows (rows : Row2 list) =
         seq {
             let length1 = rows |> List.map (fst >> String.length) |> List.max
             let length2 = rows |> List.map (snd >> String.length) |> List.max
@@ -46,22 +44,27 @@ module private Impl =
         } |> String.concat Environment.NewLine
 
     let scenarioHeader (scnStats: ScenarioStats) =
-        sprintf "# Scenario: `%s`\n\n- Duration: `%A`\n- RPS: `%i`\n- Concurrent Copies: `%i`\n"
-                (scnStats.ScenarioName.Replace('_', ' '))
-                scnStats.Duration
-                scnStats.RPS
-                scnStats.ConcurrentCopies
+        [ sprintf "# Scenario: `%s`" (scnStats.ScenarioName.Replace('_', ' '))
+          ""
+          sprintf "- Duration: `%A`" scnStats.Duration
+          sprintf "- RPS: `%i`" scnStats.RPS
+          sprintf "- Concurrent Copies: `%i`" scnStats.ConcurrentCopies
+          ""
+        ]
+        |> String.concat Environment.NewLine
 
 let print (stats: RawNodeStats) =
+    let appendLine s = s + Environment.NewLine
 
     stats.AllScenariosStats
     |> Seq.collect (fun x ->
         seq {
-            yield scenarioHeader x
-            yield x.StepsStats
-                  |> List.ofArray
-                  |> List.collect asMdTable
-                  |> List.append [ "__step__", "__details__" ]
-                  |> concat
+            scenarioHeader x
+            x.StepsStats
+            |> List.ofArray
+            |> List.collect asMdTable
+            |> List.append [ "__step__", "__details__" ]
+            |> concatRows
+            |> appendLine
         })
     |> String.concat Environment.NewLine
