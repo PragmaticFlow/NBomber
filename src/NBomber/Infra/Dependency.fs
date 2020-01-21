@@ -32,7 +32,7 @@ type Dependency = {
     NodeType: NodeType
     MachineInfo: MachineInfo
     Assets: Assets
-    ShowProgressBar: TimeSpan -> unit
+    ShowProgressBar: TimeSpan -> FixedDurationBar
     CreateProgressBar: int -> ProgressBar
     Logger: ILogger
     ReportingSinks: IReportingSink[]
@@ -50,14 +50,8 @@ module ProgressBar =
     let create (ticks: int) =
         new ProgressBar(ticks, String.Empty, options)
 
-    let show (scenarioDuration: TimeSpan) = task {
-        let totalSeconds = int(scenarioDuration.TotalSeconds)
-        use pbar = new ProgressBar(totalSeconds, String.Empty, options)
-
-        for i = 1 to totalSeconds do
-            do! Task.Delay(TimeSpan.FromSeconds(1.0))
-            pbar.Tick()
-    }
+    let show (duration: TimeSpan) =
+        new FixedDurationBar(duration, String.Empty, options)
 
 let private retrieveMachineInfo () =
 
@@ -93,7 +87,7 @@ let create (appType: ApplicationType,
       NodeType = nodeType
       MachineInfo = retrieveMachineInfo()
       Assets = ResourceManager.loadAssets()
-      ShowProgressBar = ProgressBar.show >> ignore
-      CreateProgressBar = fun ticks -> ProgressBar.create(ticks)
+      ShowProgressBar = ProgressBar.show
+      CreateProgressBar = ProgressBar.create
       Logger = logger
       ReportingSinks = Array.empty }

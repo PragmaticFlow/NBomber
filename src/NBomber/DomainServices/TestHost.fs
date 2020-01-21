@@ -44,20 +44,13 @@ type TestSessionArgs = {
         SendStatsInterval = statsInterval }
 
 let displayProgress (dep: Dependency, scnRunners: ScenarioRunner[]) =
-    let runnerWithLongestScenario = scnRunners
-                                    |> Array.sortByDescending(fun x -> x.Scenario.Duration)
-                                    |> Array.tryHead
+    let runner = scnRunners |> Array.sortByDescending(fun x -> x.Scenario.Duration) |> Array.head
+    if scnRunners.Length > 1 then
+        dep.Logger.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
+    else
+        dep.Logger.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
 
-    match runnerWithLongestScenario with
-    | Some runner ->
-        if scnRunners.Length > 1 then
-            dep.Logger.Information("waiting time: duration '{0}' of the longest scenario '{1}'", runner.Scenario.Duration, runner.Scenario.ScenarioName)
-        else
-            dep.Logger.Information("waiting time: duration '{0}'", runner.Scenario.Duration)
-
-        dep.ShowProgressBar(runner.Scenario.Duration)
-
-    | None -> ()
+    dep.ShowProgressBar(runner.Scenario.Duration)
 
 let buildInitConnectionPools (dep: Dependency) =
     if dep.ApplicationType = ApplicationType.Console then
@@ -105,15 +98,24 @@ let runInitScenarios (dep: Dependency) (customSettings: string) (scenarios: Scen
 let runWarmUpScenarios (dep: Dependency, scnRunners: ScenarioRunner[]) =
     scnRunners
     |> Array.filter(fun x -> x.Scenario.WarmUpDuration.Ticks > 0L)
-    |> Array.iter(fun x -> dep.Logger.Information("warming up scenario: '{0}', duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
-                           let duration = x.Scenario.WarmUpDuration
-                           if dep.ApplicationType = ApplicationType.Console then dep.ShowProgressBar(duration)
-                           x.WarmUp().Wait())
+    |> Array.iter(fun x ->
+        dep.Logger.Information("warming up scenario: '{0}', duration: '{1}'", x.Scenario.ScenarioName, x.Scenario.WarmUpDuration)
+        let warmupTask = x.WarmUp()
+        if dep.ApplicationType = ApplicationType.Console then
+            use pb = dep.ShowProgressBar(x.Scenario.WarmUpDuration)
+            warmupTask.Wait()
+        else
+            warmupTask.Wait()
+    )
 
 let runBombing (dep: Dependency, scnRunners: ScenarioRunner[]) =
     dep.Logger.Information("starting bombing...")
-    if dep.ApplicationType = ApplicationType.Console then displayProgress(dep, scnRunners)
-    scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
+    let bombingTask = scnRunners |> Array.map(fun x -> x.Run()) |> Task.WhenAll
+    if dep.ApplicationType = ApplicationType.Console then
+        use pb = displayProgress(dep, scnRunners)
+        bombingTask.Wait()
+    else
+        bombingTask.Wait()
 
 let stopAndCleanScenarios (dep: Dependency, scnRunners: ScenarioRunner[], customSettings: string) =
     dep.Logger.Information("stopping bombing and cleaning resources...")
@@ -214,7 +216,7 @@ type TestHost(dep: Dependency, registeredScenarios: Scenario[]) =
     member x.StartBombing() = task {
         _currentOperation <- NodeOperationType.Bombing
         do! Task.Yield()
-        let! tasks = runBombing(dep, _scnRunners)
+        runBombing(dep, _scnRunners)
         x.StopScenarios()
         _currentOperation <- NodeOperationType.Complete
         do! Task.Delay(1000)
