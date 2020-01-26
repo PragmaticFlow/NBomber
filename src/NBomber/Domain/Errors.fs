@@ -1,5 +1,6 @@
 ﻿namespace NBomber.Errors
 
+open System
 open NBomber.Extensions
 
 type internal DomainError =
@@ -22,6 +23,10 @@ type internal ValidationError =
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
     | SendStatsIntervalIsWrong of minSendStatsInterval:float
+
+    // ConcurrencyScheduler
+    | DurationIsLessThan1Sec of value:TimeSpan
+    | CopiesCountZero
 
 type internal CommunicationError =
     | SendMqttMsgFailed

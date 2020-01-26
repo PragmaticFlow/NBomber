@@ -82,6 +82,11 @@ type ScenarioContext = {
 type IStep =
     abstract StepName: string
 
+type ConcurrencyStrategy =
+    | Constant  of copiesCount:uint32 * duration:TimeSpan
+    | AddPerSec of copiesCount:uint32 * duration:TimeSpan
+    | RampTo    of copiesCount:uint32 * duration:TimeSpan
+
 type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option

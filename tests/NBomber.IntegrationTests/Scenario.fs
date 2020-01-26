@@ -1,10 +1,11 @@
-﻿module Tests.Scenario
+﻿module Tests.ScenarioTests
 
 open System
 open System.Threading.Tasks
 
 open Xunit
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open Swensen.Unquote
 
 open NBomber.Contracts
 open NBomber.FSharp
@@ -33,4 +34,4 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
     |> NBomberRunner.runTest
     |> ignore
 
-    Assert.Equal(1, invokeCounter)
+    test <@ invokeCounter = 1 @>

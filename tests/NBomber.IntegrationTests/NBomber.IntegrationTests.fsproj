@@ -30,6 +30,7 @@
     <Compile Include="Configuration\ApplySettingsTests.fs" />
     <Compile Include="Configuration\ValidationTests.fs" />
     <Compile Include="ClusterTests.fs" />
+    <Compile Include="Concurrency\TimeLineTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
