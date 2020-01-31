@@ -5,6 +5,7 @@ open System.Threading.Tasks
 
 open Xunit
 
+open NBomber
 open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts
@@ -30,6 +31,7 @@ let scenario = {
     ScenarioName = "1"
     TestInit = None
     TestClean = None
+    Feed = Feed.empty "empty"
     Steps = Array.empty
     ConcurrentCopies = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)

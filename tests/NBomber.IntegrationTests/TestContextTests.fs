@@ -5,6 +5,7 @@ open System
 open Xunit
 open Swensen.Unquote
 
+open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Infra
@@ -24,6 +25,7 @@ let scenario = {
     ScenarioName = "1"
     TestInit = None
     TestClean = None
+    Feed = Feed.empty "empty"
     Steps = Array.empty
     ConcurrentCopies = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)

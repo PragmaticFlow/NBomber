@@ -48,6 +48,10 @@ type ScenarioBuilder =
         FSharp.Scenario.create name (Seq.toList steps)
 
     [<Extension>]
+    static member WithFeed (scenario : Scenario, feed : IFeed<'a>) =
+        { scenario with Feed = feed }
+
+    [<Extension>]
     static member WithTestInit(scenario: Scenario, initFunc: Func<ScenarioContext,Task>) =
         { scenario with TestInit = Some initFunc.Invoke }
 

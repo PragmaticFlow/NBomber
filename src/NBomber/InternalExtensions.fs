@@ -80,6 +80,18 @@ module internal Extensions =
             |> Seq.map (|KeyValue|)
             |> Map.ofSeq
 
+    type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
+
+     module Dict =
+        let mapValues (f : 'a -> 'b) (dictionary : Dict<'k,'a>) =
+            dictionary
+            |> Seq.map (fun (KeyValue(k,v)) -> k, f v)
+            |> dict
+
+        let fillFrom (other : Dict<'k,'a>) (dictionary : Dict<'k,'a>) =
+            for KeyValue(k,v) in other do
+                dictionary.[k] <- v
+
 namespace NBomber.Extensions.Operator
 
 module internal Result =
