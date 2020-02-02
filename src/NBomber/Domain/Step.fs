@@ -14,6 +14,7 @@ open NBomber.Contracts
 open NBomber.Domain
 
 let setStepContext (correlationId: string)
+                   (feed: IFeed<obj>)
                    (actorIndex: int)
                    (cancelToken: CancellationToken)
                    (logger: ILogger)
@@ -29,7 +30,7 @@ let setStepContext (correlationId: string)
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Data = dict []
+                    Data = feed.Next()
                     Logger = logger }
 
     { step with CurrentContext = Some context }

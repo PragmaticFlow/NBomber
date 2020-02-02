@@ -22,7 +22,7 @@ type ScenarioActor(logger: ILogger,
                    cancelToken: CancellationToken) =
 
     let allScnResponses = ResizeArray<ResizeArray<StepResponse>>(scenario.Steps.Length)
-    let steps = scenario.Steps |> Array.map(Step.setStepContext correlationId actorIndex cancelToken logger)
+    let steps = scenario.Steps |> Array.map(Step.setStepContext correlationId scenario.Feed actorIndex cancelToken logger)
     let mutable working = false
 
     do steps |> Array.iter(fun _ -> allScnResponses.Add(ResizeArray<StepResponse>()))

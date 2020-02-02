@@ -78,6 +78,7 @@ type internal Scenario = {
     ScenarioName: ScenarioName
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
+    Feed : IFeed<obj>
     Steps: Step[]
     ConcurrentCopies: int
     CorrelationIds: CorrelationId[]

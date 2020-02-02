@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using Serilog;
 
 namespace CSharp.Examples
 {
@@ -11,24 +12,30 @@ namespace CSharp.Examples
     {
         public static void Run()
         {
+            var feed =
+                Feed
+                    .Circular("numbers", Enumerable.Range(0, 10))
+                    .Select(x => (x + 1) * 10)
+                    .Select(x => x.ToString());
+
             var step = Step.Create("step", async context =>
             {
                 // you can do any logic here: go to http, websocket etc
 
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
-                var input = context.Data["words"];
-                Console.WriteLine($"Data from feed: {input}");
+                var number = (string)context.Data["numbers"];
+                Log.Information("Data from feed: {number}", number);
                 return Response.Ok();
             });
 
-            var feed = Feed.Circular( "words", Enumerable.Range(0, 10));
-
-            var tryNextTime = 1 != 0;
-            if (tryNextTime)
+            var tryNextTime = "Feeds to try as next";
+            var rnd = new Random();
+            if (string.IsNullOrWhiteSpace(tryNextTime))
             {
-                var seq = Feed.Empty<object>();
-                var rnd1 = Feed.Shuffle("index", new[] {1,2,3});
-                var rnd2 = Feed.RandomFloats("length", 0.0, 99.9);
+                var nop = Feed.Empty<int>();
+                var seq = Feed.Sequence("index", new[] {1,2,3});
+                var cir = Feed.Circular("index", new[] {1,2,3});
+                var sfl = Feed.Shuffle("index", new[] {1,2,3});
                 var csv = Feed.FromJson<User>("user", "C:/Files/users.json");
             }
 
@@ -39,6 +46,7 @@ namespace CSharp.Examples
             NBomberRunner.RegisterScenarios(scenario)
                          .RunInConsole();
         }
+
         public class User
         {
             public long Id { get; set; }

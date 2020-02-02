@@ -125,3 +125,10 @@ type NBomberRunner =
         match FSharp.NBomberRunner.runTest(context) with
         | Ok stats  -> stats
         | Error msg -> failwith msg
+
+[<Extension>]
+module FeedBuilder =
+
+     [<Extension>]
+     let Select (feed: IFeed<'a>, f: Func<'a,'b>) =
+         NBomber.Feed.map f.Invoke feed

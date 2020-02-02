@@ -17,6 +17,7 @@ let create (config: Contracts.Scenario) =
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
       TestClean = config.TestClean
+      Feed = config.Feed
       Steps = config.Steps |> Seq.cast<Step> |> Seq.toArray
       ConcurrentCopies = config.ConcurrentCopies
       CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
