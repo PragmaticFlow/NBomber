@@ -49,7 +49,7 @@ type ScenarioBuilder =
 
     [<Extension>]
     static member WithFeed (scenario : Scenario, feed : IFeed<'a>) =
-        { scenario with Feed = feed }
+        { scenario with Feed = feed |> Feed.map box }
 
     [<Extension>]
     static member WithTestInit(scenario: Scenario, initFunc: Func<ScenarioContext,Task>) =

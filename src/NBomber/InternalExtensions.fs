@@ -1,5 +1,6 @@
 namespace NBomber.Extensions
 
+open System
 open System.Threading.Tasks
 
 [<AutoOpen>]
@@ -72,6 +73,16 @@ module internal Extensions =
         let averageByOrDefault (defaultValue : float) f array =
             if Array.isEmpty array then defaultValue
             else array |> Array.averageBy f
+
+        // shuffle an array (in-place)
+        let shuffle a =
+            let swap (a: _[]) x y =
+                let tmp = a.[x]
+                a.[x] <- a.[y]
+                a.[y] <- tmp
+            let rand = Random()
+            Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
+            a
 
     module Map =
 

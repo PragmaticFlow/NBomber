@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
     <ProjectReference Include="..\..\Infra\TestServer\TestServer.csproj" />
   </ItemGroup>
 

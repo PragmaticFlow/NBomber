@@ -1,6 +1,5 @@
 module NBomber.Feed
 
-open System.Collections.Generic
 open NBomber.Contracts
 open NBomber.Extensions
 
@@ -13,10 +12,10 @@ let private randomFloat min max = rnd.NextDouble() * (max - min) + min
 
 /// Empty data feed for all cases where it is not set
 [<CompiledName "Empty">]
-let empty name =
+let empty =
     { new IFeed<'a> with
-        member __.Name = name
-        member __.Next() = null }
+        member __.Name = ""
+        member __.Next() = dict [] }
 
 /// generate random float between min and max
 [<CompiledName "RandomFloats">]
@@ -25,18 +24,8 @@ let randomFloats name min max =
         member __.Name = name
         member __.Next() = randomFloat min max |> toRow name }
 
-[<CompiledName "Random">]
-let random name (xs: #ICollection<'a>) =
-    let xs' = Array.ofSeq xs
-    if xs' |> Array.isEmpty then failwith "Empty data feed source"
-    let length = xs' |> Array.length
-    { new IFeed<'a> with
-        member __.Name = name
-        member __.Next() =
-            let i = rnd.Next(0, length)
-            xs'.[i] |> toRow name }
-
-let sequence name (xs: 'a seq) =
+[<CompiledName "Sequence">]
+let ofSeq name (xs: 'a seq) =
     let e = xs.GetEnumerator()
 
     let rec next() =
@@ -46,7 +35,20 @@ let sequence name (xs: 'a seq) =
         member __.Name = name
         member __.Next() = next() |> toRow name }
 
-/// sequentially iterate between min and max
+/// Create a feed from the shuffled collection
+[<CompiledName "Shuffle">]
+let shuffle name (xs: 'a seq) : IFeed<'a> =
+    let xs' = Array.ofSeq xs |> Array.shuffle
+    if xs' |> Array.isEmpty then failwith "Empty data feed source"
+    let length = xs' |> Array.length
+    { new IFeed<'a> with
+        member __.Name = name
+        member __.Next() =
+            let i = rnd.Next(0, length)
+            xs'.[i] |> toRow name }
+
+/// Circulate iterate over the specified collection
+[<CompiledName "Circular">]
 let circular name (xs: 'a seq) =
     if xs |> Seq.isEmpty then failwithf "Empty data feed source"
     let e = xs.GetEnumerator()
@@ -61,17 +63,21 @@ let circular name (xs: 'a seq) =
         member __.Name = name
         member __.Next() = next() |> toRow name }
 
-/// converts input values
+/// Read a line from file path
+[<CompiledName "FromFile">]
+let fromFile name (filePath: string) =
+    System.IO.File.ReadLines filePath |> circular name
+
+/// json file feed
+[<CompiledName "FromJson">]
+let fromJson name (filePath: string) =
+    System.IO.File.ReadAllText filePath
+    |> Newtonsoft.Json.JsonConvert.DeserializeObject<'a []>
+    |> ofSeq name
+
+/// Converts values
+[<CompiledName "Select">]
 let map (f: 'a -> 'b) (feed: IFeed<'a>): IFeed<'b> =
     { new IFeed<'b> with
         member __.Name = feed.Name
         member __.Next() = feed.Next() |> Dict.mapValues f }
-
-/// reads a line from file path
-let fromFile name (filePath: string) = System.IO.File.ReadLines filePath |> circular name
-
-/// json file
-let json name (filePath: string) =
-    System.IO.File.ReadAllText filePath
-    |> Newtonsoft.Json.JsonConvert.DeserializeObject<'a []>
-    |> circular name
