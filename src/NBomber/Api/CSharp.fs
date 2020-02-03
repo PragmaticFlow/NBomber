@@ -127,8 +127,33 @@ type NBomberRunner =
         | Error msg -> failwith msg
 
 [<Extension>]
-module FeedBuilder =
+module Feed =
 
-     [<Extension>]
-     let Select (feed: IFeed<'a>, f: Func<'a,'b>) =
-         NBomber.Feed.map f.Invoke feed
+    /// Empty data feed
+    let Empty =
+         Feed.empty
+
+    /// Generates values from specified sequence
+    let Sequence(name, xs) =
+        Feed.ofSeq name xs
+
+    /// Generates values from shuffled collection
+    let Shuffle(name, xs) =
+        Feed.shuffle name xs
+
+    /// Circular iterate over the specified collection
+    let Circular(name, xs) =
+        Feed.circular name xs
+
+    /// Read a line from file path
+    let FromFile(name, path) =
+        Feed.fromFile name path
+
+    /// Deserialize values from json array saved in the file
+    let FromJson(name, path) =
+        Feed.fromJson name path
+
+    /// Convert values
+    [<Extension>]
+    let Select (feed: IFeed<'a>, f: Func<'a,'b>) =
+        NBomber.Feed.map f.Invoke feed

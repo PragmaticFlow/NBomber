@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using Serilog;

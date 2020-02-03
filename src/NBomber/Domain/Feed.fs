@@ -1,4 +1,4 @@
-module NBomber.Feed
+module internal NBomber.Feed
 
 open NBomber.Contracts
 open NBomber.Extensions
@@ -6,16 +6,13 @@ open NBomber.Extensions
 let private rnd = System.Random()
 let private toRow name a = dict [ name, a ]
 
-
 /// Empty data feed for all cases where it is not set
-[<CompiledName "Empty">]
 let empty =
     { new IFeed<'a> with
         member __.Name = ""
         member __.Next() = dict [] }
 
 /// Generates values from specified sequence
-[<CompiledName "Sequence">]
 let ofSeq name (xs: 'a seq) =
     if xs |> Seq.isEmpty then
         empty
@@ -30,7 +27,6 @@ let ofSeq name (xs: 'a seq) =
             member __.Next() = next() |> toRow name }
 
 /// Generates values from shuffled collection
-[<CompiledName "Shuffle">]
 let shuffle name (xs: 'a[]) : IFeed<'a> =
     if Array.isEmpty xs then
         empty
@@ -38,7 +34,6 @@ let shuffle name (xs: 'a[]) : IFeed<'a> =
         xs |> Array.shuffle |> ofSeq name
 
 /// Circulate iterate over the specified collection
-[<CompiledName "Circular">]
 let circular name (xs: 'a seq) =
     if xs |> Seq.isEmpty then
         empty
@@ -47,13 +42,11 @@ let circular name (xs: 'a seq) =
         |> ofSeq name
 
 /// Read a line from file path
-[<CompiledName "FromFile">]
 let fromFile name (filePath: string) =
     System.IO.File.ReadLines filePath
     |> circular name
 
 /// json file feed
-[<CompiledName "FromJson">]
 let fromJson name (filePath: string) =
     System.IO.File.ReadAllText filePath
     |> Newtonsoft.Json.JsonConvert.DeserializeObject<'a []>
