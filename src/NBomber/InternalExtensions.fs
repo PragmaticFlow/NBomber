@@ -93,10 +93,10 @@ module internal Extensions =
     type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
 
     module Dict =
-        let inline isEmpty(dictionary: Dict<'K,'T>)  =
+        let isEmpty (dictionary: Dict<'K,'V>) =
             dictionary.Count = 0
 
-        let mapValues (f: 'T -> 'TOut) (dictionary: Dict<'K,'T>) =
+        let mapValues (f: 'V1 -> 'V2) (dictionary: Dict<'K,'V1>) =
             dictionary
             |> Seq.map (fun (KeyValue(k,v)) -> k, f v)
             |> dict
