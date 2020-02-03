@@ -30,7 +30,7 @@ module private Impl =
           else ()
         ]
 
-    let concatRows (rows : Row2 list) =
+    let concatRows (rows: Row2 list) =
         seq {
             let length1 = rows |> List.map (fst >> String.length) |> List.max
             let length2 = rows |> List.map (snd >> String.length) |> List.max

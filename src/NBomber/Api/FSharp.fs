@@ -121,7 +121,7 @@ module Scenario =
           Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
 
-    let withFeed(feed : IFeed<'T>) (scenario : Contracts.Scenario) =
+    let withFeed(feed: IFeed<'T>) (scenario: Contracts.Scenario) =
        { scenario with Feed = feed |> Feed.map box  }
 
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =

@@ -48,7 +48,7 @@ type ScenarioBuilder =
         FSharp.Scenario.create name (Seq.toList steps)
 
     [<Extension>]
-    static member WithFeed (scenario : Scenario, feed : IFeed<'T>) =
+    static member WithFeed (scenario: Scenario, feed: IFeed<'T>) =
         { scenario with Feed = feed |> Domain.Feed.map box }
 
     [<Extension>]

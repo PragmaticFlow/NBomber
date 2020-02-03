@@ -65,12 +65,12 @@ module internal Extensions =
             else Array.max array
 
         /// Safe variant of `Array.average`
-        let averageOrDefault (defaultValue : float) array =
+        let averageOrDefault (defaultValue: float) array =
             if Array.isEmpty array then defaultValue
             else array |> Array.average
 
         /// Safe variant of `Array.average`
-        let averageByOrDefault (defaultValue : float) f array =
+        let averageByOrDefault (defaultValue: float) f array =
             if Array.isEmpty array then defaultValue
             else array |> Array.averageBy f
 
@@ -93,15 +93,15 @@ module internal Extensions =
     type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
 
     module Dict =
-        let inline isEmpty(dictionary : Dict<'K,'T>)  =
+        let inline isEmpty(dictionary: Dict<'K,'T>)  =
             dictionary.Count = 0
 
-        let mapValues (f : 'T -> 'TOut) (dictionary : Dict<'K,'T>) =
+        let mapValues (f: 'T -> 'TOut) (dictionary: Dict<'K,'T>) =
             dictionary
             |> Seq.map (fun (KeyValue(k,v)) -> k, f v)
             |> dict
 
-        let fillFrom (other : Dict<'K,'T>) (dictionary : Dict<'K,'T>) =
+        let fillFrom (other: Dict<'K,'T>) (dictionary: Dict<'K,'T>) =
             for KeyValue(k,v) in other do
                 dictionary.[k] <- v
 

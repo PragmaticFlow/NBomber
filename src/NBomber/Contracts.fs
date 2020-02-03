@@ -68,9 +68,9 @@ type IConnectionPool<'TConnection> = interface end
 /// Data provider
 type IFeed<'T> =
     /// Feed name, which is also the key of step data dictionary
-    abstract member Name : string with get
+    abstract member Name: string with get
     /// Gets data for the next step
-    abstract member Next : unit -> Dict<string,'T>
+    abstract member Next: unit -> Dict<string,'T>
 
 type StepContext<'TConnection> = {
     CorrelationId: string
@@ -94,7 +94,7 @@ type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
-    Feed : IFeed<obj>
+    Feed: IFeed<obj>
     Steps: IStep[]
     ConcurrentCopies: int
     WarmUpDuration: TimeSpan
