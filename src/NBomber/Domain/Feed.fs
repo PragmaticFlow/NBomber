@@ -26,7 +26,7 @@ let ofSeq name (xs: 'T seq) =
             member __.Next() = next() |> toRow name }
 
 /// Generates values from shuffled collection
-let shuffle name (xs: 'T[]) : IFeed<'T> =
+let shuffle name (xs: 'T []): IFeed<'T> =
     if Array.isEmpty xs then
         empty
     else

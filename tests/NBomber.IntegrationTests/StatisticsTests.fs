@@ -4,7 +4,6 @@ open System
 open Xunit
 open FsCheck.Xunit
 
-open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.Statistics
