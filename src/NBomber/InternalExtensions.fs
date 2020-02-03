@@ -23,8 +23,8 @@ module internal Extensions =
             | Ok _     -> failwith "result is not error"
             | Error er -> er
 
-        static member sequence (results: Result<'a,'e>[]) =
-            let folder state (acc: Result<'a [],'e []>) =
+        static member sequence (results: Result<'T,'e>[]) =
+            let folder state (acc: Result<'T [],'e []>) =
                 match state, acc with
                 | Ok v, Ok items     -> Ok(Array.append items [| v |])
                 | Ok r, Error ers    -> Error ers
@@ -93,16 +93,16 @@ module internal Extensions =
 
     type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
 
-     module Dict =
-        let isEmpty(dictionary : Dict<'k,'a>)  =
+    module Dict =
+        let isEmpty(dictionary : Dict<'k,'T>)  =
             dictionary.Count = 0
 
-        let mapValues (f : 'a -> 'b) (dictionary : Dict<'k,'a>) =
+        let mapValues (f : 'T -> 'b) (dictionary : Dict<'k,'T>) =
             dictionary
             |> Seq.map (fun (KeyValue(k,v)) -> k, f v)
             |> dict
 
-        let fillFrom (other : Dict<'k,'a>) (dictionary : Dict<'k,'a>) =
+        let fillFrom (other : Dict<'k,'T>) (dictionary : Dict<'k,'T>) =
             for KeyValue(k,v) in other do
                 dictionary.[k] <- v
 

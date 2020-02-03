@@ -67,11 +67,11 @@ type IConnectionPool<'TConnection> = interface end
 
 /// Data provider
 [<Interface>]
-type IFeed<'a> =
+type IFeed<'T> =
     /// Feed name, which is also the key of step data dictionary
     abstract member Name : string with get
     /// Gets data for the next step
-    abstract member Next : unit -> Dict<string,'a>
+    abstract member Next : unit -> Dict<string,'T>
 
 type StepContext<'TConnection> = {
     CorrelationId: string

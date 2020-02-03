@@ -48,7 +48,7 @@ type ScenarioBuilder =
         FSharp.Scenario.create name (Seq.toList steps)
 
     [<Extension>]
-    static member WithFeed (scenario : Scenario, feed : IFeed<'a>) =
+    static member WithFeed (scenario : Scenario, feed : IFeed<'T>) =
         { scenario with Feed = feed |> Feed.map box }
 
     [<Extension>]
@@ -155,5 +155,5 @@ module Feed =
 
     /// Convert values
     [<Extension>]
-    let Select (feed: IFeed<'a>, f: Func<'a,'b>) =
+    let Select (feed: IFeed<'T>, f: Func<'T,'b>) =
         NBomber.Feed.map f.Invoke feed
