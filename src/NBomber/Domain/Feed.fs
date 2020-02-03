@@ -3,8 +3,7 @@ module internal NBomber.Domain.Feed
 open NBomber.Contracts
 open NBomber.Extensions
 
-let private rnd = System.Random()
-let private toRow name a = dict [ name, a ]
+let private toRow name a = dict [ "feed." + name, a ]
 
 /// Empty data feed for all cases where it is not set
 let empty =

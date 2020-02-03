@@ -22,7 +22,7 @@ namespace CSharp.Examples
                 // you can do any logic here: go to http, websocket etc
 
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
-                var number = (string)context.Data["numbers"];
+                var number = (string)context.Data["feed.numbers"];
                 Log.Information("Data from feed: {number}", number);
                 return Response.Ok();
             });
