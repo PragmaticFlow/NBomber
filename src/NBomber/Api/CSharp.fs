@@ -49,7 +49,7 @@ type ScenarioBuilder =
 
     [<Extension>]
     static member WithFeed (scenario : Scenario, feed : IFeed<'T>) =
-        { scenario with Feed = feed |> Feed.map box }
+        { scenario with Feed = feed |> Domain.Feed.map box }
 
     [<Extension>]
     static member WithTestInit(scenario: Scenario, initFunc: Func<ScenarioContext,Task>) =
@@ -128,10 +128,11 @@ type NBomberRunner =
 
 [<Extension>]
 module Feed =
+    open NBomber.Domain
 
     /// Empty data feed
     let Empty =
-         Feed.empty
+        Feed.empty
 
     /// Generates values from specified sequence
     let Sequence(name, xs) =
@@ -156,4 +157,4 @@ module Feed =
     /// Convert values
     [<Extension>]
     let Select (feed: IFeed<'T>, f: Func<'T,'b>) =
-        NBomber.Feed.map f.Invoke feed
+        Feed.map f.Invoke feed

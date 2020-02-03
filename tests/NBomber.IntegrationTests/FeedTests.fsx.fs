@@ -1,7 +1,7 @@
 module NBomber.IntegrationTests.FeedTests
 
 open Xunit
-open NBomber
+open NBomber.Domain
 open NBomber.Extensions
 
 [<Fact>]

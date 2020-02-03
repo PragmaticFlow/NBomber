@@ -28,7 +28,6 @@ namespace CSharp.Examples
             });
 
             var tryNextTime = "Feeds to try as next";
-            var rnd = new Random();
             if (string.IsNullOrWhiteSpace(tryNextTime))
             {
                 var nop = Feed.Empty<int>();

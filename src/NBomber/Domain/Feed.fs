@@ -1,4 +1,4 @@
-module internal NBomber.Feed
+module internal NBomber.Domain.Feed
 
 open NBomber.Contracts
 open NBomber.Extensions

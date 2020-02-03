@@ -66,7 +66,6 @@ type Statistics = {
 type IConnectionPool<'TConnection> = interface end
 
 /// Data provider
-[<Interface>]
 type IFeed<'T> =
     /// Feed name, which is also the key of step data dictionary
     abstract member Name : string with get

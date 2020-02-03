@@ -85,7 +85,6 @@ module internal Extensions =
             a
 
     module Map =
-
         let inline fromDictionary (dictionary) =
             dictionary
             |> Seq.map (|KeyValue|)
@@ -94,15 +93,15 @@ module internal Extensions =
     type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
 
     module Dict =
-        let isEmpty(dictionary : Dict<'k,'T>)  =
+        let inline isEmpty(dictionary : Dict<'K,'T>)  =
             dictionary.Count = 0
 
-        let mapValues (f : 'T -> 'b) (dictionary : Dict<'k,'T>) =
+        let mapValues (f : 'T -> 'TOut) (dictionary : Dict<'K,'T>) =
             dictionary
             |> Seq.map (fun (KeyValue(k,v)) -> k, f v)
             |> dict
 
-        let fillFrom (other : Dict<'k,'T>) (dictionary : Dict<'k,'T>) =
+        let fillFrom (other : Dict<'K,'T>) (dictionary : Dict<'K,'T>) =
             for KeyValue(k,v) in other do
                 dictionary.[k] <- v
 
