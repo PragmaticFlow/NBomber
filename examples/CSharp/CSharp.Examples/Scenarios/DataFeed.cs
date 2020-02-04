@@ -19,9 +19,8 @@ namespace CSharp.Examples
 
             var step = Step.Create("step", async context =>
             {
-                // you can do any logic here: go to http, websocket etc
-
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
+                // to access feed data use feed name as a key
                 var number = (string)context.Data["feed.numbers"];
                 Log.Information("Data from feed: {number}", number);
                 return Response.Ok();
