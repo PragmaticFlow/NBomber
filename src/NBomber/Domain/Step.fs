@@ -13,10 +13,10 @@ open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 
-let setStepContext (correlationId: string)
+let setStepContext (logger: ILogger)
+                   (correlationId: string)
                    (actorIndex: int)
                    (cancelToken: CancellationToken)
-                   (logger: ILogger)
                    (step: Step) =
 
     let getConnection (pool: ConnectionPool<obj>) =
@@ -93,14 +93,14 @@ let execSteps (logger: ILogger,
     cleanResources()
 }
 
-let filterByDuration (responses: StepResponse seq, duration: TimeSpan) =
+let filterByDuration (responses: ResizeArray<StepResponse>, duration: TimeSpan) =
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
 
     responses
-    |> Seq.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
-    |> Seq.choose(fun x ->
+    |> ResizeArray.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
+    |> ResizeArray.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
-    |> Seq.toArray
+    |> ResizeArray.toArray

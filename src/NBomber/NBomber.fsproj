@@ -38,12 +38,12 @@
     <Compile Include="Domain\Errors.fs" />
     <Compile Include="Domain\Step.fs" />
     <Compile Include="Domain\ConnectionPool.fs" />
-    <Compile Include="Domain\Concurrency\ScenarioActor.fs" />
+    <Compile Include="Domain\Scenario.fs" />
+    <Compile Include="Domain\Statistics.fs" />
+    <Compile Include="Domain\Concurrency\Actor.fs" />
     <Compile Include="Domain\Concurrency\ActorsPool.fs" />
     <Compile Include="Domain\Concurrency\TimeLine.fs" />
     <Compile Include="Domain\Concurrency\Scheduler.fs" />
-    <Compile Include="Domain\Scenario.fs" />
-    <Compile Include="Domain\Statistics.fs" />
     <Compile Include="Infra\Logger.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />
     <Compile Include="Infra\HtmlBuilder.fs" />

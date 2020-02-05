@@ -9,12 +9,12 @@ open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
 open NBomber.Domain.Concurrency
-open NBomber.Domain.Concurrency.TimeLine
+open NBomber.Domain.Concurrency.ScenarioTimeLine
 
 [<Property>]
 let ``TimeLine.build should correctly calculate timeline`` (strategies: ConcurrencyStrategy list) =
     result {
-        let! timeLine = TimeLine.build(TimeSpan.Zero, strategies)
+        let! timeLine = ScenarioTimeLine.build(TimeSpan.Zero, strategies)
 
         let head = List.tryHead timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
         let tail = List.tryLast timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
@@ -26,9 +26,9 @@ let ``TimeLine.build should correctly calculate timeline`` (strategies: Concurre
 
 [<Property>]
 let ``TimeLine.getRunningStrategy should correctly determine and return running timeline`` (currentTimeTicks: int32,
-                                                                                            timeLine: TimeLine) =
+                                                                                            timeLine: ScenarioTimeLine) =
     let currentTime = TimeSpan(int64 currentTimeTicks)
-    let strategy = TimeLine.getRunningStrategy(timeLine, currentTime)
+    let strategy = ScenarioTimeLine.getRunningStrategy(timeLine, currentTime)
 
     match strategy with
     | Some v ->

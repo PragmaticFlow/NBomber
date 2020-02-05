@@ -1,5 +1,4 @@
-[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
-module internal NBomber.Domain.Concurrency.TimeLine
+module internal NBomber.Domain.Concurrency.ScenarioTimeLine
 
 open System
 open FsToolkit.ErrorHandling
@@ -8,7 +7,7 @@ open NBomber.Contracts
 open NBomber.Errors
 
 type EndTime = TimeSpan
-type TimeLine = (EndTime * ConcurrencyStrategy) list
+type ScenarioTimeLine = (EndTime * ConcurrencyStrategy) list
 
 let validateStrategy (strategy: ConcurrencyStrategy) =
     result {
@@ -37,7 +36,7 @@ let validateStrategy (strategy: ConcurrencyStrategy) =
             return strategy
     }
 
-let rec build (startTime: TimeSpan, strategies: ConcurrencyStrategy list): Result<TimeLine,AppError> =
+let rec build (startTime: TimeSpan, strategies: ConcurrencyStrategy list): Result<ScenarioTimeLine,AppError> =
     result {
         match strategies with
         | [] -> return List.empty
@@ -59,7 +58,7 @@ let rec build (startTime: TimeSpan, strategies: ConcurrencyStrategy list): Resul
                 return (endTime, strategy) :: timeLine
     }
 
-let getRunningStrategy (timeLine: TimeLine, currentTime: TimeSpan) =
+let getRunningStrategy (timeLine: ScenarioTimeLine, currentTime: TimeSpan) =
     timeLine
     |> List.tryFind(fun (endTime,_) -> currentTime <= endTime)
     |> Option.map(snd)

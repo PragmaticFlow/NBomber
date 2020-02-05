@@ -10,7 +10,7 @@ type internal DomainError =
 
 type internal ValidationError =
     | TargetScenarioIsEmpty
-    | TargetScenariosNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
+    | TargetScenariosNotFound of notFoundScenarios:string[] * registeredScenarios:string[]
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]
 

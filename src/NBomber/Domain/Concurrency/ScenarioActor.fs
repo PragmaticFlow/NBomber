@@ -1,2 +1,0 @@
-[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
-module internal NBomber.Domain.Concurrency.ScenarioActor
