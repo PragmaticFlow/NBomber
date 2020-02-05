@@ -8,8 +8,8 @@ let private toRow name a = dict [ "feed." + name, a ]
 /// Empty data feed for all cases where it is not set
 let empty =
     { new IFeed<'T> with
-        member __.Name = ""
-        member __.Next() = dict [] }
+        member x.Name = ""
+        member x.Next() = dict [] }
 
 /// Generates values from specified sequence
 let ofSeq name (xs: 'T seq) =
@@ -22,8 +22,8 @@ let ofSeq name (xs: 'T seq) =
             if e.MoveNext() then e.Current else failwithf "End of data feed"
 
         { new IFeed<'T> with
-            member __.Name = name
-            member __.Next() = next() |> toRow name }
+            member x.Name = name
+            member x.Next() = next() |> toRow name }
 
 /// Generates values from shuffled collection
 let shuffle name (xs: 'T []): IFeed<'T> =
@@ -54,5 +54,5 @@ let fromJson name (filePath: string) =
 /// Converts values
 let map (f: 'T -> 'b) (feed: IFeed<'T>): IFeed<'b> =
     { new IFeed<'b> with
-        member __.Name = feed.Name
-        member __.Next() = feed.Next() |> Dict.mapValues f }
+        member x.Name = feed.Name
+        member x.Next() = feed.Next() |> Dict.mapValues f }

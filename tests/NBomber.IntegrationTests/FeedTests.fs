@@ -5,7 +5,7 @@ open NBomber.Domain
 open NBomber.Extensions
 
 [<Fact>]
-let ``Feed from list``() =
+let ``Feed from array``() =
     let xs = [| 0 .. 10 |]
     let length = Array.length xs
     let feed = Feed.ofSeq "test" xs
@@ -13,6 +13,17 @@ let ``Feed from list``() =
     Array.init length (fun _ -> feed.Next().["feed.test"])
     |> Array.zip xs
     |> Array.forall (fun (a, b) -> a = b)
+    |> Assert.True
+
+[<Fact>]
+let ``Feed from list``() =
+    let xs = [ 0 .. 10 ]
+    let length = List.length xs
+    let feed = Feed.ofSeq "test" xs
+
+    List.init length (fun _ -> feed.Next().["feed.test"])
+    |> List.zip xs
+    |> List.forall (fun (a, b) -> a = b)
     |> Assert.True
 
 [<Fact>]

@@ -8,6 +8,7 @@ open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
 open NBomber
+open NBomber.Domain
 open NBomber.Contracts
 open NBomber.Configuration
 
@@ -127,34 +128,33 @@ type NBomberRunner =
         | Error msg -> failwith msg
 
 [<Extension>]
-module Feed =
-    open NBomber.Domain
+type Feed =
 
     /// Empty data feed
-    let Empty =
+    static member Empty =
         Feed.empty
 
     /// Generates values from specified sequence
-    let Sequence(name, xs) =
+    static member Sequence(name, xs) =
         Feed.ofSeq name xs
 
     /// Generates values from shuffled collection
-    let Shuffle(name, xs) =
+    static member Shuffle(name, xs) =
         Feed.shuffle name xs
 
     /// Circular iterate over the specified collection
-    let Circular(name, xs) =
+    static member Circular(name, xs) =
         Feed.circular name xs
 
     /// Read a line from file path
-    let FromFile(name, path) =
+    static member FromFile(name, path) =
         Feed.fromFile name path
 
     /// Deserialize values from json array saved in the file
-    let FromJson(name, path) =
+    static member FromJson(name, path) =
         Feed.fromJson name path
 
     /// Convert values
     [<Extension>]
-    let Select (feed: IFeed<'T>, f: Func<'T,'b>) =
+    static member Select (feed: IFeed<'T>, f: Func<'T,'b>) =
         Feed.map f.Invoke feed

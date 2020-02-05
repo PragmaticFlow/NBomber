@@ -24,7 +24,7 @@ let run () =
     let step = Step.create("simple step", fun context -> task {
         // to access feed data use feed name as a key
         let number = unbox context.Data.["feed.numbers"]
-        printfn "Data from feed: %i" number
+        context.Logger.Information("Data from feed: {number}", number)
 
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()

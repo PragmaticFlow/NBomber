@@ -22,7 +22,7 @@ namespace CSharp.Examples
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
                 // to access feed data use feed name as a key
                 var number = (string)context.Data["feed.numbers"];
-                Log.Information("Data from feed: {number}", number);
+                context.Logger.Information("Data from feed: {number}", number);
                 return Response.Ok();
             });
 
