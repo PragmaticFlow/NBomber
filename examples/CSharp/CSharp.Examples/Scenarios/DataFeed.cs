@@ -29,7 +29,7 @@ namespace CSharp.Examples
             var tryNextTime = "Feeds to try as next";
             if (string.IsNullOrWhiteSpace(tryNextTime))
             {
-                var nop = Feed.Empty<int>();
+                var nop = Feed.Empty;
                 var seq = Feed.Sequence("index", new[] {1,2,3});
                 var cir = Feed.Circular("index", new[] {1,2,3});
                 var sfl = Feed.Shuffle("index", new[] {1,2,3});
