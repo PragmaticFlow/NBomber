@@ -12,15 +12,17 @@ open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioTimeLine
 
 [<Property>]
-let ``TimeLine.build should correctly calculate timeline`` (strategies: ConcurrencyStrategy list) =
+let ``TimeLine.build should correctly calculate and order time within timeline`` (strategies: ConcurrencyStrategy list) =
     result {
         let! timeLine = ScenarioTimeLine.build(TimeSpan.Zero, strategies)
 
-        let head = List.tryHead timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
-        let tail = List.tryLast timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
+        let startTime = List.tryHead timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
+        let endTime = List.tryLast timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
+        let ascendingOrderByTime = timeLine |> List.sortBy(fun (time,_) -> time)
 
         test <@ timeLine.Length = strategies.Length  @>
-        test <@ head <= tail @>
+        test <@ startTime <= endTime @>
+        test <@ timeLine = ascendingOrderByTime @>
     }
     |> ignore
 
