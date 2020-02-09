@@ -36,6 +36,9 @@ module internal Constants =
     [<Literal>]
     let MinSendStatsIntervalSec = 5.0
 
+    [<Literal>]
+    let FinishScenarioTimeOutSec = 5_000
+
 type internal CorrelationId = string
 type internal StepName = string
 type internal FlowName = string

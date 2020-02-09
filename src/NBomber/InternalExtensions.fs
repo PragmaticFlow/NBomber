@@ -80,38 +80,6 @@ module internal Extensions =
             |> Seq.map (|KeyValue|)
             |> Map.ofSeq
 
-    module ResizeArray =
-
-        let length (arr: ResizeArray<'T>) =  arr.Count
-
-        let filter f (arr: ResizeArray<_>) =
-            let res = ResizeArray<_>()
-            for i = 0 to length arr - 1 do
-                let x = arr.[i]
-                if f x then res.Add(x)
-            res
-
-        let map f (arr: ResizeArray<_>) =
-            let len = length arr
-            let res = ResizeArray<_>(len)
-            for i = 0 to len - 1 do
-                res.Add(f arr.[i])
-            res
-
-        let iter f (arr: ResizeArray<_>) =
-            for i = 0 to arr.Count - 1 do
-                f arr.[i]
-
-        let choose f (arr: ResizeArray<_>) =
-            let res = ResizeArray<_>()
-            for i = 0 to length arr - 1 do
-                match f arr.[i] with
-                | None -> ()
-                | Some b -> res.Add(b)
-            res
-
-        let toArray (arr: ResizeArray<'T>) = arr.ToArray()
-
 namespace NBomber.Extensions.Operator
 
 module internal Result =

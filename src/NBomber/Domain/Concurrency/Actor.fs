@@ -2,11 +2,11 @@ module internal NBomber.Domain.Concurrency.ScenarioActor
 
 open System.Diagnostics
 open System.Threading
+open System.Threading.Tasks
 
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open System.Threading.Tasks
 open NBomber.Domain
 open NBomber.Extensions
 open NBomber.Domain.Statistics
@@ -27,12 +27,14 @@ type ScenarioActor(dep: ActorDep, actorIndex: int,
     let mutable _working = false
     let mutable _reserved = false
     let mutable _schedulerName = ""
+    let mutable _currentTask = Unchecked.defaultof<Task>
 
     do _steps |> Array.iter(fun _ -> _allScnResponses.Add(ResizeArray<StepResponse>()))
 
     member x.Working = _working
     member x.Reserved = _reserved
     member x.UseByScheduler = _schedulerName
+    member x.CurrentTask = _currentTask
 
     member x.ReserveForScheduler(schedulerName) =
         if _schedulerName = "" then
@@ -47,14 +49,16 @@ type ScenarioActor(dep: ActorDep, actorIndex: int,
     member x.ExecSteps() = task {
         if _reserved then
             _working <- true
-            do! Step.execSteps(dep.Logger, _steps, _allScnResponses, dep.FastCancelToken, dep.GlobalTimer)
+            _currentTask <- Step.execSteps(dep.Logger, _steps, _allScnResponses, dep.FastCancelToken, dep.GlobalTimer)
+            do! _currentTask
             _working <- false
     }
 
     member x.GetStepResults(duration) =
         let filteredResponses =
             _allScnResponses
-            |> ResizeArray.map(fun stepResponses -> Step.filterByDuration(stepResponses, duration))
+            |> Seq.map(fun stepResponses -> Step.filterByDuration(stepResponses, duration))
+            |> Seq.toArray
 
         scenario.Steps
         |> Array.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
