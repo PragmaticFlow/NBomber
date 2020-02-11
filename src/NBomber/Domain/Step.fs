@@ -30,7 +30,7 @@ let setStepContext (correlationId: string)
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Data = feed.Next()
+                    Data = feed.GetNext()
                     Logger = logger }
 
     { step with CurrentContext = Some context }

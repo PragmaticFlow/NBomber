@@ -70,7 +70,7 @@ type IFeed<'T> =
     /// Feed name, which is also the key of step data dictionary
     abstract member Name: string with get
     /// Gets data for the next step
-    abstract member Next: unit -> Dict<string,'T>
+    abstract member GetNext: unit -> Dict<string,'T>
 
 type StepContext<'TConnection> = {
     CorrelationId: string

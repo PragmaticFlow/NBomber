@@ -15,7 +15,7 @@ let ``Feed from array``() =
     let length = Array.length xs
     let feed = Feed.ofSeq "test" xs
 
-    let actual = Array.init length (fun _ -> feed.Next().["feed.test"])
+    let actual = Array.init length (fun _ -> feed.GetNext().["feed.test"])
     test <@ actual
             |> Array.pairwise
             |> Array.forall(fun (a,b) -> a <> b) @>
@@ -29,7 +29,7 @@ let ``Feed from list``() =
     let length = List.length xs
     let feed = Feed.ofSeq "test" xs
 
-    let actual = List.init length (fun _ -> feed.Next().["feed.test"])
+    let actual = List.init length (fun _ -> feed.GetNext().["feed.test"])
     test <@ actual
             |> List.pairwise
             |> List.forall(fun (a,b) -> a <> b) @>
@@ -43,7 +43,7 @@ let ``Feed from infinite sequence``() =
     let xs = Seq.initInfinite id
     let feed = Feed.ofSeq "test" xs
 
-    let actual = List.init 10000 (fun _ -> feed.Next().["feed.test"])
+    let actual = List.init 10000 (fun _ -> feed.GetNext().["feed.test"])
     test <@ actual
             |> List.pairwise
             |> List.forall(fun (a,b) -> a <> b) @>
@@ -57,7 +57,7 @@ let ``Circular feed from infinite sequence``() =
     let xs = Seq.initInfinite id
     let feed = Feed.circular "test" xs
 
-    let actual = List.init 10000 (fun _ -> feed.Next().["feed.test"])
+    let actual = List.init 10000 (fun _ -> feed.GetNext().["feed.test"])
     test <@ actual
             |> List.pairwise
             |> List.forall(fun (a,b) -> a <> b) @>
@@ -77,7 +77,7 @@ let ``Circular feed from array``() =
         |> Seq.truncate length
         |> Seq.toArray
 
-    test <@ Array.init length (fun _ -> feed.Next().["feed.test"])
+    test <@ Array.init length (fun _ -> feed.GetNext().["feed.test"])
             |> Array.zip zs
             |> Array.forall (fun (a, b) -> a = b && 0 <= a && a <= 10) @>
 
@@ -95,7 +95,7 @@ let ``Feed select from array feed``() =
         |> Seq.truncate length
         |> Seq.toArray
 
-    test <@ Array.init length (fun _ -> feed.Next().["feed.test"])
+    test <@ Array.init length (fun _ -> feed.GetNext().["feed.test"])
             |> Array.zip zs
             |> Array.forall (fun (a, b) -> a = b && 1 <= a && a <= 11) @>
 
@@ -112,7 +112,7 @@ let ``Empty feed throws no errors``() =
 
     test <@ emptyFeeds
             |> Array.forall (fun feed ->
-                Array.init 100 (fun _ -> feed.Next())
+                Array.init 100 (fun _ -> feed.GetNext())
                 |> Array.forall Dict.isEmpty )
          @>
 

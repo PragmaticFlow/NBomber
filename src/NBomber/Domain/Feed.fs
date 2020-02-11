@@ -9,7 +9,7 @@ let private toRow name a = dict [ "feed." + name, a ]
 let empty =
     { new IFeed<'T> with
         member x.Name = ""
-        member x.Next() = dict [] }
+        member x.GetNext() = dict [] }
 
 /// Generates values from specified sequence
 let ofSeq name (xs: 'T seq) =
@@ -23,7 +23,7 @@ let ofSeq name (xs: 'T seq) =
 
         { new IFeed<'T> with
             member x.Name = name
-            member x.Next() = next() |> toRow name }
+            member x.GetNext() = next() |> toRow name }
 
 /// Generates values from shuffled collection
 let shuffle name (xs: 'T []): IFeed<'T> =
@@ -55,4 +55,4 @@ let fromJson name (filePath: string) =
 let map (f: 'T -> 'b) (feed: IFeed<'T>): IFeed<'b> =
     { new IFeed<'b> with
         member x.Name = feed.Name
-        member x.Next() = feed.Next() |> Dict.mapValues f }
+        member x.GetNext() = feed.GetNext() |> Dict.mapValues f }
