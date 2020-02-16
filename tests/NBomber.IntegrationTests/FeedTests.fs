@@ -2,8 +2,8 @@ module NBomber.IntegrationTests.FeedTests
 
 open System
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open Xunit
 open Swensen.Unquote
+open Xunit
 open NBomber.Domain
 open NBomber.Contracts
 open NBomber.Extensions
@@ -37,7 +37,6 @@ let ``Feed from list``() =
             |> List.zip xs
             |> List.forall (fun (a, b) -> a = b) @>
 
-
 [<Fact>]
 let ``Feed from infinite sequence``() =
     let xs = Seq.initInfinite id
@@ -51,7 +50,6 @@ let ``Feed from infinite sequence``() =
             |> List.zip (xs |> Seq.truncate 10000 |> Seq.toList)
             |> List.forall (fun (a, b) -> a = b) @>
 
-
 [<Fact>]
 let ``Circular feed from infinite sequence``() =
     let xs = Seq.initInfinite id
@@ -64,7 +62,6 @@ let ``Circular feed from infinite sequence``() =
     test <@ actual
             |> List.zip (xs |> Seq.truncate 10000 |> Seq.toList)
             |> List.forall (fun (a, b) -> a = b) @>
-
 
 [<Fact>]
 let ``Circular feed from array``() =
@@ -80,7 +77,6 @@ let ``Circular feed from array``() =
     test <@ Array.init length (fun _ -> feed.GetNext().["feed.test"])
             |> Array.zip zs
             |> Array.forall (fun (a, b) -> a = b && 0 <= a && a <= 10) @>
-
 
 [<Fact>]
 let ``Feed select from array feed``() =
@@ -99,7 +95,6 @@ let ``Feed select from array feed``() =
             |> Array.zip zs
             |> Array.forall (fun (a, b) -> a = b && 1 <= a && a <= 11) @>
 
-
 [<Fact>]
 let ``Empty feed throws no errors``() =
     let xs = Seq.empty
@@ -116,53 +111,17 @@ let ``Empty feed throws no errors``() =
                 |> Array.forall Dict.isEmpty )
          @>
 
-type private 'a ListMsg =
-    | Put of AsyncReplyChannel<unit> * 'a
-    | Get of AsyncReplyChannel<'a list>
-    | Count of AsyncReplyChannel<int>
-
-type NonBlockingList<'a>() =
-    let mbox = MailboxProcessor<'a ListMsg>.Start(fun inbox ->
-        let rec loop (xs: 'a list) = async {
-            match! inbox.Receive() with
-            | Put (r,x) ->
-                r.Reply ()
-                return! loop (x::xs)
-            | Count r ->
-                xs |> List.length |> r.Reply
-                return! loop xs
-            | Get r ->
-                r.Reply xs
-                return! loop xs
-        }
-        loop []
-    )
-
-    do
-        mbox.Error.Add(printfn "Exception: %A")
-
-    member _.Add i =
-        mbox.PostAndReply(fun r -> Put(r,i))
-    member _.AddAsync i =
-        mbox.PostAndAsyncReply(fun r -> Put(r,i))
-    member _.Count =
-        mbox.PostAndReply Count
-    member __.Get =
-        mbox.PostAndReply Get
-
-
-
 [<Fact>]
 let ``Feed values are same within one scenario``() =
     let feed = Seq.initInfinite id |> Feed.ofSeq "int"
-    let js = ref []
-    let ks = ref []
+    let sending1 = ref []
+    let sending2 = ref []
 
     let step1 =
         Step.create("step1", fun ctx -> task {
             let j = ctx.Data.["feed.int"] :?> int
             ctx.Logger.Information("feed {i}", j)
-            js := j::!js
+            sending1 := j::!sending1
             return Response.Ok()
         })
 
@@ -170,7 +129,7 @@ let ``Feed values are same within one scenario``() =
         Step.create("step2", fun ctx -> task {
             let k = ctx.Data.["feed.int"] :?> int
             ctx.Logger.Information("feed {i}", k)
-            ks := k::!ks
+            sending2 := k::!sending2
             return Response.Ok()
         })
 
@@ -189,35 +148,29 @@ let ``Feed values are same within one scenario``() =
     match stats with
     | Error err -> failwith err
     | Ok stats ->
-        // check post-conditions
         test <@ Array.length stats = 2 @>
         test <@ stats.[0].FailCount = 0 @>
         test <@ stats.[0].OkCount <> 0 @>
         test <@ stats.[1].FailCount = 0 @>
-//        test <@ stats.[1].OkCount <> 0 @> // TODO no ok results ?!
+        test <@ stats.[1].OkCount <> 0 @> // TODO step 2 stats are empty ?!
 
-        test <@ !js
-                |> List.zip !ks
-                |> List.forall(fun (k,j) -> k = j) @>
-        ()
+        let received1 = !sending1
+        let received2 = !sending2
+        test <@ List.length received1 = List.length received2 @>
+
+        test <@ received1
+                |> List.zip received2
+                |> List.forall(fun (i1,i2) -> i1 = i2) @>
 
 [<Fact>]
 let ``Feed values are ordered like in the feed source``() =
     let feed = Seq.initInfinite id |> Feed.ofSeq "int"
-    let counter = NonBlockingList()
-    let j = ref []
-
-    // check precondition
-    test <@ counter.Count = 0 @>
-
+    let sending = ref []
     let step =
         Step.create("count feed data", fun ctx -> task {
             let i = ctx.Data.["feed.int"] :?> int
             ctx.Logger.Information("feed {i}", i)
-
-            //do! counter.AddAsync i
-            //counter.Add i
-            j := i::!j
+            sending := i::!sending
             return Response.Ok()
         })
 
@@ -236,23 +189,15 @@ let ``Feed values are ordered like in the feed source``() =
     match stats with
     | Error err -> failwith err
     | Ok stats ->
-        // check post-conditions
         test <@ Array.length stats = 1 @>
         let sent = stats |> Array.head
-        test <@ sent.FailCount = 0 @>
         test <@ sent.OkCount <> 0 @>
+        test <@ sent.FailCount = 0 @>
 
-        let js = !j
-        test <@ js |> List.isEmpty |> not @>
-//        test <@ js |> List.length = sent.OkCount @> // TODO this is too not equal
-//        test <@ js |> List.distinct |> List.length > 1 @> // anything is wrong here
-
-        let received = counter.Get
-//        test <@ counter.Count > sent.OkCount @> // TODO should be equal but are not
-//        test <@ received |> List.length = sent.OkCount @> // TODO actually should be equal too?
+        let received = !sending
+        test <@ received |> List.isEmpty |> not @>
+        test <@ received |> List.length >= sent.OkCount @> // TODO actually should be equal ?
         test <@ received
-                |> List.distinct
-                |> List.sort
-                |> List.pairwise
-                |> List.filter(fun (a,b) -> b <> a + 1)
-                |> List.isEmpty @>
+                |> List.rev
+                |> List.mapi (fun i a -> i,a)
+                |> List.forall(fun (a,b) -> a = b) @>
