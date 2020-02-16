@@ -14,7 +14,7 @@ open NBomber.Contracts
 open NBomber.Domain
 
 let setStepContext (correlationId: string)
-                   (feed: IFeed<obj>)
+                   (feedData: Dict<string,obj>)
                    (actorIndex: int)
                    (cancelToken: CancellationToken)
                    (logger: ILogger)
@@ -22,15 +22,14 @@ let setStepContext (correlationId: string)
 
     let getConnection (pool: ConnectionPool<obj>) =
         match pool.ConnectionsCount with
-        | Some v -> let connectionIndex = actorIndex % pool.ConnectionsCount.Value
-                    pool.AliveConnections.[connectionIndex]
+        | Some v -> pool.AliveConnections.[actorIndex % v]
         | None   -> pool.AliveConnections.[actorIndex]
 
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId
                     CancellationToken = cancelToken
                     Connection = connection
-                    Data = feed.GetNext()
+                    Data = feedData
                     Logger = logger }
 
     { step with CurrentContext = Some context }

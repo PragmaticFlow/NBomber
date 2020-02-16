@@ -22,15 +22,17 @@ type ScenarioActor(logger: ILogger,
                    cancelToken: CancellationToken) =
 
     let allScnResponses = ResizeArray<ResizeArray<StepResponse>>(scenario.Steps.Length)
-    let steps = scenario.Steps |> Array.map(Step.setStepContext correlationId scenario.Feed actorIndex cancelToken logger)
     let mutable working = false
-
-    do steps |> Array.iter(fun _ -> allScnResponses.Add(ResizeArray<StepResponse>()))
+    do scenario.Steps |> Array.iter(fun _ -> allScnResponses.Add(ResizeArray<StepResponse>()))
 
     member x.Working = working
 
     member x.ExecSteps() = task {
         working <- true
+        let feedData = scenario.Feed.GetNext()
+        let steps =
+            scenario.Steps
+            |> Array.map(Step.setStepContext correlationId feedData actorIndex cancelToken logger)
         do! Step.execSteps(logger, steps, allScnResponses, fastCancelToken, scenarioTimer)
         working <- false
     }
