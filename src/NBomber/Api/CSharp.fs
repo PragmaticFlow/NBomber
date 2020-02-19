@@ -55,9 +55,9 @@ type ScenarioBuilder =
     static member WithTestClean(scenario: Scenario, cleanFunc: Func<ScenarioContext,Task>) =
         { scenario with TestClean = Some cleanFunc.Invoke }
 
-    [<Extension>]
-    static member WithConcurrentCopies(scenario: Scenario, concurrentCopies: int) =
-        scenario |> FSharp.Scenario.withConcurrentCopies(concurrentCopies)
+//    [<Extension>]
+//    static member WithConcurrentCopies(scenario: Scenario, concurrentCopies: int) =
+//        scenario |> FSharp.Scenario.withConcurrentCopies(concurrentCopies)
 
     [<Extension>]
     static member WithWarmUpDuration(scenario: Scenario, duration: TimeSpan) =
@@ -67,9 +67,9 @@ type ScenarioBuilder =
     static member WithOutWarmUp(scenario: Scenario) =
         scenario |> FSharp.Scenario.withOutWarmUp
 
-    [<Extension>]
-    static member WithDuration(scenario: Scenario, duration: TimeSpan) =
-        scenario |> FSharp.Scenario.withDuration(duration)
+//    [<Extension>]
+//    static member WithDuration(scenario: Scenario, duration: TimeSpan) =
+//        scenario |> FSharp.Scenario.withDuration(duration)
 
 [<Extension>]
 type NBomberRunner =

@@ -17,7 +17,7 @@ let getDistinctPools (scenario: Scenario) =
 let getPoolCount (scenario: Scenario, pool: ConnectionPool<obj>) =
     match pool.ConnectionsCount with
     | Some v -> v
-    | None   -> scenario.ConcurrentCopies
+    | None   -> 0 //scenario.ConcurrentCopies
 
 let init (scenario: Scenario,
           onStartedInitPool: (string * int) -> unit, // PoolName * ConnectionsCount

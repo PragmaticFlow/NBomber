@@ -21,7 +21,7 @@ type ReportsContent = {
  with
  static member empty = { TxtReport = ""; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let build (dep: Dependency, nodeStats: RawNodeStats[]) =
+let build (dep: GlobalDependency, nodeStats: RawNodeStats[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
         { TxtReport = TxtReport.print(nodeStats.[0])

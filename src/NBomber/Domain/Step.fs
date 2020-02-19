@@ -10,6 +10,7 @@ open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FSharpx.Collections
 
+open System.Collections.Generic
 open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
@@ -24,7 +25,7 @@ let setStepContext (logger: ILogger)
         match pool.ConnectionsCount with
         | Some v -> let connectionIndex = actorIndex % pool.ConnectionsCount.Value
                     pool.AliveConnections.[connectionIndex]
-        | None   -> pool.AliveConnections.[actorIndex]
+        | None   -> null
 
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = correlationId
@@ -57,8 +58,8 @@ let execStep (step: Step, data: obj, globalTimer: Stopwatch) = task {
 
 let execSteps (logger: ILogger,
                steps: Step[],
-               responses: ResizeArray<ResizeArray<StepResponse>>,
-               cancelToken: FastCancellationToken,
+               allScnResponses: (StepResponse list)[],
+               cancelToken: CancellationToken,
                globalTimer: Stopwatch) = task {
 
     let mutable data = Unchecked.defaultof<obj>
@@ -72,7 +73,7 @@ let execSteps (logger: ILogger,
             with _ -> ()
 
     for st in steps do
-        if not skipStep && not cancelToken.ShouldCancel then
+        if not skipStep && not cancelToken.IsCancellationRequested then
 
             for i = 1 to st.RepeatCount do
                 let! response = execStep(st, data, globalTimer)
@@ -80,8 +81,9 @@ let execSteps (logger: ILogger,
                 if response.Response.Payload :? IDisposable then
                     resourcesToDispose.Add(response.Response.Payload :?> IDisposable)
 
-                if not cancelToken.ShouldCancel && st.DoNotTrack = false then
-                    responses.[stepIndex].Add(response)
+                if not cancelToken.IsCancellationRequested && st.DoNotTrack = false then
+                    let stepResponses = response :: allScnResponses.[stepIndex]
+                    allScnResponses.[stepIndex] <- stepResponses
 
                 if st.RepeatCount = i then
                     if response.Response.Exception.IsNone then
@@ -94,14 +96,13 @@ let execSteps (logger: ILogger,
     cleanResources()
 }
 
-let filterByDuration (responses: ResizeArray<StepResponse>, duration: TimeSpan) =
+let filterByDuration (responses: StepResponse list, duration: TimeSpan) =
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
 
     responses
-    |> ResizeArray.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
-    |> ResizeArray.choose(fun x ->
+    |> List.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
+    |> List.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
-    |> ResizeArray.toArray

@@ -26,7 +26,7 @@ type MachineInfo = {
     CoresCount: int
 }
 
-type Dependency = {
+type GlobalDependency = {
     NBomberVersion: string
     ApplicationType: ApplicationType
     NodeType: NodeType
@@ -42,13 +42,14 @@ module ProgressBar =
 
     let private options =
         ProgressBarOptions(ProgressBarOnBottom = true,
+                           DisplayTimeInRealTime = false,
                            ForegroundColor = ConsoleColor.Yellow,
                            ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
                            BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
                            BackgroundCharacter = Nullable<char>('\u2593'))
 
     let create (ticks: int) =
-        new ProgressBar(ticks, String.Empty, options)
+        new ProgressBar(ticks, "custom message", options)
 
     let show (duration: TimeSpan) =
         new FixedDurationBar(duration, String.Empty, options)

@@ -39,6 +39,12 @@ module internal Constants =
     [<Literal>]
     let FinishScenarioTimeOutSec = 5_000
 
+    [<Literal>]
+    let ScheduleTickInterval = 250.0
+
+    [<Literal>]
+    let NotificationTickInterval = 5000.0
+
 type internal CorrelationId = string
 type internal StepName = string
 type internal FlowName = string
@@ -77,13 +83,15 @@ type internal StepResponse = {
     LatencyMs: int
 }
 
+type internal EndTime = TimeSpan
+type internal LoadTimeLine = (EndTime * LoadSimulation) list
+
 type internal Scenario = {
     ScenarioName: ScenarioName
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
     Steps: Step[]
-    ConcurrentCopies: int
-    CorrelationIds: CorrelationId[]
+    LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
 }

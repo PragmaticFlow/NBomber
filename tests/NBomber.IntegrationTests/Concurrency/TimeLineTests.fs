@@ -8,13 +8,13 @@ open Swensen.Unquote
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
+open NBomber.Domain
 open NBomber.Domain.Concurrency
-open NBomber.Domain.Concurrency.ScenarioTimeLine
 
 [<Property>]
-let ``TimeLine.build should correctly calculate and order time within timeline`` (strategies: ConcurrencyStrategy list) =
+let ``ConcurrencyTimeLine.build should correctly calculate and order time within timeline`` (strategies: LoadSimulation list) =
     result {
-        let! timeLine = ScenarioTimeLine.build(TimeSpan.Zero, strategies)
+        let! timeLine = ConcurrencyTimeLine.build(TimeSpan.Zero, strategies)
 
         let startTime = List.tryHead timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
         let endTime = List.tryLast timeLine |> Option.map fst |> Option.defaultValue TimeSpan.Zero
@@ -27,10 +27,10 @@ let ``TimeLine.build should correctly calculate and order time within timeline``
     |> ignore
 
 [<Property>]
-let ``TimeLine.getRunningStrategy should correctly determine and return running timeline`` (currentTimeTicks: int32,
-                                                                                            timeLine: ScenarioTimeLine) =
+let ``ConcurrencyTimeLine.getRunningStrategy should correctly determine and return running timeline`` (currentTimeTicks: int32,
+                                                                                                       timeLine: ConcurrencyTimeLine) =
     let currentTime = TimeSpan(int64 currentTimeTicks)
-    let strategy = ScenarioTimeLine.getRunningStrategy(timeLine, currentTime)
+    let strategy = ConcurrencyTimeLine.getRunningStrategy(timeLine, currentTime)
 
     match strategy with
     | Some v ->

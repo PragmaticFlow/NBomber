@@ -18,6 +18,9 @@ let run () =
     })
 
     let scenario = Scenario.create "Hello World!" [step]
+                   |> Scenario.withLoadSimulations [
+                       KeepConstant(copies 10, seconds 10)
+                   ]
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runInConsole

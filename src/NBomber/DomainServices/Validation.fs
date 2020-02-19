@@ -47,15 +47,15 @@ module ScenarioValidation =
         if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
         else Error <| EmptyStepName scnWithEmptySteps
 
-    let checkDuration (scenarios: Contracts.Scenario[]) =
-        let invalidScns = scenarios |> Array.choose(fun x -> if isDurationOk(x.Duration) then None else Some x.ScenarioName)
-        if Array.isEmpty(invalidScns) then Ok scenarios
-        else Error <| DurationIsWrong invalidScns
+//    let checkDuration (scenarios: Contracts.Scenario[]) =
+//        let invalidScns = scenarios |> Array.choose(fun x -> if isDurationOk(x.Duration) then None else Some x.ScenarioName)
+//        if Array.isEmpty(invalidScns) then Ok scenarios
+//        else Error <| DurationIsWrong invalidScns
 
-    let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
-        let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
-        if Array.isEmpty(invalidScns) then Ok scenarios
-        else Error <| ConcurrentCopiesIsWrong invalidScns
+//    let checkConcurrentCopies (scenarios: Contracts.Scenario[]) =
+//        let invalidScns = scenarios |> Array.choose(fun x -> if isPositiveNumber(x.ConcurrentCopies) then None else Some x.ScenarioName)
+//        if Array.isEmpty(invalidScns) then Ok scenarios
+//        else Error <| ConcurrentCopiesIsWrong invalidScns
 
     let validateWarmUpStats (nodeStats: RawNodeStats) =
         if nodeStats.FailCount > nodeStats.OkCount then
@@ -67,8 +67,8 @@ module ScenarioValidation =
         |> checkEmptyName
         >>= checkDuplicateName
         >>= checkEmptyStepName
-        >>= checkDuration
-        >>= checkConcurrentCopies
+        //>>= checkDuration
+        //>>= checkConcurrentCopies
         >>= fun _ -> Ok context
         |> Result.mapError(AppError.create)
 

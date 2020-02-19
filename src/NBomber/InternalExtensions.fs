@@ -5,8 +5,6 @@ open System.Threading.Tasks
 [<AutoOpen>]
 module internal Extensions =
 
-    type FastCancellationToken = { mutable ShouldCancel: bool }
-
     type Task<'T> with
         static member map f (m: Task<_>) =
             m.ContinueWith(fun (t: Task<_>) -> f t.Result)

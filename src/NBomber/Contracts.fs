@@ -82,19 +82,18 @@ type ScenarioContext = {
 type IStep =
     abstract StepName: string
 
-type ConcurrencyStrategy =
-    | Constant  of copiesCount:uint32 * duration:TimeSpan
-    | AddPerSec of copiesCount:uint32 * duration:TimeSpan
-    | RampTo    of copiesCount:uint32 * duration:TimeSpan
+type LoadSimulation =
+    | KeepConstant  of copiesCount:int * during:TimeSpan
+    | InjectPerSec of copiesCount:int * during:TimeSpan
+    | RampTo    of copiesCount:int * during:TimeSpan
 
 type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
     Steps: IStep[]
-    ConcurrentCopies: int
+    LoadSimulations: LoadSimulation list
     WarmUpDuration: TimeSpan
-    Duration: TimeSpan
 }
 
 type ReportFile = {

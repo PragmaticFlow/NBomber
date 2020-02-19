@@ -115,9 +115,10 @@ module Scenario =
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
           Steps = Seq.toArray(steps)
-          ConcurrentCopies = Constants.DefaultConcurrentCopies
-          WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
-          Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
+          //ConcurrentCopies = Constants.DefaultConcurrentCopies
+          LoadSimulations = List.empty
+          WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec) }
+          //Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec) }
 
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
@@ -125,8 +126,11 @@ module Scenario =
     let withTestClean (cleanFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
-    let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
-        { scenario with ConcurrentCopies = concurrentCopies }
+//    let withConcurrentCopies (concurrentCopies: int) (scenario: Contracts.Scenario) =
+//        { scenario with ConcurrentCopies = concurrentCopies }
+
+    let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
+        { scenario with LoadSimulations = loadSimulations }
 
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
@@ -134,8 +138,8 @@ module Scenario =
     let withOutWarmUp (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
-    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
-        { scenario with Duration = duration }
+//    let withDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+//        { scenario with Duration = duration }
 
 module NBomberRunner =
 
@@ -187,3 +191,10 @@ module NBomberRunner =
 
     let internal runWithResult (context: TestContext) =
         NBomberRunner.runAs(Process, context)
+
+[<AutoOpen>]
+module ApiExtensions =
+
+    let seconds (value: int) = TimeSpan.FromSeconds(float value)
+    let minutes (value: int) = TimeSpan.FromMinutes(float value)
+    let copies (value: int) = value

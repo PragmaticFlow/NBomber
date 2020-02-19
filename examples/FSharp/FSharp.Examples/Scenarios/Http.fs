@@ -4,6 +4,8 @@ open System.Net.Http
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open System
+open System.Threading.Tasks
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -19,6 +21,8 @@ let run () =
         let! response = httpClient.GetAsync("https://nbomber.com",
                                             context.CancellationToken)
 
+        //do! Task.Delay(TimeSpan.FromSeconds(20.0))
+
         match response.IsSuccessStatusCode with
         | true  -> let size = int response.Content.Headers.ContentLength.Value
                    return Response.Ok(sizeBytes = size)
@@ -26,7 +30,12 @@ let run () =
     })
 
     let scenario = Scenario.create "test_nbomber" [step]
-                   |> Scenario.withConcurrentCopies 100
+                   |> Scenario.withWarmUpDuration(seconds 20)
+                   |> Scenario.withLoadSimulations [
+                       //LoadSimulation.RampTo(copies 300, during = minutes 1)
+                       //LoadSimulation.KeepConstant(copies 300, during = minutes 1)
+                       LoadSimulation.InjectPerSec(copies 400, during = minutes 1)
+                   ]
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadInfraConfig "infra_config.json"

@@ -152,7 +152,7 @@ module EnvView =
 
 module ContentView =
 
-    let print (dep: Dependency, stats: RawNodeStats) =
+    let print (dep: GlobalDependency, stats: RawNodeStats) =
         let envHtml = EnvView.print(dep.Assets, dep.MachineInfo)
         let globalView = GlobalView.print(dep.Assets, stats)
 
@@ -200,7 +200,7 @@ module SideBar =
         let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: Dependency, stats: RawNodeStats) =
+let print (dep: GlobalDependency, stats: RawNodeStats) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
     let contentView = ContentView.print(dep, stats)

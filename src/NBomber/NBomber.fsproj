@@ -38,12 +38,14 @@
     <Compile Include="Domain\Errors.fs" />
     <Compile Include="Domain\Step.fs" />
     <Compile Include="Domain\ConnectionPool.fs" />
+    <Compile Include="Domain\LoadSimulation.fs" />
     <Compile Include="Domain\Scenario.fs" />
     <Compile Include="Domain\Statistics.fs" />
-    <Compile Include="Domain\Concurrency\Actor.fs" />
-    <Compile Include="Domain\Concurrency\ActorPool.fs" />
-    <Compile Include="Domain\Concurrency\TimeLine.fs" />
-    <Compile Include="Domain\Concurrency\Scheduler.fs" />
+    <Compile Include="Domain\Concurrency\ScenarioActor.fs" />
+    <Compile Include="Domain\Concurrency\ScenarioActorPool.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Logger.fs" />
     <Compile Include="Infra\TestFrameworkRunner.fs" />
     <Compile Include="Infra\HtmlBuilder.fs" />
@@ -57,7 +59,6 @@
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
-    <Compile Include="DomainServices\ScenarioRunner.fs" />
     <Compile Include="DomainServices\TestHost.fs" />
     <Compile Include="DomainServices\Cluster\Contracts.fs" />
     <Compile Include="DomainServices\Cluster\Agent.fs" />
@@ -66,7 +67,8 @@
     <Compile Include="Api\FSharp.fs" />
     <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup>    
+    <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />    
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
     <PackageReference Include="FSharpx.Collections" Version="2.1.2" />
     <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.3" />

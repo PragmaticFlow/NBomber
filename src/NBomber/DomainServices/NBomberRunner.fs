@@ -24,7 +24,7 @@ type ExecutionResult = {
       let stats = nodeStats |> Array.collect(Statistics.create)
       { RawNodeStats = nodeStats; Statistics = stats }
 
-let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
+let runClusterCoordinator (dep: GlobalDependency, testInfo: TestInfo,
                            context: TestContext, crdSettings: CoordinatorSettings) =
     asyncResult {
         sprintf "NBomber started as cluster coordinator: %A" crdSettings
@@ -38,7 +38,7 @@ let runClusterCoordinator (dep: Dependency, testInfo: TestInfo,
         return clusterStats
     }
 
-let runClusterAgent (dep: Dependency, context: TestContext, agentSettings: AgentSettings) =
+let runClusterAgent (dep: GlobalDependency, context: TestContext, agentSettings: AgentSettings) =
     asyncResult {
         sprintf "NBomber started as cluster agent: %A" agentSettings
         |> dep.Logger.Information
@@ -50,7 +50,7 @@ let runClusterAgent (dep: Dependency, context: TestContext, agentSettings: Agent
         return Array.empty<RawNodeStats>
     }
 
-let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
+let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
         dep.Logger.Information("NBomber started as single node")
 
@@ -62,28 +62,28 @@ let runSingleNode (dep: Dependency, testInfo: TestInfo, context: TestContext) =
         return [|rawNodeStats|]
     }
 
-let buildReport (dep: Dependency) (result: ExecutionResult) =
+let buildReport (dep: GlobalDependency) (result: ExecutionResult) =
     Report.build(dep, result.RawNodeStats)
 
-let saveReport (dep: Dependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
+let saveReport (dep: GlobalDependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
     let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
     let formats = TestContext.getReportFormats(context)
     Report.save("./", fileName, formats, report, dep.Logger)
 
-let showErrors (dep: Dependency) (errors: AppError[]) =
+let showErrors (dep: GlobalDependency) (errors: AppError[]) =
     if dep.ApplicationType = ApplicationType.Test then
         TestFrameworkRunner.showErrors(errors)
     else
         errors |> Array.iter(AppError.toString >> dep.Logger.Error)
 
-let sendStartTestToReportingSink (dep: Dependency, testInfo: TestInfo) =
+let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     try
         dep.ReportingSinks
         |> Array.iter(fun sink -> sink.StartTest(testInfo) |> ignore)
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
 
-let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (stats: Statistics[]) (reportFiles: ReportFile[]) =
+let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) (stats: Statistics[]) (reportFiles: ReportFile[]) =
     try
         dep.ReportingSinks
         |> Array.map(fun sink -> sink.SaveFinalStats(testInfo, stats, reportFiles))
@@ -93,7 +93,7 @@ let sendSaveReportsToReportingSink (dep: Dependency) (testInfo: TestInfo) (stats
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.SaveReports failed")
 
-let sendFinishTestToReportingSink (dep: Dependency) (testInfo: TestInfo) =
+let sendFinishTestToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) =
     try
         dep.ReportingSinks
         |> Array.map(fun sink -> sink.FinishTest(testInfo))
@@ -103,7 +103,7 @@ let sendFinishTestToReportingSink (dep: Dependency) (testInfo: TestInfo) =
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.FinishTest failed")
 
-let run (dep: Dependency, testInfo: TestInfo, context: TestContext) =
+let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
         dep.Logger.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, testInfo.SessionId)
 

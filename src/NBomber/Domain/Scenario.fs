@@ -1,27 +1,29 @@
 ﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.Scenario
 
+open System
 open System.Threading
 
 open Serilog
 
 open NBomber
+open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Errors
-
-let createCorrelationId (scnName: ScenarioName, concurrentCopies: int) =
-    [|0 .. concurrentCopies - 1|]
-    |> Array.map(fun i -> sprintf "%s_%i" scnName i)
+open NBomber.Domain.Concurrency
 
 let create (config: Contracts.Scenario) =
+
+    let timeLine = LoadSimulation.createTimeLine(TimeSpan.Zero, config.LoadSimulations) |> Result.getOk
+    let duration = timeLine |> List.last |> fst
+
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
       TestClean = config.TestClean
       Steps = config.Steps |> Seq.cast<Step> |> Seq.toArray
-      ConcurrentCopies = config.ConcurrentCopies
-      CorrelationIds = createCorrelationId(config.ScenarioName, config.ConcurrentCopies)
+      LoadTimeLine = timeLine
       WarmUpDuration = config.WarmUpDuration
-      Duration = config.Duration }
+      Duration = duration }
 
 let init (scenario: Scenario,
           initAllConnectionPools: Scenario -> ConnectionPool<obj>[],
@@ -74,8 +76,7 @@ let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[])
 let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =
 
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
-        { scenario with ConcurrentCopies = settings.ConcurrentCopies
-                        CorrelationIds = createCorrelationId(scenario.ScenarioName, settings.ConcurrentCopies)
+        { scenario with LoadTimeLine = List.empty
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
                         Duration = settings.Duration.TimeOfDay }
 
