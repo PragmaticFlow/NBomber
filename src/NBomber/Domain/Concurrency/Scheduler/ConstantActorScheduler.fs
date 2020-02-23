@@ -114,7 +114,7 @@ type ConstantActorScheduler(dep: ActorDep) =
         }
 
     member x.AvailableActors = _actorPool
-    member x.ScheduledActorCount = _scheduledActorCount
+    member x.WorkingActorCount = _scheduledActorCount
     member x.Stop() = stop()
 
     member x.AddActors(count) =

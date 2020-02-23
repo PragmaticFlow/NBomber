@@ -10,50 +10,78 @@ open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
-open NBomber.Domain.Statistics
 
 [<Struct>]
 type SchedulerNotification = {
-    ConstantActorsCount: int
-    OneTimeActorsCount: int
+    ConstantActorCount: int
+    OneTimeActorCount: int
 }
 
 [<Struct>]
 type SchedulerCommand =
     | AddConstantActors    of addCount:int
     | RemoveConstantActors of removeCount:int
-    | StartOneTimeActors   of addOneTimeCount:int
+    | InjectOneTimeActors  of scheduledCount:int * perSecCount:int
     | DoNothing
 
-let schedule (scheduleTickInterval, constantActorsCount, simulation: LoadSimulation) =
+let calcScheduleTickProgress (scheduleTickInterval: float) =
+    if scheduleTickInterval < 1000.0 then 1000.0 / scheduleTickInterval
+    else scheduleTickInterval / 1000.0
 
-    let schedulePerSecCount = 1000 / scheduleTickInterval
+let calcScheduledCount (actorsCount: int, scheduleTickProgress: float, during: TimeSpan) =
+    let actorsPerSec = float actorsCount / during.TotalSeconds
+    int(actorsPerSec / scheduleTickProgress)
+
+let schedule (scheduleTickIntervalMs,
+              constWorkingActorCount, oneTimeActorPerSecCount, simulation: LoadSimulation) =
+
+    let scheduleTickProgress = calcScheduleTickProgress(scheduleTickIntervalMs)
 
     match simulation with
-    | KeepConstant (copiesCount, _) ->
-        if constantActorsCount < copiesCount then [AddConstantActors(copiesCount - constantActorsCount)]
-        elif constantActorsCount > copiesCount then [RemoveConstantActors(constantActorsCount - copiesCount)]
+    | KeepConcurrentScenarios (copiesCount, _) ->
+        if constWorkingActorCount < copiesCount then [AddConstantActors(copiesCount - constWorkingActorCount)]
+        elif constWorkingActorCount > copiesCount then [RemoveConstantActors(constWorkingActorCount - copiesCount)]
         else [DoNothing]
 
-    | InjectPerSec (copiesCount, _) ->
-        if constantActorsCount > 0 then
-            [RemoveConstantActors(constantActorsCount)
-             StartOneTimeActors(copiesCount / schedulePerSecCount)]
-        else
-            [StartOneTimeActors(copiesCount / schedulePerSecCount)]
+    | RampConcurrentScenarios (copiesCount, during) ->
+        if constWorkingActorCount < copiesCount then
+            let actorsToStart = copiesCount - constWorkingActorCount
+            let scheduled = calcScheduledCount(actorsToStart, scheduleTickProgress, during)
+            if scheduled = 0 then [AddConstantActors 1]
+            else [AddConstantActors scheduled]
 
-    | RampTo (copiesCount, duration) ->
-        if constantActorsCount < copiesCount then
-            let copiesToStart = copiesCount - constantActorsCount
-            let copiesPerSec = copiesToStart / int duration.TotalSeconds
-            [AddConstantActors(copiesPerSec / schedulePerSecCount)]
-
-        elif constantActorsCount > copiesCount then
-            let copiesToStop = constantActorsCount - copiesCount
-            let copiesPerSec = copiesToStop / int duration.TotalSeconds
-            [RemoveConstantActors(copiesPerSec / schedulePerSecCount)]
+        elif constWorkingActorCount > copiesCount then
+            let actorsToStop = constWorkingActorCount - copiesCount
+            let scheduled = calcScheduledCount(actorsToStop, scheduleTickProgress, during)
+            if scheduled = 0 then [RemoveConstantActors 1]
+            else [RemoveConstantActors scheduled]
 
         else [DoNothing]
+
+    | InjectScenariosPerSec (perSecCount, _) ->
+        let scheduled = perSecCount / int scheduleTickProgress
+        let command = [InjectOneTimeActors(scheduled, perSecCount)]
+
+        if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount)] @ command
+        else command
+
+    | RampScenariosPerSec (perSecCount, during) ->
+        let actorsToStart = Math.Abs(perSecCount - oneTimeActorPerSecCount)
+        let scheduled = calcScheduledCount(actorsToStart, scheduleTickProgress, during)
+
+        let command =
+            if perSecCount > oneTimeActorPerSecCount then
+                let scheduledCount = oneTimeActorPerSecCount + scheduled
+                [InjectOneTimeActors(scheduledCount, scheduledCount)]
+
+            elif perSecCount < oneTimeActorPerSecCount then
+                let scheduledCount = oneTimeActorPerSecCount - scheduled
+                [InjectOneTimeActors(scheduledCount, scheduledCount)]
+
+            else [InjectOneTimeActors(scheduled, perSecCount)]
+
+        if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount)] @ command
+        else command
 
 type ScenarioScheduler(dep: ActorDep) =
 
@@ -88,7 +116,7 @@ type ScenarioScheduler(dep: ActorDep) =
         getAllActors()
         |> Seq.collect(fun x -> x.GetStepResults dep.Scenario.Duration)
         |> Seq.toArray
-        |> ScenarioStats.create dep.Scenario dep.Scenario.Duration
+        |> Statistics.ScenarioStats.create dep.Scenario dep.Scenario.Duration
 
     do
         _timer.Elapsed.Add(fun _ ->
@@ -106,13 +134,14 @@ type ScenarioScheduler(dep: ActorDep) =
             else
                 match LoadSimulation.getRunningSimulation(dep.Scenario.LoadTimeLine, dep.GlobalTimer.Elapsed) with
                 | Some simulation ->
-                    schedule(int _timer.Interval, _constantScheduler.ScheduledActorCount, simulation)
+                    schedule(_timer.Interval,
+                             _constantScheduler.WorkingActorCount, _oneTimeScheduler.ActorPerSecCount, simulation)
                     |> List.iter(fun command ->
                         match command with
                         | AddConstantActors count    -> _constantScheduler.AddActors(count)
                         | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
-                        | StartOneTimeActors count   -> _oneTimeScheduler.StartActors(count)
-                        | DoNothing                  -> ()
+                        | InjectOneTimeActors (count,perSecCount) -> _oneTimeScheduler.InjectActors(count, perSecCount)
+                        | DoNothing -> ()
                     )
 
                 | None -> stop()
@@ -120,8 +149,8 @@ type ScenarioScheduler(dep: ActorDep) =
 
         _notificationTimer.Elapsed.Add(fun _ ->
             let notification = {
-                ConstantActorsCount = _constantScheduler.ScheduledActorCount
-                OneTimeActorsCount = _oneTimeScheduler.ScheduledActorCount
+                ConstantActorCount = _constantScheduler.WorkingActorCount
+                OneTimeActorCount = _oneTimeScheduler.ActorPerSecCount
             }
             _notificationStream.OnNext(notification)
         )

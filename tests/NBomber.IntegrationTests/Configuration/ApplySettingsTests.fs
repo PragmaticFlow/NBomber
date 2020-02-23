@@ -22,8 +22,8 @@ let ``applyScenariosSettings() should override initial settings`` (name: string,
 
     let result = updatedScenarios.[0].Duration = duration.TimeOfDay
                  && updatedScenarios.[0].WarmUpDuration = warmUpDuration.TimeOfDay
-                 && updatedScenarios.[0].ConcurrentCopies = concurrentCopies
-                 && updatedScenarios.[0].CorrelationIds.Length = concurrentCopies
+                 //&& updatedScenarios.[0].ConcurrentCopies = concurrentCopies
+                 //&& updatedScenarios.[0].CorrelationIds.Length = concurrentCopies
 
     Assert.True(result)
 
@@ -36,7 +36,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
     let updatedScenarios = Scenario.applySettings [|settings|] [|scenario|]
 
     let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
-                 && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
+                 //&& updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
 
     Assert.True(result)
 
@@ -47,7 +47,7 @@ let ``applyScenariosSettings() should make no changes if settings absent`` () =
     let updatedScenarios = Scenario.applySettings settings [|scenario|]
 
     let result = updatedScenarios.[0].Duration = TimeSpan.FromSeconds(Constants.DefaultScenarioDurationInSec)
-                 && updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
+                 //&& updatedScenarios.[0].ConcurrentCopies = Constants.DefaultConcurrentCopies
 
     Assert.True(result)
 

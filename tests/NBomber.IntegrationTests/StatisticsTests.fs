@@ -39,9 +39,8 @@ let private nodeStats = {
 
 let private scenario = {
     ScenarioName = "Scenario1"; TestInit = None; TestClean = None
-    Steps = Array.empty; ConcurrentCopies = 1; CorrelationIds = Array.empty
+    Steps = Array.empty; LoadSimulations = List.empty
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
-    Duration = TimeSpan.FromSeconds(1.0)
 }
 
 [<Property>]
@@ -74,21 +73,21 @@ let ``calcMax() should not fail and calculate correctly for any args values`` (l
     let expected = Array.maxOrDefault 0 latencies
     Assert.Equal(expected, result)
 
-[<Fact>]
-let ``NodeStats.merge should correctly calculate concurrency counters`` () =
-
-    let meta = { nodeStatsInfo with MachineName = "1"; Sender = NodeType.Cluster }
-
-    let scn = { scenario with ScenarioName = "merge_test"
-                              ConcurrentCopies = 50 }
-
-    let scnStats = { scenarioStats with ScenarioName = scn.ScenarioName }
-    let agentNode1 = { nodeStats with AllScenariosStats = [| scnStats |]}
-    let agentNode2 = { nodeStats with AllScenariosStats = [| scnStats |]}
-
-    let allNodesStats = [| agentNode1; agentNode2 |]
-    let allScenarios = [| scn |]
-
-    let mergedStats = NodeStats.merge meta allNodesStats None allScenarios
-
-    Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)
+//[<Fact>]
+//let ``NodeStats.merge should correctly calculate concurrency counters`` () =
+//
+//    let meta = { nodeStatsInfo with MachineName = "1"; Sender = NodeType.Cluster }
+//
+//    let scn = { scenario with ScenarioName = "merge_test"
+//                              ConcurrentCopies = 50 }
+//
+//    let scnStats = { scenarioStats with ScenarioName = scn.ScenarioName }
+//    let agentNode1 = { nodeStats with AllScenariosStats = [| scnStats |]}
+//    let agentNode2 = { nodeStats with AllScenariosStats = [| scnStats |]}
+//
+//    let allNodesStats = [| agentNode1; agentNode2 |]
+//    let allScenarios = [| scn |]
+//
+//    let mergedStats = NodeStats.merge meta allNodesStats None allScenarios
+//
+//    Assert.Equal(100, mergedStats.AllScenariosStats.[0].ConcurrentCopies)

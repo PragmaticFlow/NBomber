@@ -25,9 +25,10 @@ let scenario = {
     TestInit = None
     TestClean = None
     Steps = Array.empty
-    ConcurrentCopies = 1
+    LoadSimulations = List.empty
+    //ConcurrentCopies = 1
     WarmUpDuration = TimeSpan.FromSeconds(10.)
-    Duration = TimeSpan.FromSeconds(10.)
+    //Duration = TimeSpan.FromSeconds(10.)
 }
 
 let config = {

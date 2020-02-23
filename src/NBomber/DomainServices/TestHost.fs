@@ -185,7 +185,7 @@ type TestHost(dep: GlobalDependency, registeredScenarios: Scenario[]) =
                 let pb = dep.CreateProgressBar(ticCount)
                 x.NotificationStream
                 |> Observable.subscribe(fun x ->
-                    let msg = sprintf "constant copies count: '%i', per sec copies count: '%i'" x.ConstantActorsCount x.OneTimeActorsCount
+                    let msg = sprintf "constant copies count: '%i', per sec copies count: '%i'" x.ConstantActorCount x.OneTimeActorCount
                     pb.Tick(msg)
                 )
             )

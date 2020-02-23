@@ -10,7 +10,7 @@ open NBomber.Errors
 let validateSimulation (simulation: LoadSimulation) =
     result {
         let checkZeroCopies (copies) =
-            if copies = 0 then AppError.createResult(CopiesCountZero)
+            if copies <= 0 then AppError.createResult(CopiesCountZero) // NumberIsZeroOrNegative()
             else Ok copies
 
         let checkDuration (duration) =
@@ -18,19 +18,12 @@ let validateSimulation (simulation: LoadSimulation) =
             else Ok duration
 
         match simulation with
-        | KeepConstant (copies, duration) ->
+        | KeepConcurrentScenarios (copies, duration)
+        | RampConcurrentScenarios (copies, duration)
+        | InjectScenariosPerSec (copies, duration)
+        | RampScenariosPerSec (copies, duration) ->
             let! vCopies = checkZeroCopies copies
             let! vDuration = checkDuration duration
-            return simulation
-
-        | InjectPerSec (copies, duration) ->
-            let! vCopies = checkZeroCopies copies
-            let! vDuration = checkDuration duration
-            return simulation
-
-        | RampTo (copies, duration) ->
-            let! vCopies = checkZeroCopies copies
-            let! vDuring = checkDuration duration
             return simulation
     }
 
@@ -38,19 +31,12 @@ let rec createTimeLine (startTime: TimeSpan, simulations: LoadSimulation list): 
     result {
         match simulations with
         | [] -> return List.empty
-        | simulation::tail ->
+        | simulation :: tail ->
             match! validateSimulation(simulation) with
-            | KeepConstant (_, duration) ->
-                let endTime = startTime + duration
-                let! timeLine = createTimeLine(endTime, tail)
-                return (endTime, simulation) :: timeLine
-
-            | InjectPerSec (_, duration) ->
-                let endTime = startTime + duration
-                let! timeLine = createTimeLine(endTime, tail)
-                return (endTime, simulation) :: timeLine
-
-            | RampTo (_, duration) ->
+            | KeepConcurrentScenarios (_, duration)
+            | RampConcurrentScenarios (_, duration)
+            | InjectScenariosPerSec (_, duration)
+            | RampScenariosPerSec (_, duration) ->
                 let endTime = startTime + duration
                 let! timeLine = createTimeLine(endTime, tail)
                 return (endTime, simulation) :: timeLine
