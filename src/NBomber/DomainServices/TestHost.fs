@@ -144,7 +144,7 @@ type TestHost(dep: GlobalDependency, registeredScenarios: Scenario[]) =
                 let pb = dep.CreateProgressBar(tickCount)
                 x.ProgressInfoStream
                 |> Observable.subscribeWithCompletion
-                    (fun x -> let msg = sprintf "constant copies count: '%i', per sec copies count: '%i'" x.ConstantActorCount x.OneTimeActorCount
+                    (fun x -> let msg = sprintf "keep concurrent scenarios: '%i', inject scenarios per sec: '%i'" x.ConstantActorCount x.OneTimeActorCount
                               pb.Tick(msg))
 
                     (fun () -> pb.Dispose())

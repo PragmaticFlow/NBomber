@@ -161,7 +161,7 @@ type ScenarioScheduler(dep: ActorDep) =
         _progressInfoTimer.Elapsed.Add(fun _ ->
             let progressInfo = {
                 ConstantActorCount = _constantScheduler.WorkingActorCount
-                OneTimeActorCount = _oneTimeScheduler.ScheduledActorCount
+                OneTimeActorCount = _oneTimeScheduler.ActorPerSecCount
             }
             _progressInfoStream.OnNext(progressInfo)
         )
