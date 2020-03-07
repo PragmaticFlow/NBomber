@@ -22,6 +22,15 @@ let private scenario = {
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
 }
 
+[<Fact>]
+let ``calcRPS() should not calculate latency which is bigger than 1 sec`` () =
+    let latencies = [| 2_000; 3_000; 4_000 |]
+    let scnDuration = TimeSpan.FromSeconds(5.0)
+
+    let result = Statistics.calcRPS(latencies, scnDuration)
+
+    test <@ result = 0 @>
+
 [<Property>]
 let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency[], scnDuration: TimeSpan) =
     let result = Statistics.calcRPS(latencies, scnDuration)
@@ -33,7 +42,8 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
         test <@ result = latencies.Length @>
 
     else
-        let expected = latencies.Length / int(scnDuration.TotalSeconds)
+        let allLatenciesIn1SecCount = latencies |> Array.filter(fun x -> x <= 1_000) |> Array.length
+        let expected = allLatenciesIn1SecCount / int(scnDuration.TotalSeconds)
         test <@ result = expected @>
 
 [<Property>]

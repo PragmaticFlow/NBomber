@@ -18,10 +18,12 @@ type CorrelationId = {
     CopyNumber: int
 }
 
+[<Struct>]
 type Response = {
     Payload: obj
     SizeBytes: int
-    Exception: exn option
+    Exception: exn voption
+    LatencyMs: int
 }
 
 type NodeType =
@@ -140,27 +142,34 @@ type TestContext = {
 type Response with
 
     static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
-                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int) =
+                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
+                     [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
           SizeBytes = sizeBytes
-          Exception = None }
+          Exception = ValueNone
+          LatencyMs = latencyMs }
 
-    static member Ok(payload: byte[]) =
+    static member Ok(payload: byte[],
+                     [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
-          Exception = None }
+          Exception = ValueNone
+          LatencyMs = latencyMs }
 
     static member Fail() =
         { Payload = null
           SizeBytes = 0
-          Exception = Some(Exception "unknown client's error") }
+          Exception = ValueSome(Exception "unknown client's error")
+          LatencyMs = 0 }
 
     static member Fail(ex: Exception) =
         { Payload = null
           SizeBytes = 0
-          Exception = Some(ex) }
+          Exception = ValueSome(ex)
+          LatencyMs = 0 }
 
     static member Fail(reason: string) =
         { Payload = null
           SizeBytes = 0
-          Exception = Some(Exception reason) }
+          Exception = ValueSome(Exception reason)
+          LatencyMs = 0 }

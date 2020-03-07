@@ -307,3 +307,28 @@ let ``NBomber should stop execution scenario if too many failed results on a war
         | _ -> false
 
     test <@ warmUpErrorFound = true @>
+
+[<Fact>]
+let ``NBomber should allow to set custom response latency and handle it properly`` () =
+
+    let step = Step.create("step", fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        return Response.Ok(latencyMs = 2_000) // set custom latency
+    })
+
+    let scenario =
+        Scenario.create "scenario" [step]
+        |> Scenario.withOutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
+        ]
+
+    let allStats =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runTest
+        |> Result.getOk
+
+    let stepStats = allStats |> Array.find(fun x -> x.StepName = "step")
+    test <@ stepStats.OkCount > 5 @>
+    test <@ stepStats.RPS = 0 @>
+    test <@ stepStats.Min = 2_000 @>

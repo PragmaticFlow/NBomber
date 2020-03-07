@@ -53,8 +53,13 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let! resp = step.Execute(step.Context.Value)
-        let endTime = globalTimer.Elapsed.TotalMilliseconds
-        let latency = int(endTime - startTime)
+
+        let latency =
+            if resp.LatencyMs > 0 then resp.LatencyMs
+            else
+                let endTime = globalTimer.Elapsed.TotalMilliseconds
+                int(endTime - startTime)
+
         return { Response = resp; StartTimeMs = startTime; LatencyMs = latency }
     with
     | :? TaskCanceledException

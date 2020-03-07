@@ -40,9 +40,13 @@ let buildHistogram (latencies) =
     histogram
 
 let calcRPS (latencies: Latency[], executionTime: TimeSpan) =
+
+    let allLatenciesIn1SecCount = latencies |> Seq.filter(fun x -> x <= 1_000) |> Seq.length
+
     let totalSec = if executionTime.TotalSeconds < 1.0 then 1.0
                    else executionTime.TotalSeconds
-    latencies.Length / int(totalSec)
+
+    allLatenciesIn1SecCount / int(totalSec)
 
 let calcMin (latencies: Latency[]) =
     latencies |> Array.minOrDefault 0
