@@ -1,0 +1,38 @@
+﻿<div class="card custom scenario" style="margin-bottom: 20px">
+    <div class="card-header custom">%table_title%</div>
+    <div class="card-body">
+        %assertions%
+        <table class="table table-hover table-sm table-responsive-lg">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th colspan="3">Request count</th>
+                    <th colspan="4">Request time</th>
+                    <th colspan="4">Request time percentile</th>
+                    <th colspan="4">Data transfer</th>
+                </tr>
+                <tr>
+                    <th>step</th>
+                    <th>All</th>
+                    <th>OK</th>
+                    <th>Failed</th>
+                    <th>RPS</th>
+                    <th>min</th>
+                    <th>mean</th>
+                    <th>max</th>
+                    <th>50%</th>
+                    <th>75%</th>
+                    <th>95%</th>
+                    <th>StdDev</th>
+                    <th>min, Kb</th>
+                    <th>mean, Kb</th>
+                    <th>max, Kb</th>
+                    <th>all, MB</th>
+                </tr>
+            </thead>
+            <tbody>
+                %table_body%
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+﻿{
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Sinks.Elasticsearch"
+    ],
+    "MinimumLevel": "Debug",
+    "Enrich": ["FromLogContext", "WithMachineName"],
+    "WriteTo": [
+      {
+        "Name": "Console"
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "./logs/log.txt",
+          "rollingInterval": "Day",
+          "outputTemplate": "{Timestamp:HH:mm:ss} [{Level:u3}] [{MachineName}/{SessionId}/{TestSuite}/{TestName}] {NewLine}{Message}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "Elasticsearch",
+        "Args": {
+          "nodeUris": "http://localhost:9200",
+          "indexFormat": "nbomber-index-{0:yyyy.MM}"
+        }
+      }
+    ]
+  }
+}

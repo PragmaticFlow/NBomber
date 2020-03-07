@@ -1,0 +1,27 @@
+version: 1.0.0-beta-{build}
+image: Visual Studio 2019
+
+branches:
+  only:
+    - master
+    - tests
+    - dev
+
+build_script:
+  - ps: .\build.ps1 -target=Pack
+
+test_script:
+  - ps: .\build.ps1 -target=Test
+
+artifacts:
+  - path: ./artifacts/*.nupkg
+    name: NBomber
+
+deploy:
+  - provider: NuGet
+    name: production
+    api_key:
+      secure: qD9LkWW3omTD4hcBBTCEPjUdxGWgOuGMYBkcWLRwY3U80F5zcB6XPJeh88DhBO/j
+    on:
+      branch: master
+      appveyor_repo_tag: false

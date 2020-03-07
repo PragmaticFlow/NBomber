@@ -1,0 +1,28 @@
+﻿{
+  "TestSuite": "gitter.io",
+  "TestName": "test http api",
+
+  "GlobalSettings": {
+    "ScenariosSettings": [
+      {
+          "ScenarioName": "test_youtube",
+          "WarmUpDuration": "00:00:05",
+
+          "LoadSimulationsSettings": [
+              { "KeepConcurrentScenarios": [5, "00:00:05"] },
+              { "RampConcurrentScenarios": [5, "00:00:05"] },
+              { "InjectScenariosPerSec": [5, "00:00:05"] },
+              { "RampScenariosPerSec": [5, "00:00:05"] }
+          ]
+      }
+    ],
+    "TargetScenarios": [ "test_youtube" ],
+    "ReportFileName": "custom_report_name_from_json",
+    "ReportFormats": ["Html", "Txt"]
+  },
+
+  "CustomSettings": {
+    "TargetMqttBrokerHost": "localhost",
+    "MsgPayloadSizeInBytes": 1000
+  }
+}

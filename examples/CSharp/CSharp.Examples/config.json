@@ -1,0 +1,20 @@
+﻿{
+  "GlobalSettings": {
+    "ScenariosSettings": [
+      {
+          "ScenarioName": "test_gitter",
+          "WarmUpDuration": "00:00:05",
+
+          "LoadSimulationsSettings": [
+            { "KeepConcurrentScenarios": [5, "00:00:05"] },
+            { "RampConcurrentScenarios": [5, "00:00:05"] },
+            { "InjectScenariosPerSec": [5, "00:00:05"] },
+            { "RampScenariosPerSec": [5, "00:00:05"] }
+          ]
+      }
+    ],
+    "TargetScenarios": [ "test_gitter" ],
+    "ReportFileName": "custom_report_name_from_json",
+    "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
+  }
+}

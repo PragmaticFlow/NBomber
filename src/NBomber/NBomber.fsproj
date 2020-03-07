@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>PragmaticFlow</Authors>
+    <Company>PragmaticFlow</Company>
+    <Version>1.0.0-beta</Version>
+    <Copyright>PragmaticFlow@2020</Copyright>
+    <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_icon.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
+    <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description>Very simple load testing framework for Pull and Push scenarios.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\assets.zip" />
+    <EmbeddedResource Include="assets\html\index.html" />
+    <EmbeddedResource Include="assets\html\sidebar.html" />
+    <EmbeddedResource Include="assets\html\sidebar_item.html" />
+    <EmbeddedResource Include="assets\html\scenario_view.html" />
+    <EmbeddedResource Include="assets\html\global_view.html" />
+    <EmbeddedResource Include="assets\html\statistics_table.html" />
+    <EmbeddedResource Include="assets\html\indicators_chart.html" />
+    <EmbeddedResource Include="assets\html\num_req_chart.html" />
+    <EmbeddedResource Include="assets\html\env_table.html" />
+    <EmbeddedResource Include="assets\html\env_view.html" />
+    <EmbeddedResource Include="assets\js\num_req_chart.js" />
+    <EmbeddedResource Include="assets\js\indicators_chart.js" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="InternalExtensions.fs" />
+    <Compile Include="Configuration.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Contracts.fs" />
+    <Compile Include="Extensions.fs" />
+    <Compile Include="Domain\DomainTypes.fs" />
+    <Compile Include="Domain\StatisticsTypes.fs" />
+    <Compile Include="Domain\Errors.fs" />
+    <Compile Include="Domain\Feed.fs" />
+    <Compile Include="Domain\Step.fs" />
+    <Compile Include="Domain\ConnectionPool.fs" />
+    <Compile Include="Domain\LoadTimeLine.fs" />
+    <Compile Include="Domain\Scenario.fs" />
+    <Compile Include="Domain\Statistics.fs" />
+    <Compile Include="Domain\Concurrency\ScenarioActor.fs" />
+    <Compile Include="Domain\Concurrency\ScenarioActorPool.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
+    <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
+    <Compile Include="Infra\Logger.fs" />
+    <Compile Include="Infra\TestFrameworkRunner.fs" />
+    <Compile Include="Infra\HtmlBuilder.fs" />
+    <Compile Include="Infra\ResourceManager.fs" />
+    <Compile Include="Infra\Dependency.fs" />
+    <Compile Include="Infra\TestContext.fs" />
+    <Compile Include="DomainServices\Reporting\TxtReport.fs" />
+    <Compile Include="DomainServices\Reporting\MdReport.fs" />
+    <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
+    <Compile Include="DomainServices\Reporting\CsvReport.fs" />
+    <Compile Include="DomainServices\Reporting\Report.fs" />
+    <Compile Include="DomainServices\Validation.fs" />
+    <Compile Include="DomainServices\TestHost.fs" />
+    <Compile Include="DomainServices\NBomberRunner.fs" />
+    <Compile Include="Api\Shared.fs" />
+    <Compile Include="Api\FSharp.fs" />
+    <Compile Include="Api\CSharp.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="15.0.0" />
+    <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
+    <PackageReference Include="FSharp.Json" Version="0.3.7" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.3" />
+    <PackageReference Include="HdrHistogram" Version="2.5.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="Serilog" Version="2.8.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.1.3" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
+    <PackageReference Include="ShellProgressBar" Version="4.3.0" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
+    <PackageReference Include="ConsoleTables" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
+  </ItemGroup>
+</Project>
