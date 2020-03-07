@@ -21,14 +21,18 @@ let run () =
                                             context.CancellationToken)
 
         match response.IsSuccessStatusCode with
-        | true  -> let size = int response.Content.Headers.ContentLength.Value
-                   return Response.Ok(sizeBytes = size)
+        | true  -> let bodySize = int response.Content.Headers.ContentLength.Value
+                   let headersSize = response.Headers.ToString().Length
+                   return Response.Ok(sizeBytes = headersSize + bodySize)
         | false -> return Response.Fail()
     })
 
     let scenario = Scenario.create "test_nbomber" [step]
                    |> Scenario.withLoadSimulations [
-                       KeepConcurrentScenarios(100, TimeSpan.FromMinutes 1.0)
+                       InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
+                       //RampScenariosPerSec(copiesCount = 100, during = TimeSpan.FromSeconds 20.0)
+                       //RampConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromSeconds 20.0)
+                       //KeepConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromMinutes 1.0)
                    ]
 
     NBomberRunner.registerScenarios [scenario]
