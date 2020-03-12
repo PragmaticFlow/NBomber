@@ -40,4 +40,3 @@ let ``withTestClean should be invoked only once and not fail runner`` () =
         |> Result.getOk
 
     test <@ 1 = cleanInvokeCounter @>
-    test <@ allStats.[0].OkCount > 10 @>
