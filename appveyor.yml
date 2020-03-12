@@ -1,4 +1,4 @@
-version: 1.0.0-beta-{build}
+version: 1.0.0-beta2-{build}
 image: Visual Studio 2019
 
 branches:
