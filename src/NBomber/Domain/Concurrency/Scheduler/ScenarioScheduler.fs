@@ -91,12 +91,13 @@ let correctExecutionTime (executionTime: TimeSpan, scnDuration: TimeSpan) =
 
 type ScenarioScheduler(dep: ActorDep) =
 
+    let mutable _disposed = false
     let mutable _warmUp = false
     let _constantScheduler = ConstantActorScheduler(dep)
     let _oneTimeScheduler = OneTimeActorScheduler(dep)
     let _timer = new System.Timers.Timer(float Constants.SchedulerTickIntervalMs)
     let _progressInfoTimer = new System.Timers.Timer(float Constants.NotificationTickIntervalMs)
-    let _progressInfoStream = Subject.broadcast
+    let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
 
     let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
@@ -107,16 +108,16 @@ type ScenarioScheduler(dep: ActorDep) =
         _tcs.Task :> Task
 
     let stop () =
-        try
+        if not _disposed then
+            _disposed <- true
             _timer.Stop()
             _progressInfoTimer.Stop()
             dep.GlobalTimer.Stop()
-            _progressInfoStream.OnCompleted()
+            _eventStream.OnCompleted()
+            _eventStream.Dispose()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
             _tcs.TrySetResult() |> ignore
-        with
-        | ex -> ()
 
     let getScenarioStats (duration) =
 
@@ -129,8 +130,6 @@ type ScenarioScheduler(dep: ActorDep) =
 
     do
         _timer.Elapsed.Add(fun _ ->
-
-            //_timer.Stop()
 
             if not dep.GlobalTimer.IsRunning then dep.GlobalTimer.Restart()
 
@@ -163,7 +162,7 @@ type ScenarioScheduler(dep: ActorDep) =
                 ConstantActorCount = _constantScheduler.WorkingActorCount
                 OneTimeActorCount = _oneTimeScheduler.ActorPerSecCount
             }
-            _progressInfoStream.OnNext(progressInfo)
+            _eventStream.OnNext(progressInfo)
         )
 
     member x.Working = _timer.Enabled
@@ -172,8 +171,7 @@ type ScenarioScheduler(dep: ActorDep) =
         _warmUp <- isWarmUp
         start()
 
-    member x.Stop() = stop()
-    member x.ProgressInfoStream = _progressInfoStream :> IObservable<_>
+    member x.EventStream = _eventStream :> IObservable<_>
     member x.Scenario = dep.Scenario
     member x.AllActors = getAllActors()
     member x.GetScenarioStats(duration) = getScenarioStats(duration)

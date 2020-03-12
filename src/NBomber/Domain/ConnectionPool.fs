@@ -1,78 +1,130 @@
-﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
-module internal NBomber.Domain.ConnectionPool
+﻿module internal rec NBomber.Domain.ConnectionPool
 
 open System
+
+open FSharp.Control.Reactive
+open FsToolkit.ErrorHandling
+
 open NBomber
-open NBomber.Domain
+open NBomber.Extensions
+open NBomber.Contracts
 
-let toUntypedPool (pool: Contracts.IConnectionPool<'TConnection>) =
+type ConnectionPoolArgs<'TConnection> = {
+    PoolName: string
+    OpenConnection: int -> 'TConnection
+    CloseConnection: ('TConnection -> unit) option
+    ConnectionCount: int
+} with
+    static member toUntyped (args: ConnectionPoolArgs<'TConnection>) =
 
-    let p = pool :?> ConnectionPool<'TConnection>
+        let newOpen = fun (connectionNumber) -> args.OpenConnection(connectionNumber) :> obj
 
-    let newOpen = fun (i) -> p.OpenConnection(i) :> obj
+        let newClose =
+            match args.CloseConnection with
+            | Some func -> Some(fun (connection: obj) -> func(connection :?> 'TConnection))
+            | None      -> None
 
-    let newClose =
-        match p.CloseConnection with
-        | Some func -> Some(fun (c: obj) -> func(c :?> 'TConnection))
-        | None      -> None
+        { PoolName = args.PoolName
+          OpenConnection = newOpen
+          CloseConnection = newClose
+          ConnectionCount = args.ConnectionCount }
 
-    { PoolName = p.PoolName
-      OpenConnection = newOpen
-      CloseConnection = newClose
-      ConnectionsCount = p.ConnectionsCount
-      AliveConnections = Array.empty }
+type ConnectionPoolObj<'TConnection> = {
+    Instance: ConnectionPool
+} with
+    interface IConnectionPool<'TConnection> with
+        member x.PoolName = x.Instance.PoolName
 
-let setConnectionPool (allPools: UntypedConnectionPool[]) (step: Step) =
-    let findPool (poolName) =
-        allPools |> Array.find(fun x -> x.PoolName = poolName)
+type ConnectionPoolEvent =
+    | StartedInit           of poolName:string
+    | StartedStop           of poolName:string
+    | ConnectionOpened      of poolName:string * connectionNumber:int
+    | ConnectionClosed
+    | CloseConnectionFailed of error:exn
+    | InitFinished
+    | InitFailed
 
-    { step with ConnectionPool = findPool(step.ConnectionPool.PoolName) }
+type ConnectionPool(args: ConnectionPoolArgs<obj>) =
 
-let getDistinctPools (scenario: Scenario) =
-    scenario.Steps
-    |> Array.map(fun x -> x.ConnectionPool)
-    |> Array.distinct
+    let mutable _disposed = false
+    let mutable _aliveConnections = Array.empty
+    let _eventStream = Subject.broadcast
 
-let init (scenario: Scenario,
-          onStartedInitPool: (string * int) -> unit, // PoolName * ConnectionsCount
-          onConnectionOpened: int -> unit,
-          onFinishInitPool: string -> unit,
-          logger: Serilog.ILogger) =
+    let initPool () =
 
-    let initPool (pool: UntypedConnectionPool) =
-        let connectionCount = pool.ConnectionsCount
-        logger.Information("initializing connection pool: '{0}', connections count '{1}'", pool.PoolName, connectionCount)
-        logger.Information("opening connections...")
-        onStartedInitPool(pool.PoolName, connectionCount)
-
-        let connections = Array.init connectionCount (fun i ->
-            let connection = pool.OpenConnection(i)
-            onConnectionOpened(i)
-            connection
-        )
-
-        onFinishInitPool(pool.PoolName)
-
-        { pool with AliveConnections = connections }
-
-    getDistinctPools(scenario)
-    |> Array.map(initPool)
-
-let clean (scenario: Scenario, logger: Serilog.ILogger) =
-
-    let invokeDispose (connection: obj) =
-        if connection :? IDisposable then (connection :?> IDisposable).Dispose()
-
-    let closeConnections (pool: UntypedConnectionPool) =
-        logger.Information("closing connections for connection pool: '{0}'", pool.PoolName)
-
-        for connection in pool.AliveConnections do
+        let rec tryOpenConnection (connectionNumber, tryCount) =
             try
-                match pool.CloseConnection with
-                | Some close -> close(connection)
-                                invokeDispose(connection)
-                | None       -> invokeDispose(connection)
+                let connection = args.OpenConnection(connectionNumber)
+                Ok connection
             with
-            | ex -> logger.Error(ex, "CloseConnection")
+            | ex ->
+                if tryCount >= Constants.ReTryCount then Error ex
+                else tryOpenConnection(connectionNumber, tryCount + 1)
 
-    scenario |> getDistinctPools |> Array.iter(closeConnections)
+        let rec openConnections (connectionNumber, connectionCount) = seq {
+            if connectionNumber < connectionCount then
+                match tryOpenConnection(connectionNumber, 0) with
+                | Ok connection ->
+                    yield Ok connection
+                    let displayNumber = connectionNumber + 1
+                    _eventStream.OnNext(ConnectionOpened(args.PoolName, displayNumber))
+                    yield! openConnections(connectionNumber + 1, connectionCount)
+
+                | Error ex -> yield Error ex
+        }
+
+        _eventStream.OnNext(StartedInit(args.PoolName))
+
+        let result = openConnections(0, args.ConnectionCount) |> Result.sequence
+        match result with
+        | Ok connections ->
+            _aliveConnections <- connections |> List.toArray
+            _eventStream.OnNext(InitFinished)
+            Ok() |> Async.singleton
+
+        | Error exs ->
+            _eventStream.OnNext(InitFailed)
+            exs.Head |> Error |> Async.singleton
+
+    let closeAllConnections () =
+
+        let invokeDispose (connection: obj) =
+            if connection :? IDisposable then (connection :?> IDisposable).Dispose()
+
+        let tryCloseConnection(closeFn, connection) =
+            try
+                closeFn(connection)
+                invokeDispose(connection)
+            with
+            | ex -> ()
+
+        _eventStream.OnNext(StartedStop args.PoolName)
+
+        for connection in _aliveConnections do
+            match args.CloseConnection with
+            | Some close -> tryCloseConnection(close, connection)
+            | None       -> invokeDispose(connection)
+            _eventStream.OnNext(ConnectionClosed)
+
+    let dispose () =
+        if not _disposed then
+            _disposed <- true
+            closeAllConnections()
+            _eventStream.OnCompleted()
+            _eventStream.Dispose()
+
+    member x.PoolName = args.PoolName
+    member x.ConnectionCount = args.ConnectionCount
+    member x.AliveConnections = _aliveConnections
+    member x.EventStream = _eventStream :> IObservable<_>
+    member x.Init() = initPool()
+    member x.Dispose() = dispose()
+
+    override x.GetHashCode() = x.PoolName.GetHashCode()
+    override x.Equals(b) =
+        match b with
+        | :? ConnectionPool as pool -> x.PoolName = pool.PoolName
+        | _ -> false
+
+    interface IDisposable with
+        member x.Dispose() = dispose() |> ignore

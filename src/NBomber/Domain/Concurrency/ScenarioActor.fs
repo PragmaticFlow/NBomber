@@ -7,9 +7,10 @@ open System.Threading.Tasks
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
+open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Extensions
+open NBomber.Domain.Step
 open NBomber.Domain.Statistics
 
 type ActorDep = {
@@ -22,6 +23,9 @@ type ActorDep = {
 type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
     let _allScnResponses = Array.init<StepResponse list> dep.Scenario.Steps.Length (fun _ -> List.empty)
+
+    let _stepDep = { Logger = dep.Logger; CancellationToken = dep.CancellationToken
+                     GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId }
 
     let mutable _working = false
     let mutable _reserved = false
@@ -41,8 +45,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     member x.ExecSteps() = task {
         if _reserved then
             _working <- true
-            _currentTask <- Step.execSteps(dep.Logger, correlationId, dep.Scenario.Steps,
-                                           _allScnResponses, dep.CancellationToken, dep.GlobalTimer)
+            _currentTask <- Step.execSteps(_stepDep, dep.Scenario.Steps, _allScnResponses )
             do! _currentTask
             _working <- false
     }

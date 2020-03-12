@@ -12,6 +12,7 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
+open NBomber.DomainServices.TestHost.Infra
 
 type ExecutionResult = {
     RawNodeStats: RawNodeStats[]
@@ -29,8 +30,7 @@ let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestConte
         let registeredScns = context.RegisteredScenarios |> Array.map(Scenario.create)
 
         use scnHost = new TestHost(dep, registeredScns)
-        let! rawNodeStats = scnHost.RunSession(scnArgs)
-        return [|rawNodeStats|]
+        return! scnHost.RunSession(scnArgs)
     }
 
 let buildReport (dep: GlobalDependency) (result: ExecutionResult) =
@@ -41,17 +41,10 @@ let saveReport (dep: GlobalDependency) (testInfo: TestInfo) (context: TestContex
     let formats = TestContext.getReportFormats(context)
     Report.save("./", fileName, formats, report, dep.Logger)
 
-//todo: throw exception instead of detecting framework API
-let showErrors (dep: GlobalDependency) (errors: AppError[]) =
-    if dep.ApplicationType = ApplicationType.Test then
-        TestFrameworkRunner.showErrors(errors)
-    else
-        errors |> Array.iter(AppError.toString >> dep.Logger.Error)
-
 let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     try
-        dep.ReportingSinks
-        |> Array.iter(fun sink -> sink.StartTest(testInfo) |> ignore)
+        for sink in dep.ReportingSinks do
+            sink.StartTest(testInfo) |> ignore
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
 
@@ -96,8 +89,10 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
         return result
     }
     |> Async.RunSynchronously
-    |> Result.mapError(fun error -> showErrors dep [|error|]
-                                    error)
+    |> Result.mapError(fun error ->
+        error |> AppError.toString |> dep.Logger.Error
+        error
+    )
 
 let runAs (appType: ApplicationType, context: TestContext) =
 

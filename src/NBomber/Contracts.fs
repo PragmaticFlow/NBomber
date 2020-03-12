@@ -28,6 +28,9 @@ type Response = {
 
 type NodeType =
     | SingleNode
+    | Coordinator
+    | Agent
+    | Cluster
 
 type NodeOperationType =
     | None = 0
@@ -91,7 +94,7 @@ type StepContext<'TConnection,'TFeedItem> = {
       x.Data.[Constants.StepResponseKey] :?> 'T
 
 type ScenarioContext = {
-    NodeType: NodeType
+    NodeInfo: NodeInfo
     CustomSettings: string
     CancellationToken: CancellationToken
     Logger: ILogger

@@ -54,6 +54,6 @@ module internal TestConfig =
                 let str = Json.serializeEx config value
                 str :> obj
 
-    let parse (json) =
+    let unsafeParse (json) =
         let config = JsonConfig.create(allowUntyped = true)
         Json.deserializeEx<TestConfig> config json

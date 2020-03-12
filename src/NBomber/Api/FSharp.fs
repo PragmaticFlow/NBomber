@@ -11,6 +11,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Domain
+open NBomber.Domain.ConnectionPool
 open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -19,24 +20,22 @@ open NBomber.DomainServices
 type ConnectionPool =
 
     static member create(name: string,
-                         connectionsCount: int,
+                         connectionCount: int,
                          openConnection: int -> 'TConnection,
                          ?closeConnection: 'TConnection -> unit) =
-
-        { ConnectionPool.PoolName = name
+        let args = {
+          PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
-          ConnectionsCount = connectionsCount
-          AliveConnections = Array.empty }
-          :> IConnectionPool<'TConnection>
+          ConnectionCount = connectionCount
+        }
+
+        let untypedArgs = args |> ConnectionPoolArgs.toUntyped
+        let pool = new Domain.ConnectionPool.ConnectionPool(untypedArgs)
+        { Instance = pool } :> IConnectionPool<'TConnection>
 
     static member empty =
-        { ConnectionPool.PoolName = Constants.EmptyPoolName
-          OpenConnection = ignore
-          CloseConnection = None
-          ConnectionsCount = 0
-          AliveConnections = Array.empty }
-          :> IConnectionPool<unit>
+        ConnectionPool.create(Constants.EmptyPoolName, connectionCount = 0, openConnection = ignore)
 
 type Step =
 
@@ -51,8 +50,10 @@ type Step =
                           execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int, ?doNotTrack: bool) =
 
+        let pool = connectionPool :?> ConnectionPoolObj<'TConnection>
+
         { StepName = name
-          ConnectionPool = ConnectionPool.toUntypedPool(connectionPool)
+          ConnectionPool = pool.Instance
           Execute = Step.toUntypedExec(execute)
           Context = None
           Feed = Feed.toUntypedFeed(feed)
@@ -145,7 +146,7 @@ module NBomberRunner =
         { context with TestName = testName }
 
     let loadTestConfig (path: string) (context: TestContext) =
-        let config = path |> File.ReadAllText |> TestConfig.parse
+        let config = path |> File.ReadAllText |> TestConfig.unsafeParse
         { context with TestConfig = Some config }
 
     let loadInfraConfig (path: string) (context: TestContext) =

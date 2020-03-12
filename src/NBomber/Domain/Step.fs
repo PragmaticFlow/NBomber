@@ -13,10 +13,17 @@ open NBomber
 open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
+open NBomber.Domain.ConnectionPool
+
+type StepDep = {
+    Logger: ILogger
+    CancellationToken: CancellationToken
+    GlobalTimer: Stopwatch
+    CorrelationId: CorrelationId
+}
 
 let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>) =
     fun (context: UntypedStepContext) ->
-
         let typedContext = {
             StepContext.CorrelationId = context.CorrelationId
             CancellationToken = context.CancellationToken
@@ -25,27 +32,24 @@ let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Respons
             FeedItem = context.FeedItem :?> 'TFeedItem
             Logger = context.Logger
         }
-
         execute(typedContext)
 
+let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
 
-let setStepContext (logger: ILogger, correlationId: CorrelationId,
-                    cancelToken: CancellationToken, step: Step, data: Dict<string,obj>) =
-
-    let getConnection (pool: UntypedConnectionPool) =
+    let getConnection (pool: ConnectionPool) =
         if pool.AliveConnections.Length > 0 then
-            let index = correlationId.CopyNumber % pool.AliveConnections.Length
+            let index = dep.CorrelationId.CopyNumber % pool.AliveConnections.Length
             pool.AliveConnections.[index]
         else
             () :> obj
 
     let connection = getConnection(step.ConnectionPool)
-    let context = { CorrelationId = correlationId
-                    CancellationToken = cancelToken
+    let context = { CorrelationId = dep.CorrelationId
+                    CancellationToken = dep.CancellationToken
                     Connection = connection
                     Data = data
-                    FeedItem = step.Feed.GetNextItem(correlationId, data)
-                    Logger = logger }
+                    FeedItem = step.Feed.GetNextItem(dep.CorrelationId, data)
+                    Logger = dep.Logger }
 
     { step with Context = Some context }
 
@@ -71,11 +75,7 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
-let execSteps (logger: ILogger, correlationId: CorrelationId,
-               steps: Step[],
-               allScnResponses: (StepResponse list)[],
-               cancelToken: CancellationToken,
-               globalTimer: Stopwatch) = task {
+let execSteps (dep: StepDep, steps: Step[], allScnResponses: (StepResponse list)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
@@ -88,16 +88,16 @@ let execSteps (logger: ILogger, correlationId: CorrelationId,
             with _ -> ()
 
     for s in steps do
-        if not skipStep && not cancelToken.IsCancellationRequested then
+        if not skipStep && not dep.CancellationToken.IsCancellationRequested then
 
             for i = 1 to s.RepeatCount do
-                let step = setStepContext(logger, correlationId, cancelToken, s, data)
-                let! response = execStep(step, globalTimer)
+                let step = setStepContext(dep, s, data)
+                let! response = execStep(step, dep.GlobalTimer)
 
                 if response.Response.Payload :? IDisposable then
                     resourcesToDispose.Add(response.Response.Payload :?> IDisposable)
 
-                if not cancelToken.IsCancellationRequested && not step.DoNotTrack then
+                if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
                     let stepResponses = response :: allScnResponses.[stepIndex]
                     allScnResponses.[stepIndex] <- stepResponses
 
@@ -106,7 +106,7 @@ let execSteps (logger: ILogger, correlationId: CorrelationId,
                         stepIndex <- stepIndex + 1
                         data.[Constants.StepResponseKey] <- response.Response.Payload
                     else
-                        logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
+                        dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
                         skipStep <- true
     cleanResources()
 }

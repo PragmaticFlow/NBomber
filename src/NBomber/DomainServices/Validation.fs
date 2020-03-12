@@ -57,10 +57,18 @@ module ScenarioValidation =
 //        if Array.isEmpty(invalidScns) then Ok scenarios
 //        else Error <| ConcurrentCopiesIsWrong invalidScns
 
-    let validateWarmUpStats (nodeStats: RawNodeStats) =
-        if nodeStats.FailCount > nodeStats.OkCount then
-            AppError.createResult(WarmUpErrorWithManyFailedSteps(nodeStats.OkCount, nodeStats.FailCount))
-        else Ok()
+    let validateWarmUpStats (nodesStats: RawNodeStats[]) =
+
+        let okState = Ok()
+
+        let folder (state) (stats: RawNodeStats) =
+            state |> Result.bind(fun _ ->
+                if stats.FailCount > stats.OkCount then
+                    AppError.createResult(WarmUpErrorWithManyFailedSteps(stats.OkCount, stats.FailCount))
+                else Ok()
+            )
+
+        nodesStats |> Array.fold folder okState
 
     let validate (context: TestContext) =
         context.RegisteredScenarios

@@ -2,34 +2,39 @@ namespace NBomber.Extensions
 
 open System
 open System.Threading.Tasks
+open FsToolkit.ErrorHandling
 
 [<AutoOpen>]
 module internal Extensions =
 
-    type Task<'T> with
-        static member map f (m: Task<_>) =
-            m.ContinueWith(fun (t: Task<_>) -> f t.Result)
+    module Result =
 
-    type Result<'T,'TError> with
-        static member getOk (result) =
+        let getOk (result) =
             match result with
             | Ok v    -> v
             | Error _ -> failwith "result is error"
 
-        static member getError (result) =
+        let getError (result) =
             match result with
             | Ok _     -> failwith "result is not error"
             | Error er -> er
 
-        static member sequence (results: Result<'T,'e>[]) =
-            let folder state (acc: Result<'T [],'e []>) =
+        let sequence (results: Result<'T,'E> seq) =
+            let folder state (acc: Result<'T list,'E list>) =
                 match state, acc with
-                | Ok v, Ok items     -> Ok(Array.append items [| v |])
+                | Ok v, Ok items     -> Ok(v :: items)
                 | Ok r, Error ers    -> Error ers
-                | Error e, Ok items  -> Error [|e|]
-                | Error e, Error ers -> Error(Array.append ers [| e |])
+                | Error e, Ok items  -> Error [e]
+                | Error e, Error ers -> Error(e :: ers)
 
-            Array.foldBack folder results (Ok Array.empty)
+            Seq.foldBack folder results (Ok List.empty)
+
+        let toEmptyIO (results: Result<'T,'E> seq) =
+            results |> sequence |> Result.map(ignore) |> Result.mapError(List.head) |> Async.singleton
+
+    type Task<'T> with
+        static member map f (m: Task<_>) =
+            m.ContinueWith(fun (t: Task<_>) -> f t.Result)
 
     type MaybeBuilder() =
 

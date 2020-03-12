@@ -1,15 +1,9 @@
 ﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.Scenario
 
-open System
-open System.Threading
-
-open Serilog
-
 open NBomber
 open NBomber.Extensions
 open NBomber.Configuration
-open NBomber.Errors
 open NBomber.Domain.Concurrency
 
 let createCorrelationId (scnName: ScenarioName, copyNumber): Contracts.CorrelationId =
@@ -28,47 +22,6 @@ let create (config: Contracts.Scenario) =
       LoadTimeLine = timeline.LoadTimeLine
       WarmUpDuration = config.WarmUpDuration
       Duration = timeline.ScenarioDuration }
-
-let init (scenario: Scenario,
-          initAllConnectionPools: Scenario -> UntypedConnectionPool[],
-          customSettings: string,
-          nodeType: Contracts.NodeType,
-          logger: ILogger) =
-    try
-        // todo: refactor, pass token
-        if scenario.TestInit.IsSome then
-            let cancelToken = new CancellationTokenSource()
-            let context = {
-                Contracts.NodeType = nodeType
-                Contracts.ScenarioContext.CustomSettings = customSettings
-                Contracts.ScenarioContext.CancellationToken = cancelToken.Token
-                Contracts.ScenarioContext.Logger = logger
-            }
-            scenario.TestInit.Value(context).Wait()
-
-        let allPools = initAllConnectionPools(scenario)
-        let steps = scenario.Steps |> Array.map(ConnectionPool.setConnectionPool(allPools))
-        Ok { scenario with Steps = steps }
-    with
-    | ex -> Error <| InitScenarioError ex
-
-let clean (scenario: Scenario, nodeType: Contracts.NodeType, logger: ILogger, customSettings: string) =
-
-    try
-        if scenario.TestClean.IsSome then
-            // todo: refacto, pass token
-            let cancelToken = new CancellationTokenSource()
-            let context = {
-                Contracts.NodeType = nodeType
-                Contracts.ScenarioContext.CustomSettings = customSettings
-                Contracts.ScenarioContext.CancellationToken = cancelToken.Token
-                Contracts.ScenarioContext.Logger = logger
-            }
-            scenario.TestClean.Value(context).Wait()
-
-        ConnectionPool.clean(scenario, logger)
-    with
-    | ex -> logger.Error(ex, "TestClean")
 
 let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario[]) =
     match targetScenarios with
@@ -98,3 +51,9 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario[]) =
             else None)
         |> Option.map updateScenario
         |> Option.defaultValue scn)
+
+let filterDistinctConnectionPools (scenarios: Scenario seq) =
+    scenarios
+    |> Seq.collect(fun x -> x.Steps)
+    |> Seq.choose(fun x -> if x.ConnectionPool.ConnectionCount > 0 then Some x.ConnectionPool else None)
+    |> Seq.distinct
