@@ -50,7 +50,7 @@ let run () =
         return ()
     }
 
-    let scenario = Scenario.create "Hello World!" [step1; step2]
+    let scenario = Scenario.create "hello_world_scenario" [step1; step2]
                    |> Scenario.withTestInit(testInit)
                    |> Scenario.withTestClean(testClean)
                    |> Scenario.withLoadSimulations [
@@ -61,4 +61,5 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
+    //|> NBomberRunner.loadTestConfig("config.json")
     |> NBomberRunner.runInConsole

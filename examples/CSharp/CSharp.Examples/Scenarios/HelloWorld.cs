@@ -17,10 +17,10 @@ namespace CSharp.Examples.Scenarios
                 return Response.Ok(42); // this value will be passed as response for the next step
             });
 
-            var step2 = Step.Create("step_1", async context =>
+            var step2 = Step.Create("step_1", context =>
             {
                 var value = context.GetPreviousStepResponse<int>(); // 42
-                return Response.Ok();
+                return Task.FromResult(Response.Ok());
             });
 
             var scenario = ScenarioBuilder.CreateScenario("Hello World!", new[] { step1, step2 });
