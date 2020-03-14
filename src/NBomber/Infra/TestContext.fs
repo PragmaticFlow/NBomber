@@ -10,12 +10,12 @@ open NBomber.Contracts
 let empty =
     { TestSuite = Constants.DefaultTestSuite
       TestName = Constants.DefaultTestName
-      RegisteredScenarios = Array.empty
+      RegisteredScenarios = List.empty
       TestConfig = None
       InfraConfig = None
       ReportFileName = None
       ReportFormats = Constants.AllReportFormats
-      ReportingSinks = Array.empty
+      ReportingSinks = List.empty
       SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec }
 
 let getTestSuite (context: TestContext) =
@@ -42,8 +42,7 @@ let getTargetScenarios (context: TestContext) =
         |> Option.bind(fun x -> x.TargetScenarios)
 
     let allScns = context.RegisteredScenarios
-                  |> Array.map(fun x -> x.ScenarioName)
-                  |> Array.toList
+                  |> List.map(fun x -> x.ScenarioName)
 
     defaultArg targetScn allScns
     |> List.toArray
@@ -64,11 +63,11 @@ let getReportFormats (context: TestContext) =
         let! config = ctx.TestConfig
         let! settings = config.GlobalSettings
         let! formats = settings.ReportFormats
-        return formats |> List.toArray
+        return formats
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(if Array.isEmpty context.ReportFormats then None
+    |> Option.orElse(if List.isEmpty context.ReportFormats then None
                      else Some context.ReportFormats)
     |> Option.defaultValue Constants.AllReportFormats
 

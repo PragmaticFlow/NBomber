@@ -37,7 +37,7 @@ type internal Scenario = {
     ScenarioName: ScenarioName
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
-    Steps: Step[]
+    Steps: Step list
     LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan
     Duration: TimeSpan

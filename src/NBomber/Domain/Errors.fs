@@ -9,15 +9,15 @@ type internal DomainError =
 
 type internal ValidationError =
     | TargetScenarioIsEmpty
-    | TargetScenariosNotFound  of notFoundScenarios:string[] * registeredScenarios:string[]
+    | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]
 
     // ScenarioValidation errors
     | EmptyReportName
     | EmptyScenarioName
-    | DuplicateScenarioName of scenarioNames:string[]
-    | EmptyStepName         of scenarioNames:string[]
+    | DuplicateScenarioName of scenarioNames:string list
+    | EmptyStepName         of scenarioNames:string list
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong

@@ -11,10 +11,10 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
 
-let private getDuplicates (data: string[]) =
+let private getDuplicates (data: string list) =
     data
-    |> Array.groupBy(id)
-    |> Array.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
+    |> List.groupBy(id)
+    |> List.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
 
 let private isDurationOk (duration: TimeSpan) =
     duration >= TimeSpan.FromSeconds 1.0
@@ -24,27 +24,27 @@ let private isPositiveNumber (value: int) =
 
 module ScenarioValidation =
 
-    let checkEmptyName (scenarios: Contracts.Scenario[]) =
-        let emptyScn = scenarios |> Array.tryFind(fun x -> String.IsNullOrWhiteSpace(x.ScenarioName))
+    let checkEmptyName (scenarios: Contracts.Scenario list) =
+        let emptyScn = scenarios |> List.tryFind(fun x -> String.IsNullOrWhiteSpace(x.ScenarioName))
         if emptyScn.IsSome then Error <| EmptyScenarioName
         else Ok scenarios
 
-    let checkDuplicateName (scenarios: Contracts.Scenario[]) =
-        let duplicates = scenarios |> Array.map(fun x -> x.ScenarioName) |> getDuplicates
+    let checkDuplicateName (scenarios: Contracts.Scenario list) =
+        let duplicates = scenarios |> List.map(fun x -> x.ScenarioName) |> getDuplicates
         if duplicates.Length > 0 then Error <| DuplicateScenarioName duplicates
         else Ok scenarios
 
-    let checkEmptyStepName (scenarios: Contracts.Scenario[]) =
+    let checkEmptyStepName (scenarios: Contracts.Scenario list) =
         let scnWithEmptySteps =
             scenarios
-            |> Array.choose(fun x ->
+            |> List.choose(fun x ->
                 let emptyStepExist =
                     x.Steps
-                    |> Array.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
+                    |> Seq.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
 
                 if emptyStepExist then Some x.ScenarioName else None)
 
-        if Array.isEmpty(scnWithEmptySteps) then Ok scenarios
+        if Seq.isEmpty(scnWithEmptySteps) then Ok scenarios
         else Error <| EmptyStepName scnWithEmptySteps
 
 //    let checkDuration (scenarios: Contracts.Scenario[]) =
@@ -57,7 +57,7 @@ module ScenarioValidation =
 //        if Array.isEmpty(invalidScns) then Ok scenarios
 //        else Error <| ConcurrentCopiesIsWrong invalidScns
 
-    let validateWarmUpStats (nodesStats: RawNodeStats[]) =
+    let validateWarmUpStats (nodesStats: RawNodeStats list) =
 
         let okState = Ok()
 
@@ -68,7 +68,7 @@ module ScenarioValidation =
                 else Ok()
             )
 
-        nodesStats |> Array.fold folder okState
+        nodesStats |> List.fold folder okState
 
     let validate (context: TestContext) =
         context.RegisteredScenarios
@@ -90,13 +90,13 @@ module GlobalSettingsValidation =
         if emptyTarget then Error <| TargetScenarioIsEmpty
         else Ok globalSettings
 
-    let checkAvailableTarget (registeredScns: Contracts.Scenario[]) (globalSettings: GlobalSettings) =
-        let allScenarios = registeredScns |> Array.map(fun x -> x.ScenarioName)
+    let checkAvailableTarget (registeredScns: Contracts.Scenario list) (globalSettings: GlobalSettings) =
+        let allScenarios = registeredScns |> List.map(fun x -> x.ScenarioName)
         let targetScn = defaultArg globalSettings.TargetScenarios []
         let notFoundScenarios = targetScn |> List.except allScenarios
 
         if List.isEmpty(notFoundScenarios) then Ok globalSettings
-        else Error <| TargetScenariosNotFound(List.toArray notFoundScenarios, allScenarios)
+        else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
 
 //    let checkDuration (globalSettings: GlobalSettings) =
 //        let invalidScns =

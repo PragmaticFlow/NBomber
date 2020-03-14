@@ -35,12 +35,12 @@ let config = {
 let context = {
     TestSuite = Constants.DefaultTestSuite
     TestName = Constants.DefaultTestName
-    RegisteredScenarios = [| scenario |]
+    RegisteredScenarios = [scenario]
     TestConfig = None
     InfraConfig = None
     ReportFileName = None
-    ReportFormats = Array.empty
-    ReportingSinks = Array.empty
+    ReportFormats = List.empty
+    ReportingSinks = List.empty
     SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
 }
 
@@ -63,7 +63,7 @@ let ``TestContext.getTargetScenarios should return only target scenarios if Targ
     let scn2 = { scenario with ScenarioName = "2" }
 
     let context = { context with TestConfig = Some config
-                                 RegisteredScenarios = [| scn1; scn2 |] }
+                                 RegisteredScenarios = [scn1; scn2] }
 
     match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 && scenarios.[0] = "10" -> ()
@@ -80,7 +80,7 @@ let ``TestContext.getReportFileName should return from GlobalSettings, if empty 
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with TestConfig = Some config
-                             ReportFormats = [|ReportFormat.Txt|]
+                             ReportFormats = [ReportFormat.Txt]
                              ReportFileName = contextValue }
 
     let fileName = TestContext.getReportFileName("sessionId", ctx)
@@ -99,17 +99,17 @@ let ``TestContext.getReportFormats should return from GlobalSettings, if empty t
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with TestConfig = Some config
-                             ReportFormats = List.toArray contextValue
+                             ReportFormats = contextValue
                              ReportFileName = None }
 
     let formats = TestContext.getReportFormats(ctx)
     match configValue, contextValue with
-    | Some v, _ -> Assert.True((formats = List.toArray v))
+    | Some v, _ -> Assert.True((formats = v))
 
     | None, v when List.isEmpty v ->
         test <@ formats = Constants.AllReportFormats @>
 
-    | None, v -> test <@ formats = List.toArray contextValue @>
+    | None, v -> test <@ formats = contextValue @>
 
 [<Property>]
 let ``TestContext.getTestSuite should return from Config, if empty then from TestContext``

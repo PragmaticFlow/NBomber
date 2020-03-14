@@ -30,7 +30,7 @@ let build (dep: GlobalDependency, nodeStats: RawNodeStats[]) =
 
     | _ -> ReportsContent.empty
 
-let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat[],
+let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat list,
           report: ReportsContent, logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")

@@ -31,8 +31,8 @@ let scenario = {
     ScenarioName = "1"
     TestInit = None
     TestClean = None
-    Steps = Array.empty
-    LoadSimulations = Array.empty
+    Steps = List.empty
+    LoadSimulations = List.empty
     WarmUpDuration = TimeSpan.FromSeconds(10.)
 }
 
@@ -54,7 +54,7 @@ let ``GlobalSettingsValidation.checkEmptyTarget should return ok if TargetScenar
 
 [<Fact>]
 let ``GlobalSettingsValidation.checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in registered scenarios`` () =
-    let scenarios = [| scenario |]
+    let scenarios = [scenario]
     let glSettings = { globalSettings with TargetScenarios = Some ["3"] }
 
     match GlobalSettingsValidation.checkAvailableTarget scenarios glSettings with
@@ -97,7 +97,7 @@ let ``GlobalSettingsValidation.checkSendStatsInterval should return fail if Send
 
 [<Fact>]
 let ``ScenarioValidation.checkEmptyName should return fail if scenario has empty name`` () =
-    let scn = { scenario with ScenarioName = " " } |> Array.singleton
+    let scn = [{ scenario with ScenarioName = " " }]
 
     match ScenarioValidation.checkEmptyName(scn) with
     | Error EmptyScenarioName -> ()
@@ -108,16 +108,16 @@ let ``ScenarioValidation.checkDuplicateName should return fail if scenario has d
     let scn1 = { scenario with ScenarioName = "1" }
     let scn2 = { scenario with ScenarioName = "1" }
 
-    match ScenarioValidation.checkDuplicateName([|scn1; scn2|]) with
+    match ScenarioValidation.checkDuplicateName([scn1; scn2]) with
     | Error (DuplicateScenarioName _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has empty step name`` () =
     let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.Ok()))
-    let scn = { scenario with Steps = [|step|] }
+    let scn = { scenario with Steps = [step] }
 
-    match ScenarioValidation.checkEmptyStepName([|scn|]) with
+    match ScenarioValidation.checkEmptyStepName([scn]) with
     | Error (EmptyStepName _) -> ()
     | _ -> failwith ""
 

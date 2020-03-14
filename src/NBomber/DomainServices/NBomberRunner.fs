@@ -18,9 +18,9 @@ type ExecutionResult = {
     RawNodeStats: RawNodeStats[]
     Statistics: Statistics[]
 } with
-  static member init (nodeStats: RawNodeStats[]) =
-      let stats = nodeStats |> Array.collect(Statistics.create)
-      { RawNodeStats = nodeStats; Statistics = stats }
+  static member init (nodeStats: RawNodeStats list) =
+      { RawNodeStats = nodeStats |> List.toArray
+        Statistics = nodeStats |> Seq.collect(Statistics.create) |> Seq.toArray }
 
 let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
@@ -51,7 +51,7 @@ let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
 let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) (stats: Statistics[]) (reportFiles: ReportFile[]) =
     try
         dep.ReportingSinks
-        |> Array.map(fun sink -> sink.SaveFinalStats(testInfo, stats, reportFiles))
+        |> List.map(fun sink -> sink.SaveFinalStats(testInfo, stats, reportFiles))
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -61,7 +61,7 @@ let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) 
 let sendFinishTestToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) =
     try
         dep.ReportingSinks
-        |> Array.map(fun sink -> sink.FinishTest(testInfo))
+        |> List.map(fun sink -> sink.FinishTest testInfo)
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -106,6 +106,6 @@ let runAs (appType: ApplicationType, context: TestContext) =
 
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
     let dep = { dep with ReportingSinks = context.ReportingSinks }
-    dep.ReportingSinks |> Array.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
+    dep.ReportingSinks |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
 
     run(dep, testInfo, context)

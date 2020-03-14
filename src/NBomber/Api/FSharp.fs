@@ -95,14 +95,14 @@ module Scenario =
         { ScenarioName = name
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
-          Steps = Seq.toArray(steps)
+          Steps = steps
           WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
-          LoadSimulations = [|
+          LoadSimulations = [
             LoadSimulation.InjectScenariosPerSec(
                 copiesCount = Constants.DefaultConcurrentCopiesCount,
                 during = TimeSpan.FromSeconds Constants.DefaultScenarioDurationInSec
             )
-          |] }
+          ] }
 
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
@@ -117,19 +117,19 @@ module Scenario =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
-        { scenario with LoadSimulations = Seq.toArray loadSimulations }
+        { scenario with LoadSimulations = loadSimulations }
 
 module NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     let registerScenarios (scenarios: Contracts.Scenario list) =
-        { TestContext.empty with RegisteredScenarios = scenarios |> Seq.toArray  }
+        { TestContext.empty with RegisteredScenarios = scenarios }
 
     let withReportFileName (reportFileName: string) (context: TestContext) =
         { context with ReportFileName = Some reportFileName }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: TestContext) =
-        { context with ReportFormats = Seq.toArray reportFormats }
+        { context with ReportFormats = reportFormats }
 
     let withTestSuite (testSuite: string) (context: TestContext) =
         { context with TestSuite = testSuite }
@@ -146,7 +146,7 @@ module NBomberRunner =
         { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =
-        { context with ReportingSinks = Seq.toArray reportingSinks
+        { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
     let run (context: TestContext) =

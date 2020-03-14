@@ -32,7 +32,7 @@ type GlobalDependency = {
     Assets: Assets
     CreateProgressBar: int -> ProgressBar
     Logger: ILogger
-    ReportingSinks: IReportingSink[]
+    ReportingSinks: IReportingSink list
 }
 
 module ProgressBar =
@@ -83,4 +83,4 @@ let create (appType: ApplicationType,
       Assets = ResourceManager.loadAssets()
       CreateProgressBar = ProgressBar.create
       Logger = logger
-      ReportingSinks = Array.empty }
+      ReportingSinks = List.empty }

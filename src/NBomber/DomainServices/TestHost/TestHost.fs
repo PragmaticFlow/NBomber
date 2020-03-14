@@ -23,9 +23,9 @@ open NBomber.DomainServices.TestHost.Infra
 type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) =
 
     let mutable _sessionArgs = TestSessionArgs.empty
-    let mutable _targetScenarios = Array.empty<Scenario>
+    let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = NodeOperationType.None
-    let mutable _scnSchedulers = Array.empty<ScenarioScheduler>
+    let mutable _scnSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
     let _currentOperationTimer = Stopwatch()
 
@@ -36,11 +36,12 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
     let getNodeStats (executionTime) =
         _scnSchedulers
-        |> Array.map(fun x -> x.GetScenarioStats executionTime)
+        |> Seq.map(fun x -> x.GetScenarioStats executionTime)
+        |> Seq.toArray
         |> NodeStats.create(getCurrentNodeInfo())
-        |> Array.singleton
+        |> List.singleton
 
-    let createScenarioSchedulers (targetScns: Scenario[]) =
+    let createScenarioSchedulers (targetScns: Scenario list) =
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
                 Logger = dep.Logger
@@ -50,12 +51,12 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             }
             new ScenarioScheduler(actorDep)
 
-        _scnSchedulers |> Array.iter(fun x -> (x :> IDisposable).Dispose())
+        _scnSchedulers |> List.iter(fun x -> (x :> IDisposable).Dispose())
         _cancelToken.Dispose()
         _cancelToken <- new CancellationTokenSource()
 
         targetScns
-        |> Array.map(createScheduler _cancelToken.Token)
+        |> List.map(createScheduler _cancelToken.Token)
 
     let initScenarios (sessionArgs: TestSessionArgs) = asyncResult {
         _sessionArgs <- sessionArgs
@@ -68,7 +69,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         }
 
         let! updatedScenarios = TestHostScenario.initScenarios(dep, scnContext, registeredScenarios, _sessionArgs)
-        _targetScenarios <- updatedScenarios |> List.toArray
+        _targetScenarios <- updatedScenarios
     }
 
     let stopScenarios () =
@@ -86,7 +87,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             CancellationToken = _cancelToken.Token
             Logger = dep.Logger
         }
-        TestHostScenario.cleanScenarios(dep, scnContext, List.ofArray _targetScenarios)
+        TestHostScenario.cleanScenarios(dep, scnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
         if isWarmUp then dep.Logger.Information("starting warm up...")
@@ -95,8 +96,8 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
 
         let scnsProgressSubscriptions = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
-        do! _scnSchedulers |> Array.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
-        scnsProgressSubscriptions |> Array.iter(fun x -> x.Dispose())
+        do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
+        scnsProgressSubscriptions |> List.iter(fun x -> x.Dispose())
     }
 
     member x.TestInfo = _sessionArgs.TestInfo
@@ -156,7 +157,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         _currentOperationTimer.Restart()
         do! Task.Yield()
 
-        if _scnSchedulers |> Array.exists(fun x -> x.Working) then
+        if _scnSchedulers |> List.exists(fun x -> x.Working) then
             do! stopScenarios()
             cleanScenarios()
 

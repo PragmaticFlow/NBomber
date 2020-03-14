@@ -124,7 +124,7 @@ type ScenarioScheduler(dep: ActorDep) =
         let executionTime = correctExecutionTime(duration, dep.Scenario.Duration)
 
         getAllActors()
-        |> Seq.collect(fun x -> x.GetStepResults executionTime)
+        |> List.collect(fun x -> x.GetStepResults executionTime)
         |> Seq.toArray
         |> Statistics.ScenarioStats.create dep.Scenario executionTime
 

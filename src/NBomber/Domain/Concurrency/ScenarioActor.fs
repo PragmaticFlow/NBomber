@@ -56,5 +56,5 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
             |> Array.map(fun stepResponses -> Step.filterByDuration(stepResponses, duration))
 
         dep.Scenario.Steps
-        |> Array.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
-        |> Array.choose(fun (step, results) -> if step.DoNotTrack then None else Some results)
+        |> List.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
+        |> List.choose(fun (step, results) -> if step.DoNotTrack then None else Some results)

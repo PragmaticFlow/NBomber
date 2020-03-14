@@ -14,12 +14,12 @@ let createCorrelationId (scnName: ScenarioName, copyNumber): Contracts.Correlati
 
 let create (config: Contracts.Scenario) =
 
-    let timeline = config.LoadSimulations |> Array.toList |> LoadTimeLine.unsafeCreateWithDuration
+    let timeline = config.LoadSimulations |> LoadTimeLine.unsafeCreateWithDuration
 
     { ScenarioName = config.ScenarioName
       TestInit = config.TestInit
       TestClean = config.TestClean
-      Steps = config.Steps |> Seq.cast<Step> |> Seq.toArray
+      Steps = config.Steps |> Seq.cast<Step> |> Seq.toList
       LoadTimeLine = timeline.LoadTimeLine
       WarmUpDuration = config.WarmUpDuration
       Duration = timeline.ScenarioDuration }
@@ -80,7 +80,7 @@ let insertConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list
 
     scenarios |> List.map(fun scn ->
 
-        scn.Steps |> Array.map(fun step ->
+        scn.Steps |> List.map(fun step ->
             let pool = pools |> List.tryFind(fun x -> x.PoolName = step.ConnectionPoolArgs.PoolName)
             match pool with
             | Some v -> { step with ConnectionPool = Some v }

@@ -123,9 +123,9 @@ type Scenario = {
     ScenarioName: string
     TestInit: (ScenarioContext -> Task) option
     TestClean: (ScenarioContext -> Task) option
-    Steps: IStep[]
+    Steps: IStep list
     WarmUpDuration: TimeSpan
-    LoadSimulations: LoadSimulation[]
+    LoadSimulations: LoadSimulation list
 }
 
 type ReportFile = {
@@ -143,12 +143,12 @@ type IReportingSink =
 type TestContext = {
     TestSuite: string
     TestName: string
-    RegisteredScenarios: Scenario[]
+    RegisteredScenarios: Scenario list
     TestConfig: TestConfig option
     InfraConfig: IConfiguration option
     ReportFileName: string option
-    ReportFormats: ReportFormat[]
-    ReportingSinks: IReportingSink[]
+    ReportFormats: ReportFormat list
+    ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
 }
 

@@ -51,20 +51,20 @@ module internal TestSessionArgs =
 
 module internal TestHostReporting =
 
-    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats[], sinks: IReportingSink[]) =
+    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats list, sinks: IReportingSink list) =
         nodeStats
-        |> Array.collect(fun x ->
+        |> List.collect(fun x ->
             let stats = Statistics.create(x)
-            sinks |> Array.map(fun snk -> snk.SaveRealtimeStats(testInfo, stats))
+            sinks |> List.map(fun snk -> snk.SaveRealtimeStats(testInfo, stats))
         )
         |> Task.WhenAll
 
     let startReportingTimer (dep: GlobalDependency,
                              sessionArgs: TestSessionArgs,
                              getOperationInfo: unit -> (NodeOperationType * TimeSpan),
-                             getNodeStats: TimeSpan -> RawNodeStats[]) =
+                             getNodeStats: TimeSpan -> RawNodeStats list) =
 
-        if not (Array.isEmpty dep.ReportingSinks) then
+        if not (List.isEmpty dep.ReportingSinks) then
 
             let timer = new System.Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
@@ -91,11 +91,11 @@ module internal TestHostConsole =
         |> List.map(fun x -> x.ScenarioName)
         |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
 
-    let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler[], isWarmUp: bool) =
+    let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
             scnSchedulers
-            |> Array.map(fun x ->
+            |> List.map(fun x ->
 
                 let tickCount =
                     if isWarmUp then int x.Scenario.WarmUpDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
@@ -109,7 +109,7 @@ module internal TestHostConsole =
 
                     (fun () -> pb.Dispose())
             )
-        | _ -> Array.empty
+        | _ -> List.empty
 
     let displayConnectionPoolProgress (dep: GlobalDependency, pool: ConnectionPool) =
         match dep.ApplicationType with
@@ -142,7 +142,7 @@ module internal TestHostConsole =
 
 module internal TestHostScenario =
 
-    let rec waitForNotFinishedScenarios (dep: GlobalDependency, tryCount: int, scnSchedulers: ScenarioScheduler[]) = async {
+    let rec waitForNotFinishedScenarios (dep: GlobalDependency, tryCount: int, scnSchedulers: ScenarioScheduler list) = async {
         let waitingTaskCount =
             scnSchedulers
             |> Seq.collect(fun x -> x.AllActors)

@@ -76,7 +76,7 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
-let execSteps (dep: StepDep, steps: Step[], allScnResponses: (StepResponse list)[]) = task {
+let execSteps (dep: StepDep, steps: Step list, allScnResponses: (StepResponse list)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
@@ -117,9 +117,9 @@ let filterByDuration (stepResponses: StepResponse list, duration: TimeSpan) =
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
 
     stepResponses
-    |> List.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
-    |> List.choose(fun x ->
+    |> Seq.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
+    |> Seq.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
-    |> List.toArray
+    |> Seq.toArray
