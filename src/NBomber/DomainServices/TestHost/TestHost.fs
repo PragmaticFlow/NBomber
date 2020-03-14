@@ -20,7 +20,7 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Validation
 open NBomber.DomainServices.TestHost.Infra
 
-type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario[]) =
+type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) =
 
     let mutable _sessionArgs = TestSessionArgs.empty
     let mutable _targetScenarios = Array.empty<Scenario>
@@ -60,9 +60,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario[]) =
     let initScenarios (sessionArgs: TestSessionArgs) = asyncResult {
         _sessionArgs <- sessionArgs
 
-        let targetScns = TestSessionArgs.filterTargetScenarios(registeredScenarios, sessionArgs) |> Array.toList
-        TestHostConsole.printTargetScenarios(dep, targetScns)
-
         let scnContext = {
             NodeInfo = getCurrentNodeInfo()
             CustomSettings = _sessionArgs.CustomSettings
@@ -70,7 +67,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario[]) =
             Logger = dep.Logger
         }
 
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, scnContext, targetScns)
+        let! updatedScenarios = TestHostScenario.initScenarios(dep, scnContext, registeredScenarios, _sessionArgs)
         _targetScenarios <- updatedScenarios |> List.toArray
     }
 

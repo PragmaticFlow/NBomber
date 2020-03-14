@@ -24,7 +24,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
     }
 
     let originalScenario = Scenario.create name [] |> NBomber.Domain.Scenario.create
-    let updatedScenarios = Scenario.applySettings [|settings|] [|originalScenario|]
+    let updatedScenarios = Scenario.applySettings [|settings|] [originalScenario]
     let newDuration = updatedScenarios.[0].LoadTimeLine |> List.head
 
     test <@ updatedScenarios.[0].Duration = newDuration.EndTime @>
@@ -43,15 +43,15 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
     let newName = name + "_new_name"
     let originalScenario = Scenario.create newName [] |> NBomber.Domain.Scenario.create
 
-    let updatedScenario = Scenario.applySettings [|settings|] [|originalScenario|]
+    let updatedScenario = Scenario.applySettings [|settings|] [originalScenario]
 
     test <@ updatedScenario.[0].Duration = originalScenario.Duration @>
     test <@ updatedScenario.[0].WarmUpDuration = originalScenario.WarmUpDuration @>
 
 [<Fact>]
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =
-    let scenarios = Array.empty
+    let scenarios = List.empty
     let settings = Array.empty
     Scenario.applySettings settings scenarios
-    |> Array.isEmpty
+    |> List.isEmpty
     |> Assert.True

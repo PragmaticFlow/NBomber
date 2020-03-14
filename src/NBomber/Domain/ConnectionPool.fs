@@ -9,13 +9,9 @@ open NBomber
 open NBomber.Extensions
 open NBomber.Contracts
 
-type ConnectionPoolArgs<'TConnection> = {
-    PoolName: string
-    OpenConnection: int -> 'TConnection
-    CloseConnection: ('TConnection -> unit) option
-    ConnectionCount: int
-} with
-    static member toUntyped (args: ConnectionPoolArgs<'TConnection>) =
+module ConnectionPoolArgs =
+
+    let toUntyped (args: ConnectionPoolArgs<'TConnection>) =
 
         let newOpen = fun (connectionNumber) -> args.OpenConnection(connectionNumber) :> obj
 
@@ -28,12 +24,6 @@ type ConnectionPoolArgs<'TConnection> = {
           OpenConnection = newOpen
           CloseConnection = newClose
           ConnectionCount = args.ConnectionCount }
-
-type ConnectionPoolObj<'TConnection> = {
-    Instance: ConnectionPool
-} with
-    interface IConnectionPool<'TConnection> with
-        member x.PoolName = x.Instance.PoolName
 
 type ConnectionPoolEvent =
     | StartedInit           of poolName:string
@@ -119,12 +109,6 @@ type ConnectionPool(args: ConnectionPoolArgs<obj>) =
     member x.EventStream = _eventStream :> IObservable<_>
     member x.Init() = initPool()
     member x.Dispose() = dispose()
-
-    override x.GetHashCode() = x.PoolName.GetHashCode()
-    override x.Equals(b) =
-        match b with
-        | :? ConnectionPool as pool -> x.PoolName = pool.PoolName
-        | _ -> false
 
     interface IDisposable with
         member x.Dispose() = dispose() |> ignore

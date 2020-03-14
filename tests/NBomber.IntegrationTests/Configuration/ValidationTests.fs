@@ -15,6 +15,7 @@ open NBomber.DomainServices.Validation
 let globalSettings = {
     ScenariosSettings = None
     TargetScenarios = Some ["1"]
+    ConnectionPoolSettings = None
     ReportFileName = None
     ReportFormats = None
     SendStatsInterval = None

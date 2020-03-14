@@ -31,7 +31,7 @@ type Step =
 
     static member Create<'TConnection,'TFeedItem>
         (name: string,
-         connectionPool: IConnectionPool<'TConnection>,
+         connectionPool: ConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
          execute: Func<StepContext<'TConnection,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
@@ -41,7 +41,7 @@ type Step =
 
     static member Create<'TConnection>
         (name: string,
-         connectionPool: IConnectionPool<'TConnection>,
+         connectionPool: ConnectionPoolArgs<'TConnection>,
          execute: Func<StepContext<'TConnection,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =

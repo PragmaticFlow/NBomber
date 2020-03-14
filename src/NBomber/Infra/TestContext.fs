@@ -89,3 +89,13 @@ let getSendStatsInterval (context: TestContext) =
     context
     |> tryGetFromConfig
     |> Option.defaultValue context.SendStatsInterval
+
+let getConnectionPoolSettings (context: TestContext) =
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.TestConfig
+        let! settings = config.GlobalSettings
+        return! settings.ConnectionPoolSettings
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue List.empty

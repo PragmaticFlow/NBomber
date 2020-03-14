@@ -20,6 +20,7 @@ type internal TestSessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
+    ConnectionPoolSettings: ConnectionPoolSetting list
     CustomSettings: string
     SendStatsInterval: TimeSpan
 }
@@ -30,22 +31,20 @@ module internal TestSessionArgs =
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
         ScenariosSettings = Array.empty
         TargetScenarios = Array.empty
+        ConnectionPoolSettings = List.empty
         CustomSettings = ""
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
 
     let getFromContext (testInfo: TestInfo, context: TestContext) =
-        let scnSettings = TestContext.getScenariosSettings(context)
-        let targetScns = TestContext.getTargetScenarios(context)
-        let customSettings = TestContext.getCustomSettings(context)
-        let statsInterval = TestContext.getSendStatsInterval(context)
         { TestInfo = testInfo
-          ScenariosSettings = scnSettings
-          TargetScenarios = targetScns
-          CustomSettings = customSettings
-          SendStatsInterval = statsInterval }
+          ScenariosSettings = TestContext.getScenariosSettings(context)
+          TargetScenarios = TestContext.getTargetScenarios(context)
+          ConnectionPoolSettings = TestContext.getConnectionPoolSettings(context)
+          CustomSettings = TestContext.getCustomSettings(context)
+          SendStatsInterval = TestContext.getSendStatsInterval(context) }
 
-    let filterTargetScenarios (scns: Scenario[], sessionArgs: TestSessionArgs) =
+    let filterTargetScenarios (sessionArgs: TestSessionArgs) (scns: Scenario list) =
         scns
         |> Scenario.applySettings(sessionArgs.ScenariosSettings)
         |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
@@ -90,7 +89,7 @@ module internal TestHostConsole =
     let printTargetScenarios (dep: GlobalDependency, targetScns: Scenario list) =
         targetScns
         |> List.map(fun x -> x.ScenarioName)
-        |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes(targets))
+        |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
 
     let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler[], isWarmUp: bool) =
         match dep.ApplicationType with
@@ -159,21 +158,26 @@ module internal TestHostScenario =
             return! waitForNotFinishedScenarios(dep, tryCount + 1, scnSchedulers)
     }
 
-    let initConnectionPools (dep: GlobalDependency) (pools: ConnectionPool seq) =
+    let initConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
         asyncResult {
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
                 do! pool.Init()
                 if subscription.IsSome then subscription.Value.Dispose()
+
+            return pools
         }
 
-    let destroyConnectionPools (dep: GlobalDependency) (pools: ConnectionPool seq) =
+    let destroyConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
         for pool in pools do
             let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
             pool.Dispose()
             if subscription.IsSome then subscription.Value.Dispose()
 
-    let initScenarios (dep: GlobalDependency, context: ScenarioContext, scenarios: Scenario list) = asyncResult {
+    let initScenarios (dep: GlobalDependency,
+                       context: ScenarioContext,
+                       registeredScenarios: Scenario list,
+                       sessionArgs: TestSessionArgs) = asyncResult {
 
         let tryInitScenario (initFunc: ScenarioContext -> Task) =
             try
@@ -197,10 +201,19 @@ module internal TestHostScenario =
             | [] -> Ok()
         }
 
-        do! scenarios |> Scenario.filterDistinctConnectionPools |> initConnectionPools(dep)
-        do! scenarios |> init |> Result.toEmptyIO
+        let targetScns = registeredScenarios |> TestSessionArgs.filterTargetScenarios sessionArgs
+        TestHostConsole.printTargetScenarios(dep, targetScns)
 
-        return scenarios
+        let! pools = targetScns
+                     |> Scenario.filterDistinctConnectionPoolsArgs
+                     |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
+                     |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
+                     |> initConnectionPools(dep)
+
+        let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
+        do! scenariosWithPools |> init |> Result.toEmptyIO
+
+        return scenariosWithPools
     }
 
     let cleanScenarios (dep: GlobalDependency, context: ScenarioContext, scenarios: Scenario list) =

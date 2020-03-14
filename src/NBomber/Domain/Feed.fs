@@ -5,8 +5,9 @@ open NBomber
 open NBomber.Contracts
 
 let toUntypedFeed (feed: IFeed<'TFeedItem>) =
-    { Name = feed.Name
-      GetNextItem = fun (correlationId, stepData) -> feed.GetNextItem(correlationId, stepData) :> obj }
+    { new IFeed<obj> with
+        member x.Name = feed.Name
+        member x.GetNextItem(correlationId, stepData) = feed.GetNextItem(correlationId, stepData) :> obj }
 
 let rec createInfiniteStream (items: 'T seq) =
     seq {

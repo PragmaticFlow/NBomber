@@ -16,6 +16,7 @@ open NBomber.Infra
 let globalSettings = {
     ScenariosSettings = None
     TargetScenarios = Some ["1"]
+    ConnectionPoolSettings = None
     ReportFileName = None
     ReportFormats = None
     SendStatsInterval = None
@@ -139,3 +140,20 @@ let ``TestContext.getTestName should return from Config, if empty then from Test
     | None ->
         let testSuite = TestContext.getTestName(context)
         test <@ testSuite = context.TestName @>
+
+[<Property>]
+let ``TestContext.getConnectionPoolSettings should return from Config, if empty then empty result``
+    (configValue: int option) =
+
+    match configValue with
+    | Some value ->
+        let poolSettings = Some [{PoolName = "test_pool"; ConnectionCount = value}]
+        let glSettings = { globalSettings with ConnectionPoolSettings = poolSettings }
+        let config = { config with GlobalSettings = Some glSettings }
+        let ctx = { context with TestConfig = Some config }
+        let resut = TestContext.getConnectionPoolSettings(ctx)
+        test <@ resut = poolSettings.Value  @>
+
+    | None ->
+        let result = TestContext.getConnectionPoolSettings(context)
+        test <@ result = List.empty @>

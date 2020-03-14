@@ -22,9 +22,15 @@ type ScenarioSetting = {
     LoadSimulationsSettings: LoadSimulationSettings list
 }
 
+type ConnectionPoolSetting = {
+    PoolName: string
+    ConnectionCount: int
+}
+
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting list option
     TargetScenarios: string list option
+    ConnectionPoolSettings: ConnectionPoolSetting list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
     SendStatsInterval: DateTime option

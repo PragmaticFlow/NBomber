@@ -23,16 +23,10 @@ type ConnectionPool =
                          connectionCount: int,
                          openConnection: int -> 'TConnection,
                          ?closeConnection: 'TConnection -> unit) =
-        let args = {
-          PoolName = name
+        { PoolName = name
           OpenConnection = openConnection
           CloseConnection = closeConnection
-          ConnectionCount = connectionCount
-        }
-
-        let untypedArgs = args |> ConnectionPoolArgs.toUntyped
-        let pool = new Domain.ConnectionPool.ConnectionPool(untypedArgs)
-        { Instance = pool } :> IConnectionPool<'TConnection>
+          ConnectionCount = connectionCount }
 
     static member empty =
         ConnectionPool.create(Constants.EmptyPoolName, connectionCount = 0, openConnection = ignore)
@@ -45,15 +39,13 @@ type Step =
         | x             -> x
 
     static member create (name: string,
-                          connectionPool: IConnectionPool<'TConnection>,
+                          connectionPool: ConnectionPoolArgs<'TConnection>,
                           feed: IFeed<'TFeedItem>,
                           execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int, ?doNotTrack: bool) =
-
-        let pool = connectionPool :?> ConnectionPoolObj<'TConnection>
-
         { StepName = name
-          ConnectionPool = pool.Instance
+          ConnectionPoolArgs = ConnectionPoolArgs.toUntyped(connectionPool)
+          ConnectionPool = None
           Execute = Step.toUntypedExec(execute)
           Context = None
           Feed = Feed.toUntypedFeed(feed)
@@ -62,7 +54,7 @@ type Step =
           :> IStep
 
     static member create (name: string,
-                          connectionPool: IConnectionPool<'TConnection>,
+                          connectionPool: ConnectionPoolArgs<'TConnection>,
                           execute: StepContext<'TConnection,unit> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =

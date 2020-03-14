@@ -27,7 +27,7 @@ let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestConte
         dep.Logger.Information("NBomber started as single node")
 
         let scnArgs = TestSessionArgs.getFromContext(testInfo, context)
-        let registeredScns = context.RegisteredScenarios |> Array.map(Scenario.create)
+        let registeredScns = context.RegisteredScenarios |> Seq.map(Scenario.create) |> Seq.toList
 
         use scnHost = new TestHost(dep, registeredScns)
         return! scnHost.RunSession(scnArgs)

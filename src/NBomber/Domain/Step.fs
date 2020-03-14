@@ -23,7 +23,7 @@ type StepDep = {
 }
 
 let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>) =
-    fun (context: UntypedStepContext) ->
+    fun (context: StepContext<obj,obj>) ->
         let typedContext = {
             StepContext.CorrelationId = context.CorrelationId
             CancellationToken = context.CancellationToken
@@ -36,12 +36,13 @@ let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Respons
 
 let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
 
-    let getConnection (pool: ConnectionPool) =
-        if pool.AliveConnections.Length > 0 then
-            let index = dep.CorrelationId.CopyNumber % pool.AliveConnections.Length
-            pool.AliveConnections.[index]
-        else
-            () :> obj
+    let getConnection (pool: ConnectionPool option) =
+        match pool with
+        | Some v ->
+            let index = dep.CorrelationId.CopyNumber % v.AliveConnections.Length
+            v.AliveConnections.[index]
+
+        | None -> () :> obj
 
     let connection = getConnection(step.ConnectionPool)
     let context = { CorrelationId = dep.CorrelationId

@@ -1,12 +1,9 @@
 ﻿namespace NBomber.Domain
 
 open System
-open System.Threading
 open System.Threading.Tasks
 
-open Serilog
 open NBomber.Contracts
-open NBomber.Extensions
 open NBomber.Domain.ConnectionPool
 
 //todo: use opaque types
@@ -14,26 +11,13 @@ type internal StepName = string
 type internal ScenarioName = string
 type internal Latency = int
 
-type internal UntypedStepContext = {
-    CorrelationId: CorrelationId
-    CancellationToken: CancellationToken
-    Connection: obj
-    mutable Data: Dict<string,obj>
-    FeedItem: obj
-    Logger: ILogger
-}
-
-type internal UntypedFeed = {
-    Name: string
-    GetNextItem: CorrelationId * Dict<string,obj> -> obj
-}
-
 type internal Step = {
     StepName: StepName
-    ConnectionPool: ConnectionPool
-    Execute: UntypedStepContext -> Task<Response>
-    Context: UntypedStepContext option
-    Feed: UntypedFeed
+    ConnectionPoolArgs: ConnectionPoolArgs<obj>
+    ConnectionPool: ConnectionPool option
+    Execute: StepContext<obj,obj> -> Task<Response>
+    Context: StepContext<obj,obj> option
+    Feed: IFeed<obj>
     RepeatCount: int
     DoNotTrack: bool
 } with
