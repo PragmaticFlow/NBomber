@@ -28,7 +28,7 @@
     <Compile Include="Configuration\ApplySettingsTests.fs" />
     <Compile Include="Configuration\ValidationTests.fs" />
     <Compile Include="FeedTests.fs" />
-    <Compile Include="Concurrency\LoadTimeLineTests.fs" />
+    <Compile Include="LoadTimeLineTests.fs" />
     <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
     <Compile Include="ConnectionPoolTests.fs" />
   </ItemGroup>

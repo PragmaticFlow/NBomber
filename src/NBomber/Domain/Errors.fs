@@ -17,7 +17,8 @@ type internal ValidationError =
     | EmptyReportName
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string list
-    | EmptyStepName         of scenarioNames:string list
+    | EmptyStepName         of scenarioName:string
+    | EmptySteps            of scenarioName:string
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
@@ -68,8 +69,11 @@ type internal AppError =
         | DuplicateScenarioName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
 
-        | EmptyStepName scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Step names are empty in scenarios: %s."
+        | EmptyStepName scenarioName ->
+            sprintf "Step names are empty in scenario: %s." scenarioName
+
+        | EmptySteps scenarioName ->
+            sprintf "Scenario '%s' has no steps" scenarioName
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
             sprintf "The current target group not matched, current target group is %s" currentTargetGroup

@@ -1,28 +1,77 @@
 ﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.Scenario
 
+open System
+
+open FsToolkit.ErrorHandling
+
 open NBomber
 open NBomber.Extensions
+open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
+open NBomber.Errors
 open NBomber.Domain.ConnectionPool
-open NBomber.Domain.Concurrency
+
+module Validation =
+
+    let checkEmptyScenarioName (scenario: Contracts.Scenario) =
+        if String.IsNullOrWhiteSpace scenario.ScenarioName then AppError.createResult EmptyScenarioName
+        else Ok scenario
+
+    let checkDuplicateName (scenarios: Contracts.Scenario list) =
+        let duplicates = scenarios |> List.map(fun x -> x.ScenarioName) |> String.filterDuplicates
+        if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
+        else Ok scenarios
+
+    let checkStepsNotEmpty (scenario: Contracts.Scenario) =
+        if List.isEmpty scenario.Steps then AppError.createResult(EmptySteps scenario.ScenarioName)
+        else Ok scenario
+
+    let checkEmptyStepName (scenario: Contracts.Scenario) =
+        let emptyStepExist = scenario.Steps |> List.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
+        if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
+        else Ok scenario
+
+    let validateWarmUpStats (nodesStats: RawNodeStats list) =
+        let folder (state) (stats: RawNodeStats) =
+            state |> Result.bind(fun _ ->
+                if stats.FailCount > stats.OkCount then
+                    AppError.createResult(WarmUpErrorWithManyFailedSteps(stats.OkCount, stats.FailCount))
+                else Ok()
+            )
+
+        let okState = Ok()
+        nodesStats |> List.fold folder okState
+
+    let validate =
+        checkEmptyScenarioName >=> checkStepsNotEmpty >=> checkEmptyStepName
 
 let createCorrelationId (scnName: ScenarioName, copyNumber): Contracts.CorrelationId =
     { Id = sprintf "%s_%i" scnName copyNumber
       ScenarioName = scnName
       CopyNumber = copyNumber }
 
-let create (config: Contracts.Scenario) =
+let createScenarios (scenarios: Contracts.Scenario list) = result {
 
-    let timeline = config.LoadSimulations |> LoadTimeLine.unsafeCreateWithDuration
+    let create (scn: Contracts.Scenario) = result {
+        let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
+        let! scenario = Validation.validate scn
 
-    { ScenarioName = config.ScenarioName
-      TestInit = config.TestInit
-      TestClean = config.TestClean
-      Steps = config.Steps |> Seq.cast<Step> |> Seq.toList
-      LoadTimeLine = timeline.LoadTimeLine
-      WarmUpDuration = config.WarmUpDuration
-      Duration = timeline.ScenarioDuration }
+        return { ScenarioName = scenario.ScenarioName
+                 TestInit = scenario.TestInit
+                 TestClean = scenario.TestClean
+                 Steps = scenario.Steps |> Seq.cast<Step> |> Seq.toList
+                 LoadTimeLine = timeline.LoadTimeLine
+                 WarmUpDuration = scenario.WarmUpDuration
+                 Duration = timeline.ScenarioDuration }
+    }
+
+    let! vScns = scenarios |> Validation.checkDuplicateName
+    return! vScns
+            |> List.map(create)
+            |> Result.sequence
+            |> Result.mapError(List.head)
+}
 
 let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario list) =
     match targetScenarios with
@@ -38,7 +87,8 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
         let timeLine =
             settings.LoadSimulationsSettings
             |> List.map(LoadTimeLine.createSimulationFromSettings)
-            |> LoadTimeLine.unsafeCreateWithDuration
+            |> LoadTimeLine.createWithDuration
+            |> Result.getOk
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay

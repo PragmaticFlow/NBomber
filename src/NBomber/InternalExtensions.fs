@@ -56,6 +56,11 @@ module internal Extensions =
         let concatWithCommaAndQuotes (strings: string seq) =
             strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
 
+        let filterDuplicates (data: string list) =
+            data
+            |> List.groupBy(id)
+            |> List.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
+
     module Array =
 
         /// Safe variant of `Array.min`

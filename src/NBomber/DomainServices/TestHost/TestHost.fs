@@ -173,7 +173,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         // warm-up
         do! x.WarmUpScenarios()
         let warmUpStats = getNodeStats(_currentOperationTimer.Elapsed)
-        do! ScenarioValidation.validateWarmUpStats(warmUpStats)
+        do! Scenario.Validation.validateWarmUpStats(warmUpStats)
 
         // bombing
         use reportingTimer =

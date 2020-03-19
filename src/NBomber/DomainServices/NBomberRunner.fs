@@ -1,8 +1,9 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
+open System.Threading.Tasks
+
 open FsToolkit.ErrorHandling
 
-open System.Threading.Tasks
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
@@ -27,7 +28,7 @@ let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestConte
         dep.Logger.Information("NBomber started as single node")
 
         let scnArgs = TestSessionArgs.getFromContext(testInfo, context)
-        let registeredScns = context.RegisteredScenarios |> Seq.map(Scenario.create) |> Seq.toList
+        let! registeredScns = context.RegisteredScenarios |> Scenario.createScenarios
 
         use scnHost = new TestHost(dep, registeredScns)
         return! scnHost.RunSession(scnArgs)

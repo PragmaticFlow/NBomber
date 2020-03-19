@@ -10,6 +10,7 @@ open NBomber.FSharp
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
+open NBomber.Domain
 open NBomber.DomainServices.Validation
 
 let globalSettings = {
@@ -97,29 +98,37 @@ let ``GlobalSettingsValidation.checkSendStatsInterval should return fail if Send
 
 [<Fact>]
 let ``ScenarioValidation.checkEmptyName should return fail if scenario has empty name`` () =
-    let scn = [{ scenario with ScenarioName = " " }]
+    let scn = { scenario with ScenarioName = " " }
 
-    match ScenarioValidation.checkEmptyName(scn) with
-    | Error EmptyScenarioName -> ()
-    | _ -> failwith ""
+    match Scenario.Validation.checkEmptyScenarioName scn with
+    | Error _ -> ()
+    | _       -> failwith ""
 
 [<Fact>]
 let ``ScenarioValidation.checkDuplicateName should return fail if scenario has duplicate name`` () =
     let scn1 = { scenario with ScenarioName = "1" }
     let scn2 = { scenario with ScenarioName = "1" }
 
-    match ScenarioValidation.checkDuplicateName([scn1; scn2]) with
-    | Error (DuplicateScenarioName _) -> ()
-    | _ -> failwith ""
+    match Scenario.Validation.checkDuplicateName([scn1; scn2]) with
+    | Error _ -> ()
+    | _       -> failwith ""
 
 [<Fact>]
 let ``ScenarioValidation.checkEmptyStepName should return fail if scenario has empty step name`` () =
     let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.Ok()))
     let scn = { scenario with Steps = [step] }
 
-    match ScenarioValidation.checkEmptyStepName([scn]) with
-    | Error (EmptyStepName _) -> ()
-    | _ -> failwith ""
+    match Scenario.Validation.checkEmptyStepName(scn) with
+    | Error _ -> ()
+    | _       -> failwith ""
+
+[<Fact>]
+let ``ScenarioValidation.checkStepsNotEmpty should return fail if scenario has empty steps`` () =
+    let scn = { scenario with Steps = [] }
+
+    match Scenario.Validation.checkStepsNotEmpty(scn) with
+    | Error _ -> ()
+    | _       -> failwith ""
 
 //[<Fact>]
 //let ``ScenarioValidation.checkDuration should return fail if Duration < 1 sec`` () =

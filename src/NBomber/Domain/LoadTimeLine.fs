@@ -1,10 +1,10 @@
-module internal NBomber.Domain.Concurrency.LoadTimeLine
+[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+module internal NBomber.Domain.LoadTimeLine
 
 open System
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
@@ -55,10 +55,11 @@ let createTimeLine (simulations: LoadSimulation list) =
 
     create(TimeSpan.Zero, simulations)
 
-let unsafeCreateWithDuration (loadSimulations: Contracts.LoadSimulation list) =
-    let timeLine = loadSimulations |> createTimeLine |> Result.getOk
+let createWithDuration (loadSimulations: Contracts.LoadSimulation list) = result {
+    let! timeLine = loadSimulations |> createTimeLine
     let timeItem = timeLine |> List.last
-    {| LoadTimeLine = timeLine; ScenarioDuration = timeItem.EndTime |}
+    return {| LoadTimeLine = timeLine; ScenarioDuration = timeItem.EndTime |}
+}
 
 let createSimulationFromSettings (settings: Configuration.LoadSimulationSettings) =
     match settings with
