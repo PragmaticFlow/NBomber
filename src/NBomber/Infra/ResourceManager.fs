@@ -51,6 +51,14 @@ module Constants =
     [<Literal>]
     let IndicatorsChartJs = "indicators_chart.js"
 
+    [<Literal>]
+    let NBomberWelcomeText = """
+//        __   __         __   ___  __
+//  |\ | |__) /  \  |\/| |__) |__  |__)
+//  | \| |__) \__/  |  | |__) |___ |  \  '{0}' started a new session: '{1}'
+//
+"""
+
 type Assets = {
     IndexHtml: string
     SidebarHtml: string

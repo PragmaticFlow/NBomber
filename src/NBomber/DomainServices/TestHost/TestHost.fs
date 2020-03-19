@@ -10,14 +10,12 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Extensions
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.Validation
 open NBomber.DomainServices.TestHost.Infra
 
 type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) =

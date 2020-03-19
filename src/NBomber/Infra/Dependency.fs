@@ -42,7 +42,9 @@ module ProgressBar =
                            ForegroundColor = ConsoleColor.Yellow,
                            ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
                            BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
-                           BackgroundCharacter = Nullable<char>('\u2593'))
+                           BackgroundCharacter = Nullable<char>('\u2593'),
+                           DisplayTimeInRealTime = false,
+                           CollapseWhenFinished = false)
 
     let create (ticks: int) =
         new ProgressBar(ticks, String.Empty, options)

@@ -71,7 +71,7 @@ let sendFinishTestToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) =
 
 let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
-        dep.Logger.Information("NBomber '{0}' started a new session: '{1}'", dep.NBomberVersion, testInfo.SessionId)
+        dep.Logger.Information(ResourceManager.Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
 
         let! ctx = Validation.validateContext(context)
 
