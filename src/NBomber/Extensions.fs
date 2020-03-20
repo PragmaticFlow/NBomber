@@ -1,9 +1,11 @@
 ﻿namespace NBomber.Extensions
 
 open System.Collections.Concurrent
-open System.Threading.Tasks
 open System.Runtime.CompilerServices
+open System.Threading.Tasks
 
+open System.Threading
+open System.Threading.Tasks
 open Newtonsoft.Json
 
 [<Extension>]
@@ -17,17 +19,23 @@ type ClientResponses() =
 
     let responses = ConcurrentDictionary<string, TaskCompletionSource<byte[]>>()
 
-    member x.InitClientId(clientId: string) =
-        responses.TryAdd(clientId, TaskCompletionSource<byte[]>())
-        |> ignore
+    let initResponseTask(clientId: string) =
+        responses.[clientId] <- TaskCompletionSource<byte[]>()
 
     member x.SetResponse(clientId: string, payload: byte[]) =
         responses.[clientId].TrySetResult(payload) |> ignore
-        x.InitClientId(clientId)
 
-    member x.GetResponseAsync(clientId: string) =
+    member x.GetResponseAsync(clientId: string, cancellationToken: CancellationToken) =
+
+        let autoReInitTask (tsk: Task<byte[]>) =
+            tsk.ContinueWith((fun (t: Task<byte[]>) -> initResponseTask(clientId)
+                                                       t.Result)
+                             , cancellationToken)
+
         match responses.ContainsKey(clientId) with
-        | true  -> responses.[clientId].Task
+        | true  ->
+            responses.[clientId].Task |> autoReInitTask
 
-        | false -> x.InitClientId(clientId)
-                   responses.[clientId].Task
+        | false ->
+            initResponseTask(clientId)
+            responses.[clientId].Task |> autoReInitTask
