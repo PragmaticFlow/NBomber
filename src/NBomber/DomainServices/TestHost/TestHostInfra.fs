@@ -92,29 +92,52 @@ module internal TestHostConsole =
         |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
 
     let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
-        match dep.ApplicationType with
-        | ApplicationType.Console ->
-            scnSchedulers
-            |> List.map(fun x ->
 
-                let tickCount =
-                    if isWarmUp then int x.Scenario.WarmUpDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
-                    else int x.Scenario.Duration.TotalMilliseconds / Constants.NotificationTickIntervalMs
+        let calcTickCount (scn: Scenario) =
+            if isWarmUp then int scn.WarmUpDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
+            else int scn.Duration.TotalMilliseconds / Constants.NotificationTickIntervalMs
 
-                let pb = dep.CreateProgressBar(tickCount)
-                x.EventStream
+        let getLongestDuration (schedulers: ScenarioScheduler list) =
+            if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.sortDescending |> List.head
+            else schedulers |> List.map(fun x -> x.Scenario.Duration) |> List.sortDescending |> List.head
+
+        let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
+            let mainPb = schedulers |> getLongestDuration |> dep.CreateAutoProgressBar
+
+            schedulers
+            |> List.map(fun scheduler ->
+                let tickCount = calcTickCount(scheduler.Scenario)
+                let pb = mainPb.Spawn(tickCount, "")
+
+                scheduler.EventStream
                 |> Observable.subscribeWithCompletion
-                    (fun x -> let msg = sprintf "keep concurrent scenarios: '%i', inject scenarios per sec: '%i'" x.ConstantActorCount x.OneTimeActorCount
+                    (fun x -> let msg = sprintf "scenario: '%s', keep concurrent: '%i', inject per sec: '%i'" scheduler.Scenario.ScenarioName x.ConstantActorCount x.OneTimeActorCount
                               pb.Tick(msg))
-
                     (fun () -> pb.Dispose())
             )
+            |> List.append [mainPb :> IDisposable]
+
+        let displayProgressForOneScenario (scheduler: ScenarioScheduler) =
+            let pb = scheduler.Scenario |> calcTickCount |> dep.CreateManualProgressBar
+            scheduler.EventStream
+            |> Observable.subscribeWithCompletion
+                (fun x -> let msg = sprintf "keep concurrent: '%i', inject per sec: '%i'" x.ConstantActorCount x.OneTimeActorCount
+                          pb.Tick(msg))
+
+                (fun () -> pb.Dispose())
+
+        match dep.ApplicationType with
+        | ApplicationType.Console ->
+            if scnSchedulers.Length > 1 then
+                displayProgressForConcurrentScenarios(scnSchedulers)
+            else
+                [displayProgressForOneScenario(scnSchedulers.Head)]
         | _ -> List.empty
 
     let displayConnectionPoolProgress (dep: GlobalDependency, pool: ConnectionPool) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
-            let pb = dep.CreateProgressBar(pool.ConnectionCount)
+            let pb = dep.CreateManualProgressBar(pool.ConnectionCount)
             pool.EventStream
             |> Observable.subscribeWithCompletion
                 (fun event ->

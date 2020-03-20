@@ -30,7 +30,8 @@ type GlobalDependency = {
     NodeType: NodeType
     MachineInfo: MachineInfo
     Assets: Assets
-    CreateProgressBar: int -> ProgressBar
+    CreateManualProgressBar: int -> IProgressBar
+    CreateAutoProgressBar: TimeSpan -> IProgressBar
     Logger: ILogger
     ReportingSinks: IReportingSink list
 }
@@ -43,11 +44,13 @@ module ProgressBar =
                            ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
                            BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
                            BackgroundCharacter = Nullable<char>('\u2593'),
-                           DisplayTimeInRealTime = false,
                            CollapseWhenFinished = false)
 
-    let create (ticks: int) =
-        new ProgressBar(ticks, String.Empty, options)
+    let createManual (ticks: int) =
+        new ProgressBar(ticks, String.Empty, options) :> IProgressBar
+
+    let createAuto (duration: TimeSpan) =
+        new FixedDurationBar(duration, String.Empty, options) :> IProgressBar
 
 let private retrieveMachineInfo () =
 
@@ -83,6 +86,7 @@ let create (appType: ApplicationType,
       NodeType = nodeType
       MachineInfo = retrieveMachineInfo()
       Assets = ResourceManager.loadAssets()
-      CreateProgressBar = ProgressBar.create
+      CreateManualProgressBar = ProgressBar.createManual
+      CreateAutoProgressBar = ProgressBar.createAuto
       Logger = logger
       ReportingSinks = List.empty }
