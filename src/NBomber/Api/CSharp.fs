@@ -15,14 +15,14 @@ open NBomber.Configuration
 type ConnectionPool =
 
     static member Create<'TConnection>(name: string,
-                                       connectionsCount: int,
+                                       connectionCount: int,
                                        openConnection: Func<int,'TConnection>,
                                        [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>) =
 
         let close = if isNull closeConnection then (Action<'TConnection>(ignore))
                     else closeConnection
 
-        FSharp.ConnectionPool.create(name, connectionsCount, openConnection.Invoke, close.Invoke)
+        FSharp.ConnectionPool.create(name, connectionCount, openConnection.Invoke, close.Invoke)
 
 
     static member Empty = FSharp.ConnectionPool.empty
@@ -98,7 +98,7 @@ type ScenarioBuilder =
 type NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
-    static member RegisterScenarios([<System.ParamArray>]scenarios: Contracts.Scenario[]) =
+    static member RegisterScenarios(scenarios: Contracts.Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     [<Extension>]
