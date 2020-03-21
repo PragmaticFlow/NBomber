@@ -303,3 +303,35 @@ let ``ConnectionPool should be initialized after scenario init``() =
     match result with
     | Ok allStats -> test <@ lastInvokeComponent = "connection_pool" @>
     | Error error -> failwith "unhandled exception"
+
+[<Fact>]
+let ``ConnectionPool should support 65K of connections``() =
+
+    let connectionCount = 65_000
+    let mutable invokeCount = 0
+
+    let pool = ConnectionPoolArgs.create("test_pool",
+                                         getConnectionCount = (fun _ -> connectionCount),
+                                         openConnection = (fun (number,token) ->
+                                             invokeCount <- invokeCount + 1
+                                             Task.FromResult number),
+                                         closeConnection = (fun _ -> Task.CompletedTask))
+
+    let step1 = Step.create("step_1", pool, fun context -> task {
+        return Response.Ok(context.Connection)
+    })
+
+    let scenario =
+        Scenario.create "test" [step1]
+        |> Scenario.withOutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+        ]
+
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runTest
+
+    match result with
+    | Ok allStats -> test <@ invokeCount = connectionCount @>
+    | Error error -> failwith "unhandled exception"
