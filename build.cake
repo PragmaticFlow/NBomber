@@ -11,29 +11,20 @@ var packageName = "NBomber";
 
 var cloneBranchName = "master";
 var reposDirPath = Directory($"./.nbomber-plugins/{packageVersion}");
-var packageVersionXpath = $"/Project/ItemGroup/PackageReference[@Include = '{packageName}']/@Version";
 
 var repoInfos = new[]
 {
     CreateRepoInfo("https://github.com/PragmaticFlow/NBomber.Http.git", 
         reposDirPath,
-        File("./src/NBomber.Http/NBomber.Http.fsproj")
-        //File("./examples/NBomber.Http.CSharp/NBomber.Http.CSharp.csproj"),
-        //File("./examples/NBomber.Http.FSharp/NBomber.Http.FSharp.fsproj")
-    ),
+        File("./src/NBomber.Http/NBomber.Http.fsproj")),
 
     CreateRepoInfo("https://github.com/PragmaticFlow/NBomber.Sinks.InfluxDB.git", 
         reposDirPath,
-        File("./src/NBomber.Sinks.InfluxDB/NBomber.Sinks.InfluxDB.fsproj")
-        //File("./examples/NBomber.Sinks.InfluxDB.Examples.CSharp/NBomber.Sinks.InfluxDB.Examples.CSharp.csproj")
-    )
+        File("./src/NBomber.Sinks.InfluxDB/NBomber.Sinks.InfluxDB.fsproj"))
 
     // CreateRepoInfo("https://github.com/Yaroshvitaliy/NBomber.Sinks.ReportPortal.git", 
     //     reposDirPath,
-    //     File("./src/NBomber.Sinks.ReportPortal/NBomber.Sinks.ReportPortal.fsproj"),
-    //     File("./examples/NBomber.Sinks.ReportPortal.Examples.CSharp/NBomber.Sinks.ReportPortal.Examples.CSharp.csproj"),
-    //     File("./examples/NBomber.Sinks.ReportPortal.Examples.FSharp/NBomber.Sinks.ReportPortal.Examples.FSharp.fsproj")
-    // )
+    //     File("./src/NBomber.Sinks.ReportPortal/NBomber.Sinks.ReportPortal.fsproj"))
 };
 
 var buildTaskName = "Build";
@@ -42,9 +33,6 @@ var testTaskName = "Test";
 var commitMessage = $"Updated package {packageName} to {packageVersion} version";
 var committerName = "antyadev";
 var committerEmail = "antyadev@gmail.com";
-
-var platform = Environment.OSVersion.Platform; 
-var isLinuxOrMac = platform == PlatformID.Unix || platform == PlatformID.MacOSX;
 
 public RepoInfo CreateRepoInfo(string sourceUrl, ConvertableDirectoryPath reposDirPath, params ConvertableFilePath[] relativeProjPaths)
 {
@@ -71,12 +59,10 @@ public class RepoInfo
 
 public int RunCakeTask(string dirPath, string taskName)
 {
-    var filePath = isLinuxOrMac 
-        ? $"{dirPath}/build.sh"
-        : $"{dirPath}/build.ps1";
-
+    var platform = Environment.OSVersion.Platform; 
+    var isLinuxOrMac = platform == PlatformID.Unix || platform == PlatformID.MacOSX;
+    var filePath = isLinuxOrMac ? $"{dirPath}/build.sh" : $"{dirPath}/build.ps1";
     var exitCode = StartProcess(filePath, new ProcessSettings { Arguments = $"--target {taskName}" });
-
     return exitCode;
 }
 
@@ -153,6 +139,8 @@ Task("Pack")
 Task("CloneNBomberPluginsAndUpdatePackage")
     .Does(() =>
 {
+    var packageVersionXpath = $"/Project/ItemGroup/PackageReference[@Include = '{packageName}']/@Version";
+
     if (DirectoryExists(reposDirPath))
     {
         DeleteDirectory(reposDirPath, 
@@ -188,9 +176,11 @@ Task("BuildAndTestNBomberPlugins")
 {
     foreach (var repoInfo in repoInfos)
     {
+        Information("---------");
         Information("Building repository {0}", repoInfo.RepoDirPath);
         RunCakeTask(repoInfo.RepoDirPath, buildTaskName);
         
+        Information("---------");
         Information("Testing repository {0}", repoInfo.RepoDirPath);
         RunCakeTask(repoInfo.RepoDirPath, testTaskName);
     }
