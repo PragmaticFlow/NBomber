@@ -333,3 +333,5 @@ ASALocalRun/
 
 .ionide/
 /logs/
+
+.nbomber-plugins/
