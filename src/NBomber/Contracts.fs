@@ -72,18 +72,11 @@ type Statistics = {
     NodeInfo: NodeInfo
 }
 
-[<CustomEquality; NoComparison>]
-type ConnectionPoolArgs<'TConnection> = {
-    PoolName: string
-    OpenConnection: int -> 'TConnection
-    CloseConnection: ('TConnection -> unit) option
-    ConnectionCount: int
-} with
-    override x.GetHashCode() = x.PoolName.GetHashCode()
-    override x.Equals(b) =
-        match b with
-        | :? ConnectionPoolArgs<'TConnection> as pool -> x.PoolName = pool.PoolName
-        | _ -> false
+type IConnectionPoolArgs<'TConnection> =
+    abstract PoolName: string
+    abstract GetConnectionCount: unit -> int
+    abstract OpenConnection: number:int * cancellationToken:CancellationToken -> Task<'TConnection>
+    abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
 
 type IFeedProvider<'TFeedItem> =
     abstract GetAllItems: unit -> 'TFeedItem[]

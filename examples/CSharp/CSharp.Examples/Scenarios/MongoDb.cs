@@ -49,8 +49,9 @@ namespace CSharp.Examples.Scenarios
             var scenario = ScenarioBuilder.CreateScenario("test_mongo", new[] { step })
                                           .WithTestInit(initDb);
 
-            NBomberRunner.RegisterScenarios(scenario)
-                         .RunInConsole();
+            NBomberRunner
+                .RegisterScenarios(new[] {scenario})
+                .RunInConsole();
         }
     }
 }

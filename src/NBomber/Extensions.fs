@@ -2,10 +2,9 @@
 
 open System.Collections.Concurrent
 open System.Runtime.CompilerServices
-open System.Threading.Tasks
-
 open System.Threading
 open System.Threading.Tasks
+
 open Newtonsoft.Json
 
 [<Extension>]
@@ -25,7 +24,7 @@ type ClientResponses() =
     member x.SetResponse(clientId: string, payload: byte[]) =
         responses.[clientId].TrySetResult(payload) |> ignore
 
-    member x.GetResponseAsync(clientId: string, cancellationToken: CancellationToken) =
+    member x.GetResponse(clientId: string, cancellationToken: CancellationToken) =
 
         let autoReInitTask (tsk: Task<byte[]>) =
             tsk.ContinueWith((fun (t: Task<byte[]>) -> initResponseTask(clientId)

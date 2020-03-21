@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Threading
 open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -10,26 +11,36 @@ open Microsoft.Extensions.Configuration
 open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
+open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.ConnectionPool
-open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
-type ConnectionPool =
+type ConnectionPoolArgs =
 
-    static member create(name: string,
-                         connectionCount: int,
-                         openConnection: int -> 'TConnection,
-                         ?closeConnection: 'TConnection -> unit) =
-        { PoolName = name
-          OpenConnection = openConnection
-          CloseConnection = closeConnection
-          ConnectionCount = connectionCount }
+    static member create (name: string,
+                          getConnectionCount: unit -> int,
+                          openConnection: int * CancellationToken -> Task<'TConnection>,
+                          closeConnection: 'TConnection * CancellationToken -> Task) =
+
+        { new IConnectionPoolArgs<'TConnection> with
+            member x.PoolName = name
+            member x.GetConnectionCount() = getConnectionCount()
+            member x.OpenConnection(number,token) = openConnection(number,token)
+            member x.CloseConnection(connection,token) = closeConnection(connection,token) }
+
+    static member create (name: string,
+                          getConnectionCount: unit -> int,
+                          openConnection: int * CancellationToken -> Task<'TConnection>,
+                          closeConnection: 'TConnection * CancellationToken -> Task<unit>) =
+
+        let close = fun (connection,token) -> closeConnection(connection,token) :> Task
+        ConnectionPoolArgs.create(name, getConnectionCount, openConnection, close)
 
     static member empty =
-        ConnectionPool.create(Constants.EmptyPoolName, connectionCount = 0, openConnection = ignore)
+        ConnectionPoolArgs.create(Constants.EmptyPoolName, (fun _ -> 0), (fun _ -> Task.FromResult()), fun _ -> Task.FromResult())
 
 type Step =
 
@@ -39,12 +50,12 @@ type Step =
         | x             -> x
 
     static member create (name: string,
-                          connectionPool: ConnectionPoolArgs<'TConnection>,
+                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           feed: IFeed<'TFeedItem>,
                           execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int, ?doNotTrack: bool) =
         { StepName = name
-          ConnectionPoolArgs = ConnectionPoolArgs.toUntyped(connectionPool)
+          ConnectionPoolArgs = ConnectionPoolArgs.toUntyped(connectionPoolArgs)
           ConnectionPool = None
           Execute = Step.toUntypedExec(execute)
           Context = None
@@ -54,12 +65,12 @@ type Step =
           :> IStep
 
     static member create (name: string,
-                          connectionPool: ConnectionPoolArgs<'TConnection>,
+                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           execute: StepContext<'TConnection,unit> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
-        Step.create(name, connectionPool, Feed.empty, execute,
+        Step.create(name, connectionPoolArgs, Feed.empty, execute,
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
@@ -69,7 +80,7 @@ type Step =
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
-        Step.create(name, ConnectionPool.empty, feed, execute,
+        Step.create(name, ConnectionPoolArgs.empty, feed, execute,
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
@@ -78,7 +89,7 @@ type Step =
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
-        Step.create(name, ConnectionPool.empty, Feed.empty, execute,
+        Step.create(name, ConnectionPoolArgs.empty, Feed.empty, execute,
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 

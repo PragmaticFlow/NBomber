@@ -1,6 +1,7 @@
 namespace NBomber.DomainServices.TestHost.Infra
 
 open System
+open System.Threading
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -148,11 +149,9 @@ module internal TestHostConsole =
                     | ConnectionOpened (poolName,number) ->
                         pb.Tick(sprintf "opened connection '%i' for connection pool: '%s'" number poolName)
 
-                    | ConnectionClosed -> pb.Tick()
-
-                    | CloseConnectionFailed ex ->
+                    | ConnectionClosed error ->
                         pb.Tick()
-                        dep.Logger.Error(ex.ToString(), "close connection exception")
+                        if error.IsSome then dep.Logger.Error(error.Value.ToString(), "close connection exception")
 
                     | InitFinished
                     | InitFailed -> pb.Dispose()
@@ -181,20 +180,20 @@ module internal TestHostScenario =
             return! waitForNotFinishedScenarios(dep, tryCount + 1, scnSchedulers)
     }
 
-    let initConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
+    let initConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         asyncResult {
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-                do! pool.Init()
+                do! pool.Init(token)
                 if subscription.IsSome then subscription.Value.Dispose()
 
             return pools
         }
 
-    let destroyConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
+    let destroyConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         for pool in pools do
             let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-            pool.Dispose()
+            pool.Destroy(token)
             if subscription.IsSome then subscription.Value.Dispose()
 
     let initScenarios (dep: GlobalDependency,
@@ -231,7 +230,7 @@ module internal TestHostScenario =
                      |> Scenario.filterDistinctConnectionPoolsArgs
                      |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
-                     |> initConnectionPools(dep)
+                     |> initConnectionPools dep context.CancellationToken
 
         let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
         do! scenariosWithPools |> init |> Result.toEmptyIO
@@ -240,7 +239,9 @@ module internal TestHostScenario =
     }
 
     let cleanScenarios (dep: GlobalDependency, context: ScenarioContext, scenarios: Scenario list) =
-        scenarios |> Scenario.filterDistinctConnectionPools |> destroyConnectionPools(dep)
+        scenarios
+        |> Scenario.filterDistinctConnectionPools
+        |> destroyConnectionPools dep context.CancellationToken
 
         let tryClean (cleanFunc: ScenarioContext -> Task) =
             try

@@ -3,50 +3,45 @@
 #nowarn "3211"
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
 open NBomber
-open NBomber.Domain
 open NBomber.Contracts
 open NBomber.Configuration
 
-type ConnectionPool =
+type ConnectionPoolArgs =
 
     static member Create<'TConnection>(name: string,
-                                       connectionCount: int,
-                                       openConnection: Func<int,'TConnection>,
-                                       [<Optional;DefaultParameterValue(null:obj)>] closeConnection: Action<'TConnection>) =
+                                       getConnectionCount: Func<int>,
+                                       openConnection: Func<int,CancellationToken,Task<'TConnection>>,
+                                       closeConnection: Func<'TConnection,CancellationToken,Task>) =
+        FSharp.ConnectionPoolArgs.create(name, getConnectionCount.Invoke, openConnection.Invoke, closeConnection.Invoke)
 
-        let close = if isNull closeConnection then (Action<'TConnection>(ignore))
-                    else closeConnection
-
-        FSharp.ConnectionPool.create(name, connectionCount, openConnection.Invoke, close.Invoke)
-
-
-    static member Empty = FSharp.ConnectionPool.empty
+    static member Empty = FSharp.ConnectionPoolArgs.empty
 
 type Step =
 
     static member Create<'TConnection,'TFeedItem>
         (name: string,
-         connectionPool: ConnectionPoolArgs<'TConnection>,
+         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
          execute: Func<StepContext<'TConnection,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, connectionPool, feed, execute.Invoke, repeatCount, doNotTrack)
+        FSharp.Step.create(name, connectionPoolArgs, feed, execute.Invoke, repeatCount, doNotTrack)
 
     static member Create<'TConnection>
         (name: string,
-         connectionPool: ConnectionPoolArgs<'TConnection>,
+         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
          execute: Func<StepContext<'TConnection,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, connectionPool, Feed.empty, execute, repeatCount, doNotTrack)
+        Step.Create(name, connectionPoolArgs, Feed.empty, execute, repeatCount, doNotTrack)
 
     static member Create<'TFeedItem>
         (name: string,
@@ -55,14 +50,14 @@ type Step =
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPool.Empty, feed, execute, repeatCount, doNotTrack)
+        Step.Create(name, ConnectionPoolArgs.Empty, feed, execute, repeatCount, doNotTrack)
 
     static member Create(name: string,
                          execute: Func<StepContext<unit,unit>,Task<Response>>,
                          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
                          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPool.Empty, Feed.empty, execute, repeatCount, doNotTrack)
+        Step.Create(name, ConnectionPoolArgs.Empty, Feed.empty, execute, repeatCount, doNotTrack)
 
     static member CreatePause(duration: TimeSpan) =
         FSharp.Step.createPause(duration)

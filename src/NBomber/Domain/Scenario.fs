@@ -104,18 +104,18 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
         |> Option.defaultValue scn)
     |> Seq.toList
 
-let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: Contracts.ConnectionPoolArgs<obj> list) =
-    poolArgs |> List.map(fun pool ->
-        let setting = settings |> List.tryFind(fun x -> x.PoolName = pool.PoolName)
+let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: Contracts.IConnectionPoolArgs<obj> list) =
+    poolArgs |> List.map(fun poolArg ->
+        let setting = settings |> List.tryFind(fun setng -> setng.PoolName = poolArg.PoolName)
         match setting with
-        | Some v -> { pool with ConnectionCount = v.ConnectionCount }
-        | None   -> pool
+        | Some v -> poolArg |> ConnectionPoolArgs.cloneWith(v.ConnectionCount)
+        | None   -> poolArg
     )
 
 let filterDistinctConnectionPoolsArgs (scenarios: Scenario list) =
     scenarios
     |> Seq.collect(fun x -> x.Steps)
-    |> Seq.choose(fun x -> if x.ConnectionPoolArgs.ConnectionCount > 0 then Some x.ConnectionPoolArgs else None)
+    |> Seq.choose(fun x -> if x.ConnectionPoolArgs.PoolName = Constants.EmptyPoolName then None else Some x.ConnectionPoolArgs)
     |> Seq.distinct
     |> Seq.toList
 

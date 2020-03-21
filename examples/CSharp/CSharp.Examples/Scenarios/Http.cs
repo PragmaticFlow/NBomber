@@ -23,7 +23,8 @@ namespace CSharp.Examples.Scenarios
                     Simulation.InjectScenariosPerSec(copiesCount: 100, during: TimeSpan.FromSeconds(30))
                 });
 
-            NBomberRunner.RegisterScenarios(scenario)
+            NBomberRunner
+                .RegisterScenarios(new[] {scenario})
                 .RunInConsole();
         }
     }

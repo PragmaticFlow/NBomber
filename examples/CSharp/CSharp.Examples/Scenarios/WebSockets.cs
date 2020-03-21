@@ -17,21 +17,16 @@ namespace CSharp.Examples.Scenarios
             var url = "ws://localhost:5000";
             var concurrentCopies = 50;
 
-            var webSocketsPool = ConnectionPool.Create(
+            var webSocketsPool = ConnectionPoolArgs.Create(
                 name: "webSocketsPool",
-                connectionsCount: concurrentCopies,
-                openConnection: (number) =>
+                getConnectionCount: () => concurrentCopies,
+                openConnection: async (number,token) =>
                 {
                     var ws = new ClientWebSocket();
-                    ws.ConnectAsync(new Uri(url), CancellationToken.None).Wait();
+                    await ws.ConnectAsync(new Uri(url), token);
                     return ws;
                 },
-                closeConnection: (connection) =>
-                {
-                    connection.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None)
-                              .Wait();
-                }
-            );
+                closeConnection: (connection, token) => connection.CloseAsync(WebSocketCloseStatus.NormalClosure, "", token));
 
             var pingStep = Step.Create("ping", webSocketsPool, async context =>
             {
@@ -67,8 +62,9 @@ namespace CSharp.Examples.Scenarios
                     Simulation.KeepConcurrentScenarios(concurrentCopies, during: TimeSpan.FromSeconds(10))
                 });
 
-            NBomberRunner.RegisterScenarios(scenario)
-                         .RunInConsole();
+            NBomberRunner
+                .RegisterScenarios(new[] {scenario})
+                .RunInConsole();
 
         }
     }

@@ -36,7 +36,7 @@ let ``LoadTimeLine.createTimeLine should correctly calculate and order time with
     |> ignore
 
 [<Property>]
-let ``LoadTimeLine.getRunningSimulation should correctly determine and return running timeline``
+let internal ``LoadTimeLine.getRunningSimulation should correctly determine and return running timeline``
     (currentTimeTicks: uint32, timeLine: LoadTimeLine) =
 
     let currentTime = TimeSpan(int64 currentTimeTicks)
