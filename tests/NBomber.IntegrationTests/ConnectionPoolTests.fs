@@ -265,3 +265,41 @@ let ``ConnectionPool should be initialized only once``() =
     | Ok allStats -> test <@ initedConnections = connectionCount @>
                      test <@ allStats.Length = 2 @>
     | Error error -> failwith "unhandled exception"
+
+[<Fact>]
+let ``ConnectionPool should be initialized after scenario init``() =
+
+    let connectionCount = 1
+    let mutable lastInvokeComponent = ""
+
+    let initTest (context: ScenarioContext) = task {
+        lastInvokeComponent <- "scenario"
+    }
+
+    let pool = ConnectionPoolArgs.create("test_pool",
+                                         getConnectionCount = (fun _ -> connectionCount),
+                                         openConnection = (fun (number,token) ->
+                                             lastInvokeComponent <- "connection_pool"
+                                             Task.FromResult number),
+                                         closeConnection = (fun _ -> Task.CompletedTask))
+
+
+    let step1 = Step.create("step_1", pool, fun context -> task {
+        return Response.Ok(context.Connection)
+    })
+
+    let scenario =
+        Scenario.create "test" [step1]
+        |> Scenario.withTestInit initTest
+        |> Scenario.withOutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+        ]
+
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.runTest
+
+    match result with
+    | Ok allStats -> test <@ lastInvokeComponent = "connection_pool" @>
+    | Error error -> failwith "unhandled exception"

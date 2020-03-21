@@ -225,6 +225,7 @@ module internal TestHostScenario =
 
         let targetScns = registeredScenarios |> TestSessionArgs.filterTargetScenarios sessionArgs
         TestHostConsole.printTargetScenarios(dep, targetScns)
+        do! targetScns |> init |> Result.toEmptyIO
 
         let! pools = targetScns
                      |> Scenario.filterDistinctConnectionPoolsArgs
@@ -233,8 +234,6 @@ module internal TestHostScenario =
                      |> initConnectionPools dep context.CancellationToken
 
         let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
-        do! scenariosWithPools |> init |> Result.toEmptyIO
-
         return scenariosWithPools
     }
 
