@@ -1,6 +1,7 @@
 namespace NBomber.DomainServices.TestHost.Infra
 
 open System
+open System.Threading
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -21,7 +22,6 @@ type internal TestSessionArgs = {
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
     ConnectionPoolSettings: ConnectionPoolSetting list
-    CustomSettings: string
     SendStatsInterval: TimeSpan
 }
 
@@ -32,7 +32,6 @@ module internal TestSessionArgs =
         ScenariosSettings = Array.empty
         TargetScenarios = Array.empty
         ConnectionPoolSettings = List.empty
-        CustomSettings = ""
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
 
@@ -41,7 +40,6 @@ module internal TestSessionArgs =
           ScenariosSettings = TestContext.getScenariosSettings(context)
           TargetScenarios = TestContext.getTargetScenarios(context)
           ConnectionPoolSettings = TestContext.getConnectionPoolSettings(context)
-          CustomSettings = TestContext.getCustomSettings(context)
           SendStatsInterval = TestContext.getSendStatsInterval(context) }
 
     let filterTargetScenarios (sessionArgs: TestSessionArgs) (scns: Scenario list) =
@@ -148,11 +146,9 @@ module internal TestHostConsole =
                     | ConnectionOpened (poolName,number) ->
                         pb.Tick(sprintf "opened connection '%i' for connection pool: '%s'" number poolName)
 
-                    | ConnectionClosed -> pb.Tick()
-
-                    | CloseConnectionFailed ex ->
+                    | ConnectionClosed error ->
                         pb.Tick()
-                        dep.Logger.Error(ex.ToString(), "close connection exception")
+                        if error.IsSome then dep.Logger.Error(error.Value.ToString(), "close connection exception")
 
                     | InitFinished
                     | InitFailed -> pb.Dispose()
@@ -181,28 +177,28 @@ module internal TestHostScenario =
             return! waitForNotFinishedScenarios(dep, tryCount + 1, scnSchedulers)
     }
 
-    let initConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
+    let initConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         asyncResult {
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-                do! pool.Init()
+                do! pool.Init(token)
                 if subscription.IsSome then subscription.Value.Dispose()
 
             return pools
         }
 
-    let destroyConnectionPools (dep: GlobalDependency) (pools: ConnectionPool list) =
+    let destroyConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         for pool in pools do
             let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-            pool.Dispose()
+            pool.Destroy(token)
             if subscription.IsSome then subscription.Value.Dispose()
 
     let initScenarios (dep: GlobalDependency,
-                       context: ScenarioContext,
+                       defaultScnContext: ScenarioContext,
                        registeredScenarios: Scenario list,
                        sessionArgs: TestSessionArgs) = asyncResult {
 
-        let tryInitScenario (initFunc: ScenarioContext -> Task) =
+        let tryInitScenario (context: ScenarioContext, initFunc: ScenarioContext -> Task) =
             try
                 initFunc(context).Wait()
                 Ok()
@@ -216,7 +212,8 @@ module internal TestHostScenario =
                 | Some initFunc ->
                     dep.Logger.Information("start init scenario: '{Scenario}'", scn.ScenarioName)
 
-                    match tryInitScenario(initFunc) with
+                    let context = { defaultScnContext with CustomSettings = scn.CustomSettings }
+                    match tryInitScenario(context, initFunc) with
                     | Ok _     -> yield! init(tail)
                     | Error ex -> Error ex
 
@@ -226,23 +223,24 @@ module internal TestHostScenario =
 
         let targetScns = registeredScenarios |> TestSessionArgs.filterTargetScenarios sessionArgs
         TestHostConsole.printTargetScenarios(dep, targetScns)
+        do! targetScns |> init |> Result.toEmptyIO
 
         let! pools = targetScns
                      |> Scenario.filterDistinctConnectionPoolsArgs
                      |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
-                     |> initConnectionPools(dep)
+                     |> initConnectionPools dep defaultScnContext.CancellationToken
 
         let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
-        do! scenariosWithPools |> init |> Result.toEmptyIO
-
         return scenariosWithPools
     }
 
-    let cleanScenarios (dep: GlobalDependency, context: ScenarioContext, scenarios: Scenario list) =
-        scenarios |> Scenario.filterDistinctConnectionPools |> destroyConnectionPools(dep)
+    let cleanScenarios (dep: GlobalDependency, defaultScnContext: ScenarioContext, scenarios: Scenario list) =
+        scenarios
+        |> Scenario.filterDistinctConnectionPools
+        |> destroyConnectionPools dep defaultScnContext.CancellationToken
 
-        let tryClean (cleanFunc: ScenarioContext -> Task) =
+        let tryClean (context: ScenarioContext, cleanFunc: ScenarioContext -> Task) =
             try
                 cleanFunc(context).Wait()
             with
@@ -252,6 +250,7 @@ module internal TestHostScenario =
             match s.TestClean with
             | Some cleanFunc ->
                 dep.Logger.Information("start clean scenario: '{Scenario}'", s.ScenarioName)
-                tryClean(cleanFunc)
+                let context = { defaultScnContext with CustomSettings = s.CustomSettings }
+                tryClean(context, cleanFunc)
 
             | None -> ()

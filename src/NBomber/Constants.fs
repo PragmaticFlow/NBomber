@@ -46,7 +46,7 @@ let SchedulerTickIntervalMs = 250
 let NotificationTickIntervalMs = 3_000
 
 [<Literal>]
-let ReTryCount = 10
+let ReTryCount = 5
 
 [<Literal>]
 let OperationTimeOut = 3_000

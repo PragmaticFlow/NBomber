@@ -18,9 +18,9 @@ let ``Extensions.String.concatWithCommaAndQuotes should concat strings with quot
 [<Fact>]
 let ``ClientResponses.GetResponseAsync should return always a new task`` () =
     let clientResponses = ClientResponses()
-    let tsk1 = clientResponses.GetResponseAsync("id", CancellationToken.None)
-    let tsk2 = clientResponses.GetResponseAsync("id", CancellationToken.None)
-    let tsk3 = clientResponses.GetResponseAsync("new_id", CancellationToken.None)
+    let tsk1 = clientResponses.GetResponse("id", CancellationToken.None)
+    let tsk2 = clientResponses.GetResponse("id", CancellationToken.None)
+    let tsk3 = clientResponses.GetResponse("new_id", CancellationToken.None)
 
     let set = Set.ofSeq [tsk1.Id; tsk2.Id; tsk3.Id]
     test <@ set.Count = 3 @>

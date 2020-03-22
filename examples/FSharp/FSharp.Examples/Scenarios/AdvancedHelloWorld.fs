@@ -7,21 +7,30 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Extensions
 
 type TestSocketClient = { Id: int }
+
+[<CLIMutable>]
+type CustomScenarioSettings = {
+    TestField: int
+}
 
 let run () =
 
     let connectionPool =
-        ConnectionPool.create(
+        ConnectionPoolArgs.create(
             name = "test_pool",
-            connectionCount = 10,
+            getConnectionCount = (fun _ -> 10),
 
-            openConnection = (fun connectionNumber ->
-                Task.Delay(1_000).Wait()
-                { TestSocketClient.Id = connectionNumber }),
+            openConnection = (fun (number,token) -> task {
+                do! Task.Delay(1_000)
+                return { TestSocketClient.Id = number }
+            }),
 
-            closeConnection = fun connection -> Task.Delay(1_000).Wait()
+            closeConnection = (fun (connection,token) -> task {
+                do! Task.Delay(1_000)
+            })
         )
 
     let step1 = Step.create("step_1", connectionPool, fun context -> task {
@@ -43,6 +52,8 @@ let run () =
     })
 
     let testInit = fun (context: ScenarioContext) -> task {
+        let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
+        context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
         return ()
     }
 
@@ -61,5 +72,5 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    //|> NBomberRunner.loadTestConfig("config.json")
+    |> NBomberRunner.loadTestConfig("config.json")
     |> NBomberRunner.runInConsole

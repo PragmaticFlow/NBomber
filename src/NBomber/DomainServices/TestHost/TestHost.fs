@@ -59,14 +59,14 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     let initScenarios (sessionArgs: TestSessionArgs) = asyncResult {
         _sessionArgs <- sessionArgs
 
-        let scnContext = {
+        let defaultScnContext = {
             NodeInfo = getCurrentNodeInfo()
-            CustomSettings = _sessionArgs.CustomSettings
+            CustomSettings = ""
             CancellationToken = _cancelToken.Token
             Logger = dep.Logger
         }
 
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, scnContext, registeredScenarios, _sessionArgs)
+        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, _sessionArgs)
         _targetScenarios <- updatedScenarios
     }
 
@@ -79,13 +79,13 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             Task.FromResult()
 
     let cleanScenarios () =
-        let scnContext = {
+        let defaultScnContext = {
             NodeInfo = getCurrentNodeInfo()
-            CustomSettings = _sessionArgs.CustomSettings
+            CustomSettings = ""
             CancellationToken = _cancelToken.Token
             Logger = dep.Logger
         }
-        TestHostScenario.cleanScenarios(dep, scnContext, _targetScenarios)
+        TestHostScenario.cleanScenarios(dep, defaultScnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
         if isWarmUp then dep.Logger.Information("starting warm up...")

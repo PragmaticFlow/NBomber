@@ -32,7 +32,7 @@ namespace CSharp.Examples.NUnit
                     Simulation.KeepConcurrentScenarios(copiesCount: 1, during: TimeSpan.FromSeconds(2))
                 });
 
-            var allStats = NBomberRunner.RegisterScenarios(scenario).RunTest();
+            var allStats = NBomberRunner.RegisterScenarios(new[] {scenario}).RunTest();
             var stepStats = allStats.First(x => x.StepName == "simple step");
 
             Assert.IsTrue(stepStats.OkCount > 2, "OkCount > 2");

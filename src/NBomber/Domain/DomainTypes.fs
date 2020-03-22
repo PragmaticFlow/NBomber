@@ -13,7 +13,7 @@ type internal Latency = int
 
 type internal Step = {
     StepName: StepName
-    ConnectionPoolArgs: ConnectionPoolArgs<obj>
+    ConnectionPoolArgs: IConnectionPoolArgs<obj>
     ConnectionPool: ConnectionPool option
     Execute: StepContext<obj,obj> -> Task<Response>
     Context: StepContext<obj,obj> option
@@ -41,4 +41,5 @@ type internal Scenario = {
     LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
+    CustomSettings: string
 }

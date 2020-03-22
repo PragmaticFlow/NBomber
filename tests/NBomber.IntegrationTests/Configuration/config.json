@@ -6,14 +6,19 @@
     "ScenariosSettings": [
       {
           "ScenarioName": "test_youtube",
-          "WarmUpDuration": "00:00:05",
+          "WarmUpDuration": "00:00:02",
 
           "LoadSimulationsSettings": [
-              { "KeepConcurrentScenarios": [5, "00:00:05"] },
-              { "RampConcurrentScenarios": [5, "00:00:05"] },
-              { "InjectScenariosPerSec": [5, "00:00:05"] },
-              { "RampScenariosPerSec": [5, "00:00:05"] }
-          ]
+              { "KeepConcurrentScenarios": [2, "00:00:02"] },
+              { "RampConcurrentScenarios": [2, "00:00:02"] },
+              { "InjectScenariosPerSec": [2, "00:00:02"] },
+              { "RampScenariosPerSec": [2, "00:00:02"] }
+          ],
+
+          "CustomSettings": {
+              "TargetMqttBrokerHost": "localhost",
+              "MsgPayloadSizeInBytes": 1000
+          }
       }
     ],
 
@@ -24,10 +29,5 @@
     "TargetScenarios": [ "test_youtube" ],
     "ReportFileName": "custom_report_name_from_json",
     "ReportFormats": ["Html", "Txt"]
-  },
-
-  "CustomSettings": {
-    "TargetMqttBrokerHost": "localhost",
-    "MsgPayloadSizeInBytes": 1000
   }
 }

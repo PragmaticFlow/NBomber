@@ -13,7 +13,11 @@
               { "RampConcurrentScenarios": [5, "00:00:05"] },
               { "InjectScenariosPerSec": [5, "00:00:05"] },
               { "RampScenariosPerSec": [5, "00:00:05"] }
-          ]
+          ],
+
+          "CustomSettings": {
+              "TestField": 1
+          }
       }
     ],
 

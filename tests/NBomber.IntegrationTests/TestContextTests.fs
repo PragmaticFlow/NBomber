@@ -29,7 +29,6 @@ let config = {
     TestSuite = Some Constants.DefaultTestSuite
     TestName = Some Constants.DefaultTestName
     GlobalSettings = None
-    CustomSettings = None
 }
 
 let context = {

@@ -29,8 +29,9 @@ namespace CSharp.Examples
 
             var scenario = ScenarioBuilder.CreateScenario("Hello World!", new[] {step});
 
-            NBomberRunner.RegisterScenarios(scenario)
-                         .RunInConsole();
+            NBomberRunner
+                .RegisterScenarios(new[] {scenario})
+                .RunInConsole();
         }
 
         public class User

@@ -1,9 +1,11 @@
 ﻿module internal rec NBomber.Domain.ConnectionPool
 
 open System
+open System.Threading
 
 open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
+open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
 open NBomber.Extensions
@@ -11,61 +13,69 @@ open NBomber.Contracts
 
 module ConnectionPoolArgs =
 
-    let toUntyped (args: ConnectionPoolArgs<'TConnection>) =
+    let toUntyped (args: IConnectionPoolArgs<'TConnection>) =
 
-        let newOpen = fun (connectionNumber) -> args.OpenConnection(connectionNumber) :> obj
+        { new IConnectionPoolArgs<obj> with
+            member x.PoolName = args.PoolName
+            member x.GetConnectionCount() = args.GetConnectionCount()
 
-        let newClose =
-            match args.CloseConnection with
-            | Some func -> Some(fun (connection: obj) -> func(connection :?> 'TConnection))
-            | None      -> None
+            member x.OpenConnection(number, token) = task {
+                let! connection = args.OpenConnection(number,token)
+                return connection :> obj
+            }
 
-        { PoolName = args.PoolName
-          OpenConnection = newOpen
-          CloseConnection = newClose
-          ConnectionCount = args.ConnectionCount }
+            member x.CloseConnection(connection, token) = args.CloseConnection(connection :?> 'TConnection, token) }
+
+    let cloneWith (connectionCount) (args: IConnectionPoolArgs<obj>) =
+        { new Contracts.IConnectionPoolArgs<obj> with
+            member _.PoolName = args.PoolName
+            member _.GetConnectionCount() = connectionCount
+            member _.OpenConnection(number,token) = args.OpenConnection(number,token)
+            member _.CloseConnection(connection,token) = args.CloseConnection(connection,token) }
 
 type ConnectionPoolEvent =
     | StartedInit           of poolName:string
     | StartedStop           of poolName:string
     | ConnectionOpened      of poolName:string * connectionNumber:int
-    | ConnectionClosed
-    | CloseConnectionFailed of error:exn
+    | ConnectionClosed      of error:exn option
     | InitFinished
     | InitFailed
 
-type ConnectionPool(args: ConnectionPoolArgs<obj>) =
+type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
     let mutable _disposed = false
     let mutable _aliveConnections = Array.empty
+    let mutable _connectionCount = 0
     let _eventStream = Subject.broadcast
 
-    let initPool () =
+    let initPool (token: CancellationToken) =
 
-        let rec tryOpenConnection (connectionNumber, tryCount) =
+        let rec retryOpenConnection (connectionNumber, tryCount, token) =
             try
-                let connection = args.OpenConnection(connectionNumber)
+                let connection = args.OpenConnection(connectionNumber, token).Result
                 Ok connection
             with
             | ex ->
                 if tryCount >= Constants.ReTryCount then Error ex
-                else tryOpenConnection(connectionNumber, tryCount + 1)
+                else retryOpenConnection(connectionNumber, tryCount + 1, token)
 
-        let rec openConnections (connectionNumber, connectionCount) = seq {
+        let rec openConnections (connectionNumber, connectionCount, token) = seq {
             if connectionNumber < connectionCount then
-                match tryOpenConnection(connectionNumber, 0) with
+                match retryOpenConnection(connectionNumber, 0, token) with
                 | Ok connection ->
                     yield Ok connection
                     let displayNumber = connectionNumber + 1
                     _eventStream.OnNext(ConnectionOpened(args.PoolName, displayNumber))
-                    yield! openConnections(connectionNumber + 1, connectionCount)
+                    yield! openConnections(connectionNumber + 1, connectionCount, token)
 
                 | Error ex -> yield Error ex
         }
 
         _eventStream.OnNext(StartedInit(args.PoolName))
 
-        let result = openConnections(0, args.ConnectionCount) |> Result.sequence
+        _connectionCount <- args.GetConnectionCount()
+
+        let result = openConnections(0, _connectionCount, token) |> Result.sequence
         match result with
         | Ok connections ->
             _aliveConnections <- connections |> List.toArray
@@ -76,39 +86,31 @@ type ConnectionPool(args: ConnectionPoolArgs<obj>) =
             _eventStream.OnNext(InitFailed)
             exs.Head |> Error |> Async.singleton
 
-    let closeAllConnections () =
-
-        let invokeDispose (connection: obj) =
-            if connection :? IDisposable then (connection :?> IDisposable).Dispose()
-
-        let tryCloseConnection(closeFn, connection) =
-            try
-                closeFn(connection)
-                invokeDispose(connection)
-            with
-            | ex -> ()
-
+    let closeAllConnections (token: CancellationToken) =
         _eventStream.OnNext(StartedStop args.PoolName)
 
         for connection in _aliveConnections do
-            match args.CloseConnection with
-            | Some close -> tryCloseConnection(close, connection)
-            | None       -> invokeDispose(connection)
-            _eventStream.OnNext(ConnectionClosed)
+            try
+                args.CloseConnection(connection, token).Wait(Constants.OperationTimeOut) |> ignore
+                _eventStream.OnNext(ConnectionClosed(error = None))
+            with
+            | ex ->
+                _eventStream.OnNext(ConnectionClosed(error = Some ex))
 
-    let dispose () =
+    let destroy (token: CancellationToken) =
         if not _disposed then
             _disposed <- true
-            closeAllConnections()
+            closeAllConnections(token)
             _eventStream.OnCompleted()
-            _eventStream.Dispose()
+            use e = _eventStream
+            e |> ignore
 
-    member x.PoolName = args.PoolName
-    member x.ConnectionCount = args.ConnectionCount
-    member x.AliveConnections = _aliveConnections
-    member x.EventStream = _eventStream :> IObservable<_>
-    member x.Init() = initPool()
-    member x.Dispose() = dispose()
+    member _.PoolName = args.PoolName
+    member _.ConnectionCount = _connectionCount
+    member _.AliveConnections = _aliveConnections
+    member _.EventStream = _eventStream :> IObservable<_>
+    member _.Init(token) = initPool(token)
+    member _.Destroy(token) = destroy(token)
 
     interface IDisposable with
-        member x.Dispose() = dispose() |> ignore
+        member _.Dispose() = destroy(CancellationToken.None)
