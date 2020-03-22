@@ -63,7 +63,8 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
                  Steps = scenario.Steps |> Seq.cast<Step> |> Seq.toList
                  LoadTimeLine = timeline.LoadTimeLine
                  WarmUpDuration = scenario.WarmUpDuration
-                 Duration = timeline.ScenarioDuration }
+                 Duration = timeline.ScenarioDuration
+                 CustomSettings = "" }
     }
 
     let! vScns = scenarios |> Validation.checkDuplicateName
@@ -92,7 +93,8 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
-                        Duration = timeLine.ScenarioDuration }
+                        Duration = timeLine.ScenarioDuration
+                        CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 
     scenarios
     |> Seq.map(fun scn ->

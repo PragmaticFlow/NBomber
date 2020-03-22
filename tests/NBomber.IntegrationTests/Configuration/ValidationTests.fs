@@ -26,6 +26,7 @@ let scenarioSettings = {
     ScenarioName = "1"
     WarmUpDuration = DateTime.MinValue.AddSeconds(10.)
     LoadSimulationsSettings = List.empty
+    CustomSettings = None
 }
 
 let scenario = {

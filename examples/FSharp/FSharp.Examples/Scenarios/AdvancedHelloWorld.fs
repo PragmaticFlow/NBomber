@@ -7,8 +7,14 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Extensions
 
 type TestSocketClient = { Id: int }
+
+[<CLIMutable>]
+type CustomScenarioSettings = {
+    TestField: int
+}
 
 let run () =
 
@@ -46,6 +52,8 @@ let run () =
     })
 
     let testInit = fun (context: ScenarioContext) -> task {
+        let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
+        context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
         return ()
     }
 
@@ -64,5 +72,5 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    //|> NBomberRunner.loadTestConfig("config.json")
+    |> NBomberRunner.loadTestConfig("config.json")
     |> NBomberRunner.runInConsole

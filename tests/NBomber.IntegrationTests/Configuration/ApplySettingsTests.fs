@@ -24,6 +24,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
         ScenarioName = name
         WarmUpDuration = warmUpDuration
         LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(int copiesCount, during = duration)]
+        CustomSettings = Some "some data"
     }
 
     let originalScenarios =
@@ -36,6 +37,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
 
     test <@ updatedScenarios.[0].Duration = newDuration.EndTime @>
     test <@ updatedScenarios.[0].WarmUpDuration = settings.WarmUpDuration.TimeOfDay @>
+    test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
 
 [<Property>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match``
@@ -49,6 +51,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         ScenarioName = name
         WarmUpDuration = warmUpDuration
         LoadSimulationsSettings = [LoadSimulationSettings.RampConcurrentScenarios(int copiesCount, during = duration)]
+        CustomSettings = None
     }
 
     let newName = name + "_new_name"

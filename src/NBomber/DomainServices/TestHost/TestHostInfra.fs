@@ -22,7 +22,6 @@ type internal TestSessionArgs = {
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
     ConnectionPoolSettings: ConnectionPoolSetting list
-    CustomSettings: string
     SendStatsInterval: TimeSpan
 }
 
@@ -33,7 +32,6 @@ module internal TestSessionArgs =
         ScenariosSettings = Array.empty
         TargetScenarios = Array.empty
         ConnectionPoolSettings = List.empty
-        CustomSettings = ""
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
 
@@ -42,7 +40,6 @@ module internal TestSessionArgs =
           ScenariosSettings = TestContext.getScenariosSettings(context)
           TargetScenarios = TestContext.getTargetScenarios(context)
           ConnectionPoolSettings = TestContext.getConnectionPoolSettings(context)
-          CustomSettings = TestContext.getCustomSettings(context)
           SendStatsInterval = TestContext.getSendStatsInterval(context) }
 
     let filterTargetScenarios (sessionArgs: TestSessionArgs) (scns: Scenario list) =
@@ -197,11 +194,11 @@ module internal TestHostScenario =
             if subscription.IsSome then subscription.Value.Dispose()
 
     let initScenarios (dep: GlobalDependency,
-                       context: ScenarioContext,
+                       defaultScnContext: ScenarioContext,
                        registeredScenarios: Scenario list,
                        sessionArgs: TestSessionArgs) = asyncResult {
 
-        let tryInitScenario (initFunc: ScenarioContext -> Task) =
+        let tryInitScenario (context: ScenarioContext, initFunc: ScenarioContext -> Task) =
             try
                 initFunc(context).Wait()
                 Ok()
@@ -215,7 +212,8 @@ module internal TestHostScenario =
                 | Some initFunc ->
                     dep.Logger.Information("start init scenario: '{Scenario}'", scn.ScenarioName)
 
-                    match tryInitScenario(initFunc) with
+                    let context = { defaultScnContext with CustomSettings = scn.CustomSettings }
+                    match tryInitScenario(context, initFunc) with
                     | Ok _     -> yield! init(tail)
                     | Error ex -> Error ex
 
@@ -231,18 +229,18 @@ module internal TestHostScenario =
                      |> Scenario.filterDistinctConnectionPoolsArgs
                      |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
-                     |> initConnectionPools dep context.CancellationToken
+                     |> initConnectionPools dep defaultScnContext.CancellationToken
 
         let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
         return scenariosWithPools
     }
 
-    let cleanScenarios (dep: GlobalDependency, context: ScenarioContext, scenarios: Scenario list) =
+    let cleanScenarios (dep: GlobalDependency, defaultScnContext: ScenarioContext, scenarios: Scenario list) =
         scenarios
         |> Scenario.filterDistinctConnectionPools
-        |> destroyConnectionPools dep context.CancellationToken
+        |> destroyConnectionPools dep defaultScnContext.CancellationToken
 
-        let tryClean (cleanFunc: ScenarioContext -> Task) =
+        let tryClean (context: ScenarioContext, cleanFunc: ScenarioContext -> Task) =
             try
                 cleanFunc(context).Wait()
             with
@@ -252,6 +250,7 @@ module internal TestHostScenario =
             match s.TestClean with
             | Some cleanFunc ->
                 dep.Logger.Information("start clean scenario: '{Scenario}'", s.ScenarioName)
-                tryClean(cleanFunc)
+                let context = { defaultScnContext with CustomSettings = s.CustomSettings }
+                tryClean(context, cleanFunc)
 
             | None -> ()

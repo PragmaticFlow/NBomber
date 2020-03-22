@@ -41,4 +41,5 @@ type internal Scenario = {
     LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan
     Duration: TimeSpan
+    CustomSettings: string
 }

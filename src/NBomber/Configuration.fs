@@ -20,6 +20,8 @@ type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: DateTime
     LoadSimulationsSettings: LoadSimulationSettings list
+    [<JsonField(Transform=typeof<TestConfig.JsonStringTransform>)>]
+    CustomSettings: string option
 }
 
 type ConnectionPoolSetting = {
@@ -45,8 +47,6 @@ type TestConfig = {
     TestSuite: string option
     TestName: string option
     GlobalSettings: GlobalSettings option
-    [<JsonField(Transform=typeof<TestConfig.JsonStringTransform>)>]
-    CustomSettings: string option
 }
 
 module internal TestConfig =

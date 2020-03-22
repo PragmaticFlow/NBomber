@@ -71,13 +71,6 @@ let getReportFormats (context: TestContext) =
                      else Some context.ReportFormats)
     |> Option.defaultValue Constants.AllReportFormats
 
-let getCustomSettings (context: TestContext) =
-    maybe {
-        let! config = context.TestConfig
-        return! config.CustomSettings
-    }
-    |> function Some v -> v | None -> ""
-
 let getSendStatsInterval (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.TestConfig
