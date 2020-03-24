@@ -1,70 +1,36 @@
-#addin nuget:?package=Cake.Git
+#addin nuget:?package=Cake.Git&version=0.21.0
+
+using LibGit2Sharp;
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 
+var committerName = Argument("username", "cake build script");
+var committerEmail = Argument("email", "pragmaticflow.org@gmail.com");
+var committerPassword = Argument("password", "");
+
 var solution = File("./NBomber.sln");
 var project = File("./src/NBomber/NBomber.fsproj");
+var nbomberVersion = XmlPeek(project, "//Version");
 
-var packageVersion = XmlPeek(project, "//Version");
-var packageName = "NBomber";
-
-var cloneBranchName = "master";
-var reposDirPath = Directory($"./.nbomber-plugins/{packageVersion}");
-
-var repoInfos = new[]
+var pluginsDir = Directory($"./.nbomber-plugins/{nbomberVersion}");
+var plugins = new[]
 {
-    CreateRepoInfo("https://github.com/PragmaticFlow/NBomber.Http.git", 
-        reposDirPath,
-        File("./src/NBomber.Http/NBomber.Http.fsproj")),
-
-    CreateRepoInfo("https://github.com/PragmaticFlow/NBomber.Sinks.InfluxDB.git", 
-        reposDirPath,
-        File("./src/NBomber.Sinks.InfluxDB/NBomber.Sinks.InfluxDB.fsproj"))
-
-    // CreateRepoInfo("https://github.com/Yaroshvitaliy/NBomber.Sinks.ReportPortal.git", 
-    //     reposDirPath,
-    //     File("./src/NBomber.Sinks.ReportPortal/NBomber.Sinks.ReportPortal.fsproj"))
-};
-
-var buildTaskName = "Build";
-var testTaskName = "Test";
-
-var commitMessage = $"Updated package {packageName} to {packageVersion} version";
-var committerName = "antyadev";
-var committerEmail = "antyadev@gmail.com";
-
-public RepoInfo CreateRepoInfo(string sourceUrl, ConvertableDirectoryPath reposDirPath, params ConvertableFilePath[] relativeProjPaths)
-{
-    var repoDirName = sourceUrl.Substring(sourceUrl.LastIndexOf("/") + 1);
-    var repoDirPath = reposDirPath + Directory(repoDirName);
-    var projPaths = relativeProjPaths.Select(x => repoDirPath + x).ToArray();
-    var repoInfo = new RepoInfo(sourceUrl, repoDirPath, projPaths);
-    return repoInfo;
-}
-
-public class RepoInfo
-{
-    public RepoInfo(string sourceUrl, ConvertableDirectoryPath repoDirPath, params ConvertableFilePath[] projPaths)
-    {
-        SourceUrl = sourceUrl;
-        RepoDirPath = repoDirPath;
-        ProjPaths = projPaths;
+    new PluginInfo 
+    { 
+        GitUrl = "https://github.com/PragmaticFlow/NBomber.Http.git",        
+        DirPath = pluginsDir + Directory("NBomber.Http"),
+        ProjPath = File("./src/NBomber.Http/NBomber.Http.fsproj"),
+        SolutionPath = File("./NBomber.Http.sln")
+    },
+    new PluginInfo 
+    { 
+        GitUrl = "https://github.com/PragmaticFlow/NBomber.Sinks.InfluxDB.git",        
+        DirPath = pluginsDir + Directory("NBomber.Sinks.InfluxDB"),
+        ProjPath = File("./src/NBomber.Sinks.InfluxDB/NBomber.Sinks.InfluxDB.fsproj"),
+        SolutionPath = File("./NBomber.Sinks.InfluxDB.sln")
     }
-
-    public string SourceUrl { get; }
-    public ConvertableDirectoryPath RepoDirPath { get; }
-    public ConvertableFilePath[] ProjPaths { get; }
-}
-
-public int RunCakeTask(string dirPath, string taskName)
-{
-    var platform = Environment.OSVersion.Platform; 
-    var isLinuxOrMac = platform == PlatformID.Unix || platform == PlatformID.MacOSX;
-    var filePath = isLinuxOrMac ? $"{dirPath}/build.sh" : $"{dirPath}/build.ps1";
-    var exitCode = StartProcess(filePath, new ProcessSettings { Arguments = $"--target {taskName}" });
-    return exitCode;
-}
+};
 
 Task("Clean")
     .Does(() =>
@@ -82,14 +48,14 @@ Task("Restore-NuGet-Packages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    NuGetRestore(solution);
+    DotNetCoreRestore(solution);
 });
 
 Task("Build")
     .IsDependentOn("Restore-NuGet-Packages")
     .Does(() =>
 {
-    Information("NBomber Version: {0}", packageVersion);
+    Information("NBomber Version: {0}", nbomberVersion);
 
     DotNetCoreBuild(solution, new DotNetCoreBuildSettings()
     {
@@ -136,77 +102,108 @@ Task("Pack")
 	DotNetCorePack(project, settings);
 });
 
-Task("CloneNBomberPluginsAndUpdatePackage")
+Task("BuildPlugins")
     .Does(() =>
 {
-    var packageVersionXpath = $"/Project/ItemGroup/PackageReference[@Include = '{packageName}']/@Version";
+    if (DirectoryExists(pluginsDir))    
+        DeleteDirectory(pluginsDir, new DeleteDirectorySettings { Recursive = true, Force = true });    
 
-    if (DirectoryExists(reposDirPath))
+    EnsureDirectoryExists(pluginsDir);
+
+    foreach (var plugin in plugins)
     {
-        DeleteDirectory(reposDirPath, 
-            new DeleteDirectorySettings { Recursive = true, Force = true });
-    }
+        var branchName = "dev";
+        var projPath = plugin.GetAbsoluteProjPath();
+        var slnPath = plugin.GetAbsoluteSolutionPath();
 
-    EnsureDirectoryExists(reposDirPath);
-
-    foreach (var repoInfo in repoInfos)
-    {
         Information("Cloning {0} branch for repository {1} to directory {2}", 
-            cloneBranchName, repoInfo.SourceUrl, repoInfo.RepoDirPath);
+            branchName, plugin.GitUrl, pluginsDir);
         
-        GitClone(repoInfo.SourceUrl, repoInfo.RepoDirPath, 
-            new GitCloneSettings { BranchName = cloneBranchName });
+        GitClone(plugin.GitUrl, plugin.DirPath, new GitCloneSettings { BranchName = branchName });        
 
-        foreach (var projPath in repoInfo.ProjPaths)
+        // update plugin project version
+        Information("Updating plugin project version on '{0}'", nbomberVersion);
+        var pluginVersionXPath = "/Project/PropertyGroup/Version";        
+        XmlPoke(projPath, pluginVersionXPath, nbomberVersion);        
+        
+        // update NBomber reference version
+        Information("Updating NBomber reference package on '{0}'", nbomberVersion);        
+        var nbomberReferenceVersionXPath = "/Project/ItemGroup/PackageReference[@Include = 'NBomber']/@Version";                
+        XmlPoke(projPath, nbomberReferenceVersionXPath, nbomberVersion);                
+
+        // update appveyor.yml
+        Information("Updating appveyor.yml");        
+        var appveyorPath = System.IO.Path.Combine(plugin.DirPath, "appveyor.yml");
+        var appveyorContent = System.IO.File.ReadAllLines(appveyorPath);
+        appveyorContent[0] = String.Format("version: {0}-{{build}}", nbomberVersion);
+        System.IO.File.WriteAllLines(appveyorPath, appveyorContent);
+
+        // build and test plugin
+        Information("Build plugin solution");        
+        DotNetCoreBuild(slnPath, new DotNetCoreBuildSettings { Configuration = configuration });
+
+        // commit all changes
+        Information("Commiting all changes");
+        GitAddAll(plugin.DirPath);
+
+        try 
         {
-            Information("Updating NuGet package to {0} version for project {1}", packageVersion, projPath);
-            XmlPoke(projPath, packageVersionXpath, packageVersion);            
+            // commit can fail in case of 0 changes
+            GitCommit(plugin.DirPath, committerName, committerEmail, String.Format("version: {0}", nbomberVersion));
         }
-    }
-
-    RunTarget("BuildAndTestNBomberPlugins");
-})
-.ReportError(ex =>
-{  
-    Error("An error has occurred: {0}", ex.ToString());
+        catch (Exception ex)
+        {
+            Warning(ex.ToString());
+        }
+    }    
 });
 
-Task("BuildAndTestNBomberPlugins")
+Task("PublishPlugins")
     .Does(() =>
 {
-    foreach (var repoInfo in repoInfos)
-    {
-        Information("---------");
-        Information("Building repository {0}", repoInfo.RepoDirPath);
-        RunCakeTask(repoInfo.RepoDirPath, buildTaskName);
-        
-        Information("---------");
-        Information("Testing repository {0}", repoInfo.RepoDirPath);
-        RunCakeTask(repoInfo.RepoDirPath, testTaskName);
+    foreach (var plugin in plugins)
+    {        
+        Information("Publish plugin: '{0}'", plugin.DirPath);        
+        GitPush(plugin.DirPath, committerName, committerPassword);
     }
-})
-.ReportError(ex =>
-{  
-    Error("An error has occurred: {0}", ex.ToString());
 });
 
-Task("CommitNBomberPlugins")
+Task("MergePluginsToMaster")
     .Does(() =>
 {
-    foreach (var repoInfo in repoInfos)
-    {
-        Information("Commiting all changes of repository {0}", repoInfo.RepoDirPath);
-        GitAddAll(repoInfo.RepoDirPath);
-        GitCommit(repoInfo.RepoDirPath, committerName, committerEmail, commitMessage);
-        GitTag(repoInfo.RepoDirPath, packageVersion);
+    if (DirectoryExists(pluginsDir))    
+        DeleteDirectory(pluginsDir, new DeleteDirectorySettings { Recursive = true, Force = true });    
+
+    EnsureDirectoryExists(pluginsDir);
+    
+    foreach (var plugin in plugins)
+    {        
+        Information("clone master branch for plugin: '{0}'", plugin.GitUrl);
+        GitClone(plugin.GitUrl, plugin.DirPath, new GitCloneSettings { BranchName = "master" });        
+
+        Information("merge dev into master");
+        using (var repo = new Repository(plugin.DirPath))
+        {
+            var comitterInfo = new Signature(committerName, committerEmail, System.DateTime.UtcNow);
+            var mergeResult = repo.Merge(repo.Branches["remotes/origin/dev"], comitterInfo);
+        }
+
+        Information("add tag");
+        GitTag(plugin.DirPath, $"version-{nbomberVersion}");
     }
-})
-.ReportError(ex =>
-{  
-    Error("An error has occurred: {0}", ex.ToString());
 });
 
 Task("Default")
     .IsDependentOn("Build");
 
 RunTarget(target);
+
+public class PluginInfo
+{
+    public string GitUrl { get; set; }
+    public ConvertableDirectoryPath DirPath { get; set; }
+    public ConvertableFilePath ProjPath { get; set; }
+    public ConvertableFilePath SolutionPath { get; set; }    
+    public ConvertableFilePath GetAbsoluteProjPath () => DirPath + ProjPath;
+    public ConvertableFilePath GetAbsoluteSolutionPath () => DirPath + SolutionPath;
+}
