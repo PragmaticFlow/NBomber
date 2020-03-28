@@ -95,17 +95,19 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (StepResponse li
                 let step = setStepContext(dep, s, data)
                 let! response = execStep(step, dep.GlobalTimer)
 
-                if response.Response.Payload :? IDisposable then
-                    resourcesToDispose.Add(response.Response.Payload :?> IDisposable)
+                let payload = response.Response.Payload
+                if payload :? IDisposable then
+                    resourcesToDispose.Add(payload :?> IDisposable)
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
+                    response.Response.Payload <- null
                     let stepResponses = response :: allScnResponses.[stepIndex]
                     allScnResponses.[stepIndex] <- stepResponses
 
                 if step.RepeatCount = i then
                     if response.Response.Exception.IsNone then
                         stepIndex <- stepIndex + 1
-                        data.[Constants.StepResponseKey] <- response.Response.Payload
+                        data.[Constants.StepResponseKey] <- payload
                     else
                         dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
                         skipStep <- true

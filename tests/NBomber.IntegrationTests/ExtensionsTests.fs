@@ -16,8 +16,12 @@ let ``Extensions.String.concatWithCommaAndQuotes should concat strings with quot
     Assert.Equal("", [] |> String.concatWithCommaAndQuotes)
 
 [<Fact>]
-let ``ClientResponses.GetResponseAsync should return always a new task`` () =
-    let buffer = PushResponseBuffer()
+let ``PushResponseBuffer.WaitOnPushResponse should return always a new task`` () =
+    use buffer = new PushResponseBuffer()
+
+    buffer.InitBufferForClient("id")
+    buffer.InitBufferForClient("new_id")
+
     let tsk1 = buffer.WaitOnPushResponse("id")
     let tsk2 = buffer.WaitOnPushResponse("id")
     let tsk3 = buffer.WaitOnPushResponse("new_id")

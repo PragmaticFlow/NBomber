@@ -18,11 +18,10 @@ type CorrelationId = {
     CopyNumber: int
 }
 
-[<Struct>]
 type Response = {
-    Payload: obj
+    mutable Payload: obj
     SizeBytes: int
-    Exception: exn voption
+    Exception: exn option
     LatencyMs: int
 }
 
@@ -152,30 +151,30 @@ type Response with
                      [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
           SizeBytes = sizeBytes
-          Exception = ValueNone
+          Exception = None
           LatencyMs = latencyMs }
 
     static member Ok(payload: byte[],
                      [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
-          Exception = ValueNone
+          Exception = None
           LatencyMs = latencyMs }
 
     static member Fail() =
         { Payload = null
           SizeBytes = 0
-          Exception = ValueSome(Exception "unknown client's error")
+          Exception = Some(Exception "unknown client's error")
           LatencyMs = 0 }
 
     static member Fail(ex: Exception) =
         { Payload = null
           SizeBytes = 0
-          Exception = ValueSome(ex)
+          Exception = Some(ex)
           LatencyMs = 0 }
 
     static member Fail(reason: string) =
         { Payload = null
           SizeBytes = 0
-          Exception = ValueSome(Exception reason)
+          Exception = Some(Exception reason)
           LatencyMs = 0 }
