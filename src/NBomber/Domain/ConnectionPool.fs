@@ -45,7 +45,6 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
     let mutable _disposed = false
     let mutable _aliveConnections = Array.empty
-    let mutable _connectionCount = 0
     let _eventStream = Subject.broadcast
 
     let initPool (token: CancellationToken) =
@@ -73,9 +72,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
         _eventStream.OnNext(StartedInit(args.PoolName))
 
-        _connectionCount <- args.GetConnectionCount()
-
-        let result = openConnections(0, _connectionCount, token) |> Result.sequence
+        let result = openConnections(0, args.GetConnectionCount(), token) |> Result.sequence
         match result with
         | Ok connections ->
             _aliveConnections <- connections |> List.toArray
@@ -106,7 +103,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
             e |> ignore
 
     member _.PoolName = args.PoolName
-    member _.ConnectionCount = _connectionCount
+    member _.ConnectionCount = args.GetConnectionCount()
     member _.AliveConnections = _aliveConnections
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Init(token) = initPool(token)
