@@ -17,10 +17,10 @@ let ``Extensions.String.concatWithCommaAndQuotes should concat strings with quot
 
 [<Fact>]
 let ``ClientResponses.GetResponseAsync should return always a new task`` () =
-    let clientResponses = ClientResponses()
-    let tsk1 = clientResponses.GetResponse("id", CancellationToken.None)
-    let tsk2 = clientResponses.GetResponse("id", CancellationToken.None)
-    let tsk3 = clientResponses.GetResponse("new_id", CancellationToken.None)
+    let buffer = PushResponseBuffer()
+    let tsk1 = buffer.WaitOnPushResponse("id")
+    let tsk2 = buffer.WaitOnPushResponse("id")
+    let tsk3 = buffer.WaitOnPushResponse("new_id")
 
     let set = Set.ofSeq [tsk1.Id; tsk2.Id; tsk3.Id]
     test <@ set.Count = 3 @>

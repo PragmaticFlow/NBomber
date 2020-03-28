@@ -29,11 +29,12 @@
     <EmbeddedResource Include="assets\js\num_req_chart.js" />
     <EmbeddedResource Include="assets\js\indicators_chart.js" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="InternalExtensions.fs" />
+    <Compile Include="Extensions\Extensions.fs" />
+    <Compile Include="Extensions\InternalExtensions.fs" />
+    <Compile Include="Extensions\PushExtensions.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Contracts.fs" />
-    <Compile Include="Extensions.fs" />
     <Compile Include="Domain\ConnectionPool.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
     <Compile Include="Domain\StatisticsTypes.fs" />
@@ -64,7 +65,7 @@
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\Shared.fs" />
     <Compile Include="Api\FSharp.fs" />
-    <Compile Include="Api\CSharp.fs" />
+    <Compile Include="Api\CSharp.fs" />    
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="15.0.0" />
