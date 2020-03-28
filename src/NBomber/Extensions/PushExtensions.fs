@@ -28,9 +28,9 @@ type PushResponseBuffer() =
         _awaiters.Clear()
         _awaitersBuffer.Clear()
 
-    member _.InitBufferForClient(clientId: string) = initBufferForClient(clientId)
+    member x.InitBufferForClient(clientId: string) = initBufferForClient(clientId)
 
-    member _.WaitOnPushResponse(clientId: string) =
+    member x.WaitOnPushResponse(clientId: string) =
         lock _lockObj (fun () ->
             let awaiterTsc = TaskCompletionSource<PushResponse>(TaskCreationOptions.RunContinuationsAsynchronously)
             let missedResponses = _awaitersBuffer.[clientId]
@@ -43,7 +43,7 @@ type PushResponseBuffer() =
             awaiterTsc.Task
         )
 
-    member _.PushResponse(clientId: string, payload: obj) =
+    member x.PushResponse(clientId: string, payload: obj) =
         lock _lockObj (fun () ->
             let pushResponse = {
                 ClientId = clientId
@@ -61,7 +61,7 @@ type PushResponseBuffer() =
                 awaiterTsc.SetResult(latestResponse)
         )
 
-    member _.Destroy() = destroyBuffer()
+    member x.Destroy() = destroyBuffer()
 
     interface IDisposable with
         member x.Dispose() =
