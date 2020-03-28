@@ -23,6 +23,11 @@ type PushResponseBuffer() =
         _awaiters.[clientId] <- TaskCompletionSource<PushResponse>()
         _awaitersBuffer.[clientId] <- Queue<PushResponse>()
 
+    let destroyBuffer () =
+        _awaiters.Values |> Seq.iter(fun awaiterTcs -> awaiterTcs.TrySetCanceled() |> ignore)
+        _awaiters.Clear()
+        _awaitersBuffer.Clear()
+
     member _.InitBufferForClient(clientId: string) = initBufferForClient(clientId)
 
     member _.WaitOnPushResponse(clientId: string) =
@@ -55,3 +60,9 @@ type PushResponseBuffer() =
                 let latestResponse = missedResponses.Dequeue()
                 awaiterTsc.SetResult(latestResponse)
         )
+
+    member _.Destroy() = destroyBuffer()
+
+    interface IDisposable with
+        member x.Dispose() =
+            destroyBuffer()

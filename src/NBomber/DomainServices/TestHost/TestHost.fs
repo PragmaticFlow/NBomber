@@ -142,8 +142,8 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
         let isWarmUp = false
         do! startBombing(isWarmUp)
-        do! stopScenarios()
         cleanScenarios()
+        do! stopScenarios()
 
         _currentOperationTimer.Stop()
         _currentOperation <- NodeOperationType.Complete
