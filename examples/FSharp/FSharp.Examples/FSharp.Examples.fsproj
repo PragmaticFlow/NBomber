@@ -12,8 +12,8 @@
     <Compile Include="Scenarios\CustomReportingSink.fs" />
     <Compile Include="Scenarios\AdvancedHelloWorld.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="test_config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="infra_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
