@@ -9,6 +9,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 
 [<Property>]
 let ``LoadTimeLine.createTimeLine should correctly calculate and order time within timeline`` (simulations: LoadSimulation list) =

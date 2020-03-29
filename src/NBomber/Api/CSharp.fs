@@ -28,7 +28,7 @@ type Step =
         (name: string,
          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
-         execute: Func<StepContext<'TConnection,'TFeedItem>,Task<Response>>,
+         execute: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
@@ -37,7 +37,7 @@ type Step =
     static member Create<'TConnection>
         (name: string,
          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-         execute: Func<StepContext<'TConnection,unit>,Task<Response>>,
+         execute: Func<IStepContext<'TConnection,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
@@ -46,14 +46,14 @@ type Step =
     static member Create<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
-         execute: Func<StepContext<unit,'TFeedItem>,Task<Response>>,
+         execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
         Step.Create(name, ConnectionPoolArgs.Empty, feed, execute, repeatCount, doNotTrack)
 
     static member Create(name: string,
-                         execute: Func<StepContext<unit,unit>,Task<Response>>,
+                         execute: Func<IStepContext<unit,unit>,Task<Response>>,
                          [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
                          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 

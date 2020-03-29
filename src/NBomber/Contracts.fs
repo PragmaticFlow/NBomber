@@ -8,7 +8,6 @@ open System.Threading.Tasks
 open Serilog
 open Microsoft.Extensions.Configuration
 
-open NBomber
 open NBomber.Extensions
 open NBomber.Configuration
 
@@ -69,6 +68,7 @@ type Statistics = {
     DataMaxKb: float
     AllDataMB: float
     NodeInfo: NodeInfo
+    Duration: TimeSpan
 }
 
 type IConnectionPoolArgs<'TConnection> =
@@ -84,16 +84,16 @@ type IFeed<'TFeedItem> =
     abstract Name: string
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
-type StepContext<'TConnection,'TFeedItem> = {
-    CorrelationId: CorrelationId
-    CancellationToken: CancellationToken
-    Connection: 'TConnection
-    Data: Dict<string,obj>
-    FeedItem: 'TFeedItem
-    Logger: ILogger
-} with
-  member x.GetPreviousStepResponse<'T>() =
-      x.Data.[Constants.StepResponseKey] :?> 'T
+type IStepContext<'TConnection,'TFeedItem> =
+    abstract CorrelationId: CorrelationId
+    abstract CancellationToken: CancellationToken
+    abstract Connection: 'TConnection
+    abstract Data: Dict<string,obj>
+    abstract FeedItem: 'TFeedItem
+    abstract Logger: ILogger
+    abstract GetPreviousStepResponse: unit -> 'T
+    abstract StopScenario: scenarioName:string * reason:string -> unit
+    abstract StopTest: reason:string -> unit
 
 type ScenarioContext = {
     NodeInfo: NodeInfo

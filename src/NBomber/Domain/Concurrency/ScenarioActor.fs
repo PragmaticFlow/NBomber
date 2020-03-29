@@ -10,6 +10,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
 open NBomber.Domain.Statistics
 
@@ -18,6 +19,7 @@ type ActorDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     Scenario: Scenario
+    ExecStopCommand: StopCommand -> unit
 }
 
 type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
@@ -25,7 +27,8 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     let _allScnResponses = Array.init<StepResponse list> dep.Scenario.Steps.Length (fun _ -> List.empty)
 
     let _stepDep = { Logger = dep.Logger; CancellationToken = dep.CancellationToken
-                     GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId }
+                     GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId
+                     ExecStopCommand = dep.ExecStopCommand }
 
     let mutable _working = false
     let mutable _reserved = false

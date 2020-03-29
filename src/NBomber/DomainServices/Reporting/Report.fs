@@ -6,7 +6,7 @@ open System
 open System.IO
 
 open NBomber.Contracts
-open NBomber.Domain
+open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Configuration
