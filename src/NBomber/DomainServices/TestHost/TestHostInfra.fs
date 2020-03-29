@@ -12,6 +12,8 @@ open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Extensions
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ConnectionPool
 open NBomber.Infra
@@ -93,11 +95,11 @@ module internal TestHostConsole =
 
         let calcTickCount (scn: Scenario) =
             if isWarmUp then int scn.WarmUpDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
-            else int scn.Duration.TotalMilliseconds / Constants.NotificationTickIntervalMs
+            else int scn.PlanedDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
 
         let getLongestDuration (schedulers: ScenarioScheduler list) =
             if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.sortDescending |> List.head
-            else schedulers |> List.map(fun x -> x.Scenario.Duration) |> List.sortDescending |> List.head
+            else schedulers |> List.map(fun x -> x.Scenario.PlanedDuration) |> List.sortDescending |> List.head
 
         let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
             let mainPb = schedulers |> getLongestDuration |> dep.CreateAutoProgressBar
@@ -160,22 +162,6 @@ module internal TestHostConsole =
         | _ -> None
 
 module internal TestHostScenario =
-
-    let rec waitForNotFinishedScenarios (dep: GlobalDependency, tryCount: int, scnSchedulers: ScenarioScheduler list) = async {
-        let waitingTaskCount =
-            scnSchedulers
-            |> Seq.collect(fun x -> x.AllActors)
-            |> Seq.filter(fun x -> x.Working)
-            |> Seq.length
-
-        if tryCount >= Constants.ReTryCount then
-            dep.Logger.Information("hard stop with '{WaitingTaskCount}' not finished tasks", waitingTaskCount)
-
-        elif waitingTaskCount <> 0 then
-            dep.Logger.Information("waiting for not finished tasks '{WaitingTaskCount}'...", waitingTaskCount)
-            do! Async.Sleep(Constants.OperationTimeOut)
-            return! waitForNotFinishedScenarios(dep, tryCount + 1, scnSchedulers)
-    }
 
     let initConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         asyncResult {

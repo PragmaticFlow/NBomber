@@ -1,13 +1,13 @@
-﻿namespace NBomber.Errors
+﻿module internal NBomber.Errors
 
 open NBomber.Extensions
 
-type internal DomainError =
+type DomainError =
     | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn
     | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
 
-type internal ValidationError =
+type ValidationError =
     | TargetScenarioIsEmpty
     | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
     | DurationIsWrong         of scenarioNames:string[]
@@ -29,7 +29,7 @@ type internal ValidationError =
     | DurationIsBiggerThan10Days of simulation:string
     | CopiesCountIsZeroOrNegative of simulation:string
 
-type internal AppError =
+type AppError =
     | Domain        of DomainError
     | Validation    of ValidationError
     static member create (e: DomainError) = Domain e

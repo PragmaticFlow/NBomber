@@ -13,6 +13,7 @@ open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -52,7 +53,7 @@ type Step =
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           feed: IFeed<'TFeedItem>,
-                          execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>,
+                          execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int, ?doNotTrack: bool) =
         { StepName = name
           ConnectionPoolArgs = ConnectionPoolArgs.toUntyped(connectionPoolArgs)
@@ -66,7 +67,7 @@ type Step =
 
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                          execute: StepContext<'TConnection,unit> -> Task<Response>,
+                          execute: IStepContext<'TConnection,unit> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
@@ -76,7 +77,7 @@ type Step =
 
     static member create (name: string,
                           feed: IFeed<'TFeedItem>,
-                          execute: StepContext<unit,'TFeedItem> -> Task<Response>,
+                          execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 
@@ -85,7 +86,7 @@ type Step =
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
     static member create (name: string,
-                          execute: StepContext<unit,unit> -> Task<Response>,
+                          execute: IStepContext<unit,unit> -> Task<Response>,
                           ?repeatCount: int,
                           ?doNotTrack: bool) =
 

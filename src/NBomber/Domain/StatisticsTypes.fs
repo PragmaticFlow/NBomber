@@ -1,28 +1,29 @@
-﻿namespace NBomber.Domain
+﻿module internal NBomber.Domain.StatisticsTypes
 
 open System
 open NBomber.Contracts
+open NBomber.Domain.DomainTypes
 
-type internal DataTransferCount = {
+type DataTransferCount = {
     MinKb: float
     MeanKb: float
     MaxKb: float
     AllMB: float
 }
 
-type internal LatencyCount = {
+type LatencyCount = {
     Less800: int
     More800Less1200: int
     More1200: int
 }
 
-type internal StepResults = {
+type StepResults = {
     StepName: string
     Responses: StepResponse[]
     DataTransfer: DataTransferCount
 }
 
-type internal StepStats = {
+type StepStats = {
     StepName: string
     OkLatencies: Latency[]
     RequestCount: int
@@ -39,7 +40,7 @@ type internal StepStats = {
     DataTransfer: DataTransferCount
 }
 
-type internal ScenarioStats = {
+type ScenarioStats = {
     ScenarioName: string
     StepsStats: StepStats[]
     RPS: int
@@ -49,7 +50,7 @@ type internal ScenarioStats = {
     Duration: TimeSpan
 }
 
-type internal RawNodeStats = {
+type RawNodeStats = {
     AllScenariosStats: ScenarioStats[]
     OkCount: int
     FailCount: int

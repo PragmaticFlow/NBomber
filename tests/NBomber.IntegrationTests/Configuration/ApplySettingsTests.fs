@@ -10,6 +10,7 @@ open Swensen.Unquote
 open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.FSharp
 
 [<Property>]
@@ -35,7 +36,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
     let updatedScenarios = Scenario.applySettings [|settings|] originalScenarios
     let newDuration = updatedScenarios.[0].LoadTimeLine |> List.head
 
-    test <@ updatedScenarios.[0].Duration = newDuration.EndTime @>
+    test <@ updatedScenarios.[0].PlanedDuration = newDuration.EndTime @>
     test <@ updatedScenarios.[0].WarmUpDuration = settings.WarmUpDuration.TimeOfDay @>
     test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
 
@@ -68,7 +69,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     test <@ settings.WarmUpDuration.TimeOfDay <> originalScenarios.Head.WarmUpDuration @>
     test <@ updatedScenario.[0].WarmUpDuration = originalScenarios.Head.WarmUpDuration @>
-    test <@ updatedScenario.[0].Duration = originalScenarios.Head.Duration @>
+    test <@ updatedScenario.[0].PlanedDuration = originalScenarios.Head.PlanedDuration @>
 
 [<Fact>]
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =

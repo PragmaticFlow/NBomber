@@ -4,10 +4,11 @@ open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
 
-open NBomber.Contracts
-open NBomber.Domain
-open NBomber.Errors
 open NBomber.Extensions
+open NBomber.Contracts
+open NBomber.Errors
+open NBomber.Domain
+open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting

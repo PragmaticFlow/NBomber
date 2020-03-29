@@ -10,6 +10,8 @@ open NBomber.Extensions
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Errors
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.ConnectionPool
 
 module Validation =
@@ -63,7 +65,8 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
                  Steps = scenario.Steps |> Seq.cast<Step> |> Seq.toList
                  LoadTimeLine = timeline.LoadTimeLine
                  WarmUpDuration = scenario.WarmUpDuration
-                 Duration = timeline.ScenarioDuration
+                 PlanedDuration = timeline.ScenarioDuration
+                 ExecutedDuration = None
                  CustomSettings = "" }
     }
 
@@ -93,7 +96,7 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = settings.WarmUpDuration.TimeOfDay
-                        Duration = timeLine.ScenarioDuration
+                        PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 
     scenarios
@@ -140,3 +143,9 @@ let insertConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list
         )
         |> fun updatedSteps -> { scn with Steps = updatedSteps }
     )
+
+let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
+    if executedDuration < scenario.PlanedDuration then
+        { scenario with ExecutedDuration = Some executedDuration }
+    else
+        { scenario with ExecutedDuration = Some scenario.PlanedDuration }

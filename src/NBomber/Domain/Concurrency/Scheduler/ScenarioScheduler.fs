@@ -8,7 +8,6 @@ open FSharp.Control.Reactive
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -93,6 +92,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
     let mutable _disposed = false
     let mutable _warmUp = false
+    let mutable _scenario = dep.Scenario
     let _constantScheduler = ConstantActorScheduler(dep)
     let _oneTimeScheduler = OneTimeActorScheduler(dep)
     let _timer = new System.Timers.Timer(float Constants.SchedulerTickIntervalMs)
@@ -113,15 +113,19 @@ type ScenarioScheduler(dep: ActorDep) =
             _timer.Stop()
             _progressInfoTimer.Stop()
             dep.GlobalTimer.Stop()
+            _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
             _eventStream.OnCompleted()
             _eventStream.Dispose()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
             _tcs.TrySetResult() |> ignore
+            true
+
+        else false
 
     let getScenarioStats (duration) =
-
-        let executionTime = correctExecutionTime(duration, dep.Scenario.Duration)
+        let scnDuration = _scenario.ExecutedDuration |> Option.defaultValue(_scenario.PlanedDuration)
+        let executionTime = correctExecutionTime(duration, scnDuration)
 
         getAllActors()
         |> List.collect(fun x -> x.GetStepResults executionTime)
@@ -134,10 +138,10 @@ type ScenarioScheduler(dep: ActorDep) =
             if not dep.GlobalTimer.IsRunning then dep.GlobalTimer.Restart()
 
             if _warmUp && dep.Scenario.WarmUpDuration <= dep.GlobalTimer.Elapsed then
-                stop()
+                stop() |> ignore
 
             elif dep.CancellationToken.IsCancellationRequested then
-                stop()
+                stop() |> ignore
 
             else
                 match LoadTimeLine.getRunningSimulation(dep.Scenario.LoadTimeLine, dep.GlobalTimer.Elapsed) with
@@ -154,7 +158,7 @@ type ScenarioScheduler(dep: ActorDep) =
                         | DoNothing -> ()
                     )
 
-                | None -> stop()
+                | None -> stop() |> ignore
         )
 
         _progressInfoTimer.Elapsed.Add(fun _ ->
@@ -171,10 +175,13 @@ type ScenarioScheduler(dep: ActorDep) =
         _warmUp <- isWarmUp
         start()
 
+    member x.Stop() =
+        stop()
+
     member x.EventStream = _eventStream :> IObservable<_>
     member x.Scenario = dep.Scenario
     member x.AllActors = getAllActors()
     member x.GetScenarioStats(duration) = getScenarioStats(duration)
 
     interface IDisposable with
-        member x.Dispose() = stop()
+        member x.Dispose() = stop() |> ignore

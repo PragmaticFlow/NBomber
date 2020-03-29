@@ -6,8 +6,8 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain
 open NBomber.Errors
+open NBomber.Domain.DomainTypes
 
 let validateSimulation (simulation: LoadSimulation) =
     result {

@@ -2,11 +2,10 @@
 
 open System
 open ConsoleTables
-open NBomber.Domain
+open NBomber.Domain.StatisticsTypes
 
 let inline private concatLines s =
     String.concat Environment.NewLine s
-
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
     sprintf "scenario: '%s', duration: '%A', RPS: '%i'"

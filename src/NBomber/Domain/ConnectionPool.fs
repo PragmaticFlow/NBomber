@@ -102,12 +102,12 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
             use e = _eventStream
             e |> ignore
 
-    member _.PoolName = args.PoolName
-    member _.ConnectionCount = args.GetConnectionCount()
-    member _.AliveConnections = _aliveConnections
-    member _.EventStream = _eventStream :> IObservable<_>
-    member _.Init(token) = initPool(token)
-    member _.Destroy(token) = destroy(token)
+    member x.PoolName = args.PoolName
+    member x.ConnectionCount = args.GetConnectionCount()
+    member x.AliveConnections = _aliveConnections
+    member x.EventStream = _eventStream :> IObservable<_>
+    member x.Init(token) = initPool(token)
+    member x.Destroy(token) = destroy(token)
 
     interface IDisposable with
-        member _.Dispose() = destroy(CancellationToken.None)
+        member x.Dispose() = destroy(CancellationToken.None)

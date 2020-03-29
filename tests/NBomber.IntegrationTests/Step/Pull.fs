@@ -211,7 +211,6 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
         |> NBomberRunner.runWithResult
         |> Result.getOk
 
-
     test <@ result.Statistics.Length = 1 @>
     test <@ result.Statistics
             |> Array.tryFind(fun x -> x.StepName = "step 2")

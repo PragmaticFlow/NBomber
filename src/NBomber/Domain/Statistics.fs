@@ -4,13 +4,14 @@ open System
 
 open HdrHistogram
 
-open NBomber.Contracts
-open NBomber.Domain
 open NBomber.Extensions
+open NBomber.Contracts
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.StatisticsTypes
 
 let create (nodeStats: RawNodeStats) =
 
-    let mapStep (scnName: string, step: StepStats) =
+    let mapStep (scnName: string, step: StepStats, duration: TimeSpan) =
         { ScenarioName = scnName
           StepName = step.StepName
           OkCount = step.OkCount
@@ -27,11 +28,12 @@ let create (nodeStats: RawNodeStats) =
           DataMeanKb = step.DataTransfer.MeanKb
           DataMaxKb = step.DataTransfer.MaxKb
           AllDataMB = step.DataTransfer.AllMB
-          NodeInfo = nodeStats.NodeStatsInfo }
+          NodeInfo = nodeStats.NodeStatsInfo
+          Duration = duration }
 
     nodeStats.AllScenariosStats
     |> Array.collect(fun scn ->
-        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step)))
+        scn.StepsStats |> Array.map(fun step -> mapStep(scn.ScenarioName, step, scn.Duration)))
 
 let buildHistogram (latencies) =
     let histogram = LongHistogram(TimeStamp.Hours(24), 3)

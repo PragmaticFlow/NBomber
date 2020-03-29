@@ -1,7 +1,7 @@
 module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
-open NBomber.Domain
+open NBomber.Domain.StatisticsTypes
 
 [<AutoOpen>]
 module private Impl =

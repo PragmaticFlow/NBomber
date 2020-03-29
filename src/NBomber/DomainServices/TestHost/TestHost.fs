@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open System.Diagnostics
+open System.Runtime.InteropServices
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
@@ -12,20 +13,21 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.TestHost.Infra
 
-type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) =
+type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) as x =
 
+    let mutable _stopped = false
     let mutable _sessionArgs = TestSessionArgs.empty
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = NodeOperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
-    let _currentOperationTimer = Stopwatch()
 
     let getCurrentNodeInfo () =
         { MachineName = dep.MachineInfo.MachineName
@@ -39,6 +41,17 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         |> NodeStats.create(getCurrentNodeInfo())
         |> List.singleton
 
+    let execStopCommand (command: StopCommand) =
+        match command with
+        | StopScenario (scenarioName, reason) ->
+            _scnSchedulers
+            |> List.tryFind(fun x -> x.Scenario.ScenarioName = scenarioName)
+            |> Option.iter(fun x ->
+                if x.Stop() then dep.Logger.Warning("stopping scenario early: '{0}', reason: '{1}'", x.Scenario.ScenarioName, reason)
+            )
+
+        | StopTest (reason) -> x.StopScenarios(reason) |> ignore
+
     let createScenarioSchedulers (targetScns: Scenario list) =
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
@@ -46,6 +59,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
                 CancellationToken = cancelToken
                 GlobalTimer = Stopwatch()
                 Scenario = scn
+                ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)
 
@@ -73,10 +87,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     let stopScenarios () =
         if not _cancelToken.IsCancellationRequested then
             _cancelToken.Cancel()
-            TestHostScenario.waitForNotFinishedScenarios(dep, 0, _scnSchedulers)
-            |> Async.StartAsTask
-        else
-            Task.FromResult()
 
     let cleanScenarios () =
         let defaultScnContext = {
@@ -88,9 +98,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         TestHostScenario.cleanScenarios(dep, defaultScnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
-        if isWarmUp then dep.Logger.Information("starting warm up...")
-        else dep.Logger.Information("starting bombing...")
-
         _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
 
         let scnsProgressSubscriptions = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
@@ -105,62 +112,63 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     member x.TargetScenarios = _targetScenarios
 
     member x.InitScenarios(args: TestSessionArgs) = task {
+        _stopped <- false
         _currentOperation <- NodeOperationType.Init
-        _currentOperationTimer.Restart()
         do! Task.Yield()
 
         match! initScenarios(args) with
         | Ok _ ->
-            _currentOperationTimer.Stop()
             _currentOperation <- NodeOperationType.None
             return Ok()
 
         | Error e ->
-            _currentOperationTimer.Stop()
             _currentOperation <- NodeOperationType.Stop
             return AppError.createResult(InitScenarioError e)
     }
 
     member x.WarmUpScenarios() = task {
+        _stopped <- false
         _currentOperation <- NodeOperationType.WarmUp
-        _currentOperationTimer.Restart()
         do! Task.Yield()
 
+        dep.Logger.Information("starting warm up...")
         let isWarmUp = true
         do! startBombing(isWarmUp)
-        do! stopScenarios()
+        stopScenarios()
 
-        _currentOperationTimer.Stop()
         _currentOperation <- NodeOperationType.None
         do! Task.Delay(Constants.OperationTimeOut)
     }
 
     member x.StartBombing() = task {
+        _stopped <- false
         _currentOperation <- NodeOperationType.Bombing
-        _currentOperationTimer.Restart()
         do! Task.Yield()
 
+        dep.Logger.Information("starting bombing...")
         let isWarmUp = false
         do! startBombing(isWarmUp)
-        cleanScenarios()
-        do! stopScenarios()
+        do! x.StopScenarios()
 
-        _currentOperationTimer.Stop()
         _currentOperation <- NodeOperationType.Complete
         do! Task.Delay(Constants.OperationTimeOut)
     }
 
-    member x.StopScenarios() = task {
-        _currentOperation <- NodeOperationType.Stop
-        _currentOperationTimer.Restart()
-        do! Task.Yield()
+    member x.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
+        if _currentOperation <> NodeOperationType.Stop && _stopped = false then
+            _currentOperation <- NodeOperationType.Stop
+            do! Task.Yield()
 
-        if _scnSchedulers |> List.exists(fun x -> x.Working) then
-            do! stopScenarios()
+            if not(String.IsNullOrEmpty reason) then
+                dep.Logger.Warning("stopping test early: '{0}'", reason)
+            else
+                dep.Logger.Information("stopping scenarios...")
+
+            stopScenarios()
             cleanScenarios()
+            _stopped <- true
 
-        _currentOperationTimer.Stop()
-        _currentOperation <- NodeOperationType.None
+            _currentOperation <- NodeOperationType.None
     }
 
     member x.GetNodeStats(duration) = getNodeStats(duration)
@@ -168,24 +176,28 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     member x.RunSession(args: TestSessionArgs) = asyncResult {
         do! x.InitScenarios(args)
 
+        let currentOperationTimer = Stopwatch()
+
         // warm-up
+        currentOperationTimer.Restart()
         do! x.WarmUpScenarios()
-        let warmUpStats = getNodeStats(_currentOperationTimer.Elapsed)
+        let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
         do! Scenario.Validation.validateWarmUpStats(warmUpStats)
 
         // bombing
         use reportingTimer =
             TestHostReporting.startReportingTimer(
                 dep, _sessionArgs,
-                (fun () -> _currentOperation, _currentOperationTimer.Elapsed),
+                (fun () -> _currentOperation, currentOperationTimer.Elapsed),
                 getNodeStats)
 
+        currentOperationTimer.Restart()
         do! x.StartBombing()
         reportingTimer.Stop()
 
-        return getNodeStats(_currentOperationTimer.Elapsed)
+        return getNodeStats(currentOperationTimer.Elapsed)
     }
 
     interface IDisposable with
         member x.Dispose() =
-            if _currentOperation <> NodeOperationType.Complete then x.StopScenarios().Wait()
+            x.StopScenarios().Wait()

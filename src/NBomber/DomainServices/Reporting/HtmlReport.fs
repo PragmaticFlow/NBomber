@@ -3,8 +3,7 @@
 open System
 
 open NBomber.Extensions
-open NBomber.Domain
-open NBomber.Errors
+open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
 open NBomber.Infra.ResourceManager
 open NBomber.Infra.Dependency

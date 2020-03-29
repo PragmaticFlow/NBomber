@@ -12,7 +12,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber
 open NBomber.Extensions
 open NBomber.Contracts
-open NBomber.Domain
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
 
 type StepDep = {
@@ -20,19 +20,20 @@ type StepDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     CorrelationId: CorrelationId
+    ExecStopCommand: StopCommand -> unit
 }
 
 let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>) =
     fun (context: StepContext<obj,obj>) ->
-        let typedContext = {
-            StepContext.CorrelationId = context.CorrelationId
-            CancellationToken = context.CancellationToken
-            Connection = context.Connection :?> 'TConnection
-            Data = context.Data
-            FeedItem = context.FeedItem :?> 'TFeedItem
-            Logger = context.Logger
-        }
-        execute(typedContext)
+        let untyped = context :> IStepContext<obj,obj>
+        let typed = StepContext(untyped.CorrelationId,
+                                untyped.CancellationToken,
+                                untyped.Connection :?> 'TConnection,
+                                untyped.Data,
+                                untyped.FeedItem :?> 'TFeedItem,
+                                untyped.Logger,
+                                context.ExecStopCommand)
+        execute(typed)
 
 let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
 
@@ -45,12 +46,13 @@ let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
         | None -> () :> obj
 
     let connection = getConnection(step.ConnectionPool)
-    let context = { CorrelationId = dep.CorrelationId
-                    CancellationToken = dep.CancellationToken
-                    Connection = connection
-                    Data = data
-                    FeedItem = step.Feed.GetNextItem(dep.CorrelationId, data)
-                    Logger = dep.Logger }
+    let context = StepContext(dep.CorrelationId,
+                              dep.CancellationToken,
+                              connection,
+                              data,
+                              step.Feed.GetNextItem(dep.CorrelationId, data),
+                              dep.Logger,
+                              dep.ExecStopCommand)
 
     { step with Context = Some context }
 

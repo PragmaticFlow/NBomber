@@ -6,10 +6,11 @@ open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
 
+open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Domain.Statistics
-open NBomber.Extensions
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.StatisticsTypes
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }
 
