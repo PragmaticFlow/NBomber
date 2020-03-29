@@ -121,14 +121,14 @@ let filterDistinctConnectionPoolsArgs (scenarios: Scenario list) =
     scenarios
     |> Seq.collect(fun x -> x.Steps)
     |> Seq.choose(fun x -> if x.ConnectionPoolArgs.PoolName = Constants.EmptyPoolName then None else Some x.ConnectionPoolArgs)
-    |> Seq.distinct
+    |> Seq.distinctBy(fun x -> x.PoolName)
     |> Seq.toList
 
 let filterDistinctConnectionPools (scenarios: Scenario list) =
     scenarios
     |> Seq.collect(fun x -> x.Steps)
     |> Seq.choose(fun x -> if x.ConnectionPool.IsSome then Some x.ConnectionPool.Value else None)
-    |> Seq.distinct
+    |> Seq.distinctBy(fun x -> x.PoolName)
     |> Seq.toList
 
 let insertConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list) =
