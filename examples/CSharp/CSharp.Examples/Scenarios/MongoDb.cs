@@ -5,8 +5,10 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
+using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using NBomber.Extensions;
 
 namespace CSharp.Examples.Scenarios
 {

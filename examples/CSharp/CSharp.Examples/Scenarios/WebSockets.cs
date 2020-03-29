@@ -2,8 +2,10 @@
 using System.Net.WebSockets;
 using System.Threading;
 
+using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using NBomber.Extensions;
 
 using TestServer.Utils;
 using TestServer.WebSockets;
