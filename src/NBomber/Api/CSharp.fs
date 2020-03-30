@@ -97,12 +97,12 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     [<Extension>]
-    static member LoadJsonTestConfig(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadJsonTestConfig(path)
+    static member LoadTestConfigJson(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadTestConfigJson(path)
 
     [<Extension>]
-    static member LoadYamlTestConfig(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadYamlTestConfig(path)
+    static member LoadTestConfigYaml(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadTestConfigYaml(path)
 
     [<Extension>]
     static member LoadInfraConfig(context: TestContext, path: string) =
