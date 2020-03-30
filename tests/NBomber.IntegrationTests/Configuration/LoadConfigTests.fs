@@ -29,7 +29,6 @@ let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are miss
                             |> ignore
     )
 
-
 [<Fact>]
 let ``YamlConfig.unsafeParse() should read yaml file successfully`` () =
     "Configuration/config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse |> ignore
