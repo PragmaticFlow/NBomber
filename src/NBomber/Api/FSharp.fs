@@ -148,15 +148,12 @@ module NBomberRunner =
     let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
 
-    let loadTestConfig (path: string) (context: TestContext) =
-        let unsafeParse =
-            match path |> Path.GetExtension with
-            | ".json" -> JsonConfig.unsafeParse
-            | ".yaml"
-            | ".yml"  -> YamlConfig.unsafeParse
-            | _       -> JsonConfig.unsafeParse
+    let loadJsonTestConfig (path: string) (context: TestContext) =
+        let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
+        { context with TestConfig = Some config }
 
-        let config = path |> File.ReadAllText |> unsafeParse
+    let loadYamlTestConfig (path: string) (context: TestContext) =
+        let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
         { context with TestConfig = Some config }
 
     let loadInfraConfig (path: string) (context: TestContext) =
