@@ -53,6 +53,7 @@ let run () =
 
     let testInit = fun (context: ScenarioContext) -> task {
         let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
+        //let settings = context.CustomSettings.DeserializeYaml<CustomScenarioSettings>()
         context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
         return ()
     }
@@ -73,4 +74,5 @@ let run () =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadTestConfigJson("config.json")
+    //|> NBomberRunner.loadTestConfigYaml("config.yaml")
     |> NBomberRunner.runInConsole
