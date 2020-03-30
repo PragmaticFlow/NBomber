@@ -21,7 +21,7 @@ type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: DateTime
     LoadSimulationsSettings: LoadSimulationSettings list
-    [<JsonField(Transform=typeof<JsonConfig.JsonStringTransform>)>]
+    [<JsonField(AsJson = true)>]
     CustomSettings: string option
 }
 
@@ -53,15 +53,6 @@ type TestConfig = {
 }
 
 module internal JsonConfig =
-
-    type JsonStringTransform() =
-        interface ITypeTransform with
-            member x.targetType () = typeof<obj>
-            member x.toTargetType(value) = value
-            member x.fromTargetType(value) =
-                let config = JsonConfig.create(allowUntyped = true)
-                let str = Json.serializeEx config value
-                str :> obj
 
     let unsafeParse (json) =
         let config = JsonConfig.create(allowUntyped = true)

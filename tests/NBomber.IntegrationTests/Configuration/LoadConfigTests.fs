@@ -18,7 +18,9 @@ type TestCustomSettings = {
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should read json file successfully`` () =
-    "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
+    let config = "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
+
+    ()
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are missing`` () =
@@ -28,6 +30,23 @@ let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are miss
                             |> JsonConfig.unsafeParse
                             |> ignore
     )
+
+[<Fact>]
+let ``JsonConfig.unsafeParse() should parse custom settings successfully`` () =
+    let config = "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
+    let testCustomSettings =
+        config.GlobalSettings
+        |> Option.bind(fun x -> x.ScenariosSettings)
+        |> Option.bind(fun x -> Some x.[0])
+        |> Option.bind(fun x -> x.CustomSettings)
+        |> Option.map(fun x -> x.DeserializeJson<TestCustomSettings>())
+
+    match testCustomSettings with
+    | Some settings ->
+        Assert.True(settings.TargetMqttBrokerHost.Length > 0)
+        Assert.True(settings.MsgPayloadSizeInBytes > 0)
+
+    | None -> ()
 
 [<Fact>]
 let ``YamlConfig.unsafeParse() should read yaml file successfully`` () =
