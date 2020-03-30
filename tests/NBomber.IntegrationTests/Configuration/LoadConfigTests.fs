@@ -7,7 +7,14 @@ open FSharp.Json
 open YamlDotNet.Core
 
 open NBomber.Configuration
+open NBomber.Extensions
 open NBomber.FSharp
+
+[<CLIMutable>]
+type TestCustomSettings = {
+    TargetMqttBrokerHost: string
+    MsgPayloadSizeInBytes: int
+}
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should read json file successfully`` () =
@@ -35,6 +42,23 @@ let ``YamlConfig.unsafeParse() should throw ex if mandatory yaml fields are miss
                             |> YamlConfig.unsafeParse
                             |> ignore
     )
+
+[<Fact>]
+let ``YamlConfig.unsafeParse() should parse custom settings successfully`` () =
+    let config = "Configuration/config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse
+    let testCustomSettings =
+        config.GlobalSettings
+        |> Option.bind(fun x -> x.ScenariosSettings)
+        |> Option.bind(fun x -> Some x.[0])
+        |> Option.bind(fun x -> x.CustomSettings)
+        |> Option.map(fun x -> x.DeserializeYaml<TestCustomSettings>())
+
+    match testCustomSettings with
+    | Some settings ->
+        Assert.True(settings.TargetMqttBrokerHost.Length > 0)
+        Assert.True(settings.MsgPayloadSizeInBytes > 0)
+
+    | None -> ()
 
 [<Fact>]
 let ``NBomberRunner.loadInfraConfig should parse config successfully`` () =

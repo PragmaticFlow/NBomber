@@ -1,6 +1,7 @@
 ﻿namespace rec NBomber.Configuration
 
 open System
+open System.Collections.Generic
 open FSharp.Json
 open Microsoft.Extensions.Configuration
 
@@ -105,7 +106,7 @@ module YamlConfigModels =
         ScenarioName: string
         WarmUpDuration: TimeSpan
         LoadSimulationsSettings: LoadSimulationSettingsYaml[]
-        CustomSettings: obj
+        CustomSettings: IDictionary<obj, obj>
     }
 
     [<CLIMutable>]
@@ -124,6 +125,7 @@ module YamlConfigModels =
         TestName: string
         GlobalSettings: GlobalSettingsYaml
     }
+
 module internal YamlConfig =
 
     let private isNotNull (value) =
@@ -151,24 +153,24 @@ module internal YamlConfig =
 
     let private mapToLoadSimulationsSettings (loadSimulationsSettings: YamlConfigModels.LoadSimulationSettingsYaml) =
         if isNotNull(loadSimulationsSettings.KeepConcurrentScenarios) then
-            KeepConcurrentScenarios (loadSimulationsSettings.KeepConcurrentScenarios.CopiesCount,
-                                     loadSimulationsSettings.KeepConcurrentScenarios.During
-                                     |> mapToDateTime)
+            KeepConcurrentScenarios(loadSimulationsSettings.KeepConcurrentScenarios.CopiesCount,
+                                    loadSimulationsSettings.KeepConcurrentScenarios.During
+                                    |> mapToDateTime)
 
         else if isNotNull(loadSimulationsSettings.RampConcurrentScenarios) then
-            RampConcurrentScenarios (loadSimulationsSettings.RampConcurrentScenarios.CopiesCount,
-                                     loadSimulationsSettings.RampConcurrentScenarios.During
-                                     |> mapToDateTime)
+            RampConcurrentScenarios(loadSimulationsSettings.RampConcurrentScenarios.CopiesCount,
+                                    loadSimulationsSettings.RampConcurrentScenarios.During
+                                    |> mapToDateTime)
 
         else if isNotNull(loadSimulationsSettings.InjectScenariosPerSec) then
-            InjectScenariosPerSec (loadSimulationsSettings.InjectScenariosPerSec.CopiesCount,
-                                   loadSimulationsSettings.InjectScenariosPerSec.During
-                                   |> mapToDateTime)
+            InjectScenariosPerSec(loadSimulationsSettings.InjectScenariosPerSec.CopiesCount,
+                                  loadSimulationsSettings.InjectScenariosPerSec.During
+                                  |> mapToDateTime)
 
         else if isNotNull(loadSimulationsSettings.RampScenariosPerSec) then
-            RampScenariosPerSec (loadSimulationsSettings.RampScenariosPerSec.CopiesCount,
-                                 loadSimulationsSettings.RampScenariosPerSec.During
-                                 |> mapToDateTime)
+            RampScenariosPerSec(loadSimulationsSettings.RampScenariosPerSec.CopiesCount,
+                                loadSimulationsSettings.RampScenariosPerSec.During
+                                |> mapToDateTime)
 
         else failwith "LoadSimulationSettings must not be empty"
 
@@ -178,7 +180,9 @@ module internal YamlConfig =
         let loadSimulationsSettings = scenarioSettingYaml.LoadSimulationsSettings
                                       |> Array.map mapToLoadSimulationsSettings
                                       |> List.ofArray
-        let customSettings = scenarioSettingYaml.CustomSettings |> mapToOptionWithMapper (fun x -> x.ToString())
+        let serializer = YamlDotNet.Serialization.Serializer()
+        let customSettings = scenarioSettingYaml.CustomSettings
+                             |> mapToOptionWithMapper (fun x-> x |> serializer.Serialize)
 
         { ScenarioName = screnarioName
           WarmUpDuration = warmUpDuration

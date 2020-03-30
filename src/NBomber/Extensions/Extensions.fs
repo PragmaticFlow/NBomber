@@ -12,6 +12,11 @@ type StringExtensions() =
     static member DeserializeJson<'T>(json: string) =
         JsonConvert.DeserializeObject<'T>(json)
 
+    [<Extension>]
+    static member DeserializeYaml<'T>(yaml: string) =
+        let deserializer = YamlDotNet.Serialization.Deserializer()
+        yaml |> deserializer.Deserialize<'T>
+
 type CurrentTime() =
 
     let _timer = Stopwatch()
