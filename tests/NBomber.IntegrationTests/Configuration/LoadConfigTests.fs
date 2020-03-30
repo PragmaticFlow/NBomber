@@ -18,9 +18,7 @@ type TestCustomSettings = {
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should read json file successfully`` () =
-    let config = "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
-
-    ()
+    "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are missing`` () =
