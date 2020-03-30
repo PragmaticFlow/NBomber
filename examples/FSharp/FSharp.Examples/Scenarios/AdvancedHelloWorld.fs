@@ -72,5 +72,5 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadJsonTestConfig("config.json")
+    |> NBomberRunner.loadTestConfigJson("config.json")
     |> NBomberRunner.runInConsole
