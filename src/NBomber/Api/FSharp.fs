@@ -7,7 +7,6 @@ open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.Configuration.Yaml
 
 open NBomber
 open NBomber.Contracts
@@ -150,20 +149,16 @@ module NBomberRunner =
     let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
 
-    let loadTestConfigJson (path: string) (context: TestContext) =
+    let loadJsonTestConfig (path: string) (context: TestContext) =
         let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
         { context with TestConfig = Some config }
 
-    let loadTestConfigYaml (path: string) (context: TestContext) =
+    let loadYamlTestConfig (path: string) (context: TestContext) =
         let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
         { context with TestConfig = Some config }
 
-    let loadInfraConfigJson (path: string) (context: TestContext) =
+    let loadInfraConfig (path: string) (context: TestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
-        { context with InfraConfig = Some config }
-
-    let loadInfraConfigYaml (path: string) (context: TestContext) =
-        let config = ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =

@@ -97,20 +97,16 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     [<Extension>]
-    static member LoadTestConfigJson(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadTestConfigJson(path)
+    static member LoadJsonTestConfig(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadJsonTestConfig(path)
 
     [<Extension>]
-    static member LoadTestConfigYaml(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadTestConfigYaml(path)
+    static member LoadYamlTestConfig(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadYamlTestConfig(path)
 
     [<Extension>]
-    static member LoadInfraConfigJson(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfigJson(path)
-
-    [<Extension>]
-    static member LoadInfraConfigYaml(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfigYaml(path)
+    static member LoadInfraConfig(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadInfraConfig(path)
 
     [<Extension>]
     static member WithReportFileName(context: TestContext, reportFileName: string) =

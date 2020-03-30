@@ -71,7 +71,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
 
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadTestConfigJson "Configuration/config.json"
+    |> NBomberRunner.loadJsonTestConfig "Configuration/config.json"
     |> NBomberRunner.runTest
     |> ignore
 
