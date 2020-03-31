@@ -77,13 +77,25 @@ let ``YamlConfig.unsafeParse() should parse custom settings successfully`` () =
     | None -> ()
 
 [<Fact>]
-let ``NBomberRunner.loadInfraConfig should parse config successfully`` () =
+let ``NBomberRunner.loadInfraConfigJson should parse config successfully`` () =
     NBomberRunner.registerScenarios []
-    |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
+    |> NBomberRunner.loadInfraConfigJson "Configuration/infra_config.json"
 
 [<Fact>]
-let ``NBomberRunner.loadInfraConfig should throw ex if file is not found`` () =
+let ``NBomberRunner.loadInfraConfigJson should throw ex if file is not found`` () =
     Assert.Throws(typeof<FileNotFoundException>,
                   fun _ -> NBomberRunner.registerScenarios []
-                           |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
+                           |> NBomberRunner.loadInfraConfigJson "Configuration/infra_config_2.json"
+                           |> ignore)
+
+[<Fact>]
+let ``NBomberRunner.loadInfraConfigYaml should parse config successfully`` () =
+    NBomberRunner.registerScenarios []
+    |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
+
+[<Fact>]
+let ``NBomberRunner.loadInfraConfigYaml should throw ex if file is not found`` () =
+    Assert.Throws(typeof<FileNotFoundException>,
+                  fun _ -> NBomberRunner.registerScenarios []
+                           |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config_2.yaml"
                            |> ignore)
