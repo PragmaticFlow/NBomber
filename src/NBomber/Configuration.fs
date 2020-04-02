@@ -10,11 +10,11 @@ type ReportFormat =
     | Csv = 2
     | Md = 3
 
-type LoadSimulationSettings =
-    | KeepConcurrentScenarios of copiesCount:int * during:DateTime
+type LoadSimulationSettings =    
     | RampConcurrentScenarios of copiesCount:int * during:DateTime
-    | InjectScenariosPerSec   of copiesCount:int * during:DateTime
+    | KeepConcurrentScenarios of copiesCount:int * during:DateTime    
     | RampScenariosPerSec     of copiesCount:int * during:DateTime
+    | InjectScenariosPerSec   of copiesCount:int * during:DateTime
 
 type ScenarioSetting = {
     ScenarioName: string

@@ -106,10 +106,10 @@ type IStep =
     abstract StepName: string
 
 type LoadSimulation =
-    | KeepConcurrentScenarios of copiesCount:int * during:TimeSpan
     | RampConcurrentScenarios of copiesCount:int * during:TimeSpan
-    | InjectScenariosPerSec   of copiesCount:int * during:TimeSpan
+    | KeepConcurrentScenarios of copiesCount:int * during:TimeSpan
     | RampScenariosPerSec     of copiesCount:int * during:TimeSpan
+    | InjectScenariosPerSec   of copiesCount:int * during:TimeSpan
 
 type Scenario = {
     ScenarioName: string

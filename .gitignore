@@ -335,3 +335,6 @@ ASALocalRun/
 /logs/
 
 .nbomber-plugins/
+
+.fake
+.ionide
