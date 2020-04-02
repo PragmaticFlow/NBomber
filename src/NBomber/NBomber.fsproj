@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
     <Company>PragmaticFlow</Company>
-    <Version>1.0.0-beta3</Version>
+    <Version>1.0.0-beta4</Version>
     <Copyright>PragmaticFlow@2020</Copyright>
     <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
@@ -65,7 +65,7 @@
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\Shared.fs" />
     <Compile Include="Api\FSharp.fs" />
-    <Compile Include="Api\CSharp.fs" />    
+    <Compile Include="Api\CSharp.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="15.0.0" />
