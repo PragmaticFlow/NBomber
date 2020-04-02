@@ -77,9 +77,9 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
 
                             member x.SaveRealtimeStats(_, stats) =
                                 match stats.[0].NodeInfo.CurrentOperation with
-                                | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
-                                | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
-                                | _        -> failwith "operation type is invalid for SaveStatistics"
+                                | NodeOperationType.Bombing
+                                | NodeOperationType.Complete -> bombingCounter <- bombingCounter + 1
+                                | _                          -> failwith "operation type is invalid for SaveStatistics"
                                 Task.CompletedTask
 
                             member x.SaveFinalStats(_, _, _) =
