@@ -40,10 +40,7 @@ let MinSendStatsIntervalSec = 10.0
 //todo: opaque types instead of ms
 
 [<Literal>]
-let SchedulerTickIntervalMs = 250
-
-[<Literal>]
-let NotificationTickIntervalMs = 5_000
+let SchedulerNotificationTickIntervalMs = 2_000.0
 
 [<Literal>]
 let ReTryCount = 5

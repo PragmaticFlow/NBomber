@@ -22,7 +22,6 @@ let schedule (actorPool: ScenarioActor list, actorCount) =
 type OneTimeActorScheduler(dep: ActorDep) =
 
     let mutable _actorPool = List.empty<ScenarioActor>
-    let mutable _actorPerSecCount = 0
     let mutable _scheduledActorCount = 0
 
     let startActors (currentPool, scheduledActorCount) =
@@ -43,16 +42,13 @@ type OneTimeActorScheduler(dep: ActorDep) =
 
     let stop () =
         _scheduledActorCount <- 0
-        _actorPerSecCount <- 0
         ScenarioActorPool.releaseActors(_actorPool)
 
     member x.ScheduledActorCount = _scheduledActorCount
-    member x.ActorPerSecCount = _actorPerSecCount
     member x.AvailableActors = _actorPool
 
-    member x.InjectActors(scheduledCount, actorPerSecCount) =
+    member x.InjectActors(scheduledCount) =
         _scheduledActorCount <- scheduledCount
-        _actorPerSecCount <- actorPerSecCount
-        _actorPool <- startActors(_actorPool, scheduledCount)
+        _actorPool <- startActors(_actorPool, _scheduledActorCount)
 
     member x.Stop() = stop()

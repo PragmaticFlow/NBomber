@@ -52,8 +52,15 @@ type StepResponse = {
     LatencyMs: int
 }
 
-type LoadTimeLineItem = { EndTime: TimeSpan; LoadSimulation: LoadSimulation }
-type LoadTimeLine = LoadTimeLineItem list
+type LoadTimeSegment = {
+    StartTime: TimeSpan
+    EndTime: TimeSpan
+    Duration: TimeSpan
+    PrevSegmentCopiesCount: int
+    LoadSimulation: LoadSimulation
+}
+
+type LoadTimeLine = LoadTimeSegment list
 
 type Scenario = {
     ScenarioName: ScenarioName

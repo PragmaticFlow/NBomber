@@ -94,8 +94,8 @@ module internal TestHostConsole =
     let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
         let calcTickCount (scn: Scenario) =
-            if isWarmUp then int scn.WarmUpDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
-            else int scn.PlanedDuration.TotalMilliseconds / Constants.NotificationTickIntervalMs
+            if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerNotificationTickIntervalMs)
+            else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickIntervalMs)
 
         let getLongestDuration (schedulers: ScenarioScheduler list) =
             if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.sortDescending |> List.head
@@ -111,7 +111,9 @@ module internal TestHostConsole =
 
                 scheduler.EventStream
                 |> Observable.subscribeWithCompletion
-                    (fun x -> let msg = sprintf "scenario: '%s', keep concurrent: '%i', inject per sec: '%i'" scheduler.Scenario.ScenarioName x.ConstantActorCount x.OneTimeActorCount
+                    (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
+                              let msg = String.Format("scenario: '{0}', simulation: '{1}', keep concurrent: '{2}', inject per sec: '{3}'",
+                                                      scheduler.Scenario.ScenarioName, simulationName, x.ConstantActorCount, x.OneTimeActorCount)
                               pb.Tick(msg))
                     (fun () -> pb.Dispose())
             )
@@ -121,7 +123,9 @@ module internal TestHostConsole =
             let pb = scheduler.Scenario |> calcTickCount |> dep.CreateManualProgressBar
             scheduler.EventStream
             |> Observable.subscribeWithCompletion
-                (fun x -> let msg = sprintf "keep concurrent: '%i', inject per sec: '%i'" x.ConstantActorCount x.OneTimeActorCount
+                (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
+                          let msg = String.Format("simulation: '{0}', keep concurrent: '{1}', inject per sec: '{2}'",
+                                                  simulationName, x.ConstantActorCount, x.OneTimeActorCount)
                           pb.Tick(msg))
 
                 (fun () -> pb.Dispose())
