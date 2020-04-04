@@ -5,11 +5,11 @@
 open System
 open System.IO
 
+open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 open NBomber.Infra
 open NBomber.Infra.Dependency
-open NBomber.Configuration
 
 type ReportsContent = {
     TxtReport: string
@@ -20,13 +20,13 @@ type ReportsContent = {
  with
  static member empty = { TxtReport = ""; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let build (dep: GlobalDependency, nodeStats: RawNodeStats[]) =
+let build (dep: GlobalDependency, nodeStats: RawNodeStats[], customStats) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = TxtReport.print(nodeStats.[0])
-          HtmlReport = HtmlReport.print(dep, nodeStats.[0])
-          CsvReport = CsvReport.print(nodeStats.[0])
-          MdReport = MdReport.print(nodeStats.[0]) }
+        { TxtReport = TxtReport.print(nodeStats.[0], customStats)
+          HtmlReport = HtmlReport.print(dep, nodeStats.[0], customStats)
+          CsvReport = CsvReport.print(nodeStats.[0], customStats)
+          MdReport = MdReport.print(nodeStats.[0], customStats) }
 
     | _ -> ReportsContent.empty
 

@@ -1,6 +1,8 @@
 ﻿module internal NBomber.DomainServices.Reporting.CsvReport
 
 open System
+
+open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 let private getHeader () =
@@ -22,7 +24,7 @@ let private printSteps (scnStats: ScenarioStats) =
     |> Array.map(fun stepStats -> getLine(scnStats.ScenarioName, scnStats.Duration, stepStats))
     |> String.concat(Environment.NewLine)
 
-let print (stats: RawNodeStats) =
+let print (stats: RawNodeStats, customStats: CustomStatistics[]) =
     let header = getHeader()
     let body = stats.AllScenariosStats |> Array.map(printSteps) |> String.concat(String.Empty)
     header + Environment.NewLine + body

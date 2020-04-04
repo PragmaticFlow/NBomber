@@ -1,15 +1,16 @@
 ﻿namespace NBomber.Contracts
 
 open System
+open System.Data
 open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
-open Serilog
 open Microsoft.Extensions.Configuration
+open Serilog
 
-open NBomber.Extensions
 open NBomber.Configuration
+open NBomber.Extensions
 
 type CorrelationId = {
     Id: string
@@ -49,6 +50,13 @@ type TestInfo = {
     TestSuite: string
     TestName: string
 }
+
+//todo: implement
+type CustomStatistics = {
+    Data: DataSet
+} with
+    static member Create () =
+        { Data = new DataSet() }
 
 type Statistics = {
     ScenarioName: string
@@ -129,8 +137,13 @@ type IReportingSink =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
-    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * reportFiles:ReportFile[] -> Task
+    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * customStats:CustomStatistics[] * reportFiles:ReportFile[] -> Task
     abstract FinishTest: testInfo:TestInfo -> Task
+
+type IExtension =
+    abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
+    abstract StartTest: testInfo:TestInfo -> Task
+    abstract FinishTest: testInfo:TestInfo -> Task<CustomStatistics>
 
 type TestContext = {
     TestSuite: string
@@ -142,6 +155,7 @@ type TestContext = {
     ReportFormats: ReportFormat list
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
+    Extensions: IExtension list
 }
 
 type Response with

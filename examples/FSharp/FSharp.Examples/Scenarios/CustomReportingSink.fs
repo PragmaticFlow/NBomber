@@ -23,7 +23,7 @@ type CustomReportingSink() =
         member x.SaveRealtimeStats(testInfo: TestInfo, stats: Statistics[]) =
             Task.CompletedTask
 
-        member x.SaveFinalStats(testInfo: TestInfo, stats: Statistics[], reportFiles: ReportFile[]) =
+        member x.SaveFinalStats(testInfo: TestInfo, stats: Statistics[], customStats: CustomStatistics[], reportFiles: ReportFile[]) =
             Task.CompletedTask
 
         member x.FinishTest(testInfo: TestInfo) =

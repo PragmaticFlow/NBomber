@@ -1,6 +1,8 @@
 module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
+
+open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 [<AutoOpen>]
@@ -52,7 +54,7 @@ module private Impl =
         ]
         |> String.concat Environment.NewLine
 
-let print (stats: RawNodeStats) =
+let print (stats: RawNodeStats, customStats: CustomStatistics[]) =
     let appendLine s = s + Environment.NewLine
 
     stats.AllScenariosStats

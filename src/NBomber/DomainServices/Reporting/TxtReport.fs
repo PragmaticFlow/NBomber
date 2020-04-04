@@ -2,6 +2,8 @@
 
 open System
 open ConsoleTables
+
+open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 let inline private concatLines s =
@@ -35,7 +37,7 @@ let private printStepsTable (steps: StepStats[]) =
 
     stepTable.ToStringAlternative()
 
-let print (stats: RawNodeStats) =
+let print (stats: RawNodeStats, customStats: CustomStatistics[]) =
     stats.AllScenariosStats
     |> Array.map(fun x ->
         [ printScenarioHeader x

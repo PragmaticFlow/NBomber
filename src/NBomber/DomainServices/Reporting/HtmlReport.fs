@@ -2,11 +2,12 @@
 
 open System
 
-open NBomber.Extensions
+open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
+open NBomber.Extensions
 open NBomber.Infra
-open NBomber.Infra.ResourceManager
 open NBomber.Infra.Dependency
+open NBomber.Infra.ResourceManager
 
 type HtmlControl = { Html: string; Js: string; }
 
@@ -199,7 +200,7 @@ module SideBar =
         let sideBarItems = envItem + globalItem + scnItems
         assets.SidebarHtml.Replace("%sideBar_items%", sideBarItems)
 
-let print (dep: GlobalDependency, stats: RawNodeStats) =
+let print (dep: GlobalDependency, stats: RawNodeStats, customStats: CustomStatistics[]) =
     let sideBar = SideBar.print(dep.Assets, stats)
 
     let contentView = ContentView.print(dep, stats)
