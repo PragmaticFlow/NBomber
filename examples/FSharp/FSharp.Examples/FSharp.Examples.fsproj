@@ -1,42 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="Scenarios\HelloWorld.fs" />
-    <Compile Include="Scenarios\DataFeed.fs" />
-    <Compile Include="Scenarios\Http.fs" />
-    <Compile Include="Scenarios\PingExtension.fs" />
-    <Compile Include="Scenarios\CustomReportingSink.fs" />
-    <Compile Include="Scenarios\AdvancedHelloWorld.fs" />
-    <Compile Include="Program.fs" />
-    <Content Include="test_config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="infra_config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Scenarios\HelloWorld.fs"/>
+        <Compile Include="Scenarios\DataFeed.fs"/>
+        <Compile Include="Scenarios\Http.fs"/>
+    	<Compile Include="Scenarios\PingExtension.fs" />
+        <Compile Include="Scenarios\CustomReportingSink.fs"/>
+        <Compile Include="Scenarios\AdvancedHelloWorld.fs"/>
+        <Compile Include="Program.fs"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <Content Include="config.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Include="config.yaml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Include="infra_config.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="infra_config.yaml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <None Include="users_feed_data.csv">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="users_feed_data.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="users_feed_data.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="users_feed_data.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Update="FSharp.Core" Version="4.6.2"/>
+        <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1"/>
+    </ItemGroup>
 
 </Project>

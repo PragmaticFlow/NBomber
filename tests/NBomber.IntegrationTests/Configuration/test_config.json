@@ -16,8 +16,8 @@
           ],
 
           "CustomSettings": {
-              "TargetMqttBrokerHost": "localhost",
-              "MsgPayloadSizeInBytes": 1000
+              "TargetHost": "localhost",
+              "MsgSizeInBytes": 1000
           }
       }
     ],

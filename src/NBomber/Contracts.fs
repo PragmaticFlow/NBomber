@@ -149,7 +149,7 @@ type TestContext = {
     TestSuite: string
     TestName: string
     RegisteredScenarios: Scenario list
-    TestConfig: TestConfig option
+    NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     ReportFileName: string option
     ReportFormats: ReportFormat list

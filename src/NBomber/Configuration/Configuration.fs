@@ -1,8 +1,7 @@
-﻿namespace rec NBomber.Configuration
+﻿namespace NBomber.Configuration
 
 open System
 open FSharp.Json
-open Microsoft.Extensions.Configuration
 
 type ReportFormat =
     | Txt = 0
@@ -10,9 +9,9 @@ type ReportFormat =
     | Csv = 2
     | Md = 3
 
-type LoadSimulationSettings =    
+type LoadSimulationSettings =
     | RampConcurrentScenarios of copiesCount:int * during:DateTime
-    | KeepConcurrentScenarios of copiesCount:int * during:DateTime    
+    | KeepConcurrentScenarios of copiesCount:int * during:DateTime
     | RampScenariosPerSec     of copiesCount:int * during:DateTime
     | InjectScenariosPerSec   of copiesCount:int * during:DateTime
 
@@ -20,7 +19,7 @@ type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: DateTime
     LoadSimulationsSettings: LoadSimulationSettings list
-    [<JsonField(Transform=typeof<TestConfig.JsonStringTransform>)>]
+    [<JsonField(AsJson = true)>]
     CustomSettings: string option
 }
 
@@ -43,23 +42,14 @@ type TargetGroupSettings = {
     TargetScenarios: string list
 }
 
-type TestConfig = {
+type NBomberConfig = {
     TestSuite: string option
     TestName: string option
     GlobalSettings: GlobalSettings option
 }
 
-module internal TestConfig =
-
-    type JsonStringTransform() =
-        interface ITypeTransform with
-            member x.targetType () = typeof<obj>
-            member x.toTargetType(value) = value
-            member x.fromTargetType(value) =
-                let config = JsonConfig.create(allowUntyped = true)
-                let str = Json.serializeEx config value
-                str :> obj
+module internal JsonConfig =
 
     let unsafeParse (json) =
         let config = JsonConfig.create(allowUntyped = true)
-        Json.deserializeEx<TestConfig> config json
+        Json.deserializeEx<NBomberConfig> config json

@@ -45,6 +45,6 @@ let run () =
     let pingExtension = PingExtension()
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadInfraConfig "infra_config.json"
+    |> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
     |> NBomberRunner.withExtensions([pingExtension])
     |> NBomberRunner.runInConsole

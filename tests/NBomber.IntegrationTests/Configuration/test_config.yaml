@@ -1,0 +1,36 @@
+﻿TestSuite: gitter_io
+TestName: test http api
+GlobalSettings:
+  ScenariosSettings:
+  - ScenarioName: test_youtube
+    WarmUpDuration: "00:00:02"
+
+    LoadSimulationsSettings:
+    - KeepConcurrentScenarios:
+        CopiesCount: 2
+        During: "00:00:05"
+    - RampConcurrentScenarios:
+        CopiesCount: 2
+        During: "00:00:05"
+    - InjectScenariosPerSec:
+        CopiesCount: 2
+        During: "00:00:05"
+    - RampScenariosPerSec:
+        CopiesCount: 2
+        During: "00:00:05"
+
+    CustomSettings:
+      TargetHost: localhost
+      MsgSizeInBytes: 1000
+
+  ConnectionPoolSettings:
+  - PoolName: test_pool
+    ConnectionCount: 100
+
+  TargetScenarios:
+  - test_youtube
+  ReportFileName: custom_report_name_from_json
+
+  ReportFormats:
+  - Html
+  - Txt

@@ -21,7 +21,7 @@ let tests =
 
     let scenario =
         Scenario.create "expecto hello world" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 2.0)
         ]

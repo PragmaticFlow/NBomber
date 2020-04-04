@@ -35,14 +35,14 @@ module ExtensionsTestHelper =
 
         let scenario1 =
             Scenario.create "extension scenario 1" [step1; step2]
-            |> Scenario.withOutWarmUp
+            |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
                 KeepConcurrentScenarios(copiesCount = 2, during = TimeSpan.FromSeconds 3.0)
             ]
 
         let scenario2 =
             Scenario.create "extension scenario 2" [step3]
-            |> Scenario.withOutWarmUp
+            |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
                 KeepConcurrentScenarios(copiesCount = 2, during = TimeSpan.FromSeconds 3.0)
             ]
