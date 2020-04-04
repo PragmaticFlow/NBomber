@@ -1,0 +1,31 @@
+﻿{
+    "TestSuite": "nbomber_tests",
+    "TestName": "hello_world_test",
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "hello_world_scenario",
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "RampConcurrentScenarios": [100, "00:00:50"] },
+                    { "KeepConcurrentScenarios": [100, "00:00:50"] },
+                    { "InjectScenariosPerSec": [5, "00:00:05"] },
+                    { "RampScenariosPerSec": [5, "00:00:05"] }
+                ],
+
+                "CustomSettings": {
+                    "TestField": 1
+                }
+            }
+        ],
+
+        "ConnectionPoolSettings": [
+            { "PoolName": "web_socket_pool", "ConnectionCount": 5 }
+        ],
+
+        "ReportFileName": "custom_report_name_from_json",
+        "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
+    }
+}
