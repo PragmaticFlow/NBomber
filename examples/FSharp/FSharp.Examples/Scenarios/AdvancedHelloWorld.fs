@@ -18,6 +18,20 @@ type CustomScenarioSettings = {
 
 let run () =
 
+    let testInit = fun (context: ScenarioContext) -> task {
+        try
+            let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
+            //let settings = context.CustomSettings.DeserializeYaml<CustomScenarioSettings>()
+            context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
+        with
+        | ex -> ()
+        return ()
+    }
+
+    let testClean = fun (context: ScenarioContext) -> task {
+        return ()
+    }
+
     let connectionPool =
         ConnectionPoolArgs.create(
             name = "test_pool",
@@ -51,16 +65,6 @@ let run () =
         return Response.Ok()
     })
 
-    let testInit = fun (context: ScenarioContext) -> task {
-        let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
-        context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
-        return ()
-    }
-
-    let testClean = fun (context: ScenarioContext) -> task {
-        return ()
-    }
-
     let scenario = Scenario.create "hello_world_scenario" [step1; step2]
                    |> Scenario.withTestInit(testInit)
                    |> Scenario.withTestClean(testClean)
@@ -72,5 +76,8 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadJsonTestConfig("config.json")
+    //|> NBomberRunner.loadConfigJson("config.json")
+    //|> NBomberRunner.loadConfigYaml("config.yaml")
+    //|> NBomberRunner.loadInfraConfigJson("infra_config.json")
+    //|> NBomberRunner.loadInfraConfigYaml("infra_config.yaml")
     |> NBomberRunner.runInConsole

@@ -7,6 +7,9 @@ open FsToolkit.ErrorHandling
 [<AutoOpen>]
 module internal Extensions =
 
+    let inline isNotNull (value) =
+        not(isNull value)
+
     module Result =
 
         let getOk (result) =
@@ -48,6 +51,13 @@ module internal Extensions =
 
     let maybe = MaybeBuilder()
 
+    module Option =
+
+        let ofRecord (value: 'T) =
+            let boxed = box(value)
+            if isNotNull(boxed) then Some value
+            else None
+
     module String =
 
         let replace (oldValue: string, newValue: string) (str: string) =
@@ -60,6 +70,10 @@ module internal Extensions =
             data
             |> List.groupBy(id)
             |> List.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
+
+        let toOption (str: string) =
+            if String.IsNullOrWhiteSpace str then None
+            else Some str
 
     module Array =
 

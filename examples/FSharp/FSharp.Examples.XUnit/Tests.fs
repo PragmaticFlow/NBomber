@@ -20,7 +20,7 @@ let ``XUnit test`` () =
 
     let scenario =
         Scenario.create "xunit hello world" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 2.0)
         ]

@@ -1,31 +1,34 @@
-﻿---
-TestSuite: nbomber tests
+﻿TestSuite: nbomber tests
 TestName: test http
 GlobalSettings:
-    ScenariosSettings:
-        - ScenarioName: hello_world_scenario
-          WarmUpDuration: '00:00:05'
-          LoadSimulationsSettings:
-              - KeepConcurrentScenarios:
-                    CopiesCount: 5
-                    During: '00:00:05'
-              - RampConcurrentScenarios:
-                    CopiesCount: 5
-                    During: '00:00:05'
-              - InjectScenariosPerSec:
-                    CopiesCount: 5
-                    During: '00:00:05'
-              - RampScenariosPerSec:
-                    CopiesCount: 5
-                    During: '00:00:05'
-          CustomSettings:
-              TestField: 1
-    ConnectionPoolSettings:
-        - PoolName: test_pool
-          ConnectionCount: 100
-    ReportFileName: custom_report_name_from_json
-    ReportFormats:
-        - Html
-        - Txt
-        - Csv
-        - Md
+  ScenariosSettings:
+  - ScenarioName: hello_world_scenario
+    WarmUpDuration: '00:00:35'
+
+    LoadSimulationsSettings:
+    - RampConcurrentScenarios:
+        CopiesCount: 5
+        During: '00:00:05'
+    - KeepConcurrentScenarios:
+        CopiesCount: 5
+        During: '00:00:05'
+    - InjectScenariosPerSec:
+        CopiesCount: 5
+        During: '00:00:05'
+    - RampScenariosPerSec:
+        CopiesCount: 5
+        During: '00:00:05'
+
+    CustomSettings:
+      TestField: 1
+
+  ConnectionPoolSettings:
+  - PoolName: test_pool
+    ConnectionCount: 100
+
+  ReportFileName: custom_report_name_from_json
+  ReportFormats:
+  - Html
+  - Txt
+  - Csv
+  - Md

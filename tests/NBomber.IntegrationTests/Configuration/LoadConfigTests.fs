@@ -7,18 +7,19 @@ open FSharp.Json
 open YamlDotNet.Core
 
 open NBomber.Configuration
+open NBomber.Configuration.Yaml
 open NBomber.Extensions
 open NBomber.FSharp
 
 [<CLIMutable>]
 type TestCustomSettings = {
-    TargetMqttBrokerHost: string
-    MsgPayloadSizeInBytes: int
+    TargetHost: string
+    MsgSizeInBytes: int
 }
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should read json file successfully`` () =
-    "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
+    "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are missing`` () =
@@ -31,7 +32,7 @@ let ``JsonConfig.unsafeParse() should throw ex if mandatory json fields are miss
 
 [<Fact>]
 let ``JsonConfig.unsafeParse() should parse custom settings successfully`` () =
-    let config = "Configuration/config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
+    let config = "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
     let testCustomSettings =
         config.GlobalSettings
         |> Option.bind(fun x -> x.ScenariosSettings)
@@ -41,14 +42,14 @@ let ``JsonConfig.unsafeParse() should parse custom settings successfully`` () =
 
     match testCustomSettings with
     | Some settings ->
-        Assert.True(settings.TargetMqttBrokerHost.Length > 0)
-        Assert.True(settings.MsgPayloadSizeInBytes > 0)
+        Assert.True(settings.TargetHost.Length > 0)
+        Assert.True(settings.MsgSizeInBytes > 0)
 
     | None -> ()
 
 [<Fact>]
 let ``YamlConfig.unsafeParse() should read yaml file successfully`` () =
-    "Configuration/config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse |> ignore
+    "Configuration/test_config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse |> ignore
 
 [<Fact>]
 let ``YamlConfig.unsafeParse() should throw ex if mandatory yaml fields are missing`` () =
@@ -61,7 +62,7 @@ let ``YamlConfig.unsafeParse() should throw ex if mandatory yaml fields are miss
 
 [<Fact>]
 let ``YamlConfig.unsafeParse() should parse custom settings successfully`` () =
-    let config = "Configuration/config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse
+    let config = "Configuration/test_config.yaml" |> File.ReadAllText |> YamlConfig.unsafeParse
     let testCustomSettings =
         config.GlobalSettings
         |> Option.bind(fun x -> x.ScenariosSettings)
@@ -71,8 +72,8 @@ let ``YamlConfig.unsafeParse() should parse custom settings successfully`` () =
 
     match testCustomSettings with
     | Some settings ->
-        Assert.True(settings.TargetMqttBrokerHost.Length > 0)
-        Assert.True(settings.MsgPayloadSizeInBytes > 0)
+        Assert.True(settings.TargetHost.Length > 0)
+        Assert.True(settings.MsgSizeInBytes > 0)
 
     | None -> ()
 

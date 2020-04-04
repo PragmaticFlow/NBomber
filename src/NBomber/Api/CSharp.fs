@@ -82,8 +82,8 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withWarmUpDuration(duration)
 
     [<Extension>]
-    static member WithOutWarmUp(scenario: Scenario) =
-        scenario |> FSharp.Scenario.withOutWarmUp
+    static member WithoutWarmUp(scenario: Scenario) =
+        scenario |> FSharp.Scenario.withoutWarmUp
 
     [<Extension>]
     static member WithLoadSimulations (scenario: Scenario, loadSimulations: LoadSimulation[]) =
@@ -97,12 +97,12 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     [<Extension>]
-    static member LoadTestConfigJson(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadTestConfigJson(path)
+    static member LoadConfigJson(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadConfigJson(path)
 
     [<Extension>]
-    static member LoadTestConfigYaml(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadTestConfigYaml(path)
+    static member LoadConfigYaml(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadConfigYaml(path)
 
     [<Extension>]
     static member LoadInfraConfig(context: TestContext, path: string) =

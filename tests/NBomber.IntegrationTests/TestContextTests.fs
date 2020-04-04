@@ -23,7 +23,7 @@ let globalSettings = {
 }
 
 let scenario = Scenario.create "1" []
-               |> Scenario.withOutWarmUp
+               |> Scenario.withoutWarmUp
 
 let config = {
     TestSuite = Some Constants.DefaultTestSuite
@@ -35,7 +35,7 @@ let context = {
     TestSuite = Constants.DefaultTestSuite
     TestName = Constants.DefaultTestName
     RegisteredScenarios = [scenario]
-    TestConfig = None
+    NBomberConfig = None
     InfraConfig = None
     ReportFileName = None
     ReportFormats = List.empty
@@ -47,7 +47,7 @@ let context = {
 let ``TestContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
     let glSettings = { globalSettings with TargetScenarios = None }
     let config = { config with GlobalSettings = Some glSettings }
-    let context = { context with TestConfig = Some config }
+    let context = { context with NBomberConfig = Some config }
 
     match TestContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
@@ -61,7 +61,7 @@ let ``TestContext.getTargetScenarios should return only target scenarios if Targ
     let scn1 = { scenario with ScenarioName = "1" }
     let scn2 = { scenario with ScenarioName = "2" }
 
-    let context = { context with TestConfig = Some config
+    let context = { context with NBomberConfig = Some config
                                  RegisteredScenarios = [scn1; scn2] }
 
     match TestContext.getTargetScenarios(context) with
@@ -78,7 +78,7 @@ let ``TestContext.getReportFileName should return from GlobalSettings, if empty 
     let glSettings = { globalSettings with ReportFileName = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
-    let ctx = { context with TestConfig = Some config
+    let ctx = { context with NBomberConfig = Some config
                              ReportFormats = [ReportFormat.Txt]
                              ReportFileName = contextValue }
 
@@ -97,7 +97,7 @@ let ``TestContext.getReportFormats should return from GlobalSettings, if empty t
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
-    let ctx = { context with TestConfig = Some config
+    let ctx = { context with NBomberConfig = Some config
                              ReportFormats = contextValue
                              ReportFileName = None }
 
@@ -117,7 +117,7 @@ let ``TestContext.getTestSuite should return from Config, if empty then from Tes
     match configValue with
     | Some value ->
         let config = { config with TestSuite = configValue }
-        let ctx = { context with TestConfig = Some config }
+        let ctx = { context with NBomberConfig = Some config }
         let testSuite = TestContext.getTestSuite(ctx)
         test <@ testSuite = value  @>
 
@@ -132,7 +132,7 @@ let ``TestContext.getTestName should return from Config, if empty then from Test
     match configValue with
     | Some value ->
         let config = { config with TestName = configValue }
-        let ctx = { context with TestConfig = Some config }
+        let ctx = { context with NBomberConfig = Some config }
         let testSuite = TestContext.getTestName(ctx)
         test <@ testSuite = value  @>
 
@@ -149,7 +149,7 @@ let ``TestContext.getConnectionPoolSettings should return from Config, if empty 
         let poolSettings = Some [{PoolName = "test_pool"; ConnectionCount = value}]
         let glSettings = { globalSettings with ConnectionPoolSettings = poolSettings }
         let config = { config with GlobalSettings = Some glSettings }
-        let ctx = { context with TestConfig = Some config }
+        let ctx = { context with NBomberConfig = Some config }
         let resut = TestContext.getConnectionPoolSettings(ctx)
         test <@ resut = poolSettings.Value  @>
 

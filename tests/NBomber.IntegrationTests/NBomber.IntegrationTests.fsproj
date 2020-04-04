@@ -9,7 +9,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TestHelper.fs" />
     <Compile Include="ExtensionsTests.fs" />
-    <Content Include="Configuration\config.json">
+    <Content Include="Configuration\test_config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Configuration\missing_fields_config.json">
@@ -21,7 +21,7 @@
     <Content Include="Configuration\infra_config.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Configuration\config.yaml">
+    <Content Include="Configuration\test_config.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Configuration\missing_fields_config.yaml">

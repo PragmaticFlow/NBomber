@@ -32,7 +32,7 @@ let ``Ok and Fail should be properly count`` () =
 
     let scenario =
         Scenario.create "count test" [okStep; failStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -142,7 +142,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
 
     let scenario =
         Scenario.create "latency count test" [repeatStep; resetStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
@@ -175,7 +175,7 @@ let ``context.Data should store any payload data from latest step.Response`` () 
 
     let scenario =
         Scenario.create "test context.Data" [step1; step2]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
@@ -201,7 +201,7 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
 
     let scenario =
         Scenario.create "test context.Data" [step1; step2]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
@@ -231,7 +231,7 @@ let ``Step.CreatePause should work correctly and not printed in statistics`` () 
 
     let scenario =
         Scenario.create "test context.Data" [pause4sec; step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
@@ -259,14 +259,14 @@ let ``NBomber should support to run and share the same step within one scenario 
 
     let scenario1 =
         Scenario.create "scenario 1" [step1; step2]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
 
     let scenario2 =
         Scenario.create "scenario 2" [step2; step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
@@ -317,7 +317,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
 
     let scenario =
         Scenario.create "scenario" [step]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]

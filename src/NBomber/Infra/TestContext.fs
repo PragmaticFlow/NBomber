@@ -11,7 +11,7 @@ let empty =
     { TestSuite = Constants.DefaultTestSuite
       TestName = Constants.DefaultTestName
       RegisteredScenarios = List.empty
-      TestConfig = None
+      NBomberConfig = None
       InfraConfig = None
       ReportFileName = None
       ReportFormats = Constants.AllReportFormats
@@ -19,17 +19,17 @@ let empty =
       SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec }
 
 let getTestSuite (context: TestContext) =
-    context.TestConfig
+    context.NBomberConfig
     |> Option.bind(fun x -> x.TestSuite)
     |> Option.defaultValue context.TestSuite
 
 let getTestName (context: TestContext) =
-    context.TestConfig
+    context.NBomberConfig
     |> Option.bind(fun x -> x.TestName)
     |> Option.defaultValue context.TestName
 
 let getScenariosSettings (context: TestContext) =
-    context.TestConfig
+    context.NBomberConfig
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.bind(fun x -> x.ScenariosSettings)
     |> Option.defaultValue List.empty
@@ -37,7 +37,7 @@ let getScenariosSettings (context: TestContext) =
 
 let getTargetScenarios (context: TestContext) =
     let targetScn =
-        context.TestConfig
+        context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.bind(fun x -> x.TargetScenarios)
 
@@ -49,7 +49,7 @@ let getTargetScenarios (context: TestContext) =
 
 let getReportFileName (sessionId: string, context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
-        let! config = ctx.TestConfig
+        let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportFileName
     }
@@ -60,7 +60,7 @@ let getReportFileName (sessionId: string, context: TestContext) =
 
 let getReportFormats (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
-        let! config = ctx.TestConfig
+        let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! formats = settings.ReportFormats
         return formats
@@ -73,7 +73,7 @@ let getReportFormats (context: TestContext) =
 
 let getSendStatsInterval (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
-        let! config = ctx.TestConfig
+        let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! intervalInDataTime = settings.SendStatsInterval
         return intervalInDataTime.TimeOfDay
@@ -84,7 +84,7 @@ let getSendStatsInterval (context: TestContext) =
 
 let getConnectionPoolSettings (context: TestContext) =
     let tryGetFromConfig (ctx) = maybe {
-        let! config = ctx.TestConfig
+        let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ConnectionPoolSettings
     }
