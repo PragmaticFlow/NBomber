@@ -36,6 +36,6 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadInfraConfigJson "infra_config.json"
+    |> NBomberRunner.loadInfraConfig "infra_config.json"
     //|> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
     |> NBomberRunner.runInConsole

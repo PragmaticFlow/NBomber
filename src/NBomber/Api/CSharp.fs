@@ -105,8 +105,12 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.loadConfigYaml(path)
 
     [<Extension>]
-    static member LoadInfraConfig(context: TestContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfig(path)
+    static member LoadInfraConfigJson(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadInfraConfigJson(path)
+
+    [<Extension>]
+    static member LoadInfraConfigYaml(context: TestContext, path: string) =
+        context |> FSharp.NBomberRunner.loadInfraConfigYaml(path)
 
     [<Extension>]
     static member WithReportFileName(context: TestContext, reportFileName: string) =
