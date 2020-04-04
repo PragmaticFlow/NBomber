@@ -26,7 +26,7 @@ namespace CSharp.Examples.NUnit
         public void Test()
         {
             var scenario = BuildScenario()
-                .WithOutWarmUp()
+                .WithoutWarmUp()
                 .WithLoadSimulations(new[]
                 {
                     Simulation.KeepConcurrentScenarios(copiesCount: 1, during: TimeSpan.FromSeconds(2))

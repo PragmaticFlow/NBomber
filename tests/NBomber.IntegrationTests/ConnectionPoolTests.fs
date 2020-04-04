@@ -32,7 +32,7 @@ let ``ConnectionPool should distribute connection with one to one mapping if con
 
     let scenario =
         Scenario.create "test" [step]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -73,7 +73,7 @@ let ``ConnectionPool should distribute connection using modulo if connectionPool
 
     let scenario =
         Scenario.create "test" [step]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = copiesCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -116,7 +116,7 @@ let ``ConnectionPool should be shared btw steps as singlton instance``() =
 
     let scenario =
         Scenario.create "test" [step1; step2]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -150,7 +150,7 @@ let ``ConnectionPool openConnection should stop test session in case of failure`
 
     let scenario =
         Scenario.create "test" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -182,7 +182,7 @@ let ``ConnectionPool openConnection should use try logic in case of some errors`
 
     let scenario =
         Scenario.create "test" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -213,7 +213,7 @@ let ``ConnectionPool closeConnection should not affect test session in case of f
 
     let scenario =
         Scenario.create "test" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -245,14 +245,14 @@ let ``ConnectionPool should be initialized only once``() =
 
     let scenario1 =
         Scenario.create "scenario 1" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let scenario2 =
         Scenario.create "scenario 2" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -291,7 +291,7 @@ let ``ConnectionPool should be initialized after scenario init``() =
     let scenario =
         Scenario.create "test" [step1]
         |> Scenario.withTestInit initTest
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]
@@ -323,7 +323,7 @@ let ``ConnectionPool should support 65K of connections``() =
 
     let scenario =
         Scenario.create "test" [step1]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
         ]

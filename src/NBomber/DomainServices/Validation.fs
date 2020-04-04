@@ -73,7 +73,7 @@ module GlobalSettingsValidation =
         | None -> Ok globalSettings
 
     let validate (context: TestContext) =
-        context.TestConfig
+        context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings ->
             glSettings

@@ -13,8 +13,8 @@ open NBomber.FSharp
 
 [<CLIMutable>]
 type TestCustomSettings = {
-    TargetMqttBrokerHost: string
-    MsgPayloadSizeInBytes: int
+    TargetHost: string
+    MsgSizeInBytes: int
 }
 
 [<Fact>]
@@ -35,7 +35,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
     let scenario =
         Scenario.create "withTestClean test" [okStep]
         |> Scenario.withTestClean testClean
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(2,  TimeSpan.FromSeconds(1.0))
         ]
@@ -64,21 +64,21 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
     let scenario =
         Scenario.create "test_youtube" [okStep]
         |> Scenario.withTestInit testInit
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(2,  TimeSpan.FromSeconds(2.0))
         ]
 
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadTestConfig "Configuration/config.json"
+    |> NBomberRunner.loadConfigJson "Configuration/test_config.json"
     |> NBomberRunner.runTest
     |> ignore
 
     let cusomSettings = scnContext.Value.CustomSettings.DeserializeJson<TestCustomSettings>()
 
-    test <@ cusomSettings.TargetMqttBrokerHost = "localhost" @>
-    test <@ cusomSettings.MsgPayloadSizeInBytes = 1000 @>
+    test <@ cusomSettings.TargetHost = "localhost" @>
+    test <@ cusomSettings.MsgSizeInBytes = 1000 @>
 
 [<Fact>]
 let ``Scenario should be stopped via stepContext.StopScenario`` () =
@@ -98,14 +98,14 @@ let ``Scenario should be stopped via stepContext.StopScenario`` () =
 
     let scenario1 =
         Scenario.create "test_youtube_1" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]
 
     let scenario2 =
         Scenario.create "test_youtube_2" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]
@@ -139,14 +139,14 @@ let ``Test should be stoped if all scenarios are stoped`` () =
 
     let scenario1 =
         Scenario.create "test_youtube_1" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]
 
     let scenario2 =
         Scenario.create "test_youtube_2" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]
@@ -178,14 +178,14 @@ let ``StepContext.StopTest should stop all scenarios`` () =
 
     let scenario1 =
         Scenario.create "test_youtube_1" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]
 
     let scenario2 =
         Scenario.create "test_youtube_2" [okStep]
-        |> Scenario.withOutWarmUp
+        |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(10, duration)
         ]

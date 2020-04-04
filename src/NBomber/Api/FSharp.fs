@@ -7,10 +7,12 @@ open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.Configuration.Yaml
 
 open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
+open NBomber.Configuration.Yaml
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -125,7 +127,7 @@ module Scenario =
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
 
-    let withOutWarmUp (scenario: Contracts.Scenario) =
+    let withoutWarmUp (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
@@ -149,12 +151,20 @@ module NBomberRunner =
     let withTestName (testName: string) (context: TestContext) =
         { context with TestName = testName }
 
-    let loadTestConfig (path: string) (context: TestContext) =
-        let config = path |> File.ReadAllText |> TestConfig.unsafeParse
-        { context with TestConfig = Some config }
+    let loadConfigJson (path: string) (context: TestContext) =
+        let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
+        { context with NBomberConfig = Some config }
 
-    let loadInfraConfig (path: string) (context: TestContext) =
+    let loadConfigYaml (path: string) (context: TestContext) =
+        let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
+        { context with NBomberConfig = Some config }
+
+    let loadInfraConfigJson (path: string) (context: TestContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+        { context with InfraConfig = Some config }
+
+    let loadInfraConfigYaml (path: string) (context: TestContext) =
+        let config = ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =
