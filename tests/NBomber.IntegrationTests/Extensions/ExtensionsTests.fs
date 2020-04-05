@@ -88,10 +88,10 @@ module internal ExtensionsTestHelper =
         table
 
     let createCustomStatistics () =
-        let ds = new DataSet()
-        ds.Tables.Add(createTable("CustomStatistics1"))
-        ds.Tables.Add(createTable("CustomStatistics2"))
-        ds
+        let customStats = new CustomStatistics()
+        customStats.Tables.Add(createTable("CustomStatistics1"))
+        customStats.Tables.Add(createTable("CustomStatistics2"))
+        customStats
 
 [<Fact>]
 let ``Nbomber with no extensions should return an empty list of custom statistics`` () =
@@ -145,6 +145,29 @@ let ``IExtension.StartTest should be invoked once`` () =
     |> ignore
 
     test <@ extensionStartTestInvokedCounter = 1 @>
+
+
+[<Fact>]
+let ``IExtension.StartTest should be invoked with infra config`` () =
+
+    let scenarios = ExtensionsTestHelper.createScenarios()
+    let mutable extensionConfig = None
+
+    let extension = { new IExtension with
+                            member x.Init(logger, infraConfig) =
+                                extensionConfig <- infraConfig
+                                ()
+                            member x.StartTest(_) = Task.CompletedTask
+                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
+
+    NBomberRunner.registerScenarios scenarios
+    |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
+    |> NBomberRunner.withExtensions([extension])
+    |> NBomberRunner.runTest
+    |> Result.mapError(fun x -> failwith x)
+    |> ignore
+
+    test <@ extensionConfig.IsSome @>
 
 [<Fact>]
 let ``IExtension.FinishTest should be invoked once`` () =

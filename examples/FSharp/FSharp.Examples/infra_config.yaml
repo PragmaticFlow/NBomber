@@ -3,7 +3,7 @@
     - Serilog.Sinks.Console
     - Serilog.Sinks.Elasticsearch
   MinimumLevel: Debug
-    Enrich:
+  Enrich:
     - FromLogContext
     - WithMachineName
 

@@ -9,7 +9,7 @@
         <Compile Include="Scenarios\HelloWorld.fs"/>
         <Compile Include="Scenarios\DataFeed.fs"/>
         <Compile Include="Scenarios\Http.fs"/>
-    	<Compile Include="Scenarios\PingExtension.fs" />
+        <Compile Include="Scenarios\PingExtension.fs" />
         <Compile Include="Scenarios\CustomReportingSink.fs"/>
         <Compile Include="Scenarios\AdvancedHelloWorld.fs"/>
         <Compile Include="Program.fs"/>
