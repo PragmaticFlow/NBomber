@@ -51,13 +51,6 @@ type TestInfo = {
     TestName: string
 }
 
-//todo: implement
-type CustomStatistics = {
-    Data: DataSet
-} with
-    static member Create () =
-        { Data = new DataSet() }
-
 type Statistics = {
     ScenarioName: string
     StepName: string
@@ -78,6 +71,8 @@ type Statistics = {
     NodeInfo: NodeInfo
     Duration: TimeSpan
 }
+
+type CustomStatistics = DataSet
 
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string

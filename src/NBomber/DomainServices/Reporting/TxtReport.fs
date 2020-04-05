@@ -37,7 +37,7 @@ let private printStepsTable (steps: StepStats[]) =
 
     stepTable.ToStringAlternative()
 
-let print (stats: RawNodeStats, customStats: CustomStatistics[]) =
+let print (stats: RawNodeStats) =
     stats.AllScenariosStats
     |> Array.map(fun x ->
         [ printScenarioHeader x

@@ -20,7 +20,7 @@ type PingExtension () =
             Task.CompletedTask
 
         member x.FinishTest(testInfo: TestInfo) =
-            Task.FromResult(CustomStatistics.Create())
+            Task.FromResult(new CustomStatistics())
 
 let run () =
 

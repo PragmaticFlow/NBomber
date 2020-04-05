@@ -8,25 +8,35 @@ open System.IO
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
+open NBomber.Extensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
 
 type ReportsContent = {
-    TxtReport: string
+    TxtReport: string list
     HtmlReport: string
     CsvReport: string
     MdReport: string
 }
  with
- static member empty = { TxtReport = ""; HtmlReport = ""; CsvReport = ""; MdReport = "" }
+ static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let build (dep: GlobalDependency, nodeStats: RawNodeStats[], customStats) =
+let private buildTxtReport (nodeStats: RawNodeStats[], customStats: CustomStatistics[]) =
+    let customStatsData =
+        customStats
+        |> Array.collect(fun x -> x.GetTables())
+        |> Array.map(fun x -> x |> TxtReportCustom.print)
+        |> List.ofSeq
+
+    TxtReport.print(nodeStats.[0]) :: customStatsData
+
+let build (dep: GlobalDependency, nodeStats: RawNodeStats[], customStats: CustomStatistics[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = TxtReport.print(nodeStats.[0], customStats)
-          HtmlReport = HtmlReport.print(dep, nodeStats.[0], customStats)
-          CsvReport = CsvReport.print(nodeStats.[0], customStats)
-          MdReport = MdReport.print(nodeStats.[0], customStats) }
+        { TxtReport = buildTxtReport(nodeStats, customStats)
+          HtmlReport = HtmlReport.print(dep, nodeStats.[0])
+          CsvReport = CsvReport.print(nodeStats.[0])
+          MdReport = MdReport.print(nodeStats.[0]) }
 
     | _ -> ReportsContent.empty
 
@@ -49,11 +59,12 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
             { FilePath = filePath; ReportFormat = format }
 
         let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray
+        let txtRportContent = String.Join(Environment.NewLine, report.TxtReport)
 
         reportFiles
         |> Array.map(fun x ->
             match x.ReportFormat with
-            | ReportFormat.Txt  -> {| Content = report.TxtReport; FilePath = x.FilePath |}
+            | ReportFormat.Txt  -> {| Content = txtRportContent; FilePath = x.FilePath |}
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
             | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
@@ -61,7 +72,7 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
         |> Array.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
         logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
-        logger.Information(report.TxtReport)
+        logger.Information(txtRportContent)
         reportFiles
     with
     | ex -> logger.Error(ex, "Report.save failed")

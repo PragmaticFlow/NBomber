@@ -54,7 +54,7 @@ module private Impl =
         ]
         |> String.concat Environment.NewLine
 
-let print (stats: RawNodeStats, customStats: CustomStatistics[]) =
+let print (stats: RawNodeStats) =
     let appendLine s = s + Environment.NewLine
 
     stats.AllScenariosStats

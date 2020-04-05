@@ -2,20 +2,21 @@ module Tests.ExtensionsTests
 
 open System
 open System.Data
+open System.IO
 open System.Threading.Tasks
 
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Swensen.Unquote
 open Xunit
-open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open System.IO
+open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Errors
 open NBomber.Extensions
 open NBomber.FSharp
 
-module ExtensionsTestHelper =
+module internal ExtensionsTestHelper =
 
     let createScenarios () =
         let step1 = Step.create("step 1", fun _ -> task {
@@ -49,32 +50,48 @@ module ExtensionsTestHelper =
 
         [scenario1; scenario2]
 
-    let createCustomStatistics () =
+  module internal CustomStatisticsHelper =
+
+    let private getCustomStatisticsColumns (prefix: string) =
         let colKey = new DataColumn("Key", Type.GetType("System.String"))
-        colKey.Caption <- "CustomStatisticsColumnKey"
+        colKey.Caption <- sprintf "%sColumnKey" prefix
 
         let colValue = new DataColumn("Value", Type.GetType("System.String"))
-        colValue.Caption <- "CustomStatisticsColumnValue"
+        colValue.Caption <- sprintf "%sColumnValue" prefix
 
         let colType = new DataColumn("Type", Type.GetType("System.String"))
-        colType.Caption <- "CustomStatisticsColumnType"
+        colType.Caption <- sprintf "%sColumnType" prefix
 
-        let table = new DataTable("CustomStatisticsTable")
-        table.Columns.Add(colKey);
-        table.Columns.Add(colValue);
-        table.Columns.Add(colType);
+        [| colKey; colValue; colType |]
 
-        for i in 1 .. 10 do
+    let private getCustomStatisticsRows (count: int) (prefix: string) (table: DataTable) = [|
+        for i in 1 .. count do
             let row = table.NewRow()
-            row.["Key"] <- sprintf "CustomStatisticsRowKey%i" i
-            row.["Value"] <- sprintf "CustomStatisticsRowValue%i" i
-            row.["Type"] <- sprintf "CustomStatisticsRowType%i" i
-            table.Rows.Add(row)
+            row.["Key"] <- sprintf "%sRowKey%i" prefix i
+            row.["Value"] <- sprintf "%sRowValue%i" prefix i
+            row.["Type"] <- sprintf "%sRowType%i" prefix i
+            yield row
+    |]
 
+    let private createTable (prefix: string) =
+        let tableName = sprintf "%sTable" prefix
+        let table = new DataTable(tableName)
+
+        prefix
+        |> getCustomStatisticsColumns
+        |> table.Columns.AddRange
+
+        table
+        |> getCustomStatisticsRows 10 prefix
+        |> Array.iter(fun x -> x |> table.Rows.Add)
+
+        table
+
+    let createCustomStatistics () =
         let ds = new DataSet()
-        ds.Tables.Add(table)
-
-        { Data = ds }
+        ds.Tables.Add(createTable("CustomStatistics1"))
+        ds.Tables.Add(createTable("CustomStatistics2"))
+        ds
 
 [<Fact>]
 let ``Nbomber with no extensions should return an empty list of custom statistics`` () =
@@ -98,7 +115,7 @@ let ``IExtension.Init should be invoked once`` () =
     let extension = { new IExtension with
                             member x.Init(_, _) = extensionInitInvokedCounter <- extensionInitInvokedCounter + 1
                             member x.StartTest(_) = Task.CompletedTask
-                            member x.FinishTest(_) = Task.FromResult(CustomStatistics.Create()) }
+                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -119,7 +136,7 @@ let ``IExtension.StartTest should be invoked once`` () =
                             member x.StartTest(_) =
                                 extensionStartTestInvokedCounter <- extensionStartTestInvokedCounter + 1
                                 Task.CompletedTask
-                            member x.FinishTest(_) = Task.FromResult(CustomStatistics.Create()) }
+                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -140,7 +157,7 @@ let ``IExtension.FinishTest should be invoked once`` () =
                             member x.StartTest(_) = Task.CompletedTask
                             member x.FinishTest(_) =
                                 extensionFinishTestInvokedCounter <- extensionFinishTestInvokedCounter + 1
-                                Task.FromResult(CustomStatistics.Create()) }
+                                Task.FromResult(new CustomStatistics()) }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -154,13 +171,13 @@ let ``IExtension.FinishTest should be invoked once`` () =
 let ``IExtension.FinishTest should pass custom statistics to ReportingSink`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
-    let mutable reportingSinkCustomStats = [| CustomStatistics.Create() |]
+    let mutable reportingSinkCustomStats = [| new CustomStatistics() |]
 
     let extension = { new IExtension with
                             member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
                             member x.FinishTest(_) =
-                                let customStatistics = ExtensionsTestHelper.createCustomStatistics()
+                                let customStatistics = CustomStatisticsHelper.createCustomStatistics()
                                 Task.FromResult(customStatistics) }
 
     let reportingSink = { new IReportingSink with
@@ -180,14 +197,16 @@ let ``IExtension.FinishTest should pass custom statistics to ReportingSink`` () 
     |> ignore
 
     let customStats = reportingSinkCustomStats.[0]
-    let table = customStats.Data.Tables.["CustomStatisticsTable"]
+    let table1 = customStats.Tables.["CustomStatistics1Table"]
+    let table2 = customStats.Tables.["CustomStatistics2Table"]
 
-    test <@ table.Columns.Count > 0 @>
-    test <@ table.Rows.Count > 0 @>
-
+    test <@ table1.Columns.Count > 0 @>
+    test <@ table1.Rows.Count > 0 @>
+    test <@ table2.Columns.Count > 0 @>
+    test <@ table2.Rows.Count > 0 @>
 
 [<Fact>]
-let ``IExtension.FinishTest should save custom statistics into reports`` () =
+let ``IExtension.FinishTest should save custom statistics into .txt report`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
     let mutable reportingSinkReportFiles = Array.empty
@@ -196,7 +215,7 @@ let ``IExtension.FinishTest should save custom statistics into reports`` () =
                             member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
                             member x.FinishTest(_) =
-                                let customStatistics = ExtensionsTestHelper.createCustomStatistics()
+                                let customStatistics = CustomStatisticsHelper.createCustomStatistics()
                                 Task.FromResult(customStatistics) }
 
     let reportingSink = { new IReportingSink with
@@ -216,6 +235,9 @@ let ``IExtension.FinishTest should save custom statistics into reports`` () =
     |> ignore
 
     reportingSinkReportFiles
+    |> Array.filter(fun x -> [ ReportFormat.Txt ] |> List.contains x.ReportFormat)
     |> Array.map(fun x -> x.FilePath |> File.ReadAllText)
-    |> Array.iter(fun x -> test <@ x.Contains("CustomStatisticsColumn") @>
-                           test <@ x.Contains("CustomStatisticsRow") @>)
+    |> Array.iter(fun x -> test <@ x.Contains("CustomStatistics1Column") @>
+                           test <@ x.Contains("CustomStatistics1Row") @>
+                           test <@ x.Contains("CustomStatistics2Column") @>
+                           test <@ x.Contains("CustomStatistics2Row") @>)
