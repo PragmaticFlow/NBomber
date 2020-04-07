@@ -50,9 +50,9 @@ module internal ExtensionsTestHelper =
 
         [scenario1; scenario2]
 
-  module internal CustomStatisticsHelper =
+  module internal ExtensionStatisticsHelper =
 
-    let private getCustomStatisticsColumns (prefix: string) =
+    let private getExtensionStatisticsColumns (prefix: string) =
         let colKey = new DataColumn("Key", Type.GetType("System.String"))
         colKey.Caption <- sprintf "%sColumnKey" prefix
 
@@ -64,7 +64,7 @@ module internal ExtensionsTestHelper =
 
         [| colKey; colValue; colType |]
 
-    let private getCustomStatisticsRows (count: int) (prefix: string) (table: DataTable) = [|
+    let private getExtensionStatisticsRows (count: int) (prefix: string) (table: DataTable) = [|
         for i in 1 .. count do
             let row = table.NewRow()
             row.["Key"] <- sprintf "%sRowKey%i" prefix i
@@ -78,23 +78,23 @@ module internal ExtensionsTestHelper =
         let table = new DataTable(tableName)
 
         prefix
-        |> getCustomStatisticsColumns
+        |> getExtensionStatisticsColumns
         |> table.Columns.AddRange
 
         table
-        |> getCustomStatisticsRows 10 prefix
+        |> getExtensionStatisticsRows 10 prefix
         |> Array.iter(fun x -> x |> table.Rows.Add)
 
         table
 
-    let createCustomStatistics () =
-        let customStats = new CustomStatistics()
-        customStats.Tables.Add(createTable("CustomStatistics1"))
-        customStats.Tables.Add(createTable("CustomStatistics2"))
-        customStats
+    let createExtensionStatistics () =
+        let extensionStats = new ExtensionStatistics()
+        extensionStats.Tables.Add(createTable("ExtensionStatistics1"))
+        extensionStats.Tables.Add(createTable("ExtensionStatistics2"))
+        extensionStats
 
 [<Fact>]
-let ``Nbomber with no extensions should return an empty list of custom statistics`` () =
+let ``Nbomber with no extensions should return an empty list of extension statistics`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
 
@@ -104,7 +104,7 @@ let ``Nbomber with no extensions should return an empty list of custom statistic
         |> Result.mapError(fun x -> x |> AppError.toString |> failwith)
         |> Result.getOk
 
-    test <@ result.CustomStatistics.Length = 0 @>
+    test <@ result.ExtensionStatistics.Length = 0 @>
 
 [<Fact>]
 let ``IExtension.Init should be invoked once`` () =
@@ -115,7 +115,8 @@ let ``IExtension.Init should be invoked once`` () =
     let extension = { new IExtension with
                             member x.Init(_, _) = extensionInitInvokedCounter <- extensionInitInvokedCounter + 1
                             member x.StartTest(_) = Task.CompletedTask
-                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
+                            member x.GetStats(_) = Task.FromResult(new ExtensionStatistics())
+                            member x.FinishTest(_) = Task.CompletedTask }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -136,7 +137,8 @@ let ``IExtension.StartTest should be invoked once`` () =
                             member x.StartTest(_) =
                                 extensionStartTestInvokedCounter <- extensionStartTestInvokedCounter + 1
                                 Task.CompletedTask
-                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
+                            member x.GetStats(_) = Task.FromResult(new ExtensionStatistics())
+                            member x.FinishTest(_) = Task.CompletedTask }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -158,7 +160,8 @@ let ``IExtension.StartTest should be invoked with infra config`` () =
                                 extensionConfig <- infraConfig
                                 ()
                             member x.StartTest(_) = Task.CompletedTask
-                            member x.FinishTest(_) = Task.FromResult(new CustomStatistics()) }
+                            member x.GetStats(_) = Task.FromResult(new ExtensionStatistics())
+                            member x.FinishTest(_) = Task.CompletedTask }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
@@ -170,6 +173,29 @@ let ``IExtension.StartTest should be invoked with infra config`` () =
     test <@ extensionConfig.IsSome @>
 
 [<Fact>]
+let ``IExtension.GetStats should be invoked once`` () =
+
+    let scenarios = ExtensionsTestHelper.createScenarios()
+    let mutable extensionGetStatsInvokedCounter = 0
+
+    let extension = { new IExtension with
+                            member x.Init(_, _) = ()
+                            member x.StartTest(_) = Task.CompletedTask
+                            member x.GetStats(_) =
+                                extensionGetStatsInvokedCounter <- extensionGetStatsInvokedCounter + 1
+                                Task.FromResult(new ExtensionStatistics())
+                            member x.FinishTest(_) =
+                                Task.CompletedTask }
+
+    NBomberRunner.registerScenarios scenarios
+    |> NBomberRunner.withExtensions([extension])
+    |> NBomberRunner.runTest
+    |> Result.mapError(fun x -> failwith x)
+    |> ignore
+
+    test <@ extensionGetStatsInvokedCounter = 1 @>
+
+[<Fact>]
 let ``IExtension.FinishTest should be invoked once`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
@@ -178,9 +204,10 @@ let ``IExtension.FinishTest should be invoked once`` () =
     let extension = { new IExtension with
                             member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
+                            member x.GetStats(_) = Task.FromResult(new ExtensionStatistics())
                             member x.FinishTest(_) =
                                 extensionFinishTestInvokedCounter <- extensionFinishTestInvokedCounter + 1
-                                Task.FromResult(new CustomStatistics()) }
+                                Task.CompletedTask }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withExtensions([extension])
@@ -191,24 +218,26 @@ let ``IExtension.FinishTest should be invoked once`` () =
     test <@ extensionFinishTestInvokedCounter = 1 @>
 
 [<Fact>]
-let ``IExtension.FinishTest should pass custom statistics to ReportingSink`` () =
+let ``IExtension.GetStats should pass extension statistics to ReportingSink`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
-    let mutable reportingSinkCustomStats = [| new CustomStatistics() |]
+    let mutable reportingSinkExtStats = [| new ExtensionStatistics() |]
 
     let extension = { new IExtension with
                             member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
+                            member x.GetStats(_) =
+                                let extensionStatistics = ExtensionStatisticsHelper.createExtensionStatistics()
+                                Task.FromResult(extensionStatistics)
                             member x.FinishTest(_) =
-                                let customStatistics = CustomStatisticsHelper.createCustomStatistics()
-                                Task.FromResult(customStatistics) }
+                                Task.CompletedTask }
 
     let reportingSink = { new IReportingSink with
                         member x.Init(_, _) = ()
                         member x.StartTest(_) = Task.CompletedTask
                         member x.SaveRealtimeStats(_, _) = Task.CompletedTask
-                        member x.SaveFinalStats(_, _, customStats, _) =
-                            reportingSinkCustomStats <- customStats
+                        member x.SaveFinalStats(_, _, extStats, _) =
+                            reportingSinkExtStats <- extStats
                             Task.CompletedTask
                         member x.FinishTest(_) = Task.CompletedTask }
 
@@ -219,9 +248,9 @@ let ``IExtension.FinishTest should pass custom statistics to ReportingSink`` () 
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    let customStats = reportingSinkCustomStats.[0]
-    let table1 = customStats.Tables.["CustomStatistics1Table"]
-    let table2 = customStats.Tables.["CustomStatistics2Table"]
+    let extensionStats = reportingSinkExtStats.[0]
+    let table1 = extensionStats.Tables.["ExtensionStatistics1Table"]
+    let table2 = extensionStats.Tables.["ExtensionStatistics2Table"]
 
     test <@ table1.Columns.Count > 0 @>
     test <@ table1.Rows.Count > 0 @>
@@ -229,7 +258,7 @@ let ``IExtension.FinishTest should pass custom statistics to ReportingSink`` () 
     test <@ table2.Rows.Count > 0 @>
 
 [<Fact>]
-let ``IExtension.FinishTest should save custom statistics into .txt report`` () =
+let ``IExtension.GetStats should save extension statistics into .txt report`` () =
 
     let scenarios = ExtensionsTestHelper.createScenarios()
     let mutable reportingSinkReportFiles = Array.empty
@@ -237,9 +266,11 @@ let ``IExtension.FinishTest should save custom statistics into .txt report`` () 
     let extension = { new IExtension with
                             member x.Init(_, _) = ()
                             member x.StartTest(_) = Task.CompletedTask
+                            member x.GetStats(_) =
+                                let extensionStatistics = ExtensionStatisticsHelper.createExtensionStatistics()
+                                Task.FromResult(extensionStatistics)
                             member x.FinishTest(_) =
-                                let customStatistics = CustomStatisticsHelper.createCustomStatistics()
-                                Task.FromResult(customStatistics) }
+                                Task.CompletedTask }
 
     let reportingSink = { new IReportingSink with
                         member x.Init(_, _) = ()
@@ -260,7 +291,7 @@ let ``IExtension.FinishTest should save custom statistics into .txt report`` () 
     reportingSinkReportFiles
     |> Array.filter(fun x -> [ ReportFormat.Txt ] |> List.contains x.ReportFormat)
     |> Array.map(fun x -> x.FilePath |> File.ReadAllText)
-    |> Array.iter(fun x -> test <@ x.Contains("CustomStatistics1Column") @>
-                           test <@ x.Contains("CustomStatistics1Row") @>
-                           test <@ x.Contains("CustomStatistics2Column") @>
-                           test <@ x.Contains("CustomStatistics2Row") @>)
+    |> Array.iter(fun x -> test <@ x.Contains("ExtensionStatistics1Column") @>
+                           test <@ x.Contains("ExtensionStatistics1Row") @>
+                           test <@ x.Contains("ExtensionStatistics2Column") @>
+                           test <@ x.Contains("ExtensionStatistics2Row") @>)

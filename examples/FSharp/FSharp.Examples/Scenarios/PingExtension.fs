@@ -17,14 +17,14 @@ open NBomber.FSharp
 // it's a very basic PingExtension example to give you a playground for writing your own custom extension
 
 type PingExtensionConfig =
-    { Host: string
+    { Hosts: string list
       BufferSizeBytes: int
       Ttl: int
       DontFragment: bool
       Timeout: TimeSpan }
 
-    static member Create (host) =
-        { Host = host
+    static member Create (hosts) =
+        { Hosts = hosts
           BufferSizeBytes = 32
           Ttl = 128
           DontFragment = false
@@ -78,16 +78,13 @@ type PingExtensionError =
 
         table
 
-    let createStatistics (pingReply: PingReply) =
-        let table = pingReply |> createTable "Ping"
-
-        let stats = new CustomStatistics()
-        stats.Tables.Add(table)
-        stats
+    let createTables (host: string, pingReply: PingReply) =
+        let tableName = sprintf "Ping %s" host
+        pingReply |> createTable tableName
 
 type PingExtension (config: PingExtensionConfig) =
     let mutable _logger: ILogger = null
-    let mutable _stats = new CustomStatistics()
+    let mutable _stats = new ExtensionStatistics()
 
     let ping (config: PingExtensionConfig) =
         try
@@ -97,15 +94,23 @@ type PingExtension (config: PingExtensionConfig) =
 
             let ping = new Ping()
             let buffer = Array.create config.BufferSizeBytes '-' |> Encoding.ASCII.GetBytes
-            let reply = ping.Send(config.Host, config.Timeout.Milliseconds, buffer, pingOptions)
 
-            Ok reply
+            let replies =
+                config.Hosts
+                |> List.map (fun x -> x, ping.Send(x, config.Timeout.Milliseconds, buffer, pingOptions))
+
+            Ok replies
         with
         | ex -> Error <| PingError ex
 
-    let createStats (pingReplyResult: Result<PingReply, PingExtensionError>) = result {
+    let createStats (pingReplyResult: Result<(string * PingReply) list, PingExtensionError>) = result {
         let! pingResult = pingReplyResult
-        let stats = pingResult |> PingExtensionStatisticsHelper.createStatistics
+        let stats = new ExtensionStatistics()
+
+        pingResult
+        |> List.map (fun x -> x |> PingExtensionStatisticsHelper.createTables)
+        |> Array.ofList
+        |> stats.Tables.AddRange
 
         return stats
     }
@@ -128,8 +133,11 @@ type PingExtension (config: PingExtensionConfig) =
 
             Task.CompletedTask
 
-        member x.FinishTest (testInfo: TestInfo) =
+        member x.GetStats (testInfo: TestInfo) =
             Task.FromResult(_stats)
+
+        member x.FinishTest (testInfo: TestInfo) =
+            Task.CompletedTask
 
 let run () =
     let httpClient = new HttpClient()
@@ -150,7 +158,7 @@ let run () =
                        InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let pingExtensionConfig = PingExtensionConfig.Create("nbomber.com")
+    let pingExtensionConfig = PingExtensionConfig.Create(["nbomber.com"; "github.com"])
     let pingExtension = PingExtension(pingExtensionConfig)
 
     NBomberRunner.registerScenarios [scenario]

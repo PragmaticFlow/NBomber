@@ -19,12 +19,12 @@ open NBomber.DomainServices.TestHost.Infra
 type ExecutionResult = {
     RawNodeStats: RawNodeStats[]
     Statistics: Statistics[]
-    CustomStatistics: CustomStatistics[]
+    ExtensionStatistics: ExtensionStatistics[]
 } with
-  static member init (nodeStats: RawNodeStats list, customStats: CustomStatistics list) =
+  static member init (nodeStats: RawNodeStats list, extensionStats: ExtensionStatistics list) =
       { RawNodeStats = nodeStats |> List.toArray
         Statistics = nodeStats |> Seq.collect(Statistics.create) |> Seq.toArray
-        CustomStatistics = customStats |> List.toArray }
+        ExtensionStatistics = extensionStats |> List.toArray }
 
 let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
@@ -38,7 +38,7 @@ let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestConte
     }
 
 let buildReport (dep: GlobalDependency) (result: ExecutionResult) =
-    Report.build(dep, result.RawNodeStats, result.CustomStatistics)
+    Report.build(dep, result.RawNodeStats, result.ExtensionStatistics)
 
 let saveReport (dep: GlobalDependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
     let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
@@ -52,6 +52,18 @@ let sendStartTestToExtension (dep: GlobalDependency, testInfo: TestInfo, context
     with
     | ex -> dep.Logger.Error(ex, "Extension.StartTest failed")
 
+let sendGetStatsToExtension (dep: GlobalDependency, testInfo: TestInfo) =
+    try
+        dep.Extensions
+        |> List.map(fun ext -> ext.GetStats(testInfo))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+        |> List.ofSeq
+    with
+    | ex -> dep.Logger.Error(ex, "Extension.GetStats failed")
+            List.empty
+
 let sendFinishTestToExtension (dep: GlobalDependency, testInfo: TestInfo) =
     try
         dep.Extensions
@@ -59,10 +71,9 @@ let sendFinishTestToExtension (dep: GlobalDependency, testInfo: TestInfo) =
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
-        |> List.ofSeq
+        |> ignore
     with
     | ex -> dep.Logger.Error(ex, "Extension.FinishTest failed")
-            List.empty
 
 let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     try
@@ -72,11 +83,11 @@ let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
 
 let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo)
-                                   (stats: Statistics[]) (customStats: CustomStatistics[])
+                                   (stats: Statistics[]) (extensionStats: ExtensionStatistics[])
                                    (reportFiles: ReportFile[]) =
     try
         dep.ReportingSinks
-        |> List.map(fun sink -> sink.SaveFinalStats(testInfo, stats, customStats, reportFiles))
+        |> List.map(fun sink -> sink.SaveFinalStats(testInfo, stats, extensionStats, reportFiles))
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -103,14 +114,16 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
         sendStartTestToReportingSink(dep, testInfo)
 
         let! nodeStats = runSingleNode(dep, testInfo, ctx)
-        let customStats = sendFinishTestToExtension(dep, testInfo)
-        let result = ExecutionResult.init(nodeStats, customStats)
+        let extensionStats = sendGetStatsToExtension(dep, testInfo)
+        let result = ExecutionResult.init(nodeStats, extensionStats)
 
         result
         |> buildReport dep
         |> saveReport dep testInfo ctx
-        |> sendSaveReportsToReportingSink dep testInfo result.Statistics result.CustomStatistics
+        |> sendSaveReportsToReportingSink dep testInfo result.Statistics result.ExtensionStatistics
         |> fun () -> sendFinishTestToReportingSink dep testInfo
+
+        sendFinishTestToExtension(dep, testInfo)
 
         return result
     }

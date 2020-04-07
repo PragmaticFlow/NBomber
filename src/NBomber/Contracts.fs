@@ -72,7 +72,7 @@ type Statistics = {
     Duration: TimeSpan
 }
 
-type CustomStatistics = DataSet
+type ExtensionStatistics = DataSet
 
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
@@ -132,13 +132,14 @@ type IReportingSink =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
-    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * customStats:CustomStatistics[] * reportFiles:ReportFile[] -> Task
+    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * extStats:ExtensionStatistics[] * reportFiles:ReportFile[] -> Task
     abstract FinishTest: testInfo:TestInfo -> Task
 
 type IExtension =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
-    abstract FinishTest: testInfo:TestInfo -> Task<CustomStatistics>
+    abstract GetStats: testInfo:TestInfo -> Task<ExtensionStatistics>
+    abstract FinishTest: testInfo:TestInfo -> Task
 
 type TestContext = {
     TestSuite: string

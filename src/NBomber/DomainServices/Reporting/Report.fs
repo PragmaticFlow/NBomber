@@ -21,19 +21,19 @@ type ReportsContent = {
  with
  static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let private buildTxtReport (nodeStats: RawNodeStats[], customStats: CustomStatistics[]) =
-    let customStatsData =
-        customStats
+let private buildTxtReport (nodeStats: RawNodeStats[], extensionStats: ExtensionStatistics[]) =
+    let extensionStatsData =
+        extensionStats
         |> Array.collect(fun x -> x.GetTables())
         |> Array.map(fun x -> x |> TxtReportCustom.print)
         |> List.ofSeq
 
-    TxtReport.print(nodeStats.[0]) :: customStatsData
+    TxtReport.print(nodeStats.[0]) :: extensionStatsData
 
-let build (dep: GlobalDependency, nodeStats: RawNodeStats[], customStats: CustomStatistics[]) =
+let build (dep: GlobalDependency, nodeStats: RawNodeStats[], extensionStats: ExtensionStatistics[]) =
     match dep.NodeType with
     | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = buildTxtReport(nodeStats, customStats)
+        { TxtReport = buildTxtReport(nodeStats, extensionStats)
           HtmlReport = HtmlReport.print(dep, nodeStats.[0])
           CsvReport = CsvReport.print(nodeStats.[0])
           MdReport = MdReport.print(nodeStats.[0]) }
