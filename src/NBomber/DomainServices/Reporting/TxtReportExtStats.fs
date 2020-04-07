@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.TxtReportCustom
+module internal NBomber.DomainServices.Reporting.TxtReportExtStats
 
 open System
 open System.Data

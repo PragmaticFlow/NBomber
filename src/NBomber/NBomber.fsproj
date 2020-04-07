@@ -59,7 +59,7 @@
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
-    <Compile Include="DomainServices\Reporting\TxtReportCustom.fs" />
+    <Compile Include="DomainServices\Reporting\TxtReportExtStats.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
     <Compile Include="DomainServices\TestHost\TestHostInfra.fs" />

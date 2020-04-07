@@ -25,7 +25,7 @@ let private buildTxtReport (nodeStats: RawNodeStats[], extensionStats: Extension
     let extensionStatsData =
         extensionStats
         |> Array.collect(fun x -> x.GetTables())
-        |> Array.map(fun x -> x |> TxtReportCustom.print)
+        |> Array.map(fun x -> x |> TxtReportExtStats.print)
         |> List.ofSeq
 
     TxtReport.print(nodeStats.[0]) :: extensionStatsData
