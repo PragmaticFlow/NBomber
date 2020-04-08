@@ -2,7 +2,6 @@ module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
 
-open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 [<AutoOpen>]

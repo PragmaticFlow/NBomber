@@ -2,7 +2,6 @@
 
 open System
 
-open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 let private getHeader () =

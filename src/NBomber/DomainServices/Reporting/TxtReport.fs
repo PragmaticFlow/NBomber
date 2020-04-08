@@ -3,7 +3,6 @@
 open System
 open ConsoleTables
 
-open NBomber.Contracts
 open NBomber.Domain.StatisticsTypes
 
 let inline private concatLines s =
