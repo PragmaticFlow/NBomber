@@ -34,7 +34,7 @@ type GlobalDependency = {
     CreateAutoProgressBar: TimeSpan -> IProgressBar
     Logger: ILogger
     ReportingSinks: IReportingSink list
-    Extensions: IExtension list
+    Plugins: IPlugin list
 }
 
 module ProgressBar =
@@ -91,4 +91,4 @@ let create (appType: ApplicationType,
       CreateAutoProgressBar = ProgressBar.createAuto
       Logger = logger
       ReportingSinks = List.empty
-      Extensions = List.empty }
+      Plugins = List.empty }

@@ -41,7 +41,7 @@ let context = {
     ReportFormats = List.empty
     ReportingSinks = List.empty
     SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
-    Extensions = List.empty
+    Plugins = List.empty
 }
 
 [<Fact>]

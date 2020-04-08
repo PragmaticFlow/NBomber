@@ -9,6 +9,6 @@ let main argv =
     //DataFeedScenario.run()
     //HttpScenario.run()
     //CustomReportingScenario.run()
-    //PingExtensionScenario.run()
+    //PluginsScenario.run()
 
     0

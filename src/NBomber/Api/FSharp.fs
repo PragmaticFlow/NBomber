@@ -171,8 +171,8 @@ module NBomberRunner =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
-    let withExtensions (extensions: IExtension list) (context: TestContext) =
-        { context with Extensions = extensions }
+    let withPlugins (plugins: IPlugin list) (context: TestContext) =
+        { context with Plugins = plugins }
 
     let run (context: TestContext) =
         NBomberRunner.runAs(Process, context)

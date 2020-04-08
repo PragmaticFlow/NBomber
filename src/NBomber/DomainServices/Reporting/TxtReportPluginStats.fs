@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.TxtReportExtStats
+module internal NBomber.DomainServices.Reporting.TxtReportPluginStats
 
 open System
 open System.Data
@@ -10,21 +10,21 @@ open NBomber.Extensions
 let inline private concatLines s =
     String.concat Environment.NewLine s
 
-let inline private printExtensionStatisticHeader (table: DataTable) =
+let inline private printPluginStatisticHeader (table: DataTable) =
     sprintf "statistics: '%s'" table.TableName
 
-let private printExtensionStatisticTable (table: DataTable) =
+let private printPluginStatisticTable (table: DataTable) =
     let columnNames = table.GetColumns() |> Array.map(fun x -> x.ColumnName)
     let columnCaptions = table.GetColumns() |> Array.map(fun x -> x.GetColumnCaptionOrName())
-    let extensionStatisticTable = ConsoleTable(columnCaptions)
+    let consoleTable = ConsoleTable(columnCaptions)
 
     table.GetRows()
     |> Array.map(fun x -> columnNames |> Array.map(fun columnName -> x.[columnName]))
-    |> Array.iter(fun x -> extensionStatisticTable.AddRow(x) |> ignore)
+    |> Array.iter(fun x -> consoleTable.AddRow(x) |> ignore)
 
-    extensionStatisticTable.ToStringAlternative()
+    consoleTable.ToStringAlternative()
 
 let print (table: DataTable) =
-        [ table |> printExtensionStatisticHeader
-          table |> printExtensionStatisticTable
+        [ table |> printPluginStatisticHeader
+          table |> printPluginStatisticTable
         ] |> concatLines

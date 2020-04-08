@@ -1,22 +1,17 @@
-﻿module PingExtensionScenario
+module NBomber.Plugins
 
 open System
 open System.Data
-open System.Net.Http
 open System.Net.NetworkInformation
 open System.Text
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 open Serilog
 
 open NBomber.Contracts
-open NBomber.FSharp
 
-// it's a very basic PingExtension example to give you a playground for writing your own custom extension
-
-type PingExtensionConfig =
+type PingPluginConfig =
     { Hosts: string list
       BufferSizeBytes: int
       Ttl: int
@@ -30,10 +25,10 @@ type PingExtensionConfig =
           DontFragment = false
           Timeout = TimeSpan.FromMilliseconds(120.0) }
 
-type PingExtensionError =
+type PingPluginError =
     | PingError of ex:Exception
 
-  module internal PingExtensionStatisticsHelper =
+  module internal PingPluginStatisticsHelper =
 
     let private createColumn (name: string, caption: string, typeName: string) =
         let column = new DataColumn(name, Type.GetType(typeName))
@@ -82,11 +77,11 @@ type PingExtensionError =
         let tableName = sprintf "Ping %s" host
         pingReply |> createTable tableName
 
-type PingExtension (config: PingExtensionConfig) =
+type PingPlugin (config: PingPluginConfig) =
     let mutable _logger: ILogger = null
-    let mutable _stats = new ExtensionStatistics()
+    let mutable _stats = new PluginStatistics()
 
-    let ping (config: PingExtensionConfig) =
+    let ping (config: PingPluginConfig) =
         try
             let pingOptions = PingOptions()
             pingOptions.Ttl <- config.Ttl
@@ -103,21 +98,21 @@ type PingExtension (config: PingExtensionConfig) =
         with
         | ex -> Error <| PingError ex
 
-    let createStats (pingReplyResult: Result<(string * PingReply) list, PingExtensionError>) = result {
+    let createStats (pingReplyResult: Result<(string * PingReply) list, PingPluginError>) = result {
         let! pingResult = pingReplyResult
-        let stats = new ExtensionStatistics()
+        let stats = new PluginStatistics()
 
         pingResult
-        |> List.map (fun x -> x |> PingExtensionStatisticsHelper.createTables)
+        |> List.map (fun x -> x |> PingPluginStatisticsHelper.createTables)
         |> Array.ofList
         |> stats.Tables.AddRange
 
         return stats
     }
 
-    interface IExtension with
+    interface IPlugin with
         member x.Init (logger, infraConfig) =
-            _logger <- logger.ForContext<PingExtension>()
+            _logger <- logger.ForContext<PingPlugin>()
             ()
 
         member x.StartTest (testInfo: TestInfo) =
@@ -138,30 +133,3 @@ type PingExtension (config: PingExtensionConfig) =
 
         member x.FinishTest (testInfo: TestInfo) =
             Task.CompletedTask
-
-let run () =
-    let httpClient = new HttpClient()
-
-    let step = Step.create("pull html", fun context -> task {
-        let! response = httpClient.GetAsync("https://nbomber.com", context.CancellationToken)
-
-        match response.IsSuccessStatusCode with
-        | true  -> let bodySize = int response.Content.Headers.ContentLength.Value
-                   let headersSize = response.Headers.ToString().Length
-                   return Response.Ok(sizeBytes = headersSize + bodySize)
-
-        | false -> return Response.Fail()
-    })
-
-    let scenario = Scenario.create "test_nbomber" [step]
-                   |> Scenario.withLoadSimulations [
-                       InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
-                   ]
-
-    let pingExtensionConfig = PingExtensionConfig.Create(["nbomber.com"; "github.com"])
-    let pingExtension = PingExtension(pingExtensionConfig)
-
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
-    |> NBomberRunner.withExtensions([pingExtension])
-    |> NBomberRunner.runInConsole
