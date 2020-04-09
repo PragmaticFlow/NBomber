@@ -10,5 +10,6 @@ let main argv =
     //HttpScenario.run()
     //CustomReportingScenario.run()
     //PluginsScenario.run()
+    //CustomPluginScenario.run()
 
     0
