@@ -11,13 +11,13 @@ open Serilog
 
 open NBomber.Contracts
 
-type PingPluginConfig =
-    { Hosts: string list
-      BufferSizeBytes: int
-      Ttl: int
-      DontFragment: bool
-      Timeout: TimeSpan }
-
+type PingPluginConfig = {
+    Hosts: string list
+    BufferSizeBytes: int
+    Ttl: int
+    DontFragment: bool
+    Timeout: TimeSpan
+} with
     static member Create (hosts) =
         { Hosts = hosts
           BufferSizeBytes = 32
@@ -113,7 +113,6 @@ type PingPlugin (config: PingPluginConfig) =
     interface IPlugin with
         member x.Init (logger, infraConfig) =
             _logger <- logger.ForContext<PingPlugin>()
-            ()
 
         member x.StartTest (testInfo: TestInfo) =
             config

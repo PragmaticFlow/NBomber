@@ -25,9 +25,9 @@ type CustomPlugin () =
             [| "Key", "Property", "System.String"
                "Value", "Value", "System.String" |]
             |> Array.map(fun (name, caption, typeName) ->
-                          let column = new DataColumn(name, Type.GetType(typeName))
-                          column.Caption <- caption
-                          column
+                  let column = new DataColumn(name, Type.GetType(typeName))
+                  column.Caption <- caption
+                  column
             )
             |> table.Columns.AddRange
 
