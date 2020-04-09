@@ -40,7 +40,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
                                 statsInvokedCounter <- statsInvokedCounter + 1
                                 Task.CompletedTask
 
-                            member x.SaveFinalStats(_, _, _) =
+                            member x.SaveFinalStats(_, _, _,_) =
                                 statsInvokedCounter <- statsInvokedCounter + 1
                                 Task.CompletedTask
 
@@ -82,7 +82,7 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
                                 | _                          -> failwith "operation type is invalid for SaveStatistics"
                                 Task.CompletedTask
 
-                            member x.SaveFinalStats(_, _, _) =
+                            member x.SaveFinalStats(_, _, _, _) =
                                 completeCounter <- completeCounter + 1
                                 Task.CompletedTask
                             member x.FinishTest(_) = Task.CompletedTask }

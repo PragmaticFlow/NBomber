@@ -16,7 +16,8 @@ let empty =
       ReportFileName = None
       ReportFormats = Constants.AllReportFormats
       ReportingSinks = List.empty
-      SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec }
+      SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec
+      Plugins = List.empty }
 
 let getTestSuite (context: TestContext) =
     context.NBomberConfig

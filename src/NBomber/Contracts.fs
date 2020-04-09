@@ -1,15 +1,16 @@
 ﻿namespace NBomber.Contracts
 
 open System
+open System.Data
 open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
-open Serilog
 open Microsoft.Extensions.Configuration
+open Serilog
 
-open NBomber.Extensions
 open NBomber.Configuration
+open NBomber.Extensions
 
 type CorrelationId = {
     Id: string
@@ -71,6 +72,8 @@ type Statistics = {
     Duration: TimeSpan
 }
 
+type PluginStatistics = DataSet
+
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
     abstract GetConnectionCount: unit -> int
@@ -129,7 +132,13 @@ type IReportingSink =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
-    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * reportFiles:ReportFile[] -> Task
+    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * pluginStats:PluginStatistics[] * reportFiles:ReportFile[] -> Task
+    abstract FinishTest: testInfo:TestInfo -> Task
+
+type IPlugin =
+    abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
+    abstract StartTest: testInfo:TestInfo -> Task
+    abstract GetStats: testInfo:TestInfo -> Task<PluginStatistics>
     abstract FinishTest: testInfo:TestInfo -> Task
 
 type TestContext = {
@@ -142,6 +151,7 @@ type TestContext = {
     ReportFormats: ReportFormat list
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
+    Plugins: IPlugin list
 }
 
 type Response with

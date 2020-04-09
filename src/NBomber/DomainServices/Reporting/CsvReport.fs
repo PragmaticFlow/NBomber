@@ -1,6 +1,7 @@
 ﻿module internal NBomber.DomainServices.Reporting.CsvReport
 
 open System
+
 open NBomber.Domain.StatisticsTypes
 
 let private getHeader () =

@@ -135,6 +135,11 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withReportingSinks(sinks, sendStatsInterval)
 
     [<Extension>]
+    static member WithPlugins(context: TestContext, plugins: IPlugin[]) =
+        let pluginsList = plugins |> Seq.toList
+        context |> FSharp.NBomberRunner.withPlugins(pluginsList)
+
+    [<Extension>]
     static member Run(context: TestContext) =
         FSharp.NBomberRunner.run(context)
 

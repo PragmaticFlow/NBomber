@@ -40,6 +40,7 @@
     <Compile Include="LoadTimeLineTests.fs" />
     <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
     <Compile Include="ConnectionPoolTests.fs" />
+    <Compile Include="Plugins\PluginTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />

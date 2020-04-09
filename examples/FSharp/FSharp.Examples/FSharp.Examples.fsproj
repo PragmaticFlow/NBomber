@@ -6,12 +6,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Scenarios\HelloWorld.fs"/>
-        <Compile Include="Scenarios\DataFeed.fs"/>
-        <Compile Include="Scenarios\Http.fs"/>
-        <Compile Include="Scenarios\CustomReportingSink.fs"/>
-        <Compile Include="Scenarios\AdvancedHelloWorld.fs"/>
-        <Compile Include="Program.fs"/>
+        <Compile Include="Scenarios\HelloWorld.fs" />
+        <Compile Include="Scenarios\DataFeed.fs" />
+        <Compile Include="Scenarios\Http.fs" />
+        <Compile Include="Scenarios\CustomReportingSink.fs" />
+        <Compile Include="Scenarios\AdvancedHelloWorld.fs" />
+        <Compile Include="Scenarios\Plugins.fs" />
+        <Compile Include="Scenarios\CustomPlugin.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,12 +38,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj"/>
+        <ProjectReference Include="..\..\..\src\NBomber\NBomber.fsproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="FSharp.Core" Version="4.6.2"/>
-        <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1"/>
+        <PackageReference Update="FSharp.Core" Version="4.6.2" />
+        <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.0.1" />
     </ItemGroup>
 
 </Project>

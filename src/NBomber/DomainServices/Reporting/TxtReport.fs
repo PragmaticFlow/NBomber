@@ -2,6 +2,7 @@
 
 open System
 open ConsoleTables
+
 open NBomber.Domain.StatisticsTypes
 
 let inline private concatLines s =

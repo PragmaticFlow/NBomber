@@ -19,10 +19,12 @@ open NBomber.DomainServices.TestHost.Infra
 type ExecutionResult = {
     RawNodeStats: RawNodeStats[]
     Statistics: Statistics[]
+    PluginStatistics: PluginStatistics[]
 } with
-  static member init (nodeStats: RawNodeStats list) =
+  static member init (nodeStats: RawNodeStats list, pluginStats: PluginStatistics list) =
       { RawNodeStats = nodeStats |> List.toArray
-        Statistics = nodeStats |> Seq.collect(Statistics.create) |> Seq.toArray }
+        Statistics = nodeStats |> Seq.collect(Statistics.create) |> Seq.toArray
+        PluginStatistics = pluginStats |> List.toArray }
 
 let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     asyncResult {
@@ -36,12 +38,42 @@ let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestConte
     }
 
 let buildReport (dep: GlobalDependency) (result: ExecutionResult) =
-    Report.build(dep, result.RawNodeStats)
+    Report.build(dep, result.RawNodeStats, result.PluginStatistics)
 
 let saveReport (dep: GlobalDependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
     let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
     let formats = TestContext.getReportFormats(context)
     Report.save("./", fileName, formats, report, dep.Logger)
+
+let sendStartTestToPlugin (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
+    try
+        for plugin in dep.Plugins do
+            plugin.StartTest(testInfo) |> ignore
+    with
+    | ex -> dep.Logger.Error(ex, "Plugin.StartTest failed")
+
+let sendGetStatsToPlugin (dep: GlobalDependency, testInfo: TestInfo) =
+    try
+        dep.Plugins
+        |> List.map(fun x -> x.GetStats(testInfo))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+        |> List.ofSeq
+    with
+    | ex -> dep.Logger.Error(ex, "Plugin.GetStats failed")
+            List.empty
+
+let sendFinishTestToPlugin (dep: GlobalDependency, testInfo: TestInfo) =
+    try
+        dep.Plugins
+        |> List.map(fun x -> x.FinishTest(testInfo))
+        |> Task.WhenAll
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+        |> ignore
+    with
+    | ex -> dep.Logger.Error(ex, "Plugin.FinishTest failed")
 
 let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     try
@@ -50,10 +82,12 @@ let sendStartTestToReportingSink (dep: GlobalDependency, testInfo: TestInfo) =
     with
     | ex -> dep.Logger.Error(ex, "ReportingSink.StartTest failed")
 
-let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo) (stats: Statistics[]) (reportFiles: ReportFile[]) =
+let sendSaveReportsToReportingSink (dep: GlobalDependency) (testInfo: TestInfo)
+                                   (stats: Statistics[]) (pluginStats: PluginStatistics[])
+                                   (reportFiles: ReportFile[]) =
     try
         dep.ReportingSinks
-        |> List.map(fun sink -> sink.SaveFinalStats(testInfo, stats, reportFiles))
+        |> List.map(fun sink -> sink.SaveFinalStats(testInfo, stats, pluginStats, reportFiles))
         |> Task.WhenAll
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -76,17 +110,20 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
 
         let! ctx = Validation.validateContext(context)
 
+        sendStartTestToPlugin(dep, testInfo, context)
         sendStartTestToReportingSink(dep, testInfo)
 
         let! nodeStats = runSingleNode(dep, testInfo, ctx)
-
-        let result = ExecutionResult.init(nodeStats)
+        let pluginStats = sendGetStatsToPlugin(dep, testInfo)
+        let result = ExecutionResult.init(nodeStats, pluginStats)
 
         result
         |> buildReport dep
         |> saveReport dep testInfo ctx
-        |> sendSaveReportsToReportingSink dep testInfo result.Statistics
+        |> sendSaveReportsToReportingSink dep testInfo result.Statistics result.PluginStatistics
         |> fun () -> sendFinishTestToReportingSink dep testInfo
+
+        sendFinishTestToPlugin(dep, testInfo)
 
         return result
     }
@@ -107,7 +144,8 @@ let runAs (appType: ApplicationType, context: TestContext) =
     let nodeType = NodeType.SingleNode
 
     let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with ReportingSinks = context.ReportingSinks }
+    let dep = { dep with ReportingSinks = context.ReportingSinks; Plugins = context.Plugins }
+    dep.Plugins |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
     dep.ReportingSinks |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
 
     run(dep, testInfo, context)

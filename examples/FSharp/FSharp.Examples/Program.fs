@@ -9,5 +9,7 @@ let main argv =
     //DataFeedScenario.run()
     //HttpScenario.run()
     //CustomReportingScenario.run()
+    //PluginsScenario.run()
+    //CustomPluginScenario.run()
 
     0

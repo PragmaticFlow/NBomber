@@ -2,11 +2,11 @@
 
 open System
 
-open NBomber.Extensions
 open NBomber.Domain.StatisticsTypes
+open NBomber.Extensions
 open NBomber.Infra
-open NBomber.Infra.ResourceManager
 open NBomber.Infra.Dependency
+open NBomber.Infra.ResourceManager
 
 type HtmlControl = { Html: string; Js: string; }
 
