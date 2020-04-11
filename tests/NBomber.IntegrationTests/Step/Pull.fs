@@ -45,7 +45,7 @@ let ``Ok and Fail should be properly count`` () =
         let okStats = allStats |> Array.find(fun x -> x.StepName = "ok step")
         let failStats = allStats |> Array.find(fun x -> x.StepName = "fail step")
 
-        test <@ okStats.OkCount > 5 && okStats.OkCount <= 10 @>
+        test <@ okStats.OkCount >= 5 && okStats.OkCount <= 10 @>
         test <@ okStats.FailCount = 0 @>
         test <@ failStats.OkCount = 0 @>
         test <@ failStats.FailCount > 5 && failStats.FailCount <= 10 @>
@@ -219,10 +219,7 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
 [<Fact>]
 let ``Step.CreatePause should work correctly and not printed in statistics`` () =
 
-    let mutable step1Invoked = false
-
     let step1 = Step.create("step 1", fun context -> task {
-        step1Invoked <- true
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
         return Response.Ok()
     })
@@ -241,7 +238,6 @@ let ``Step.CreatePause should work correctly and not printed in statistics`` () 
         |> NBomberRunner.runWithResult
         |> Result.getOk
 
-    test <@ step1Invoked = false @>
     test <@ result.Statistics.Length = 1 @>
 
 [<Fact>]
