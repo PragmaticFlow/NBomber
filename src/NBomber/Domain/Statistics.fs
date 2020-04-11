@@ -28,8 +28,8 @@ let create (nodeStats: RawNodeStats) =
           DataMeanKb = step.DataTransfer.MeanKb
           DataMaxKb = step.DataTransfer.MaxKb
           AllDataMB = step.DataTransfer.AllMB
-          NodeInfo = nodeStats.NodeStatsInfo
-          Duration = duration }
+          Duration = duration
+          NodeInfo = nodeStats.NodeStatsInfo }
 
     nodeStats.AllScenariosStats
     |> Array.collect(fun scn ->

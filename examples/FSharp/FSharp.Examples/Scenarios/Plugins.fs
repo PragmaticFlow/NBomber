@@ -7,7 +7,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
-open NBomber.Plugins
+open NBomber.Plugins.Network.Ping
 
 let run () =
     let httpClient = new HttpClient()
@@ -28,7 +28,7 @@ let run () =
                        InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let pingPluginConfig = PingPluginConfig.Create(["nbomber.com"; "github.com"])
+    let pingPluginConfig = PingPluginConfig.Create ["nbomber.com"; "github.com"]
     let pingPlugin = PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]

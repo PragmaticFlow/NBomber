@@ -1,4 +1,4 @@
-module NBomber.Plugins
+namespace NBomber.Plugins.Network.Ping
 
 open System
 open System.Data
@@ -18,17 +18,14 @@ type PingPluginConfig = {
     DontFragment: bool
     Timeout: TimeSpan
 } with
-    static member Create (hosts) =
-        { Hosts = hosts
+    static member Create (hosts: string seq) =
+        { Hosts = hosts |> Seq.toList
           BufferSizeBytes = 32
           Ttl = 128
           DontFragment = false
           Timeout = TimeSpan.FromMilliseconds(120.0) }
 
-type PingPluginError =
-    | PingError of ex:Exception
-
-  module internal PingPluginStatisticsHelper =
+module internal PingPluginStatistics =
 
     let private createColumn (name: string, caption: string, typeName: string) =
         let column = new DataColumn(name, Type.GetType(typeName))
@@ -54,12 +51,12 @@ type PingPluginError =
         let dontFragment = if areOptionsAvailable then pingReply.Options.DontFragment.ToString() else "n/a"
         let bufferSize = sprintf "%s bytes" <| pingReply.Buffer.Length.ToString()
 
-        yield table |> createRow("Status", pingReply.Status.ToString())
-        yield table |> createRow("Address", pingReply.Address.ToString())
-        yield table |> createRow("RoundTrip time", roundTripTime)
-        yield table |> createRow("Time to live", timeToLive)
-        yield table |> createRow("Don't fragment", dontFragment)
-        yield table |> createRow("Buffer size", bufferSize)
+        table |> createRow("Status", pingReply.Status.ToString())
+        table |> createRow("Address", pingReply.Address.ToString())
+        table |> createRow("RoundTrip time", roundTripTime)
+        table |> createRow("Time to live", timeToLive)
+        table |> createRow("Don't fragment", dontFragment)
+        table |> createRow("Buffer size", bufferSize)
     |]
 
     let private createTable (name) (pingReply: PingReply) =
@@ -78,32 +75,34 @@ type PingPluginError =
         pingReply |> createTable tableName
 
 type PingPlugin (config: PingPluginConfig) =
-    let mutable _logger: ILogger = null
+
+    let mutable _logger: ILogger = Unchecked.defaultof<ILogger>
     let mutable _stats = new PluginStatistics()
 
-    let ping (config: PingPluginConfig) =
+    let execPing (config: PingPluginConfig) =
         try
             let pingOptions = PingOptions()
             pingOptions.Ttl <- config.Ttl
             pingOptions.DontFragment <- config.DontFragment
 
             let ping = new Ping()
-            let buffer = Array.create config.BufferSizeBytes '-' |> Encoding.ASCII.GetBytes
+            let buffer = Array.create config.BufferSizeBytes '-'
+                         |> Encoding.ASCII.GetBytes
 
             let replies =
                 config.Hosts
-                |> List.map (fun x -> x, ping.Send(x, config.Timeout.Milliseconds, buffer, pingOptions))
+                |> List.map(fun host -> host, ping.Send(host, config.Timeout.Milliseconds, buffer, pingOptions))
 
             Ok replies
         with
-        | ex -> Error <| PingError ex
+        | ex -> Error ex
 
-    let createStats (pingReplyResult: Result<(string * PingReply) list, PingPluginError>) = result {
+    let createStats (pingReplyResult: Result<(string * PingReply) list, exn>) = result {
         let! pingResult = pingReplyResult
         let stats = new PluginStatistics()
 
         pingResult
-        |> List.map (fun x -> x |> PingPluginStatisticsHelper.createTables)
+        |> List.map(fun x -> x |> PingPluginStatistics.createTables)
         |> Array.ofList
         |> stats.Tables.AddRange
 
@@ -116,13 +115,10 @@ type PingPlugin (config: PingPluginConfig) =
 
         member x.StartTest (testInfo: TestInfo) =
             config
-            |> ping
+            |> execPing
             |> createStats
-            |> Result.mapError(fun x ->
-                match x with
-                | PingError ex -> _logger.Error(ex, ex.Message)
-            )
             |> Result.map(fun x -> _stats <- x)
+            |> Result.mapError(fun ex -> _logger.Error(ex.ToString()))
             |> ignore
 
             Task.CompletedTask

@@ -68,8 +68,8 @@ type Statistics = {
     DataMeanKb: float
     DataMaxKb: float
     AllDataMB: float
-    NodeInfo: NodeInfo
     Duration: TimeSpan
+    NodeInfo: NodeInfo
 }
 
 type PluginStatistics = DataSet
