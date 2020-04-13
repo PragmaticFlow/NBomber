@@ -6,7 +6,7 @@ open NBomber.Contracts
 
 let toUntypedFeed (feed: IFeed<'TFeedItem>) =
     { new IFeed<obj> with
-        member x.Name = feed.Name
+        member x.FeedName = feed.FeedName
         member x.GetNextItem(correlationId, stepData) = feed.GetNextItem(correlationId, stepData) :> obj }
 
 let rec createInfiniteStream (items: 'T seq) =
@@ -17,14 +17,14 @@ let rec createInfiniteStream (items: 'T seq) =
 
 let empty<'T> =
     { new IFeed<'T> with
-        member x.Name = Constants.EmptyFeedName
+        member x.FeedName = Constants.EmptyFeedName
         member x.GetNextItem(correlationId, stepData) = Unchecked.defaultof<'T> }
 
 let constant (name, provider: IFeedProvider<'T>) =
     let allItems = provider.GetAllItems()
 
     { new IFeed<'T> with
-        member x.Name = name
+        member x.FeedName = name
         member x.GetNextItem(correlationId, stepData) =
             let index = correlationId.CopyNumber % allItems.Length
             allItems.[index] }
@@ -35,7 +35,7 @@ let circular (name, provider: IFeedProvider<'T>) =
     let enumerator = infiniteItems.GetEnumerator()
 
     { new IFeed<'T> with
-        member x.Name = name
+        member x.FeedName = name
         member x.GetNextItem(correlationId, stepData) =
          enumerator.MoveNext() |> ignore
          enumerator.Current }
@@ -50,5 +50,5 @@ let random (name, provider: IFeedProvider<'T>) =
         allItems.[index]
 
     { new IFeed<'T> with
-        member x.Name = name
+        member x.FeedName = name
         member x.GetNextItem(correlationId, stepData) = getRandomItem() }

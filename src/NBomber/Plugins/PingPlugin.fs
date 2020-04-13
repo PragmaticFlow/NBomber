@@ -18,7 +18,7 @@ type PingPluginConfig = {
     DontFragment: bool
     Timeout: TimeSpan
 } with
-    static member Create (hosts: string seq) =
+    static member Create(hosts: string seq) =
         { Hosts = hosts |> Seq.toList
           BufferSizeBytes = 32
           Ttl = 128
@@ -74,10 +74,10 @@ module internal PingPluginStatistics =
         let tableName = sprintf "Ping %s" host
         pingReply |> createTable tableName
 
-type PingPlugin (config: PingPluginConfig) =
+type PingPlugin(config: PingPluginConfig) =
 
     let mutable _logger: ILogger = Unchecked.defaultof<ILogger>
-    let mutable _stats = new PluginStatistics()
+    let mutable _stats = new PluginStats()
 
     let execPing (config: PingPluginConfig) =
         try
@@ -99,7 +99,7 @@ type PingPlugin (config: PingPluginConfig) =
 
     let createStats (pingReplyResult: Result<(string * PingReply) list, exn>) = result {
         let! pingResult = pingReplyResult
-        let stats = new PluginStatistics()
+        let stats = new PluginStats()
 
         pingResult
         |> List.map(fun x -> x |> PingPluginStatistics.createTables)
@@ -110,10 +110,12 @@ type PingPlugin (config: PingPluginConfig) =
     }
 
     interface IPlugin with
-        member x.Init (logger, infraConfig) =
+        member x.PluginName = "NBomber.Plugins.Network.PingPlugin"
+
+        member x.Init(logger, infraConfig) =
             _logger <- logger.ForContext<PingPlugin>()
 
-        member x.StartTest (testInfo: TestInfo) =
+        member x.StartTest(testInfo: TestInfo) =
             config
             |> execPing
             |> createStats
@@ -123,8 +125,6 @@ type PingPlugin (config: PingPluginConfig) =
 
             Task.CompletedTask
 
-        member x.GetStats (testInfo: TestInfo) =
-            Task.FromResult(_stats)
-
-        member x.FinishTest (testInfo: TestInfo) =
-            Task.CompletedTask
+        member x.GetStats() = _stats
+        member x.StopTest() = Task.CompletedTask
+        member x.Dispose() = ()

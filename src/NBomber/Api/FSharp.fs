@@ -5,6 +5,7 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 
+open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Configuration.Yaml
@@ -189,7 +190,6 @@ module NBomberRunner =
 
     let runTest (context: TestContext) =
         NBomberRunner.runAs(Test, context)
-        |> Result.map(fun x -> x.Statistics)
         |> Result.mapError(AppError.toString)
 
     let internal runWithResult (context: TestContext) =

@@ -15,26 +15,13 @@
     <Description>Very simple load testing framework for Pull and Push scenarios.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="assets\assets.zip" />
-    <EmbeddedResource Include="assets\html\index.html" />
-    <EmbeddedResource Include="assets\html\sidebar.html" />
-    <EmbeddedResource Include="assets\html\sidebar_item.html" />
-    <EmbeddedResource Include="assets\html\scenario_view.html" />
-    <EmbeddedResource Include="assets\html\global_view.html" />
-    <EmbeddedResource Include="assets\html\statistics_table.html" />
-    <EmbeddedResource Include="assets\html\indicators_chart.html" />
-    <EmbeddedResource Include="assets\html\num_req_chart.html" />
-    <EmbeddedResource Include="assets\html\env_table.html" />
-    <EmbeddedResource Include="assets\html\env_view.html" />
-    <EmbeddedResource Include="assets\js\num_req_chart.js" />
-    <EmbeddedResource Include="assets\js\indicators_chart.js" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions\Extensions.fs" />
     <Compile Include="Extensions\InternalExtensions.fs" />
-    <Compile Include="Extensions\PushExtensions.fs" />
+    <Compile Include="Extensions\PushExtensions.fs" />    
     <Compile Include="Configuration\Configuration.fs" />
     <Compile Include="Configuration\YamlConfiguration.fs" />
-    <Compile Include="Configuration\Constants.fs" />
+    <Compile Include="Configuration\Constants.fs" />    
     <Compile Include="Contracts.fs" />
     <Compile Include="Domain\ConnectionPool.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
@@ -51,13 +38,10 @@
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Logger.fs" />
-    <Compile Include="Infra\HtmlBuilder.fs" />
-    <Compile Include="Infra\ResourceManager.fs" />
     <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\TestContext.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
-    <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\TxtReportPluginStats.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
@@ -74,7 +58,7 @@
     <PackageReference Include="CsvHelper" Version="15.0.0" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
     <PackageReference Include="FSharp.Json" Version="0.3.7" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="1.2.3" />
+    <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="1.2.6" />
     <PackageReference Include="HdrHistogram" Version="2.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Yaml" Version="2.0.0-preview2" />

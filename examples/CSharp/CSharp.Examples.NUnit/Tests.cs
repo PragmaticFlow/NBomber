@@ -32,13 +32,13 @@ namespace CSharp.Examples.NUnit
                     Simulation.KeepConcurrentScenarios(copiesCount: 1, during: TimeSpan.FromSeconds(2))
                 });
 
-            var allStats = NBomberRunner.RegisterScenarios(new[] {scenario}).RunTest();
-            var stepStats = allStats.First(x => x.StepName == "simple step");
+            var nodeStats = NBomberRunner.RegisterScenarios(new[] {scenario}).RunTest();
+            var stepStats = nodeStats.ScenarioStats.First().StepStats.First();
 
             Assert.IsTrue(stepStats.OkCount > 2, "OkCount > 2");
             Assert.IsTrue(stepStats.RPS > 8, "RPS > 8");
             Assert.IsTrue(stepStats.Percent75 >= 100, "Percent75 >= 100");
-            Assert.IsTrue(stepStats.DataMinKb == 1.0, "DataMinKb == 1.0");
+            Assert.IsTrue(stepStats.MinDataKb == 1.0, "DataMinKb == 1.0");
             Assert.IsTrue(stepStats.AllDataMB >= 0.01, "AllDataMB >= 0.01");
         }
     }

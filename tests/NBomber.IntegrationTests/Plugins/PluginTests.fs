@@ -1,4 +1,4 @@
-module Tests.PluginTests
+module Tests.Plugin
 
 open System
 open System.Data
@@ -12,7 +12,6 @@ open Xunit
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Errors
 open NBomber.Extensions
 open NBomber.FSharp
 
@@ -50,7 +49,7 @@ module internal PluginTestHelper =
 
         [scenario1; scenario2]
 
-  module internal PluginStatisticsHelper =
+module internal PluginStatisticsHelper =
 
     let private getPluginStatisticsColumns (prefix: string) =
         let colKey = new DataColumn("Key", Type.GetType("System.String"))
@@ -87,36 +86,27 @@ module internal PluginTestHelper =
 
         table
 
-    let createPluginStatistics () =
-        let pluginStats = new PluginStatistics()
+    let createPluginStats () =
+        let pluginStats = new PluginStats()
         pluginStats.Tables.Add(createTable("PluginStatistics1"))
         pluginStats.Tables.Add(createTable("PluginStatistics2"))
         pluginStats
 
 [<Fact>]
-let ``Nbomber with no plugins should return an empty list of plugin statistics`` () =
-
-    let scenarios = PluginTestHelper.createScenarios()
-
-    let result =
-        NBomberRunner.registerScenarios scenarios
-        |> NBomberRunner.runWithResult
-        |> Result.mapError(fun x -> x |> AppError.toString |> failwith)
-        |> Result.getOk
-
-    test <@ result.PluginStatistics.Length = 0 @>
-
-[<Fact>]
-let ``IPlugin.Init should be invoked once`` () =
+let ``Init should be invoked once`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginInitInvokedCounter = 0
 
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) = Task.FromResult(new PluginStatistics())
-                            member x.FinishTest(_) = Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
+            member x.StartTest(_) = Task.CompletedTask
+            member x.GetStats() = new PluginStats()
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins([plugin])
@@ -127,18 +117,24 @@ let ``IPlugin.Init should be invoked once`` () =
     test <@ pluginInitInvokedCounter = 1 @>
 
 [<Fact>]
-let ``IPlugin.StartTest should be invoked once`` () =
+let ``StartTest should be invoked once`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginStartTestInvokedCounter = 0
 
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) =
-                                pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
-                                Task.CompletedTask
-                            member x.GetStats(_) = Task.FromResult(new PluginStatistics())
-                            member x.FinishTest(_) = Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(_, _) = ()
+
+            member x.StartTest(_) =
+                pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
+                Task.CompletedTask
+
+            member x.GetStats() = new PluginStats()
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins([plugin])
@@ -150,18 +146,20 @@ let ``IPlugin.StartTest should be invoked once`` () =
 
 
 [<Fact>]
-let ``IPlugin.StartTest should be invoked with infra config`` () =
+let ``StartTest should be invoked with infra config`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginConfig = None
 
-    let plugin = { new IPlugin with
-                            member x.Init(logger, infraConfig) =
-                                pluginConfig <- infraConfig
-                                ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) = Task.FromResult(new PluginStatistics())
-                            member x.FinishTest(_) = Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(logger, infraConfig) = pluginConfig <- infraConfig
+            member x.StartTest(_) = Task.CompletedTask
+            member x.GetStats() = new PluginStats()
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
@@ -173,19 +171,24 @@ let ``IPlugin.StartTest should be invoked with infra config`` () =
     test <@ pluginConfig.IsSome @>
 
 [<Fact>]
-let ``IPlugin.GetStats should be invoked once`` () =
+let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no IReporingSinks were registered`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginGetStatsInvokedCounter = 0
 
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) =
-                                pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
-                                Task.FromResult(new PluginStatistics())
-                            member x.FinishTest(_) =
-                                Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
+
+            member x.GetStats() =
+                pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
+                new PluginStats()
+
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins([plugin])
@@ -193,21 +196,27 @@ let ``IPlugin.GetStats should be invoked once`` () =
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    test <@ pluginGetStatsInvokedCounter = 1 @>
+    test <@ pluginGetStatsInvokedCounter = 2 @>
 
 [<Fact>]
-let ``IPlugin.FinishTest should be invoked once`` () =
+let ``StopTest should be invoked once`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginFinishTestInvokedCounter = 0
 
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) = Task.FromResult(new PluginStatistics())
-                            member x.FinishTest(_) =
-                                pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
-                                Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
+            member x.GetStats() = new PluginStats()
+
+            member x.StopTest() =
+                pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
+                Task.CompletedTask
+
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins([plugin])
@@ -218,28 +227,37 @@ let ``IPlugin.FinishTest should be invoked once`` () =
     test <@ pluginFinishTestInvokedCounter = 1 @>
 
 [<Fact>]
-let ``IPlugin.GetStats should pass plugin statistics to ReportingSink`` () =
+let ``stats should be passed to IReportingSink and saved in reports`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
-    let mutable reportingSinkPluginStats = [| new PluginStatistics() |]
+    let mutable _nodeStats = Array.empty
+    let mutable _reports = Array.empty
 
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) =
-                                let pluginStatistics = PluginStatisticsHelper.createPluginStatistics()
-                                Task.FromResult(pluginStatistics)
-                            member x.FinishTest(_) =
-                                Task.CompletedTask }
+    let plugin = {
+        new IPlugin with
+            member x.PluginName = "TestPlugin"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
+            member x.GetStats() = PluginStatisticsHelper.createPluginStats()
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
-    let reportingSink = { new IReportingSink with
-                        member x.Init(_, _) = ()
-                        member x.StartTest(_) = Task.CompletedTask
-                        member x.SaveRealtimeStats(_, _) = Task.CompletedTask
-                        member x.SaveFinalStats(_, _, pluginStats, _) =
-                            reportingSinkPluginStats <- pluginStats
-                            Task.CompletedTask
-                        member x.FinishTest(_) = Task.CompletedTask }
+    let reportingSink = {
+        new IReportingSink with
+            member x.SinkName = "TestSink"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
+            member x.SaveRealtimeStats(_) = Task.CompletedTask
+
+            member x.SaveFinalStats(stats, reports) =
+                _nodeStats <- stats
+                _reports <- reports
+                Task.CompletedTask
+
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
@@ -248,47 +266,18 @@ let ``IPlugin.GetStats should pass plugin statistics to ReportingSink`` () =
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    let pluginStats = reportingSinkPluginStats.[0]
+    let pluginStats = _nodeStats.[0].PluginStats.[0]
     let table1 = pluginStats.Tables.["PluginStatistics1Table"]
     let table2 = pluginStats.Tables.["PluginStatistics2Table"]
 
+    // assert on IReportingSink
     test <@ table1.Columns.Count > 0 @>
     test <@ table1.Rows.Count > 0 @>
     test <@ table2.Columns.Count > 0 @>
     test <@ table2.Rows.Count > 0 @>
 
-[<Fact>]
-let ``IPlugin.GetStats should save plugin statistics into .txt report`` () =
-
-    let scenarios = PluginTestHelper.createScenarios()
-    let mutable reportingSinkReportFiles = Array.empty
-
-    let plugin = { new IPlugin with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.GetStats(_) =
-                                let pluginStatistics = PluginStatisticsHelper.createPluginStatistics()
-                                Task.FromResult(pluginStatistics)
-                            member x.FinishTest(_) =
-                                Task.CompletedTask }
-
-    let reportingSink = { new IReportingSink with
-                        member x.Init(_, _) = ()
-                        member x.StartTest(_) = Task.CompletedTask
-                        member x.SaveRealtimeStats(_, _) = Task.CompletedTask
-                        member x.SaveFinalStats(_, _, _, reportFiles) =
-                            reportingSinkReportFiles <- reportFiles
-                            Task.CompletedTask
-                        member x.FinishTest(_) = Task.CompletedTask }
-
-    NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
-    |> NBomberRunner.withPlugins([plugin])
-    |> NBomberRunner.runTest
-    |> Result.mapError(fun x -> failwith x)
-    |> ignore
-
-    reportingSinkReportFiles
+    // assert on reports
+    _reports
     |> Array.filter(fun x -> [ ReportFormat.Txt ] |> List.contains x.ReportFormat)
     |> Array.map(fun x -> x.FilePath |> File.ReadAllText)
     |> Array.iter(fun x -> test <@ x.Contains("PluginStatistics1Column") @>

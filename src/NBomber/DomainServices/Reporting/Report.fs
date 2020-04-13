@@ -7,45 +7,37 @@ open System.IO
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Domain.StatisticsTypes
 open NBomber.Extensions
-open NBomber.Infra
-open NBomber.Infra.Dependency
 
 type ReportsContent = {
     TxtReport: string list
     HtmlReport: string
     CsvReport: string
     MdReport: string
-}
- with
- static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
+} with
+    static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let private buildTxtReport (nodeStats: RawNodeStats[], pluginStats: PluginStatistics[]) =
+let private buildTxtReport (nodeStats: NodeStats) =
     let pluginsStats =
-        pluginStats
-        |> Array.collect(fun x -> x.GetTables())
-        |> Array.map(fun x -> x |> TxtReportPluginStats.print)
-        |> List.ofSeq
+        nodeStats.PluginStats
+        |> Seq.collect(fun x -> x.GetTables())
+        |> Seq.map(fun x -> x |> TxtReportPluginStats.print)
+        |> Seq.toList
 
-    TxtReport.print(nodeStats.[0]) :: pluginsStats
+    TxtReport.print(nodeStats) :: pluginsStats
 
-let build (dep: GlobalDependency, nodeStats: RawNodeStats[], pluginStats: PluginStatistics[]) =
-    match dep.NodeType with
-    | NodeType.SingleNode when nodeStats.Length > 0 ->
-        { TxtReport = buildTxtReport(nodeStats, pluginStats)
-          HtmlReport = HtmlReport.print(dep, nodeStats.[0])
-          CsvReport = CsvReport.print(nodeStats.[0])
-          MdReport = MdReport.print(nodeStats.[0]) }
-
-    | _ -> ReportsContent.empty
+let build (nodeStats: NodeStats) =
+    { TxtReport = buildTxtReport(nodeStats)
+      //HtmlReport = HtmlReport.print(dep, nodeStats)
+      HtmlReport = ""
+      CsvReport = CsvReport.print(nodeStats)
+      MdReport = MdReport.print(nodeStats) }
 
 let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat list,
           report: ReportsContent, logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         Directory.CreateDirectory(reportsDir) |> ignore
-        ResourceManager.saveAssets(reportsDir)
 
         let buildReportFile (format: ReportFormat) =
             let fileExt =
@@ -62,14 +54,14 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
         let txtRportContent = String.Join(Environment.NewLine, report.TxtReport)
 
         reportFiles
-        |> Array.map(fun x ->
+        |> Seq.map(fun x ->
             match x.ReportFormat with
             | ReportFormat.Txt  -> {| Content = txtRportContent; FilePath = x.FilePath |}
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
             | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
         )
-        |> Array.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
+        |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
         logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
         logger.Information(txtRportContent)

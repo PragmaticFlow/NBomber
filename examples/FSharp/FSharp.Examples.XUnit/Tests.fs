@@ -29,12 +29,12 @@ let ``XUnit test`` () =
                  |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
-        let stepStats = allStats |> Array.find(fun x -> x.StepName = "simple step")
+    | Ok nodeStats ->
+        let stepStats = nodeStats.ScenarioStats.[0].StepStats.[0]
         test <@ stepStats.OkCount > 2 @>
         test <@ stepStats.RPS > 8 @>
         test <@ stepStats.Percent75 >= 100 @>
-        test <@ stepStats.DataMinKb = 1.0 @>
+        test <@ stepStats.MinDataKb = 1.0 @>
         test <@ stepStats.AllDataMB >= 0.01 @>
 
     | Error msg -> failwith msg

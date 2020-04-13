@@ -29,10 +29,9 @@
     </Content>
     <Compile Include="TestContextTests.fs" />
     <Compile Include="Response.fs" />
+    <Compile Include="StepTests.fs" />
     <Compile Include="ScenarioTests.fs" />
     <Compile Include="StatisticsTests.fs" />
-    <Compile Include="Reporting\ReportingSinkTests.fs" />
-    <Compile Include="Step\Pull.fs" />
     <Compile Include="Configuration\LoadConfigTests.fs" />
     <Compile Include="Configuration\ApplySettingsTests.fs" />
     <Compile Include="Configuration\ValidationTests.fs" />
@@ -40,6 +39,7 @@
     <Compile Include="LoadTimeLineTests.fs" />
     <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
     <Compile Include="ConnectionPoolTests.fs" />
+    <Compile Include="Reporting\ReportingSinkTests.fs" />
     <Compile Include="Plugins\PluginTests.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,14 @@ module internal NBomber.Constants
 open NBomber.Configuration
 
 [<Literal>]
+let NBomberWelcomeText = """
+//        __   __         __   ___  __
+//  |\ | |__) /  \  |\/| |__) |__  |__)
+//  | \| |__) \__/  |  | |__) |___ |  \  '{0}' started a new session: '{1}'
+//
+"""
+
+[<Literal>]
 let DefaultScenarioDurationInSec = 60.0
 
 [<Literal>]

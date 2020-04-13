@@ -33,11 +33,7 @@ module internal Extensions =
             Seq.foldBack folder results (Ok List.empty)
 
         let toEmptyIO (results: Result<'T,'E> seq) =
-            results |> sequence |> Result.map(ignore) |> Result.mapError(List.head) |> Async.singleton
-
-    type Task<'T> with
-        static member map f (m: Task<_>) =
-            m.ContinueWith(fun (t: Task<_>) -> f t.Result)
+            results |> sequence |> Result.map(ignore) |> Result.mapError(List.head) |> Task.singleton
 
     type MaybeBuilder() =
 

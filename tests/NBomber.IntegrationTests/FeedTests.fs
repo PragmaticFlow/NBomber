@@ -1,4 +1,4 @@
-module Tests.FeedTests
+module Tests.Feed
 
 open Xunit
 open FsCheck
@@ -9,7 +9,7 @@ open NBomber
 open NBomber.Domain
 
 [<Property>]
-let ``Feed.createCircular iterate over array sequentially``(length: int) =
+let ``createCircular iterate over array sequentially``(length: int) =
 
     length > 10 ==> lazy
 
@@ -26,7 +26,7 @@ let ``Feed.createCircular iterate over array sequentially``(length: int) =
     test <@ actual = orderedList @>
 
 [<Property>]
-let ``Feed.createConstant returns next value from seq for the same correlationId``(length: int) =
+let ``createConstant returns next value from seq for the same correlationId``(length: int) =
 
     length > 10 ==> lazy
 
@@ -44,7 +44,7 @@ let ``Feed.createConstant returns next value from seq for the same correlationId
     test <@ actual <> sameValues @>
 
 [<Property>]
-let ``Feed.createConstant returns the same value for the same correlationId``(length: int) =
+let ``createConstant returns the same value for the same correlationId``(length: int) =
 
     length > 10 ==> lazy
 
@@ -62,7 +62,7 @@ let ``Feed.createConstant returns the same value for the same correlationId``(le
     test <@ actual = sameValues @>
 
 [<Fact>]
-let ``Feed.createRandom returns the random numbers list for each full iteration``() =
+let ``createRandom returns the random numbers list for each full iteration``() =
 
     let numbers = [1;2;3;4;5;6;7;8]
 
@@ -85,7 +85,7 @@ let ``Feed.createRandom returns the random numbers list for each full iteration`
     test <@ actual1 <> actual2 @>
 
 [<Property>]
-let ``Feed provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
+let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
     (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u ) ==> lazy
 

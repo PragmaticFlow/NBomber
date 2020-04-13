@@ -2,7 +2,7 @@ module internal NBomber.DomainServices.Reporting.MdReport
 
 open System
 
-open NBomber.Domain.StatisticsTypes
+open NBomber.Contracts
 
 [<AutoOpen>]
 module private Impl =
@@ -24,10 +24,10 @@ module private Impl =
           "request count", count
           "response time", times
           "response time percentile", percentile
-          if s.DataTransfer.AllMB > 0.0 then
-            "data transfer",
-                    sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`"
-                        s.DataTransfer.MinKb s.DataTransfer.MeanKb s.DataTransfer.MaxKb s.DataTransfer.AllMB
+
+          if s.AllDataMB > 0.0 then
+            "data transfer", sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`"
+                             s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
           else ()
         ]
 
@@ -48,19 +48,18 @@ module private Impl =
         [ sprintf "# Scenario: `%s`" (scnStats.ScenarioName.Replace('_', ' '))
           ""
           sprintf "- Duration: `%A`" scnStats.Duration
-          sprintf "- RPS: `%i`" scnStats.RPS
           ""
         ]
         |> String.concat Environment.NewLine
 
-let print (stats: RawNodeStats) =
+let print (nodeStats: NodeStats) =
     let appendLine s = s + Environment.NewLine
 
-    stats.AllScenariosStats
-    |> Seq.collect (fun x ->
+    nodeStats.ScenarioStats
+    |> Seq.collect(fun x ->
         seq {
             scenarioHeader x
-            x.StepsStats
+            x.StepStats
             |> List.ofArray
             |> List.collect asMdTable
             |> List.append [ "__step__", "__details__" ]

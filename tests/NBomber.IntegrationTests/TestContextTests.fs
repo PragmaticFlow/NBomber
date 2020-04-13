@@ -1,4 +1,4 @@
-﻿module Tests.TestContextTests
+﻿module Tests.TestContext
 
 open System
 
@@ -45,7 +45,7 @@ let context = {
 }
 
 [<Fact>]
-let ``TestContext.getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
+let ``getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
     let glSettings = { globalSettings with TargetScenarios = None }
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
@@ -55,7 +55,7 @@ let ``TestContext.getTargetScenarios should return all registered scenarios if T
     | _ -> failwith ""
 
 [<Fact>]
-let ``TestContext.getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =
+let ``getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =
     let glSettings = { globalSettings with TargetScenarios = Some ["10"] }
     let config = { config with GlobalSettings = Some glSettings }
 
@@ -70,7 +70,7 @@ let ``TestContext.getTargetScenarios should return only target scenarios if Targ
     | _ -> failwith ""
 
 [<Property>]
-let ``TestContext.getReportFileName should return from GlobalSettings, if empty then from TestContext, if empty then default name``
+let ``getReportFileName should return from GlobalSettings, if empty then from TestContext, if empty then default name``
     (configValue: string option, contextValue: string option) =
 
     (configValue.IsNone || configValue.IsSome && not (isNull configValue.Value)) ==> lazy
@@ -92,7 +92,7 @@ let ``TestContext.getReportFileName should return from GlobalSettings, if empty 
     | None, None       -> test <@ fileName = "report_sessionId" @>
 
 [<Property>]
-let ``TestContext.getReportFormats should return from GlobalSettings, if empty then from TestContext, if empty then all supported formats``
+let ``getReportFormats should return from GlobalSettings, if empty then from TestContext, if empty then all supported formats``
     (configValue: ReportFormat list option, contextValue: ReportFormat list) =
 
     let glSettings = { globalSettings with ReportFormats = configValue }
@@ -112,7 +112,7 @@ let ``TestContext.getReportFormats should return from GlobalSettings, if empty t
     | None, v -> test <@ formats = contextValue @>
 
 [<Property>]
-let ``TestContext.getTestSuite should return from Config, if empty then from TestContext``
+let ``getTestSuite should return from Config, if empty then from TestContext``
     (configValue: string option) =
 
     match configValue with
@@ -127,7 +127,7 @@ let ``TestContext.getTestSuite should return from Config, if empty then from Tes
         test <@ testSuite = context.TestSuite @>
 
 [<Property>]
-let ``TestContext.getTestName should return from Config, if empty then from TestContext``
+let ``getTestName should return from Config, if empty then from TestContext``
     (configValue: string option) =
 
     match configValue with
@@ -142,7 +142,7 @@ let ``TestContext.getTestName should return from Config, if empty then from Test
         test <@ testSuite = context.TestName @>
 
 [<Property>]
-let ``TestContext.getConnectionPoolSettings should return from Config, if empty then empty result``
+let ``getConnectionPoolSettings should return from Config, if empty then empty result``
     (configValue: int option) =
 
     match configValue with

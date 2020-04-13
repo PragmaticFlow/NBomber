@@ -1,4 +1,4 @@
-﻿module Tests.StatisticsTests
+﻿module Tests.Statistics
 
 open System
 

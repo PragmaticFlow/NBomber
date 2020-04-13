@@ -1,4 +1,4 @@
-module Tests.ReportingSinkTests
+module Tests.ReportingSink
 
 open System
 open System.Threading.Tasks
@@ -16,7 +16,7 @@ open NBomber.FSharp
 //todo: test cluster stats
 
 [<Fact>]
-let ``IReportingSink.SaveStatistics should be invoked many times during test execution to send realtime stats`` () =
+let ``SaveRealtimeStats should be invoked many times during test execution to send realtime stats`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -32,19 +32,23 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
 
     let mutable statsInvokedCounter = 0
 
-    let reportingSink = { new IReportingSink with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
-                            member x.SaveRealtimeStats(_, stats) =
-                                // 1 invoke per 5 sec
-                                statsInvokedCounter <- statsInvokedCounter + 1
-                                Task.CompletedTask
+    let reportingSink = {
+        new IReportingSink with
+            member x.SinkName = "TestSink"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
+            member x.SaveRealtimeStats(_) =
+                // 1 invoke per 5 sec
+                statsInvokedCounter <- statsInvokedCounter + 1
+                Task.CompletedTask
 
-                            member x.SaveFinalStats(_, _, _,_) =
-                                statsInvokedCounter <- statsInvokedCounter + 1
-                                Task.CompletedTask
+            member x.SaveFinalStats(_, _) =
+                statsInvokedCounter <- statsInvokedCounter + 1
+                Task.CompletedTask
 
-                            member x.FinishTest(_) = Task.CompletedTask }
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
@@ -54,7 +58,7 @@ let ``IReportingSink.SaveStatistics should be invoked many times during test exe
     test <@ statsInvokedCounter >= 3 @> // 1 invoke as realtime and 1 invoke at the end
 
 [<Fact>]
-let ``IReportingSink.SaveStatistics should be invoked with correct operation type = WarmUp or Bombing`` () =
+let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -71,21 +75,26 @@ let ``IReportingSink.SaveStatistics should be invoked with correct operation typ
     let mutable bombingCounter = 0
     let mutable completeCounter = 0
 
-    let reportingSink = { new IReportingSink with
-                            member x.Init(_, _) = ()
-                            member x.StartTest(_) = Task.CompletedTask
+    let reportingSink = {
+        new IReportingSink with
+            member x.SinkName = "TestSink"
+            member x.Init(_, _) = ()
+            member x.StartTest(_) = Task.CompletedTask
 
-                            member x.SaveRealtimeStats(_, stats) =
-                                match stats.[0].NodeInfo.CurrentOperation with
-                                | NodeOperationType.Bombing
-                                | NodeOperationType.Complete -> bombingCounter <- bombingCounter + 1
-                                | _                          -> failwith "operation type is invalid for SaveStatistics"
-                                Task.CompletedTask
+            member x.SaveRealtimeStats(stats) =
+                match stats.[0].NodeInfo.CurrentOperation with
+                | NodeOperationType.Bombing
+                | NodeOperationType.Complete -> bombingCounter <- bombingCounter + 1
+                | _                          -> failwith "operation type is invalid for SaveStatistics"
+                Task.CompletedTask
 
-                            member x.SaveFinalStats(_, _, _, _) =
-                                completeCounter <- completeCounter + 1
-                                Task.CompletedTask
-                            member x.FinishTest(_) = Task.CompletedTask }
+            member x.SaveFinalStats(_, _) =
+                completeCounter <- completeCounter + 1
+                Task.CompletedTask
+
+            member x.StopTest() = Task.CompletedTask
+            member x.Dispose() = ()
+    }
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)

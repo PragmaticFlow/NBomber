@@ -6,7 +6,7 @@ open FsCheck.Xunit
 open NBomber.Contracts
 
 [<Property>]
-let ``Response.Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
+let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
     let response = Response.Ok(payload)
 
     let actual = {| Size = response.SizeBytes |}

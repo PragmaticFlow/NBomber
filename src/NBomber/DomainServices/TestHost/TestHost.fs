@@ -35,11 +35,10 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
           CurrentOperation = _currentOperation }
 
     let getNodeStats (executionTime) =
-        _scnSchedulers
-        |> Seq.map(fun x -> x.GetScenarioStats executionTime)
-        |> Seq.toArray
-        |> NodeStats.create(getCurrentNodeInfo())
-        |> List.singleton
+        let nodeInfo = getCurrentNodeInfo()
+        let pluginStats = dep.Plugins |> Seq.map(fun x -> x.GetStats()) |> Seq.toArray
+        let scnStats = _scnSchedulers |> Seq.map(fun x -> x.GetScenarioStats executionTime) |> Seq.toArray
+        NodeStats.create nodeInfo scnStats pluginStats
 
     let execStopCommand (command: StopCommand) =
         match command with
@@ -70,7 +69,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         targetScns
         |> List.map(createScheduler _cancelToken.Token)
 
-    let initScenarios (sessionArgs: TestSessionArgs) = asyncResult {
+    let initScenarios (sessionArgs: TestSessionArgs) = taskResult {
         _sessionArgs <- sessionArgs
 
         let defaultScnContext = {
@@ -173,7 +172,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
     member x.GetNodeStats(duration) = getNodeStats(duration)
 
-    member x.RunSession(args: TestSessionArgs) = asyncResult {
+    member x.RunSession(args: TestSessionArgs) = taskResult {
         do! x.InitScenarios(args)
 
         let currentOperationTimer = Stopwatch()
@@ -182,14 +181,15 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         currentOperationTimer.Restart()
         do! x.WarmUpScenarios()
         let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
-        do! Scenario.Validation.validateWarmUpStats(warmUpStats)
+        do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
         // bombing
         use reportingTimer =
             TestHostReporting.startReportingTimer(
-                dep, _sessionArgs,
+                dep, _sessionArgs.SendStatsInterval,
                 (fun () -> _currentOperation, currentOperationTimer.Elapsed),
-                getNodeStats)
+                (fun (operationTime) -> operationTime |> getNodeStats |> List.singleton |> Task.FromResult)
+            )
 
         currentOperationTimer.Restart()
         do! x.StartBombing()

@@ -9,9 +9,9 @@ open NBomber
 open NBomber.Extensions
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
+open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.ConnectionPool
 
 module Validation =
@@ -34,8 +34,8 @@ module Validation =
         if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
         else Ok scenario
 
-    let validateWarmUpStats (nodesStats: RawNodeStats list) =
-        let folder (state) (stats: RawNodeStats) =
+    let validateWarmUpStats (nodesStats: NodeStats list) =
+        let folder (state) (stats: NodeStats) =
             state |> Result.bind(fun _ ->
                 if stats.FailCount > stats.OkCount then
                     AppError.createResult(WarmUpErrorWithManyFailedSteps(stats.OkCount, stats.FailCount))

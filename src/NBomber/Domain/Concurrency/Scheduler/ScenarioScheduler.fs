@@ -9,6 +9,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -108,7 +109,7 @@ type ScenarioScheduler(dep: ActorDep) =
         getAllActors()
         |> List.collect(fun x -> x.GetStepResults executionTime)
         |> Seq.toArray
-        |> Statistics.ScenarioStats.create dep.Scenario executionTime
+        |> RawScenarioStats.create dep.Scenario executionTime
 
     do
         _timer.Elapsed.Add(fun _ ->

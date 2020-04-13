@@ -13,7 +13,7 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 [<Property>]
-let ``LoadTimeLine.createTimeLine should correctly calculate and order time within timeline`` (simulations: LoadSimulation list) =
+let ``createTimeLine should correctly calculate and order time within timeline`` (simulations: LoadSimulation list) =
     result {
         let! timeLine = LoadTimeLine.createTimeLine(simulations)
 
@@ -38,7 +38,7 @@ let ``LoadTimeLine.createTimeLine should correctly calculate and order time with
     |> ignore
 
 [<Property>]
-let internal ``LoadTimeLine.getRunningTimeSegment should correctly determine and return running time segment``
+let internal ``getRunningTimeSegment should correctly determine and return running time segment``
     (currentTimeTicks: uint32, timeLine: LoadTimeLine) =
 
     let currentTime = TimeSpan(int64 currentTimeTicks)
@@ -57,7 +57,7 @@ let internal ``LoadTimeLine.getRunningTimeSegment should correctly determine and
         test <@ timeIsOver = true @>
 
 [<Fact>]
-let ``LoadTimeLine.calcTimeSegmentProgress should correctly calculate progress for concrete segment`` () =
+let ``calcTimeSegmentProgress should correctly calculate progress for concrete segment`` () =
 
     let currentTime = TimeSpan.FromSeconds 22.0
     let startTime = TimeSpan.FromSeconds 20.0

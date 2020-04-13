@@ -29,9 +29,9 @@ let run () =
                    ]
 
     let pingPluginConfig = PingPluginConfig.Create ["nbomber.com"; "github.com"]
-    let pingPlugin = PingPlugin(pingPluginConfig)
+    use pingPlugin = new PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
-    |> NBomberRunner.withPlugins([pingPlugin])
+    |> NBomberRunner.withPlugins [pingPlugin]
     |> NBomberRunner.runInConsole

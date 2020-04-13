@@ -29,7 +29,7 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
 
         member x.GetPreviousStepResponse<'T>() = data.[Constants.StepResponseKey] :?> 'T
         member x.StopScenario(scenarioName, reason) = StopScenario(scenarioName, reason) |> execStopCommand
-        member x.StopTest(reason) = StopTest(reason) |> execStopCommand
+        member x.StopCurrentTest(reason) = StopTest(reason) |> execStopCommand
 
     member x.ExecStopCommand(command) = execStopCommand(command)
 

@@ -77,11 +77,11 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
         | Ok connections ->
             _aliveConnections <- connections |> List.toArray
             _eventStream.OnNext(InitFinished)
-            Ok() |> Async.singleton
+            Ok() |> Task.singleton
 
         | Error exs ->
             _eventStream.OnNext(InitFailed)
-            exs.Head |> Error |> Async.singleton
+            exs.Head |> Error |> Task.singleton
 
     let closeAllConnections (token: CancellationToken) =
         _eventStream.OnNext(StartedStop args.PoolName)

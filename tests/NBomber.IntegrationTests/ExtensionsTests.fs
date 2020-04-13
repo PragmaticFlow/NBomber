@@ -10,13 +10,13 @@ open FsCheck.Xunit
 open NBomber.Extensions
 
 [<Fact>]
-let ``Extensions.String.concatWithCommaAndQuotes should concat strings with quotes`` () =
+let ``String concatWithCommaAndQuotes should concat strings with quotes`` () =
     Assert.Equal("'foo', 'bar', 'baz'", ["foo"; "bar"; "baz"] |> String.concatWithCommaAndQuotes)
     Assert.Equal("'foo'", ["foo"] |> String.concatWithCommaAndQuotes)
     Assert.Equal("", [] |> String.concatWithCommaAndQuotes)
 
 [<Fact>]
-let ``PushResponseBuffer.WaitOnPushResponse should return always a new task`` () =
+let ``PushResponseBuffer WaitOnPushResponse should return always a new task`` () =
     use buffer = new PushResponseBuffer()
 
     buffer.InitBufferForClient("id")

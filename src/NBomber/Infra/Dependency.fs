@@ -9,7 +9,6 @@ open ShellProgressBar
 open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts
-open NBomber.Infra.ResourceManager
 
 type ApplicationType =
     | Process
@@ -29,7 +28,6 @@ type GlobalDependency = {
     ApplicationType: ApplicationType
     NodeType: NodeType
     MachineInfo: MachineInfo
-    Assets: Assets
     CreateManualProgressBar: int -> IProgressBar
     CreateAutoProgressBar: TimeSpan -> IProgressBar
     Logger: ILogger
@@ -86,7 +84,6 @@ let create (appType: ApplicationType,
       ApplicationType = appType
       NodeType = nodeType
       MachineInfo = retrieveMachineInfo()
-      Assets = ResourceManager.loadAssets()
       CreateManualProgressBar = ProgressBar.createManual
       CreateAutoProgressBar = ProgressBar.createAuto
       Logger = logger

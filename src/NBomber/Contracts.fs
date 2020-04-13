@@ -25,6 +25,12 @@ type Response = {
     LatencyMs: int
 }
 
+type TestInfo = {
+    SessionId: string
+    TestSuite: string
+    TestName: string
+}
+
 type NodeType =
     | SingleNode
     | Coordinator
@@ -45,15 +51,9 @@ type NodeInfo = {
     CurrentOperation: NodeOperationType
 }
 
-type TestInfo = {
-    SessionId: string
-    TestSuite: string
-    TestName: string
-}
-
-type Statistics = {
-    ScenarioName: string
+type StepStats = {
     StepName: string
+    RequestCount: int
     OkCount: int
     FailCount: int
     Min: int
@@ -64,15 +64,40 @@ type Statistics = {
     Percent75: int
     Percent95: int
     StdDev: int
-    DataMinKb: float
-    DataMeanKb: float
-    DataMaxKb: float
+    MinDataKb: float
+    MeanDataKb: float
+    MaxDataKb: float
     AllDataMB: float
-    Duration: TimeSpan
-    NodeInfo: NodeInfo
 }
 
-type PluginStatistics = DataSet
+type LatencyCount = {
+    Less800: int
+    More800Less1200: int
+    More1200: int
+}
+
+type ScenarioStats = {
+    ScenarioName: string
+    RequestCount: int
+    OkCount: int
+    FailCount: int
+    AllDataMB: float
+    StepStats: StepStats[]
+    LatencyCount: LatencyCount
+    Duration: TimeSpan
+}
+
+type PluginStats = DataSet
+
+type NodeStats = {
+    RequestCount: int
+    OkCount: int
+    FailCount: int
+    AllDataMB: float
+    ScenarioStats: ScenarioStats[]
+    PluginStats: PluginStats[]
+    NodeInfo: NodeInfo
+}
 
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
@@ -84,7 +109,7 @@ type IFeedProvider<'TFeedItem> =
     abstract GetAllItems: unit -> 'TFeedItem[]
 
 type IFeed<'TFeedItem> =
-    abstract Name: string
+    abstract FeedName: string
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TConnection,'TFeedItem> =
@@ -96,7 +121,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     abstract Logger: ILogger
     abstract GetPreviousStepResponse: unit -> 'T
     abstract StopScenario: scenarioName:string * reason:string -> unit
-    abstract StopTest: reason:string -> unit
+    abstract StopCurrentTest: reason:string -> unit
 
 type ScenarioContext = {
     NodeInfo: NodeInfo
@@ -129,17 +154,21 @@ type ReportFile = {
 }
 
 type IReportingSink =
+    inherit IDisposable
+    abstract SinkName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
-    abstract SaveRealtimeStats: testInfo:TestInfo * stats:Statistics[] -> Task
-    abstract SaveFinalStats: testInfo:TestInfo * stats:Statistics[] * pluginStats:PluginStatistics[] * reportFiles:ReportFile[] -> Task
-    abstract FinishTest: testInfo:TestInfo -> Task
+    abstract SaveRealtimeStats: stats:NodeStats[] -> Task
+    abstract SaveFinalStats: stats:NodeStats[] * reportFiles:ReportFile[] -> Task
+    abstract StopTest: unit -> Task
 
 type IPlugin =
+    inherit IDisposable
+    abstract PluginName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
-    abstract GetStats: testInfo:TestInfo -> Task<PluginStatistics>
-    abstract FinishTest: testInfo:TestInfo -> Task
+    abstract GetStats: unit -> PluginStats
+    abstract StopTest: unit -> Task
 
 type TestContext = {
     TestSuite: string

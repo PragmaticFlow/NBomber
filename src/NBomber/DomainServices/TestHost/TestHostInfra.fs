@@ -13,7 +13,6 @@ open NBomber.Contracts
 open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ConnectionPool
 open NBomber.Infra
@@ -51,30 +50,28 @@ module internal TestSessionArgs =
 
 module internal TestHostReporting =
 
-    let saveStats (testInfo: TestInfo, nodeStats: RawNodeStats list, sinks: IReportingSink list) =
-        nodeStats
-        |> List.collect(fun x ->
-            let stats = Statistics.create(x)
-            sinks |> List.map(fun snk -> snk.SaveRealtimeStats(testInfo, stats))
-        )
+    let saveRealtimeStats (sinks: IReportingSink list) (nodeStats: NodeStats list) =
+        sinks
+        |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveRealtimeStats)
         |> Task.WhenAll
 
     let startReportingTimer (dep: GlobalDependency,
-                             sessionArgs: TestSessionArgs,
+                             sendStatsInterval: TimeSpan,
                              getOperationInfo: unit -> (NodeOperationType * TimeSpan),
-                             getNodeStats: TimeSpan -> RawNodeStats list) =
+                             getNodeStats: TimeSpan -> Task<NodeStats list>) =
 
         if not (List.isEmpty dep.ReportingSinks) then
 
-            let timer = new System.Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
+            let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
 
                 let (operation,operationTime) = getOperationInfo()
 
                 match operation with
                 | NodeOperationType.Bombing ->
-                    let rawNodeStats = getNodeStats(operationTime)
-                    saveStats(sessionArgs.TestInfo, rawNodeStats, dep.ReportingSinks)
+                    operationTime
+                    |> getNodeStats
+                    |> Task.map(saveRealtimeStats dep.ReportingSinks)
                     |> ignore
 
                 | _ -> ()
@@ -168,7 +165,7 @@ module internal TestHostConsole =
 module internal TestHostScenario =
 
     let initConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
-        asyncResult {
+        taskResult {
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
                 do! pool.Init(token)
@@ -186,7 +183,7 @@ module internal TestHostScenario =
     let initScenarios (dep: GlobalDependency,
                        defaultScnContext: ScenarioContext,
                        registeredScenarios: Scenario list,
-                       sessionArgs: TestSessionArgs) = asyncResult {
+                       sessionArgs: TestSessionArgs) = taskResult {
 
         let tryInitScenario (context: ScenarioContext, initFunc: ScenarioContext -> Task) =
             try

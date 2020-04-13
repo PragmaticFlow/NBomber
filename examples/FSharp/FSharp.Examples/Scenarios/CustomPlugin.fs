@@ -14,12 +14,11 @@ open NBomber.FSharp
 
 type CustomPlugin () =
     interface IPlugin with
-        member x.Init (logger, infraConfig) = ()
+        member x.PluginName = "CustomPlugin"
+        member x.Init(logger, infraConfig) = ()
+        member x.StartTest(testInfo: TestInfo) = Task.CompletedTask
 
-        member x.StartTest (testInfo: TestInfo) =
-            Task.CompletedTask
-
-        member x.GetStats (testInfo: TestInfo) =
+        member x.GetStats() =
             let table = new DataTable("Custom Statistics")
 
             [| "Key", "Property", "System.String"
@@ -33,19 +32,17 @@ type CustomPlugin () =
 
             table.Rows.Add("Test property", "Test value") |> ignore
 
-            let stats = new PluginStatistics()
-
+            let stats = new DataSet()
             stats.Tables.Add(table)
+            stats
 
-            Task.FromResult(stats)
-
-        member x.FinishTest (testInfo: TestInfo) =
-            Task.CompletedTask
+        member x.StopTest() = Task.CompletedTask
+        member x.Dispose() = ()
 
 let run () =
 
     let httpClient = new HttpClient()
-    let customPlugin = CustomPlugin()
+    use customPlugin = new CustomPlugin()
 
     let step = Step.create("GET html", fun context -> task {
         use! response = httpClient.GetAsync("https://nbomber.com",
@@ -64,5 +61,5 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withPlugins([customPlugin])
+    |> NBomberRunner.withPlugins [customPlugin]
     |> NBomberRunner.runInConsole

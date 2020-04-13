@@ -1,4 +1,4 @@
-module Tests.ConnectionPoolTests
+module Tests.ConnectionPool
 
 open System
 open System.Threading.Tasks
@@ -13,7 +13,7 @@ open NBomber.Contracts
 open NBomber.FSharp
 
 [<Fact>]
-let ``ConnectionPool should distribute connection with one to one mapping if connectionPool.Count = loadSimulation copiesCount``() =
+let ``should distribute connection with one to one mapping if connectionPool.Count = loadSimulation copiesCount``() =
 
     let connectionCount = 100
 
@@ -42,16 +42,15 @@ let ``ConnectionPool should distribute connection with one to one mapping if con
         |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
-
-        let stepStats = allStats |> Seq.find(fun x -> x.StepName = "step")
+    | Ok nodeStats ->
+        let stepStats = nodeStats.ScenarioStats.[0]
         test <@ stepStats.OkCount > 0 @>
         test <@ stepStats.FailCount = 0 @>
 
     | Error error -> failwith error
 
 [<Fact>]
-let ``ConnectionPool should distribute connection using modulo if connectionPool.Count < loadSimulation copiesCount``() =
+let ``should distribute connection using modulo if connectionPool.Count < loadSimulation copiesCount``() =
 
     let connectionCount = 5
     let copiesCount = 10
@@ -83,16 +82,15 @@ let ``ConnectionPool should distribute connection using modulo if connectionPool
         |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
-
-        let stepStats = allStats |> Seq.find(fun x -> x.StepName = "step")
+    | Ok nodeStats ->
+        let stepStats = nodeStats.ScenarioStats.[0]
         test <@ stepStats.OkCount > 0 @>
         test <@ stepStats.FailCount = 0 @>
 
     | Error error -> failwith error
 
 [<Fact>]
-let ``ConnectionPool should be shared btw steps as singlton instance``() =
+let ``should be shared btw steps as singlton instance``() =
 
     let connectionCount = 100
 
@@ -126,16 +124,16 @@ let ``ConnectionPool should be shared btw steps as singlton instance``() =
         |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
+    | Ok nodeStats ->
 
-        let step_2_stats = allStats |> Seq.find(fun x -> x.StepName = "step_2")
+        let step_2_stats = nodeStats.ScenarioStats.[0].StepStats |> Seq.find(fun x -> x.StepName = "step_2")
         test <@ step_2_stats.OkCount > 0 @>
         test <@ step_2_stats.FailCount = 0 @>
 
     | Error error -> failwith error
 
 [<Fact>]
-let ``ConnectionPool openConnection should stop test session in case of failure``() =
+let ``openConnection should stop test session in case of failure``() =
 
     let connectionCount = 100
 
@@ -164,7 +162,7 @@ let ``ConnectionPool openConnection should stop test session in case of failure`
     | Error error -> ()
 
 [<Fact>]
-let ``ConnectionPool openConnection should use try logic in case of some errors``() =
+let ``openConnection should use try logic in case of some errors``() =
 
     let connectionCount = 1
     let mutable tryCount = 0
@@ -196,7 +194,7 @@ let ``ConnectionPool openConnection should use try logic in case of some errors`
     | Error error -> test <@ tryCount >= 5 @>
 
 [<Fact>]
-let ``ConnectionPool closeConnection should not affect test session in case of failure``() =
+let ``closeConnection should not affect test session in case of failure``() =
 
     let connectionCount = 10
     let mutable closeInvokeCount = 0
@@ -227,7 +225,7 @@ let ``ConnectionPool closeConnection should not affect test session in case of f
     | Error error -> failwith "unhandled exception"
 
 [<Fact>]
-let ``ConnectionPool should be initialized only once``() =
+let ``should be initialized only once``() =
 
     let connectionCount = 10
     let mutable initedConnections = 0
@@ -262,12 +260,12 @@ let ``ConnectionPool should be initialized only once``() =
         |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats -> test <@ initedConnections = connectionCount @>
-                     test <@ allStats.Length = 2 @>
+    | Ok nodeStats -> test <@ initedConnections = connectionCount @>
+                      test <@ nodeStats.ScenarioStats.Length = 2 @>
     | Error error -> failwith "unhandled exception"
 
 [<Fact>]
-let ``ConnectionPool should be initialized after scenario init``() =
+let ``should be initialized after scenario init``() =
 
     let connectionCount = 1
     let mutable lastInvokeComponent = ""
@@ -276,13 +274,15 @@ let ``ConnectionPool should be initialized after scenario init``() =
         lastInvokeComponent <- "scenario"
     }
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) ->
-                                             lastInvokeComponent <- "connection_pool"
-                                             Task.FromResult number),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
-
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) ->
+                lastInvokeComponent <- "connection_pool"
+                Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
@@ -305,17 +305,20 @@ let ``ConnectionPool should be initialized after scenario init``() =
     | Error error -> failwith "unhandled exception"
 
 [<Fact>]
-let ``ConnectionPool should support 65K of connections``() =
+let ``should support 65K of connections``() =
 
     let connectionCount = 65_000
     let mutable invokeCount = 0
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) ->
-                                             invokeCount <- invokeCount + 1
-                                             Task.FromResult number),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) ->
+                invokeCount <- invokeCount + 1
+                Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)

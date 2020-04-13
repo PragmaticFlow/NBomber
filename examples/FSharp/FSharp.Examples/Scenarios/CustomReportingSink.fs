@@ -13,21 +13,14 @@ open NBomber.FSharp
 // for production purposes use https://github.com/PragmaticFlow/NBomber.Sinks.InfluxDB
 
 type CustomReportingSink() =
-
     interface IReportingSink with
+        member x.SinkName = "CustomReportingSink"
         member x.Init(logger, infraConfig) = ()
-
-        member x.StartTest(testInfo: TestInfo) =
-            Task.CompletedTask
-
-        member x.SaveRealtimeStats(testInfo: TestInfo, stats: Statistics[]) =
-            Task.CompletedTask
-
-        member x.SaveFinalStats(testInfo: TestInfo, stats: Statistics[], pluginStats: PluginStatistics[], reportFiles: ReportFile[]) =
-            Task.CompletedTask
-
-        member x.FinishTest(testInfo: TestInfo) =
-            Task.CompletedTask
+        member x.StartTest(testInfo: TestInfo) = Task.CompletedTask
+        member x.SaveRealtimeStats(stats:NodeStats[]) = Task.CompletedTask
+        member x.SaveFinalStats(stats:NodeStats[], reportFiles:ReportFile[]) = Task.CompletedTask
+        member x.StopTest() = Task.CompletedTask
+        member x.Dispose() = ()
 
 let run () =
 
@@ -49,7 +42,7 @@ let run () =
                        KeepConcurrentScenarios(200, TimeSpan.FromSeconds 60.0)
                    ]
 
-    let customReportingSink = CustomReportingSink()
+    use customReportingSink = new CustomReportingSink()
     let sendStatsInterval = TimeSpan.FromSeconds 30.0
 
     NBomberRunner.registerScenarios [scenario]

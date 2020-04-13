@@ -25,6 +25,6 @@ let private printPluginStatisticTable (table: DataTable) =
     consoleTable.ToStringAlternative()
 
 let print (table: DataTable) =
-    [ table |> printPluginStatisticHeader
-      table |> printPluginStatisticTable
-    ] |> concatLines
+    [table |> printPluginStatisticHeader
+     table |> printPluginStatisticTable]
+    |> concatLines

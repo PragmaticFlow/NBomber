@@ -11,19 +11,13 @@ type DataTransferCount = {
     AllMB: float
 }
 
-type LatencyCount = {
-    Less800: int
-    More800Less1200: int
-    More1200: int
-}
-
-type StepResults = {
+type RawStepResults = {
     StepName: string
     Responses: StepResponse[]
     DataTransfer: DataTransferCount
 }
 
-type StepStats = {
+type RawStepStats = {
     StepName: string
     OkLatencies: Latency[]
     RequestCount: int
@@ -40,20 +34,13 @@ type StepStats = {
     DataTransfer: DataTransferCount
 }
 
-type ScenarioStats = {
+type RawScenarioStats = {
     ScenarioName: string
-    StepsStats: StepStats[]
-    RPS: int
+    RequestCount: int
     OkCount: int
     FailCount: int
+    AllDataMB: float
+    RawStepsStats: RawStepStats[]
     LatencyCount: LatencyCount
     Duration: TimeSpan
-}
-
-type RawNodeStats = {
-    AllScenariosStats: ScenarioStats[]
-    OkCount: int
-    FailCount: int
-    LatencyCount: LatencyCount
-    NodeStatsInfo: NodeInfo
 }

@@ -1,4 +1,4 @@
-module Tests.ScenarioSchedulerTests
+module Tests.ScenarioScheduler
 
 open System
 
@@ -144,7 +144,7 @@ let ``schedule should correctly handle RampScenariosPerSec``
     (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
 
     // condition
-    (copiesCount > 0u && timeProgress > 10u && timeProgress <= 100u) ==> lazy
+    (copiesCount > 5u && timeProgress > 10u && timeProgress <= 100u) ==> lazy
 
     let commandCount = ref 1 // for some reason F# doesn't compile mutable commandCount with FsCheck(==> lazy)
 

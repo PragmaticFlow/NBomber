@@ -1,4 +1,4 @@
-﻿module Tests.Step.Pull
+﻿module Tests.Step
 
 open System
 open System.Threading.Tasks
@@ -13,7 +13,7 @@ open NBomber.FSharp
 open NBomber.Extensions
 
 [<Fact>]
-let ``Ok and Fail should be properly count`` () =
+let ``Response Ok and Fail should be properly count`` () =
 
     let mutable okCnt = 0
     let mutable failCnt = 0
@@ -41,49 +41,15 @@ let ``Ok and Fail should be properly count`` () =
                  |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
-        let okStats = allStats |> Array.find(fun x -> x.StepName = "ok step")
-        let failStats = allStats |> Array.find(fun x -> x.StepName = "fail step")
+    | Ok nodeStats ->
+        let allStepStats = nodeStats.ScenarioStats |> Seq.collect(fun x -> x.StepStats)
+        let okStats = allStepStats |> Seq.find(fun x -> x.StepName = "ok step")
+        let failStats = allStepStats |> Seq.find(fun x -> x.StepName = "fail step")
 
         test <@ okStats.OkCount >= 5 && okStats.OkCount <= 10 @>
         test <@ okStats.FailCount = 0 @>
         test <@ failStats.OkCount = 0 @>
         test <@ failStats.FailCount > 5 && failStats.FailCount <= 10 @>
-
-    | Error msg -> failwith msg
-
-[<Fact>]
-let ``Warmup should have no effect on stats`` () =
-
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Ok()
-    })
-
-    let failStep = Step.create("fail step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Fail()
-    })
-
-    let scenario =
-        Scenario.create "warmup test" [okStep; failStep]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
-        |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 1.0)
-        ]
-
-    let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.runTest
-
-    match result with
-    | Ok allStats ->
-        let okStats = allStats |> Array.find(fun x -> x.StepName = "ok step")
-        let failStats = allStats |> Array.find(fun x -> x.StepName = "fail step")
-
-        test <@ okStats.OkCount <= 10 @>
-        test <@ okStats.FailCount = 0 @>
-        test <@ failStats.OkCount = 0 @>
-        test <@ failStats.FailCount <= 10 @>
 
     | Error msg -> failwith msg
 
@@ -106,15 +72,17 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
                  |> NBomberRunner.runTest
 
     match result with
-    | Ok allStats ->
-        let stats = allStats |> Array.find(fun x -> x.StepName = "pull step")
+    | Ok nodeStats ->
+        let stats = nodeStats.ScenarioStats
+                    |> Seq.collect(fun x -> x.StepStats)
+                    |> Seq.find(fun x -> x.StepName = "pull step")
 
         test <@ stats.RPS >= 5 @>
         test <@ stats.RPS <= 10 @>
         test <@ stats.Min <= 110 @>
         test <@ stats.Mean <= 120 @>
         test <@ stats.Max <= 150 @>
-        test <@ stats.DataMinKb = 0.1 @>
+        test <@ stats.MinDataKb = 0.1 @>
         test <@ stats.AllDataMB >= 0.0015 @>
 
     | Error msg -> failwith msg
@@ -154,7 +122,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
     test <@ invokeCounter <= 5 @>
 
 [<Fact>]
-let ``context.Data should store any payload data from latest step.Response`` () =
+let ``StepContext Data should store any payload data from latest step.Response`` () =
 
     let mutable counter = 0
     let mutable step2Counter = 0
@@ -211,13 +179,14 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
         |> NBomberRunner.runWithResult
         |> Result.getOk
 
-    test <@ result.Statistics.Length = 1 @>
-    test <@ result.Statistics
-            |> Array.tryFind(fun x -> x.StepName = "step 2")
-            |> Option.isNone  @>
+    test <@ result.ScenarioStats.Length = 1 @>
+    test <@ result.ScenarioStats
+            |> Seq.collect(fun x -> x.StepStats)
+            |> Seq.tryFind(fun x -> x.StepName = "step 2")
+            |> Option.isNone @>
 
 [<Fact>]
-let ``Step.CreatePause should work correctly and not printed in statistics`` () =
+let ``Step CreatePause should work correctly and not printed in statistics`` () =
 
     let step1 = Step.create("step 1", fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -238,7 +207,7 @@ let ``Step.CreatePause should work correctly and not printed in statistics`` () 
         |> NBomberRunner.runWithResult
         |> Result.getOk
 
-    test <@ result.Statistics.Length = 1 @>
+    test <@ result.ScenarioStats.Length = 1 @>
 
 [<Fact>]
 let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
@@ -272,7 +241,8 @@ let ``NBomber should support to run and share the same step within one scenario 
         |> NBomberRunner.runWithResult
         |> Result.getOk
 
-    test <@ result.Statistics.Length = 4 @>
+    test <@ result.ScenarioStats.[0].StepStats.Length = 2 @>
+    test <@ result.ScenarioStats.[1].StepStats.Length = 2 @>
 
 [<Fact>]
 let ``NBomber should stop execution scenario if too many failed results on a warm-up`` () =
@@ -318,12 +288,53 @@ let ``NBomber should allow to set custom response latency and handle it properly
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
         ]
 
-    let allStats =
+    let nodeStats =
         NBomberRunner.registerScenarios [scenario]
         |> NBomberRunner.runTest
         |> Result.getOk
 
-    let stepStats = allStats |> Array.find(fun x -> x.StepName = "step")
+    let stepStats = nodeStats.ScenarioStats
+                    |> Seq.collect(fun x -> x.StepStats)
+                    |> Seq.find(fun x -> x.StepName = "step")
+
     test <@ stepStats.OkCount > 5 @>
     test <@ stepStats.RPS = 0 @>
     test <@ stepStats.Min = 2_000 @>
+
+[<Fact>]
+let ``context StopTest should stop all scenarios`` () =
+
+    let mutable counter = 0
+    let duration = TimeSpan.FromSeconds(42.0)
+
+    let okStep = Step.create("ok step", fun context -> task {
+        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        counter <- counter + 1
+
+        if counter >= 30 then
+            context.StopCurrentTest(reason = "custom reason")
+
+        return Response.Ok()
+    })
+
+    let scenario1 =
+        Scenario.create "test_youtube_1" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(10, duration)
+        ]
+
+    let scenario2 =
+        Scenario.create "test_youtube_2" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(10, duration)
+        ]
+
+    NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.runTest
+    |> Result.getOk
+    |> fun nodeStats ->
+        nodeStats.ScenarioStats
+        |> Seq.find(fun x -> x.ScenarioName = "test_youtube_1")
+        |> fun x -> test <@ x.Duration < duration @>
