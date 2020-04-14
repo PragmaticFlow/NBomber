@@ -73,9 +73,9 @@ let createSessionId () =
 let create (appType: ApplicationType,
             nodeType: NodeType,
             testInfo: TestInfo,
-            infraConfig: IConfiguration option) =
+            context: NBomberContext) =
 
-    let logger = Logger.createLogger(testInfo, infraConfig)
+    let logger = Logger.createLogger(testInfo, context.InfraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
 
     Serilog.Log.Logger <- logger
@@ -87,5 +87,5 @@ let create (appType: ApplicationType,
       CreateManualProgressBar = ProgressBar.createManual
       CreateAutoProgressBar = ProgressBar.createAuto
       Logger = logger
-      ReportingSinks = List.empty
-      Plugins = List.empty }
+      ReportingSinks = context.ReportingSinks
+      Plugins = context.Plugins }

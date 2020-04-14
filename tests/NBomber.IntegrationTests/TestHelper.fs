@@ -18,8 +18,10 @@ module internal Dependency =
             TestName = Constants.DefaultTestName
         }
 
+        let emptyContext = NBomberContext.empty
+
         {| TestInfo = testInfo
-           Dep = Dependency.create(ApplicationType.Process, nodeType, testInfo, None) |}
+           Dep = Dependency.create(ApplicationType.Process, nodeType, testInfo, emptyContext) |}
 
     let createWithInMemoryLogger(nodeType: NodeType) =
 
@@ -29,7 +31,8 @@ module internal Dependency =
             TestName = Constants.DefaultTestName
         }
 
-        let dep = Dependency.create(ApplicationType.Process, nodeType, testInfo, None)
+        let emptyContext = NBomberContext.empty
+        let dep = Dependency.create(ApplicationType.Process, nodeType, testInfo, emptyContext)
         let inMemorySink = InMemorySink()
         let inMemoryLogger = LoggerConfiguration().WriteTo.Sink(inMemorySink).CreateLogger()
         let dependency = { dep with Logger = inMemoryLogger }

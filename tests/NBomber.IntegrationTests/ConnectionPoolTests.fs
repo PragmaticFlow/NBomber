@@ -17,10 +17,13 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
 
     let connectionCount = 100
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) -> Task.FromResult number),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) -> Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step = Step.create("step", pool, fun context -> task {
 
@@ -55,10 +58,13 @@ let ``should distribute connection using modulo if connectionPool.Count < loadSi
     let connectionCount = 5
     let copiesCount = 10
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) -> Task.FromResult number),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) -> Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step = Step.create("step", pool, fun context -> task {
 
@@ -94,10 +100,13 @@ let ``should be shared btw steps as singlton instance``() =
 
     let connectionCount = 100
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) -> Guid.NewGuid() |> Task.FromResult),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) -> Guid.NewGuid() |> Task.FromResult),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
@@ -137,10 +146,13 @@ let ``openConnection should stop test session in case of failure``() =
 
     let connectionCount = 100
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) -> failwith "unhandled exception"),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) -> failwith "unhandled exception"),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
@@ -167,12 +179,15 @@ let ``openConnection should use try logic in case of some errors``() =
     let connectionCount = 1
     let mutable tryCount = 0
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) ->
-                                             tryCount <- tryCount + 1
-                                             failwith "unhandled exception"),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) ->
+                tryCount <- tryCount + 1
+                failwith "unhandled exception"),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
@@ -198,12 +213,15 @@ let ``closeConnection should not affect test session in case of failure``() =
 
     let connectionCount = 10
     let mutable closeInvokeCount = 0
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) -> Task.FromResult number),
-                                         closeConnection = (fun _ ->
-                                             closeInvokeCount <- closeInvokeCount + 1
-                                             Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) -> Task.FromResult number),
+            closeConnection = (fun _ ->
+                closeInvokeCount <- closeInvokeCount + 1
+                Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
@@ -230,12 +248,15 @@ let ``should be initialized only once``() =
     let connectionCount = 10
     let mutable initedConnections = 0
 
-    let pool = ConnectionPoolArgs.create("test_pool",
-                                         getConnectionCount = (fun _ -> connectionCount),
-                                         openConnection = (fun (number,token) ->
-                                             initedConnections <- initedConnections + 1
-                                             Task.FromResult number),
-                                         closeConnection = (fun _ -> Task.CompletedTask))
+    let pool =
+        ConnectionPoolArgs.create(
+            name = "test_pool",
+            getConnectionCount = (fun _ -> connectionCount),
+            openConnection = (fun (number,token) ->
+                initedConnections <- initedConnections + 1
+                Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask)
+        )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
         return Response.Ok(context.Connection)
