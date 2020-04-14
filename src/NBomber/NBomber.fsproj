@@ -39,7 +39,7 @@
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Logger.fs" />
     <Compile Include="Infra\Dependency.fs" />
-    <Compile Include="Infra\TestContext.fs" />
+    <Compile Include="Infra\NBomberContext.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />

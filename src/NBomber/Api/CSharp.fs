@@ -97,58 +97,58 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     [<Extension>]
-    static member LoadConfigJson(context: TestContext, path: string) =
+    static member LoadConfigJson(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfigJson(path)
 
     [<Extension>]
-    static member LoadConfigYaml(context: TestContext, path: string) =
+    static member LoadConfigYaml(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfigYaml(path)
 
     [<Extension>]
-    static member LoadInfraConfigJson(context: TestContext, path: string) =
+    static member LoadInfraConfigJson(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadInfraConfigJson(path)
 
     [<Extension>]
-    static member LoadInfraConfigYaml(context: TestContext, path: string) =
+    static member LoadInfraConfigYaml(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadInfraConfigYaml(path)
 
     [<Extension>]
-    static member WithReportFileName(context: TestContext, reportFileName: string) =
+    static member WithReportFileName(context: NBomberContext, reportFileName: string) =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     [<Extension>]
-    static member WithReportFormats(context: TestContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+    static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)
 
     [<Extension>]
-    static member WithTestSuite(context: TestContext, testSuite: string) =
+    static member WithTestSuite(context: NBomberContext, testSuite: string) =
         context |> FSharp.NBomberRunner.withTestSuite(testSuite)
 
     [<Extension>]
-    static member WithTestName(context: TestContext, testName: string) =
+    static member WithTestName(context: NBomberContext, testName: string) =
         context |> FSharp.NBomberRunner.withTestName(testName)
 
     [<Extension>]
-    static member WithReportingSinks(context: TestContext, reportingSinks: IReportingSink[], sendStatsInterval: TimeSpan) =
+    static member WithReportingSinks(context: NBomberContext, reportingSinks: IReportingSink[], sendStatsInterval: TimeSpan) =
         let sinks = reportingSinks |> Seq.toList
         context |> FSharp.NBomberRunner.withReportingSinks(sinks, sendStatsInterval)
 
     [<Extension>]
-    static member WithPlugins(context: TestContext, plugins: IPlugin[]) =
+    static member WithPlugins(context: NBomberContext, plugins: IPlugin[]) =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withPlugins(pluginsList)
 
     [<Extension>]
-    static member Run(context: TestContext) =
+    static member Run(context: NBomberContext) =
         FSharp.NBomberRunner.run(context)
 
     [<Extension>]
-    static member RunInConsole(context: TestContext) =
+    static member RunInConsole(context: NBomberContext) =
         FSharp.NBomberRunner.runInConsole(context)
 
     [<Extension>]
-    static member RunTest(context: TestContext) =
+    static member RunTest(context: NBomberContext) =
         match FSharp.NBomberRunner.runTest(context) with
         | Ok stats  -> stats
         | Error msg -> failwith msg

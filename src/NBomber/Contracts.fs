@@ -168,7 +168,7 @@ type IPlugin =
     abstract GetStats: unit -> DataSet
     abstract StopTest: unit -> Task
 
-type TestContext = {
+type NBomberContext = {
     TestSuite: string
     TestName: string
     RegisteredScenarios: Scenario list
