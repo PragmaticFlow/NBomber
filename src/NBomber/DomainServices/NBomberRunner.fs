@@ -102,9 +102,5 @@ let runAs (appType: ApplicationType, context: NBomberContext) =
     }
 
     let nodeType = NodeType.SingleNode
-
-    let dep = Dependency.create(appType, nodeType, testInfo, context)
-    dep.Plugins |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
-    dep.ReportingSinks |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
-
+    let dep = Dependency.init(appType, nodeType, testInfo, context)
     run(dep, testInfo, context)
