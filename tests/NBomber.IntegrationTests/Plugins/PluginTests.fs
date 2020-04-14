@@ -87,7 +87,7 @@ module internal PluginStatisticsHelper =
         table
 
     let createPluginStats () =
-        let pluginStats = new PluginStats()
+        let pluginStats = new DataSet()
         pluginStats.Tables.Add(createTable("PluginStatistics1"))
         pluginStats.Tables.Add(createTable("PluginStatistics2"))
         pluginStats
@@ -103,7 +103,7 @@ let ``Init should be invoked once`` () =
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
             member x.StartTest(_) = Task.CompletedTask
-            member x.GetStats() = new PluginStats()
+            member x.GetStats() = new DataSet()
             member x.StopTest() = Task.CompletedTask
             member x.Dispose() = ()
     }
@@ -131,7 +131,7 @@ let ``StartTest should be invoked once`` () =
                 pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
                 Task.CompletedTask
 
-            member x.GetStats() = new PluginStats()
+            member x.GetStats() = new DataSet()
             member x.StopTest() = Task.CompletedTask
             member x.Dispose() = ()
     }
@@ -156,7 +156,7 @@ let ``StartTest should be invoked with infra config`` () =
             member x.PluginName = "TestPlugin"
             member x.Init(logger, infraConfig) = pluginConfig <- infraConfig
             member x.StartTest(_) = Task.CompletedTask
-            member x.GetStats() = new PluginStats()
+            member x.GetStats() = new DataSet()
             member x.StopTest() = Task.CompletedTask
             member x.Dispose() = ()
     }
@@ -184,7 +184,7 @@ let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no I
 
             member x.GetStats() =
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
-                new PluginStats()
+                new DataSet()
 
             member x.StopTest() = Task.CompletedTask
             member x.Dispose() = ()
@@ -209,7 +209,7 @@ let ``StopTest should be invoked once`` () =
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = ()
             member x.StartTest(_) = Task.CompletedTask
-            member x.GetStats() = new PluginStats()
+            member x.GetStats() = new DataSet()
 
             member x.StopTest() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1

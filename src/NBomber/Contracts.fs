@@ -87,15 +87,13 @@ type ScenarioStats = {
     Duration: TimeSpan
 }
 
-type PluginStats = DataSet
-
 type NodeStats = {
     RequestCount: int
     OkCount: int
     FailCount: int
     AllDataMB: float
     ScenarioStats: ScenarioStats[]
-    PluginStats: PluginStats[]
+    PluginStats: DataSet[]
     NodeInfo: NodeInfo
 }
 
@@ -167,7 +165,7 @@ type IPlugin =
     abstract PluginName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
-    abstract GetStats: unit -> PluginStats
+    abstract GetStats: unit -> DataSet
     abstract StopTest: unit -> Task
 
 type TestContext = {
