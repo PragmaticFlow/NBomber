@@ -33,51 +33,44 @@ module internal PingPluginStatistics =
         column
 
     let private createColumns () =
-        [| "Key", "Property", "System.String"
-           "Value", "Value", "System.String" |]
+        [| "Host", "Host", "System.String"
+           "Status", "Status", "System.String"
+           "Address", "Address", "System.String"
+           "RoundTripTime", "Round Trip Time", "System.String"
+           "TimeToLive", "Time to Live", "System.String"
+           "DontFragment", "Don't Fragment", "System.String"
+           "BufferSize", "Buffer Size", "System.String" |]
         |> Array.map(fun x -> x |> createColumn)
 
-    let private createRow (key: string, value: string) (table: DataTable) =
+    let private createRow (host: string, pingReply: PingReply) (table: DataTable) =
+        let areOptionsAvailable = pingReply.Options |> isNull |> not
         let row = table.NewRow()
-        row.["Key"] <- key
-        row.["Value"] <- value
+
+        row.["Host"] <- host
+        row.["Status"] <- pingReply.Status.ToString()
+        row.["Address"] <- pingReply.Address.ToString()
+        row.["RoundTripTime"] <- sprintf "%s ms" <| pingReply.RoundtripTime.ToString()
+        row.["TimeToLive"] <- if areOptionsAvailable then pingReply.Options.Ttl.ToString() else "n/a"
+        row.["DontFragment"] <- if areOptionsAvailable then pingReply.Options.DontFragment.ToString() else "n/a"
+        row.["BufferSize"] <- sprintf "%s bytes" <| pingReply.Buffer.Length.ToString()
+
         row
 
-    let private createRows (pingReply: PingReply) (table: DataTable) = [|
-        let areOptionsAvailable = pingReply.Options |> isNull |> not
-
-        let roundTripTime = sprintf "%s ms" <| pingReply.RoundtripTime.ToString()
-        let timeToLive = if areOptionsAvailable then pingReply.Options.Ttl.ToString() else "n/a"
-        let dontFragment = if areOptionsAvailable then pingReply.Options.DontFragment.ToString() else "n/a"
-        let bufferSize = sprintf "%s bytes" <| pingReply.Buffer.Length.ToString()
-
-        table |> createRow("Status", pingReply.Status.ToString())
-        table |> createRow("Address", pingReply.Address.ToString())
-        table |> createRow("RoundTrip time", roundTripTime)
-        table |> createRow("Time to live", timeToLive)
-        table |> createRow("Don't fragment", dontFragment)
-        table |> createRow("Buffer size", bufferSize)
-    |]
-
-    let private createTable (name) (pingReply: PingReply) =
-        let table = new DataTable(name)
+    let createTable (statsName) (pingReplies: (string * PingReply) list) =
+        let table = new DataTable(statsName)
 
         createColumns() |> table.Columns.AddRange
 
-        table
-        |> createRows pingReply
-        |> Array.iter(fun x -> x |> table.Rows.Add)
+        pingReplies
+        |> List.map(fun (host, pingReply) -> table |> createRow(host, pingReply))
+        |> List.iter(fun x -> x |> table.Rows.Add)
 
         table
-
-    let createTables (host: string, pingReply: PingReply) =
-        let tableName = sprintf "Ping %s" host
-        pingReply |> createTable tableName
 
 type PingPlugin(config: PingPluginConfig) =
 
     let mutable _logger: ILogger = Unchecked.defaultof<ILogger>
-    let mutable _stats = new PluginStats()
+    let mutable _pluginStats = new DataSet()
 
     let execPing (config: PingPluginConfig) =
         try
@@ -97,14 +90,13 @@ type PingPlugin(config: PingPluginConfig) =
         with
         | ex -> Error ex
 
-    let createStats (pingReplyResult: Result<(string * PingReply) list, exn>) = result {
+    let createStats (statsName) (pingReplyResult: Result<(string * PingReply) list, exn>) = result {
         let! pingResult = pingReplyResult
-        let stats = new PluginStats()
+        let stats = new DataSet()
 
         pingResult
-        |> List.map(fun x -> x |> PingPluginStatistics.createTables)
-        |> Array.ofList
-        |> stats.Tables.AddRange
+        |> PingPluginStatistics.createTable statsName
+        |> stats.Tables.Add
 
         return stats
     }
@@ -118,13 +110,13 @@ type PingPlugin(config: PingPluginConfig) =
         member x.StartTest(testInfo: TestInfo) =
             config
             |> execPing
-            |> createStats
-            |> Result.map(fun x -> _stats <- x)
+            |> createStats (x :> IPlugin).PluginName
+            |> Result.map(fun x -> _pluginStats <- x)
             |> Result.mapError(fun ex -> _logger.Error(ex.ToString()))
             |> ignore
 
             Task.CompletedTask
 
-        member x.GetStats() = _stats
+        member x.GetStats() = _pluginStats
         member x.StopTest() = Task.CompletedTask
         member x.Dispose() = ()
