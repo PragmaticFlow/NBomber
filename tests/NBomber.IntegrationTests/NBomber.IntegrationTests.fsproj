@@ -27,7 +27,7 @@
     <Content Include="Configuration\missing_fields_config.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="TestContextTests.fs" />
+    <Compile Include="NBomberContextTests.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="StepTests.fs" />
     <Compile Include="ScenarioTests.fs" />

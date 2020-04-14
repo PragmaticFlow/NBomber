@@ -1,4 +1,4 @@
-﻿module Tests.TestContext
+﻿module Tests.NBomberContext
 
 open System
 
@@ -50,7 +50,7 @@ let ``getTargetScenarios should return all registered scenarios if TargetScenari
     let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
 
-    match TestContext.getTargetScenarios(context) with
+    match NBomberContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
     | _ -> failwith ""
 
@@ -65,7 +65,7 @@ let ``getTargetScenarios should return only target scenarios if TargetScenarios 
     let context = { context with NBomberConfig = Some config
                                  RegisteredScenarios = [scn1; scn2] }
 
-    match TestContext.getTargetScenarios(context) with
+    match NBomberContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 && scenarios.[0] = "10" -> ()
     | _ -> failwith ""
 
@@ -83,7 +83,7 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
                              ReportFormats = [ReportFormat.Txt]
                              ReportFileName = contextValue }
 
-    let fileName = TestContext.getReportFileName("sessionId", ctx)
+    let fileName = NBomberContext.getReportFileName("sessionId", ctx)
 
     match configValue, contextValue with
     | Some v1, Some v2 -> test <@ fileName = v1 @>
@@ -102,7 +102,7 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
                              ReportFormats = contextValue
                              ReportFileName = None }
 
-    let formats = TestContext.getReportFormats(ctx)
+    let formats = NBomberContext.getReportFormats(ctx)
     match configValue, contextValue with
     | Some v, _ -> Assert.True((formats = v))
 
@@ -119,11 +119,11 @@ let ``getTestSuite should return from Config, if empty then from TestContext``
     | Some value ->
         let config = { config with TestSuite = configValue }
         let ctx = { context with NBomberConfig = Some config }
-        let testSuite = TestContext.getTestSuite(ctx)
+        let testSuite = NBomberContext.getTestSuite(ctx)
         test <@ testSuite = value  @>
 
     | None ->
-        let testSuite = TestContext.getTestSuite(context)
+        let testSuite = NBomberContext.getTestSuite(context)
         test <@ testSuite = context.TestSuite @>
 
 [<Property>]
@@ -134,11 +134,11 @@ let ``getTestName should return from Config, if empty then from TestContext``
     | Some value ->
         let config = { config with TestName = configValue }
         let ctx = { context with NBomberConfig = Some config }
-        let testSuite = TestContext.getTestName(ctx)
+        let testSuite = NBomberContext.getTestName(ctx)
         test <@ testSuite = value  @>
 
     | None ->
-        let testSuite = TestContext.getTestName(context)
+        let testSuite = NBomberContext.getTestName(context)
         test <@ testSuite = context.TestName @>
 
 [<Property>]
@@ -151,9 +151,9 @@ let ``getConnectionPoolSettings should return from Config, if empty then empty r
         let glSettings = { globalSettings with ConnectionPoolSettings = poolSettings }
         let config = { config with GlobalSettings = Some glSettings }
         let ctx = { context with NBomberConfig = Some config }
-        let resut = TestContext.getConnectionPoolSettings(ctx)
+        let resut = NBomberContext.getConnectionPoolSettings(ctx)
         test <@ resut = poolSettings.Value  @>
 
     | None ->
-        let result = TestContext.getConnectionPoolSettings(context)
+        let result = NBomberContext.getConnectionPoolSettings(context)
         test <@ result = List.empty @>
