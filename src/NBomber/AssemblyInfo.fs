@@ -3,5 +3,5 @@
 open System.Runtime.CompilerServices
 
 [<assembly: InternalsVisibleTo("NBomber.IntegrationTests")>]
-[<assembly: InternalsVisibleTo("NBomber.Enterprise")>]
+[<assembly: InternalsVisibleTo("NBomber.Cluster")>]
 do()
