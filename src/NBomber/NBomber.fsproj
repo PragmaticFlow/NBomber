@@ -40,10 +40,11 @@
     <Compile Include="Infra\Logger.fs" />
     <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\TestContext.fs" />
+    <Compile Include="DomainServices\ResourceManager.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
-    <Compile Include="DomainServices\Reporting\TxtReportPluginStats.fs" />
+    <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\Validation.fs" />
     <Compile Include="DomainServices\TestHost\TestHostInfra.fs" />
@@ -75,5 +76,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\HtmlReport\assets\js\index.js" />
+    <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
+    <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
+    <EmbeddedResource Include="Resources\HtmlReport\assets\img\logo_300x100.png" />
+    <EmbeddedResource Include="Resources\HtmlReport\index.html" />
   </ItemGroup>
 </Project>

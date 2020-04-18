@@ -7,6 +7,7 @@ open System.IO
 
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.DomainServices.ResourceManager
 open NBomber.Extensions
 
 type ReportsContent = {
@@ -17,19 +18,9 @@ type ReportsContent = {
 } with
     static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
 
-let private buildTxtReport (nodeStats: NodeStats) =
-    let pluginsStats =
-        nodeStats.PluginStats
-        |> Seq.collect(fun x -> x.GetTables())
-        |> Seq.map(fun x -> x |> TxtReportPluginStats.print)
-        |> Seq.toList
-
-    TxtReport.print(nodeStats) :: pluginsStats
-
 let build (nodeStats: NodeStats) =
-    { TxtReport = buildTxtReport(nodeStats)
-      //HtmlReport = HtmlReport.print(dep, nodeStats)
-      HtmlReport = ""
+    { TxtReport = TxtReport.print(nodeStats)
+      HtmlReport = HtmlReport.print(nodeStats)
       CsvReport = CsvReport.print(nodeStats)
       MdReport = MdReport.print(nodeStats) }
 
@@ -37,7 +28,8 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
           report: ReportsContent, logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
-        Directory.CreateDirectory(reportsDir) |> ignore
+        reportsDir |> Directory.CreateDirectory |> ignore
+        reportsDir |> HtmlReportResourceManager.saveAssets
 
         let buildReportFile (format: ReportFormat) =
             let fileExt =
