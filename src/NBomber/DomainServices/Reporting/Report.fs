@@ -29,7 +29,6 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
         reportsDir |> Directory.CreateDirectory |> ignore
-        reportsDir |> HtmlReportResourceManager.saveAssets
 
         let buildReportFile (format: ReportFormat) =
             let fileExt =

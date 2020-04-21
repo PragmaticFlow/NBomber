@@ -13,8 +13,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/solid.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/v4-shims.min.css" />
 
-    <link rel="stylesheet" href="assets/css/sidebar.css" />
-    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="stylesheet" href="assets/css/sidebar.css" /> <!-- include asset -->
+    <link rel="stylesheet" href="assets/css/index.css" /> <!-- include asset -->
+
+    <!-- No Data Template -->
+    <script type="text/x-template" id="no-data-template">
+    <h3>No Data</h3>
+    </script>
+    <!-- No Data Template -->
 
     <!-- Custom Card Template -->
     <script type="text/x-template" id="custom-card-template">
@@ -29,7 +35,7 @@
 
     <!-- Claster Info Table -->
     <script type="text/x-template" id="claster-info-table-template">
-        <custom-card title="Cluster Info">
+        <custom-card v-if="machineInfo" title="Cluster Info">
             <table class="table table-hover table-sm table-responsive-lg">
             <thead>
                 <tr>
@@ -51,6 +57,7 @@
             </tbody>
             </table>
         </custom-card>
+        <no-data v-else></no-data>
     </script>
     <!-- Claster Info Table -->
 
@@ -60,6 +67,7 @@
             <custom-card v-for="scenarioStats in scenariosStats"
                          :key="scenarioStats.ScenarioName"
                          v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, RPS: ${scenarioStats.LatencyCount}`"
+                         v-if="scenariosStats"
                          class="scenario">
                 <table class="table table-hover table-sm table-responsive-lg">
                     <thead>
@@ -121,6 +129,7 @@
             <custom-card v-for="pluginStats in pluginsStats"
                          :key="pluginStats.PluginName"
                          v-bind:title="`Statistics for Plugin: ${pluginStats.PluginName}`"
+                         v-if="pluginsStats"
                          class="scenario">
                 <table class="table table-hover table-sm table-responsive-lg">
                     <thead>
@@ -186,7 +195,8 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark">
         <a class="navbar-brand" href="#">
-            <img src="assets/img/logo_300x100.png" height="50" class="d-inline-block align-top" alt="NBomber" />
+            <img src="https://nbomber.com/assets/img/nbomber-logo.svg"
+                 height="50" class="d-inline-block align-top" alt="NBomber" />
         </a>
     </nav>
     <!-- Navbar -->
@@ -246,7 +256,8 @@
                 <!-- Global View -->
                 <div class="tab-pane fade show active" id="global-view" role="tabpanel">
                     <scenarios-stats-view v-bind:scenarios-stats="statsData.NodeStats.ScenarioStats"
-                                          v-bind:plugins-stats="statsData.NodeStats.PluginStats">
+                                          v-bind:plugins-stats="statsData.NodeStats.PluginStats"
+                                          v-if="statsData.NodeStats.ScenarioStats && statsData.NodeStats.PluginStats">
                         <custom-card title="Number of Requests for Node">
                             <num-req-chart
                                 v-bind:ok-count="statsData.NodeStats.OkCount"
@@ -254,10 +265,11 @@
                             </num-req-chart>
                         </custom-card>
                     </scenarios-stats-view>
+                    <no-data v-else></no-data>
                 </div>
                 <!-- Scenarios View -->
                 <div v-for="(scenarioStats, index) in statsData.NodeStats.ScenarioStats" :key="scenarioStats.ScenarioName"
-                     v-if="statsData.NodeStats.ScenarioStats.length > 1"
+                     v-if="statsData.NodeStats && statsData.NodeStats.ScenarioStats && statsData.NodeStats.ScenarioStats.length > 1"
                      class="tab-pane fade show"
                      v-bind:id="`scenario-${index}-view`"
                      role="tabpanel">
@@ -292,13 +304,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/solid.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/v4-shims.min.js"></script>
 
-<script src="assets/js/index.js"></script>
+<script src="assets/js/index.js"></script> <!-- include asset -->
+<script src="assets/js/stats-data.js"></script> <!-- remove-->
 
 <script>
+    var statsData = getStatsData(); // <!-- include stats data -->
+
+    statsData.NodeStats = statsData.NodeStats || {};
+
     var app = new Vue({
         el: '#app',
         data: {
-            statsData: testStatsData,
+            statsData: statsData,
             sideBarActive: true
         },
         methods: {
