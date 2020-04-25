@@ -5,7 +5,7 @@ open System.IO
 open NBomber.Contracts
 
 let tryReadResource (name) =
-    let assembly = typedefof<TestContext>.Assembly
+    let assembly = typedefof<TestInfo>.Assembly
     assembly.GetManifestResourceNames()
     |> Array.tryFind(fun x -> x.Contains(name))
     |> Option.map(fun resourceName ->

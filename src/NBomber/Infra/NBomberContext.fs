@@ -1,4 +1,4 @@
-﻿module internal NBomber.Infra.TestContext
+﻿module internal NBomber.Infra.NBomberContext
 
 open System
 
@@ -19,24 +19,24 @@ let empty =
       SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec
       Plugins = List.empty }
 
-let getTestSuite (context: TestContext) =
+let getTestSuite (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.TestSuite)
     |> Option.defaultValue context.TestSuite
 
-let getTestName (context: TestContext) =
+let getTestName (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.TestName)
     |> Option.defaultValue context.TestName
 
-let getScenariosSettings (context: TestContext) =
+let getScenariosSettings (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.bind(fun x -> x.ScenariosSettings)
     |> Option.defaultValue List.empty
     |> List.toArray
 
-let getTargetScenarios (context: TestContext) =
+let getTargetScenarios (context: NBomberContext) =
     let targetScn =
         context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
@@ -48,7 +48,7 @@ let getTargetScenarios (context: TestContext) =
     defaultArg targetScn allScns
     |> List.toArray
 
-let getReportFileName (sessionId: string, context: TestContext) =
+let getReportFileName (sessionId: string, context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -59,7 +59,7 @@ let getReportFileName (sessionId: string, context: TestContext) =
     |> Option.orElse(context.ReportFileName)
     |> Option.defaultValue("report_" + sessionId)
 
-let getReportFormats (context: TestContext) =
+let getReportFormats (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -72,7 +72,7 @@ let getReportFormats (context: TestContext) =
                      else Some context.ReportFormats)
     |> Option.defaultValue Constants.AllReportFormats
 
-let getSendStatsInterval (context: TestContext) =
+let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -83,7 +83,7 @@ let getSendStatsInterval (context: TestContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.SendStatsInterval
 
-let getConnectionPoolSettings (context: TestContext) =
+let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings

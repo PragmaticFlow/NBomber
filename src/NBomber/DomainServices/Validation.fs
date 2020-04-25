@@ -14,7 +14,7 @@ open NBomber.Errors
 
 module ScenarioValidation =
 
-    let validate (context: TestContext) =
+    let validate (context: NBomberContext) =
         context.RegisteredScenarios
         |> NBomber.Domain.Scenario.createScenarios
         |> Result.map(fun _ -> context)
@@ -72,7 +72,7 @@ module GlobalSettingsValidation =
                 Ok globalSettings
         | None -> Ok globalSettings
 
-    let validate (context: TestContext) =
+    let validate (context: NBomberContext) =
         context.NBomberConfig
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.map(fun glSettings ->

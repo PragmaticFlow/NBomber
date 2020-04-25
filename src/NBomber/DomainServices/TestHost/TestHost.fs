@@ -25,7 +25,7 @@ open NBomber.DomainServices.TestHost.Infra
 type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) as x =
 
     let mutable _stopped = false
-    let mutable _sessionArgs = TestSessionArgs.empty
+    let mutable _sessionArgs = SessionArgs.empty
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = NodeOperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
@@ -81,7 +81,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         targetScns
         |> List.map(createScheduler _cancelToken.Token)
 
-    let initScenarios (sessionArgs: TestSessionArgs) = taskResult {
+    let initScenarios (sessionArgs: SessionArgs) = taskResult {
         _sessionArgs <- sessionArgs
 
         let defaultScnContext = {
@@ -122,7 +122,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     member x.RegisteredScenarios = registeredScenarios
     member x.TargetScenarios = _targetScenarios
 
-    member x.InitScenarios(args: TestSessionArgs) = task {
+    member x.InitScenarios(args: SessionArgs) = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
@@ -184,7 +184,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
     member x.GetNodeStats(duration) = getNodeStats(duration)
 
-    member x.RunSession(args: TestSessionArgs) = taskResult {
+    member x.RunSession(args: SessionArgs) = taskResult {
         do! x.InitScenarios(args)
 
         let currentOperationTimer = Stopwatch()

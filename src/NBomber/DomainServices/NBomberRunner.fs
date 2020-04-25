@@ -13,20 +13,20 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.TestHost.Infra
 
-let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
+let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
     taskResult {
         dep.Logger.Information("NBomber started as single node")
 
-        let scnArgs = TestSessionArgs.getFromContext(testInfo, context)
+        let scnArgs = SessionArgs.getFromContext(testInfo, context)
         let! registeredScns = context.RegisteredScenarios |> Scenario.createScenarios
 
         use scnHost = new TestHost(dep, registeredScns)
         return! scnHost.RunSession(scnArgs)
     }
 
-let saveReports (dep: GlobalDependency) (testInfo: TestInfo) (context: TestContext) (report: ReportsContent) =
-    let fileName = TestContext.getReportFileName(testInfo.SessionId, context)
-    let formats = TestContext.getReportFormats(context)
+let saveReports (dep: GlobalDependency) (testInfo: TestInfo) (context: NBomberContext) (report: ReportsContent) =
+    let fileName = NBomberContext.getReportFileName(testInfo.SessionId, context)
+    let formats = NBomberContext.getReportFormats(context)
     Report.save("./", fileName, formats, report, dep.Logger)
 
 let startPlugins (dep: GlobalDependency) (testInfo: TestInfo) =
@@ -66,7 +66,7 @@ let stopReportingSink (dep: GlobalDependency) =
         with
         | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
-let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
+let run (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
     taskResult {
         dep.Logger.Information(Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
 
@@ -93,19 +93,14 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: TestContext) =
     )
     |> fun task -> task.Result
 
-let runAs (appType: ApplicationType, context: TestContext) =
+let runAs (appType: ApplicationType, context: NBomberContext) =
 
     let testInfo = {
         SessionId = Dependency.createSessionId()
-        TestSuite = TestContext.getTestSuite(context)
-        TestName = TestContext.getTestName(context)
+        TestSuite = NBomberContext.getTestSuite(context)
+        TestName = NBomberContext.getTestName(context)
     }
 
     let nodeType = NodeType.SingleNode
-
-    let dep = Dependency.create(appType, nodeType, testInfo, context.InfraConfig)
-    let dep = { dep with ReportingSinks = context.ReportingSinks; Plugins = context.Plugins }
-    dep.Plugins |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
-    dep.ReportingSinks |> List.iter(fun x -> x.Init(dep.Logger, context.InfraConfig))
-
+    let dep = Dependency.init(appType, nodeType, testInfo, context)
     run(dep, testInfo, context)

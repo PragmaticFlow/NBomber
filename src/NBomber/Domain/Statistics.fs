@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.Statistics
 
 open System
+open System.Data
 
 open HdrHistogram
 
@@ -208,7 +209,7 @@ module NodeStats =
               Duration = x.Duration }
         )
 
-    let create (nodeInfo: NodeInfo) (scnStats: RawScenarioStats[]) (pluginStats: PluginStats[]) =
+    let create (nodeInfo: NodeInfo) (scnStats: RawScenarioStats[]) (pluginStats: DataSet[]) =
         { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)
           OkCount = scnStats |> Array.sumBy(fun x -> x.OkCount)
           FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)

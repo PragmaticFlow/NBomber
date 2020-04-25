@@ -138,48 +138,48 @@ module NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
     let registerScenarios (scenarios: Contracts.Scenario list) =
-        { TestContext.empty with RegisteredScenarios = scenarios }
+        { NBomberContext.empty with RegisteredScenarios = scenarios }
 
-    let withReportFileName (reportFileName: string) (context: TestContext) =
+    let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    let withReportFormats (reportFormats: ReportFormat list) (context: TestContext) =
+    let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 
-    let withTestSuite (testSuite: string) (context: TestContext) =
+    let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
 
-    let withTestName (testName: string) (context: TestContext) =
+    let withTestName (testName: string) (context: NBomberContext) =
         { context with TestName = testName }
 
-    let loadConfigJson (path: string) (context: TestContext) =
+    let loadConfigJson (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
         { context with NBomberConfig = Some config }
 
-    let loadConfigYaml (path: string) (context: TestContext) =
+    let loadConfigYaml (path: string) (context: NBomberContext) =
         let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
         { context with NBomberConfig = Some config }
 
-    let loadInfraConfigJson (path: string) (context: TestContext) =
+    let loadInfraConfigJson (path: string) (context: NBomberContext) =
         let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
 
-    let loadInfraConfigYaml (path: string) (context: TestContext) =
+    let loadInfraConfigYaml (path: string) (context: NBomberContext) =
         let config = ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
 
-    let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: TestContext) =
+    let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
-    let withPlugins (plugins: IPlugin list) (context: TestContext) =
+    let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
-    let run (context: TestContext) =
+    let run (context: NBomberContext) =
         NBomberRunner.runAs(Process, context)
         |> ignore
 
-    let rec runInConsole (context: TestContext) =
+    let rec runInConsole (context: NBomberContext) =
         NBomberRunner.runAs(Console, context)
         |> ignore
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
@@ -188,9 +188,9 @@ module NBomberRunner =
         let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole context
 
-    let runTest (context: TestContext) =
+    let runTest (context: NBomberContext) =
         NBomberRunner.runAs(Test, context)
         |> Result.mapError(AppError.toString)
 
-    let internal runWithResult (context: TestContext) =
+    let internal runWithResult (context: NBomberContext) =
         NBomberRunner.runAs(Process, context)

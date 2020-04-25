@@ -47,13 +47,16 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType,
-            nodeType: NodeType,
-            testInfo: TestInfo,
-            infraConfig: IConfiguration option) =
+let init (appType: ApplicationType,
+          nodeType: NodeType,
+          testInfo: TestInfo,
+          context: NBomberContext) =
 
-    let logger = Logger.createLogger(testInfo, infraConfig)
+    let logger = Logger.createLogger(testInfo, context.InfraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
+
+    context.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))
+    context.Plugins |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))
 
     Serilog.Log.Logger <- logger
 
@@ -63,5 +66,5 @@ let create (appType: ApplicationType,
       CreateManualProgressBar = ProgressBar.createManual
       CreateAutoProgressBar = ProgressBar.createAuto
       Logger = logger
-      ReportingSinks = List.empty
-      Plugins = List.empty }
+      ReportingSinks = context.ReportingSinks
+      Plugins = context.Plugins }

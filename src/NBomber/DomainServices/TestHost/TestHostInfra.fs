@@ -18,7 +18,7 @@ open NBomber.Domain.ConnectionPool
 open NBomber.Infra
 open NBomber.Infra.Dependency
 
-type internal TestSessionArgs = {
+type SessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting[]
     TargetScenarios: string[]
@@ -26,7 +26,7 @@ type internal TestSessionArgs = {
     SendStatsInterval: TimeSpan
 }
 
-module internal TestSessionArgs =
+module internal SessionArgs =
 
     let empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
@@ -36,14 +36,14 @@ module internal TestSessionArgs =
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
 
-    let getFromContext (testInfo: TestInfo, context: TestContext) =
+    let getFromContext (testInfo: TestInfo, context: NBomberContext) =
         { TestInfo = testInfo
-          ScenariosSettings = TestContext.getScenariosSettings(context)
-          TargetScenarios = TestContext.getTargetScenarios(context)
-          ConnectionPoolSettings = TestContext.getConnectionPoolSettings(context)
-          SendStatsInterval = TestContext.getSendStatsInterval(context) }
+          ScenariosSettings = NBomberContext.getScenariosSettings(context)
+          TargetScenarios = NBomberContext.getTargetScenarios(context)
+          ConnectionPoolSettings = NBomberContext.getConnectionPoolSettings(context)
+          SendStatsInterval = NBomberContext.getSendStatsInterval(context) }
 
-    let filterTargetScenarios (sessionArgs: TestSessionArgs) (scns: Scenario list) =
+    let filterTargetScenarios (sessionArgs: SessionArgs) (scns: Scenario list) =
         scns
         |> Scenario.applySettings(sessionArgs.ScenariosSettings)
         |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
@@ -183,7 +183,7 @@ module internal TestHostScenario =
     let initScenarios (dep: GlobalDependency,
                        defaultScnContext: ScenarioContext,
                        registeredScenarios: Scenario list,
-                       sessionArgs: TestSessionArgs) = taskResult {
+                       sessionArgs: SessionArgs) = taskResult {
 
         let tryInitScenario (context: ScenarioContext, initFunc: ScenarioContext -> Task) =
             try
@@ -208,7 +208,7 @@ module internal TestHostScenario =
             | [] -> Ok()
         }
 
-        let targetScns = registeredScenarios |> TestSessionArgs.filterTargetScenarios sessionArgs
+        let targetScns = registeredScenarios |> SessionArgs.filterTargetScenarios sessionArgs
         TestHostConsole.printTargetScenarios(dep, targetScns)
         do! targetScns |> init |> Result.toEmptyIO
 
