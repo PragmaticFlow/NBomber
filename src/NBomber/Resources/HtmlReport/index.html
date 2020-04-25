@@ -1,3 +1,12 @@
+<!--
+    This is a template for building a report in html format.
+
+    Html report builder supports the following commands enclosed in comments:
+    - include asset: replaces a line with a style/script block specified into href/src attribute.
+                     It only works for assets that are contained in embedded resources.
+    - include stats data: includes statistics data.
+    - remove: removes a line.
+-->
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -33,9 +42,9 @@
     </script>
     <!-- Custom Card Template -->
 
-    <!-- Claster Info Table -->
-    <script type="text/x-template" id="claster-info-table-template">
-        <custom-card v-if="machineInfo" title="Cluster Info">
+    <!-- Cluster Info Table -->
+    <script type="text/x-template" id="cluster-info-table-template">
+        <custom-card v-if="nodeInfo" title="Cluster Info">
             <table class="table table-hover table-sm table-responsive-lg">
             <thead>
                 <tr>
@@ -48,25 +57,25 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>{{machineInfo.MachineName}}</td>
-                    <td>{{machineInfo.Os}}</td>
-                    <td>{{machineInfo.DotNetVersion}}</td>
-                    <td>{{machineInfo.Processor}}</td>
-                    <td>{{machineInfo.CoresCount}}</td>
+                    <td>{{nodeInfo.MachineName}}</td>
+                    <td>{{nodeInfo.OS.VersionString}}</td>
+                    <td>{{nodeInfo.DotNetVersion}}</td>
+                    <td>{{nodeInfo.Processor}}</td>
+                    <td>{{nodeInfo.CoresCount}}</td>
                 </tr>
             </tbody>
             </table>
         </custom-card>
         <no-data v-else></no-data>
     </script>
-    <!-- Claster Info Table -->
+    <!-- Cluster Info Table -->
 
     <!-- Scenarios Stats Table Template -->
     <script type="text/x-template" id="scenarios-stats-table-template">
         <div>
             <custom-card v-for="scenarioStats in scenariosStats"
                          :key="scenarioStats.ScenarioName"
-                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, RPS: ${scenarioStats.LatencyCount}`"
+                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}`"
                          v-if="scenariosStats"
                          class="scenario">
                 <table class="table table-hover table-sm table-responsive-lg">
@@ -128,7 +137,7 @@
         <div>
             <custom-card v-for="pluginStats in pluginsStats"
                          :key="pluginStats.PluginName"
-                         v-bind:title="`Statistics for Plugin: ${pluginStats.PluginName}`"
+                         v-bind:title="`Plugin Statistics: ${pluginStats.TableName}`"
                          v-if="pluginsStats"
                          class="scenario">
                 <table class="table table-hover table-sm table-responsive-lg">
@@ -227,8 +236,8 @@
                     </a>
                 </li>
 
-                <li v-for="(scenarioStats, index) in statsData.NodeStats.ScenarioStats" :key="scenarioStats.ScenarioName"
-                    v-if="statsData.NodeStats.ScenarioStats.length > 1">
+                <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
+                    v-if="statsData.ScenarioStats.length > 1">
                     <a data-toggle="pill"
                        v-bind:href="`#scenario-${index}-view`"
                        role="tab"
@@ -249,27 +258,27 @@
                 <div class="tab-pane fade show" id="env-view" role="tabpanel">
                     <div class="row">
                         <div class="col">
-                            <claster-info-table v-bind:machine-info="statsData.MachineInfo"></claster-info-table>
+                            <cluster-info-table v-bind:node-info="statsData.NodeInfo"></cluster-info-table>
                         </div>
                     </div>
                 </div>
                 <!-- Global View -->
                 <div class="tab-pane fade show active" id="global-view" role="tabpanel">
-                    <scenarios-stats-view v-bind:scenarios-stats="statsData.NodeStats.ScenarioStats"
-                                          v-bind:plugins-stats="statsData.NodeStats.PluginStats"
-                                          v-if="statsData.NodeStats.ScenarioStats && statsData.NodeStats.PluginStats">
+                    <scenarios-stats-view v-bind:scenarios-stats="statsData.ScenarioStats"
+                                          v-bind:plugins-stats="statsData.PluginStats"
+                                          v-if="statsData.ScenarioStats && statsData.PluginStats">
                         <custom-card title="Number of Requests for Node">
                             <num-req-chart
-                                v-bind:ok-count="statsData.NodeStats.OkCount"
-                                v-bind:fail-count="statsData.NodeStats.FailCount">
+                                v-bind:ok-count="statsData.OkCount"
+                                v-bind:fail-count="statsData.FailCount">
                             </num-req-chart>
                         </custom-card>
                     </scenarios-stats-view>
                     <no-data v-else></no-data>
                 </div>
                 <!-- Scenarios View -->
-                <div v-for="(scenarioStats, index) in statsData.NodeStats.ScenarioStats" :key="scenarioStats.ScenarioName"
-                     v-if="statsData.NodeStats && statsData.NodeStats.ScenarioStats && statsData.NodeStats.ScenarioStats.length > 1"
+                <div v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
+                     v-if="statsData.ScenarioStats && statsData.ScenarioStats.length > 1"
                      class="tab-pane fade show"
                      v-bind:id="`scenario-${index}-view`"
                      role="tabpanel">
@@ -308,11 +317,8 @@
 <script src="assets/js/stats-data.js"></script> <!-- remove-->
 
 <script>
-    var statsData = getStatsData(); // <!-- include stats data -->
-
-    statsData.NodeStats = statsData.NodeStats || {};
-
-    var app = new Vue({
+    const statsData = getStatsData(); // <!-- include stats data -->
+    const app = new Vue({
         el: '#app',
         data: {
             statsData: statsData,

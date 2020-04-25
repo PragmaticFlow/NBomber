@@ -4,7 +4,9 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open System.Diagnostics
+open System.Reflection
 open System.Runtime.InteropServices
+open System.Runtime.Versioning
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
@@ -30,9 +32,19 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     let mutable _cancelToken = new CancellationTokenSource()
 
     let getCurrentNodeInfo () =
-        { MachineName = dep.MachineInfo.MachineName
+        let dotNetVersion = Assembly.GetEntryAssembly()
+                                    .GetCustomAttribute<TargetFrameworkAttribute>()
+                                    .FrameworkName
+
+        let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
+
+        { MachineName = Environment.MachineName
           Sender = dep.NodeType
-          CurrentOperation = _currentOperation }
+          CurrentOperation = _currentOperation
+          OS = Environment.OSVersion
+          DotNetVersion = dotNetVersion
+          Processor = if isNull processor then String.Empty else processor
+          CoresCount = Environment.ProcessorCount }
 
     let getNodeStats (executionTime) =
         let nodeInfo = getCurrentNodeInfo()

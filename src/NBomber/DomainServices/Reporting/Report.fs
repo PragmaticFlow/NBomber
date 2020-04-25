@@ -7,7 +7,6 @@ open System.IO
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.DomainServices.ResourceManager
 open NBomber.Extensions
 
 type ReportsContent = {
