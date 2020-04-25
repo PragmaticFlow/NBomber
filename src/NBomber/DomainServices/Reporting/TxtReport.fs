@@ -12,8 +12,8 @@ let inline private concatLines s =
     String.concat Environment.NewLine s
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    sprintf "scenario: '%s', duration: '%A'"
-        scnStats.ScenarioName scnStats.Duration
+    sprintf "scenario: '%s', duration: '%A', ok count: '%A', fail count: '%A', all data: '%A' MB"
+        scnStats.ScenarioName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
 
 let inline private printPluginStatsHeader (table: DataTable) =
     sprintf "statistics: '%s'" table.TableName

@@ -13,7 +13,7 @@ type PluginStatsViewModel = {
     Rows: string[][]
 }
 
-type HtmlReportViewModel = {
+type NodeStatsViewModel = {
     RequestCount: int
     OkCount: int
     FailCount: int
@@ -23,7 +23,7 @@ type HtmlReportViewModel = {
     NodeInfo: NodeInfo
 }
 
-module HtmlReportViewModel =
+module NodeStatsViewModel =
 
     let private mapDataTableToPluginStatsViewModel (table: DataTable) =
         let tableName = table.TableName
@@ -37,18 +37,15 @@ module HtmlReportViewModel =
         |> Array.collect(fun dataSet -> dataSet.GetTables())
         |> Array.map mapDataTableToPluginStatsViewModel
 
-    let map (stats: NodeStats) =
-        let viewModel: HtmlReportViewModel = {
-            RequestCount = stats.RequestCount
-            OkCount = stats.OkCount
-            FailCount = stats.FailCount
-            AllDataMB = stats.AllDataMB
-            ScenarioStats = stats.ScenarioStats
-            PluginStats = stats.PluginStats |> mapToPluginStatsViewModel
-            NodeInfo = stats.NodeInfo
-        }
+    let map (stats: NodeStats): NodeStatsViewModel = {
+        RequestCount = stats.RequestCount
+        OkCount = stats.OkCount
+        FailCount = stats.FailCount
+        AllDataMB = stats.AllDataMB
+        ScenarioStats = stats.ScenarioStats
+        PluginStats = stats.PluginStats |> mapToPluginStatsViewModel
+        NodeInfo = stats.NodeInfo
+    }
 
-        viewModel
-
-    let serialize (viewModel: HtmlReportViewModel) =
+    let serialize (viewModel: NodeStatsViewModel) =
         JsonConvert.SerializeObject(viewModel, Formatting.Indented)

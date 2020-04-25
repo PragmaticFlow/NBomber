@@ -75,7 +75,7 @@
         <div>
             <custom-card v-for="scenarioStats in scenariosStats"
                          :key="scenarioStats.ScenarioName"
-                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, OkCount: ${scenarioStats.OkCount}, FailCount: ${scenarioStats.FailCount}, AllDataMB: ${scenarioStats.AllDataMB}`"
+                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, Ok Count: ${scenarioStats.OkCount}, Fail Count: ${scenarioStats.FailCount}, All Data: ${scenarioStats.AllDataMB} MB`"
                          v-if="scenariosStats"
                          class="scenario">
                 <table class="table table-hover table-sm table-responsive-lg">

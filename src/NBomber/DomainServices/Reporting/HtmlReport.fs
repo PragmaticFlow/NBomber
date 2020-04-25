@@ -40,7 +40,7 @@ let private mapLine (statsData: string) (line: string) =
     else if includeStatsDataCommand |> line.Contains then
         sprintf "const statsData = %s;" statsData
     else if includeAssetCommand |> line.Contains then
-        AssetsHtmlReportHelper.tryIncludeStyle(line) |? AssetsHtmlReportHelper.tryIncludeScript(line)
+        AssetsHtmlReportHelper.tryIncludeStyle(line) |?? AssetsHtmlReportHelper.tryIncludeScript(line)
         |> Option.map(fun x -> x)
         |> Option.defaultValue line
     else
@@ -50,7 +50,7 @@ let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (stats: NodeStats) =
-    let statsData = stats |> HtmlReportViewModel.map |> HtmlReportViewModel.serialize
+    let statsData = stats |> NodeStatsViewModel.map |> NodeStatsViewModel.serialize
     let lineMapper = mapLine statsData
 
     ResourceManager.tryReadResource("index.html")

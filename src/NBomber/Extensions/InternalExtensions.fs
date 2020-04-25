@@ -130,7 +130,7 @@ module internal Extensions =
             System.Collections.Generic.Dictionary<'K,'V>()
             :> Dict<'K,'V>
 
-    let inline (|?) (a: 'a option) (b: 'a option) =
+    let inline (|??) (a: 'a option) (b: 'a option) =
         match a with
         | Some _ -> a
         | None   -> b

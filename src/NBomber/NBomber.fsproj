@@ -43,7 +43,6 @@
     <Compile Include="DomainServices\ResourceManager.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
-    <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
