@@ -59,6 +59,12 @@ module internal Extensions =
         let replace (oldValue: string, newValue: string) (str: string) =
             str.Replace(oldValue, newValue)
 
+        let inline splitLines (str: string) =
+            str.Split(Environment.NewLine.ToCharArray())
+
+        let inline concatLines (strings: string[]) =
+            String.Join(Environment.NewLine, strings)
+
         let concatWithCommaAndQuotes (strings: string seq) =
             strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
 
@@ -123,6 +129,11 @@ module internal Extensions =
         let inline empty<'K,'V when 'K: equality> =
             System.Collections.Generic.Dictionary<'K,'V>()
             :> Dict<'K,'V>
+
+    let inline (|??) (a: 'a option) (b: 'a option) =
+        match a with
+        | Some _ -> a
+        | None   -> b
 
 namespace NBomber.Extensions.Operator
 

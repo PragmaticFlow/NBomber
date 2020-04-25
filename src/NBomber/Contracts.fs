@@ -49,6 +49,10 @@ type NodeInfo = {
     MachineName: string
     Sender: NodeType
     CurrentOperation: NodeOperationType
+    OS: OperatingSystem
+    DotNetVersion: string
+    Processor: string
+    CoresCount: int
 }
 
 type StepStats = {

@@ -1,16 +1,22 @@
 ﻿module internal NBomber.DomainServices.Reporting.TxtReport
 
 open System
+open System.Data
+
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.Extensions
 
 let inline private concatLines s =
     String.concat Environment.NewLine s
 
 let private printScenarioHeader (scnStats: ScenarioStats) =
-    sprintf "scenario: '%s', duration: '%A'"
-        scnStats.ScenarioName scnStats.Duration
+    sprintf "scenario: '%s', duration: '%A', ok count: '%A', fail count: '%A', all data: '%A' MB"
+        scnStats.ScenarioName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
+
+let inline private printPluginStatsHeader (table: DataTable) =
+    sprintf "statistics: '%s'" table.TableName
 
 let private printStepsTable (steps: StepStats[]) =
     let stepTable = ConsoleTable("step", "details")
@@ -33,10 +39,35 @@ let private printStepsTable (steps: StepStats[]) =
     )
     stepTable.ToStringAlternative()
 
-let print (stats: NodeStats) =
+let private printPluginStatsTable (table: DataTable) =
+    let columnNames = table.GetColumns() |> Array.map(fun x -> x.ColumnName)
+    let columnCaptions = table.GetColumns() |> Array.map(fun x -> x.GetColumnCaptionOrName())
+    let consoleTable = ConsoleTable(columnCaptions)
+
+    table.GetRows()
+    |> Array.map(fun x -> columnNames |> Array.map(fun columnName -> x.[columnName]))
+    |> Array.iter(fun x -> consoleTable.AddRow(x) |> ignore)
+
+    consoleTable.ToStringAlternative()
+
+let printNodeStats (stats: NodeStats) =
     stats.ScenarioStats
     |> Array.map(fun scnStats ->
         [printScenarioHeader scnStats; printStepsTable scnStats.StepStats]
         |> concatLines
     )
     |> concatLines
+
+let printPluginStats (table: DataTable) =
+    [table |> printPluginStatsHeader
+     table |> printPluginStatsTable]
+    |> concatLines
+
+let print (stats: NodeStats) =
+    let pluginsStats =
+        stats.PluginStats
+        |> Seq.collect(fun x -> x.GetTables())
+        |> Seq.map(fun x -> x |> printPluginStats)
+        |> Seq.toList
+
+    printNodeStats(stats) :: pluginsStats

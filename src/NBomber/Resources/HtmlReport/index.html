@@ -1,0 +1,335 @@
+<!--
+    This is a template for building a report in html format.
+
+    Html report builder supports the following commands enclosed in comments:
+    - include asset: replaces a line with a style/script block specified into href/src attribute.
+                     It only works for assets that are contained in embedded resources.
+    - include stats data: includes statistics data.
+    - remove: removes a line.
+-->
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>NBomber</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/brands.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/fontawesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/regular.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/solid.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/v4-shims.min.css" />
+
+    <link rel="stylesheet" href="assets/css/sidebar.css" /> <!-- include asset -->
+    <link rel="stylesheet" href="assets/css/index.css" /> <!-- include asset -->
+
+    <!-- No Data Template -->
+    <script type="text/x-template" id="no-data-template">
+    <h3>No Data</h3>
+    </script>
+    <!-- No Data Template -->
+
+    <!-- Custom Card Template -->
+    <script type="text/x-template" id="custom-card-template">
+        <div class="card custom" style="margin-bottom: 20px">
+            <div class="card-header custom">{{title}}</div>
+            <div class="card-body">
+                <slot></slot>
+            </div>
+        </div>
+    </script>
+    <!-- Custom Card Template -->
+
+    <!-- Cluster Info Table -->
+    <script type="text/x-template" id="cluster-info-table-template">
+        <custom-card v-if="nodeInfo" title="Cluster Info">
+            <table class="table table-hover table-sm table-responsive-lg">
+            <thead>
+                <tr>
+                    <th>Machine Name</th>
+                    <th>OS</th>
+                    <th>.NET Runtime</th>
+                    <th>Processor</th>
+                    <th>Cores</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{nodeInfo.MachineName}}</td>
+                    <td>{{nodeInfo.OS.VersionString}}</td>
+                    <td>{{nodeInfo.DotNetVersion}}</td>
+                    <td>{{nodeInfo.Processor}}</td>
+                    <td>{{nodeInfo.CoresCount}}</td>
+                </tr>
+            </tbody>
+            </table>
+        </custom-card>
+        <no-data v-else></no-data>
+    </script>
+    <!-- Cluster Info Table -->
+
+    <!-- Scenarios Stats Table Template -->
+    <script type="text/x-template" id="scenarios-stats-table-template">
+        <div>
+            <custom-card v-for="scenarioStats in scenariosStats"
+                         :key="scenarioStats.ScenarioName"
+                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, Ok Count: ${scenarioStats.OkCount}, Fail Count: ${scenarioStats.FailCount}, All Data: ${scenarioStats.AllDataMB} MB`"
+                         v-if="scenariosStats"
+                         class="scenario">
+                <table class="table table-hover table-sm table-responsive-lg">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th colspan="3">Request count</th>
+                        <th colspan="4">Request time</th>
+                        <th colspan="4">Request time percentile</th>
+                        <th colspan="4">Data transfer</th>
+                    </tr>
+                    <tr>
+                        <th>step</th>
+                        <th>All</th>
+                        <th>OK</th>
+                        <th>Failed</th>
+                        <th>RPS</th>
+                        <th>min</th>
+                        <th>mean</th>
+                        <th>max</th>
+                        <th>50%</th>
+                        <th>75%</th>
+                        <th>95%</th>
+                        <th>StdDev</th>
+                        <th>min, Kb</th>
+                        <th>mean, Kb</th>
+                        <th>max, Kb</th>
+                        <th>all, MB</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="stepStats in scenarioStats.StepStats" :key="stepStats.StepName">
+                        <td>{{stepStats.StepName}}</td>
+                        <td>{{stepStats.RequestCount}}</td>
+                        <td>{{stepStats.OkCount}}</td>
+                        <td>{{stepStats.FailCount}}</td>
+                        <td>{{stepStats.RPS}}</td>
+                        <td>{{stepStats.Min}}</td>
+                        <td>{{stepStats.Mean}}</td>
+                        <td>{{stepStats.Max}}</td>
+                        <td>{{stepStats.Percent50}}</td>
+                        <td>{{stepStats.Percent75}}</td>
+                        <td>{{stepStats.Percent95}}</td>
+                        <td>{{stepStats.StdDev}}</td>
+                        <td>{{stepStats.MinDataKb}}</td>
+                        <td>{{stepStats.MeanDataKb}}</td>
+                        <td>{{stepStats.MaxDataKb}}</td>
+                        <td>{{stepStats.AllDataMB}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </custom-card>
+        </div>
+    </script>
+    <!-- Scenarios Stats Table Template -->
+
+    <!-- Plugins Stats Table Template -->
+    <script type="text/x-template" id="plugins-stats-table-template">
+        <div>
+            <custom-card v-for="pluginStats in pluginsStats"
+                         :key="pluginStats.PluginName"
+                         v-bind:title="`Plugin Statistics: ${pluginStats.TableName}`"
+                         v-if="pluginsStats"
+                         class="scenario">
+                <table class="table table-hover table-sm table-responsive-lg">
+                    <thead>
+                    <tr>
+                        <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
+                            {{col}}
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
+                        <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
+                            {{value}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </custom-card>
+        </div>
+    </script>
+    <!-- Plugins Stats Table Template -->
+
+    <!-- Scenarios Stats View Template -->
+    <script type="text/x-template" id="scenarios-stats-view-template">
+        <div>
+            <div class="row">
+                <div class="col">
+                    <scenarios-stats-table v-bind:scenarios-stats="scenariosStats"></scenarios-stats-table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <plugins-stats-table v-bind:plugins-stats="pluginsStats"></plugins-stats-table>
+                </div>
+            </div>
+            <div class="row">
+                <div v-for="scenarioStats in scenariosStats"
+                     :key="scenarioStats.ScenarioName"
+                     class="col-6">
+                    <!-- Indicators -->
+                    <custom-card v-bind:title="`Indicators for ${scenarioStats.ScenarioName}`">
+                        <indicators-chart
+                            v-bind:label="scenarioStats.ScenarioName"
+                            v-bind:latency-count="scenarioStats.LatencyCount"
+                            v-bind:fail-count="scenarioStats.FailCount">
+                        </indicators-chart>
+                    </custom-card>
+                    <!-- Indicators -->
+                </div>
+
+                <div class="col-6">
+                    <slot></slot>
+                </div>
+            </div>
+
+        </div>
+    </script>
+    <!-- Scenarios View Template -->
+
+</head>
+<body>
+<div id="app">
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark">
+        <a class="navbar-brand" href="#">
+            <img src="https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_logo.png"
+                 height="50" class="d-inline-block align-top" alt="NBomber" />
+        </a>
+    </nav>
+    <!-- Navbar -->
+
+    <!-- Sidebar -->
+    <div id="wrapper" v-bind:class="{ active: sideBarActive }">
+        <div id="sidebar-wrapper">
+            <!-- Menu -->
+            <ul id="sidebar_menu" class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a id="menu-toggle" href="#" v-on:click.prevent="toggleSideBar">
+                        Menu<span class="main_icon fas fa-align-justify"></span>
+                    </a>
+                </li>
+            </ul>
+            <!-- Menu -->
+
+            <ul class="sidebar-nav nav nav-pills mb-3" role="tablist">
+                <li class="nav-item">
+                    <a data-toggle="pill" href="#env-view" role="tab" aria-controls="env-view">
+                        Environment <span class="sub_icon fas fa-flask"></span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a data-toggle="pill" href="#global-view" class="active" role="tab" aria-controls="global-view">
+                        Global <span class="sub_icon fas fa-globe"></span>
+                    </a>
+                </li>
+
+                <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
+                    v-if="statsData.ScenarioStats.length > 1">
+                    <a data-toggle="pill"
+                       v-bind:href="`#scenario-${index}-view`"
+                       role="tab"
+                       v-bind:aria-controls="`scenario-${index}-view`">
+                        Scenario {{index + 1}} <span class="sub_icon fas fa-arrow-right"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- Sidebar -->
+
+    <!-- Content -->
+    <div id="page-content-wrapper" v-bind:class="{ active: !sideBarActive }">
+        <div class="container">
+            <div class="tab-content" id="pills-tabContent">
+                <!-- Environment View -->
+                <div class="tab-pane fade show" id="env-view" role="tabpanel">
+                    <div class="row">
+                        <div class="col">
+                            <cluster-info-table v-bind:node-info="statsData.NodeInfo"></cluster-info-table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Global View -->
+                <div class="tab-pane fade show active" id="global-view" role="tabpanel">
+                    <scenarios-stats-view v-bind:scenarios-stats="statsData.ScenarioStats"
+                                          v-bind:plugins-stats="statsData.PluginStats"
+                                          v-if="statsData.ScenarioStats && statsData.PluginStats">
+                        <custom-card title="Number of Requests for Node">
+                            <num-req-chart
+                                v-bind:ok-count="statsData.OkCount"
+                                v-bind:fail-count="statsData.FailCount">
+                            </num-req-chart>
+                        </custom-card>
+                    </scenarios-stats-view>
+                    <no-data v-else></no-data>
+                </div>
+                <!-- Scenarios View -->
+                <div v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
+                     v-if="statsData.ScenarioStats && statsData.ScenarioStats.length > 1"
+                     class="tab-pane fade show"
+                     v-bind:id="`scenario-${index}-view`"
+                     role="tabpanel">
+                    <scenarios-stats-view v-bind:scenarios-stats="[scenarioStats]">
+                        <custom-card v-bind:title="`Number of Requests for ${scenarioStats.ScenarioName}`">
+                            <num-req-chart
+                                v-bind:ok-count="scenarioStats.OkCount"
+                                v-bind:fail-count="scenarioStats.FailCount">
+                            </num-req-chart>
+                        </custom-card>
+                    </scenarios-stats-view>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-chartjs/3.5.0/vue-chartjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/brands.min.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/conflict-detection.min.js"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/regular.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/solid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/v4-shims.min.js"></script>
+
+<script src="assets/js/index.js"></script> <!-- include asset -->
+<script src="assets/js/stats-data.js"></script> <!-- remove-->
+
+<script>
+    const statsData = getStatsData(); // <!-- include stats data -->
+    const app = new Vue({
+        el: '#app',
+        data: {
+            statsData: statsData,
+            sideBarActive: true
+        },
+        methods: {
+            toggleSideBar: function() {
+                this.sideBarActive = !this.sideBarActive;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

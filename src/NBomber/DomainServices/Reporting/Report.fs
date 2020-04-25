@@ -13,31 +13,20 @@ type ReportsContent = {
     TxtReport: string list
     HtmlReport: string
     CsvReport: string
-    MdReport: string
 } with
-    static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = ""; MdReport = "" }
+    static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = "" }
 
-let private buildTxtReport (nodeStats: NodeStats) =
-    let pluginsStats =
-        nodeStats.PluginStats
-        |> Seq.collect(fun x -> x.GetTables())
-        |> Seq.map(fun x -> x |> TxtReportPluginStats.print)
-        |> Seq.toList
-
-    TxtReport.print(nodeStats) :: pluginsStats
-
-let build (nodeStats: NodeStats) =
-    { TxtReport = buildTxtReport(nodeStats)
-      //HtmlReport = HtmlReport.print(dep, nodeStats)
-      HtmlReport = ""
-      CsvReport = CsvReport.print(nodeStats)
-      MdReport = MdReport.print(nodeStats) }
+let build (nodeStats: NodeStats) = {
+    TxtReport = TxtReport.print(nodeStats)
+    HtmlReport = HtmlReport.print(nodeStats)
+    CsvReport = CsvReport.print(nodeStats)
+}
 
 let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat list,
           report: ReportsContent, logger: Serilog.ILogger) =
     try
         let reportsDir = Path.Combine(outPutDir, "reports")
-        Directory.CreateDirectory(reportsDir) |> ignore
+        reportsDir |> Directory.CreateDirectory |> ignore
 
         let buildReportFile (format: ReportFormat) =
             let fileExt =
@@ -45,7 +34,6 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
                 | ReportFormat.Txt  -> ".txt"
                 | ReportFormat.Html -> ".html"
                 | ReportFormat.Csv  -> ".csv"
-                | ReportFormat.Md   -> ".md"
 
             let filePath = Path.Combine(reportsDir, reportFileName) + fileExt
             { FilePath = filePath; ReportFormat = format }
@@ -59,7 +47,6 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
             | ReportFormat.Txt  -> {| Content = txtRportContent; FilePath = x.FilePath |}
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
-            | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 

@@ -109,7 +109,7 @@ let ``Init should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -137,7 +137,7 @@ let ``StartTest should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -163,7 +163,7 @@ let ``StartTest should be invoked with infra config`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -191,7 +191,7 @@ let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no I
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -219,7 +219,7 @@ let ``StopTest should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -261,7 +261,7 @@ let ``stats should be passed to IReportingSink and saved in reports`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
-    |> NBomberRunner.withPlugins([plugin])
+    |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -277,6 +277,8 @@ let ``stats should be passed to IReportingSink and saved in reports`` () =
     test <@ table2.Rows.Count > 0 @>
 
     // assert on reports
+    test <@ _reports.Length > 0 @>
+
     _reports
     |> Array.filter(fun x -> [ ReportFormat.Txt ] |> List.contains x.ReportFormat)
     |> Array.map(fun x -> x.FilePath |> File.ReadAllText)

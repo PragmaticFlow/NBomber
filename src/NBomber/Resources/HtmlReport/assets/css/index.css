@@ -1,0 +1,66 @@
+:root {
+	--header-padding-top: 0.5vw;
+	--header-padding-bottom: 0.3vw;
+}
+
+.card.custom {
+    font-size: 13px !important;
+}
+
+.card-header.custom {
+    font-size: 14px !important;
+    color: #fff !important;
+    background-color: #6c757d !important;
+}
+
+.navbar-brand {
+    padding: 0%
+}
+
+.navbar {
+	position: fixed;
+	width: 100%;
+	top: 0;
+	z-index: 1000;
+    padding-top: var(--header-padding-top);
+    padding-bottom: var(--header-padding-bottom);
+}
+
+.navbar-dark {
+    background-color: #222 !important;    
+}
+
+.scenario table tr th {
+    text-align: center;
+}
+
+.scenario table tr td {
+    text-align: right;
+}
+
+.scenario table tr td:first-child {
+    text-align: left;
+}
+
+.scenario table {
+    border-collapse: collapse;
+}
+
+.scenario table td,
+.scenario table th{
+    border: 1px solid #dee2e6;
+}
+.scenario table tr:first-child th {
+    border-top: 0;
+}
+.scenario table tr:last-child td {
+    border-bottom: 0;
+}
+.scenario table tr td:first-child,
+.scenario table tr th:first-child {
+    border-left: 0;
+}
+.scenario table tr td:last-child,
+.scenario table tr th:last-child {
+    border-right: 0;
+}
