@@ -122,7 +122,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     member x.RegisteredScenarios = registeredScenarios
     member x.TargetScenarios = _targetScenarios
 
-    member x.InitScenarios(args: SessionArgs) = task {
+    member x.StartInitScenarios(args: SessionArgs) = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
@@ -137,7 +137,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             return AppError.createResult(InitScenarioError e)
     }
 
-    member x.WarmUpScenarios() = task {
+    member x.StartWarmUpScenarios() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.WarmUp
         do! Task.Yield()
@@ -148,7 +148,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         stopScenarios()
 
         _currentOperation <- NodeOperationType.None
-        do! Task.Delay(Constants.OperationTimeOut)
     }
 
     member x.StartBombing() = task {
@@ -162,7 +161,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         do! x.StopScenarios()
 
         _currentOperation <- NodeOperationType.Complete
-        do! Task.Delay(Constants.OperationTimeOut)
     }
 
     member x.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
@@ -182,16 +180,16 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             _currentOperation <- NodeOperationType.None
     }
 
-    member x.GetNodeStats(duration) = getNodeStats(duration)
+    member x.GetNodeStats(executionTime) = getNodeStats(executionTime)
 
     member x.RunSession(args: SessionArgs) = taskResult {
-        do! x.InitScenarios(args)
+        do! x.StartInitScenarios(args)
 
         let currentOperationTimer = Stopwatch()
 
         // warm-up
         currentOperationTimer.Restart()
-        do! x.WarmUpScenarios()
+        do! x.StartWarmUpScenarios()
         let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 

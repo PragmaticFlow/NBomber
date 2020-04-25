@@ -77,14 +77,17 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
             |> Result.mapError(List.head)
 }
 
-let filterTargetScenarios (targetScenarios: string[]) (allScenarios: Scenario list) =
-    match targetScenarios with
-    | [||] -> allScenarios
-    | _    ->
-        allScenarios
-        |> List.filter(fun x -> targetScenarios |> Seq.exists(fun target -> x.ScenarioName = target))
+let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario list) =
+    scenarios
+    |> List.filter(fun x -> targetScenarios |> Seq.exists(fun target -> x.ScenarioName = target))
 
-let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
+let findByMaxWarmUp (allScenarios: Scenario list) =
+    allScenarios |> List.maxBy(fun x -> x.WarmUpDuration)
+
+let findByMaxDuration (allScenarios: Scenario list) =
+    allScenarios |> List.maxBy(fun x -> x.PlanedDuration)
+
+let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
 
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
@@ -100,14 +103,13 @@ let applySettings (settings: ScenarioSetting[]) (scenarios: Scenario list) =
                         CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 
     scenarios
-    |> Seq.map(fun scn ->
+    |> List.map(fun scn ->
         settings
-        |> Seq.tryPick(fun x ->
+        |> List.tryPick(fun x ->
             if x.ScenarioName = scn.ScenarioName then Some(scn, x)
             else None)
         |> Option.map updateScenario
         |> Option.defaultValue scn)
-    |> Seq.toList
 
 let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: Contracts.IConnectionPoolArgs<obj> list) =
     poolArgs |> List.map(fun poolArg ->

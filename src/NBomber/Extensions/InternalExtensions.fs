@@ -77,6 +77,9 @@ module internal Extensions =
             if String.IsNullOrWhiteSpace str then None
             else Some str
 
+        let contains (value: string) (strings: string seq) =
+            strings |> Seq.exists(fun x -> x = value)
+
     module Array =
 
         /// Safe variant of `Array.min`

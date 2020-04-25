@@ -55,7 +55,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
                 Ok connection
             with
             | ex ->
-                if tryCount >= Constants.ReTryCount then Error ex
+                if tryCount >= Constants.TryCount then Error ex
                 else retryOpenConnection(connectionNumber, tryCount + 1, token)
 
         let rec openConnections (connectionNumber, connectionCount, token) = seq {
@@ -88,7 +88,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
         for connection in _aliveConnections do
             try
-                args.CloseConnection(connection, token).Wait(Constants.OperationTimeOut) |> ignore
+                args.CloseConnection(connection, token).Wait(Constants.OperationTimeOutMs) |> ignore
                 _eventStream.OnNext(ConnectionClosed(error = None))
             with
             | ex ->

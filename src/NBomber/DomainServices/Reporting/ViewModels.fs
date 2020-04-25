@@ -37,7 +37,7 @@ module NodeStatsViewModel =
         |> Array.collect(fun dataSet -> dataSet.GetTables())
         |> Array.map mapDataTableToPluginStatsViewModel
 
-    let map (stats: NodeStats): NodeStatsViewModel = {
+    let create (stats: NodeStats): NodeStatsViewModel = {
         RequestCount = stats.RequestCount
         OkCount = stats.OkCount
         FailCount = stats.FailCount
@@ -47,5 +47,5 @@ module NodeStatsViewModel =
         NodeInfo = stats.NodeInfo
     }
 
-    let serialize (viewModel: NodeStatsViewModel) =
+    let serializeJson (viewModel: NodeStatsViewModel) =
         JsonConvert.SerializeObject(viewModel, Formatting.Indented)

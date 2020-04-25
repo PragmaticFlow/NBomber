@@ -20,8 +20,8 @@ open NBomber.Infra.Dependency
 
 type SessionArgs = {
     TestInfo: TestInfo
-    ScenariosSettings: ScenarioSetting[]
-    TargetScenarios: string[]
+    ScenariosSettings: ScenarioSetting list
+    TargetScenarios: string list
     ConnectionPoolSettings: ConnectionPoolSetting list
     SendStatsInterval: TimeSpan
 }
@@ -30,8 +30,8 @@ module internal SessionArgs =
 
     let empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
-        ScenariosSettings = Array.empty
-        TargetScenarios = Array.empty
+        ScenariosSettings = List.empty
+        TargetScenarios = List.empty
         ConnectionPoolSettings = List.empty
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
@@ -42,11 +42,6 @@ module internal SessionArgs =
           TargetScenarios = NBomberContext.getTargetScenarios(context)
           ConnectionPoolSettings = NBomberContext.getConnectionPoolSettings(context)
           SendStatsInterval = NBomberContext.getSendStatsInterval(context) }
-
-    let filterTargetScenarios (sessionArgs: SessionArgs) (scns: Scenario list) =
-        scns
-        |> Scenario.applySettings(sessionArgs.ScenariosSettings)
-        |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
 
 module internal TestHostReporting =
 
@@ -95,8 +90,8 @@ module internal TestHostConsole =
             else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickIntervalMs)
 
         let getLongestDuration (schedulers: ScenarioScheduler list) =
-            if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.sortDescending |> List.head
-            else schedulers |> List.map(fun x -> x.Scenario.PlanedDuration) |> List.sortDescending |> List.head
+            if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.max
+            else schedulers |> List.map(fun x -> x.Scenario.PlanedDuration) |> List.max
 
         let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
             let mainPb = schedulers |> getLongestDuration |> dep.CreateAutoProgressBar
@@ -208,17 +203,21 @@ module internal TestHostScenario =
             | [] -> Ok()
         }
 
-        let targetScns = registeredScenarios |> SessionArgs.filterTargetScenarios sessionArgs
-        TestHostConsole.printTargetScenarios(dep, targetScns)
-        do! targetScns |> init |> Result.toEmptyIO
+        let targetScenarios =
+            registeredScenarios
+            |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
+            |> Scenario.applySettings(sessionArgs.ScenariosSettings)
 
-        let! pools = targetScns
+        TestHostConsole.printTargetScenarios(dep, targetScenarios)
+        do! targetScenarios |> init |> Result.toEmptyIO
+
+        let! pools = targetScenarios
                      |> Scenario.filterDistinctConnectionPoolsArgs
                      |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
                      |> initConnectionPools dep defaultScnContext.CancellationToken
 
-        let scenariosWithPools = targetScns |> Scenario.insertConnectionPools(pools)
+        let scenariosWithPools = targetScenarios |> Scenario.insertConnectionPools(pools)
         return scenariosWithPools
     }
 

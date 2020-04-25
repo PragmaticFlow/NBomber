@@ -34,7 +34,6 @@ let getScenariosSettings (context: NBomberContext) =
     |> Option.bind(fun x -> x.GlobalSettings)
     |> Option.bind(fun x -> x.ScenariosSettings)
     |> Option.defaultValue List.empty
-    |> List.toArray
 
 let getTargetScenarios (context: NBomberContext) =
     let targetScn =
@@ -42,11 +41,8 @@ let getTargetScenarios (context: NBomberContext) =
         |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.bind(fun x -> x.TargetScenarios)
 
-    let allScns = context.RegisteredScenarios
-                  |> List.map(fun x -> x.ScenarioName)
-
+    let allScns = context.RegisteredScenarios |> List.map(fun x -> x.ScenarioName)
     defaultArg targetScn allScns
-    |> List.toArray
 
 let getReportFileName (sessionId: string, context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {

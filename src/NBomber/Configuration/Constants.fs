@@ -1,5 +1,6 @@
 module internal NBomber.Constants
 
+open System
 open NBomber.Configuration
 
 [<Literal>]
@@ -14,10 +15,10 @@ let NBomberWelcomeText = """
 let DefaultScenarioDurationInSec = 60.0
 
 [<Literal>]
-let DefaultConcurrentCopiesCount = 50
+let DefaultWarmUpDurationInSec = 10.0
 
 [<Literal>]
-let DefaultWarmUpDurationInSec = 10.0
+let DefaultConcurrentCopiesCount = 50
 
 [<Literal>]
 let DefaultRepeatCount = 0
@@ -51,7 +52,7 @@ let MinSendStatsIntervalSec = 10.0
 let SchedulerNotificationTickIntervalMs = 2_000.0
 
 [<Literal>]
-let ReTryCount = 5
+let TryCount = 5
 
 [<Literal>]
-let OperationTimeOut = 3_000
+let OperationTimeOutMs = 3_000
