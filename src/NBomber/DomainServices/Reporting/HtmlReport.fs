@@ -3,15 +3,10 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
-open Newtonsoft.Json
-
 open NBomber.Contracts
 open NBomber.DomainServices
+open NBomber.DomainServices.Reporting.ViewModels
 open NBomber.Extensions
-
-module internal StatsDataHtmlReportHelper =
-    let getStatsData (stats: NodeStats) =
-        JsonConvert.SerializeObject(stats, Formatting.Indented)
 
 module internal AssetsHtmlReportHelper =
 
@@ -55,7 +50,7 @@ let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (stats: NodeStats) =
-    let statsData = stats |> StatsDataHtmlReportHelper.getStatsData
+    let statsData = stats |> HtmlReportViewModel.map |> HtmlReportViewModel.serialize
     let lineMapper = mapLine statsData
 
     ResourceManager.tryReadResource("index.html")

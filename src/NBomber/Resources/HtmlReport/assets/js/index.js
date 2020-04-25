@@ -1,21 +1,3 @@
-// const getPluginStats = rawPluginStats => {
-//     const result = [];
-//
-//     rawPluginStats.map(tables => {
-//         for (let [tableName, rawRows] of Object.entries(tables)) {
-//             if (rawRows.length > 0) {
-//                 const firstRow = rawRows[0];
-//                 const columns = Object.keys(firstRow);
-//                 const rows = rawRows.map(Object.values);
-//                 const table = { PluginName: tableName, Columns: columns, Rows: rows };
-//                 result.push(table);
-//             }
-//         }
-//     });
-//
-//     return result;
-// };
-
 const colors = {
     red: 'rgb(255, 99, 132)',
     redlight: 'rgba(255, 99, 132, 0.2)',

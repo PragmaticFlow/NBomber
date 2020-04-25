@@ -41,6 +41,7 @@
     <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\TestContext.fs" />
     <Compile Include="DomainServices\ResourceManager.fs" />
+    <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
