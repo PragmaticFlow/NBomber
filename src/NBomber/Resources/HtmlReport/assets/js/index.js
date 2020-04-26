@@ -36,11 +36,6 @@ Vue.component('plugins-stats-table', {
     template: '#plugins-stats-table-template'
 });
 
-Vue.component('scenarios-stats-view', {
-    props: ['scenariosStats', 'pluginsStats'],
-    template: '#scenarios-stats-view-template'
-});
-
 Vue.component('num-req-chart', {
     extends: VueChartJs.Pie,
     props: ['okCount', 'failCount'],
@@ -55,7 +50,12 @@ Vue.component('num-req-chart', {
             ]
         };
 
-        this.renderChart(data, {});
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false
+        };
+
+        this.renderChart(data, options);
     }
 });
 
@@ -64,7 +64,7 @@ Vue.component('indicators-chart', {
     props: ['label', 'latencyCount', 'failCount'],
     mounted () {
         const data = {
-            labels: ["t < 800ms", "800ms < t < 1.2s", "t > 1.2s", "failed"],
+            labels: ["t < 800ms", "800ms < t < 1.2s", "t > 1.2s", "Failed"],
             datasets: [{
                 label: this.label,
                 data: [
@@ -90,6 +90,8 @@ Vue.component('indicators-chart', {
         };
 
         const options = {
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 yAxes: [{
                     ticks: {
@@ -99,6 +101,6 @@ Vue.component('indicators-chart', {
             }
         };
 
-        this.renderChart(data, options)
+        this.renderChart(data, options);
     }
 });
