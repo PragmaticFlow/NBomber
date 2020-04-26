@@ -18,7 +18,7 @@ type CustomReportingSink() =
         member x.Init(logger, infraConfig) = ()
         member x.StartTest(testInfo: TestInfo) = Task.CompletedTask
         member x.SaveRealtimeStats(stats:NodeStats[]) = Task.CompletedTask
-        member x.SaveFinalStats(stats:NodeStats[], reportFiles:ReportFile[]) = Task.CompletedTask
+        member x.SaveFinalStats(stats:NodeStats[]) = Task.CompletedTask
         member x.StopTest() = Task.CompletedTask
         member x.Dispose() = ()
 
