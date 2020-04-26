@@ -30,21 +30,10 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     let mutable _currentOperation = NodeOperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
+    let _defaultNodeInfo = NodeInfo.init()
 
     let getCurrentNodeInfo () =
-        let dotNetVersion = Assembly.GetEntryAssembly()
-                                    .GetCustomAttribute<TargetFrameworkAttribute>()
-                                    .FrameworkName
-
-        let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
-
-        { MachineName = Environment.MachineName
-          Sender = dep.NodeType
-          CurrentOperation = _currentOperation
-          OS = Environment.OSVersion
-          DotNetVersion = dotNetVersion
-          Processor = if isNull processor then String.Empty else processor
-          CoresCount = Environment.ProcessorCount }
+        { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
     let getNodeStats (executionTime) =
         let nodeInfo = getCurrentNodeInfo()
@@ -82,7 +71,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         |> List.map(createScheduler _cancelToken.Token)
 
     let initScenarios (sessionArgs: SessionArgs) = taskResult {
-        _sessionArgs <- sessionArgs
 
         let defaultScnContext = {
             NodeInfo = getCurrentNodeInfo()
@@ -91,7 +79,11 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             Logger = dep.Logger
         }
 
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, _sessionArgs)
+        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
+        TestHostPlugins.startPlugins dep sessionArgs.TestInfo
+        TestHostReporting.startReportingSinks dep sessionArgs.TestInfo
+
+        _sessionArgs <- sessionArgs
         _targetScenarios <- updatedScenarios
     }
 
@@ -175,6 +167,8 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
             stopScenarios()
             cleanScenarios()
+            TestHostPlugins.stopPlugins dep
+            TestHostReporting.stopReportingSinks dep
             _stopped <- true
 
             _currentOperation <- NodeOperationType.None
@@ -205,9 +199,14 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         do! x.StartBombing()
         reportingTimer.Stop()
 
-        return getNodeStats(currentOperationTimer.Elapsed)
+        let finalStats = getNodeStats(currentOperationTimer.Elapsed)
+        TestHostReporting.saveFinalStats dep [finalStats]
+
+        return finalStats
     }
 
     interface IDisposable with
         member x.Dispose() =
             x.StopScenarios().Wait()
+            dep.Plugins |> Seq.iter(fun x -> x.Dispose())
+            dep.ReportingSinks |> Seq.iter(fun x -> x.Dispose())

@@ -47,7 +47,7 @@ type NodeOperationType =
 
 type NodeInfo = {
     MachineName: string
-    Sender: NodeType
+    NodeType: NodeType
     CurrentOperation: NodeOperationType
     OS: OperatingSystem
     DotNetVersion: string
@@ -161,7 +161,7 @@ type IReportingSink =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract StartTest: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: stats:NodeStats[] -> Task
-    abstract SaveFinalStats: stats:NodeStats[] * reportFiles:ReportFile[] -> Task
+    abstract SaveFinalStats: stats:NodeStats[] -> Task
     abstract StopTest: unit -> Task
 
 type IPlugin =

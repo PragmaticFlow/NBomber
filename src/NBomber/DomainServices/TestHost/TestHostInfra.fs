@@ -50,6 +50,13 @@ module internal TestHostReporting =
         |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveRealtimeStats)
         |> Task.WhenAll
 
+    let saveFinalStats (dep: GlobalDependency) (stats: NodeStats list) =
+        for sink in dep.ReportingSinks do
+            try
+                sink.SaveFinalStats(stats |> Seq.toArray).Wait()
+            with
+            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+
     let startReportingTimer (dep: GlobalDependency,
                              sendStatsInterval: TimeSpan,
                              getOperationInfo: unit -> (NodeOperationType * TimeSpan),
@@ -76,6 +83,37 @@ module internal TestHostReporting =
         else
             new System.Timers.Timer()
 
+    let startReportingSinks (dep: GlobalDependency) (testInfo: TestInfo) =
+        for sink in dep.ReportingSinks do
+            try
+                sink.StartTest(testInfo) |> ignore
+            with
+            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+
+    let stopReportingSinks (dep: GlobalDependency) =
+        for sink in dep.ReportingSinks do
+            try
+                sink.StopTest().Wait()
+            with
+            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+
+module internal TestHostPlugins =
+
+    let startPlugins (dep: GlobalDependency) (testInfo: TestInfo) =
+        for plugin in dep.Plugins do
+            try
+                plugin.StartTest(testInfo).Wait()
+            with
+            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
+
+    let stopPlugins (dep: GlobalDependency) =
+        for plugin in dep.Plugins do
+            try
+                plugin.StopTest().Wait()
+                plugin.Dispose()
+            with
+            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
+
 module internal TestHostConsole =
 
     let printTargetScenarios (dep: GlobalDependency, targetScns: Scenario list) =
@@ -94,7 +132,7 @@ module internal TestHostConsole =
             else schedulers |> List.map(fun x -> x.Scenario.PlanedDuration) |> List.max
 
         let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
-            let mainPb = schedulers |> getLongestDuration |> dep.CreateAutoProgressBar
+            let mainPb = schedulers |> getLongestDuration |> dep.ProgressBarEnv.CreateAutoProgressBar
 
             schedulers
             |> List.map(fun scheduler ->
@@ -112,7 +150,7 @@ module internal TestHostConsole =
             |> List.append [mainPb :> IDisposable]
 
         let displayProgressForOneScenario (scheduler: ScenarioScheduler) =
-            let pb = scheduler.Scenario |> calcTickCount |> dep.CreateManualProgressBar
+            let pb = scheduler.Scenario |> calcTickCount |> dep.ProgressBarEnv.CreateManualProgressBar
             scheduler.EventStream
             |> Observable.subscribeWithCompletion
                 (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
@@ -133,7 +171,7 @@ module internal TestHostConsole =
     let displayConnectionPoolProgress (dep: GlobalDependency, pool: ConnectionPool) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
-            let pb = dep.CreateManualProgressBar(pool.ConnectionCount)
+            let pb = dep.ProgressBarEnv.CreateManualProgressBar(pool.ConnectionCount)
             pool.EventStream
             |> Observable.subscribeWithCompletion
                 (fun event ->
@@ -216,6 +254,8 @@ module internal TestHostScenario =
                      |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
                      |> initConnectionPools dep defaultScnContext.CancellationToken
+
+
 
         let scenariosWithPools = targetScenarios |> Scenario.insertConnectionPools(pools)
         return scenariosWithPools

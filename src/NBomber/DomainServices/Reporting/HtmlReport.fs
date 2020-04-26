@@ -4,7 +4,7 @@ open System
 open System.Text.RegularExpressions
 
 open NBomber.Contracts
-open NBomber.DomainServices
+open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting.ViewModels
 open NBomber.Extensions
 

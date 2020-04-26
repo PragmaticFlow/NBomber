@@ -1,12 +1,13 @@
 ﻿module internal NBomber.Infra.Dependency
 
 open System
+open System.IO
+
 open System.Reflection
 open System.Runtime.Versioning
-
+open Microsoft.Extensions.Configuration
 open Serilog
 open ShellProgressBar
-open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts
 
@@ -15,18 +16,61 @@ type ApplicationType =
     | Console
     | Test
 
+type IProgressBarEnv =
+    abstract CreateManualProgressBar: tickCount:int -> IProgressBar
+    abstract CreateAutoProgressBar: duration:TimeSpan -> IProgressBar
+
 type GlobalDependency = {
     NBomberVersion: string
     ApplicationType: ApplicationType
     NodeType: NodeType
-    CreateManualProgressBar: int -> IProgressBar
-    CreateAutoProgressBar: TimeSpan -> IProgressBar
+    ProgressBarEnv: IProgressBarEnv
     Logger: ILogger
     ReportingSinks: IReportingSink list
     Plugins: IPlugin list
 }
 
-module ProgressBar =
+module Logger =
+
+    let create (testInfo: TestInfo, configPath: IConfiguration option) =
+        let loggerConfig = LoggerConfiguration()
+                            .Enrich.WithProperty("SessionId", testInfo.SessionId)
+                            .Enrich.WithProperty("TestSuite", testInfo.TestSuite)
+                            .Enrich.WithProperty("TestName", testInfo.TestName)
+        match configPath with
+        | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger()
+        | None      -> loggerConfig.WriteTo.Console().CreateLogger()
+
+module ResourceManager =
+
+    let readResource (name) =
+        let assembly = typedefof<TestInfo>.Assembly
+        assembly.GetManifestResourceNames()
+        |> Array.tryFind(fun x -> x.Contains(name))
+        |> Option.map(fun resourceName ->
+            use stream = assembly.GetManifestResourceStream(resourceName)
+            use reader = new StreamReader(stream)
+            reader.ReadToEnd()
+        )
+
+module NodeInfo =
+
+    let init () =
+        let dotNetVersion = Assembly.GetEntryAssembly()
+                                    .GetCustomAttribute<TargetFrameworkAttribute>()
+                                    .FrameworkName
+
+        let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
+
+        { MachineName = Environment.MachineName
+          NodeType = NodeType.SingleNode
+          CurrentOperation = NodeOperationType.None
+          OS = Environment.OSVersion
+          DotNetVersion = dotNetVersion
+          Processor = if isNull processor then String.Empty else processor
+          CoresCount = Environment.ProcessorCount }
+
+module ProgressBarEnv =
 
     let private options =
         ProgressBarOptions(ProgressBarOnBottom = true,
@@ -36,11 +80,13 @@ module ProgressBar =
                            BackgroundCharacter = Nullable<char>('\u2593'),
                            CollapseWhenFinished = false)
 
-    let createManual (ticks: int) =
-        new ProgressBar(ticks, String.Empty, options) :> IProgressBar
+    let create () =
+        { new IProgressBarEnv with
+            member x.CreateManualProgressBar(ticks) =
+                new ProgressBar(ticks, String.Empty, options) :> IProgressBar
 
-    let createAuto (duration: TimeSpan) =
-        new FixedDurationBar(duration, String.Empty, options) :> IProgressBar
+            member x.CreateAutoProgressBar(duration) =
+                new FixedDurationBar(duration, String.Empty, options) :> IProgressBar }
 
 let createSessionId () =
     let date = DateTime.UtcNow.ToString("dd.MM.yyyy_HH.mm.ff")
@@ -52,7 +98,7 @@ let init (appType: ApplicationType,
           testInfo: TestInfo,
           context: NBomberContext) =
 
-    let logger = Logger.createLogger(testInfo, context.InfraConfig)
+    let logger = Logger.create(testInfo, context.InfraConfig)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
 
     context.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))
@@ -63,8 +109,7 @@ let init (appType: ApplicationType,
     { NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
       ApplicationType = appType
       NodeType = nodeType
-      CreateManualProgressBar = ProgressBar.createManual
-      CreateAutoProgressBar = ProgressBar.createAuto
+      ProgressBarEnv = ProgressBarEnv.create()
       Logger = logger
       ReportingSinks = context.ReportingSinks
       Plugins = context.Plugins }

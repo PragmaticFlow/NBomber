@@ -227,11 +227,10 @@ let ``StopTest should be invoked once`` () =
     test <@ pluginFinishTestInvokedCounter = 1 @>
 
 [<Fact>]
-let ``stats should be passed to IReportingSink and saved in reports`` () =
+let ``stats should be passed to IReportingSink`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable _nodeStats = Array.empty
-    let mutable _reports = Array.empty
 
     let plugin = {
         new IPlugin with
@@ -250,9 +249,8 @@ let ``stats should be passed to IReportingSink and saved in reports`` () =
             member x.StartTest(_) = Task.CompletedTask
             member x.SaveRealtimeStats(_) = Task.CompletedTask
 
-            member x.SaveFinalStats(stats, reports) =
+            member x.SaveFinalStats(stats) =
                 _nodeStats <- stats
-                _reports <- reports
                 Task.CompletedTask
 
             member x.StopTest() = Task.CompletedTask
@@ -275,14 +273,3 @@ let ``stats should be passed to IReportingSink and saved in reports`` () =
     test <@ table1.Rows.Count > 0 @>
     test <@ table2.Columns.Count > 0 @>
     test <@ table2.Rows.Count > 0 @>
-
-    // assert on reports
-    test <@ _reports.Length > 0 @>
-
-    _reports
-    |> Array.filter(fun x -> [ ReportFormat.Txt ] |> List.contains x.ReportFormat)
-    |> Array.map(fun x -> x.FilePath |> File.ReadAllText)
-    |> Array.iter(fun x -> test <@ x.Contains("PluginStatistics1Column") @>
-                           test <@ x.Contains("PluginStatistics1Row") @>
-                           test <@ x.Contains("PluginStatistics2Column") @>
-                           test <@ x.Contains("PluginStatistics2Row") @>)

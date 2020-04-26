@@ -42,7 +42,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
-            member x.SaveFinalStats(_, _) =
+            member x.SaveFinalStats(_) =
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
@@ -88,7 +88,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
                 | _                          -> failwith "operation type is invalid for SaveStatistics"
                 Task.CompletedTask
 
-            member x.SaveFinalStats(_, _) =
+            member x.SaveFinalStats(_) =
                 completeCounter <- completeCounter + 1
                 Task.CompletedTask
 

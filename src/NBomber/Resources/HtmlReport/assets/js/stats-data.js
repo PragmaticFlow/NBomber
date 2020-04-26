@@ -110,7 +110,7 @@ function getStatsData() {
         ],
         "NodeInfo": {
             "MachineName": "Machine Name",
-            "Sender": {
+            "NodeType": {
                 "Case": "SingleNode"
             },
             "CurrentOperation": 5,
