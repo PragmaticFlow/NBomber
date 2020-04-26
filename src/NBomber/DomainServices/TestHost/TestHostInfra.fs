@@ -36,7 +36,7 @@ module internal SessionArgs =
         SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
     }
 
-    let getFromContext (testInfo: TestInfo, context: NBomberContext) =
+    let buildFromContext (testInfo: TestInfo) (context: NBomberContext) =
         { TestInfo = testInfo
           ScenariosSettings = NBomberContext.getScenariosSettings(context)
           TargetScenarios = NBomberContext.getTargetScenarios(context)

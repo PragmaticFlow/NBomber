@@ -32,7 +32,7 @@ type GlobalDependency = {
 
 module Logger =
 
-    let create (testInfo: TestInfo, configPath: IConfiguration option) =
+    let create (testInfo: TestInfo) (configPath: IConfiguration option) =
         let loggerConfig = LoggerConfiguration()
                             .Enrich.WithProperty("SessionId", testInfo.SessionId)
                             .Enrich.WithProperty("TestSuite", testInfo.TestSuite)
@@ -46,7 +46,7 @@ module ResourceManager =
     let readResource (name) =
         let assembly = typedefof<TestInfo>.Assembly
         assembly.GetManifestResourceNames()
-        |> Array.tryFind(fun x -> x.Contains(name))
+        |> Array.tryFind(fun x -> x.Contains name)
         |> Option.map(fun resourceName ->
             use stream = assembly.GetManifestResourceStream(resourceName)
             use reader = new StreamReader(stream)
@@ -93,12 +93,9 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let init (appType: ApplicationType,
-          nodeType: NodeType,
-          testInfo: TestInfo,
-          context: NBomberContext) =
+let init (appType: ApplicationType, nodeType: NodeType, testInfo: TestInfo, context: NBomberContext) =
 
-    let logger = Logger.create(testInfo, context.InfraConfig)
+    let logger = context.InfraConfig |> Logger.create(testInfo)
     let version = typeof<ApplicationType>.Assembly.GetName().Version
 
     context.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))

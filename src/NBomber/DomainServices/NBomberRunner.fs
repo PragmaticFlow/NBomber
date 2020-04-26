@@ -13,15 +13,6 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 open NBomber.DomainServices.TestHost.Infra
 
-let runSingleNode (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
-    taskResult {
-        dep.Logger.Information("NBomber started as single node")
-        let scnArgs = SessionArgs.getFromContext(testInfo, context)
-        let! registeredScns = context.RegisteredScenarios |> Scenario.createScenarios
-        use scnHost = new TestHost(dep, registeredScns)
-        return! scnHost.RunSession(scnArgs)
-    }
-
 let saveReports (dep: GlobalDependency) (testInfo: TestInfo) (context: NBomberContext) (report: ReportsContent) =
     let fileName = NBomberContext.getReportFileName(testInfo.SessionId, context)
     let formats = NBomberContext.getReportFormats(context)
@@ -30,9 +21,13 @@ let saveReports (dep: GlobalDependency) (testInfo: TestInfo) (context: NBomberCo
 let run (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
     taskResult {
         dep.Logger.Information(Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
+        dep.Logger.Information("NBomber started as single node")
 
         let! ctx = Validation.validateContext(context)
-        let! nodeStats = runSingleNode(dep, testInfo, ctx)
+        let scnArgs = context |> SessionArgs.buildFromContext(testInfo)
+        let! scenarios = context.RegisteredScenarios |> Scenario.createScenarios
+        use testHost = new TestHost(dep, scenarios)
+        let! nodeStats = testHost.RunSession(scnArgs)
 
         nodeStats |> Report.build |> saveReports dep testInfo ctx
         return nodeStats

@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
     <Company>PragmaticFlow</Company>
-    <Version>1.0.0-beta4</Version>
+    <Version>1.0.0-beta5</Version>
     <Copyright>PragmaticFlow@2020</Copyright>
     <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
@@ -18,10 +18,10 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions\Extensions.fs" />
     <Compile Include="Extensions\InternalExtensions.fs" />
-    <Compile Include="Extensions\PushExtensions.fs" />    
+    <Compile Include="Extensions\PushExtensions.fs" />
     <Compile Include="Configuration\Configuration.fs" />
     <Compile Include="Configuration\YamlConfiguration.fs" />
-    <Compile Include="Configuration\Constants.fs" />    
+    <Compile Include="Configuration\Constants.fs" />
     <Compile Include="Contracts.fs" />
     <Compile Include="Domain\ConnectionPool.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
