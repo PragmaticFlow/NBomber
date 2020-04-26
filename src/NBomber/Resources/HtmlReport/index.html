@@ -27,13 +27,13 @@
 
     <!-- No Data Template -->
     <script type="text/x-template" id="no-data-template">
-    <h3>No Data</h3>
+        <h3>No Data</h3>
     </script>
     <!-- No Data Template -->
 
     <!-- Custom Card Template -->
     <script type="text/x-template" id="custom-card-template">
-        <div class="card custom" style="margin-bottom: 20px">
+        <div class="card custom">
             <div class="card-header custom">{{title}}</div>
             <div class="card-body">
                 <slot></slot>
@@ -73,130 +73,117 @@
     <!-- Scenarios Stats Table Template -->
     <script type="text/x-template" id="scenarios-stats-table-template">
         <div>
-            <custom-card v-for="scenarioStats in scenariosStats"
-                         :key="scenarioStats.ScenarioName"
-                         v-bind:title="`Statistics for Scenario: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, Ok Count: ${scenarioStats.OkCount}, Fail Count: ${scenarioStats.FailCount}, All Data: ${scenarioStats.AllDataMB} MB`"
-                         v-if="scenariosStats"
-                         class="scenario">
-                <table class="table table-hover table-sm table-responsive-lg">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th colspan="3">Request count</th>
-                        <th colspan="4">Request time</th>
-                        <th colspan="4">Request time percentile</th>
-                        <th colspan="4">Data transfer</th>
-                    </tr>
-                    <tr>
-                        <th>step</th>
-                        <th>All</th>
-                        <th>OK</th>
-                        <th>Failed</th>
-                        <th>RPS</th>
-                        <th>min</th>
-                        <th>mean</th>
-                        <th>max</th>
-                        <th>50%</th>
-                        <th>75%</th>
-                        <th>95%</th>
-                        <th>StdDev</th>
-                        <th>min, Kb</th>
-                        <th>mean, Kb</th>
-                        <th>max, Kb</th>
-                        <th>all, MB</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="stepStats in scenarioStats.StepStats" :key="stepStats.StepName">
-                        <td>{{stepStats.StepName}}</td>
-                        <td>{{stepStats.RequestCount}}</td>
-                        <td>{{stepStats.OkCount}}</td>
-                        <td>{{stepStats.FailCount}}</td>
-                        <td>{{stepStats.RPS}}</td>
-                        <td>{{stepStats.Min}}</td>
-                        <td>{{stepStats.Mean}}</td>
-                        <td>{{stepStats.Max}}</td>
-                        <td>{{stepStats.Percent50}}</td>
-                        <td>{{stepStats.Percent75}}</td>
-                        <td>{{stepStats.Percent95}}</td>
-                        <td>{{stepStats.StdDev}}</td>
-                        <td>{{stepStats.MinDataKb}}</td>
-                        <td>{{stepStats.MeanDataKb}}</td>
-                        <td>{{stepStats.MaxDataKb}}</td>
-                        <td>{{stepStats.AllDataMB}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </custom-card>
+            <div v-for="scenarioStats in scenariosStats" :key="scenarioStats.ScenarioName" v-if="scenariosStats">
+                <div class="row">
+                    <div class="col">
+                        <custom-card :title="`Scenario Statistics: ${scenarioStats.ScenarioName}, Duration: ${scenarioStats.Duration}, Ok Count: ${scenarioStats.OkCount}, Fail Count: ${scenarioStats.FailCount}, All Data: ${scenarioStats.AllDataMB} MB`"
+                                     class="scenario">
+                            <table class="table table-hover table-sm table-responsive-lg">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th colspan="3">Request Count</th>
+                                    <th colspan="4">Request Time</th>
+                                    <th colspan="4">Request Time Percentile</th>
+                                    <th colspan="4">Data Transfer</th>
+                                </tr>
+                                <tr>
+                                    <th>Step</th>
+                                    <th>All</th>
+                                    <th>OK</th>
+                                    <th>Failed</th>
+                                    <th>RPS</th>
+                                    <th>Min</th>
+                                    <th>Mean</th>
+                                    <th>Max</th>
+                                    <th>50%</th>
+                                    <th>75%</th>
+                                    <th>95%</th>
+                                    <th>StdDev</th>
+                                    <th>Min, Kb</th>
+                                    <th>Mean, Kb</th>
+                                    <th>Max, Kb</th>
+                                    <th>All, MB</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="stepStats in scenarioStats.StepStats" :key="stepStats.StepName">
+                                    <td>{{stepStats.StepName}}</td>
+                                    <td>{{stepStats.RequestCount}}</td>
+                                    <td>{{stepStats.OkCount}}</td>
+                                    <td>{{stepStats.FailCount}}</td>
+                                    <td>{{stepStats.RPS}}</td>
+                                    <td>{{stepStats.Min}}</td>
+                                    <td>{{stepStats.Mean}}</td>
+                                    <td>{{stepStats.Max}}</td>
+                                    <td>{{stepStats.Percent50}}</td>
+                                    <td>{{stepStats.Percent75}}</td>
+                                    <td>{{stepStats.Percent95}}</td>
+                                    <td>{{stepStats.StdDev}}</td>
+                                    <td>{{stepStats.MinDataKb}}</td>
+                                    <td>{{stepStats.MeanDataKb}}</td>
+                                    <td>{{stepStats.MaxDataKb}}</td>
+                                    <td>{{stepStats.AllDataMB}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="row">
+                                <div class="col-8">
+                                    <!-- Indicators -->
+                                    <indicators-chart label="Latency"
+                                                      :latency-count="scenarioStats.LatencyCount"
+                                                      :fail-count="scenarioStats.FailCount"
+                                                      class="chart">
+                                    </indicators-chart>
+                                    <!-- Indicators -->
+                                </div>
+                                <div class="col-4">
+                                    <!-- Number of Requests -->
+                                    <num-req-chart :ok-count="scenarioStats.OkCount"
+                                                   :fail-count="scenarioStats.FailCount"
+                                                   class="chart">
+                                    </num-req-chart>
+                                    <!-- Number of Requests -->
+                                </div>
+                            </div>
+                        </custom-card>
+                    </div>
+                </div>
+            </div>
         </div>
     </script>
     <!-- Scenarios Stats Table Template -->
 
     <!-- Plugins Stats Table Template -->
     <script type="text/x-template" id="plugins-stats-table-template">
-        <div>
-            <custom-card v-for="pluginStats in pluginsStats"
-                         :key="pluginStats.PluginName"
-                         v-bind:title="`Plugin Statistics: ${pluginStats.TableName}`"
-                         v-if="pluginsStats"
-                         class="scenario">
-                <table class="table table-hover table-sm table-responsive-lg">
-                    <thead>
-                    <tr>
-                        <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
-                            {{col}}
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
-                        <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
-                            {{value}}
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </custom-card>
+        <div class="row">
+            <div class="col">
+                <custom-card v-for="pluginStats in pluginsStats"
+                             :key="pluginStats.PluginName"
+                             :title="`Plugin Statistics: ${pluginStats.TableName}`"
+                             v-if="pluginsStats"
+                             class="scenario">
+                    <table class="table table-hover table-sm table-responsive-lg">
+                        <thead>
+                        <tr>
+                            <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
+                                {{col}}
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
+                            <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
+                                {{value}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </custom-card>
+            </div>
         </div>
     </script>
     <!-- Plugins Stats Table Template -->
-
-    <!-- Scenarios Stats View Template -->
-    <script type="text/x-template" id="scenarios-stats-view-template">
-        <div>
-            <div class="row">
-                <div class="col">
-                    <scenarios-stats-table v-bind:scenarios-stats="scenariosStats"></scenarios-stats-table>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <plugins-stats-table v-bind:plugins-stats="pluginsStats"></plugins-stats-table>
-                </div>
-            </div>
-            <div class="row">
-                <div v-for="scenarioStats in scenariosStats"
-                     :key="scenarioStats.ScenarioName"
-                     class="col-6">
-                    <!-- Indicators -->
-                    <custom-card v-bind:title="`Indicators for ${scenarioStats.ScenarioName}`">
-                        <indicators-chart
-                            v-bind:label="scenarioStats.ScenarioName"
-                            v-bind:latency-count="scenarioStats.LatencyCount"
-                            v-bind:fail-count="scenarioStats.FailCount">
-                        </indicators-chart>
-                    </custom-card>
-                    <!-- Indicators -->
-                </div>
-
-                <div class="col-6">
-                    <slot></slot>
-                </div>
-            </div>
-
-        </div>
-    </script>
-    <!-- Scenarios View Template -->
 
 </head>
 <body>
@@ -211,12 +198,12 @@
     <!-- Navbar -->
 
     <!-- Sidebar -->
-    <div id="wrapper" v-bind:class="{ active: sideBarActive }">
+    <div id="wrapper" :class="{ active: sideBarActive }">
         <div id="sidebar-wrapper">
             <!-- Menu -->
             <ul id="sidebar_menu" class="sidebar-nav">
                 <li class="sidebar-brand">
-                    <a id="menu-toggle" href="#" v-on:click.prevent="toggleSideBar">
+                    <a id="menu-toggle" href="#" @click.prevent="toggleSideBar">
                         Menu<span class="main_icon fas fa-align-justify"></span>
                     </a>
                 </li>
@@ -239,9 +226,9 @@
                 <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
                     v-if="statsData.ScenarioStats.length > 1">
                     <a data-toggle="pill"
-                       v-bind:href="`#scenario-${index}-view`"
+                       :href="`#scenario-${index}-view`"
                        role="tab"
-                       v-bind:aria-controls="`scenario-${index}-view`">
+                       :aria-controls="`scenario-${index}-view`">
                         Scenario {{index + 1}} <span class="sub_icon fas fa-arrow-right"></span>
                     </a>
                 </li>
@@ -251,45 +238,31 @@
     <!-- Sidebar -->
 
     <!-- Content -->
-    <div id="page-content-wrapper" v-bind:class="{ active: !sideBarActive }">
+    <div id="page-content-wrapper" :class="{ active: !sideBarActive }">
         <div class="container">
             <div class="tab-content" id="pills-tabContent">
                 <!-- Environment View -->
                 <div class="tab-pane fade show" id="env-view" role="tabpanel">
                     <div class="row">
                         <div class="col">
-                            <cluster-info-table v-bind:node-info="statsData.NodeInfo"></cluster-info-table>
+                            <cluster-info-table :node-info="statsData.NodeInfo"></cluster-info-table>
                         </div>
                     </div>
                 </div>
                 <!-- Global View -->
-                <div class="tab-pane fade show active" id="global-view" role="tabpanel">
-                    <scenarios-stats-view v-bind:scenarios-stats="statsData.ScenarioStats"
-                                          v-bind:plugins-stats="statsData.PluginStats"
-                                          v-if="statsData.ScenarioStats && statsData.PluginStats">
-                        <custom-card title="Number of Requests for Node">
-                            <num-req-chart
-                                v-bind:ok-count="statsData.OkCount"
-                                v-bind:fail-count="statsData.FailCount">
-                            </num-req-chart>
-                        </custom-card>
-                    </scenarios-stats-view>
-                    <no-data v-else></no-data>
+                <div class="tab-pane fade show active" id="global-view" role="tabpanel"
+                     v-if="statsData.ScenarioStats && statsData.PluginStats">
+                    <scenarios-stats-table :scenarios-stats="statsData.ScenarioStats"></scenarios-stats-table>
+                    <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
                 </div>
-                <!-- Scenarios View -->
+                <no-data v-else></no-data>
+                <!-- Scenarios Views -->
                 <div v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
                      v-if="statsData.ScenarioStats && statsData.ScenarioStats.length > 1"
                      class="tab-pane fade show"
-                     v-bind:id="`scenario-${index}-view`"
+                     :id="`scenario-${index}-view`"
                      role="tabpanel">
-                    <scenarios-stats-view v-bind:scenarios-stats="[scenarioStats]">
-                        <custom-card v-bind:title="`Number of Requests for ${scenarioStats.ScenarioName}`">
-                            <num-req-chart
-                                v-bind:ok-count="scenarioStats.OkCount"
-                                v-bind:fail-count="scenarioStats.FailCount">
-                            </num-req-chart>
-                        </custom-card>
-                    </scenarios-stats-view>
+                    <scenarios-stats-table :scenarios-stats="[scenarioStats]"></scenarios-stats-table>
                 </div>
             </div>
         </div>

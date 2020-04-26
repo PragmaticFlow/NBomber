@@ -5,6 +5,7 @@
 
 .card.custom {
     font-size: 13px !important;
+    margin-bottom: 20px;
 }
 
 .card-header.custom {
@@ -27,7 +28,7 @@
 }
 
 .navbar-dark {
-    background-color: #222 !important;    
+    background-color: #222 !important;
 }
 
 .scenario table tr th {
@@ -63,4 +64,8 @@
 .scenario table tr td:last-child,
 .scenario table tr th:last-child {
     border-right: 0;
+}
+
+.chart {
+    height: 170px;
 }
