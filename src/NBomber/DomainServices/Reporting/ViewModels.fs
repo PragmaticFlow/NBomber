@@ -1,4 +1,4 @@
-module NBomber.DomainServices.Reporting.ViewModels
+namespace NBomber.DomainServices.Reporting
 
 open System.Data
 
@@ -23,7 +23,7 @@ type NodeStatsViewModel = {
     NodeInfo: NodeInfo
 }
 
-module NodeStatsViewModel =
+module internal NodeStatsViewModel =
 
     let private mapDataTableToPluginStatsViewModel (table: DataTable) =
         let tableName = table.TableName

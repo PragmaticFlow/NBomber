@@ -4,14 +4,11 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open System.Diagnostics
-open System.Reflection
 open System.Runtime.InteropServices
-open System.Runtime.Versioning
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
-open NBomber
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
@@ -20,7 +17,6 @@ open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.TestHost.Infra
 
 type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) as x =
 

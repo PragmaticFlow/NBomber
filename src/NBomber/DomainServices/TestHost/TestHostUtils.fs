@@ -1,4 +1,4 @@
-namespace NBomber.DomainServices.TestHost.Infra
+namespace NBomber.DomainServices.TestHost
 
 open System
 open System.Threading

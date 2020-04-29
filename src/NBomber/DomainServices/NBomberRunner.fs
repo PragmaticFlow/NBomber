@@ -11,7 +11,6 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
-open NBomber.DomainServices.TestHost.Infra
 
 let saveReports (dep: GlobalDependency) (testInfo: TestInfo) (context: NBomberContext) (report: ReportsContent) =
     let fileName = NBomberContext.getReportFileName(testInfo.SessionId, context)
