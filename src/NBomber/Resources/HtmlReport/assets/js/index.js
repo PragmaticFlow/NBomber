@@ -32,7 +32,7 @@ Vue.component('cluster-info-table', {
 });
 
 Vue.component('scenarios-stats-table', {
-    props: ['scenariosStats'],
+    props: ['scenariosStats', 'stepProperties', 'xAxesLabel', 'yAxesLabel'],
     template: '#scenarios-stats-table-template'
 });
 
@@ -124,7 +124,7 @@ Vue.component('latency-chart', {
 
 Vue.component('time-line-stats-chart', {
     extends: VueChartJs.Line,
-    props: ['stats', 'scenarioName', 'stepProperties'],
+    props: ['stats', 'scenarioName', 'stepProperties', 'xAxesLabel', 'yAxesLabel'],
     mounted () {
         const stepProperties = this.stepProperties || ['RPS'];
 
@@ -186,13 +186,13 @@ Vue.component('time-line-stats-chart', {
                 xAxes: [{
                     scaleLabel: {
                         display: true,
-                        labelString: 'Elapsed Time'
+                        labelString: this.xAxesLabel || ''
                     }
                 }],
                 yAxes: [{
                     scaleLabel: {
                         display: true,
-                        labelString: 'RPS'
+                        labelString: this.yAxesLabel || ''
                     }
                 }]
             },

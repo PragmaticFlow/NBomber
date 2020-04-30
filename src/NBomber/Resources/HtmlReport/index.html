@@ -152,7 +152,9 @@
                                     <hr />
                                     <time-line-stats-chart :stats="timeLineStatsData"
                                                            :scenarioName="scenarioStats.ScenarioName"
-                                                           :step-properties="['RPS']"
+                                                           :step-properties="stepProperties"
+                                                           :x-axes-label="xAxesLabel"
+                                                           :y-axes-label="yAxesLabel"
                                                            class="timeline-chart">
                                     </time-line-stats-chart>
                                 </div>
@@ -269,7 +271,11 @@
                 <!-- Global View -->
                 <div class="tab-pane fade show active" id="global-view" role="tabpanel"
                      v-if="statsData.ScenarioStats && statsData.PluginStats">
-                    <scenarios-stats-table :scenarios-stats="statsData.ScenarioStats"></scenarios-stats-table>
+                    <scenarios-stats-table :scenarios-stats="statsData.ScenarioStats"
+                                           :step-properties="['RPS']"
+                                           x-axes-label="Elapsed Time"
+                                           y-axes-label="RPS">
+                    </scenarios-stats-table>
                     <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
                 </div>
                 <no-data v-else></no-data>
@@ -279,7 +285,11 @@
                      class="tab-pane fade show"
                      :id="`scenario-${index}-view`"
                      role="tabpanel">
-                    <scenarios-stats-table :scenarios-stats="[scenarioStats]"></scenarios-stats-table>
+                    <scenarios-stats-table :scenarios-stats="[scenarioStats]"
+                                           :step-properties="['RPS', 'AllDataMB']"
+                                           x-axes-label="Elapsed Time"
+                                           y-axes-label="">
+                    </scenarios-stats-table>
                 </div>
                 <!-- PLugins Stats Views -->
                 <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
