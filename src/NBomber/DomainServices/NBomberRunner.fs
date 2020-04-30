@@ -38,7 +38,7 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
         error
     )
     |> fun task -> task.Result
-    
+
 let runAs (appType: ApplicationType, context: NBomberContext) =
 
     let testInfo = {
