@@ -37,9 +37,8 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
         error |> AppError.toString |> dep.Logger.Error
         error
     )
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
-
+    |> fun task -> task.Result
+    
 let runAs (appType: ApplicationType, context: NBomberContext) =
 
     let testInfo = {
