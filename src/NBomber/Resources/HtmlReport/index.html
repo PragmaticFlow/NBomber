@@ -5,6 +5,7 @@
     - include asset: replaces a line with a style/script block specified into href/src attribute.
                      It only works for assets that are contained in embedded resources.
     - include stats data: includes statistics data.
+    - include time line stats data: includes time line statistics data.
     - remove: removes a line.
 -->
 <!DOCTYPE HTML>
@@ -100,9 +101,9 @@
                                     <th>75%</th>
                                     <th>95%</th>
                                     <th>StdDev</th>
-                                    <th>Min, Kb</th>
-                                    <th>Mean, Kb</th>
-                                    <th>Max, Kb</th>
+                                    <th>Min, KB</th>
+                                    <th>Mean, KB</th>
+                                    <th>Max, KB</th>
                                     <th>All, MB</th>
                                 </tr>
                                 </thead>
@@ -127,23 +128,33 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            <hr />
                             <div class="row">
                                 <div class="col-8">
                                     <!-- Indicators -->
-                                    <indicators-chart label="Latency"
-                                                      :latency-count="scenarioStats.LatencyCount"
-                                                      :fail-count="scenarioStats.FailCount"
-                                                      class="chart">
-                                    </indicators-chart>
+                                    <latency-chart :latency-count="scenarioStats.LatencyCount"
+                                                   :fail-count="scenarioStats.FailCount"
+                                                   class="chart">
+                                    </latency-chart>
                                     <!-- Indicators -->
                                 </div>
                                 <div class="col-4">
                                     <!-- Number of Requests -->
-                                    <num-req-chart :ok-count="scenarioStats.OkCount"
-                                                   :fail-count="scenarioStats.FailCount"
-                                                   class="chart">
-                                    </num-req-chart>
+                                    <requests-chart :ok-count="scenarioStats.OkCount"
+                                                    :fail-count="scenarioStats.FailCount"
+                                                    class="chart">
+                                    </requests-chart>
                                     <!-- Number of Requests -->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <hr />
+                                    <time-line-stats-chart :stats="timeLineStatsData"
+                                                           :scenarioName="scenarioStats.ScenarioName"
+                                                           :step-properties="['RPS']"
+                                                           class="timeline-chart">
+                                    </time-line-stats-chart>
                                 </div>
                             </div>
                         </custom-card>
@@ -232,6 +243,12 @@
                         Scenario {{index + 1}} <span class="sub_icon fas fa-arrow-right"></span>
                     </a>
                 </li>
+
+                <li class="nav-item" v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
+                    <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view">
+                        Plugins <span class="sub_icon fas fa-puzzle-piece"></span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -264,6 +281,11 @@
                      role="tabpanel">
                     <scenarios-stats-table :scenarios-stats="[scenarioStats]"></scenarios-stats-table>
                 </div>
+                <!-- PLugins Stats Views -->
+                <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
+                     v-if="statsData.PluginStats  && statsData.PluginStats.length > 0">
+                    <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                </div>
             </div>
         </div>
     </div>
@@ -290,10 +312,12 @@
 
 <script>
     const statsData = getStatsData(); // <!-- include stats data -->
+    const timeLineStatsData = getTimeLineStatsData(); // <!-- include time line stats data -->
     const app = new Vue({
         el: '#app',
         data: {
-            statsData: statsData,
+            statsData,
+            timeLineStatsData,
             sideBarActive: true
         },
         methods: {

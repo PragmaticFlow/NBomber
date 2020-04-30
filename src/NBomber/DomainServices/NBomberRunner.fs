@@ -28,15 +28,17 @@ let run (dep: GlobalDependency, testInfo: TestInfo, context: NBomberContext) =
         let! scenarios = context.RegisteredScenarios |> Scenario.createScenarios
         use testHost = new TestHost(dep, scenarios)
         let! nodeStats = testHost.RunSession(scnArgs)
+        let timeLineStats = testHost.GetTimeLineNodeStats()
 
-        nodeStats |> Report.build |> saveReports dep testInfo ctx
+        (nodeStats, timeLineStats) |> Report.build |> saveReports dep testInfo ctx
         return nodeStats
     }
     |> TaskResult.mapError(fun error ->
         error |> AppError.toString |> dep.Logger.Error
         error
     )
-    |> fun task -> task.Result
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
 
 let runAs (appType: ApplicationType, context: NBomberContext) =
 

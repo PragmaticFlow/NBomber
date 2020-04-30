@@ -15,7 +15,7 @@
 }
 
 .navbar-brand {
-    padding: 0%
+    padding: 0;
 }
 
 .navbar {
@@ -51,16 +51,20 @@
 .scenario table th{
     border: 1px solid #dee2e6;
 }
+
 .scenario table tr:first-child th {
     border-top: 0;
 }
+
 .scenario table tr:last-child td {
     border-bottom: 0;
 }
+
 .scenario table tr td:first-child,
 .scenario table tr th:first-child {
     border-left: 0;
 }
+
 .scenario table tr td:last-child,
 .scenario table tr th:last-child {
     border-right: 0;
@@ -68,4 +72,8 @@
 
 .chart {
     height: 170px;
+}
+
+.timeline-chart {
+    height: 340px;
 }

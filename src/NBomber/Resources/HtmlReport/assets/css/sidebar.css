@@ -49,8 +49,6 @@
     text-decoration: none;
     width: 200px;
     background: #252525;
-    border-top: 1px solid #373737;
-    border-bottom: 1px solid #1A1A1A;
     -webkit-transition: background .5s;
     -moz-transition: background .5s;
     -o-transition: background .5s;
@@ -75,7 +73,8 @@
     text-decoration: none;
 }
 
-.sidebar-nav li a:hover {
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
     color: #fff !important;
     background: rgba(255, 255, 255, 0.2) !important;
     text-decoration: none;
@@ -86,7 +85,7 @@
 }
 
 .sidebar-nav li a.active {
-    color: #fff !important;
+    font-weight: bold;
 }
 
 .sidebar-nav>.sidebar-brand {
