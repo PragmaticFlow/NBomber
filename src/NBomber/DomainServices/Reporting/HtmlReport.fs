@@ -8,7 +8,7 @@ open NBomber.Contracts
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
 
-module internal AssetsHelper =
+module internal AssetsUtils =
 
     let tryIncludeAsset (tagName) (regex: Regex) (line: string) =
         let m = line |> regex.Match
@@ -30,17 +30,20 @@ module internal AssetsHelper =
     let inline tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private mapLine (statsJsonData: string) (line: string) =
+let private mapLine (statsJsonData: string) (timeLineStatsJsonData: string) (line: string) =
     let removeLineCommand = "<!-- remove-->"
     let includeStatsDataCommand = "<!-- include stats data -->"
+    let includeTimeLineStatsDataCommand = "<!-- include time line stats data -->"
     let includeAssetCommand = "<!-- include asset -->"
 
     if removeLineCommand |> line.Contains then
         String.Empty
     else if includeStatsDataCommand |> line.Contains then
         sprintf "const statsData = %s;" statsJsonData
+    else if includeTimeLineStatsDataCommand |> line.Contains then
+        sprintf "const timeLineStatsData = %s;" timeLineStatsJsonData
     else if includeAssetCommand |> line.Contains then
-        AssetsHelper.tryIncludeStyle(line) |?? AssetsHelper.tryIncludeScript(line)
+        AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.map(fun x -> x)
         |> Option.defaultValue line
     else
@@ -49,9 +52,10 @@ let private mapLine (statsJsonData: string) (line: string) =
 let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (stats: NodeStats) =
+let print (stats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) =
     let statsJsonData = stats |> NodeStatsViewModel.create |> NodeStatsViewModel.serializeJson
-    let lineMapper = mapLine statsJsonData
+    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> TimeLineStatsViewModel.serializeJson
+    let lineMapper = mapLine statsJsonData timeLineStatsJsonData
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription

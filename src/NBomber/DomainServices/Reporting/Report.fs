@@ -16,9 +16,9 @@ type ReportsContent = {
 } with
     static member empty = { TxtReport = List.empty; HtmlReport = ""; CsvReport = "" }
 
-let build (nodeStats: NodeStats) = {
+let build (nodeStats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) = {
     TxtReport = TxtReport.print(nodeStats)
-    HtmlReport = HtmlReport.print(nodeStats)
+    HtmlReport = HtmlReport.print(nodeStats, timeLineStats)
     CsvReport = CsvReport.print(nodeStats)
 }
 

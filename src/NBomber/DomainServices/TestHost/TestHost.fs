@@ -1,21 +1,21 @@
 ﻿namespace NBomber.DomainServices.TestHost
 
 open System
-open System.Threading
-open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
+open System.Threading
+open System.Threading.Tasks
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
-open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.Domain.Statistics
+open NBomber.Errors
 open NBomber.Infra.Dependency
 
 type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) as x =
@@ -26,6 +26,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     let mutable _currentOperation = NodeOperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
+    let mutable _timeLineStats: (TimeSpan * NodeStats) list = List.empty
     let _defaultNodeInfo = NodeInfo.init()
 
     let getCurrentNodeInfo () =
@@ -104,6 +105,13 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         scnsProgressSubscriptions |> List.iter(fun x -> x.Dispose())
     }
 
+    let addTimeLineStats (timeLineStats: (TimeSpan * NodeStats) list)
+                         (operationTime: TimeSpan, nodeStats: NodeStats list) =
+        nodeStats
+        |> List.tryHead
+        |> Option.map(fun stats -> timeLineStats @ [ operationTime, stats ])
+        |> Option.defaultValue timeLineStats
+
     member x.TestInfo = _sessionArgs.TestInfo
     member x.CurrentOperation = _currentOperation
     member x.CurrentNodeInfo = getCurrentNodeInfo()
@@ -172,6 +180,8 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
     member x.GetNodeStats(executionTime) = getNodeStats(executionTime)
 
+    member x.GetTimeLineNodeStats() = _timeLineStats
+
     member x.RunSession(args: SessionArgs) = taskResult {
         do! x.StartInitScenarios(args)
 
@@ -188,7 +198,10 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
             TestHostReporting.startReportingTimer(
                 dep, _sessionArgs.SendStatsInterval,
                 (fun () -> _currentOperation, currentOperationTimer.Elapsed),
-                (fun (operationTime) -> operationTime |> getNodeStats |> List.singleton |> Task.FromResult)
+                (fun operationTime -> operationTime |> getNodeStats |> List.singleton |> Task.FromResult),
+                (fun (operationTime, nodeStats) ->
+                    _timeLineStats <- addTimeLineStats _timeLineStats (operationTime, nodeStats)
+                )
             )
 
         currentOperationTimer.Restart()

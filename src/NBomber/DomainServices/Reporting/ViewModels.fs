@@ -1,5 +1,6 @@
 namespace NBomber.DomainServices.Reporting
 
+open System
 open System.Data
 
 open Newtonsoft.Json
@@ -21,6 +22,11 @@ type NodeStatsViewModel = {
     ScenarioStats: ScenarioStats[]
     PluginStats: PluginStatsViewModel[]
     NodeInfo: NodeInfo
+}
+
+type TimeLineStatsViewModel = {
+    TimeStamps: string[]
+    ScenarioStats: ScenarioStats[][]
 }
 
 module internal NodeStatsViewModel =
@@ -48,4 +54,19 @@ module internal NodeStatsViewModel =
     }
 
     let serializeJson (viewModel: NodeStatsViewModel) =
+        JsonConvert.SerializeObject(viewModel, Formatting.Indented)
+
+module TimeLineStatsViewModel =
+
+    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
+        TimeStamps = timeLineStats
+                     |> Seq.map(fun (timeSpan, _) -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
+                     |> Seq.toArray
+
+        ScenarioStats = timeLineStats
+                        |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+                        |> Seq.toArray
+    }
+
+    let serializeJson (viewModel: TimeLineStatsViewModel) =
         JsonConvert.SerializeObject(viewModel, Formatting.Indented)

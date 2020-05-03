@@ -44,7 +44,7 @@ module Logger =
 module ResourceManager =
 
     let readResource (name) =
-        let assembly = typedefof<TestInfo>.Assembly
+        let assembly = typedefof<GlobalDependency>.Assembly
         assembly.GetManifestResourceNames()
         |> Array.tryFind(fun x -> x.Contains name)
         |> Option.map(fun resourceName ->

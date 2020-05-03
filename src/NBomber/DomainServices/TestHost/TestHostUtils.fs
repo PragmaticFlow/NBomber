@@ -60,9 +60,8 @@ module internal TestHostReporting =
     let startReportingTimer (dep: GlobalDependency,
                              sendStatsInterval: TimeSpan,
                              getOperationInfo: unit -> (NodeOperationType * TimeSpan),
-                             getNodeStats: TimeSpan -> Task<NodeStats list>) =
-
-        if not (List.isEmpty dep.ReportingSinks) then
+                             getNodeStats: TimeSpan -> Task<NodeStats list>,
+                             addTimeLineStats: (TimeSpan * NodeStats list) -> unit) =
 
             let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
@@ -71,17 +70,21 @@ module internal TestHostReporting =
 
                 match operation with
                 | NodeOperationType.Bombing ->
-                    operationTime
-                    |> getNodeStats
-                    |> Task.map(saveRealtimeStats dep.ReportingSinks)
+                    getNodeStats(operationTime)
+                    |> Task.map(fun nodeStats ->
+                        addTimeLineStats(operationTime, nodeStats)
+
+                        if not (List.isEmpty dep.ReportingSinks) then
+                            nodeStats
+                            |> saveRealtimeStats dep.ReportingSinks
+                            |> ignore
+                    )
                     |> ignore
 
                 | _ -> ()
             )
             timer.Start()
             timer
-        else
-            new System.Timers.Timer()
 
     let startReportingSinks (dep: GlobalDependency) (testInfo: TestInfo) =
         for sink in dep.ReportingSinks do
