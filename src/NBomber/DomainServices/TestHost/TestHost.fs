@@ -15,7 +15,6 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.Statistics
-open NBomber.DomainServices.TestHost.Infra
 open NBomber.Errors
 open NBomber.Infra.Dependency
 

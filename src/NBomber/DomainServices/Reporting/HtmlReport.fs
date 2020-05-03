@@ -3,10 +3,10 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
+open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.Reporting.ViewModels
-open NBomber.Extensions
+open NBomber.DomainServices.Reporting
 
 module internal AssetsUtils =
 

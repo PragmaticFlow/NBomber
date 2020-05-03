@@ -1,4 +1,4 @@
-module NBomber.DomainServices.Reporting.ViewModels
+namespace NBomber.DomainServices.Reporting
 
 open System
 open System.Data
@@ -29,7 +29,7 @@ type TimeLineStatsViewModel = {
     ScenarioStats: ScenarioStats[][]
 }
 
-module NodeStatsViewModel =
+module internal NodeStatsViewModel =
 
     let private mapDataTableToPluginStatsViewModel (table: DataTable) =
         let tableName = table.TableName
