@@ -61,7 +61,7 @@ module internal TestHostReporting =
                              sendStatsInterval: TimeSpan,
                              getOperationInfo: unit -> (NodeOperationType * TimeSpan),
                              getNodeStats: TimeSpan -> Task<NodeStats list>,
-                             timerTick: (TimeSpan * Task<NodeStats list>) -> unit) =
+                             addTimeLineStats: (TimeSpan * NodeStats list) -> unit) =
 
             let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
@@ -70,14 +70,16 @@ module internal TestHostReporting =
 
                 match operation with
                 | NodeOperationType.Bombing ->
-                     let nodeStats = getNodeStats(operationTime)
+                    getNodeStats(operationTime)
+                    |> Task.map(fun nodeStats ->
+                        addTimeLineStats(operationTime, nodeStats)
 
-                     if not (List.isEmpty dep.ReportingSinks) then
-                        nodeStats
-                        |> Task.map(saveRealtimeStats dep.ReportingSinks)
-                        |> ignore
-
-                     timerTick(operationTime, nodeStats)
+                        if not (List.isEmpty dep.ReportingSinks) then
+                            nodeStats
+                            |> saveRealtimeStats dep.ReportingSinks
+                            |> ignore
+                    )
+                    |> ignore
 
                 | _ -> ()
             )

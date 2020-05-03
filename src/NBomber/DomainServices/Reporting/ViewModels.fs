@@ -59,8 +59,13 @@ module NodeStatsViewModel =
 module TimeLineStatsViewModel =
 
     let create (timeLineStats: (TimeSpan * NodeStats) list) = {
-        TimeStamps = timeLineStats |> List.toArray |> Array.map(fun (timeSpan, _) -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
-        ScenarioStats = timeLineStats |> List.toArray |> Array.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+        TimeStamps = timeLineStats
+                     |> Seq.map(fun (timeSpan, _) -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
+                     |> Seq.toArray
+
+        ScenarioStats = timeLineStats
+                        |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+                        |> Seq.toArray
     }
 
     let serializeJson (viewModel: TimeLineStatsViewModel) =

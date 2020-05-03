@@ -107,14 +107,11 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     }
 
     let addTimeLineStats (timeLineStats: (TimeSpan * NodeStats) list)
-                         (operationTime: TimeSpan, nodeStats: Task<NodeStats list>) =
+                         (operationTime: TimeSpan, nodeStats: NodeStats list) =
         nodeStats
-        |> Task.map(fun nodeStatsList ->
-            nodeStatsList
-            |> List.tryHead
-            |> Option.map(fun stats -> timeLineStats @ [ operationTime, stats ])
-            |> Option.defaultValue timeLineStats
-        )
+        |> List.tryHead
+        |> Option.map(fun stats -> timeLineStats @ [ operationTime, stats ])
+        |> Option.defaultValue timeLineStats
 
     member x.TestInfo = _sessionArgs.TestInfo
     member x.CurrentOperation = _currentOperation
@@ -203,11 +200,8 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
                 dep, _sessionArgs.SendStatsInterval,
                 (fun () -> _currentOperation, currentOperationTimer.Elapsed),
                 (fun operationTime -> operationTime |> getNodeStats |> List.singleton |> Task.FromResult),
-                (fun x ->
-                    x
-                    |> addTimeLineStats _timeLineStats
-                    |> Task.map(fun list -> _timeLineStats <- list)
-                    |> ignore
+                (fun (operationTime, nodeStats) ->
+                    _timeLineStats <- addTimeLineStats _timeLineStats (operationTime, nodeStats)
                 )
             )
 
