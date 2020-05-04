@@ -81,7 +81,7 @@ let getSimulationName (simulation) =
     | RampScenariosPerSec     _ -> "ramp_scenarios_per_sec"
     | InjectScenariosPerSec   _ -> "inject_scenarios_per_sec"
 
-let getRunningTimeSegment (timeLine: LoadTimeLine) (currentTime: TimeSpan) =
+let getRunningTimeSegment (timeLine: LoadTimeLine, currentTime: TimeSpan) =
     timeLine
     |> List.tryFind(fun x -> currentTime <= x.EndTime)
 

@@ -12,16 +12,13 @@ let NBomberWelcomeText = """
 """
 
 [<Literal>]
-let DefaultScenarioDurationInSec = 60.0
-
-[<Literal>]
-let DefaultWarmUpDurationInSec = 10.0
-
-[<Literal>]
 let DefaultConcurrentCopiesCount = 50
 
 [<Literal>]
 let DefaultRepeatCount = 0
+
+[<Literal>]
+let TryCount = 5
 
 [<Literal>]
 let DefaultDoNotTrack = false
@@ -44,15 +41,11 @@ let DefaultTestSuite = "nbomber_default_test_suite_name"
 let DefaultTestName = "nbomber_default_test_name"
 
 [<Literal>]
-let MinSendStatsIntervalSec = 10.0
+let DefaultReportName = "nbomber_report"
 
 //todo: opaque types instead of ms
-
-[<Literal>]
-let SchedulerNotificationTickIntervalMs = 2_000.0
-
-[<Literal>]
-let TryCount = 5
-
-[<Literal>]
-let OperationTimeOutMs = 3_000
+let DefaultScenarioDuration = TimeSpan.FromSeconds 60.0
+let DefaultWarmUpDuration = TimeSpan.FromSeconds 10.0
+let MinSendStatsInterval = TimeSpan.FromSeconds 10.0
+let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 2.0
+let OperationTimeOut = TimeSpan.FromSeconds 3.0

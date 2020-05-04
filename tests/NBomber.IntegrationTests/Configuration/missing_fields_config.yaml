@@ -10,10 +10,10 @@
     Duration: '00:00:20'
     ConcurrentCopies: 100
 
-  TargetScenarios:
-  - test_youtube
-
   ReportFileName: custom_report_name_from_json
   ReportFormats:
   - Html
   - Txt
+
+TargetScenarios:
+  - test_youtube

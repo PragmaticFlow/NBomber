@@ -38,13 +38,12 @@
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Dependency.fs" />
-    <Compile Include="Infra\NBomberContext.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
-    <Compile Include="DomainServices\Validation.fs" />
+    <Compile Include="DomainServices\NBomberContext.fs" />
     <Compile Include="DomainServices\TestHost\TestHostUtils.fs" />
     <Compile Include="DomainServices\TestHost\TestHost.fs" />
     <Compile Include="DomainServices\NBomberRunner.fs" />

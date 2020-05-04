@@ -20,15 +20,16 @@ type IProgressBarEnv =
     abstract CreateManualProgressBar: tickCount:int -> IProgressBar
     abstract CreateAutoProgressBar: duration:TimeSpan -> IProgressBar
 
-type GlobalDependency = {
-    NBomberVersion: string
-    ApplicationType: ApplicationType
-    NodeType: NodeType
-    ProgressBarEnv: IProgressBarEnv
-    Logger: ILogger
-    ReportingSinks: IReportingSink list
-    Plugins: IPlugin list
-}
+type IGlobalDependency =
+    inherit IDisposable
+    abstract NBomberVersion: string
+    abstract ApplicationType: ApplicationType
+    abstract NodeType: NodeType
+    abstract InfraConfig: IConfiguration option
+    abstract ProgressBarEnv: IProgressBarEnv
+    abstract Logger: ILogger
+    abstract ReportingSinks: IReportingSink list
+    abstract Plugins: IPlugin list
 
 module Logger =
 
@@ -38,13 +39,13 @@ module Logger =
                             .Enrich.WithProperty("TestSuite", testInfo.TestSuite)
                             .Enrich.WithProperty("TestName", testInfo.TestName)
         match configPath with
-        | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger()
-        | None      -> loggerConfig.WriteTo.Console().CreateLogger()
+        | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger
+        | None      -> loggerConfig.WriteTo.Console().CreateLogger() :> ILogger
 
 module ResourceManager =
 
     let readResource (name) =
-        let assembly = typedefof<GlobalDependency>.Assembly
+        let assembly = typedefof<IGlobalDependency>.Assembly
         assembly.GetManifestResourceNames()
         |> Array.tryFind(fun x -> x.Contains name)
         |> Option.map(fun resourceName ->
@@ -93,20 +94,40 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let init (appType: ApplicationType, nodeType: NodeType, testInfo: TestInfo, context: NBomberContext) =
-
-    let logger = context.InfraConfig |> Logger.create(testInfo)
+let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberContext) =
+    let emptyTestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
+    let logger = Logger.create emptyTestInfo context.InfraConfig
     let version = typeof<ApplicationType>.Assembly.GetName().Version
-
-    context.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))
-    context.Plugins |> Seq.iter(fun x -> x.Init(logger, context.InfraConfig))
 
     Serilog.Log.Logger <- logger
 
-    { NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
-      ApplicationType = appType
-      NodeType = nodeType
-      ProgressBarEnv = ProgressBarEnv.create()
-      Logger = logger
-      ReportingSinks = context.ReportingSinks
-      Plugins = context.Plugins }
+    { new IGlobalDependency with
+        member x.NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
+        member x.ApplicationType = appType
+        member x.NodeType = nodeType
+        member x.InfraConfig = context.InfraConfig
+        member x.ProgressBarEnv = ProgressBarEnv.create()
+        member x.Logger = logger
+        member x.ReportingSinks = context.ReportingSinks
+        member x.Plugins = context.Plugins
+        member x.Dispose() =
+            x.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
+            x.Plugins |> Seq.iter(fun x -> x.Dispose()) }
+
+let init (testInfo: TestInfo) (dep: IGlobalDependency) =
+    let logger = Logger.create testInfo dep.InfraConfig
+    Serilog.Log.Logger <- logger
+
+    dep.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
+    dep.Plugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
+
+    { new IGlobalDependency with
+        member x.NBomberVersion = dep.NBomberVersion
+        member x.ApplicationType = dep.ApplicationType
+        member x.NodeType = dep.NodeType
+        member x.InfraConfig = dep.InfraConfig
+        member x.ProgressBarEnv = dep.ProgressBarEnv
+        member x.Logger = logger
+        member x.ReportingSinks = dep.ReportingSinks
+        member x.Plugins = dep.Plugins
+        member x.Dispose() = dep.Dispose() }

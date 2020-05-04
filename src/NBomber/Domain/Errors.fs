@@ -8,7 +8,6 @@ type DomainError =
     | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
 
 type ValidationError =
-    | TargetScenarioIsEmpty
     | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
     | DurationIsWrong         of scenarioNames:string[]
     | ConcurrentCopiesIsWrong of scenarioNames:string[]
@@ -50,8 +49,6 @@ type AppError =
 
     static member toString (error: ValidationError) =
         match error with
-        | TargetScenarioIsEmpty -> "Target scenario can't be empty."
-
         | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) ->
             notFoundScenarios
             |> String.concatWithCommaAndQuotes
@@ -87,7 +84,7 @@ type AppError =
             "Session is wrong"
 
         | SendStatsIntervalIsWrong minSendStatsInterval ->
-            sprintf "SendStatsInterval should be bigger than min value: '%f'" minSendStatsInterval
+            sprintf "SendStatsInterval should be bigger than min value: '%i'" (int minSendStatsInterval)
 
         | DurationIsLessThan1Sec simulation
         | DurationIsBiggerThan10Days simulation

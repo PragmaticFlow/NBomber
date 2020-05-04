@@ -75,7 +75,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let _constantScheduler = ConstantActorScheduler(dep)
     let _oneTimeScheduler = OneTimeActorScheduler(dep)
     let _timer = new System.Timers.Timer(SchedulerTickIntervalMs)
-    let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickIntervalMs)
+    let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
 
@@ -125,7 +125,7 @@ type ScenarioScheduler(dep: ActorDep) =
                 stop() |> ignore
 
             else
-                match LoadTimeLine.getRunningTimeSegment dep.Scenario.LoadTimeLine currentTime with
+                match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with
                 | Some timeSegment ->
 
                     _currentSimulation <- timeSegment.LoadSimulation
