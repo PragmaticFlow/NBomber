@@ -258,7 +258,7 @@ let ``stats should be passed to IReportingSink`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
+    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
     |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)

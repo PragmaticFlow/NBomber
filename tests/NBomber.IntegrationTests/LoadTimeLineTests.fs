@@ -42,7 +42,7 @@ let internal ``getRunningTimeSegment should correctly determine and return runni
     (currentTimeTicks: uint32, timeLine: LoadTimeLine) =
 
     let currentTime = TimeSpan(int64 currentTimeTicks)
-    match LoadTimeLine.getRunningTimeSegment timeLine currentTime with
+    match LoadTimeLine.getRunningTimeSegment(timeLine, currentTime) with
     | Some timeSegment ->
 
         let runningSimulation =

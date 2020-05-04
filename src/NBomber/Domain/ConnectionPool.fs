@@ -88,7 +88,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
         for connection in _aliveConnections do
             try
-                args.CloseConnection(connection, token).Wait(Constants.OperationTimeOutMs) |> ignore
+                args.CloseConnection(connection, token).Wait(Constants.OperationTimeOut) |> ignore
                 _eventStream.OnNext(ConnectionClosed(error = None))
             with
             | ex ->

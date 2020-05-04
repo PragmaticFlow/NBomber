@@ -6,61 +6,59 @@ open Xunit
 open Swensen.Unquote
 open FsCheck
 open FsCheck.Xunit
+open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Errors
 open NBomber.FSharp
-open NBomber.Infra
+open NBomber.DomainServices
 
 let globalSettings = {
     ScenariosSettings = None
-    TargetScenarios = Some ["1"]
     ConnectionPoolSettings = None
     ReportFileName = None
     ReportFormats = None
     SendStatsInterval = None
 }
 
-let scenario = Scenario.create "1" []
-               |> Scenario.withoutWarmUp
+let failStep = Step.create("fail step", fun _ -> Response.Fail() |> Task.singleton)
+let baseScenario = Scenario.create "1" [failStep] |> Scenario.withoutWarmUp
 
 let config = {
     TestSuite = Some Constants.DefaultTestSuite
     TestName = Some Constants.DefaultTestName
     GlobalSettings = None
+    TargetScenarios = Some ["1"]
 }
 
 let context = {
     TestSuite = Constants.DefaultTestSuite
     TestName = Constants.DefaultTestName
-    RegisteredScenarios = [scenario]
+    RegisteredScenarios = [baseScenario]
     NBomberConfig = None
     InfraConfig = None
     ReportFileName = None
     ReportFormats = List.empty
     ReportingSinks = List.empty
-    SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
+    SendStatsInterval = Constants.MinSendStatsInterval
     Plugins = List.empty
 }
 
 [<Fact>]
 let ``getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
-    let glSettings = { globalSettings with TargetScenarios = None }
-    let config = { config with GlobalSettings = Some glSettings }
     let context = { context with NBomberConfig = Some config }
-
     match NBomberContext.getTargetScenarios(context) with
     | scenarios when scenarios.Length = 1 -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``getTargetScenarios should return only target scenarios if TargetScenarios are not empty`` () =
-    let glSettings = { globalSettings with TargetScenarios = Some ["10"] }
-    let config = { config with GlobalSettings = Some glSettings }
+    let config = { config with TargetScenarios = Some ["10"] }
 
-    let scn1 = { scenario with ScenarioName = "1" }
-    let scn2 = { scenario with ScenarioName = "2" }
+    let scn1 = { baseScenario with ScenarioName = "1" }
+    let scn2 = { baseScenario with ScenarioName = "2" }
 
     let context = { context with NBomberConfig = Some config
                                  RegisteredScenarios = [scn1; scn2] }
@@ -83,13 +81,13 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
                              ReportFormats = [ReportFormat.Txt]
                              ReportFileName = contextValue }
 
-    let fileName = NBomberContext.getReportFileName("sessionId", ctx)
+    let fileName = NBomberContext.getReportFileName(ctx)
 
     match configValue, contextValue with
     | Some v1, Some v2 -> test <@ fileName = v1 @>
     | Some v1, None    -> test <@ fileName = v1 @>
     | None, Some v2    -> test <@ fileName = v2 @>
-    | None, None       -> test <@ fileName = "report_sessionId" @>
+    | None, None       -> test <@ fileName = Constants.DefaultReportName @>
 
 [<Property>]
 let ``getReportFormats should return from GlobalSettings, if empty then from TestContext, if empty then all supported formats``
@@ -157,3 +155,30 @@ let ``getConnectionPoolSettings should return from Config, if empty then empty r
     | None ->
         let result = NBomberContext.getConnectionPoolSettings(context)
         test <@ result = List.empty @>
+
+[<Fact>]
+let ``checkAvailableTarget should return fail if TargetScenarios has empty value`` () =
+    let scn = { baseScenario with ScenarioName = "1" }
+    match NBomberContext.Validation.checkAvailableTargets [scn] [" "] with
+    | Error (TargetScenariosNotFound _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkAvailableTarget should return fail if TargetScenarios has values which doesn't exist in registered scenarios`` () =
+    let scn = { baseScenario with ScenarioName = "1" }
+    match NBomberContext.Validation.checkAvailableTargets [scn] ["3"] with
+    | Error (TargetScenariosNotFound _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkEmptyReportName should return fail if ReportFileName is empty`` () =
+    match NBomberContext.Validation.checkReportName(" ") with
+    | Error (EmptyReportName _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
+    match NBomberContext.Validation.checkSendStatsInterval(TimeSpan.FromSeconds 9.0) with
+    | Error (SendStatsIntervalIsWrong _) -> ()
+    | _ -> failwith ""
+

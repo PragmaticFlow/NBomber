@@ -7,6 +7,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Infra
 open NBomber.Infra.Dependency
+open NBomber.DomainServices
 
 module internal Dependency =
 
@@ -21,7 +22,8 @@ module internal Dependency =
         let emptyContext = NBomberContext.empty
 
         {| TestInfo = testInfo
-           Dep = Dependency.init(ApplicationType.Process, nodeType, testInfo, emptyContext) |}
+           Dep = Dependency.create ApplicationType.Process nodeType emptyContext
+                 |> Dependency.init testInfo |}
 
     let createWithInMemoryLogger(nodeType: NodeType) =
 
@@ -32,10 +34,23 @@ module internal Dependency =
         }
 
         let emptyContext = NBomberContext.empty
-        let dep = Dependency.init(ApplicationType.Process, nodeType, testInfo, emptyContext)
+        let dep = Dependency.create ApplicationType.Process nodeType emptyContext
+                  |> Dependency.init testInfo
+
         let inMemorySink = InMemorySink()
         let inMemoryLogger = LoggerConfiguration().WriteTo.Sink(inMemorySink).CreateLogger()
-        let dependency = { dep with Logger = inMemoryLogger }
+
+        let dependency = {
+            new IGlobalDependency with
+                member x.NBomberVersion = dep.NBomberVersion
+                member x.ApplicationType = dep.ApplicationType
+                member x.NodeType = dep.NodeType
+                member x.InfraConfig = dep.InfraConfig
+                member x.ProgressBarEnv = dep.ProgressBarEnv
+                member x.Logger = inMemoryLogger :> ILogger
+                member x.ReportingSinks = dep.ReportingSinks
+                member x.Plugins = dep.Plugins
+                member x.Dispose() = dep.Dispose() }
 
         {| TestInfo = testInfo
            Dep = dependency

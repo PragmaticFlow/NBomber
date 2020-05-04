@@ -18,7 +18,6 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
-open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
@@ -111,11 +110,11 @@ module Scenario =
           TestInit = Unchecked.defaultof<_>
           TestClean = Unchecked.defaultof<_>
           Steps = steps
-          WarmUpDuration = TimeSpan.FromSeconds(Constants.DefaultWarmUpDurationInSec)
+          WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [
             LoadSimulation.InjectScenariosPerSec(
                 copiesCount = Constants.DefaultConcurrentCopiesCount,
-                during = TimeSpan.FromSeconds Constants.DefaultScenarioDurationInSec
+                during = Constants.DefaultScenarioDuration
             )
           ] }
 
@@ -176,12 +175,10 @@ module NBomberRunner =
         { context with Plugins = plugins }
 
     let run (context: NBomberContext) =
-        NBomberRunner.runAs(Process, context)
-        |> ignore
+        context |> NBomberRunner.run(Process) |> ignore
 
     let rec runInConsole (context: NBomberContext) =
-        NBomberRunner.runAs(Console, context)
-        |> ignore
+        context |> NBomberRunner.run(Console) |> ignore
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
 
         let userInput = Console.ReadLine()
@@ -189,8 +186,7 @@ module NBomberRunner =
         if repeat then runInConsole context
 
     let runTest (context: NBomberContext) =
-        NBomberRunner.runAs(Test, context)
-        |> Result.mapError(AppError.toString)
+        context |> NBomberRunner.run(Test) |> Result.mapError(AppError.toString)
 
     let internal runWithResult (context: NBomberContext) =
-        NBomberRunner.runAs(Process, context)
+        context |> NBomberRunner.run(Process)

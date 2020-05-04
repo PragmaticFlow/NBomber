@@ -8,40 +8,14 @@ open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Extensions
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ConnectionPool
-open NBomber.Infra
 open NBomber.Infra.Dependency
-
-type SessionArgs = {
-    TestInfo: TestInfo
-    ScenariosSettings: ScenarioSetting list
-    TargetScenarios: string list
-    ConnectionPoolSettings: ConnectionPoolSetting list
-    SendStatsInterval: TimeSpan
-}
-
-module internal SessionArgs =
-
-    let empty = {
-        TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
-        ScenariosSettings = List.empty
-        TargetScenarios = List.empty
-        ConnectionPoolSettings = List.empty
-        SendStatsInterval = TimeSpan.FromSeconds(Constants.MinSendStatsIntervalSec)
-    }
-
-    let buildFromContext (testInfo: TestInfo) (context: NBomberContext) =
-        { TestInfo = testInfo
-          ScenariosSettings = NBomberContext.getScenariosSettings(context)
-          TargetScenarios = NBomberContext.getTargetScenarios(context)
-          ConnectionPoolSettings = NBomberContext.getConnectionPoolSettings(context)
-          SendStatsInterval = NBomberContext.getSendStatsInterval(context) }
+open NBomber.DomainServices.NBomberContext
 
 module internal TestHostReporting =
 
@@ -50,50 +24,43 @@ module internal TestHostReporting =
         |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveRealtimeStats)
         |> Task.WhenAll
 
-    let saveFinalStats (dep: GlobalDependency) (stats: NodeStats list) =
+    let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) =
         for sink in dep.ReportingSinks do
             try
                 sink.SaveFinalStats(stats |> Seq.toArray).Wait()
             with
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
-    let startReportingTimer (dep: GlobalDependency,
+    let startReportingTimer (dep: IGlobalDependency,
                              sendStatsInterval: TimeSpan,
-                             getOperationInfo: unit -> (NodeOperationType * TimeSpan),
-                             getNodeStats: TimeSpan -> Task<NodeStats list>,
-                             addTimeLineStats: (TimeSpan * NodeStats list) -> unit) =
+                             getData: unit -> (NodeOperationType * NodeStats)) =
 
             let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
 
-                let (operation,operationTime) = getOperationInfo()
+                let (operation,nodeStats) = getData()
 
                 match operation with
                 | NodeOperationType.Bombing ->
-                    getNodeStats(operationTime)
-                    |> Task.map(fun nodeStats ->
-                        addTimeLineStats(operationTime, nodeStats)
-
-                        if not (List.isEmpty dep.ReportingSinks) then
-                            nodeStats
-                            |> saveRealtimeStats dep.ReportingSinks
-                            |> ignore
-                    )
-                    |> ignore
+                    if not (List.isEmpty dep.ReportingSinks) then
+                        nodeStats
+                        |> List.singleton
+                        |> saveRealtimeStats dep.ReportingSinks
+                        |> ignore
 
                 | _ -> ()
             )
             timer.Start()
             timer
 
-    let startReportingSinks (dep: GlobalDependency) (testInfo: TestInfo) =
+    let startReportingSinks (dep: IGlobalDependency) (testInfo: TestInfo) =
         for sink in dep.ReportingSinks do
             try
                 sink.StartTest(testInfo) |> ignore
             with
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
-    let stopReportingSinks (dep: GlobalDependency) =
+    let stopReportingSinks (dep: IGlobalDependency) =
         for sink in dep.ReportingSinks do
             try
                 sink.StopTest().Wait()
@@ -102,14 +69,14 @@ module internal TestHostReporting =
 
 module internal TestHostPlugins =
 
-    let startPlugins (dep: GlobalDependency) (testInfo: TestInfo) =
+    let startPlugins (dep: IGlobalDependency) (testInfo: TestInfo) =
         for plugin in dep.Plugins do
             try
                 plugin.StartTest(testInfo).Wait()
             with
             | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
 
-    let stopPlugins (dep: GlobalDependency) =
+    let stopPlugins (dep: IGlobalDependency) =
         for plugin in dep.Plugins do
             try
                 plugin.StopTest().Wait()
@@ -119,16 +86,16 @@ module internal TestHostPlugins =
 
 module internal TestHostConsole =
 
-    let printTargetScenarios (dep: GlobalDependency, targetScns: Scenario list) =
+    let printTargetScenarios (dep: IGlobalDependency, targetScns: Scenario list) =
         targetScns
         |> List.map(fun x -> x.ScenarioName)
         |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
 
-    let displayBombingProgress (dep: GlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
+    let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
         let calcTickCount (scn: Scenario) =
-            if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerNotificationTickIntervalMs)
-            else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickIntervalMs)
+            if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
+            else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
 
         let getLongestDuration (schedulers: ScenarioScheduler list) =
             if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.max
@@ -171,7 +138,7 @@ module internal TestHostConsole =
                 [displayProgressForOneScenario(scnSchedulers.Head)]
         | _ -> List.empty
 
-    let displayConnectionPoolProgress (dep: GlobalDependency, pool: ConnectionPool) =
+    let displayConnectionPoolProgress (dep: IGlobalDependency, pool: ConnectionPool) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
             let pb = dep.ProgressBarEnv.CreateManualProgressBar(pool.ConnectionCount)
@@ -200,7 +167,7 @@ module internal TestHostConsole =
 
 module internal TestHostScenario =
 
-    let initConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
+    let initConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         taskResult {
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
@@ -210,13 +177,13 @@ module internal TestHostScenario =
             return pools
         }
 
-    let destroyConnectionPools (dep: GlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
+    let destroyConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         for pool in pools do
             let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
             pool.Destroy(token)
             if subscription.IsSome then subscription.Value.Dispose()
 
-    let initScenarios (dep: GlobalDependency,
+    let initScenarios (dep: IGlobalDependency,
                        defaultScnContext: ScenarioContext,
                        registeredScenarios: Scenario list,
                        sessionArgs: SessionArgs) = taskResult {
@@ -264,7 +231,7 @@ module internal TestHostScenario =
         return scenariosWithPools
     }
 
-    let cleanScenarios (dep: GlobalDependency, defaultScnContext: ScenarioContext, scenarios: Scenario list) =
+    let cleanScenarios (dep: IGlobalDependency, defaultScnContext: ScenarioContext, scenarios: Scenario list) =
         scenarios
         |> Scenario.filterDistinctConnectionPools
         |> destroyConnectionPools dep defaultScnContext.CancellationToken

@@ -1,11 +1,46 @@
-﻿module internal NBomber.Infra.NBomberContext
+﻿module internal NBomber.DomainServices.NBomberContext
 
 open System
+
+open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Errors
+
+type SessionArgs = {
+    TestInfo: TestInfo
+    ScenariosSettings: ScenarioSetting list
+    TargetScenarios: string list
+    ConnectionPoolSettings: ConnectionPoolSetting list
+    SendStatsInterval: TimeSpan
+} with
+    static member Empty = {
+        TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
+        ScenariosSettings = List.empty
+        TargetScenarios = List.empty
+        ConnectionPoolSettings = List.empty
+        SendStatsInterval = Constants.MinSendStatsInterval
+    }
+
+module Validation =
+
+    let checkAvailableTargets (scenarios: Contracts.Scenario list) (targetScenarios: string list) =
+        let allScenarios = scenarios |> List.map(fun x -> x.ScenarioName)
+        let notFoundScenarios = targetScenarios |> List.except(allScenarios)
+
+        if List.isEmpty(notFoundScenarios) then Ok targetScenarios
+        else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
+
+    let checkReportName (name: string) =
+        if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
+        else Ok name
+
+    let checkSendStatsInterval (interval: TimeSpan) =
+        if interval >= Constants.MinSendStatsInterval then Ok interval
+        else Error <| SendStatsIntervalIsWrong(Constants.MinSendStatsInterval.TotalSeconds)
 
 let empty =
     { TestSuite = Constants.DefaultTestSuite
@@ -16,7 +51,7 @@ let empty =
       ReportFileName = None
       ReportFormats = Constants.AllReportFormats
       ReportingSinks = List.empty
-      SendStatsInterval = TimeSpan.FromSeconds Constants.MinSendStatsIntervalSec
+      SendStatsInterval = Constants.MinSendStatsInterval
       Plugins = List.empty }
 
 let getTestSuite (context: NBomberContext) =
@@ -38,13 +73,12 @@ let getScenariosSettings (context: NBomberContext) =
 let getTargetScenarios (context: NBomberContext) =
     let targetScn =
         context.NBomberConfig
-        |> Option.bind(fun x -> x.GlobalSettings)
         |> Option.bind(fun x -> x.TargetScenarios)
 
     let allScns = context.RegisteredScenarios |> List.map(fun x -> x.ScenarioName)
     defaultArg targetScn allScns
 
-let getReportFileName (sessionId: string, context: NBomberContext) =
+let getReportFileName (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -53,7 +87,7 @@ let getReportFileName (sessionId: string, context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.orElse(context.ReportFileName)
-    |> Option.defaultValue("report_" + sessionId)
+    |> Option.defaultValue(Constants.DefaultReportName)
 
 let getReportFormats (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
@@ -88,3 +122,21 @@ let getConnectionPoolSettings (context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.defaultValue List.empty
+
+let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
+    result {
+        let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
+        let! reportName        = context |> getReportFileName  |> Validation.checkReportName
+        let! sendStatsInterval = context |> getSendStatsInterval |> Validation.checkSendStatsInterval
+        let scenariosSettings  = context |> getScenariosSettings
+        let connectionPoolSettings = context |> getConnectionPoolSettings
+
+        return {
+          TestInfo = testInfo
+          ScenariosSettings = scenariosSettings
+          TargetScenarios = targetScenarios
+          ConnectionPoolSettings = connectionPoolSettings
+          SendStatsInterval = sendStatsInterval
+        }
+    }
+    |> Result.mapError(AppError.create)

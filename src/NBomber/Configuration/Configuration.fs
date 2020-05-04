@@ -29,22 +29,17 @@ type ConnectionPoolSetting = {
 
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting list option
-    TargetScenarios: string list option
     ConnectionPoolSettings: ConnectionPoolSetting list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
     SendStatsInterval: DateTime option
 }
 
-type TargetGroupSettings = {
-    TargetGroup: string
-    TargetScenarios: string list
-}
-
 type NBomberConfig = {
     TestSuite: string option
     TestName: string option
     GlobalSettings: GlobalSettings option
+    TargetScenarios: string list option
 }
 
 module internal JsonConfig =

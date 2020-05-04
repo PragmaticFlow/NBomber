@@ -1,27 +1,27 @@
 ﻿namespace NBomber.DomainServices.TestHost
 
 open System
-open System.Diagnostics
-open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
+open System.Diagnostics
+open System.Runtime.InteropServices
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
+open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
-open NBomber.Domain.Statistics
-open NBomber.Errors
 open NBomber.Infra.Dependency
+open NBomber.DomainServices.NBomberContext
 
-type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list) as x =
+type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as x =
 
     let mutable _stopped = false
-    let mutable _sessionArgs = SessionArgs.empty
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = NodeOperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
@@ -49,7 +49,7 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
         | StopTest (reason) -> x.StopScenarios(reason) |> ignore
 
-    let createScenarioSchedulers (targetScns: Scenario list) =
+    let createScenarioSchedulers (targetScenarios: Scenario list) =
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
                 Logger = dep.Logger
@@ -64,10 +64,10 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         _cancelToken.Dispose()
         _cancelToken <- new CancellationTokenSource()
 
-        targetScns
+        targetScenarios
         |> List.map(createScheduler _cancelToken.Token)
 
-    let initScenarios (sessionArgs: SessionArgs) = taskResult {
+    let initScenarios () = taskResult {
 
         let defaultScnContext = {
             NodeInfo = getCurrentNodeInfo()
@@ -80,7 +80,6 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
         TestHostPlugins.startPlugins dep sessionArgs.TestInfo
         TestHostReporting.startReportingSinks dep sessionArgs.TestInfo
 
-        _sessionArgs <- sessionArgs
         _targetScenarios <- updatedScenarios
     }
 
@@ -99,41 +98,36 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
 
     let startBombing (isWarmUp) = task {
         _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
-
-        let scnsProgressSubscriptions = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
+        let progressBars = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
         do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
-        scnsProgressSubscriptions |> List.iter(fun x -> x.Dispose())
+        progressBars |> List.iter(fun x -> x.Dispose())
     }
 
-    let addTimeLineStats (timeLineStats: (TimeSpan * NodeStats) list)
-                         (operationTime: TimeSpan, nodeStats: NodeStats list) =
-        nodeStats
-        |> List.tryHead
-        |> Option.map(fun stats -> timeLineStats @ [ operationTime, stats ])
-        |> Option.defaultValue timeLineStats
-
-    member x.TestInfo = _sessionArgs.TestInfo
+    member x.TestInfo = sessionArgs.TestInfo
     member x.CurrentOperation = _currentOperation
     member x.CurrentNodeInfo = getCurrentNodeInfo()
     member x.RegisteredScenarios = registeredScenarios
     member x.TargetScenarios = _targetScenarios
 
-    member x.StartInitScenarios(args: SessionArgs) = task {
+    member x.StartInit() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
 
-        match! initScenarios(args) with
+        dep.Logger.Information("starting init...")
+        match! initScenarios() with
         | Ok _ ->
+            dep.Logger.Information("init finished")
             _currentOperation <- NodeOperationType.None
             return Ok()
 
         | Error e ->
+            dep.Logger.Information("init failed")
             _currentOperation <- NodeOperationType.Stop
             return AppError.createResult(InitScenarioError e)
     }
 
-    member x.StartWarmUpScenarios() = task {
+    member x.StartWarmUp() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.WarmUp
         do! Task.Yield()
@@ -179,28 +173,29 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     }
 
     member x.GetNodeStats(executionTime) = getNodeStats(executionTime)
-
     member x.GetTimeLineNodeStats() = _timeLineStats
 
-    member x.RunSession(args: SessionArgs) = taskResult {
-        do! x.StartInitScenarios(args)
+    member x.RunSession() = taskResult {
+        do! x.StartInit()
 
         let currentOperationTimer = Stopwatch()
 
         // warm-up
         currentOperationTimer.Restart()
-        do! x.StartWarmUpScenarios()
+        do! x.StartWarmUp()
         let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
         // bombing
         use reportingTimer =
             TestHostReporting.startReportingTimer(
-                dep, _sessionArgs.SendStatsInterval,
-                (fun () -> _currentOperation, currentOperationTimer.Elapsed),
-                (fun operationTime -> operationTime |> getNodeStats |> List.singleton |> Task.FromResult),
-                (fun (operationTime, nodeStats) ->
-                    _timeLineStats <- addTimeLineStats _timeLineStats (operationTime, nodeStats)
+                dep, sessionArgs.SendStatsInterval,
+                (fun () ->
+                    let operationTime = currentOperationTimer.Elapsed
+                    let nodeStats = getNodeStats(operationTime)
+                    // append nodeStats to timeLineStats
+                    _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
+                    _currentOperation, nodeStats
                 )
             )
 
@@ -217,5 +212,4 @@ type internal TestHost(dep: GlobalDependency, registeredScenarios: Scenario list
     interface IDisposable with
         member x.Dispose() =
             x.StopScenarios().Wait()
-            dep.Plugins |> Seq.iter(fun x -> x.Dispose())
-            dep.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
+            dep.Dispose()

@@ -81,12 +81,6 @@ let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario li
     scenarios
     |> List.filter(fun x -> targetScenarios |> Seq.exists(fun target -> x.ScenarioName = target))
 
-let findByMaxWarmUp (allScenarios: Scenario list) =
-    allScenarios |> List.maxBy(fun x -> x.WarmUpDuration)
-
-let findByMaxDuration (allScenarios: Scenario list) =
-    allScenarios |> List.maxBy(fun x -> x.PlanedDuration)
-
 let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
 
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =

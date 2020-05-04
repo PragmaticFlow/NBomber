@@ -55,7 +55,6 @@ type ConnectionPoolSettingYaml = {
 [<CLIMutable>]
 type GlobalSettingsYaml = {
     ScenariosSettings: ScenarioSettingYaml[]
-    TargetScenarios: string[]
     ConnectionPoolSettings: ConnectionPoolSettingYaml[]
     ReportFileName: string
     ReportFormats: ReportFormat[]
@@ -67,12 +66,16 @@ type NBomberConfigYaml = {
     TestSuite: string
     TestName: string
     GlobalSettings: GlobalSettingsYaml
+    TargetScenarios: string[]
 }
 
 module internal YamlConfig =
 
     let private mapDateTime (timeSpan: TimeSpan) =
         DateTime.MinValue + timeSpan
+
+    let private toListOption (data: seq<'T>) =
+        data |> Option.ofObj |> Option.map(fun x -> Seq.toList x)
 
     let mapLoadSimulationsSettings (loadSimulations: LoadSimulationSettingsYaml): LoadSimulationSettings =
         if isNotNull(box loadSimulations.KeepConcurrentScenarios) then
@@ -113,11 +116,7 @@ module internal YamlConfig =
             if interval.Ticks > 0L then interval |> mapDateTime |> Some
             else None
 
-        let toListOption (data: seq<'T>) =
-            data |> Option.ofObj |> Option.map(fun x -> Seq.toList x)
-
         { ScenariosSettings = globalSettings.ScenariosSettings |> Seq.map(mapScenariosSettings) |> toListOption
-          TargetScenarios   = globalSettings.TargetScenarios   |> toListOption
           ConnectionPoolSettings = globalSettings.ConnectionPoolSettings |> Seq.map(mapConnectionPool) |> toListOption
           ReportFileName    = globalSettings.ReportFileName    |> String.toOption
           ReportFormats     = globalSettings.ReportFormats     |> toListOption
@@ -126,7 +125,8 @@ module internal YamlConfig =
     let mapNBomberConfig (yamlConfig: NBomberConfigYaml): NBomberConfig =
         { TestSuite = yamlConfig.TestSuite |> Option.ofObj
           TestName = yamlConfig.TestName |> Option.ofObj
-          GlobalSettings = yamlConfig.GlobalSettings |> Option.ofRecord |> Option.map(mapGlobalSettings) }
+          GlobalSettings = yamlConfig.GlobalSettings |> Option.ofRecord |> Option.map(mapGlobalSettings)
+          TargetScenarios = yamlConfig.TargetScenarios |> toListOption }
 
     let unsafeParse (yaml: string) =
         yaml

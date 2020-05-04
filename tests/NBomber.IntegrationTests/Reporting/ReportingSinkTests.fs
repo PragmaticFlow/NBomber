@@ -27,7 +27,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
         Scenario.create "realtime stats scenario" [okStep]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = 5, during = TimeSpan.FromSeconds 15.0)
+            KeepConcurrentScenarios(copiesCount = 5, during = TimeSpan.FromSeconds 40.0)
         ]
 
     let mutable statsInvokedCounter = 0
@@ -51,7 +51,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
     }
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
+    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
     |> NBomberRunner.runTest
     |> ignore
 
@@ -69,7 +69,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
         Scenario.create "realtime stats scenario" [okStep]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = 5, during = TimeSpan.FromSeconds 8.0)
+            KeepConcurrentScenarios(copiesCount = 5, during = TimeSpan.FromSeconds 30.0)
         ]
 
     let mutable bombingCounter = 0
@@ -97,7 +97,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
     }
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 5.0)
+    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
     |> NBomberRunner.runTest
     |> ignore
 
