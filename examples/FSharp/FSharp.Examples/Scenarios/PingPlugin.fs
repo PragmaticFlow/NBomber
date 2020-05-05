@@ -28,7 +28,7 @@ let run () =
                        InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let pingPluginConfig = PingPluginConfig.Create ["nbomber.com"]
+    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]

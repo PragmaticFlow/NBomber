@@ -89,7 +89,7 @@ type AppError =
         | DurationIsLessThan1Sec simulation
         | DurationIsBiggerThan10Days simulation
         | CopiesCountIsZeroOrNegative simulation ->
-            sprintf "Simulation error: '%s'" simulation
+            sprintf "Simulation error: %A for '%s'" error simulation
 
     static member toString (error: AppError) =
         match error with

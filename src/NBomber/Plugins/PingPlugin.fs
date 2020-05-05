@@ -12,18 +12,34 @@ open Serilog
 open NBomber.Contracts
 
 type PingPluginConfig = {
-    Hosts: string list
+    Hosts: string[]
+    /// A buffer of data to be transmitted. The default is 32.
+    /// If you believe that a larger (or smaller) packet size will noticeably affect
+    /// the response time from the target host, then you may wish to experiment with
+    /// different values.  The range of sizes is from 1 to 65500.  Note that values
+    /// (for Ethernet) require that the packet be fragmented for any value over 1386
+    /// bytes in the data field.
     BufferSizeBytes: int
+    /// Sets the number of routing nodes that can forward the Ping data before it is discarded.
+    /// An Int32 value that specifies the number of times the Ping data packets can be forwarded. The default is 128.
     Ttl: int
+    /// Sets a Boolean value that controls fragmentation of the data sent to the remote host.
+    /// true if the data cannot be sent in multiple packets; otherwise false. The default is false
+    /// This option is useful if you want to test the maximum transmission unit (MTU)
+    /// of the routers and gateways used to transmit the packet.
+    /// If this property is true and the data sent to the remote host is larger then the MTU of a gateway
+    /// or router between the sender and the remote host, the ping operation fails with status PacketTooBig.
     DontFragment: bool
+    /// The default is 100 ms.
     Timeout: TimeSpan
 } with
-    static member Create(hosts: string seq) =
-        { Hosts = hosts |> Seq.toList
-          BufferSizeBytes = 32
-          Ttl = 128
-          DontFragment = false
-          Timeout = TimeSpan.FromMilliseconds(120.0) }
+    static member CreateDefault(hosts: string seq) = {
+        Hosts = hosts |> Seq.toArray
+        BufferSizeBytes = 32
+        Ttl = 128
+        DontFragment = false
+        Timeout = TimeSpan.FromMilliseconds(100.0)
+    }
 
 module internal PingPluginStatistics =
 
@@ -37,42 +53,42 @@ module internal PingPluginStatistics =
            "Status", "Status", "System.String"
            "Address", "Address", "System.String"
            "RoundTripTime", "Round Trip Time", "System.String"
-           "TimeToLive", "Time to Live", "System.String"
+           "Ttl", "Time to Live", "System.String"
            "DontFragment", "Don't Fragment", "System.String"
            "BufferSize", "Buffer Size", "System.String" |]
         |> Array.map(fun x -> x |> createColumn)
 
-    let private createRow (host: string, pingReply: PingReply) (table: DataTable) =
-        let areOptionsAvailable = pingReply.Options |> isNull |> not
+    let private createRow (table: DataTable, host: string, pingReply: PingReply, config: PingPluginConfig) =
         let row = table.NewRow()
 
         row.["Host"] <- host
         row.["Status"] <- pingReply.Status.ToString()
         row.["Address"] <- pingReply.Address.ToString()
-        row.["RoundTripTime"] <- sprintf "%s ms" <| pingReply.RoundtripTime.ToString()
-        row.["TimeToLive"] <- if areOptionsAvailable then pingReply.Options.Ttl.ToString() else "n/a"
-        row.["DontFragment"] <- if areOptionsAvailable then pingReply.Options.DontFragment.ToString() else "n/a"
-        row.["BufferSize"] <- sprintf "%s bytes" <| pingReply.Buffer.Length.ToString()
+        row.["RoundTripTime"] <- sprintf "%i ms" pingReply.RoundtripTime
+        row.["Ttl"] <- config.Ttl.ToString()
+        row.["DontFragment"] <- config.DontFragment.ToString()
+        row.["BufferSize"] <- sprintf "%i bytes" config.BufferSizeBytes
 
         row
 
-    let createTable (statsName) (pingReplies: (string * PingReply) list) =
+    let createTable (statsName) (config: PingPluginConfig) (pingReplies: (string * PingReply)[]) =
         let table = new DataTable(statsName)
 
         createColumns() |> table.Columns.AddRange
 
         pingReplies
-        |> List.map(fun (host, pingReply) -> table |> createRow(host, pingReply))
-        |> List.iter(fun x -> x |> table.Rows.Add)
+        |> Array.map(fun (host, pingReply) -> createRow(table, host, pingReply, config))
+        |> Array.iter(fun x -> x |> table.Rows.Add)
 
         table
 
 type PingPlugin(config: PingPluginConfig) =
 
-    let mutable _logger: ILogger = Unchecked.defaultof<ILogger>
+    let mutable _logger = Serilog.Log.ForContext<PingPlugin>()
     let mutable _pluginStats = new DataSet()
+    let _pluginName = "NBomber.Plugins.Network.PingPlugin"
 
-    let execPing (config: PingPluginConfig) =
+    let execPing () =
         try
             let pingOptions = PingOptions()
             pingOptions.Ttl <- config.Ttl
@@ -84,33 +100,32 @@ type PingPlugin(config: PingPluginConfig) =
 
             let replies =
                 config.Hosts
-                |> List.map(fun host -> host, ping.Send(host, config.Timeout.Milliseconds, buffer, pingOptions))
+                |> Array.map(fun host -> host, ping.Send(host, config.Timeout.Milliseconds, buffer, pingOptions))
 
             Ok replies
         with
         | ex -> Error ex
 
-    let createStats (statsName) (pingReplyResult: Result<(string * PingReply) list, exn>) = result {
+    let createStats (pingReplyResult: Result<(string * PingReply)[], exn>) = result {
         let! pingResult = pingReplyResult
         let stats = new DataSet()
 
         pingResult
-        |> PingPluginStatistics.createTable statsName
+        |> PingPluginStatistics.createTable _pluginName config
         |> stats.Tables.Add
 
         return stats
     }
 
     interface IPlugin with
-        member x.PluginName = "NBomber.Plugins.Network.PingPlugin"
+        member x.PluginName = _pluginName
 
         member x.Init(logger, infraConfig) =
             _logger <- logger.ForContext<PingPlugin>()
 
         member x.StartTest(testInfo: TestInfo) =
-            config
-            |> execPing
-            |> createStats (x :> IPlugin).PluginName
+            execPing()
+            |> createStats
             |> Result.map(fun x -> _pluginStats <- x)
             |> Result.mapError(fun ex -> _logger.Error(ex.ToString()))
             |> ignore
