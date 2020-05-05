@@ -6,12 +6,14 @@ open Xunit
 open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.FSharp
 
 [<Theory>]
 [<InlineData(100, 200, 50, 150)>]    // ramp-up
@@ -168,3 +170,25 @@ let ``schedule should correctly handle RampScenariosPerSec``
     )
 
     test <@ commands.Length = commandCount.Value @>
+
+[<Fact>]
+let ``should run InjectOneTimeActors correctly`` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        return Response.Ok(42)
+    })
+
+    let scenario = Scenario.create "hello_world_scenario" [step1;] //step2]
+                   |> Scenario.withoutWarmUp
+                   |> Scenario.withLoadSimulations [
+                       InjectScenariosPerSec(copiesCount = 1, during = TimeSpan.FromSeconds 20.0)
+                   ]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.runTest
+    |> Result.map(fun nodeStats ->
+        let reqCount = nodeStats.RequestCount
+        test <@ reqCount >= 20 && reqCount <= 21 @>
+    )
+    |> Result.mapError(failwith)
+    |> ignore
