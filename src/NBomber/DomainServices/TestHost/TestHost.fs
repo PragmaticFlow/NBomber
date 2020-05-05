@@ -173,7 +173,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     member x.GetNodeStats(executionTime) = getNodeStats(executionTime)
-    member x.GetTimeLineNodeStats() = _timeLineStats
+    member x.GetTimeLineNodeStats() = List.rev _timeLineStats
 
     member x.RunSession() = taskResult {
         do! x.StartInit()
@@ -193,7 +193,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 (fun () ->
                     let operationTime = currentOperationTimer.Elapsed
                     let nodeStats = getNodeStats(operationTime)
-                    // append nodeStats to timeLineStats
+                    // prepend nodeStats to timeLineStats
                     _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
                     _currentOperation, nodeStats
                 )

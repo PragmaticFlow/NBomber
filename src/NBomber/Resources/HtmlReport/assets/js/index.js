@@ -152,7 +152,8 @@ Vue.component('time-line-stats-chart', {
                     current.map(propertyStep => {
                         const point = {
                             x: propertyStep.timeStamp,
-                            y: propertyStep.stepStats[propertyStep.propertyName]
+                            y: propertyStep.stepStats[propertyStep.propertyName],
+                            stepStats: propertyStep.stepStats
                         };
 
                         if (propertyStep.datasetIndex in acc) {
@@ -165,8 +166,7 @@ Vue.component('time-line-stats-chart', {
                                     getColor(Object.keys(acc).length)
                                 ],
                                 fill: false,
-                                borderWidth: 2,
-                                stepStats: propertyStep.stepStats
+                                borderWidth: 2
                             }
                         }
                     });
@@ -200,15 +200,15 @@ Vue.component('time-line-stats-chart', {
                 position: 'topOfChart',
                 callbacks: {
                     label: (tooltipItem, data) => {
-                        const {label = '', stepStats} = data.datasets[tooltipItem.datasetIndex];
-                        const lines = [label].concat(
+                        const dataset = data.datasets[tooltipItem.datasetIndex];
+                        const { stepStats } = dataset.data[tooltipItem.index];
+                        const lines = [dataset.label].concat(
                             Object.entries(stepStats).map(([key, value]) => `${key} = ${value}`));
 
                         return lines;
                     }
                 }
             }
-
         };
 
         this.renderChart(data, options);
