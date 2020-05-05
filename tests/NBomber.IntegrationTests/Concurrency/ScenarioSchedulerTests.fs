@@ -178,7 +178,7 @@ let ``should run InjectOneTimeActors correctly`` () =
         return Response.Ok(42)
     })
 
-    let scenario = Scenario.create "hello_world_scenario" [step1;] //step2]
+    let scenario = Scenario.create "hello_world_scenario" [step1]
                    |> Scenario.withoutWarmUp
                    |> Scenario.withLoadSimulations [
                        InjectScenariosPerSec(copiesCount = 1, during = TimeSpan.FromSeconds 20.0)

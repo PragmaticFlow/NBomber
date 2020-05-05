@@ -236,8 +236,7 @@
                     </a>
                 </li>
 
-                <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
-                    v-if="statsData.ScenarioStats.length > 1">
+                <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName">
                     <a data-toggle="pill"
                        :href="`#scenario-${index}-view`"
                        role="tab"
@@ -273,7 +272,7 @@
                      v-if="statsData.ScenarioStats && statsData.PluginStats">
                     <scenarios-stats-table :scenarios-stats="statsData.ScenarioStats"
                                            :step-properties="['RPS']"
-                                           x-axes-label="Elapsed Time"
+                                           x-axes-label="Scenario Duration"
                                            y-axes-label="RPS">
                     </scenarios-stats-table>
                     <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
@@ -281,19 +280,18 @@
                 <no-data v-else></no-data>
                 <!-- Scenarios Views -->
                 <div v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="scenarioStats.ScenarioName"
-                     v-if="statsData.ScenarioStats && statsData.ScenarioStats.length > 1"
                      class="tab-pane fade show"
                      :id="`scenario-${index}-view`"
                      role="tabpanel">
                     <scenarios-stats-table :scenarios-stats="[scenarioStats]"
                                            :step-properties="['RPS', 'AllDataMB']"
-                                           x-axes-label="Elapsed Time"
+                                           x-axes-label="Scenario Duration"
                                            y-axes-label="">
                     </scenarios-stats-table>
                 </div>
                 <!-- PLugins Stats Views -->
                 <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
-                     v-if="statsData.PluginStats  && statsData.PluginStats.length > 0">
+                     v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
                     <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
                 </div>
             </div>
