@@ -6,6 +6,7 @@ open System.Net.Http
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
+open NBomber.Plugins.Network.Ping
 open NBomber.FSharp
 
 let run () =
@@ -35,7 +36,11 @@ let run () =
                        //KeepConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromMinutes 1.0)
                    ]
 
+    let pingPluginConfig = PingPluginConfig.Create ["nbomber.com"]
+    use pingPlugin = new PingPlugin(pingPluginConfig)
+
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withPlugins [pingPlugin]
     //|> NBomberRunner.loadInfraConfigJson "infra_config.json"
     //|> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
     |> NBomberRunner.runInConsole

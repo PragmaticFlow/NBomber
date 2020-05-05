@@ -58,7 +58,7 @@ namespace CSharp.Examples.Scenarios
 
             var scenario = ScenarioBuilder
                 .CreateScenario("web_socket test", new[] {pingStep, pongStep})
-                .WithOutWarmUp()
+                .WithoutWarmUp()
                 .WithLoadSimulations(new[]
                 {
                     Simulation.KeepConcurrentScenarios(concurrentCopies, during: TimeSpan.FromSeconds(10))
