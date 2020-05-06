@@ -38,8 +38,8 @@ type GlobalSettings = {
 type NBomberConfig = {
     TestSuite: string option
     TestName: string option
-    GlobalSettings: GlobalSettings option
     TargetScenarios: string list option
+    GlobalSettings: GlobalSettings option
 }
 
 module internal JsonConfig =

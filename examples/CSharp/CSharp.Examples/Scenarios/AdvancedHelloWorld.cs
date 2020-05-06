@@ -27,6 +27,7 @@ namespace CSharp.Examples.Scenarios
             if (!String.IsNullOrEmpty(context.CustomSettings))
             {
                 _settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>();
+                //_settings = context.CustomSettings.DeserializeYaml<CustomScenarioSettings>(); // in case of yaml
                 context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", _settings.TestField);
             }
             return Task.CompletedTask;
@@ -100,8 +101,10 @@ namespace CSharp.Examples.Scenarios
 
             NBomberRunner
                 .RegisterScenarios(new[] {scenario})
-                // .LoadTestConfig("test_config.json")   // test config for test settings only
-                // .LoadInfraConfig("infra_config.json") // infra config for infra settings only
+                //.LoadConfigJson("config.json")            // nbomber config for test settings only
+                //.LoadInfraConfigJson("infra_config.json") // infra config for infra settings only
+                //.LoadConfigYaml("config.yaml")            // you can use yaml instead of json (https://github.com/PragmaticFlow/NBomber/blob/dev/tests/NBomber.IntegrationTests/Configuration/test_config.yaml)
+                //.LoadInfraConfigYaml("infra_config.yaml")
                 .RunInConsole();
         }
     }
