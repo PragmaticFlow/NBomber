@@ -20,7 +20,7 @@ let scenario = Scenario.create "scenario" [okStep] |> Scenario.withoutWarmUp
 let ``correct CLI commands should load config`` (command) =
     let context =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.executeCliArgs [| command; "Configuration/test_config.yaml" |]
+        |> NBomberRunner.executeCliArgs [command; "Configuration/test_config.yaml"]
 
     test <@ context.NBomberConfig.IsSome @>
     test <@ context.InfraConfig.IsNone @>
@@ -35,7 +35,7 @@ let ``correct CLI commands should load config`` (command) =
 let ``incorrect CLI command should not load config`` (command) =
     let context =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.executeCliArgs [| command; "Configuration/test_config.yaml" |]
+        |> NBomberRunner.executeCliArgs [command; "Configuration/test_config.yaml"]
 
     test <@ context.NBomberConfig.IsNone @>
     test <@ context.InfraConfig.IsNone @>
@@ -46,7 +46,7 @@ let ``incorrect CLI command should not load config`` (command) =
 let ``correct CLI commands should load infra config`` (command) =
     let context =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.executeCliArgs [| command; "Configuration/infra_config.yaml" |]
+        |> NBomberRunner.executeCliArgs [command; "Configuration/infra_config.yaml"]
 
     test <@ context.NBomberConfig.IsNone @>
     test <@ context.InfraConfig.IsSome @>
@@ -61,7 +61,7 @@ let ``correct CLI commands should load infra config`` (command) =
 let ``incorrect CLI command should not load infra config`` (command) =
     let context =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.executeCliArgs [| command; "Configuration/infra_config.yaml" |]
+        |> NBomberRunner.executeCliArgs [command; "Configuration/infra_config.yaml"]
 
     test <@ context.NBomberConfig.IsNone @>
     test <@ context.InfraConfig.IsNone @>
