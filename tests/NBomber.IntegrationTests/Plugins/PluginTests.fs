@@ -162,7 +162,7 @@ let ``StartTest should be invoked with infra config`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
+    |> NBomberRunner.loadInfraConfig "Configuration/infra_config.yaml"
     |> NBomberRunner.withPlugins [plugin]
     |> NBomberRunner.runTest
     |> Result.mapError(fun x -> failwith x)

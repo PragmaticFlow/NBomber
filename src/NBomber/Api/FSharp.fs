@@ -5,6 +5,7 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 
+open CommandLine
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Configuration
@@ -102,6 +103,11 @@ type Step =
                                                return Response.Ok() }),
                     doNotTrack = true)
 
+type CommandLineArgs = {
+    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
+    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
+}
+
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
@@ -139,44 +145,60 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
+    /// Specifies report file names.
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
+    /// Specifies report formats to be generated.
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 
+    /// Specifies test sute.
     let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
 
+    /// Specifies test name.
     let withTestName (testName: string) (context: NBomberContext) =
         { context with TestName = testName }
 
-    let loadConfigJson (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
-        { context with NBomberConfig = Some config }
+    /// Loads configuration in json (by default) or yaml (.yml, .yaml) format.
+    let loadConfig (path: string) (context: NBomberContext) =
+        if String.IsNullOrWhiteSpace(path) then
+            context
+        else
+            let config =
+                match Path.GetExtension(path) with
+                | ".yml"
+                | ".yaml" -> path |> File.ReadAllText |> YamlConfig.unsafeParse
+                | _       -> path |> File.ReadAllText |> JsonConfig.unsafeParse
+            { context with NBomberConfig = Some config }
 
-    let loadConfigYaml (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
-        { context with NBomberConfig = Some config }
+    /// Loads infrastructure configuration in json (default) or yaml (.yml, .yaml) format.
+    let loadInfraConfig (path: string) (context: NBomberContext) =
+        if String.IsNullOrWhiteSpace(path) then
+            context
+        else
+            let config =
+                match Path.GetExtension(path) with
+                | ".yml"
+                | ".yaml" -> ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
+                | _       -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+            { context with InfraConfig = Some config }
 
-    let loadInfraConfigJson (path: string) (context: NBomberContext) =
-        let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
-        { context with InfraConfig = Some config }
-
-    let loadInfraConfigYaml (path: string) (context: NBomberContext) =
-        let config = ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
-        { context with InfraConfig = Some config }
-
+    /// Specifies reporting sinks.
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
+    /// Specifies plugins.
     let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
+    /// Runs scenarios for given context.
     let run (context: NBomberContext) =
         context |> NBomberRunner.run(Process) |> ignore
 
+    /// Runs scenarios for given context in console.
     let rec runInConsole (context: NBomberContext) =
         context |> NBomberRunner.run(Console) |> ignore
         Serilog.Log.Information("Repeat the same test one more time? (y/n)")
@@ -185,8 +207,30 @@ module NBomberRunner =
         let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole context
 
+    /// Runs scenarios for given context in testing mode.
     let runTest (context: NBomberContext) =
         context |> NBomberRunner.run(Test) |> Result.mapError(AppError.toString)
 
     let internal runWithResult (context: NBomberContext) =
         context |> NBomberRunner.run(Process)
+
+    /// Executes CLI commands.
+    /// The following commands are supported:
+    /// -c or --config: loads configuration
+    /// -i or --infra: loads infrastructure configuration
+    /// Order is important: it overrides configurations set by loadConfig, loadInfraConfig if it placed below them and vice-versa.
+    /// Examples of possible args:
+    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
+    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
+    let executeCliArgs (args) (context: NBomberContext) =
+        match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
+        | :? Parsed<CommandLineArgs> as parsed ->
+            let values = parsed.Value
+            let execLoadConfigCmd = loadConfig values.Config
+            let execLoadInfraConfigCmd = loadInfraConfig values.InfraConfig
+            let execCmd = execLoadConfigCmd >> execLoadInfraConfigCmd
+            printf "Config: '%s', infra: '%s'" values.Config values.InfraConfig
+            context |> execCmd
+
+        | :? NotParsed<CommandLineArgs> as notParsed -> context
+        | _ -> context

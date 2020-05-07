@@ -32,6 +32,6 @@ let run () =
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
+    |> NBomberRunner.loadInfraConfig "infra_config.yaml"
     |> NBomberRunner.withPlugins [pingPlugin]
     |> NBomberRunner.runInConsole
