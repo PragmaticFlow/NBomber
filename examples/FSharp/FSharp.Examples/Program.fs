@@ -11,5 +11,6 @@ let main argv =
     //CustomReportingScenario.run()
     //PluginsScenario.run()
     //CustomPluginScenario.run()
+    //CliArgumentsScenario.run(argv)
 
     0
