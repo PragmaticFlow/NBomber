@@ -26,7 +26,7 @@ let ``XUnit test`` () =
         ]
 
     let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.runTest Array.empty
+                 |> NBomberRunner.run Array.empty
 
     match result with
     | Ok nodeStats ->

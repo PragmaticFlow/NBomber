@@ -222,7 +222,7 @@ module NBomberRunner =
         context
         |> executeCliArgs args
         |> NBomberRunner.run(Process)
-        |> ignore
+        |> Result.mapError(AppError.toString)
 
     /// Runs scenarios for given context in console.
     let rec runInConsole (args) (context: NBomberContext) =
@@ -236,13 +236,6 @@ module NBomberRunner =
         let userInput = Console.ReadLine()
         let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
         if repeat then runInConsole args context
-
-    /// Runs scenarios for given context in testing mode.
-    let runTest (args) (context: NBomberContext) =
-        context
-        |> executeCliArgs args
-        |> NBomberRunner.run(Test)
-        |> Result.mapError(AppError.toString)
 
     let internal runWithResult (args) (context: NBomberContext) =
         context

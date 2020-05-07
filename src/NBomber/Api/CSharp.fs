@@ -141,7 +141,7 @@ type NBomberRunner =
 
     [<Extension>]
     static member RunTest(context: NBomberContext, args: string[]) =
-        match FSharp.NBomberRunner.runTest args context with
+        match FSharp.NBomberRunner.run args context with
         | Ok stats  -> stats
         | Error msg -> failwith msg
 

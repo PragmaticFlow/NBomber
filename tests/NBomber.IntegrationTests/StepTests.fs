@@ -38,7 +38,7 @@ let ``Response Ok and Fail should be properly count`` () =
         ]
 
     let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.runTest Array.empty
+                 |> NBomberRunner.run Array.empty
 
     match result with
     | Ok nodeStats ->
@@ -69,7 +69,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         ]
 
     let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.runTest Array.empty
+                 |> NBomberRunner.run Array.empty
 
     match result with
     | Ok nodeStats ->
@@ -116,7 +116,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
         ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest Array.empty
+    |> NBomberRunner.run Array.empty
     |> ignore
 
     test <@ invokeCounter <= 5 @>
@@ -149,7 +149,7 @@ let ``StepContext Data should store any payload data from latest step.Response``
         ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runTest Array.empty
+    |> NBomberRunner.run Array.empty
     |> ignore
 
     test <@ counterFromStep1 = step2Counter @>
@@ -290,7 +290,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
 
     let nodeStats =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.runTest Array.empty
+        |> NBomberRunner.run Array.empty
         |> Result.getOk
 
     let stepStats = nodeStats.ScenarioStats
@@ -332,7 +332,7 @@ let ``context StopTest should stop all scenarios`` () =
         ]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.runTest Array.empty
+    |> NBomberRunner.run Array.empty
     |> Result.getOk
     |> fun nodeStats ->
         nodeStats.ScenarioStats
