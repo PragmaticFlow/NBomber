@@ -85,7 +85,7 @@ module StepResults =
         { MinKb  = counts |> Array.map(fun x -> x.MinKb) |> Array.minOrDefault 0.0 |> roundResult
           MeanKb = counts |> Array.map(fun x -> x.MeanKb) |> Array.averageOrDefault 0.0 |> roundResult
           MaxKb  = counts |> Array.map(fun x -> x.MaxKb) |> Array.maxOrDefault 0.0 |> roundResult
-          AllMB  = counts |> Array.sumBy(fun x -> x.AllMB) }
+          AllMB  = counts |> Array.sumBy(fun x -> x.AllMB) |> roundResult }
 
     let merge (stepsResults: RawStepResults[]) =
         stepsResults

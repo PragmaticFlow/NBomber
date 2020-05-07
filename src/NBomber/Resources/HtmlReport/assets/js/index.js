@@ -106,7 +106,7 @@ Vue.component('latency-chart', {
                 yAxes: [{
                     scaleLabel: {
                         display: true,
-                        labelString: 'Value'
+                        labelString: 'Requests'
                     },
                     ticks: {
                         beginAtZero: true

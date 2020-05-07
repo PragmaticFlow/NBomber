@@ -9,10 +9,10 @@ namespace CSharp.Examples
     {
         static void Main(string[] args)
         {
-            HelloWorldScenario.Run();
+            //HelloWorldScenario.Run();
             //new AdvancedHelloWorldScenario().Run();
             //DataFeedScenario.Run();
-            //HttpScenario.Run();
+            HttpScenario.Run();
             //MongoDbScenario.Run();
             //WebSocketsScenario.Run();
             //RealtimeStatistics.Run();

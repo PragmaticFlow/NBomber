@@ -1,5 +1,8 @@
 ﻿TestSuite: gitter_io
 TestName: test http api
+TargetScenarios:
+- test_youtube
+
 GlobalSettings:
   ScenariosSettings:
   - ScenarioName: test_youtube
@@ -32,6 +35,3 @@ GlobalSettings:
   ReportFormats:
   - Html
   - Txt
-
-TargetScenarios:
-  - test_youtube

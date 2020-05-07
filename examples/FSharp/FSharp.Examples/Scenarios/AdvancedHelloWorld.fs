@@ -21,7 +21,7 @@ let run (args) =
     let testInit = fun (context: ScenarioContext) -> task {
         try
             let settings = context.CustomSettings.DeserializeJson<CustomScenarioSettings>()
-            //let settings = context.CustomSettings.DeserializeYaml<CustomScenarioSettings>()
+            //let settings = context.CustomSettings.DeserializeYaml<CustomScenarioSettings>() // in case of yaml
             context.Logger.Information("test init received CustomSettings.TestField '{TestField}'", settings.TestField)
         with
         | ex -> ()
@@ -76,8 +76,8 @@ let run (args) =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    //|> NBomberRunner.loadConfig("config.json")
-    //|> NBomberRunner.loadConfig("config.yaml")
-    //|> NBomberRunner.loadInfraConfig("infra_config.json")
-    //|> NBomberRunner.loadInfraConfig("infra_config.yaml")
+    //|> NBomberRunner.loadConfigJson("config.json")            // nbomber config for test settings only
+    //|> NBomberRunner.loadInfraConfigJson("infra_config.json") // infra config for infra settings only
+    //|> NBomberRunner.loadConfigYaml("config.yaml")            // you can use yaml instead of json (https://github.com/PragmaticFlow/NBomber/blob/dev/tests/NBomber.IntegrationTests/Configuration/test_config.yaml)
+    //|> NBomberRunner.loadInfraConfigYaml("infra_config.yaml")
     |> NBomberRunner.runInConsole args

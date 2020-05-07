@@ -1,6 +1,7 @@
 ﻿{
     "TestSuite": "nbomber_tests",
     "TestName": "hello_world_test",
+    "TargetScenarios": ["hello_world_scenario"],
 
     "GlobalSettings": {
         "ScenariosSettings": [

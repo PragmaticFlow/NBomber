@@ -12,7 +12,7 @@
         <Compile Include="Scenarios\Http.fs" />
         <Compile Include="Scenarios\CustomReportingSink.fs" />
         <Compile Include="Scenarios\AdvancedHelloWorld.fs" />
-        <Compile Include="Scenarios\Plugins.fs" />
+        <Compile Include="Scenarios\PingPlugin.fs" />
         <Compile Include="Scenarios\CustomPlugin.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

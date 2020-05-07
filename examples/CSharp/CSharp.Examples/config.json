@@ -1,6 +1,7 @@
 ﻿{
     "TestSuite": "nbomber_tests",
     "TestName": "hello_world_test",
+    "TargetScenarios": ["hello_world_scenario"],
 
     "GlobalSettings": {
         "ScenariosSettings": [
@@ -26,6 +27,6 @@
         ],
 
         "ReportFileName": "custom_report_name_from_json",
-        "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
+        "ReportFormats": [ "Html", "Txt", "Csv" ]
     }
 }

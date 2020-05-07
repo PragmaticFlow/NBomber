@@ -29,8 +29,8 @@ let baseScenario = Scenario.create "1" [failStep] |> Scenario.withoutWarmUp
 let config = {
     TestSuite = Some Constants.DefaultTestSuite
     TestName = Some Constants.DefaultTestName
-    GlobalSettings = None
     TargetScenarios = Some ["1"]
+    GlobalSettings = None
 }
 
 let context = {

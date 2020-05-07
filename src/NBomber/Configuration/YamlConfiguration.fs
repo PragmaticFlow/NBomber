@@ -65,8 +65,8 @@ type GlobalSettingsYaml = {
 type NBomberConfigYaml = {
     TestSuite: string
     TestName: string
-    GlobalSettings: GlobalSettingsYaml
     TargetScenarios: string[]
+    GlobalSettings: GlobalSettingsYaml
 }
 
 module internal YamlConfig =
@@ -122,11 +122,12 @@ module internal YamlConfig =
           ReportFormats     = globalSettings.ReportFormats     |> toListOption
           SendStatsInterval = globalSettings.SendStatsInterval |> mapSendStatsInterval }
 
-    let mapNBomberConfig (yamlConfig: NBomberConfigYaml): NBomberConfig =
-        { TestSuite = yamlConfig.TestSuite |> Option.ofObj
-          TestName = yamlConfig.TestName |> Option.ofObj
-          GlobalSettings = yamlConfig.GlobalSettings |> Option.ofRecord |> Option.map(mapGlobalSettings)
-          TargetScenarios = yamlConfig.TargetScenarios |> toListOption }
+    let mapNBomberConfig (yamlConfig: NBomberConfigYaml): NBomberConfig = {
+        TestSuite = yamlConfig.TestSuite |> Option.ofObj
+        TestName = yamlConfig.TestName |> Option.ofObj
+        TargetScenarios = yamlConfig.TargetScenarios |> toListOption
+        GlobalSettings = yamlConfig.GlobalSettings |> Option.ofRecord |> Option.map(mapGlobalSettings)
+    }
 
     let unsafeParse (yaml: string) =
         yaml

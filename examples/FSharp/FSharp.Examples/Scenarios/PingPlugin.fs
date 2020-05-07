@@ -1,4 +1,4 @@
-﻿module PluginsScenario
+﻿module PingPluginScenario
 
 open System
 open System.Net.Http
@@ -28,7 +28,7 @@ let run (args) =
                        InjectScenariosPerSec(copiesCount = 150, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let pingPluginConfig = PingPluginConfig.Create ["nbomber.com"; "github.com"]
+    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]
