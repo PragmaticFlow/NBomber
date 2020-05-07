@@ -12,7 +12,7 @@ open NBomber.FSharp
 // dotnet FSharp.Examples.dll -c config.yaml -i infra_config.yaml
 // or
 // dotnet FSharp.Examples.dll --config config.yaml --infra infra_config.yaml
-let run (argv: string[]) =
+let run (args: string[]) =
 
     let httpClient = new HttpClient()
 
@@ -35,11 +35,10 @@ let run (argv: string[]) =
                        //KeepConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let cliArgs =
-        if argv.Length > 0 then argv
+    let args =
+        if args.Length > 0 then args
         else [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
         //else [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.executeCliArgs cliArgs
-    |> NBomberRunner.runInConsole
+    |> NBomberRunner.runInConsole args

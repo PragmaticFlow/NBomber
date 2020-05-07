@@ -16,7 +16,7 @@ type CustomScenarioSettings = {
     TestField: int
 }
 
-let run () =
+let run (args) =
 
     let testInit = fun (context: ScenarioContext) -> task {
         try
@@ -80,4 +80,4 @@ let run () =
     //|> NBomberRunner.loadConfig("config.yaml")
     //|> NBomberRunner.loadInfraConfig("infra_config.json")
     //|> NBomberRunner.loadInfraConfig("infra_config.yaml")
-    |> NBomberRunner.runInConsole
+    |> NBomberRunner.runInConsole args

@@ -8,7 +8,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.FSharp
 
-let run () =
+let run (args) =
 
     // it's a very basic HTTP example, don't use it for production testing
     // for production purposes use NBomber.Http which use performance optimizations
@@ -38,4 +38,4 @@ let run () =
     NBomberRunner.registerScenarios [scenario]
     //|> NBomberRunner.loadInfraConfig "infra_config.json"
     //|> NBomberRunner.loadInfraConfig "infra_config.yaml"
-    |> NBomberRunner.runInConsole
+    |> NBomberRunner.runInConsole args

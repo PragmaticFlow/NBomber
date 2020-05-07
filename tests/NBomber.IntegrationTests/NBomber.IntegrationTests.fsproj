@@ -39,6 +39,7 @@
     <Compile Include="ConnectionPoolTests.fs" />
     <Compile Include="Reporting\ReportingSinkTests.fs" />
     <Compile Include="Plugins\PluginTests.fs" />
+    <Compile Include="CliArgsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />

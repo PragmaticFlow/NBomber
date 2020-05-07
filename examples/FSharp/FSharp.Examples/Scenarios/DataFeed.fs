@@ -15,7 +15,7 @@ type User = {
     Name: string
 }
 
-let run () =
+let run (args) =
 
     let data = FeedData.fromSeq [1; 2; 3; 4; 5]
                |> FeedData.shuffleData
@@ -38,4 +38,4 @@ let run () =
     let scenario = Scenario.create "Hello World!" [step]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runInConsole
+    |> NBomberRunner.runInConsole args
