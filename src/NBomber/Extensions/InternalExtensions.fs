@@ -62,7 +62,7 @@ module internal Extensions =
         let inline splitLines (str: string) =
             str.Split(Environment.NewLine.ToCharArray())
 
-        let inline concatLines (strings: string[]) =
+        let concatLines (strings: string seq) =
             String.Join(Environment.NewLine, strings)
 
         let concatWithCommaAndQuotes (strings: string seq) =

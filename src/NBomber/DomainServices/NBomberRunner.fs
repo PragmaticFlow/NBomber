@@ -25,8 +25,8 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         dep.Logger.Information(Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node")
 
-        let! sessionArgs = NBomberContext.createSessionArgs testInfo context
-        let! scenarios   = Scenario.createScenarios(context.RegisteredScenarios)
+        let! sessionArgs = context |> NBomberContext.createSessionArgs(testInfo)
+        let! scenarios   = context |> NBomberContext.createScenarios
         use testHost     = new TestHost(dep, scenarios, sessionArgs)
         let! nodeStats   = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()

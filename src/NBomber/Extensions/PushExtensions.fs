@@ -17,7 +17,7 @@ type PushResponseBuffer() =
     let _lockObj = obj()
     let _awaiters = Dictionary<ClientId, TaskCompletionSource<PushResponse>>()
     let _awaitersBuffer = Dictionary<ClientId, Queue<PushResponse>>()
-    let _trueTime = CurrentTime()
+    let _currentTime = CurrentTime()
 
     let initBufferForClient (clientId) =
         _awaiters.[clientId] <- TaskCompletionSource<PushResponse>()
@@ -48,7 +48,7 @@ type PushResponseBuffer() =
             let pushResponse = {
                 ClientId = clientId
                 Payload = payload
-                ReceivedTime = _trueTime.UtcNow
+                ReceivedTime = _currentTime.UtcNow
             }
 
             let missedResponses = _awaitersBuffer.[pushResponse.ClientId]

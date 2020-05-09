@@ -9,6 +9,7 @@ open NBomber.Extensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
+open NBomber.Domain
 
 type SessionArgs = {
     TestInfo: TestInfo
@@ -140,3 +141,6 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         }
     }
     |> Result.mapError(AppError.create)
+
+let createScenarios (context: NBomberContext) =
+    context.RegisteredScenarios |> Scenario.createScenarios
