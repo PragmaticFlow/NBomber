@@ -10,7 +10,7 @@ namespace CSharp.Examples.Scenarios
 {
     class HelloWorldScenario
     {
-        public static void Run(string[] args)
+        public static void Run()
         {
             var step1 = Step.Create("step_1", async context =>
             {

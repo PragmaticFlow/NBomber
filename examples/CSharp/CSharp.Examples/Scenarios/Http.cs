@@ -7,7 +7,7 @@ namespace CSharp.Examples.Scenarios
 {
     class HttpScenario
     {
-        public static void Run(string[] args)
+        public static void Run()
         {
             // in this example we use NBomber.Http package which simplifies writing HTTP requests
             // you can find more here: https://github.com/PragmaticFlow/NBomber.Http

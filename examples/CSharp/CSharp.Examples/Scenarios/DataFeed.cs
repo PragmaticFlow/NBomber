@@ -9,7 +9,7 @@ namespace CSharp.Examples
 {
     class DataFeedScenario
     {
-        public static void Run(string[] args)
+        public static void Run()
         {
             var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
             //var data = FeedData.FromJson<User>("users_feed_data.json");

@@ -23,7 +23,7 @@ namespace CSharp.Examples.Scenarios
             public bool IsActive { get; set; }
         }
 
-        public static void Run(string[] args)
+        public static void Run()
         {
             var db = new MongoClient().GetDatabase("Test");
 
