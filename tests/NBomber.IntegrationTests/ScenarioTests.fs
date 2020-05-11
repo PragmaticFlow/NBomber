@@ -47,7 +47,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
 
     let allStats =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
         |> Result.getOk
 
     test <@ 1 = cleanInvokeCounter @>
@@ -77,7 +77,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadConfig "Configuration/test_config.json"
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> ignore
 
     let cusomSettings = scnContext.Value.CustomSettings.DeserializeJson<TestCustomSettings>()
@@ -116,7 +116,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         ]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
         let youtube1Steps =
@@ -163,7 +163,7 @@ let ``Test execution should be stoped if all scenarios are stoped`` () =
         ]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
         let youtube1Steps = nodeStats.ScenarioStats |> Seq.find(fun x -> x.ScenarioName = "test_youtube_1")
@@ -192,7 +192,7 @@ let ``Warmup should have no effect on stats`` () =
         ]
 
     let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.run Array.empty
+                 |> NBomberRunner.run
 
     match result with
     | Ok nodeStats ->

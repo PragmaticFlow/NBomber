@@ -88,6 +88,13 @@ module ProgressBarEnv =
             member x.CreateAutoProgressBar(duration) =
                 new FixedDurationBar(duration, String.Empty, options) :> IProgressBar }
 
+    let internal canBeCreated () =
+        try
+            new ProgressBar(0, String.Empty) |> ignore
+            true
+        with
+        | _ -> false
+
 let createSessionId () =
     let date = DateTime.UtcNow.ToString("dd.MM.yyyy_HH.mm.ff")
     let guid = Guid.NewGuid().GetHashCode().ToString("x")

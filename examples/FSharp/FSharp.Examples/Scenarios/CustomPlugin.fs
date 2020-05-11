@@ -47,7 +47,7 @@ type CustomPlugin () =
         member x.StopTest() = Task.CompletedTask
         member x.Dispose() = ()
 
-let run (args) =
+let run () =
 
     let httpClient = new HttpClient()
     use customPlugin = new CustomPlugin()
@@ -70,4 +70,4 @@ let run (args) =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withPlugins [customPlugin]
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.run

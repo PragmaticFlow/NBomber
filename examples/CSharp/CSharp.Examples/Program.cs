@@ -9,13 +9,13 @@ namespace CSharp.Examples
     {
         static void Main(string[] args)
         {
-            //HelloWorldScenario.Run();
-            //new AdvancedHelloWorldScenario().Run();
-            //DataFeedScenario.Run();
-            HttpScenario.Run();
-            //MongoDbScenario.Run();
-            //WebSocketsScenario.Run();
-            //RealtimeStatistics.Run();
+            HelloWorldScenario.Run(args);
+            //new AdvancedHelloWorldScenario().Run(args);
+            //DataFeedScenario.Run(args);
+            //HttpScenario.Run(args);
+            //MongoDbScenario.Run(args);
+            //WebSocketsScenario.Run(args);
+            //RealtimeStatistics.Run(args);
         }
     }
 }

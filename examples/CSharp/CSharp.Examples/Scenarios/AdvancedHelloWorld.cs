@@ -38,7 +38,7 @@ namespace CSharp.Examples.Scenarios
             return Task.CompletedTask;
         }
 
-        public void Run()
+        public void Run(string[] args)
         {
             var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5});
             var dataFeed = Feed.CreateRandom("random_feed", data);

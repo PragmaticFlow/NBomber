@@ -42,7 +42,7 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok nodeStats ->
@@ -85,7 +85,7 @@ let ``should distribute connection using modulo if connectionPool.Count < loadSi
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok nodeStats ->
@@ -130,7 +130,7 @@ let ``should be shared btw steps as singlton instance``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok nodeStats ->
@@ -167,7 +167,7 @@ let ``openConnection should stop test session in case of failure``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok allStats -> failwith "unhandled exception"
@@ -202,7 +202,7 @@ let ``openConnection should use try logic in case of some errors``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok allStats -> failwith "unhandled exception"
@@ -236,7 +236,7 @@ let ``closeConnection should not affect test session in case of failure``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok allStats -> test <@ closeInvokeCount >= 10 @>
@@ -278,7 +278,7 @@ let ``should be initialized only once``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario1; scenario2]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok nodeStats -> test <@ initedConnections = connectionCount @>
@@ -319,7 +319,7 @@ let ``should be initialized after scenario init``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok allStats -> test <@ lastInvokeComponent = "connection_pool" @>
@@ -354,7 +354,7 @@ let ``should support 65K of connections``() =
 
     let result =
         NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run Array.empty
+        |> NBomberRunner.run
 
     match result with
     | Ok allStats -> test <@ invokeCount = connectionCount @>

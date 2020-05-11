@@ -185,7 +185,7 @@ let ``should run InjectOneTimeActors correctly`` () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.map(fun nodeStats ->
         let reqCount = nodeStats.RequestCount
         test <@ reqCount >= 20 && reqCount <= 21 @>

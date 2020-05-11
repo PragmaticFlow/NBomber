@@ -214,28 +214,28 @@ module NBomberRunner =
 
             context |> execCmd
 
-        | :? NotParsed<CommandLineArgs> as notParsed -> context
         | _ -> context
 
+    let internal getApplicationType() =
+        if ProgressBarEnv.canBeCreated() then Console
+        else Process
+
     /// Runs scenarios for given context.
-    let run (args) (context: NBomberContext) =
+    let run (context: NBomberContext) =
+        let applicationType = getApplicationType()
+
         context
-        |> executeCliArgs args
-        |> NBomberRunner.run(Process)
+        |> NBomberRunner.run(applicationType)
         |> Result.mapError(AppError.toString)
 
-    /// Runs scenarios for given context in console.
-    let rec runInConsole (args) (context: NBomberContext) =
+    /// Runs scenarios for given arguments and context.
+    let runWithArgs (args) (context: NBomberContext) =
+        let applicationType = getApplicationType()
+
         context
         |> executeCliArgs args
-        |> NBomberRunner.run(Console)
-        |> ignore
-
-        Serilog.Log.Information("Repeat the same test one more time? (y/n)")
-
-        let userInput = Console.ReadLine()
-        let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
-        if repeat then runInConsole args context
+        |> NBomberRunner.run(applicationType)
+        |> Result.mapError(AppError.toString)
 
     let internal runWithResult (args) (context: NBomberContext) =
         context

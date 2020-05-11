@@ -9,7 +9,7 @@ open NBomber.Contracts
 open NBomber.Plugins.Network.Ping
 open NBomber.FSharp
 
-let run (args) =
+let run () =
 
     // it's a very basic HTTP example, don't use it for production testing
     // for production purposes use NBomber.Http which use performance optimizations
@@ -43,4 +43,4 @@ let run (args) =
     |> NBomberRunner.withPlugins [pingPlugin]
     //|> NBomberRunner.loadInfraConfigJson "infra_config.json"
     //|> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.run

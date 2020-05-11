@@ -22,7 +22,7 @@ type CustomReportingSink() =
         member x.StopTest() = Task.CompletedTask
         member x.Dispose() = ()
 
-let run (args) =
+let run () =
 
     let httpClient = new HttpClient()
 
@@ -47,4 +47,4 @@ let run (args) =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([customReportingSink], sendStatsInterval)
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.run

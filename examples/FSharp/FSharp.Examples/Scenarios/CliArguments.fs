@@ -41,4 +41,4 @@ let run (args: string[]) =
         //else [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.runWithArgs args

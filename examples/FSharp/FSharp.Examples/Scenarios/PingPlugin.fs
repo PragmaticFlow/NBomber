@@ -9,7 +9,7 @@ open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Plugins.Network.Ping
 
-let run (args) =
+let run () =
     let httpClient = new HttpClient()
 
     let step = Step.create("pull html", fun context -> task {
@@ -34,4 +34,4 @@ let run (args) =
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadInfraConfig "infra_config.yaml"
     |> NBomberRunner.withPlugins [pingPlugin]
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.run

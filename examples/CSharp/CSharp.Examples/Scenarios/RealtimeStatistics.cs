@@ -7,7 +7,7 @@ namespace CSharp.Examples.Scenarios
 {
     public class RealtimeStatistics
     {
-        public static void Run()
+        public static void Run(string[] args)
         {
             // var influxDb = new InfluxDBSink(url: "http://localhost:8086", dbName: "default");
             //

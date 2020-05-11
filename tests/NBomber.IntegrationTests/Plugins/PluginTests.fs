@@ -108,7 +108,7 @@ let ``Init should be invoked once`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
@@ -136,7 +136,7 @@ let ``StartTest should be invoked once`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
@@ -162,7 +162,7 @@ let ``StartTest should be invoked with infra config`` () =
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfig "Configuration/infra_config.yaml"
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
@@ -190,7 +190,7 @@ let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no I
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
@@ -218,7 +218,7 @@ let ``StopTest should be invoked once`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
@@ -258,7 +258,7 @@ let ``stats should be passed to IReportingSink`` () =
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
     |> NBomberRunner.withPlugins [plugin]
-    |> NBomberRunner.run Array.empty
+    |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 

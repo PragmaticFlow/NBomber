@@ -14,7 +14,7 @@ namespace CSharp.Examples.Scenarios
 {
     class WebSocketsScenario
     {
-        public static void Run()
+        public static void Run(string[] args)
         {
             var url = "ws://localhost:5000";
             var concurrentCopies = 50;

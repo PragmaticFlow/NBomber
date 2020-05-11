@@ -16,7 +16,7 @@ type CustomScenarioSettings = {
     TestField: int
 }
 
-let run (args) =
+let run () =
 
     let testInit = fun (context: ScenarioContext) -> task {
         try
@@ -80,4 +80,4 @@ let run (args) =
     //|> NBomberRunner.loadInfraConfigJson("infra_config.json") // infra config for infra settings only
     //|> NBomberRunner.loadConfigYaml("config.yaml")            // you can use yaml instead of json (https://github.com/PragmaticFlow/NBomber/blob/dev/tests/NBomber.IntegrationTests/Configuration/test_config.yaml)
     //|> NBomberRunner.loadInfraConfigYaml("infra_config.yaml")
-    |> NBomberRunner.runInConsole args
+    |> NBomberRunner.run
