@@ -133,20 +133,12 @@ type NBomberRunner =
 
     [<Extension>]
     static member Run(context: NBomberContext) =
-        FSharp.NBomberRunner.run context |> ignore
-
-    [<Extension>]
-    static member Run(context: NBomberContext, args: string[]) =
-        FSharp.NBomberRunner.runWithArgs args context |> ignore
-
-    [<Extension>]
-    static member RunTest(context: NBomberContext) =
         match FSharp.NBomberRunner.run context with
         | Ok stats  -> stats
         | Error msg -> failwith msg
 
     [<Extension>]
-    static member RunTest(context: NBomberContext, args: string[]) =
+    static member Run(context: NBomberContext, args: string[]) =
         match FSharp.NBomberRunner.runWithArgs args context with
         | Ok stats  -> stats
         | Error msg -> failwith msg
