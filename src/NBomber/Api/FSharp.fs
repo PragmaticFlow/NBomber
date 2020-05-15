@@ -10,6 +10,7 @@ open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Configuration.Yaml
+open ShellProgressBar
 
 open NBomber
 open NBomber.Contracts
@@ -217,8 +218,11 @@ module NBomberRunner =
         | _ -> context
 
     let internal getApplicationType() =
-        if ProgressBarEnv.canBeCreated() then Console
-        else Process
+        try
+            new ProgressBar(0, String.Empty) |> ignore
+            Console
+        with
+        | _ -> Process
 
     /// Runs scenarios for given context.
     let run (context: NBomberContext) =
