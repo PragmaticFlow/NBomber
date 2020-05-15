@@ -48,3 +48,4 @@ let run () =
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportingSinks([customReportingSink], sendStatsInterval)
     |> NBomberRunner.run
+    |> ignore

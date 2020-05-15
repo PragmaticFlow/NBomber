@@ -6,11 +6,10 @@ open System.Threading
 open System.Threading.Tasks
 
 open CommandLine
-open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Configuration.Yaml
-open ShellProgressBar
 
 open NBomber
 open NBomber.Contracts
@@ -20,7 +19,6 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
-open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
 type ConnectionPoolArgs =
@@ -125,18 +123,23 @@ module Scenario =
             )
           ] }
 
+    /// Sets TestInit callback.
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
 
+    /// Sets TestClean callback.
     let withTestClean (cleanFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
+    /// Sets warm up duration.
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
 
+    /// Removes warming up.
     let withoutWarmUp (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
+    /// Sets load simulation.
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
 
@@ -146,19 +149,19 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
-    /// Specifies report file names.
+    /// Sets report file names.
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    /// Specifies report formats to be generated.
+    /// Sets report formats to be generated.
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 
-    /// Specifies test sute.
+    /// Sets test sute.
     let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
 
-    /// Specifies test name.
+    /// Sets test name.
     let withTestName (testName: string) (context: NBomberContext) =
         { context with TestName = testName }
 
@@ -188,14 +191,18 @@ module NBomberRunner =
 
             { context with InfraConfig = Some config }
 
-    /// Specifies reporting sinks.
+    /// Sets reporting sinks.
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
-    /// Specifies plugins.
+    /// Sets plugins.
     let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
+
+    /// Sets application type.
+    let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
+        { context with ApplicationType = Some applicationType }
 
     /// Executes CLI commands.
     /// The following commands are supported:
@@ -217,31 +224,19 @@ module NBomberRunner =
 
         | _ -> context
 
-    let internal getApplicationType() =
-        try
-            new ProgressBar(0, String.Empty) |> ignore
-            Console
-        with
-        | _ -> Process
-
-    /// Runs scenarios for given context.
-    let run (context: NBomberContext) =
-        let applicationType = getApplicationType()
-
-        context
-        |> NBomberRunner.run(applicationType)
-        |> Result.mapError(AppError.toString)
-
-    /// Runs scenarios for given arguments and context.
-    let runWithArgs (args) (context: NBomberContext) =
-        let applicationType = getApplicationType()
-
-        context
-        |> executeCliArgs args
-        |> NBomberRunner.run(applicationType)
-        |> Result.mapError(AppError.toString)
-
     let internal runWithResult (args) (context: NBomberContext) =
         context
         |> executeCliArgs args
-        |> NBomberRunner.run(Process)
+        |> NBomberRunner.run
+
+    /// Runs scenarios for given context.
+    let run (context: NBomberContext) =
+        context
+        |> runWithResult Array.empty
+        |> Result.mapError(AppError.toString)
+
+    /// Runs scenarios for given CLI arguments and context.
+    let runWithArgs (args) (context: NBomberContext) =
+        context
+        |> runWithResult args
+        |> Result.mapError(AppError.toString)

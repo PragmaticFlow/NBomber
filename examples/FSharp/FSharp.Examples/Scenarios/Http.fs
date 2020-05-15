@@ -40,7 +40,9 @@ let run () =
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     NBomberRunner.registerScenarios [scenario]
+    //|> NBomberRunner.withApplicationType ApplicationType.Console
     |> NBomberRunner.withPlugins [pingPlugin]
     //|> NBomberRunner.loadInfraConfigJson "infra_config.json"
     //|> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
     |> NBomberRunner.run
+    |> ignore

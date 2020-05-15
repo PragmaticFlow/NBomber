@@ -81,3 +81,4 @@ let run () =
     //|> NBomberRunner.loadConfigYaml("config.yaml")            // you can use yaml instead of json (https://github.com/PragmaticFlow/NBomber/blob/dev/tests/NBomber.IntegrationTests/Configuration/test_config.yaml)
     //|> NBomberRunner.loadInfraConfigYaml("infra_config.yaml")
     |> NBomberRunner.run
+    |> ignore

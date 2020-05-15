@@ -71,3 +71,4 @@ let run () =
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withPlugins [customPlugin]
     |> NBomberRunner.run
+    |> ignore

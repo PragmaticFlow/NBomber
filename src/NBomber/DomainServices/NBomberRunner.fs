@@ -1,7 +1,9 @@
 ﻿module internal NBomber.DomainServices.NBomberRunner
 
 open System
+
 open FsToolkit.ErrorHandling
+open ShellProgressBar
 
 open NBomber
 open NBomber.Contracts
@@ -35,15 +37,26 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         return nodeStats
     }
 
-let run (appType: ApplicationType) (context: NBomberContext) =
+let private canProgressBarBeCreated() =
+    try
+        new ProgressBar(0, String.Empty) |> ignore
+        true
+    with
+    | _ -> false
 
+let run (context: NBomberContext) =
     let testInfo = {
         SessionId = Dependency.createSessionId()
         TestSuite = NBomberContext.getTestSuite(context)
         TestName = NBomberContext.getTestName(context)
     }
 
-    Dependency.create appType NodeType.SingleNode context
+    let applicationType =
+        match context.ApplicationType with
+        | Some apptype -> apptype
+        | None         -> if canProgressBarBeCreated() then ApplicationType.Console else ApplicationType.Process
+
+    Dependency.create applicationType NodeType.SingleNode context
     |> Dependency.init(testInfo)
     |> runSession testInfo context
     |> TaskResult.mapError(fun error ->

@@ -44,6 +44,7 @@ let context = {
     ReportingSinks = List.empty
     SendStatsInterval = Constants.MinSendStatsInterval
     Plugins = List.empty
+    ApplicationType = Some ApplicationType.Process
 }
 
 [<Fact>]

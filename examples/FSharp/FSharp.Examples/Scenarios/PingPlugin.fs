@@ -35,3 +35,4 @@ let run () =
     |> NBomberRunner.loadInfraConfig "infra_config.yaml"
     |> NBomberRunner.withPlugins [pingPlugin]
     |> NBomberRunner.run
+    |> ignore

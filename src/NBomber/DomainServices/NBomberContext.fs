@@ -42,17 +42,19 @@ module Validation =
         if interval >= Constants.MinSendStatsInterval then Ok interval
         else Error <| SendStatsIntervalIsWrong(Constants.MinSendStatsInterval.TotalSeconds)
 
-let empty =
-    { TestSuite = Constants.DefaultTestSuite
-      TestName = Constants.DefaultTestName
-      RegisteredScenarios = List.empty
-      NBomberConfig = None
-      InfraConfig = None
-      ReportFileName = None
-      ReportFormats = Constants.AllReportFormats
-      ReportingSinks = List.empty
-      SendStatsInterval = Constants.MinSendStatsInterval
-      Plugins = List.empty }
+let empty = {
+    TestSuite = Constants.DefaultTestSuite
+    TestName = Constants.DefaultTestName
+    RegisteredScenarios = List.empty
+    NBomberConfig = None
+    InfraConfig = None
+    ReportFileName = None
+    ReportFormats = Constants.AllReportFormats
+    ReportingSinks = List.empty
+    SendStatsInterval = Constants.MinSendStatsInterval
+    Plugins = List.empty
+    ApplicationType = None
+}
 
 let getTestSuite (context: NBomberContext) =
     context.NBomberConfig

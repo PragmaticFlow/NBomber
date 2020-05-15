@@ -42,3 +42,4 @@ let run (args: string[]) =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.runWithArgs args
+    |> ignore

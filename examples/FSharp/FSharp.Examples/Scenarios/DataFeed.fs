@@ -39,3 +39,4 @@ let run () =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.run
+    |> ignore
