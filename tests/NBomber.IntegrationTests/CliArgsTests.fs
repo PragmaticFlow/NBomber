@@ -1,5 +1,7 @@
 module Tests.CliArgs
 
+open System.IO
+
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Swensen.Unquote
 open Xunit
@@ -65,3 +67,21 @@ let ``incorrect CLI command should not load infra config`` (command) =
 
     test <@ context.NBomberConfig.IsNone @>
     test <@ context.InfraConfig.IsNone @>
+
+[<Theory>]
+[<InlineData("-c")>]
+[<InlineData("--config")>]
+let ``CLI commands should throw ex if config file is not found`` (command) =
+    Assert.Throws(typeof<FileNotFoundException>,
+                  fun _ -> NBomberRunner.registerScenarios [scenario]
+                           |> NBomberRunner.executeCliArgs [command; "not_found_config.yaml"]
+                           |> ignore)
+
+[<Theory>]
+[<InlineData("-i")>]
+[<InlineData("--infra")>]
+let ``CLI commands should throw ex if infra config file is not found`` (command) =
+    Assert.Throws(typeof<FileNotFoundException>,
+                  fun _ -> NBomberRunner.registerScenarios [scenario]
+                           |> NBomberRunner.executeCliArgs [command; "not_found_infra_config.yaml"]
+                           |> ignore)

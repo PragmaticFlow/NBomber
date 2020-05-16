@@ -143,9 +143,9 @@ type NBomberRunner =
 
     /// Sets application type.
     /// The following application types are supported:
-    /// - Process: no UI interface is provided in console (progress bars),
-    /// - Console: UI interface is provided in console (progress bars).
-    /// By default system tries to set Console application type if console is available.
+    /// - Console: is suitable for interactive session (will display progress bar)
+    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
+    /// By default NBomber will automatically identify your environment: Process or Console.
     [<Extension>]
     static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
         context |> FSharp.NBomberRunner.withApplicationType(applicationType)

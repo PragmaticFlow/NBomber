@@ -162,16 +162,13 @@ module NBomberRunner =
     /// - yaml (.yml, .yaml).
     /// For other file extensions json format is used.
     let loadConfig (path: string) (context: NBomberContext) =
-        if String.IsNullOrWhiteSpace(path) then
-            context
-        else
-            let config =
-                match Path.GetExtension(path) with
-                | ".yml"
-                | ".yaml" -> path |> File.ReadAllText |> YamlConfig.unsafeParse
-                | _       -> path |> File.ReadAllText |> JsonConfig.unsafeParse
+        let config =
+            match Path.GetExtension(path) with
+            | ".yml"
+            | ".yaml" -> path |> File.ReadAllText |> YamlConfig.unsafeParse
+            | _       -> path |> File.ReadAllText |> JsonConfig.unsafeParse
 
-            { context with NBomberConfig = Some config }
+        { context with NBomberConfig = Some config }
 
     /// Loads infrastructure configuration.
     /// The following formats are supported:
@@ -179,16 +176,13 @@ module NBomberRunner =
     /// - yaml (.yml, .yaml).
     /// For other file extensions json format is used.
     let loadInfraConfig (path: string) (context: NBomberContext) =
-        if String.IsNullOrWhiteSpace(path) then
-            context
-        else
-            let config =
-                match Path.GetExtension(path) with
-                | ".yml"
-                | ".yaml" -> ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
-                | _       -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+        let config =
+            match Path.GetExtension(path) with
+            | ".yml"
+            | ".yaml" -> ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
+            | _       -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
 
-            { context with InfraConfig = Some config }
+        { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
@@ -199,18 +193,22 @@ module NBomberRunner =
 
     /// Sets application type.
     /// The following application types are supported:
-    /// - Process: no UI interface is provided in console (progress bars),
-    /// - Console: UI interface is provided in console (progress bars).
-    /// By default system tries to set Console application type if console is available.
+    /// - Console: is suitable for interactive session (will display progress bar)
+    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
+    /// By default NBomber will automatically identify your environment: Process or Console.
     let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
         { context with ApplicationType = Some applicationType }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
+        let invokeLoader (configLoader) (config) (context) =
+            if String.IsNullOrEmpty(config) then context
+            else configLoader config context
+
         match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
         | :? Parsed<CommandLineArgs> as parsed ->
             let values = parsed.Value
-            let execLoadConfigCmd = loadConfig values.Config
-            let execLoadInfraConfigCmd = loadInfraConfig values.InfraConfig
+            let execLoadConfigCmd = invokeLoader loadConfig values.Config
+            let execLoadInfraConfigCmd = invokeLoader loadInfraConfig values.InfraConfig
             let execCmd = execLoadConfigCmd >> execLoadInfraConfigCmd
 
             context |> execCmd

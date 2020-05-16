@@ -37,17 +37,12 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         return nodeStats
     }
 
-let private canProgressBarBeCreated () =
+let private getApplicationType () =
     try
         new ProgressBar(0, String.Empty) |> ignore
-        true
+        ApplicationType.Console
     with
-    | _ -> false
-
-let private getApplicationType () =
-    if canProgressBarBeCreated()
-    then ApplicationType.Console
-    else ApplicationType.Process
+    | _ -> ApplicationType.Process
 
 let run (context: NBomberContext) =
     let testInfo = {
