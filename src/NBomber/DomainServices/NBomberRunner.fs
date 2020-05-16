@@ -39,7 +39,7 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
 
 let private getApplicationType () =
     try
-        new ProgressBar(0, String.Empty) |> ignore
+        use pb = new ProgressBar(0, String.Empty)
         ApplicationType.Console
     with
     | _ -> ApplicationType.Process

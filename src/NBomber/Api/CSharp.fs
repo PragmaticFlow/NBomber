@@ -100,7 +100,6 @@ type NBomberRunner =
     /// The following formats are supported:
     /// - json (.json),
     /// - yaml (.yml, .yaml).
-    /// For other file extensions json format is used.
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
@@ -109,7 +108,6 @@ type NBomberRunner =
     /// The following formats are supported:
     /// - json (.json),
     /// - yaml (.yml, .yaml).
-    /// For other file extensions json format is used.
     [<Extension>]
     static member LoadInfraConfig(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadInfraConfig(path)

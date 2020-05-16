@@ -160,13 +160,13 @@ module NBomberRunner =
     /// The following formats are supported:
     /// - json (.json),
     /// - yaml (.yml, .yaml).
-    /// For other file extensions json format is used.
     let loadConfig (path: string) (context: NBomberContext) =
         let config =
             match Path.GetExtension(path) with
+            | ".json" -> path |> File.ReadAllText |> JsonConfig.unsafeParse
             | ".yml"
             | ".yaml" -> path |> File.ReadAllText |> YamlConfig.unsafeParse
-            | _       -> path |> File.ReadAllText |> JsonConfig.unsafeParse
+            | _       -> failwith "unsupported config format"
 
         { context with NBomberConfig = Some config }
 
@@ -174,13 +174,13 @@ module NBomberRunner =
     /// The following formats are supported:
     /// - json (.json),
     /// - yaml (.yml, .yaml).
-    /// For other file extensions json format is used.
     let loadInfraConfig (path: string) (context: NBomberContext) =
         let config =
             match Path.GetExtension(path) with
+            | ".json" -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
             | ".yml"
             | ".yaml" -> ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
-            | _       -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+            | _       -> failwith "unsupported config format"
 
         { context with InfraConfig = Some config }
 
