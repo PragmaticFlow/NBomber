@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <Compile Include="Scenarios\HelloWorld.fs" />
+        <Compile Include="Scenarios\CliArguments.fs" />
         <Compile Include="Scenarios\DataFeed.fs" />
         <Compile Include="Scenarios\Http.fs" />
         <Compile Include="Scenarios\CustomReportingSink.fs" />

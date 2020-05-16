@@ -11,11 +11,6 @@ open ShellProgressBar
 
 open NBomber.Contracts
 
-type ApplicationType =
-    | Process
-    | Console
-    | Test
-
 type IProgressBarEnv =
     abstract CreateManualProgressBar: tickCount:int -> IProgressBar
     abstract CreateAutoProgressBar: duration:TimeSpan -> IProgressBar

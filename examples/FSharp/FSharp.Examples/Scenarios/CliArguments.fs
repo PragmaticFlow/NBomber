@@ -1,4 +1,4 @@
-﻿module HttpScenario
+﻿module CliArgumentsScenario
 
 open System
 open System.Net.Http
@@ -6,14 +6,13 @@ open System.Net.Http
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
-open NBomber.Plugins.Network.Ping
 open NBomber.FSharp
 
-let run () =
-
-    // it's a very basic HTTP example, don't use it for production testing
-    // for production purposes use NBomber.Http which use performance optimizations
-    // you can find more here: https://github.com/PragmaticFlow/NBomber.Http
+// run the following command in command line to test CLI:
+// dotnet FSharp.Examples.dll -c config.yaml -i infra_config.yaml
+// or
+// dotnet FSharp.Examples.dll --config config.yaml --infra infra_config.yaml
+let run (args: string[]) =
 
     let httpClient = new HttpClient()
 
@@ -36,13 +35,11 @@ let run () =
                        //KeepConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromMinutes 1.0)
                    ]
 
-    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
-    use pingPlugin = new PingPlugin(pingPluginConfig)
+    let args =
+        if args.Length > 0 then args
+        else [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
+        //else [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
 
     NBomberRunner.registerScenarios [scenario]
-    //|> NBomberRunner.withApplicationType ApplicationType.Console
-    |> NBomberRunner.withPlugins [pingPlugin]
-    //|> NBomberRunner.loadInfraConfig "infra_config.json"
-    //|> NBomberRunner.loadInfraConfig "infra_config.yaml"
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs args
     |> ignore

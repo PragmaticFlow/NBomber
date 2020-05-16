@@ -84,25 +84,25 @@ module YamlConfig =
 module NBomberRunner =
 
     [<Fact>]
-    let ``loadInfraConfigJson should parse config successfully`` () =
+    let ``loadInfraConfig should parse json config successfully`` () =
         NBomberRunner.registerScenarios []
-        |> NBomberRunner.loadInfraConfigJson "Configuration/infra_config.json"
+        |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
 
     [<Fact>]
-    let ``loadInfraConfigJson should throw ex if file is not found`` () =
+    let ``loadInfraConfig should throw ex if json file is not found`` () =
         Assert.Throws(typeof<FileNotFoundException>,
                       fun _ -> NBomberRunner.registerScenarios []
-                               |> NBomberRunner.loadInfraConfigJson "Configuration/infra_config_2.json"
+                               |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
                                |> ignore)
 
     [<Fact>]
-    let ``loadInfraConfigYaml should parse config successfully`` () =
+    let ``loadInfraConfig should parse yaml config successfully`` () =
         NBomberRunner.registerScenarios []
-        |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config.yaml"
+        |> NBomberRunner.loadInfraConfig "Configuration/infra_config.yaml"
 
     [<Fact>]
-    let ``loadInfraConfigYaml should throw ex if file is not found`` () =
+    let ``loadInfraConfig should throw ex if yaml file is not found`` () =
         Assert.Throws(typeof<FileNotFoundException>,
                       fun _ -> NBomberRunner.registerScenarios []
-                               |> NBomberRunner.loadInfraConfigYaml "Configuration/infra_config_2.yaml"
+                               |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.yaml"
                                |> ignore)

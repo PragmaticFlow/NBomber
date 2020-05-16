@@ -172,6 +172,10 @@ type IPlugin =
     abstract GetStats: unit -> DataSet
     abstract StopTest: unit -> Task
 
+type ApplicationType =
+    | Process = 0
+    | Console = 1
+
 type NBomberContext = {
     TestSuite: string
     TestName: string
@@ -183,6 +187,7 @@ type NBomberContext = {
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
     Plugins: IPlugin list
+    ApplicationType: ApplicationType option
 }
 
 type Response with

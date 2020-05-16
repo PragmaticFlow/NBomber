@@ -38,4 +38,5 @@ let run () =
     let scenario = Scenario.create "Hello World!" [step]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.runInConsole
+    |> NBomberRunner.run
+    |> ignore

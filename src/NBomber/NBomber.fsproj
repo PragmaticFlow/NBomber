@@ -53,6 +53,7 @@
     <Compile Include="Plugins\PingPlugin.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="CsvHelper" Version="15.0.0" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
     <PackageReference Include="FSharp.Json" Version="0.3.7" />

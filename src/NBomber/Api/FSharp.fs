@@ -5,8 +5,9 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 
-open FsToolkit.ErrorHandling
+open CommandLine
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Configuration.Yaml
 
@@ -18,7 +19,6 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
-open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
 type ConnectionPoolArgs =
@@ -102,6 +102,11 @@ type Step =
                                                return Response.Ok() }),
                     doNotTrack = true)
 
+type CommandLineArgs = {
+    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
+    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
+}
+
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
@@ -151,20 +156,32 @@ module NBomberRunner =
     let withTestName (testName: string) (context: NBomberContext) =
         { context with TestName = testName }
 
-    let loadConfigJson (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> JsonConfig.unsafeParse
+    /// Loads configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
+    let loadConfig (path: string) (context: NBomberContext) =
+        let config =
+            match Path.GetExtension(path) with
+            | ".json" -> path |> File.ReadAllText |> JsonConfig.unsafeParse
+            | ".yml"
+            | ".yaml" -> path |> File.ReadAllText |> YamlConfig.unsafeParse
+            | _       -> failwith "unsupported config format"
+
         { context with NBomberConfig = Some config }
 
-    let loadConfigYaml (path: string) (context: NBomberContext) =
-        let config = path |> File.ReadAllText |> YamlConfig.unsafeParse
-        { context with NBomberConfig = Some config }
+    /// Loads infrastructure configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
+    let loadInfraConfig (path: string) (context: NBomberContext) =
+        let config =
+            match Path.GetExtension(path) with
+            | ".json" -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+            | ".yml"
+            | ".yaml" -> ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
+            | _       -> failwith "unsupported config format"
 
-    let loadInfraConfigJson (path: string) (context: NBomberContext) =
-        let config = ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
-        { context with InfraConfig = Some config }
-
-    let loadInfraConfigYaml (path: string) (context: NBomberContext) =
-        let config = ConfigurationBuilder().AddYamlFile(path).Build() :> IConfiguration
         { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
@@ -174,19 +191,49 @@ module NBomberRunner =
     let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
+    /// Sets application type.
+    /// The following application types are supported:
+    /// - Console: is suitable for interactive session (will display progress bar)
+    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
+    /// By default NBomber will automatically identify your environment: Process or Console.
+    let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
+        { context with ApplicationType = Some applicationType }
+
+    let internal executeCliArgs (args) (context: NBomberContext) =
+        let invokeConfigLoader (configName) (configLoader) (config) (context) =
+            if config = String.Empty then sprintf "%s is empty" configName |> failwith
+            elif String.IsNullOrEmpty(config) then context
+            else configLoader config context
+
+        match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
+        | :? Parsed<CommandLineArgs> as parsed ->
+            let values = parsed.Value
+            let execLoadConfigCmd = invokeConfigLoader "config" loadConfig values.Config
+            let execLoadInfraConfigCmd = invokeConfigLoader "infra config" loadInfraConfig values.InfraConfig
+            let execCmd = execLoadConfigCmd >> execLoadInfraConfigCmd
+
+            context |> execCmd
+
+        | _ -> context
+
+    let internal runWithResult (args) (context: NBomberContext) =
+        context
+        |> executeCliArgs args
+        |> NBomberRunner.run
+
     let run (context: NBomberContext) =
-        context |> NBomberRunner.run(Process) |> ignore
+        context
+        |> runWithResult Array.empty
+        |> Result.mapError(AppError.toString)
 
-    let rec runInConsole (context: NBomberContext) =
-        context |> NBomberRunner.run(Console) |> ignore
-        Serilog.Log.Information("Repeat the same test one more time? (y/n)")
-
-        let userInput = Console.ReadLine()
-        let repeat = Seq.contains userInput ["y"; "Y"; "yes"; "Yes"]
-        if repeat then runInConsole context
-
-    let runTest (context: NBomberContext) =
-        context |> NBomberRunner.run(Test) |> Result.mapError(AppError.toString)
-
-    let internal runWithResult (context: NBomberContext) =
-        context |> NBomberRunner.run(Process)
+    /// Runs scenarios with arguments.
+    /// The following CLI commands are supported:
+    /// -c or --config: loads configuration,
+    /// -i or --infra: loads infrastructure configuration.
+    /// Examples of possible args:
+    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
+    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
+    let runWithArgs (args) (context: NBomberContext) =
+        context
+        |> runWithResult args
+        |> Result.mapError(AppError.toString)

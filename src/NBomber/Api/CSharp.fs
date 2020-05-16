@@ -96,21 +96,21 @@ type NBomberRunner =
     static member RegisterScenarios(scenarios: Contracts.Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
+    /// Loads configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
     [<Extension>]
-    static member LoadConfigJson(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadConfigJson(path)
+    static member LoadConfig(context: NBomberContext, path: string) =
+        context |> FSharp.NBomberRunner.loadConfig(path)
 
+    /// Loads infrastructure configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
     [<Extension>]
-    static member LoadConfigYaml(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadConfigYaml(path)
-
-    [<Extension>]
-    static member LoadInfraConfigJson(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfigJson(path)
-
-    [<Extension>]
-    static member LoadInfraConfigYaml(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfigYaml(path)
+    static member LoadInfraConfig(context: NBomberContext, path: string) =
+        context |> FSharp.NBomberRunner.loadInfraConfig(path)
 
     [<Extension>]
     static member WithReportFileName(context: NBomberContext, reportFileName: string) =
@@ -139,17 +139,31 @@ type NBomberRunner =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withPlugins(pluginsList)
 
+    /// Sets application type.
+    /// The following application types are supported:
+    /// - Console: is suitable for interactive session (will display progress bar)
+    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
+    /// By default NBomber will automatically identify your environment: Process or Console.
+    [<Extension>]
+    static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
+        context |> FSharp.NBomberRunner.withApplicationType(applicationType)
+
     [<Extension>]
     static member Run(context: NBomberContext) =
-        FSharp.NBomberRunner.run(context)
+        match FSharp.NBomberRunner.run context with
+        | Ok stats  -> stats
+        | Error msg -> failwith msg
 
+    /// Runs scenarios with arguments.
+    /// The following CLI commands are supported:
+    /// -c or --config: loads configuration,
+    /// -i or --infra: loads infrastructure configuration.
+    /// Examples of possible args:
+    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
+    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
     [<Extension>]
-    static member RunInConsole(context: NBomberContext) =
-        FSharp.NBomberRunner.runInConsole(context)
-
-    [<Extension>]
-    static member RunTest(context: NBomberContext) =
-        match FSharp.NBomberRunner.runTest(context) with
+    static member Run(context: NBomberContext, args: string[]) =
+        match FSharp.NBomberRunner.runWithArgs args context with
         | Ok stats  -> stats
         | Error msg -> failwith msg
 

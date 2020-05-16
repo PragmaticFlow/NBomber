@@ -90,7 +90,7 @@ namespace CSharp.Examples.Scenarios
                 .WithTestInit(TestInit)
                 .WithTestClean(TestClean)
                 .WithWarmUpDuration(TimeSpan.FromSeconds(10))
-                // .WithOutWarmUp() - disable warm up
+                // .WithoutWarmUp() - disable warm up
                 .WithLoadSimulations(new []
                 {
                     Simulation.RampConcurrentScenarios(copiesCount: 20, during: TimeSpan.FromSeconds(20)),
