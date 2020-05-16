@@ -6,6 +6,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Swensen.Unquote
 open Xunit
 
+open System
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp
@@ -84,4 +85,22 @@ let ``CLI commands should throw ex if infra config file is not found`` (command)
     Assert.Throws(typeof<FileNotFoundException>,
                   fun _ -> NBomberRunner.registerScenarios [scenario]
                            |> NBomberRunner.executeCliArgs [command; "not_found_infra_config.yaml"]
+                           |> ignore)
+
+[<Theory>]
+[<InlineData("-c")>]
+[<InlineData("--config")>]
+let ``CLI commands should throw ex if config file is empty`` (command) =
+    Assert.Throws(typeof<Exception>,
+                  fun _ -> NBomberRunner.registerScenarios [scenario]
+                           |> NBomberRunner.executeCliArgs [command; ""]
+                           |> ignore)
+
+[<Theory>]
+[<InlineData("-i")>]
+[<InlineData("--infra")>]
+let ``CLI commands should throw ex if infra config file is empty`` (command) =
+    Assert.Throws(typeof<Exception>,
+                  fun _ -> NBomberRunner.registerScenarios [scenario]
+                           |> NBomberRunner.executeCliArgs [command; ""]
                            |> ignore)

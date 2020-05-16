@@ -200,15 +200,16 @@ module NBomberRunner =
         { context with ApplicationType = Some applicationType }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
-        let invokeLoader (configLoader) (config) (context) =
-            if String.IsNullOrEmpty(config) then context
+        let invokeConfigLoader (configName) (configLoader) (config) (context) =
+            if config = String.Empty then sprintf "%s is empty" configName |> failwith
+            elif String.IsNullOrEmpty(config) then context
             else configLoader config context
 
         match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
         | :? Parsed<CommandLineArgs> as parsed ->
             let values = parsed.Value
-            let execLoadConfigCmd = invokeLoader loadConfig values.Config
-            let execLoadInfraConfigCmd = invokeLoader loadInfraConfig values.InfraConfig
+            let execLoadConfigCmd = invokeConfigLoader "config" loadConfig values.Config
+            let execLoadInfraConfigCmd = invokeConfigLoader "infra config" loadInfraConfig values.InfraConfig
             let execCmd = execLoadConfigCmd >> execLoadInfraConfigCmd
 
             context |> execCmd
