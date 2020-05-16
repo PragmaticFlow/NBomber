@@ -123,23 +123,18 @@ module Scenario =
             )
           ] }
 
-    /// Sets TestInit callback.
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }
 
-    /// Sets TestClean callback.
     let withTestClean (cleanFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestClean = Some(fun token -> cleanFunc(token) :> Task) }
 
-    /// Sets warm up duration.
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = duration }
 
-    /// Removes warming up.
     let withoutWarmUp (scenario: Contracts.Scenario) =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
-    /// Sets load simulation.
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
 
@@ -149,23 +144,23 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
-    /// Sets report file names.
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
-    /// Sets report formats to be generated.
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 
-    /// Sets test sute.
     let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
 
-    /// Sets test name.
     let withTestName (testName: string) (context: NBomberContext) =
         { context with TestName = testName }
 
-    /// Loads configuration in json (by default) or yaml (.yml, .yaml) format.
+    /// Loads configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
+    /// For other file extensions json format is used.
     let loadConfig (path: string) (context: NBomberContext) =
         if String.IsNullOrWhiteSpace(path) then
             context
@@ -178,7 +173,11 @@ module NBomberRunner =
 
             { context with NBomberConfig = Some config }
 
-    /// Loads infrastructure configuration in json (default) or yaml (.yml, .yaml) format.
+    /// Loads infrastructure configuration.
+    /// The following formats are supported:
+    /// - json (.json),
+    /// - yaml (.yml, .yaml).
+    /// For other file extensions json format is used.
     let loadInfraConfig (path: string) (context: NBomberContext) =
         if String.IsNullOrWhiteSpace(path) then
             context
@@ -191,27 +190,21 @@ module NBomberRunner =
 
             { context with InfraConfig = Some config }
 
-    /// Sets reporting sinks.
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
-    /// Sets plugins.
     let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
     /// Sets application type.
+    /// The following application types are supported:
+    /// - Process: no UI interface is provided in console (progress bars),
+    /// - Console: UI interface is provided in console (progress bars).
+    /// By default system tries to set Console application type if console is available.
     let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
         { context with ApplicationType = Some applicationType }
 
-    /// Executes CLI commands.
-    /// The following commands are supported:
-    /// -c or --config: loads configuration
-    /// -i or --infra: loads infrastructure configuration
-    /// Order is important: it overrides configurations set by loadConfig, loadInfraConfig if it placed below them and vice-versa.
-    /// Examples of possible args:
-    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
-    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
     let internal executeCliArgs (args) (context: NBomberContext) =
         match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
         | :? Parsed<CommandLineArgs> as parsed ->
@@ -229,13 +222,18 @@ module NBomberRunner =
         |> executeCliArgs args
         |> NBomberRunner.run
 
-    /// Runs scenarios for given context.
     let run (context: NBomberContext) =
         context
         |> runWithResult Array.empty
         |> Result.mapError(AppError.toString)
 
-    /// Runs scenarios for given CLI arguments and context.
+    /// Runs scenarios with arguments.
+    /// The following CLI commands are supported:
+    /// -c or --config: loads configuration,
+    /// -i or --infra: loads infrastructure configuration.
+    /// Examples of possible args:
+    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
+    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
     let runWithArgs (args) (context: NBomberContext) =
         context
         |> runWithResult args

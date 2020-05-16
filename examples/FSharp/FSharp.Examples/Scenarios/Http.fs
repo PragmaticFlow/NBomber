@@ -42,7 +42,7 @@ let run () =
     NBomberRunner.registerScenarios [scenario]
     //|> NBomberRunner.withApplicationType ApplicationType.Console
     |> NBomberRunner.withPlugins [pingPlugin]
-    //|> NBomberRunner.loadInfraConfigJson "infra_config.json"
-    //|> NBomberRunner.loadInfraConfigYaml "infra_config.yaml"
+    //|> NBomberRunner.loadInfraConfig "infra_config.json"
+    //|> NBomberRunner.loadInfraConfig "infra_config.yaml"
     |> NBomberRunner.run
     |> ignore
