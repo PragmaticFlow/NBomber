@@ -77,7 +77,9 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         }
 
         let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
+        TestHostPlugins.printPlugins dep
         TestHostPlugins.startPlugins dep sessionArgs.TestInfo
+        TestHostReporting.printReportingSinks dep
         TestHostReporting.startReportingSinks dep sessionArgs.TestInfo
 
         _targetScenarios <- updatedScenarios

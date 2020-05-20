@@ -53,6 +53,11 @@ module internal TestHostReporting =
             timer.Start()
             timer
 
+    let printReportingSinks (dep: IGlobalDependency) =
+        dep.ReportingSinks
+        |> List.map(fun x -> x.SinkName)
+        |> fun sinks -> dep.Logger.Information("reporting sinks: {0}", String.concatWithCommaAndQuotes sinks)
+
     let startReportingSinks (dep: IGlobalDependency) (testInfo: TestInfo) =
         for sink in dep.ReportingSinks do
             try
@@ -68,6 +73,11 @@ module internal TestHostReporting =
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
 module internal TestHostPlugins =
+
+    let printPlugins (dep: IGlobalDependency) =
+        dep.Plugins
+        |> List.map(fun x -> x.PluginName)
+        |> fun plugins -> dep.Logger.Information("plugins: {0}", String.concatWithCommaAndQuotes plugins)
 
     let startPlugins (dep: IGlobalDependency) (testInfo: TestInfo) =
         for plugin in dep.Plugins do

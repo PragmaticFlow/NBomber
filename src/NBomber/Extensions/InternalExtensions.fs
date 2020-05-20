@@ -54,6 +54,16 @@ module internal Extensions =
             if isNotNull(boxed) then Some value
             else None
 
+        let toStringOrEmpty (value: 'T option) =
+            match value with
+            | Some v -> v.ToString()
+            | None   -> String.Empty
+
+        let toStringSeqOrEmpty (seq: 'T seq option) =
+            match seq with
+            | Some s -> s |> Seq.map(fun x -> x.ToString())
+            | None   -> Seq.empty
+
     module String =
 
         let replace (oldValue: string, newValue: string) (str: string) =

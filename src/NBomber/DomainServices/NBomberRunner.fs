@@ -6,9 +6,10 @@ open FsToolkit.ErrorHandling
 open ShellProgressBar
 
 open NBomber
+open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
-open NBomber.Domain
+open NBomber.Extensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
@@ -22,10 +23,60 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: Repo
     let formats      = NBomberContext.getReportFormats(context)
     Report.save("./", fileNameDate, formats, report, dep.Logger) |> ignore
 
+let private printNBomberConfig (context: NBomberContext) (dep: IGlobalDependency) =
+
+    let printGlobalSettings (globalSettings: GlobalSettings) (dep: IGlobalDependency) =
+        let scenariosSettings = Option.toStringOrEmpty(globalSettings.ScenariosSettings)
+
+        let connectionPoolSettings =
+            globalSettings.ConnectionPoolSettings
+            |> Option.bind(Seq.ofList >> Some)
+            |> Option.toStringSeqOrEmpty
+            |> String.concatWithCommaAndQuotes
+
+        let reportFileName = Option.toStringOrEmpty(globalSettings.ReportFileName)
+
+        let reportFormats =
+            globalSettings.ReportFormats
+            |> Option.bind(Seq.ofList >> Some)
+            |> Option.toStringSeqOrEmpty
+            |> String.concatWithCommaAndQuotes
+
+        let sendStatsInterval = Option.toStringOrEmpty(globalSettings.SendStatsInterval)
+
+        dep.Logger.Verbose("GlobalSettings.ScenariosSettings: {scenariosSettings}", scenariosSettings)
+        dep.Logger.Verbose("GlobalSettings.ConnectionPoolSettings: {connectionPoolSettings}", connectionPoolSettings)
+        dep.Logger.Verbose("GlobalSettings.ReportFileName: {reportFileName}", reportFileName)
+        dep.Logger.Verbose("GlobalSettings.ReportFormats: {reportFormats}", reportFormats)
+        dep.Logger.Verbose("GlobalSettings.SendStatsInterval: {sendStatsInterval}", sendStatsInterval)
+
+    match context.NBomberConfig with
+    | Some config ->
+        let testSuite = Option.toStringOrEmpty(config.TestSuite)
+        let testName = Option.toStringOrEmpty(config.TestName)
+
+        let targetScenarios =
+            config.TargetScenarios
+            |> Option.bind(Seq.ofList >> Some)
+            |> Option.toStringSeqOrEmpty
+            |> String.concatWithCommaAndQuotes
+
+        dep.Logger.Verbose("TestSuite: {TestSuite}", testSuite)
+        dep.Logger.Verbose("TestName: {TestName}", testName)
+        dep.Logger.Verbose("TargetScenarios: {TargetScenarios}", targetScenarios)
+
+        match config.GlobalSettings with
+        | Some gs -> printGlobalSettings gs dep
+        | None    -> ()
+
+    | None        -> ()
+
 let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
         dep.Logger.Information(Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node")
+
+        printNBomberConfig context dep
 
         let! sessionArgs = context |> NBomberContext.createSessionArgs(testInfo)
         let! scenarios   = context |> NBomberContext.createScenarios
