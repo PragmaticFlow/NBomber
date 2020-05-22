@@ -78,7 +78,7 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
-let execSteps (dep: StepDep, steps: Step list, allScnResponses: (StepResponse list)[]) = task {
+let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<StepResponse>)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
@@ -103,8 +103,7 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (StepResponse li
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
                     response.Response.Payload <- null
-                    let stepResponses = response :: allScnResponses.[stepIndex]
-                    allScnResponses.[stepIndex] <- stepResponses
+                    allScnResponses.[stepIndex].Add(response)
 
                 if step.RepeatCount = i then
                     if response.Response.Exception.IsNone then
@@ -116,7 +115,7 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (StepResponse li
     cleanResources()
 }
 
-let filterByDuration (stepResponses: StepResponse list, duration: TimeSpan) =
+let filterByDuration (stepResponses: ResizeArray<StepResponse>, duration: TimeSpan) =
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
 
