@@ -53,11 +53,6 @@ module internal TestHostReporting =
             timer.Start()
             timer
 
-    let printReportingSinks (dep: IGlobalDependency) =
-        dep.ReportingSinks
-        |> List.map(fun x -> x.SinkName)
-        |> fun sinks -> dep.Logger.Information("reporting sinks loaded: {0}", String.concatWithCommaAndQuotes sinks)
-
     let startReportingSinks (dep: IGlobalDependency) (testInfo: TestInfo) =
         for sink in dep.ReportingSinks do
             try
@@ -74,11 +69,6 @@ module internal TestHostReporting =
 
 module internal TestHostPlugins =
 
-    let printPlugins (dep: IGlobalDependency) =
-        dep.Plugins
-        |> List.map(fun x -> x.PluginName)
-        |> fun plugins -> dep.Logger.Information("plugins loaded: {0}", String.concatWithCommaAndQuotes plugins)
-
     let startPlugins (dep: IGlobalDependency) (testInfo: TestInfo) =
         for plugin in dep.Plugins do
             try
@@ -92,12 +82,7 @@ module internal TestHostPlugins =
                 plugin.StopTest().Wait()
                 plugin.Dispose()
             with
-            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
-
-module internal TestHostConfig =
-
-    let printNBomberConfig (dep: IGlobalDependency) =
-        dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
+            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)       
 
 module internal TestHostConsole =
 
@@ -180,10 +165,16 @@ module internal TestHostConsole =
 
         | _ -> None
 
-    let printContextInfo (dep) =
-        TestHostConfig.printNBomberConfig dep
-        TestHostPlugins.printPlugins dep
-        TestHostReporting.printReportingSinks dep
+    let printContextInfo (dep: IGlobalDependency) =
+        dep.Logger.Verbose("NBomberConfig: {0}", sprintf "%A" dep.NBomberConfig)
+
+        dep.Plugins
+        |> List.map(fun x -> x.PluginName)
+        |> fun plugins -> dep.Logger.Information("plugins loaded: {0}", String.concatWithCommaAndQuotes plugins)
+
+        dep.ReportingSinks
+        |> List.map(fun x -> x.SinkName)
+        |> fun sinks -> dep.Logger.Information("reporting sinks loaded: {0}", String.concatWithCommaAndQuotes sinks)
 
 module internal TestHostScenario =
 
