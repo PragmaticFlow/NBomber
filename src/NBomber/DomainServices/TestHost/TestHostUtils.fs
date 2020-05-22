@@ -94,6 +94,11 @@ module internal TestHostPlugins =
             with
             | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
 
+module internal TestHostConfig =
+
+    let printNBomberConfig (dep: IGlobalDependency) =
+        dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
+
 module internal TestHostConsole =
 
     let printTargetScenarios (dep: IGlobalDependency, targetScns: Scenario list) =
@@ -174,6 +179,11 @@ module internal TestHostConsole =
             |> Some
 
         | _ -> None
+
+    let printContextInfo (dep) =
+        TestHostConfig.printNBomberConfig dep
+        TestHostPlugins.printPlugins dep
+        TestHostReporting.printReportingSinks dep
 
 module internal TestHostScenario =
 
@@ -260,8 +270,3 @@ module internal TestHostScenario =
                 tryClean(context, cleanFunc)
 
             | None -> ()
-
-module internal TestHostConfig =
-
-    let printNBomberConfig (dep: IGlobalDependency) =
-        dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
