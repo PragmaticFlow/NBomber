@@ -165,6 +165,10 @@ module NBomberRunner =
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 
+    /// Sets context without reports
+    let withoutReports (context: NBomberContext) =
+        { context with ReportFormats = List.empty }
+
     let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
 

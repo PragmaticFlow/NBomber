@@ -76,6 +76,7 @@ let run () =
                    ]
 
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withoutReports
     //|> NBomberRunner.loadConfig("config.json")            // nbomber config for test settings only
     //|> NBomberRunner.loadInfraConfig("infra_config.json") // infra config for infra settings only
     //|> NBomberRunner.loadConfig("config.yaml")            // you can use yaml instead of json (https://github.com/PragmaticFlow/NBomber/blob/dev/tests/NBomber.IntegrationTests/Configuration/test_config.yaml)

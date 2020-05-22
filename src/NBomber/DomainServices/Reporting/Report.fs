@@ -50,7 +50,9 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
-        logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+        if reportFiles.Length > 0 then
+            logger.Information("reports saved in folder: '{0}', {1}", DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+
         logger.Information(txtRportContent)
         reportFiles
     with

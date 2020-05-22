@@ -103,7 +103,7 @@ let getReportFormats (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.orElse(if List.isEmpty context.ReportFormats then None
                      else Some context.ReportFormats)
-    |> Option.defaultValue Constants.AllReportFormats
+    |> Option.defaultValue List.empty
 
 let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {

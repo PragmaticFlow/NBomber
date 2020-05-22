@@ -81,7 +81,7 @@ type Step =
 type ScenarioBuilder =
 
     /// Creates scenario with steps which will be executed sequentially.
-    static member CreateScenario(name: string, steps: IStep[]) =
+    static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
         FSharp.Scenario.create name (Seq.toList steps)
 
     [<Extension>]
@@ -101,14 +101,14 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withoutWarmUp
 
     [<Extension>]
-    static member WithLoadSimulations (scenario: Scenario, loadSimulations: LoadSimulation[]) =
+    static member WithLoadSimulations (scenario: Scenario, [<System.ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
 [<Extension>]
 type NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
-    static member RegisterScenarios(scenarios: Contracts.Scenario[]) =
+    static member RegisterScenarios([<System.ParamArray>]scenarios: Contracts.Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     /// Loads configuration.
@@ -137,6 +137,10 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withReportFormats(formats)
 
     [<Extension>]
+    static member WithoutReports(context: NBomberContext) =
+        context |> FSharp.NBomberRunner.withoutReports
+
+    [<Extension>]
     static member WithTestSuite(context: NBomberContext, testSuite: string) =
         context |> FSharp.NBomberRunner.withTestSuite(testSuite)
 
@@ -145,7 +149,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withTestName(testName)
 
     [<Extension>]
-    static member WithReportingSinks(context: NBomberContext, reportingSinks: IReportingSink[], sendStatsInterval: TimeSpan) =
+    static member WithReportingSinks(context: NBomberContext, [<System.ParamArray>]reportingSinks: IReportingSink[], sendStatsInterval: TimeSpan) =
         let sinks = reportingSinks |> Seq.toList
         context |> FSharp.NBomberRunner.withReportingSinks(sinks, sendStatsInterval)
 
@@ -177,7 +181,7 @@ type NBomberRunner =
     /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
     /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
     [<Extension>]
-    static member Run(context: NBomberContext, args: string[]) =
+    static member Run(context: NBomberContext, [<System.ParamArray>]args: string[]) =
         match FSharp.NBomberRunner.runWithArgs args context with
         | Ok stats  -> stats
         | Error msg -> failwith msg
