@@ -16,7 +16,6 @@ open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ConnectionPool
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.NBomberContext
-open NBomber.Configuration
 
 module internal TestHostReporting =
 
@@ -264,50 +263,5 @@ module internal TestHostScenario =
 
 module internal TestHostConfig =
 
-    let private printGlobalSettings (globalSettings: GlobalSettings) (dep: IGlobalDependency) =
-        let scenariosSettings = Option.toStringOrEmpty(globalSettings.ScenariosSettings)
-
-        let connectionPoolSettings =
-            globalSettings.ConnectionPoolSettings
-            |> Option.bind(Seq.ofList >> Some)
-            |> Option.toStringSeqOrEmpty
-            |> String.concatWithCommaAndQuotes
-
-        let reportFileName = Option.toStringOrEmpty(globalSettings.ReportFileName)
-
-        let reportFormats =
-            globalSettings.ReportFormats
-            |> Option.bind(Seq.ofList >> Some)
-            |> Option.toStringSeqOrEmpty
-            |> String.concatWithCommaAndQuotes
-
-        let sendStatsInterval = Option.toStringOrEmpty(globalSettings.SendStatsInterval)
-
-        dep.Logger.Verbose("GlobalSettings.ScenariosSettings: {scenariosSettings}", scenariosSettings)
-        dep.Logger.Verbose("GlobalSettings.ConnectionPoolSettings: {connectionPoolSettings}", connectionPoolSettings)
-        dep.Logger.Verbose("GlobalSettings.ReportFileName: {reportFileName}", reportFileName)
-        dep.Logger.Verbose("GlobalSettings.ReportFormats: {reportFormats}", reportFormats)
-        dep.Logger.Verbose("GlobalSettings.SendStatsInterval: {sendStatsInterval}", sendStatsInterval)
-
     let printNBomberConfig (dep: IGlobalDependency) =
-
-        match dep.NBomberConfig with
-        | Some config ->
-            let testSuite = Option.toStringOrEmpty(config.TestSuite)
-            let testName = Option.toStringOrEmpty(config.TestName)
-
-            let targetScenarios =
-                config.TargetScenarios
-                |> Option.bind(Seq.ofList >> Some)
-                |> Option.toStringSeqOrEmpty
-                |> String.concatWithCommaAndQuotes
-
-            dep.Logger.Verbose("TestSuite: {TestSuite}", testSuite)
-            dep.Logger.Verbose("TestName: {TestName}", testName)
-            dep.Logger.Verbose("TargetScenarios: {TargetScenarios}", targetScenarios)
-
-            match config.GlobalSettings with
-            | Some gs -> printGlobalSettings gs dep
-            | None    -> ()
-
-        | None        -> ()
+        dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
