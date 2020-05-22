@@ -8,13 +8,19 @@ open ShellProgressBar
 open NBomber
 open NBomber.Contracts
 open NBomber.Errors
-open NBomber.Domain
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
+
+let getApplicationType () =
+    try
+        use pb = new ProgressBar(0, String.Empty)
+        ApplicationType.Console
+    with
+    | _ -> ApplicationType.Process
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)
@@ -37,26 +43,20 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         return nodeStats
     }
 
-let private getApplicationType () =
-    try
-        use pb = new ProgressBar(0, String.Empty)
-        ApplicationType.Console
-    with
-    | _ -> ApplicationType.Process
-
 let run (context: NBomberContext) =
+
     let testInfo = {
         SessionId = Dependency.createSessionId()
         TestSuite = NBomberContext.getTestSuite(context)
         TestName = NBomberContext.getTestName(context)
     }
 
-    let applicationType =
+    let appType =
         match context.ApplicationType with
         | Some apptype -> apptype
         | None         -> getApplicationType()
 
-    Dependency.create applicationType NodeType.SingleNode context
+    Dependency.create appType NodeType.SingleNode context
     |> Dependency.init(testInfo)
     |> runSession testInfo context
     |> TaskResult.mapError(fun error ->

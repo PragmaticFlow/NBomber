@@ -30,7 +30,7 @@ type PingPluginConfig = {
     /// If this property is true and the data sent to the remote host is larger then the MTU of a gateway
     /// or router between the sender and the remote host, the ping operation fails with status PacketTooBig.
     DontFragment: bool
-    /// The default is 100 ms.
+    /// The default is 1 sec.
     Timeout: TimeSpan
 } with
     static member CreateDefault(hosts: string seq) = {
@@ -38,7 +38,7 @@ type PingPluginConfig = {
         BufferSizeBytes = 32
         Ttl = 128
         DontFragment = false
-        Timeout = TimeSpan.FromMilliseconds(100.0)
+        Timeout = TimeSpan.FromSeconds(1.0)
     }
 
 module internal PingPluginStatistics =
@@ -100,7 +100,7 @@ type PingPlugin(config: PingPluginConfig) =
 
             let replies =
                 config.Hosts
-                |> Array.map(fun host -> host, ping.Send(host, config.Timeout.Milliseconds, buffer, pingOptions))
+                |> Array.map(fun host -> host, ping.Send(host, int config.Timeout.TotalMilliseconds, buffer, pingOptions))
 
             Ok replies
         with

@@ -18,7 +18,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions\Extensions.fs" />
     <Compile Include="Extensions\InternalExtensions.fs" />
-    <Compile Include="Extensions\PushExtensions.fs" />
     <Compile Include="Configuration\Configuration.fs" />
     <Compile Include="Configuration\YamlConfiguration.fs" />
     <Compile Include="Configuration\Constants.fs" />
@@ -68,7 +67,6 @@
     <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
     <PackageReference Include="ShellProgressBar" Version="4.3.0" />
-    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
     <PackageReference Include="ConsoleTables" Version="2.3.0" />
     <PackageReference Include="YamlDotNet" Version="8.1.0" />
   </ItemGroup>
