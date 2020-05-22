@@ -169,11 +169,11 @@ module internal TestHostConsole =
         dep.Logger.Verbose("NBomberConfig: {0}", sprintf "%A" dep.NBomberConfig)
 
         dep.Plugins
-        |> List.map(fun x -> x.PluginName)
+        |> List.map(fun plugin -> plugin.PluginName)
         |> fun plugins -> dep.Logger.Information("plugins loaded: {0}", String.concatWithCommaAndQuotes plugins)
 
         dep.ReportingSinks
-        |> List.map(fun x -> x.SinkName)
+        |> List.map(fun sink -> sink.SinkName)
         |> fun sinks -> dep.Logger.Information("reporting sinks loaded: {0}", String.concatWithCommaAndQuotes sinks)
 
 module internal TestHostScenario =
