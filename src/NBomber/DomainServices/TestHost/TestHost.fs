@@ -76,8 +76,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             Logger = dep.Logger
         }
 
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
+        TestHostConfig.printNBomberConfig dep
+        TestHostPlugins.printPlugins dep
+        TestHostReporting.printReportingSinks dep
 
+        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
         TestHostPlugins.startPlugins dep sessionArgs.TestInfo
         TestHostReporting.startReportingSinks dep sessionArgs.TestInfo
 
@@ -114,10 +117,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _stopped <- false
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
-
-        TestHostConfig.printNBomberConfig dep
-        TestHostPlugins.printPlugins dep
-        TestHostReporting.printReportingSinks dep
 
         dep.Logger.Information("starting init...")
         match! initScenarios() with
