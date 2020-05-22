@@ -165,6 +165,17 @@ module internal TestHostConsole =
 
         | _ -> None
 
+    let printContextInfo (dep: IGlobalDependency) =
+        dep.Logger.Verbose("NBomberConfig: {0}", sprintf "%A" dep.NBomberConfig)
+
+        dep.Plugins
+        |> List.map(fun plugin -> plugin.PluginName)
+        |> fun plugins -> dep.Logger.Information("plugins loaded: {0}", String.concatWithCommaAndQuotes plugins)
+
+        dep.ReportingSinks
+        |> List.map(fun sink -> sink.SinkName)
+        |> fun sinks -> dep.Logger.Information("reporting sinks loaded: {0}", String.concatWithCommaAndQuotes sinks)
+
 module internal TestHostScenario =
 
     let initConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =

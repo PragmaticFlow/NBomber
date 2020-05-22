@@ -1,4 +1,4 @@
-﻿module internal NBomber.DomainServices.NBomberRunner
+module internal NBomber.DomainServices.NBomberRunner
 
 open System
 

@@ -114,6 +114,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
 
+        TestHostConsole.printContextInfo dep
+
         dep.Logger.Information("starting init...")
         match! initScenarios() with
         | Ok _ ->

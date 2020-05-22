@@ -1,4 +1,4 @@
-﻿namespace Tests.TestHelper
+namespace Tests.TestHelper
 
 open Serilog
 open Serilog.Sinks.InMemory
@@ -45,6 +45,7 @@ module internal Dependency =
                 member x.NBomberVersion = dep.NBomberVersion
                 member x.ApplicationType = dep.ApplicationType
                 member x.NodeType = dep.NodeType
+                member x.NBomberConfig = dep.NBomberConfig
                 member x.InfraConfig = dep.InfraConfig
                 member x.ProgressBarEnv = dep.ProgressBarEnv
                 member x.Logger = inMemoryLogger :> ILogger
