@@ -1,4 +1,4 @@
-﻿module internal NBomber.Infra.Dependency
+module internal NBomber.Infra.Dependency
 
 open System
 open System.IO
@@ -9,6 +9,7 @@ open Microsoft.Extensions.Configuration
 open Serilog
 open ShellProgressBar
 
+open NBomber.Configuration
 open NBomber.Contracts
 
 type IProgressBarEnv =
@@ -20,6 +21,7 @@ type IGlobalDependency =
     abstract NBomberVersion: string
     abstract ApplicationType: ApplicationType
     abstract NodeType: NodeType
+    abstract NBomberConfig: NBomberConfig option
     abstract InfraConfig: IConfiguration option
     abstract ProgressBarEnv: IProgressBarEnv
     abstract Logger: ILogger
@@ -100,6 +102,7 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member x.NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
         member x.ApplicationType = appType
         member x.NodeType = nodeType
+        member x.NBomberConfig = context.NBomberConfig
         member x.InfraConfig = context.InfraConfig
         member x.ProgressBarEnv = ProgressBarEnv.create()
         member x.Logger = logger
@@ -120,6 +123,7 @@ let init (testInfo: TestInfo) (dep: IGlobalDependency) =
         member x.NBomberVersion = dep.NBomberVersion
         member x.ApplicationType = dep.ApplicationType
         member x.NodeType = dep.NodeType
+        member x.NBomberConfig = dep.NBomberConfig
         member x.InfraConfig = dep.InfraConfig
         member x.ProgressBarEnv = dep.ProgressBarEnv
         member x.Logger = logger
