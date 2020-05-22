@@ -20,15 +20,6 @@ type StringExtensions() =
         let deserializer = YamlDotNet.Serialization.Deserializer()
         yaml |> deserializer.Deserialize<'T>
 
-type CurrentTime() =
-
-    let _timer = Stopwatch()
-    let _initTime = DateTime.UtcNow
-
-    do _timer.Start()
-
-    member _.UtcNow = _initTime + _timer.Elapsed
-
 [<Extension>]
 type DataSetExtensions() =
 
@@ -49,3 +40,11 @@ type DataSetExtensions() =
         if String.IsNullOrEmpty(column.Caption)
         then column.ColumnName
         else column.Caption
+
+module DataGenerator =
+
+    [<CompiledName("GenerateRandomBytes")>]
+    let generateRandomBytes (sizeInBytes: int) =
+        let buffer = Array.zeroCreate<byte> sizeInBytes;
+        Random().NextBytes(buffer)
+        buffer
