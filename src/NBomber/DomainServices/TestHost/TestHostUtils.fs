@@ -82,7 +82,7 @@ module internal TestHostPlugins =
                 plugin.StopTest().Wait()
                 plugin.Dispose()
             with
-            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)       
+            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
 
 module internal TestHostConsole =
 
