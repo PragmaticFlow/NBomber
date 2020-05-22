@@ -8,7 +8,6 @@ open ShellProgressBar
 open NBomber
 open NBomber.Contracts
 open NBomber.Errors
-open NBomber.Extensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
