@@ -21,6 +21,11 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
 open NBomber.DomainServices
 
+type CommandLineArgs = {
+    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
+    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
+}
+
 type ConnectionPoolArgs =
 
     static member create (name: string,
@@ -96,16 +101,26 @@ type Step =
                     Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
+    /// Creates pause step with specified duration.
     static member createPause (duration: TimeSpan) =
         Step.create(name = sprintf "pause %A" duration,
                     execute = (fun _ -> task { do! Task.Delay(duration)
                                                return Response.Ok() }),
                     doNotTrack = true)
 
-type CommandLineArgs = {
-    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
-    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
-}
+    /// Creates pause step with specified duration in milliseconds.
+    static member createPause (milliseconds: int) =
+        Step.createPause(TimeSpan.FromMilliseconds(float milliseconds))
+
+    /// Creates pause step with specified duration in lazy mode.
+    /// It's useful when you want to fetch value from some configuration.
+    static member createPause (getValue: unit -> TimeSpan) =
+        getValue() |> Step.createPause
+
+    /// Creates pause step in milliseconds in lazy mode.
+    /// It's useful when you want to fetch value from some configuration.
+    static member createPause (getValue: unit -> int) =
+        getValue() |> float |> TimeSpan.FromMilliseconds |> Step.createPause
 
 module Scenario =
 

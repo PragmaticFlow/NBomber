@@ -59,8 +59,23 @@ type Step =
 
         Step.Create(name, ConnectionPoolArgs.Empty, Feed.empty, execute, repeatCount, doNotTrack)
 
+    /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =
         FSharp.Step.createPause(duration)
+
+    /// Creates pause step with specified duration in milliseconds.
+    static member CreatePause(milliseconds: int) =
+        FSharp.Step.createPause(milliseconds)
+
+    /// Creates pause step with specified duration in lazy mode.
+    /// It's useful when you want to fetch value from some configuration.
+    static member CreatePause(getValue: Func<TimeSpan>) =
+        FSharp.Step.createPause(getValue.Invoke)
+
+    /// Creates pause step in milliseconds in lazy mode.
+    /// It's useful when you want to fetch value from some configuration.
+    static member CreatePause(getValue: Func<int>) =
+        FSharp.Step.createPause(getValue.Invoke)
 
 [<Extension>]
 type ScenarioBuilder =
