@@ -16,8 +16,11 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
-    if Console.WindowHeight <= 0 then ApplicationType.Process
-    else  ApplicationType.Console
+    try
+        if Console.WindowHeight <= 0 then ApplicationType.Process
+        else ApplicationType.Console
+    with
+    | ex -> ApplicationType.Process
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)
