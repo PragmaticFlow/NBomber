@@ -48,6 +48,7 @@
     <Compile Include="DomainServices\NBomberRunner.fs" />
     <Compile Include="Api\Shared.fs" />
     <Compile Include="Api\FSharp.fs" />
+    <Compile Include="Api\Builder.fs" />
     <Compile Include="Api\CSharp.fs" />
     <Compile Include="Plugins\PingPlugin.fs" />
   </ItemGroup>
