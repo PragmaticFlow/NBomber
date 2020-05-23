@@ -16,8 +16,8 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
-    if System.Environment.UserInteractive then ApplicationType.Console
-    else ApplicationType.Process
+    if Console.OpenStandardInput(1) = System.IO.Stream.Null then ApplicationType.Process
+    else  ApplicationType.Console
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)

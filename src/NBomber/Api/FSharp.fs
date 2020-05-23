@@ -29,26 +29,27 @@ type CommandLineArgs = {
 type ConnectionPoolArgs =
 
     static member create (name: string,
-                          getConnectionCount: unit -> int,
                           openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task) =
+                          closeConnection: 'TConnection * CancellationToken -> Task,
+                          ?connectionCount: int) =
 
         { new IConnectionPoolArgs<'TConnection> with
             member x.PoolName = name
-            member x.GetConnectionCount() = getConnectionCount()
+            member x.ConnectionCount = defaultArg connectionCount Constants.DefaultConnectionCount
             member x.OpenConnection(number,token) = openConnection(number,token)
             member x.CloseConnection(connection,token) = closeConnection(connection,token) }
 
     static member create (name: string,
-                          getConnectionCount: unit -> int,
                           openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task<unit>) =
+                          closeConnection: 'TConnection * CancellationToken -> Task<unit>,
+                          ?connectionCount: int) =
 
         let close = fun (connection,token) -> closeConnection(connection,token) :> Task
-        ConnectionPoolArgs.create(name, getConnectionCount, openConnection, close)
+        let count = defaultArg connectionCount Constants.DefaultConnectionCount
+        ConnectionPoolArgs.create(name, openConnection, close, count)
 
     static member empty =
-        ConnectionPoolArgs.create(Constants.EmptyPoolName, (fun _ -> 0), (fun _ -> Task.FromResult()), fun _ -> Task.FromResult())
+        ConnectionPoolArgs.create(Constants.EmptyPoolName, (fun _ -> Task.singleton()), (fun _ -> Task.singleton()), 0)
 
 type Step =
 

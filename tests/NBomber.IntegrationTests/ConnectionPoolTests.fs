@@ -15,14 +15,14 @@ open NBomber.FSharp
 [<Fact>]
 let ``should distribute connection with one to one mapping if connectionPool.Count = loadSimulation copiesCount``() =
 
-    let connectionCount = 100
+    let poolCount = 100
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) -> Task.FromResult number),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step = Step.create("step", pool, fun context -> task {
@@ -37,7 +37,7 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
         Scenario.create "test" [step]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -55,20 +55,20 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
 [<Fact>]
 let ``should distribute connection using modulo if connectionPool.Count < loadSimulation copiesCount``() =
 
-    let connectionCount = 5
+    let poolCount = 5
     let copiesCount = 10
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) -> Task.FromResult number),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step = Step.create("step", pool, fun context -> task {
 
-        let correctConnection = context.CorrelationId.CopyNumber % connectionCount
+        let correctConnection = context.CorrelationId.CopyNumber % poolCount
 
         if correctConnection <> context.Connection then
             return Response.Fail "distribution is not following mapping by modulo"
@@ -98,14 +98,14 @@ let ``should distribute connection using modulo if connectionPool.Count < loadSi
 [<Fact>]
 let ``should be shared btw steps as singlton instance``() =
 
-    let connectionCount = 100
+    let poolCount = 100
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) -> Guid.NewGuid() |> Task.FromResult),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -125,7 +125,7 @@ let ``should be shared btw steps as singlton instance``() =
         Scenario.create "test" [step1; step2]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -144,14 +144,14 @@ let ``should be shared btw steps as singlton instance``() =
 [<Fact>]
 let ``openConnection should stop test session in case of failure``() =
 
-    let connectionCount = 100
+    let poolCount = 100
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) -> failwith "unhandled exception"),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -162,7 +162,7 @@ let ``openConnection should stop test session in case of failure``() =
         Scenario.create "test" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -176,17 +176,17 @@ let ``openConnection should stop test session in case of failure``() =
 [<Fact>]
 let ``openConnection should use try logic in case of some errors``() =
 
-    let connectionCount = 1
+    let poolCount = 1
     let mutable tryCount = 0
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) ->
                 tryCount <- tryCount + 1
                 failwith "unhandled exception"),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -197,7 +197,7 @@ let ``openConnection should use try logic in case of some errors``() =
         Scenario.create "test" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -211,16 +211,16 @@ let ``openConnection should use try logic in case of some errors``() =
 [<Fact>]
 let ``closeConnection should not affect test session in case of failure``() =
 
-    let connectionCount = 10
+    let poolCount = 10
     let mutable closeInvokeCount = 0
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) -> Task.FromResult number),
             closeConnection = (fun _ ->
                 closeInvokeCount <- closeInvokeCount + 1
-                Task.CompletedTask)
+                Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -231,7 +231,7 @@ let ``closeConnection should not affect test session in case of failure``() =
         Scenario.create "test" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -245,17 +245,17 @@ let ``closeConnection should not affect test session in case of failure``() =
 [<Fact>]
 let ``should be initialized only once``() =
 
-    let connectionCount = 10
+    let poolCount = 10
     let mutable initedConnections = 0
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) ->
                 initedConnections <- initedConnections + 1
                 Task.FromResult number),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -266,14 +266,14 @@ let ``should be initialized only once``() =
         Scenario.create "scenario 1" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let scenario2 =
         Scenario.create "scenario 2" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -281,14 +281,14 @@ let ``should be initialized only once``() =
         |> NBomberRunner.run
 
     match result with
-    | Ok nodeStats -> test <@ initedConnections = connectionCount @>
+    | Ok nodeStats -> test <@ initedConnections = poolCount @>
                       test <@ nodeStats.ScenarioStats.Length = 2 @>
     | Error error -> failwith "unhandled exception"
 
 [<Fact>]
 let ``should be initialized after scenario init``() =
 
-    let connectionCount = 1
+    let poolCount = 1
     let mutable lastInvokeComponent = ""
 
     let initTest (context: ScenarioContext) = task {
@@ -298,11 +298,11 @@ let ``should be initialized after scenario init``() =
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) ->
                 lastInvokeComponent <- "connection_pool"
                 Task.FromResult number),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -314,7 +314,7 @@ let ``should be initialized after scenario init``() =
         |> Scenario.withTestInit initTest
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -328,17 +328,17 @@ let ``should be initialized after scenario init``() =
 [<Fact>]
 let ``should support 65K of connections``() =
 
-    let connectionCount = 65_000
+    let poolCount = 65_000
     let mutable invokeCount = 0
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> connectionCount),
             openConnection = (fun (number,token) ->
                 invokeCount <- invokeCount + 1
                 Task.FromResult number),
-            closeConnection = (fun _ -> Task.CompletedTask)
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = poolCount
         )
 
     let step1 = Step.create("step_1", pool, fun context -> task {
@@ -349,7 +349,7 @@ let ``should support 65K of connections``() =
         Scenario.create "test" [step1]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConcurrentScenarios(copiesCount = connectionCount, during = TimeSpan.FromSeconds 2.0)
+            KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
         ]
 
     let result =
@@ -357,5 +357,5 @@ let ``should support 65K of connections``() =
         |> NBomberRunner.run
 
     match result with
-    | Ok allStats -> test <@ invokeCount = connectionCount @>
+    | Ok allStats -> test <@ invokeCount = poolCount @>
     | Error error -> failwith "unhandled exception"

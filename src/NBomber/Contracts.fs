@@ -103,7 +103,7 @@ type NodeStats = {
 
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
-    abstract GetConnectionCount: unit -> int
+    abstract ConnectionCount: int
     abstract OpenConnection: number:int * cancellationToken:CancellationToken -> Task<'TConnection>
     abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
 

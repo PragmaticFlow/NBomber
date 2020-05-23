@@ -35,16 +35,12 @@ let run () =
     let connectionPool =
         ConnectionPoolArgs.create(
             name = "test_pool",
-            getConnectionCount = (fun _ -> 10),
-
             openConnection = (fun (number,token) -> task {
                 do! Task.Delay(1_000)
                 return { TestSocketClient.Id = number }
             }),
-
-            closeConnection = (fun (connection,token) -> task {
-                do! Task.Delay(1_000)
-            })
+            closeConnection = (fun (connection,token) -> task { do! Task.Delay(1_000)}),
+            connectionCount = 10
         )
 
     let step1 = Step.create("step_1", connectionPool, fun context -> task {

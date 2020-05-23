@@ -17,7 +17,7 @@ module ConnectionPoolArgs =
 
         { new IConnectionPoolArgs<obj> with
             member x.PoolName = args.PoolName
-            member x.GetConnectionCount() = args.GetConnectionCount()
+            member x.ConnectionCount = args.ConnectionCount
 
             member x.OpenConnection(number, token) = task {
                 let! connection = args.OpenConnection(number,token)
@@ -29,7 +29,7 @@ module ConnectionPoolArgs =
     let cloneWith (connectionCount) (args: IConnectionPoolArgs<obj>) =
         { new Contracts.IConnectionPoolArgs<obj> with
             member _.PoolName = args.PoolName
-            member _.GetConnectionCount() = connectionCount
+            member _.ConnectionCount = connectionCount
             member _.OpenConnection(number,token) = args.OpenConnection(number,token)
             member _.CloseConnection(connection,token) = args.CloseConnection(connection,token) }
 
@@ -72,7 +72,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
 
         _eventStream.OnNext(StartedInit(args.PoolName))
 
-        let result = openConnections(0, args.GetConnectionCount(), token) |> Result.sequence
+        let result = openConnections(0, args.ConnectionCount, token) |> Result.sequence
         match result with
         | Ok connections ->
             _aliveConnections <- connections |> List.toArray
@@ -103,7 +103,7 @@ type ConnectionPool(args: IConnectionPoolArgs<obj>) =
             e |> ignore
 
     member x.PoolName = args.PoolName
-    member x.ConnectionCount = args.GetConnectionCount()
+    member x.ConnectionCount = args.ConnectionCount
     member x.AliveConnections = _aliveConnections
     member x.EventStream = _eventStream :> IObservable<_>
     member x.Init(token) = initPool(token)
