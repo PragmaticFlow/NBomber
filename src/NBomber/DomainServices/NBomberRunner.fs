@@ -16,7 +16,7 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
-    if Console.OpenStandardInput(1) = System.IO.Stream.Null then ApplicationType.Process
+    if Console.WindowHeight <= 0 then ApplicationType.Process
     else  ApplicationType.Console
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
