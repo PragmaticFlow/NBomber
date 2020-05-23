@@ -3,7 +3,6 @@ module internal NBomber.DomainServices.NBomberRunner
 open System
 
 open FsToolkit.ErrorHandling
-open ShellProgressBar
 
 open NBomber
 open NBomber.Contracts
@@ -16,8 +15,11 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
-    if Console.OpenStandardInput(1) = System.IO.Stream.Null then ApplicationType.Process
-    else  ApplicationType.Console
+    try
+        if Console.WindowHeight <= 0 then ApplicationType.Process
+        else ApplicationType.Console
+    with
+    | _ -> ApplicationType.Process
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)
