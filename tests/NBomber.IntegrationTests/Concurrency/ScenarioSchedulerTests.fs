@@ -174,11 +174,11 @@ let ``schedule should correctly handle RampScenariosPerSec``
 [<Fact>]
 let ``should run InjectOneTimeActors correctly`` () =
 
-    let step1 = Step.create("step_1", fun context -> task {
+    let step = Step.create("step_1", fun context -> task {
         return Response.Ok(42)
     })
 
-    let scenario = Scenario.create "hello_world_scenario" [step1]
+    let scenario = Scenario.create "hello_world_scenario" [step]
                    |> Scenario.withoutWarmUp
                    |> Scenario.withLoadSimulations [
                        InjectScenariosPerSec(copiesCount = 1, during = TimeSpan.FromSeconds 20.0)

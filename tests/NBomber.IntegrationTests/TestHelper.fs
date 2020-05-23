@@ -56,3 +56,20 @@ module internal Dependency =
         {| TestInfo = testInfo
            Dep = dependency
            MemorySink = inMemorySink |}
+
+module List =
+
+    /// Safe variant of `List.min`
+    let minOrDefault defaultValue list =
+        if List.isEmpty list then defaultValue
+        else List.min list
+
+    /// Safe variant of `List.max`
+    let maxOrDefault defaultValue list =
+        if List.isEmpty list then defaultValue
+        else List.max list
+
+    /// Safe variant of `List.average`
+    let averageOrDefault (defaultValue: float) list =
+        if List.isEmpty list then defaultValue
+        else list |> List.average

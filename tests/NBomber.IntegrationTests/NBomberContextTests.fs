@@ -91,7 +91,7 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
     | None, None       -> test <@ fileName = Constants.DefaultReportName @>
 
 [<Property>]
-let ``getReportFormats should return from GlobalSettings, if empty then from TestContext, if empty then all supported formats``
+let ``getReportFormats should return from GlobalSettings, if empty then from TestContext``
     (configValue: ReportFormat list option, contextValue: ReportFormat list) =
 
     let glSettings = { globalSettings with ReportFormats = configValue }
@@ -106,7 +106,7 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
     | Some v, _ -> Assert.True((formats = v))
 
     | None, v when List.isEmpty v ->
-        test <@ formats = Constants.AllReportFormats @>
+        test <@ formats = List.empty @>
 
     | None, v -> test <@ formats = contextValue @>
 

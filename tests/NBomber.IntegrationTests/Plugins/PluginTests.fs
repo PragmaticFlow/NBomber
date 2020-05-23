@@ -169,7 +169,7 @@ let ``StartTest should be invoked with infra config`` () =
     test <@ pluginConfig.IsSome @>
 
 [<Fact>]
-let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no IReporingSinks were registered`` () =
+let ``GetStats should be invoked many times even if no IReporingSinks were registered`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginGetStatsInvokedCounter = 0
@@ -194,7 +194,7 @@ let ``GetStats should be invoked 2 times (warm-up and compleate bombing) if no I
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    test <@ pluginGetStatsInvokedCounter = 2 @>
+    test <@ pluginGetStatsInvokedCounter >= 2 @>
 
 [<Fact>]
 let ``StopTest should be invoked once`` () =

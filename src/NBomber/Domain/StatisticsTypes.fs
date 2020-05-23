@@ -1,6 +1,9 @@
 ﻿module internal NBomber.Domain.StatisticsTypes
 
 open System
+
+open Nessos.Streams
+
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
@@ -13,13 +16,13 @@ type DataTransferCount = {
 
 type RawStepResults = {
     StepName: string
-    Responses: StepResponse[]
+    Responses: Stream<StepResponse>
     DataTransfer: DataTransferCount
 }
 
 type RawStepStats = {
     StepName: string
-    OkLatencies: Latency[]
+    OkLatencies: Stream<Latency>
     RequestCount: int
     OkCount: int
     FailCount: int
@@ -40,7 +43,7 @@ type RawScenarioStats = {
     OkCount: int
     FailCount: int
     AllDataMB: float
-    RawStepsStats: RawStepStats[]
+    RawStepsStats: Stream<RawStepStats>
     LatencyCount: LatencyCount
     Duration: TimeSpan
 }

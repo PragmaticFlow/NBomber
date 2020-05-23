@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
 
+open Nessos.Streams
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 
@@ -34,8 +35,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let getNodeStats (executionTime) =
         let nodeInfo = getCurrentNodeInfo()
-        let pluginStats = dep.Plugins |> Seq.map(fun x -> x.GetStats()) |> Seq.toArray
-        let scnStats = _scnSchedulers |> Seq.map(fun x -> x.GetScenarioStats executionTime) |> Seq.toArray
+        let pluginStats = dep.Plugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
+        let scnStats = _scnSchedulers |> Stream.ofList |> Stream.map(fun x -> x.GetScenarioStats executionTime)
         NodeStats.create nodeInfo scnStats pluginStats
 
     let execStopCommand (command: StopCommand) =
@@ -114,7 +115,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
 
-        TestHostConsole.printContextInfo dep
+        TestHostConsole.printContextInfo(dep)
 
         dep.Logger.Information("starting init...")
         match! initScenarios() with
@@ -167,8 +168,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
             stopScenarios()
             cleanScenarios()
-            TestHostPlugins.stopPlugins dep
-            TestHostReporting.stopReportingSinks dep
+            TestHostPlugins.stopPlugins(dep)
+            TestHostReporting.stopReportingSinks(dep)
             _stopped <- true
 
             _currentOperation <- NodeOperationType.None

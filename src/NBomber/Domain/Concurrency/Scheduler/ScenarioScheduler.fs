@@ -3,6 +3,7 @@ module internal NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open System
 open System.Threading.Tasks
 
+open Nessos.Streams
 open FSharp.Control.Reactive
 
 open NBomber
@@ -107,8 +108,8 @@ type ScenarioScheduler(dep: ActorDep) =
         let executionTime = correctExecutionTime(duration, scnDuration)
 
         getAllActors()
-        |> List.collect(fun x -> x.GetStepResults executionTime)
-        |> Seq.toArray
+        |> Stream.ofList
+        |> Stream.collect(fun x -> x.GetStepResults executionTime)
         |> RawScenarioStats.create dep.Scenario executionTime
 
     do

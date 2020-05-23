@@ -4,6 +4,7 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
+open Nessos.Streams
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -54,10 +55,9 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     }
 
     member x.GetStepResults(duration) =
-        let filteredResponses =
-            _allScnResponses
-            |> Array.map(fun stepResponses -> Step.filterByDuration(stepResponses, duration))
+        let filteredResponses = _allScnResponses |> Array.map(Stream.ofResizeArray >> Step.filterByDuration duration)
 
         dep.Scenario.Steps
-        |> List.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
-        |> List.choose(fun (step, results) -> if step.DoNotTrack then None else Some results)
+        |> Stream.ofList
+        |> Stream.mapi(fun i step -> step, StepResults.create(step.StepName, filteredResponses.[i]))
+        |> Stream.choose(fun (step, results) -> if step.DoNotTrack then None else Some results)

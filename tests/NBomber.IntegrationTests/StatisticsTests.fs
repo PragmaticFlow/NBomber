@@ -5,12 +5,13 @@ open System
 open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
+open Nessos.Streams
 
 open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.StatisticsTypes
+open Tests.TestHelper
 
 let private latencyCount = { Less800 = 1; More800Less1200 = 1; More1200 = 1 }
 
@@ -25,16 +26,16 @@ let private scenario = {
 
 [<Fact>]
 let ``calcRPS() should not calculate latency which is bigger than 1 sec`` () =
-    let latencies = [| 2_000; 3_000; 4_000 |]
+    let latencies = [2_000; 3_000; 4_000]
     let scnDuration = TimeSpan.FromSeconds(5.0)
 
-    let result = Statistics.calcRPS(latencies, scnDuration)
+    let result = latencies |> Stream.ofList |> Statistics.calcRPS(scnDuration)
 
     test <@ result = 0 @>
 
 [<Property>]
-let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency[], scnDuration: TimeSpan) =
-    let result = Statistics.calcRPS(latencies, scnDuration)
+let ``calcRPS() should not fail and calculate correctly for any args values`` (latencies: Latency list, scnDuration: TimeSpan) =
+    let result = latencies |> Stream.ofList |> Statistics.calcRPS(scnDuration)
 
     if latencies.Length = 0 then
         test <@ result = 0 @>
@@ -43,24 +44,24 @@ let ``calcRPS() should not fail and calculate correctly for any args values`` (l
         test <@ result = latencies.Length @>
 
     else
-        let allLatenciesIn1SecCount = latencies |> Array.filter(fun x -> x <= 1_000) |> Array.length
+        let allLatenciesIn1SecCount = latencies |> List.filter(fun x -> x <= 1_000) |> List.length
         let expected = allLatenciesIn1SecCount / int(scnDuration.TotalSeconds)
         test <@ result = expected @>
 
 [<Property>]
-let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
-    let result   = Statistics.calcMin(latencies)
-    let expected = Array.minOrDefault 0 latencies
+let ``calcMin() should not fail and calculate correctly for any args values`` (latencies: Latency list) =
+    let result   = latencies |> Stream.ofList |> Statistics.calcMin
+    let expected = List.minOrDefault 0 latencies
     test <@ result = expected @>
 
 [<Property>]
-let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
-    let result = latencies |> Statistics.calcMean
-    let expected = latencies |> Array.averageByOrDefault 0.0 float |> int
+let ``calcMean() should not fail and calculate correctly for any args values`` (latencies: Latency list) =
+    let result = latencies |> Stream.ofList |> Statistics.calcMean
+    let expected = latencies |> List.map float |> List.averageOrDefault 0.0 |> int
     test <@ result = expected @>
 
 [<Property>]
-let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency[]) =
-    let result = latencies |> Statistics.calcMax
-    let expected = Array.maxOrDefault 0 latencies
+let ``calcMax() should not fail and calculate correctly for any args values`` (latencies: Latency list) =
+    let result = latencies |> Stream.ofList |> Statistics.calcMax
+    let expected = List.maxOrDefault 0 latencies
     test <@ result = expected @>

@@ -1,8 +1,8 @@
 namespace NBomber.Extensions
 
 open System
-open System.Threading.Tasks
 open FsToolkit.ErrorHandling
+open Nessos.Streams
 
 [<AutoOpen>]
 module internal Extensions =
@@ -80,27 +80,27 @@ module internal Extensions =
         let contains (value: string) (strings: string seq) =
             strings |> Seq.exists(fun x -> x = value)
 
-    module Array =
+    module Stream =
 
         /// Safe variant of `Array.min`
-        let minOrDefault defaultValue array =
-            if Array.isEmpty array then defaultValue
-            else Array.min array
+        let minOrDefault defaultValue stream =
+            if Stream.isEmpty stream then defaultValue
+            else stream |> Stream.minBy id
+
+        /// Safe variant of `Array.average`
+        let averageOrDefault (defaultValue: float) stream =
+            if Stream.isEmpty stream then defaultValue
+            else stream |> Stream.toSeq |> Seq.average
 
         /// Safe variant of `Array.max`
-        let maxOrDefault defaultValue array =
-            if Array.isEmpty array then defaultValue
-            else Array.max array
+        let maxOrDefault defaultValue stream =
+            if Stream.isEmpty stream then defaultValue
+            else stream |> Stream.maxBy id
 
-        /// Safe variant of `Array.average`
-        let averageOrDefault (defaultValue: float) array =
-            if Array.isEmpty array then defaultValue
-            else array |> Array.average
+        let inline sumBy(projection: 'T -> 'V) (source: Stream<'T>) =
+            source |> Stream.map(projection) |> Stream.sum
 
-        /// Safe variant of `Array.average`
-        let averageByOrDefault (defaultValue: float) f array =
-            if Array.isEmpty array then defaultValue
-            else array |> Array.averageBy f
+    module Array =
 
         /// shuffle an array (in-place)
         let shuffleInPlace a =

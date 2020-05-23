@@ -6,6 +6,7 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
+open Nessos.Streams
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
@@ -115,14 +116,13 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
     cleanResources()
 }
 
-let filterByDuration (stepResponses: ResizeArray<StepResponse>, duration: TimeSpan) =
+let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =
     let validEndTime (endTime) = endTime <= duration.TotalMilliseconds
     let createEndTime (response) = response.StartTimeMs + float response.LatencyMs
 
     stepResponses
-    |> Seq.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
-    |> Seq.choose(fun x ->
+    |> Stream.filter(fun x -> x.StartTimeMs <> -1.0) // to filter out TaskCanceledException
+    |> Stream.choose(fun x ->
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
-    |> Seq.toArray

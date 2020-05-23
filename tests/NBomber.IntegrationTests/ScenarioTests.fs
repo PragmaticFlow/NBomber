@@ -74,7 +74,6 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
             KeepConcurrentScenarios(2,  TimeSpan.FromSeconds(2.0))
         ]
 
-
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadConfig "Configuration/test_config.json"
     |> NBomberRunner.run
