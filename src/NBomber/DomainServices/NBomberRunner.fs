@@ -16,11 +16,8 @@ open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
-    try
-        use pb = new ProgressBar(0, String.Empty)
-        ApplicationType.Console
-    with
-    | _ -> ApplicationType.Process
+    if System.Environment.UserInteractive then ApplicationType.Console
+    else ApplicationType.Process
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)
