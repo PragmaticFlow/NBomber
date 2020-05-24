@@ -186,7 +186,15 @@ type RunnerBuilder() =
     member _.Reports(ctx, plugins) =
         { ctx with Plugins = plugins }
 
-    [<CustomOperation "application">]
+    [<CustomOperation "runProcess">]
+    member _.ApplicationTypeProcess(ctx) =
+        { ctx with ApplicationType = Some ApplicationType.Process }
+
+    [<CustomOperation "runConsole">]
+    member _.ApplicationTypeConsole(ctx) =
+        { ctx with ApplicationType = Some ApplicationType.Console }
+
+    [<CustomOperation "applicationType">]
     member _.ApplicationType(ctx, application) =
         { ctx with ApplicationType = Some application }
 

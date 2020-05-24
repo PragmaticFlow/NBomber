@@ -16,7 +16,11 @@ let test =
     perftest {
         name "test name"
         testSuite "test suite name"
-        application ApplicationType.Console
+
+        applicationType ApplicationType.Process
+        applicationType ApplicationType.Console
+        runProcess
+        runConsole
 
         config "path/to/config/file"
         infraConfig "path/to/config/file"
