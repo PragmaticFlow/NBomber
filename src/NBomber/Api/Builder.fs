@@ -170,14 +170,17 @@ type RunnerBuilder() =
     member _.Config(ctx, path) =
         NBomberRunner.loadConfig path ctx
 
-    [<CustomOperation "configInfrastructure">]
+    [<CustomOperation "infraConfig">]
     member _.ConfigInfrastructure(ctx, path) =
         NBomberRunner.loadInfraConfig path ctx
 
-    [<CustomOperation "reporter">]
-    member _.Report(ctx, reporter, interval) =
-        { ctx with ReportingSinks = reporter::ctx.ReportingSinks
-                   SendStatsInterval = interval }
+    [<CustomOperation "reportSink">]
+    member _.Report(ctx, reporter) =
+        { ctx with ReportingSinks = reporter::ctx.ReportingSinks }
+
+    [<CustomOperation "reportInterval">]
+    member _.ReportInterval(ctx, interval) =
+        { ctx with SendStatsInterval = interval }
 
     [<CustomOperation "plugins">]
     member _.Reports(ctx, plugins) =
