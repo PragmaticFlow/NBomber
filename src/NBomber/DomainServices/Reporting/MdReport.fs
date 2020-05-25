@@ -32,11 +32,10 @@ module MdUtility =
 module  MdUtilityNodeStats =
 
     let private headerScenario (scnStats: ScenarioStats) =
-        [
-            sprintf "# Scenario: `%s`" (scnStats.ScenarioName.Replace('_', ' '))
-            ""
-            sprintf "- Duration: `%A`" scnStats.Duration
-            ""
+        [ sprintf "# Scenario: `%s`" (scnStats.ScenarioName.Replace('_', ' '))
+          ""
+          sprintf "- Duration: `%A`" scnStats.Duration
+          ""
         ]
         |> String.concatLines
 
@@ -49,14 +48,13 @@ module  MdUtilityNodeStats =
         let percentile = sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
         let dataTransfer = sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`" s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
 
-        [
-            yield [ "name"; name ]
-            yield [ "request count"; count ]
-            yield [ "response time"; times ]
-            yield [ "response time percentile"; percentile ]
+        [ yield [ "name"; name ]
+          yield [ "request count"; count ]
+          yield [ "response time"; times ]
+          yield [ "response time percentile"; percentile ]
 
-            if s.AllDataMB > 0.0 then
-                yield [ "data transfer"; dataTransfer ]
+          if s.AllDataMB > 0.0 then
+            yield [ "data transfer"; dataTransfer ]
         ]
 
     let printNodeStats (stats: NodeStats) =
@@ -109,8 +107,7 @@ module MdUtilityPluginStats =
         |> String.concatLines
 
 let print (stats: NodeStats) =
-    [
-        MdUtilityNodeStats.printNodeStats(stats)
-        MdUtilityPluginStats.printPluginStats(stats)
+    [ MdUtilityNodeStats.printNodeStats(stats)
+      MdUtilityPluginStats.printPluginStats(stats)
     ]
     |> String.concatLines
