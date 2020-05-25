@@ -1,4 +1,4 @@
-﻿open System
+open System
 open NBomber.FSharp
 
 [<EntryPoint>]
@@ -9,7 +9,7 @@ let main argv =
     //DataFeedScenario.run()
     //HttpScenario.run()
     //CustomReportingScenario.run()
-    //PluginsScenario.run()
+    //PingPluginScenario.run()
     //CustomPluginScenario.run()
     //CliArgumentsScenario.run(argv)
 

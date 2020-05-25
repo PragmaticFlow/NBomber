@@ -26,7 +26,7 @@ let TryCount = 5
 [<Literal>]
 let DefaultDoNotTrack = false
 
-let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv]
+let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
 
 [<Literal>]
 let StepResponseKey = "nbomber_step_response"

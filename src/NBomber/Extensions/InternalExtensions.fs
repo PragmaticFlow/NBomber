@@ -80,6 +80,9 @@ module internal Extensions =
         let contains (value: string) (strings: string seq) =
             strings |> Seq.exists(fun x -> x = value)
 
+        let inline appendNewLine (str: string) =
+            str + Environment.NewLine
+
     module Stream =
 
         /// Safe variant of `Array.min`

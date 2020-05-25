@@ -8,9 +8,6 @@ open ConsoleTables
 open NBomber.Contracts
 open NBomber.Extensions
 
-let inline private concatLines s =
-    String.concat Environment.NewLine s
-
 let private printScenarioHeader (scnStats: ScenarioStats) =
     sprintf "scenario: '%s', duration: '%A', ok count: '%A', fail count: '%A', all data: '%A' MB"
         scnStats.ScenarioName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
@@ -54,14 +51,14 @@ let printNodeStats (stats: NodeStats) =
     stats.ScenarioStats
     |> Array.map(fun scnStats ->
         [printScenarioHeader scnStats; printStepsTable scnStats.StepStats]
-        |> concatLines
+        |> String.concatLines
     )
-    |> concatLines
+    |> String.concatLines
 
 let printPluginStats (table: DataTable) =
     [table |> printPluginStatsHeader
      table |> printPluginStatsTable]
-    |> concatLines
+    |> String.concatLines
 
 let print (stats: NodeStats) =
     let pluginsStats =
