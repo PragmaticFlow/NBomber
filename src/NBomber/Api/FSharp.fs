@@ -161,14 +161,26 @@ module NBomberRunner =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
-        { context with ReportFileName = Some reportFileName }
+        let report =
+            context.Report
+            |> Option.defaultValue ReporterConfig.Default
+        { context with
+            Report = Some { report with FileName = Some reportFileName} }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
-        { context with ReportFormats = reportFormats }
+        let report =
+            context.Report
+            |> Option.defaultValue ReporterConfig.Default
+        { context with
+            Report = Some { report with Formats = reportFormats } }
 
     /// Sets context without reports
     let withoutReports (context: NBomberContext) =
-        { context with ReportFormats = List.empty }
+        let report =
+            context.Report
+            |> Option.defaultValue ReporterConfig.Default
+        { context with
+            Report = Some { report with Formats = [] } }
 
     let withTestSuite (testSuite: string) (context: NBomberContext) =
         { context with TestSuite = testSuite }
@@ -205,8 +217,15 @@ module NBomberRunner =
         { context with InfraConfig = Some config }
 
     let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
-        { context with ReportingSinks = reportingSinks
-                       SendStatsInterval = sendStatsInterval }
+        let report =
+            context.Report
+            |> Option.defaultValue ReporterConfig.Default
+        { context with
+            Report = Some {
+                report with
+                    Sinks = reportingSinks
+                    SendStatsInterval = sendStatsInterval
+            }}
 
     let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }

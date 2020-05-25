@@ -106,7 +106,7 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member x.InfraConfig = context.InfraConfig
         member x.ProgressBarEnv = ProgressBarEnv.create()
         member x.Logger = logger
-        member x.ReportingSinks = context.ReportingSinks
+        member x.ReportingSinks = context.Report |> Option.map (fun r -> r.Sinks) |> Option.defaultValue []
         member x.Plugins = context.Plugins
         member x.Dispose() =
             x.ReportingSinks |> Seq.iter(fun x -> x.Dispose())

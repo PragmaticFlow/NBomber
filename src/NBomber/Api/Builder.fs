@@ -131,6 +131,29 @@ type ScenarioBuilder(name : string) =
 
 let scenario name = ScenarioBuilder name
 
+
+type ReportBuilder() =
+    member _.Yield _ = ReporterConfig.Default
+
+    [<CustomOperation "fileName">]
+    member _.ReportFileName(ctx, fileName) =
+        { ctx with FileName = Some fileName }
+
+    [<CustomOperation "interval">]
+    member _.Interval(ctx : ReporterConfig, interval) =
+        { ctx with SendStatsInterval = interval }
+
+    [<CustomOperation "formats">]
+    member _.Formats(ctx, formats) =
+        { ctx with Formats = formats }
+
+    [<CustomOperation "sink">]
+    member _.Report(ctx, reporter) =
+        { ctx with Sinks = reporter::ctx.Sinks }
+
+let report = ReportBuilder()
+
+
 /// performance test builder
 type RunnerBuilder() =
     let empty = NBomberRunner.registerScenarios []
@@ -145,17 +168,14 @@ type RunnerBuilder() =
     member _.Scenarios(ctx, scenarios) =
         { ctx with RegisteredScenarios = scenarios }
 
-    [<CustomOperation "reportFileName">]
-    member _.ReportFileName(ctx, fileName) =
-        { ctx with ReportFileName = Some fileName }
 
-    [<CustomOperation "reports">]
-    member _.ReportFormats(ctx, reports) =
-        { ctx with ReportFormats = reports }
+    [<CustomOperation "report">]
+    member _.Report(ctx, report) =
+        { ctx with Report = Some report }
 
-    [<CustomOperation "noReports">]
+    [<CustomOperation "noReport">]
     member _.NoReports(ctx) =
-        { ctx with ReportFormats = [] }
+        { ctx with Report = None }
 
     [<CustomOperation "testSuite">]
     member _.TestSuite(ctx : NBomberContext, name) =
@@ -173,14 +193,6 @@ type RunnerBuilder() =
     [<CustomOperation "infraConfig">]
     member _.ConfigInfrastructure(ctx, path) =
         NBomberRunner.loadInfraConfig path ctx
-
-    [<CustomOperation "reportSink">]
-    member _.Report(ctx, reporter) =
-        { ctx with ReportingSinks = reporter::ctx.ReportingSinks }
-
-    [<CustomOperation "reportInterval">]
-    member _.ReportInterval(ctx, interval) =
-        { ctx with SendStatsInterval = interval }
 
     [<CustomOperation "plugins">]
     member _.Reports(ctx, plugins) =

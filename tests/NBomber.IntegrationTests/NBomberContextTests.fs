@@ -39,10 +39,11 @@ let context = {
     RegisteredScenarios = [baseScenario]
     NBomberConfig = None
     InfraConfig = None
-    ReportFileName = None
-    ReportFormats = List.empty
-    ReportingSinks = List.empty
-    SendStatsInterval = Constants.MinSendStatsInterval
+    Report = Some {
+        FileName = None
+        Formats = List.empty
+        Sinks = List.empty
+        SendStatsInterval = Constants.MinSendStatsInterval }
     Plugins = List.empty
     ApplicationType = Some ApplicationType.Process
 }
@@ -78,9 +79,12 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
     let glSettings = { globalSettings with ReportFileName = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
+    let report =
+        { ReporterConfig.Default with
+            Formats = [ ReportFormat.Txt ]
+            FileName = contextValue }
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = [ReportFormat.Txt]
-                             ReportFileName = contextValue }
+                             Report = Some report }
 
     let fileName = NBomberContext.getReportFileName(ctx)
 
@@ -97,9 +101,12 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
     let glSettings = { globalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
+    let report =
+        { ReporterConfig.Default with
+           Formats = contextValue
+           FileName = None }
     let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = contextValue
-                             ReportFileName = None }
+                             Report = Some report }
 
     let formats = NBomberContext.getReportFormats(ctx)
     match configValue, contextValue with

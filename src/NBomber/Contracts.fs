@@ -176,16 +176,26 @@ type ApplicationType =
     | Process = 0
     | Console = 1
 
+type ReporterConfig =
+    { FileName : string option
+      Formats : ReportFormat list
+      Sinks : IReportingSink list
+      SendStatsInterval : TimeSpan
+    }
+    static member Default =
+        { FileName = None
+          Formats = NBomber.Constants.AllReportFormats
+          Sinks = []
+          SendStatsInterval = NBomber.Constants.MinSendStatsInterval
+        }
+
 type NBomberContext = {
     TestSuite: string
     TestName: string
     RegisteredScenarios: Scenario list
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
-    ReportFileName: string option
-    ReportFormats: ReportFormat list
-    ReportingSinks: IReportingSink list
-    SendStatsInterval: TimeSpan
+    Report: ReporterConfig option
     Plugins: IPlugin list
     ApplicationType: ApplicationType option
 }

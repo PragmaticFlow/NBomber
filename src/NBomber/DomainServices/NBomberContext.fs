@@ -49,10 +49,7 @@ let empty = {
     RegisteredScenarios = List.empty
     NBomberConfig = None
     InfraConfig = None
-    ReportFileName = None
-    ReportFormats = Constants.AllReportFormats
-    ReportingSinks = List.empty
-    SendStatsInterval = Constants.MinSendStatsInterval
+    Report = Some ReporterConfig.Default
     Plugins = List.empty
     ApplicationType = None
 }
@@ -89,7 +86,7 @@ let getReportFileName (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(context.ReportFileName)
+    |> Option.orElse (context.Report |> Option.bind (fun r -> r.FileName))
     |> Option.defaultValue(Constants.DefaultReportName)
 
 let getReportFormats (context: NBomberContext) =
@@ -101,9 +98,10 @@ let getReportFormats (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(if List.isEmpty context.ReportFormats then None
-                     else Some context.ReportFormats)
-    |> Option.defaultValue List.empty
+    |> Option.defaultValue(
+        context.Report
+        |> Option.map (fun r -> r.Formats)
+        |> Option.defaultValue Constants.AllReportFormats)
 
 let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
@@ -114,7 +112,11 @@ let getSendStatsInterval (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.SendStatsInterval
+    |> Option.defaultValue(
+        context.Report
+        |> Option.map (fun r -> r.SendStatsInterval)
+        |> Option.defaultValue Constants.MinSendStatsInterval
+    )
 
 let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {

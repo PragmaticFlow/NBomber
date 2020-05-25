@@ -10,7 +10,19 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 let seconds = float >> System.TimeSpan.FromSeconds
 let minutes = float >> System.TimeSpan.FromMinutes
 let connectionPool = Unchecked.defaultof<IConnectionPoolArgs<System.Net.Http.HttpClient>>
-let sink = Unchecked.defaultof<IReportingSink>
+let reportingSink = Unchecked.defaultof<IReportingSink>
+
+let reportConfig =
+    report {
+        formats [
+            ReportFormat.Html
+            ReportFormat.Txt
+            ReportFormat.Csv
+        ]
+        fileName "reportFile"
+        interval (seconds 10.0)
+        sink reportingSink
+    }
 
 let test =
     perftest {
@@ -24,15 +36,9 @@ let test =
 
         config "path/to/config/file"
         infraConfig "path/to/config/file"
+        report reportConfig
 
-        reports [
-            ReportFormat.Html
-            ReportFormat.Txt
-        ]
-        noReports
-        reportFileName "see_results"
-        reportInterval (seconds 5.0)
-        reportSink sink
+        noReport
 
         scenarios [
             scenario "pauses" {
