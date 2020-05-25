@@ -6,7 +6,7 @@ open System.Data
 open NBomber.Contracts
 open NBomber.Extensions
 
-module internal MdUtility =
+module MdUtility =
 
     let inline private createTableHeader (header) =
         String.Join("|", header |> Seq.map(fun x -> sprintf "__%s__" x))
@@ -20,7 +20,6 @@ module internal MdUtility =
     let toMdTable (headerWithRows: string list list) =
         match headerWithRows with
         | header :: rows ->
-
             [
                 createTableHeader(header)
                 createTableSeparator(header)
@@ -28,9 +27,9 @@ module internal MdUtility =
             ]
             |> String.concatLines
 
-        | [] -> String.Empty
+        | []            -> String.Empty
 
-module internal  MdUtilityNodeStats =
+module  MdUtilityNodeStats =
 
     let private headerScenario (scnStats: ScenarioStats) =
         [
@@ -75,7 +74,7 @@ module internal  MdUtilityNodeStats =
             })
         |> String.concatLines
 
-module internal MdUtilityPluginStats =
+module MdUtilityPluginStats =
 
     let inline private headerPluginStats (table: DataTable) =
         sprintf "# Statistics: `%s`" table.TableName
