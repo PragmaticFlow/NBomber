@@ -15,12 +15,19 @@ open NBomber.Errors
 open NBomber.FSharp
 open NBomber.DomainServices
 
-let globalSettings = {
+let baseGlobalSettings = {
     ScenariosSettings = None
-    ConnectionPoolSettings = None
     ReportFileName = None
     ReportFormats = None
     SendStatsInterval = None
+}
+
+let baseScenarioSetting = {
+    ScenarioName = "test_scenario"
+    WarmUpDuration = DateTime.MinValue
+    LoadSimulationsSettings = List.empty
+    ConnectionPoolSettings = None
+    CustomSettings = None
 }
 
 let failStep = Step.create("fail step", fun _ -> Response.Fail() |> Task.singleton)
@@ -75,7 +82,7 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
     (configValue.IsNone || configValue.IsSome && not (isNull configValue.Value)) ==> lazy
     (contextValue.IsNone || contextValue.IsSome && not (isNull contextValue.Value)) ==> lazy
 
-    let glSettings = { globalSettings with ReportFileName = configValue }
+    let glSettings = { baseGlobalSettings with ReportFileName = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with NBomberConfig = Some config
@@ -94,7 +101,7 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
 let ``getReportFormats should return from GlobalSettings, if empty then from TestContext``
     (configValue: ReportFormat list option, contextValue: ReportFormat list) =
 
-    let glSettings = { globalSettings with ReportFormats = configValue }
+    let glSettings = { baseGlobalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = { context with NBomberConfig = Some config
@@ -141,17 +148,21 @@ let ``getTestName should return from Config, if empty then from TestContext``
         test <@ testSuite = context.TestName @>
 
 [<Property>]
-let ``getConnectionPoolSettings should return from Config, if empty then empty result``
-    (configValue: int option) =
+let ``getConnectionPoolSettings should return from Config with updated poolName, if empty then empty result``
+    (poolNameGenerated: string, configValue: int option) =
 
     match configValue with
     | Some value ->
-        let poolSettings = Some [{PoolName = "test_pool"; ConnectionCount = value}]
-        let glSettings = { globalSettings with ConnectionPoolSettings = poolSettings }
+        let poolSettings = {PoolName = poolNameGenerated; ConnectionCount = value}
+        let scnSettings = { baseScenarioSetting with ConnectionPoolSettings = Some [poolSettings] }
+        let glSettings = { baseGlobalSettings with ScenariosSettings = Some [scnSettings] }
         let config = { config with GlobalSettings = Some glSettings }
         let ctx = { context with NBomberConfig = Some config }
         let resut = NBomberContext.getConnectionPoolSettings(ctx)
-        test <@ resut = poolSettings.Value  @>
+
+        test <@ resut.Head.ConnectionCount = poolSettings.ConnectionCount @>
+        test <@ resut.Head.PoolName = Domain.Scenario.createConnectionPoolName(scnSettings.ScenarioName, poolSettings.PoolName) @>
+        test <@ resut.Head.PoolName <> poolSettings.PoolName @>
 
     | None ->
         let result = NBomberContext.getConnectionPoolSettings(context)

@@ -44,6 +44,7 @@ module internal Extensions =
 
         member x.Return(value) = Some value
         member x.ReturnFrom(value) = value
+        member x.Zero () = None
 
     let maybe = MaybeBuilder()
 
@@ -68,10 +69,10 @@ module internal Extensions =
         let concatWithCommaAndQuotes (strings: string seq) =
             strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
 
-        let filterDuplicates (data: string list) =
+        let filterDuplicates (data: string seq) =
             data
-            |> List.groupBy(id)
-            |> List.choose(fun (key, set) -> if set.Length > 1 then Some key else None)
+            |> Seq.groupBy(id)
+            |> Seq.choose(fun (key, set) -> if Seq.length(set) > 1 then Some key else None)
 
         let toOption (str: string) =
             if String.IsNullOrWhiteSpace str then None

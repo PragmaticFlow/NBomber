@@ -33,11 +33,9 @@ type ConnectionPoolArgs =
                           closeConnection: 'TConnection * CancellationToken -> Task,
                           ?connectionCount: int) =
 
-        { new IConnectionPoolArgs<'TConnection> with
-            member x.PoolName = name
-            member x.ConnectionCount = defaultArg connectionCount Constants.DefaultConnectionCount
-            member x.OpenConnection(number,token) = openConnection(number,token)
-            member x.CloseConnection(connection,token) = closeConnection(connection,token) }
+        let count = defaultArg connectionCount Constants.DefaultConnectionCount
+        ConnectionPoolArgs(name, count, openConnection, closeConnection)
+        :> IConnectionPoolArgs<'TConnection>
 
     static member create (name: string,
                           openConnection: int * CancellationToken -> Task<'TConnection>,
@@ -63,8 +61,12 @@ type Step =
                           feed: IFeed<'TFeedItem>,
                           execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?repeatCount: int, ?doNotTrack: bool) =
+
+        let poolArgs = if connectionPoolArgs.PoolName = Constants.EmptyPoolName then None
+                       else Some((connectionPoolArgs :?> ConnectionPoolArgs<'TConnection>).GetUntyped().Value)
+
         { StepName = name
-          ConnectionPoolArgs = ConnectionPoolArgs.toUntyped(connectionPoolArgs)
+          ConnectionPoolArgs = poolArgs
           ConnectionPool = None
           Execute = Step.toUntypedExec(execute)
           Context = None
@@ -126,18 +128,17 @@ type Step =
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
-    let create (name: string) (steps: IStep list): Contracts.Scenario =
-        { ScenarioName = name
-          TestInit = Unchecked.defaultof<_>
-          TestClean = Unchecked.defaultof<_>
+    let create (name: string) (steps: IStep list): Contracts.Scenario = {
+          ScenarioName = name
+          TestInit = None
+          TestClean = None
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [
-            LoadSimulation.InjectScenariosPerSec(
-                copiesCount = Constants.DefaultConcurrentCopiesCount,
-                during = Constants.DefaultScenarioDuration
-            )
-          ] }
+            LoadSimulation.InjectScenariosPerSec(copiesCount = Constants.DefaultConcurrentCopiesCount,
+                                                 during = Constants.DefaultScenarioDuration)
+          ]
+    }
 
     let withTestInit (initFunc: ScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
         { scenario with TestInit = Some(fun token -> initFunc(token) :> Task) }

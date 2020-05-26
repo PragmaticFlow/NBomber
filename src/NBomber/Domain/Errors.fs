@@ -22,6 +22,7 @@ type ValidationError =
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
     | SendStatsIntervalIsWrong of minSendStatsInterval:float
+    | DuplicateConnectionPoolName of scenarioName:string * poolName:string
 
     // ConcurrencyScheduler
     | DurationIsLessThan1Sec of simulation:string
@@ -85,6 +86,9 @@ type AppError =
 
         | SendStatsIntervalIsWrong minSendStatsInterval ->
             sprintf "SendStatsInterval should be bigger than min value: '%i'" (int minSendStatsInterval)
+
+        | DuplicateConnectionPoolName (scenarioName, poolName) ->
+            sprintf "scenario: '%s' contains connection pool with duplicated name: '%s'" scenarioName poolName
 
         | DurationIsLessThan1Sec simulation
         | DurationIsBiggerThan10Days simulation

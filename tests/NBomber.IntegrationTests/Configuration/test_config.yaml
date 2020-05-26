@@ -22,13 +22,13 @@ GlobalSettings:
         CopiesCount: 2
         During: "00:00:05"
 
+    ConnectionPoolSettings:
+      - PoolName: test_pool
+        ConnectionCount: 100
+
     CustomSettings:
       TargetHost: localhost
       MsgSizeInBytes: 1000
-
-  ConnectionPoolSettings:
-  - PoolName: test_pool
-    ConnectionCount: 100
 
   ReportFileName: custom_report_name_from_json
 

@@ -35,7 +35,7 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
 
 type Step = {
     StepName: StepName
-    ConnectionPoolArgs: IConnectionPoolArgs<obj>
+    ConnectionPoolArgs: ConnectionPoolArgs<obj> option
     ConnectionPool: ConnectionPool option
     Execute: StepContext<obj,obj> -> Task<Response>
     Context: StepContext<obj,obj> option

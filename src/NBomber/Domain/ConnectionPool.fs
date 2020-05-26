@@ -1,37 +1,44 @@
-﻿module internal rec NBomber.Domain.ConnectionPool
+﻿module internal NBomber.Domain.ConnectionPool
 
 open System
 open System.Threading
+open System.Threading.Tasks
 
-open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
+open FSharp.Control.Reactive
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
 open NBomber.Extensions
 open NBomber.Contracts
 
-module ConnectionPoolArgs =
-
-    let toUntyped (args: IConnectionPoolArgs<'TConnection>) =
-
-        { new IConnectionPoolArgs<obj> with
-            member x.PoolName = args.PoolName
-            member x.ConnectionCount = args.ConnectionCount
-
-            member x.OpenConnection(number, token) = task {
-                let! connection = args.OpenConnection(number,token)
+type ConnectionPoolArgs<'TConnection>(name: string, connectionCount: int,
+                                      openConnection: int * CancellationToken -> Task<'TConnection>,
+                                      closeConnection: 'TConnection * CancellationToken -> Task) =
+    let untypedArgs = lazy (
+        ConnectionPoolArgs<obj>(
+            name, connectionCount,
+            openConnection = (fun (number, token) -> task {
+                let! connection = openConnection(number, token)
                 return connection :> obj
-            }
+            }),
+            closeConnection = (fun (connection, token) -> closeConnection(connection :?> 'TConnection, token))
+        )
+    )
 
-            member x.CloseConnection(connection, token) = args.CloseConnection(connection :?> 'TConnection, token) }
+    member x.PoolName = name
+    member x.ConnectionCount = connectionCount
+    member x.OpenConnection(number, token) = openConnection(number, token)
+    member x.CloseConnection(connection, token) = closeConnection(connection, token)
+    member x.GetUntyped() = untypedArgs
+    member x.Clone(newName: string) = ConnectionPoolArgs<'TConnection>(newName, connectionCount, openConnection, closeConnection)
+    member x.Clone(newConnectionCount: int) = ConnectionPoolArgs<'TConnection>(name, newConnectionCount, openConnection, closeConnection)
 
-    let cloneWith (connectionCount) (args: IConnectionPoolArgs<obj>) =
-        { new Contracts.IConnectionPoolArgs<obj> with
-            member _.PoolName = args.PoolName
-            member _.ConnectionCount = connectionCount
-            member _.OpenConnection(number,token) = args.OpenConnection(number,token)
-            member _.CloseConnection(connection,token) = args.CloseConnection(connection,token) }
+    interface IConnectionPoolArgs<'TConnection> with
+        member x.PoolName = name
+        member x.ConnectionCount = connectionCount
+        member x.OpenConnection(number, token) = openConnection(number, token)
+        member x.CloseConnection(connection, token) = closeConnection(connection, token)
 
 type ConnectionPoolEvent =
     | StartedInit           of poolName:string
@@ -41,7 +48,7 @@ type ConnectionPoolEvent =
     | InitFinished
     | InitFailed
 
-type ConnectionPool(args: IConnectionPoolArgs<obj>) =
+type ConnectionPool(args: ConnectionPoolArgs<obj>) =
 
     let mutable _disposed = false
     let mutable _aliveConnections = Array.empty

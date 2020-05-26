@@ -243,16 +243,16 @@ let ``closeConnection should not affect test session in case of failure``() =
     | Error error -> failwith "unhandled exception"
 
 [<Fact>]
-let ``should be initialized only once``() =
+let ``should be initialized one time per scenario``() =
 
     let poolCount = 10
-    let mutable initedConnections = 0
+    let mutable initializedConnections = 0
 
     let pool =
         ConnectionPoolArgs.create(
             name = "test_pool",
             openConnection = (fun (number,token) ->
-                initedConnections <- initedConnections + 1
+                initializedConnections <- initializedConnections + 1
                 Task.FromResult number),
             closeConnection = (fun _ -> Task.CompletedTask),
             connectionCount = poolCount
@@ -262,8 +262,12 @@ let ``should be initialized only once``() =
         return Response.Ok(context.Connection)
     })
 
+    let step2 = Step.create("step_2", pool, fun context -> task {
+        return Response.Ok(context.Connection)
+    })
+
     let scenario1 =
-        Scenario.create "scenario 1" [step1]
+        Scenario.create "scenario 1" [step1; step2]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = poolCount, during = TimeSpan.FromSeconds 2.0)
@@ -281,7 +285,7 @@ let ``should be initialized only once``() =
         |> NBomberRunner.run
 
     match result with
-    | Ok nodeStats -> test <@ initedConnections = poolCount @>
+    | Ok nodeStats -> test <@ initializedConnections = 20 @>
                       test <@ nodeStats.ScenarioStats.Length = 2 @>
     | Error error -> failwith "unhandled exception"
 
@@ -359,3 +363,45 @@ let ``should support 65K of connections``() =
     match result with
     | Ok allStats -> test <@ invokeCount = poolCount @>
     | Error error -> failwith "unhandled exception"
+
+[<Fact>]
+let ``should not allow to have duplicates with the same name but different implementation``() =
+
+    let pool1 =
+        ConnectionPoolArgs.create(
+            name = "duplicate_pool_name",
+            openConnection = (fun (number,token) -> Task.FromResult number),
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = 50
+        )
+
+    let pool2 =
+        ConnectionPoolArgs.create(
+            name = "duplicate_pool_name",
+            openConnection = (fun (number,token) -> Task.FromResult(number + 1)),
+            closeConnection = (fun _ -> Task.CompletedTask),
+            connectionCount = 100
+        )
+
+    let step1 = Step.create("step_1", pool1, fun context -> task {
+        return Response.Ok(context.Connection)
+    })
+
+    let step2 = Step.create("step_2", pool2, fun context -> task {
+        return Response.Ok(context.Connection)
+    })
+
+    let scenario =
+        Scenario.create "test" [step1; step2]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConcurrentScenarios(copiesCount = 100, during = TimeSpan.FromSeconds 2.0)
+        ]
+
+    let result =
+        NBomberRunner.registerScenarios [scenario]
+        |> NBomberRunner.run
+
+    match result with
+    | Ok allStats -> failwith "unhandled exception"
+    | Error error -> ()
