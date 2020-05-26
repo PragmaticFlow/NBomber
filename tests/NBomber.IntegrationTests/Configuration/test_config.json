@@ -15,15 +15,15 @@
               { "RampScenariosPerSec": [2, "00:00:02"] }
           ],
 
+          "ConnectionPoolSettings": [
+              { "PoolName": "test_pool", "ConnectionCount": 100 }
+          ],
+
           "CustomSettings": {
               "TargetHost": "localhost",
               "MsgSizeInBytes": 1000
           }
       }
-    ],
-
-    "ConnectionPoolSettings": [
-        { "PoolName": "test_pool", "ConnectionCount": 100 }
     ],
 
     "TargetScenarios": [ "test_youtube" ],

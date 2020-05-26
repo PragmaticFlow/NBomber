@@ -20,8 +20,8 @@ module Validation =
         if String.IsNullOrWhiteSpace scenario.ScenarioName then AppError.createResult EmptyScenarioName
         else Ok scenario
 
-    let checkDuplicateName (scenarios: Contracts.Scenario list) =
-        let duplicates = scenarios |> List.map(fun x -> x.ScenarioName) |> String.filterDuplicates
+    let checkDuplicateScenarioName (scenarios: Contracts.Scenario list) =
+        let duplicates = scenarios |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
@@ -33,6 +33,18 @@ module Validation =
         let emptyStepExist = scenario.Steps |> List.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
         if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
         else Ok scenario
+
+    let checkDuplicateConnectionPoolArgs (scenario: Contracts.Scenario) =
+        scenario.Steps
+        |> Seq.cast<Step>
+        |> Seq.choose(fun x -> x.ConnectionPoolArgs)
+        |> Seq.distinct // checking on different instances with the same name
+        |> Seq.groupBy(fun x -> x.PoolName)
+        |> Seq.choose(fun (name,pools) -> if Seq.length(pools) > 1 then Some name else None)
+        |> Seq.toList
+        |> function
+            | [] -> Ok scenario
+            | poolName::tail  -> AppError.createResult(DuplicateConnectionPoolName(scenario.ScenarioName, poolName))
 
     let validateWarmUpStats (nodesStats: NodeStats list) =
         let folder (state) (stats: NodeStats) =
@@ -46,23 +58,39 @@ module Validation =
         nodesStats |> List.fold folder okState
 
     let validate =
-        checkEmptyScenarioName >=> checkStepsNotEmpty >=> checkEmptyStepName
+        checkEmptyScenarioName >=> checkStepsNotEmpty >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
 
 let createCorrelationId (scnName: ScenarioName, copyNumber): Contracts.CorrelationId =
     { Id = sprintf "%s_%i" scnName copyNumber
       ScenarioName = scnName
       CopyNumber = copyNumber }
 
+let createConnectionPoolName (scenarioName, poolName) =
+    sprintf "%s.%s" scenarioName poolName
+
+let updateConnectionPoolArgsName (scenarioName: ScenarioName) (steps: IStep list) =
+    steps
+    |> Seq.cast<Step>
+    |> Seq.map(fun step ->
+        match step.ConnectionPoolArgs with
+        | Some pool ->
+            let poolName = createConnectionPoolName(scenarioName, pool.PoolName)
+            { step with ConnectionPoolArgs = Some(pool.Clone(poolName)) }
+
+        | None -> step
+    )
+    |> Seq.toList
+
 let createScenarios (scenarios: Contracts.Scenario list) = result {
 
     let create (scn: Contracts.Scenario) = result {
         let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
-        let! scenario = Validation.validate scn
+        let! scenario = Validation.validate(scn)
 
         return { ScenarioName = scenario.ScenarioName
                  TestInit = scenario.TestInit
                  TestClean = scenario.TestClean
-                 Steps = scenario.Steps |> Seq.cast<Step> |> Seq.toList
+                 Steps = scenario.Steps |> updateConnectionPoolArgsName(scenario.ScenarioName)
                  LoadTimeLine = timeline.LoadTimeLine
                  WarmUpDuration = scenario.WarmUpDuration
                  PlanedDuration = timeline.ScenarioDuration
@@ -70,7 +98,7 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
                  CustomSettings = "" }
     }
 
-    let! vScns = scenarios |> Validation.checkDuplicateName
+    let! vScns = scenarios |> Validation.checkDuplicateScenarioName
     return! vScns
             |> List.map(create)
             |> Result.sequence
@@ -105,40 +133,45 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         |> Option.map updateScenario
         |> Option.defaultValue scn)
 
-let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: Contracts.IConnectionPoolArgs<obj> list) =
+let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: ConnectionPoolArgs<obj> list) =
     poolArgs |> List.map(fun poolArg ->
         let setting = settings |> List.tryFind(fun setng -> setng.PoolName = poolArg.PoolName)
         match setting with
-        | Some v -> poolArg |> ConnectionPoolArgs.cloneWith(v.ConnectionCount)
+        | Some v -> poolArg.Clone(v.ConnectionCount)
         | None   -> poolArg
     )
 
 let filterDistinctConnectionPoolsArgs (scenarios: Scenario list) =
     scenarios
     |> Seq.collect(fun x -> x.Steps)
-    |> Seq.choose(fun x -> if x.ConnectionPoolArgs.PoolName = Constants.EmptyPoolName then None else Some x.ConnectionPoolArgs)
+    |> Seq.choose(fun x -> x.ConnectionPoolArgs)
     |> Seq.distinctBy(fun x -> x.PoolName)
     |> Seq.toList
 
 let filterDistinctConnectionPools (scenarios: Scenario list) =
     scenarios
     |> Seq.collect(fun x -> x.Steps)
-    |> Seq.choose(fun x -> if x.ConnectionPool.IsSome then Some x.ConnectionPool.Value else None)
+    |> Seq.choose(fun x -> x.ConnectionPool)
     |> Seq.distinctBy(fun x -> x.PoolName)
     |> Seq.toList
 
-let insertConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list) =
+let setConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list) =
 
-    scenarios |> List.map(fun scn ->
+    let setPool (scenario: Scenario) =
+        seq {
+            for step in scenario.Steps do
+            match step.ConnectionPoolArgs with
+            | Some poolArgs ->
+                let pool = pools |> Seq.tryFind(fun x -> x.PoolName = poolArgs.PoolName)
+                match pool with
+                | Some v -> { step with ConnectionPool = Some v }
+                | None   -> step
 
-        scn.Steps |> List.map(fun step ->
-            let pool = pools |> List.tryFind(fun x -> x.PoolName = step.ConnectionPoolArgs.PoolName)
-            match pool with
-            | Some v -> { step with ConnectionPool = Some v }
-            | None   -> step
-        )
-        |> fun updatedSteps -> { scn with Steps = updatedSteps }
-    )
+            | None -> step
+        }
+
+    scenarios
+    |> List.map(fun scenario -> { scenario with Steps = scenario |> setPool |> Seq.toList })
 
 let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
     if executedDuration < scenario.PlanedDuration then

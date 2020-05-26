@@ -39,23 +39,23 @@ type LoadSimulationSettingsYaml = {
 }
 
 [<CLIMutable>]
-type ScenarioSettingYaml = {
-    ScenarioName: string
-    WarmUpDuration: TimeSpan
-    LoadSimulationsSettings: LoadSimulationSettingsYaml[]
-    CustomSettings: IDictionary<obj, obj>
-}
-
-[<CLIMutable>]
 type ConnectionPoolSettingYaml = {
     PoolName: string
     ConnectionCount: int
 }
 
 [<CLIMutable>]
+type ScenarioSettingYaml = {
+    ScenarioName: string
+    WarmUpDuration: TimeSpan
+    LoadSimulationsSettings: LoadSimulationSettingsYaml[]
+    ConnectionPoolSettings: ConnectionPoolSettingYaml[]
+    CustomSettings: IDictionary<obj, obj>
+}
+
+[<CLIMutable>]
 type GlobalSettingsYaml = {
     ScenariosSettings: ScenarioSettingYaml[]
-    ConnectionPoolSettings: ConnectionPoolSettingYaml[]
     ReportFileName: string
     ReportFormats: ReportFormat[]
     SendStatsInterval: TimeSpan
@@ -98,6 +98,9 @@ module internal YamlConfig =
 
     let mapScenariosSettings (scenarioSettings: ScenarioSettingYaml): ScenarioSetting =
 
+        let mapConnectionPool (pool: ConnectionPoolSettingYaml): ConnectionPoolSetting =
+            { PoolName = pool.PoolName; ConnectionCount = pool.ConnectionCount }
+
         let mapCustomSettings (customSettings: IDictionary<obj,obj>) =
             if isNull customSettings then None
             else YamlDotNet.Serialization.Serializer().Serialize(customSettings) |> Some
@@ -105,19 +108,16 @@ module internal YamlConfig =
         { ScenarioName   = scenarioSettings.ScenarioName
           WarmUpDuration = scenarioSettings.WarmUpDuration |> mapDateTime
           LoadSimulationsSettings = scenarioSettings.LoadSimulationsSettings |> Seq.map mapLoadSimulationsSettings |> Seq.toList
+          ConnectionPoolSettings = scenarioSettings.ConnectionPoolSettings |> Seq.map(mapConnectionPool) |> toListOption
           CustomSettings = scenarioSettings.CustomSettings |> mapCustomSettings }
 
     let mapGlobalSettings (globalSettings: GlobalSettingsYaml): GlobalSettings =
-
-        let mapConnectionPool (pool: ConnectionPoolSettingYaml): ConnectionPoolSetting =
-            { PoolName = pool.PoolName; ConnectionCount = pool.ConnectionCount }
 
         let mapSendStatsInterval (interval: TimeSpan) =
             if interval.Ticks > 0L then interval |> mapDateTime |> Some
             else None
 
         { ScenariosSettings = globalSettings.ScenariosSettings |> Seq.map(mapScenariosSettings) |> toListOption
-          ConnectionPoolSettings = globalSettings.ConnectionPoolSettings |> Seq.map(mapConnectionPool) |> toListOption
           ReportFileName    = globalSettings.ReportFileName    |> String.toOption
           ReportFormats     = globalSettings.ReportFormats     |> toListOption
           SendStatsInterval = globalSettings.SendStatsInterval |> mapSendStatsInterval }

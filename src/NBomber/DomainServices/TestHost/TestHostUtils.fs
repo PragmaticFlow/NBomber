@@ -236,7 +236,7 @@ module internal TestHostScenario =
                      |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
                      |> initConnectionPools dep defaultScnContext.CancellationToken
 
-        let scenariosWithPools = targetScenarios |> Scenario.insertConnectionPools(pools)
+        let scenariosWithPools = targetScenarios |> Scenario.setConnectionPools(pools)
         return scenariosWithPools
     }
 

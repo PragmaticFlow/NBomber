@@ -122,7 +122,18 @@ let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.ConnectionPoolSettings
+        let! scnSettings = settings.ScenariosSettings
+
+        return scnSettings |> List.collect(fun scn ->
+            maybe {
+                let! poolSettings = scn.ConnectionPoolSettings
+                return poolSettings |> List.map(fun pool ->
+                    let newName = Scenario.createConnectionPoolName(scn.ScenarioName, pool.PoolName)
+                    { pool with PoolName = newName }
+                )
+            }
+            |> Option.defaultValue List.empty
+        )
     }
     context
     |> tryGetFromConfig

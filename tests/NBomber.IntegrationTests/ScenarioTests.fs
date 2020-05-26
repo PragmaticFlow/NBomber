@@ -132,7 +132,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
 [<Fact>]
 let ``Test execution should be stoped if all scenarios are stoped`` () =
     let mutable counter = 0
-    let duration = TimeSpan.FromSeconds(15.0)
+    let duration = TimeSpan.FromSeconds(30.0)
 
     let okStep = Step.create("ok step", fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
@@ -218,6 +218,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
         ScenarioName = name
         WarmUpDuration = warmUpDuration
         LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(int copiesCount, during = duration)]
+        ConnectionPoolSettings = None
         CustomSettings = Some "some data"
     }
 
@@ -245,24 +246,27 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         ScenarioName = name
         WarmUpDuration = warmUpDuration
         LoadSimulationsSettings = [LoadSimulationSettings.RampConcurrentScenarios(int copiesCount, during = duration)]
+        ConnectionPoolSettings = None
         CustomSettings = None
     }
 
     let newName = name + "_new_name"
-    let originalScenarios =
-        [Scenario.create newName [Step.createPause(duration.TimeOfDay)]
+
+    let scenario =
+         Scenario.create newName [Step.createPause(duration.TimeOfDay)]
          |> Scenario.withWarmUpDuration(warmUpDuration.AddMinutes(2.0).TimeOfDay)
-         |> Scenario.withLoadSimulations[
+         |> Scenario.withLoadSimulations [
              NBomber.Contracts.LoadSimulation.KeepConcurrentScenarios(int copiesCount, duration.AddMinutes(2.0).TimeOfDay)
-         ]]
-        |> NBomber.Domain.Scenario.createScenarios
-        |> Result.getOk
+         ]
+         |> List.singleton
+         |> NBomber.Domain.Scenario.createScenarios
+         |> Result.getOk
 
-    let updatedScenario = Scenario.applySettings [settings] originalScenarios
+    let updatedScenario = Scenario.applySettings [settings] scenario
 
-    test <@ settings.WarmUpDuration.TimeOfDay <> originalScenarios.Head.WarmUpDuration @>
-    test <@ updatedScenario.[0].WarmUpDuration = originalScenarios.Head.WarmUpDuration @>
-    test <@ updatedScenario.[0].PlanedDuration = originalScenarios.Head.PlanedDuration @>
+    test <@ settings.WarmUpDuration.TimeOfDay <> scenario.Head.WarmUpDuration @>
+    test <@ updatedScenario.[0].WarmUpDuration = scenario.Head.WarmUpDuration @>
+    test <@ updatedScenario.[0].PlanedDuration = scenario.Head.PlanedDuration @>
 
 [<Fact>]
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =
@@ -283,7 +287,7 @@ let ``checkEmptyName should return fail if scenario has empty name`` () =
 let ``checkDuplicateName should return fail if scenario has duplicate name`` () =
     let scn1 = Scenario.create "1" []
     let scn2 = Scenario.create "1" []
-    match Scenario.Validation.checkDuplicateName([scn1; scn2]) with
+    match Scenario.Validation.checkDuplicateScenarioName([scn1; scn2]) with
     | Error _ -> ()
     | _       -> failwith ""
 

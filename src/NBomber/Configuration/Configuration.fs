@@ -14,22 +14,21 @@ type LoadSimulationSettings =
     | RampScenariosPerSec     of copiesCount:int * during:DateTime
     | InjectScenariosPerSec   of copiesCount:int * during:DateTime
 
-type ScenarioSetting = {
-    ScenarioName: string
-    WarmUpDuration: DateTime
-    LoadSimulationsSettings: LoadSimulationSettings list
-    [<JsonField(AsJson = true)>]
-    CustomSettings: string option
-}
-
 type ConnectionPoolSetting = {
     PoolName: string
     ConnectionCount: int
 }
 
+type ScenarioSetting = {
+    ScenarioName: string
+    WarmUpDuration: DateTime
+    LoadSimulationsSettings: LoadSimulationSettings list
+    ConnectionPoolSettings: ConnectionPoolSetting list option
+    [<JsonField(AsJson = true)>] CustomSettings: string option
+}
+
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting list option
-    ConnectionPoolSettings: ConnectionPoolSetting list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
     SendStatsInterval: DateTime option
