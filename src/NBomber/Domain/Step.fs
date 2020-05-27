@@ -94,25 +94,24 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
     for s in steps do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
 
-            for i = 1 to s.RepeatCount do
-                let step = setStepContext(dep, s, data)
-                let! response = execStep(step, dep.GlobalTimer)
+            let step = setStepContext(dep, s, data)
+            let! response = execStep(step, dep.GlobalTimer)
 
-                let payload = response.Response.Payload
-                if payload :? IDisposable then
-                    resourcesToDispose.Add(payload :?> IDisposable)
+            let payload = response.Response.Payload
+            if payload :? IDisposable then
+                resourcesToDispose.Add(payload :?> IDisposable)
 
-                if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
-                    response.Response.Payload <- null
-                    allScnResponses.[stepIndex].Add(response)
+            if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
+                response.Response.Payload <- null
+                allScnResponses.[stepIndex].Add(response)
 
-                if step.RepeatCount = i then
-                    if response.Response.Exception.IsNone then
-                        stepIndex <- stepIndex + 1
-                        data.[Constants.StepResponseKey] <- payload
-                    else
-                        dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
-                        skipStep <- true
+            if response.Response.Exception.IsNone then
+                stepIndex <- stepIndex + 1
+                data.[Constants.StepResponseKey] <- payload
+            else
+                dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
+                skipStep <- true
+
     cleanResources()
 }
 

@@ -51,16 +51,11 @@ type ConnectionPoolArgs =
 
 type Step =
 
-    static member private getRepeatCount (repeatCount: int option) =
-        match defaultArg repeatCount Constants.DefaultRepeatCount with
-        | x when x <= 0 -> 1
-        | x             -> x
-
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           feed: IFeed<'TFeedItem>,
                           execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                          ?repeatCount: int, ?doNotTrack: bool) =
+                          ?doNotTrack: bool) =
 
         let poolArgs = if connectionPoolArgs.PoolName = Constants.EmptyPoolName then None
                        else Some((connectionPoolArgs :?> ConnectionPoolArgs<'TConnection>).GetUntyped().Value)
@@ -71,37 +66,30 @@ type Step =
           Execute = Step.toUntypedExec(execute)
           Context = None
           Feed = Feed.toUntypedFeed(feed)
-          RepeatCount = Step.getRepeatCount(repeatCount)
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           execute: IStepContext<'TConnection,unit> -> Task<Response>,
-                          ?repeatCount: int,
                           ?doNotTrack: bool) =
 
         Step.create(name, connectionPoolArgs, Feed.empty, execute,
-                    Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
     static member create (name: string,
                           feed: IFeed<'TFeedItem>,
                           execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
-                          ?repeatCount: int,
                           ?doNotTrack: bool) =
 
         Step.create(name, ConnectionPoolArgs.empty, feed, execute,
-                    Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
     static member create (name: string,
                           execute: IStepContext<unit,unit> -> Task<Response>,
-                          ?repeatCount: int,
                           ?doNotTrack: bool) =
 
         Step.create(name, ConnectionPoolArgs.empty, Feed.empty, execute,
-                    Step.getRepeatCount(repeatCount),
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
     /// Creates pause step with specified duration.

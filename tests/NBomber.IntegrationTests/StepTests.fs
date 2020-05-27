@@ -88,28 +88,21 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     | Error msg -> failwith msg
 
 [<Fact>]
-let ``repeatCount should set how many times one step will be repeated`` () =
+let ``can be duplicated to introduce repeatable behaviour`` () =
 
-    let mutable invokeCounter = 0
+    let mutable repeatCounter = 0
 
-    let repeatStep = Step.create("repeat step", fun _ -> task {
-        invokeCounter <- invokeCounter + 1
-
-        if invokeCounter = 5 then
-            invokeCounter <- 0
-
+    let repeatStep = Step.create("repeat_step", fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds(0.1))
-        return Response.Ok()
-    }, repeatCount = 5)
+        let number = context.GetPreviousStepResponse<int>()
 
-    let resetStep = Step.create("reset step", fun _ -> task {
-        if invokeCounter > 0 then
-            invokeCounter <- 20
-        return Response.Ok()
+        if number = 1 then repeatCounter <- repeatCounter + 1
+
+        return Response.Ok(number + 1)
     })
 
     let scenario =
-        Scenario.create "latency count test" [repeatStep; resetStep]
+        Scenario.create "latency count test" [repeatStep; repeatStep]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConcurrentScenarios(copiesCount = 1, during = TimeSpan.FromSeconds 3.0)
@@ -119,7 +112,7 @@ let ``repeatCount should set how many times one step will be repeated`` () =
     |> NBomberRunner.run
     |> ignore
 
-    test <@ invokeCounter <= 5 @>
+    test <@ repeatCounter > 5 @>
 
 [<Fact>]
 let ``StepContext Data should store any payload data from latest step.Response`` () =

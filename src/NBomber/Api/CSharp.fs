@@ -29,35 +29,31 @@ type Step =
          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, connectionPoolArgs, feed, execute.Invoke, repeatCount, doNotTrack)
+        FSharp.Step.create(name, connectionPoolArgs, feed, execute.Invoke, doNotTrack)
 
     static member Create<'TConnection>
         (name: string,
          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
          execute: Func<IStepContext<'TConnection,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, connectionPoolArgs, Feed.empty, execute, repeatCount, doNotTrack)
+        Step.Create(name, connectionPoolArgs, Feed.empty, execute, doNotTrack)
 
     static member Create<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPoolArgs.Empty, feed, execute, repeatCount, doNotTrack)
+        Step.Create(name, ConnectionPoolArgs.Empty, feed, execute, doNotTrack)
 
     static member Create(name: string,
                          execute: Func<IStepContext<unit,unit>,Task<Response>>,
-                         [<Optional;DefaultParameterValue(Constants.DefaultRepeatCount:int)>]repeatCount: int,
                          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPoolArgs.Empty, Feed.empty, execute, repeatCount, doNotTrack)
+        Step.Create(name, ConnectionPoolArgs.Empty, Feed.empty, execute, doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =
