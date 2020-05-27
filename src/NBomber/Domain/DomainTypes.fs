@@ -27,7 +27,12 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
         member x.FeedItem = feedItem
         member x.Logger = logger
 
-        member x.GetPreviousStepResponse<'T>() = data.[Constants.StepResponseKey] :?> 'T
+        member x.GetPreviousStepResponse<'T>() =
+            try
+                data.[Constants.StepResponseKey] :?> 'T
+            with
+            | ex -> Unchecked.defaultof<'T>
+
         member x.StopScenario(scenarioName, reason) = StopScenario(scenarioName, reason) |> execStopCommand
         member x.StopCurrentTest(reason) = StopTest(reason) |> execStopCommand
 
@@ -40,7 +45,6 @@ type Step = {
     Execute: StepContext<obj,obj> -> Task<Response>
     Context: StepContext<obj,obj> option
     Feed: IFeed<obj>
-    RepeatCount: int
     DoNotTrack: bool
 } with
     interface IStep with

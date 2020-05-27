@@ -18,9 +18,6 @@ let DefaultConcurrentCopiesCount = 50
 let DefaultConnectionCount = 50
 
 [<Literal>]
-let DefaultRepeatCount = 0
-
-[<Literal>]
 let TryCount = 5
 
 [<Literal>]
