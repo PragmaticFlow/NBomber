@@ -92,26 +92,27 @@ type Step =
         Step.create(name, ConnectionPoolArgs.empty, Feed.empty, execute,
                     defaultArg doNotTrack Constants.DefaultDoNotTrack)
 
-    /// Creates pause step with specified duration.
-    static member createPause (duration: TimeSpan) =
-        Step.create(name = sprintf "pause %A" duration,
-                    execute = (fun _ -> task { do! Task.Delay(duration)
+    /// Creates pause step with specified duration in lazy mode.
+    /// It's useful when you want to fetch value from some configuration.
+    static member createPause (getDuration: unit -> TimeSpan) =
+        Step.create(name = "pause",
+                    execute = (fun _ -> task { do! Task.Delay(getDuration())
                                                return Response.Ok() }),
                     doNotTrack = true)
 
-    /// Creates pause step with specified duration in milliseconds.
-    static member createPause (milliseconds: int) =
-        Step.createPause(TimeSpan.FromMilliseconds(float milliseconds))
-
-    /// Creates pause step with specified duration in lazy mode.
-    /// It's useful when you want to fetch value from some configuration.
-    static member createPause (getValue: unit -> TimeSpan) =
-        getValue() |> Step.createPause
-
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
-    static member createPause (getValue: unit -> int) =
-        getValue() |> float |> TimeSpan.FromMilliseconds |> Step.createPause
+    static member createPause (getDuration: unit -> int) =
+        let func = getDuration >> float >> TimeSpan.FromMilliseconds
+        Step.createPause(func)
+
+    /// Creates pause step with specified duration.
+    static member createPause (duration: TimeSpan) =
+        Step.createPause(fun () -> duration)
+
+    /// Creates pause step with specified duration in milliseconds.
+    static member createPause (milliseconds: int) =
+        Step.createPause(fun () -> milliseconds)
 
 module Scenario =
 
