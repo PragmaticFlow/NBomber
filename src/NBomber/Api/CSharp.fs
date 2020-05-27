@@ -65,13 +65,13 @@ type Step =
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
-    static member CreatePause(getValue: Func<TimeSpan>) =
-        FSharp.Step.createPause(getValue.Invoke)
+    static member CreatePause(getDuration: Func<TimeSpan>) =
+        FSharp.Step.createPause(getDuration.Invoke)
 
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
-    static member CreatePause(getValue: Func<int>) =
-        FSharp.Step.createPause(getValue.Invoke)
+    static member CreatePause(getDuration: Func<int>) =
+        FSharp.Step.createPause(getDuration.Invoke)
 
 [<Extension>]
 type ScenarioBuilder =
@@ -150,7 +150,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withReportingSinks(sinks, sendStatsInterval)
 
     [<Extension>]
-    static member WithPlugins(context: NBomberContext, plugins: IPlugin[]) =
+    static member WithPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IPlugin[]) =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withPlugins(pluginsList)
 

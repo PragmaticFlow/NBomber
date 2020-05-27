@@ -15,6 +15,7 @@ open NBomber.FSharp
 type TestCustomSettings = {
     TargetHost: string
     MsgSizeInBytes: int
+    PauseMs: int
 }
 
 module JsonConfig =

@@ -87,7 +87,7 @@ let ``createRandom returns the random numbers list for each full iteration``() =
 [<Property>]
 let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
-    (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u ) ==> lazy
+    (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u) ==> lazy
 
     let data = FeedData.fromSeq numbers
 

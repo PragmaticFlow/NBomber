@@ -29,6 +29,7 @@ GlobalSettings:
     CustomSettings:
       TargetHost: localhost
       MsgSizeInBytes: 1000
+      PauseMs: 100
 
   ReportFileName: custom_report_name_from_json
 

@@ -20,6 +20,7 @@ open NBomber.Domain.DomainTypes
 type TestCustomSettings = {
     TargetHost: string
     MsgSizeInBytes: int
+    PauseMs: int
 }
 
 [<Fact>]
@@ -55,7 +56,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
 [<Fact>]
 let ``TestInit should propagate CustomSettings from config.json`` () =
 
-    let mutable scnContext = Option.None
+    let mutable scnContext: ScenarioContext option = None
 
     let testInit = fun context -> task {
         scnContext <- Some context
@@ -66,8 +67,12 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
         return Response.Ok()
     })
 
+    let pause = Step.createPause(fun () ->
+        scnContext.Value.CustomSettings.DeserializeJson<TestCustomSettings>().PauseMs
+    )
+
     let scenario =
-        Scenario.create "test_youtube" [okStep]
+        Scenario.create "test_youtube" [okStep; pause]
         |> Scenario.withTestInit testInit
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
@@ -79,10 +84,10 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
     |> NBomberRunner.run
     |> ignore
 
-    let cusomSettings = scnContext.Value.CustomSettings.DeserializeJson<TestCustomSettings>()
+    let customSettings = scnContext.Value.CustomSettings.DeserializeJson<TestCustomSettings>()
 
-    test <@ cusomSettings.TargetHost = "localhost" @>
-    test <@ cusomSettings.MsgSizeInBytes = 1000 @>
+    test <@ customSettings.TargetHost = "localhost" @>
+    test <@ customSettings.MsgSizeInBytes = 1000 @>
 
 [<Fact>]
 let ``should be stopped via StepContext.StopScenario`` () =
@@ -130,7 +135,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         test <@ youtube2Steps.Duration = duration @>
 
 [<Fact>]
-let ``Test execution should be stoped if all scenarios are stoped`` () =
+let ``Test execution should be stopped if all scenarios are stopped`` () =
     let mutable counter = 0
     let duration = TimeSpan.FromSeconds(30.0)
 

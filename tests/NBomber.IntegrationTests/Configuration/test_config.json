@@ -21,7 +21,8 @@
 
           "CustomSettings": {
               "TargetHost": "localhost",
-              "MsgSizeInBytes": 1000
+              "MsgSizeInBytes": 1000,
+              "PauseMs": 100
           }
       }
     ],
