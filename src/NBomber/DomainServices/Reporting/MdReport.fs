@@ -20,10 +20,9 @@ module MdUtility =
     let toMdTable (headerWithRows: string list list) =
         match headerWithRows with
         | header :: rows ->
-            [
-                createTableHeader(header)
-                createTableSeparator(header)
-                createTableRows(rows)
+            [ createTableHeader(header)
+              createTableSeparator(header)
+              createTableRows(rows)
             ]
             |> String.concatLines
 
@@ -48,13 +47,13 @@ module  MdUtilityNodeStats =
         let percentile = sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.StdDev
         let dataTransfer = sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`" s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
 
-        [ yield [ "name"; name ]
-          yield [ "request count"; count ]
-          yield [ "response time"; times ]
-          yield [ "response time percentile"; percentile ]
+        [ [ "name"; name ]
+          [ "request count"; count ]
+          [ "response time"; times ]
+          [ "response time percentile"; percentile ]
 
           if s.AllDataMB > 0.0 then
-            yield [ "data transfer"; dataTransfer ]
+            [ "data transfer"; dataTransfer ]
         ]
 
     let printNodeStats (stats: NodeStats) =

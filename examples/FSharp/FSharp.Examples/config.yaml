@@ -1,4 +1,4 @@
-﻿TestSuite: nbomber tests
+TestSuite: nbomber tests
 TestName: test http
 GlobalSettings:
   ScenariosSettings:
@@ -31,3 +31,4 @@ GlobalSettings:
   - Html
   - Txt
   - Csv
+  - Md

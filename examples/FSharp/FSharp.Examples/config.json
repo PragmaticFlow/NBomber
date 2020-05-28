@@ -1,4 +1,4 @@
-﻿{
+{
     "TestSuite": "nbomber_tests",
     "TestName": "hello_world_test",
     "TargetScenarios": ["hello_world_scenario"],
@@ -27,6 +27,6 @@
         ],
 
         "ReportFileName": "custom_report_name_from_json",
-        "ReportFormats": [ "Html", "Txt", "Csv" ]
+        "ReportFormats": [ "Html", "Txt", "Csv", "Md" ]
     }
 }
