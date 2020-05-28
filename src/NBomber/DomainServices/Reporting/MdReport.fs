@@ -101,7 +101,6 @@ module MdUtilityPluginStats =
                 |> List.append ([headerTable(table)])
                 |> MdUtility.toMdTable
                 |> String.appendNewLine
-
             })
         |> String.concatLines
 
