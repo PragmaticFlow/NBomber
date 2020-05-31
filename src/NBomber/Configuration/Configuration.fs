@@ -1,6 +1,5 @@
 ﻿namespace NBomber.Configuration
 
-open System
 open FSharp.Json
 
 type ReportFormat =
@@ -9,10 +8,10 @@ type ReportFormat =
     | Csv = 2
 
 type LoadSimulationSettings =
-    | RampConcurrentScenarios of copiesCount:int * during:DateTime
-    | KeepConcurrentScenarios of copiesCount:int * during:DateTime
-    | RampScenariosPerSec     of copiesCount:int * during:DateTime
-    | InjectScenariosPerSec   of copiesCount:int * during:DateTime
+    | RampConcurrentScenarios of copiesCount:int * during:string
+    | KeepConcurrentScenarios of copiesCount:int * during:string
+    | RampScenariosPerSec     of copiesCount:int * during:string
+    | InjectScenariosPerSec   of copiesCount:int * during:string
 
 type ConnectionPoolSetting = {
     PoolName: string
@@ -21,7 +20,7 @@ type ConnectionPoolSetting = {
 
 type ScenarioSetting = {
     ScenarioName: string
-    WarmUpDuration: DateTime
+    WarmUpDuration: string
     LoadSimulationsSettings: LoadSimulationSettings list
     ConnectionPoolSettings: ConnectionPoolSetting list option
     [<JsonField(AsJson = true)>] CustomSettings: string option
@@ -31,7 +30,7 @@ type GlobalSettings = {
     ScenariosSettings: ScenarioSetting list option
     ReportFileName: string option
     ReportFormats: ReportFormat list option
-    SendStatsInterval: DateTime option
+    SendStatsInterval: string option
 }
 
 type NBomberConfig = {
@@ -44,5 +43,5 @@ type NBomberConfig = {
 module internal JsonConfig =
 
     let unsafeParse (json) =
-        let config = JsonConfig.create(allowUntyped = true)
-        Json.deserializeEx<NBomberConfig> config json
+        let parseSettings = JsonConfig.create(allowUntyped = true)
+        Json.deserializeEx<NBomberConfig> parseSettings json

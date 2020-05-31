@@ -1,6 +1,6 @@
 ﻿module internal NBomber.Errors
 
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 
 type DomainError =
     | InitScenarioError  of ex:exn
@@ -9,8 +9,8 @@ type DomainError =
 
 type ValidationError =
     | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
-    | DurationIsWrong         of scenarioNames:string[]
-    | ConcurrentCopiesIsWrong of scenarioNames:string[]
+    | WarmUpConfigValueHasInvalidFormat of scnName:string * warmUpValue:string
+    | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
 
     // ScenarioValidation errors
     | EmptyReportName
@@ -21,12 +21,13 @@ type ValidationError =
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
     | SessionIsWrong
-    | SendStatsIntervalIsWrong of minSendStatsInterval:float
+    | SendStatsValueSmallerThanMin
+    | SendStatsConfigValueHasInvalidFormat of value:string
     | DuplicateConnectionPoolName of scenarioName:string * poolName:string
 
     // ConcurrencyScheduler
-    | DurationIsLessThan1Sec of simulation:string
-    | DurationIsBiggerThan10Days of simulation:string
+    | SimulationIsSmallerThanMin of simulation:string
+    | SimulationIsBiggerThanMax of simulation:string
     | CopiesCountIsZeroOrNegative of simulation:string
 
 type AppError =
@@ -46,7 +47,7 @@ type AppError =
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
         | WarmUpErrorWithManyFailedSteps (okCount, failedCount) ->
-            sprintf "WarmUp scenario error: too many failed steps: OK:'%i', Failed:'%i'" okCount failedCount
+            sprintf "WarmUp scenario error: too many failed steps: OK:'%i', Failed:'%i'." okCount failedCount
 
     static member toString (error: ValidationError) =
         match error with
@@ -55,11 +56,11 @@ type AppError =
             |> String.concatWithCommaAndQuotes
             |> sprintf "Target scenarios %s is not found. Available scenarios are %s." <| String.concatWithCommaAndQuotes(registeredScenarios)
 
-        | DurationIsWrong scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Duration for scenarios %s can not be less than 1 sec."
+        | WarmUpConfigValueHasInvalidFormat (scnName, warmUpValue) ->
+            sprintf """ScenariosSettings for scenario '%s' contains invalid WarmUpDuration '%s'. The value should be in this format: "00:00:00".""" scnName warmUpValue
 
-        | ConcurrentCopiesIsWrong scenarioNames ->
-            scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Concurrent copies for scenarios %s can not be less than 1."
+        | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
+            sprintf """ScenariosSettings for scenario '%s' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00".""" scenarioName
 
         | EmptyReportName -> "Report File Name can not be empty string."
         | EmptyScenarioName -> "Scenario name can not be empty."
@@ -71,10 +72,10 @@ type AppError =
             sprintf "Step names are empty in scenario: %s." scenarioName
 
         | EmptySteps scenarioName ->
-            sprintf "Scenario '%s' has no steps" scenarioName
+            sprintf "Scenario '%s' has no steps." scenarioName
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
-            sprintf "The current target group not matched, current target group is %s" currentTargetGroup
+            sprintf "The current target group not matched, current target group is %s." currentTargetGroup
 
         | TargetGroupsAreNotFound notFoundGroups ->
             notFoundGroups
@@ -84,16 +85,23 @@ type AppError =
         | SessionIsWrong ->
             "Session is wrong"
 
-        | SendStatsIntervalIsWrong minSendStatsInterval ->
-            sprintf "SendStatsInterval should be bigger than min value: '%i'" (int minSendStatsInterval)
+        | SendStatsValueSmallerThanMin ->
+            sprintf "SendStatsInterval should be bigger than min value: '%i'." (int Constants.MinSendStatsInterval.TotalSeconds)
+
+        | SendStatsConfigValueHasInvalidFormat value ->
+            sprintf """SendStatsInterval config value: '%s' has invalid format. The value should be in this format: "00:00:00".""" value
 
         | DuplicateConnectionPoolName (scenarioName, poolName) ->
-            sprintf "scenario: '%s' contains connection pool with duplicated name: '%s'" scenarioName poolName
+            sprintf "scenario: '%s' contains connection pool with duplicated name: '%s'." scenarioName poolName
 
-        | DurationIsLessThan1Sec simulation
-        | DurationIsBiggerThan10Days simulation
+        | SimulationIsSmallerThanMin simulation ->
+            sprintf "Simulation duration: '%A' is smaller than min value: '%s'." simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))
+
+        | SimulationIsBiggerThanMax simulation ->
+            sprintf "Simulation duration: '%A' is bigger than max value: '%s'." simulation (Constants.MaxSimulationDuration.ToString("hh\:mm\:ss"))
+
         | CopiesCountIsZeroOrNegative simulation ->
-            sprintf "Simulation error: %A for '%s'" error simulation
+            sprintf "Simulation: '%A' has invalid copiesCount value. The value should be bigger than 0." simulation
 
     static member toString (error: AppError) =
         match error with

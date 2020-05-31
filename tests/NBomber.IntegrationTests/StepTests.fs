@@ -10,7 +10,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.FSharp
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =

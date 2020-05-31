@@ -24,7 +24,7 @@ let baseGlobalSettings = {
 
 let baseScenarioSetting = {
     ScenarioName = "test_scenario"
-    WarmUpDuration = DateTime.MinValue
+    WarmUpDuration = ""
     LoadSimulationsSettings = List.empty
     ConnectionPoolSettings = None
     CustomSettings = None
@@ -191,6 +191,45 @@ let ``checkEmptyReportName should return fail if ReportFileName is empty`` () =
 [<Fact>]
 let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
     match NBomberContext.Validation.checkSendStatsInterval(TimeSpan.FromSeconds 9.0) with
-    | Error (SendStatsIntervalIsWrong _) -> ()
+    | Error (SendStatsValueSmallerThanMin _) -> ()
     | _ -> failwith ""
 
+[<Fact>]
+let ``checkSendStatsSetting should return fail if SendStatsInterval has invalid format`` () =
+    match NBomberContext.Validation.checkSendStatsSettings("1232") with
+    | Error (SendStatsConfigValueHasInvalidFormat _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkSendStatsSetting should return ok if SendStatsInterval has valid format and correct value`` () =
+    match NBomberContext.Validation.checkSendStatsSettings("00:00:20") with
+    | Error _ -> failwith ""
+    | _       -> ()
+
+[<Fact>]
+let ``checkWarmUpSettings should return fail if WarmUp has invalid format`` () =
+    let setting = { baseScenarioSetting with WarmUpDuration = "::"}
+    match NBomberContext.Validation.checkWarmUpSettings [setting] with
+    | Error (WarmUpConfigValueHasInvalidFormat _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
+    let setting = { baseScenarioSetting with WarmUpDuration = "00:00:10"}
+    match NBomberContext.Validation.checkWarmUpSettings [setting] with
+    | Error _ -> failwith ""
+    | _       -> ()
+
+[<Fact>]
+let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(1, "asd:123")]}
+    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
+    | Error (LoadSimulationConfigValueHasInvalidFormat _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkLoadSimulationsSettings should return ok if duration time has correct format`` () =
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(1, "00:00:25")]}
+    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
+    | Error _ -> failwith ""
+    | _       -> ()

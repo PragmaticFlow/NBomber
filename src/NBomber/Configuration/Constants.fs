@@ -12,7 +12,7 @@ let NBomberWelcomeText = """
 """
 
 [<Literal>]
-let DefaultConcurrentCopiesCount = 50
+let DefaultCopiesCount = 50
 
 [<Literal>]
 let DefaultConnectionCount = 50
@@ -44,8 +44,10 @@ let DefaultTestName = "nbomber_default_test_name"
 let DefaultReportName = "nbomber_report"
 
 //todo: opaque types instead of ms
-let DefaultScenarioDuration = TimeSpan.FromSeconds 60.0
-let DefaultWarmUpDuration = TimeSpan.FromSeconds 10.0
+let DefaultSimulationDuration = TimeSpan.FromMinutes 1.0
+let MinSimulationDuration = TimeSpan.FromSeconds 1.0
+let MaxSimulationDuration = TimeSpan.FromDays 10.0
+let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
 let MinSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 2.0
 let OperationTimeOut = TimeSpan.FromSeconds 3.0

@@ -9,7 +9,7 @@ open FSharp.Control.Reactive
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 
 type ConnectionPoolArgs<'TConnection>(name: string, connectionCount: int,

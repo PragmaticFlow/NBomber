@@ -10,6 +10,7 @@ open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.FSharp
@@ -211,57 +212,59 @@ let ``Warmup should have no effect on stats`` () =
 
     | Error msg -> failwith msg
 
-[<Property>]
-let ``applyScenariosSettings() should override initial settings if the name is matched``
-    (warmUpDuration: DateTime, duration: DateTime, copiesCount: uint32) =
+[<Fact>]
+let ``applyScenariosSettings() should override initial settings if the name is matched`` () =
 
-    (copiesCount > 0u && duration.TimeOfDay.TotalSeconds > 1.0) ==> lazy
+    let scnName1 = "scenario_1"
+    let warmUp1 = TimeSpan.FromSeconds 30.0
+    let duration1 = TimeSpan.FromSeconds 50.0
 
-    let name = "same_name"
+    let scnName2 = "scenario_1"
+    let duration2 = TimeSpan.FromSeconds 5.0
 
     let settings = {
-        ScenarioName = name
-        WarmUpDuration = warmUpDuration
-        LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(int copiesCount, during = duration)]
+        ScenarioName = scnName1
+        WarmUpDuration = warmUp1.ToString("hh\:mm\:ss")
+        LoadSimulationsSettings = [LoadSimulationSettings.KeepConcurrentScenarios(10, duration1.ToString("hh\:mm\:ss"))]
         ConnectionPoolSettings = None
         CustomSettings = Some "some data"
     }
 
     let originalScenarios =
-        [Scenario.create name [Step.createPause(duration.TimeOfDay)]]
+        [Scenario.create scnName2 [Step.createPause(1)]
+         |> Scenario.withLoadSimulations [LoadSimulation.RampConcurrentScenarios(500, duration2)] ]
         |> NBomber.Domain.Scenario.createScenarios
         |> Result.getOk
 
     let updatedScenarios = Scenario.applySettings [settings] originalScenarios
-    let newDuration = updatedScenarios.[0].LoadTimeLine |> List.head
 
-    test <@ updatedScenarios.[0].PlanedDuration = newDuration.EndTime @>
-    test <@ updatedScenarios.[0].WarmUpDuration = settings.WarmUpDuration.TimeOfDay @>
+    test <@ updatedScenarios.[0].PlanedDuration = duration1 @>
+    test <@ updatedScenarios.[0].WarmUpDuration = warmUp1 @>
     test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
 
 [<Property>]
-let ``applyScenariosSettings() should skip applying settings when scenario name is not match``
-    (warmUpDuration: DateTime, duration: DateTime, copiesCount: uint32) =
+let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
 
-    (copiesCount > 0u && duration.TimeOfDay.TotalSeconds > 1.0) ==> lazy
+    let scnName1 = "scenario_1"
+    let warmUp1 = TimeSpan.FromSeconds 30.0
+    let duration1 = TimeSpan.FromSeconds 50.0
 
-    let name = "same_name"
+    let scnName2 = "scenario_2"
+    let duration2 = TimeSpan.FromSeconds 5.0
 
     let settings = {
-        ScenarioName = name
-        WarmUpDuration = warmUpDuration
-        LoadSimulationsSettings = [LoadSimulationSettings.RampConcurrentScenarios(int copiesCount, during = duration)]
+        ScenarioName = scnName1
+        WarmUpDuration = warmUp1.ToString("hh\:mm\:ss")
+        LoadSimulationsSettings = [LoadSimulationSettings.RampConcurrentScenarios(5, duration1.ToString("hh\:mm\:ss"))]
         ConnectionPoolSettings = None
         CustomSettings = None
     }
 
-    let newName = name + "_new_name"
-
     let scenario =
-         Scenario.create newName [Step.createPause(duration.TimeOfDay)]
-         |> Scenario.withWarmUpDuration(warmUpDuration.AddMinutes(2.0).TimeOfDay)
+         Scenario.create scnName2 [Step.createPause(120)]
+         |> Scenario.withoutWarmUp
          |> Scenario.withLoadSimulations [
-             NBomber.Contracts.LoadSimulation.KeepConcurrentScenarios(int copiesCount, duration.AddMinutes(2.0).TimeOfDay)
+             NBomber.Contracts.LoadSimulation.KeepConcurrentScenarios(500, duration2)
          ]
          |> List.singleton
          |> NBomber.Domain.Scenario.createScenarios
@@ -269,9 +272,8 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let updatedScenario = Scenario.applySettings [settings] scenario
 
-    test <@ settings.WarmUpDuration.TimeOfDay <> scenario.Head.WarmUpDuration @>
-    test <@ updatedScenario.[0].WarmUpDuration = scenario.Head.WarmUpDuration @>
-    test <@ updatedScenario.[0].PlanedDuration = scenario.Head.PlanedDuration @>
+    test <@ updatedScenario.Head.WarmUpDuration = TimeSpan.Parse "00:00:00" @>
+    test <@ updatedScenario.Head.PlanedDuration = duration2 @>
 
 [<Fact>]
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =

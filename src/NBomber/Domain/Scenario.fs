@@ -6,7 +6,7 @@ open System
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
@@ -120,7 +120,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
             |> Result.getOk
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = settings.WarmUpDuration.TimeOfDay
+                        WarmUpDuration = TimeSpan.Parse settings.WarmUpDuration
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 

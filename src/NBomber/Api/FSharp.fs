@@ -124,8 +124,8 @@ module Scenario =
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [
-            LoadSimulation.InjectScenariosPerSec(copiesCount = Constants.DefaultConcurrentCopiesCount,
-                                                 during = Constants.DefaultScenarioDuration)
+            LoadSimulation.InjectScenariosPerSec(copiesCount = Constants.DefaultCopiesCount,
+                                                 during = Constants.DefaultSimulationDuration)
           ]
     }
 

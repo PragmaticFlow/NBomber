@@ -1,33 +1,32 @@
 namespace NBomber.Configuration.Yaml
 
-open System
 open System.Collections.Generic
 
+open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
-open NBomber.Extensions
 
 [<CLIMutable>]
 type KeepConcurrentScenariosYaml = {
     CopiesCount: int
-    During: TimeSpan
+    During: string
 }
 
 [<CLIMutable>]
 type RampConcurrentScenariosYaml = {
     CopiesCount: int
-    During: TimeSpan
+    During: string
 }
 
 [<CLIMutable>]
 type InjectScenariosPerSecYaml = {
     CopiesCount: int
-    During: TimeSpan
+    During: string
 }
 
 [<CLIMutable>]
 type RampScenariosPerSecYaml = {
     CopiesCount: int
-    During: TimeSpan
+    During: string
 }
 
 [<CLIMutable>]
@@ -47,7 +46,7 @@ type ConnectionPoolSettingYaml = {
 [<CLIMutable>]
 type ScenarioSettingYaml = {
     ScenarioName: string
-    WarmUpDuration: TimeSpan
+    WarmUpDuration: string
     LoadSimulationsSettings: LoadSimulationSettingsYaml[]
     ConnectionPoolSettings: ConnectionPoolSettingYaml[]
     CustomSettings: IDictionary<obj, obj>
@@ -58,7 +57,7 @@ type GlobalSettingsYaml = {
     ScenariosSettings: ScenarioSettingYaml[]
     ReportFileName: string
     ReportFormats: ReportFormat[]
-    SendStatsInterval: TimeSpan
+    SendStatsInterval: string
 }
 
 [<CLIMutable>]
@@ -71,28 +70,25 @@ type NBomberConfigYaml = {
 
 module internal YamlConfig =
 
-    let private mapDateTime (timeSpan: TimeSpan) =
-        DateTime.MinValue + timeSpan
-
     let private toListOption (data: seq<'T>) =
         data |> Option.ofObj |> Option.map(fun x -> Seq.toList x)
 
     let mapLoadSimulationsSettings (loadSimulations: LoadSimulationSettingsYaml): LoadSimulationSettings =
         if isNotNull(box loadSimulations.KeepConcurrentScenarios) then
             KeepConcurrentScenarios(loadSimulations.KeepConcurrentScenarios.CopiesCount,
-                                    loadSimulations.KeepConcurrentScenarios.During |> mapDateTime)
+                                    loadSimulations.KeepConcurrentScenarios.During)
 
         else if isNotNull(box loadSimulations.RampConcurrentScenarios) then
             RampConcurrentScenarios(loadSimulations.RampConcurrentScenarios.CopiesCount,
-                                    loadSimulations.RampConcurrentScenarios.During |> mapDateTime)
+                                    loadSimulations.RampConcurrentScenarios.During)
 
         else if isNotNull(box loadSimulations.InjectScenariosPerSec) then
             InjectScenariosPerSec(loadSimulations.InjectScenariosPerSec.CopiesCount,
-                                  loadSimulations.InjectScenariosPerSec.During |> mapDateTime)
+                                  loadSimulations.InjectScenariosPerSec.During)
 
         else if isNotNull(box loadSimulations.RampScenariosPerSec) then
             RampScenariosPerSec(loadSimulations.RampScenariosPerSec.CopiesCount,
-                                loadSimulations.RampScenariosPerSec.During |> mapDateTime)
+                                loadSimulations.RampScenariosPerSec.During)
 
         else failwith "LoadSimulationSettings must not be empty"
 
@@ -106,21 +102,17 @@ module internal YamlConfig =
             else YamlDotNet.Serialization.Serializer().Serialize(customSettings) |> Some
 
         { ScenarioName   = scenarioSettings.ScenarioName
-          WarmUpDuration = scenarioSettings.WarmUpDuration |> mapDateTime
+          WarmUpDuration = scenarioSettings.WarmUpDuration
           LoadSimulationsSettings = scenarioSettings.LoadSimulationsSettings |> Seq.map mapLoadSimulationsSettings |> Seq.toList
           ConnectionPoolSettings = scenarioSettings.ConnectionPoolSettings |> Seq.map(mapConnectionPool) |> toListOption
           CustomSettings = scenarioSettings.CustomSettings |> mapCustomSettings }
 
-    let mapGlobalSettings (globalSettings: GlobalSettingsYaml): GlobalSettings =
-
-        let mapSendStatsInterval (interval: TimeSpan) =
-            if interval.Ticks > 0L then interval |> mapDateTime |> Some
-            else None
-
-        { ScenariosSettings = globalSettings.ScenariosSettings |> Seq.map(mapScenariosSettings) |> toListOption
-          ReportFileName    = globalSettings.ReportFileName    |> String.toOption
-          ReportFormats     = globalSettings.ReportFormats     |> toListOption
-          SendStatsInterval = globalSettings.SendStatsInterval |> mapSendStatsInterval }
+    let mapGlobalSettings (globalSettings: GlobalSettingsYaml): GlobalSettings = {
+        ScenariosSettings = globalSettings.ScenariosSettings |> Seq.map(mapScenariosSettings) |> toListOption
+        ReportFileName    = globalSettings.ReportFileName    |> String.toOption
+        ReportFormats     = globalSettings.ReportFormats     |> toListOption
+        SendStatsInterval = globalSettings.SendStatsInterval |> Option.ofObj
+    }
 
     let mapNBomberConfig (yamlConfig: NBomberConfigYaml): NBomberConfig = {
         TestSuite = yamlConfig.TestSuite |> Option.ofObj

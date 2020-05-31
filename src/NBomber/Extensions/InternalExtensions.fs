@@ -4,8 +4,7 @@ open System
 open FsToolkit.ErrorHandling
 open Nessos.Streams
 
-[<AutoOpen>]
-module internal Extensions =
+module internal InternalExtensions =
 
     let inline isNotNull (value) =
         not(isNull value)
@@ -60,7 +59,7 @@ module internal Extensions =
         let replace (oldValue: string, newValue: string) (str: string) =
             str.Replace(oldValue, newValue)
 
-        let inline splitLines (str: string) =
+        let splitLines (str: string) =
             str.Split(Environment.NewLine.ToCharArray())
 
         let concatLines (strings: string seq) =
@@ -98,7 +97,7 @@ module internal Extensions =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.maxBy id
 
-        let inline sumBy(projection: 'T -> 'V) (source: Stream<'T>) =
+        let inline sumBy (projection) (source: Stream<'T>) =
             source |> Stream.map(projection) |> Stream.sum
 
     module Array =
@@ -134,12 +133,14 @@ module internal Extensions =
             System.Collections.Generic.Dictionary<'K,'V>()
             :> Dict<'K,'V>
 
+namespace NBomber.Extensions.Operator
+
+module internal Option =
+
     let inline (|??) (a: 'a option) (b: 'a option) =
         match a with
         | Some _ -> a
         | None   -> b
-
-namespace NBomber.Extensions.Operator
 
 module internal Result =
 

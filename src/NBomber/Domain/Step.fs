@@ -11,7 +11,7 @@ open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool

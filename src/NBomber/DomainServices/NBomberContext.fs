@@ -1,11 +1,13 @@
 ﻿module internal NBomber.DomainServices.NBomberContext
 
 open System
+open System.Globalization
 
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
@@ -36,12 +38,40 @@ module Validation =
         else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
 
     let checkReportName (name: string) =
-        if String.IsNullOrWhiteSpace(name) then Error <| EmptyReportName
+        if String.IsNullOrWhiteSpace(name) then Error EmptyReportName
         else Ok name
 
     let checkSendStatsInterval (interval: TimeSpan) =
         if interval >= Constants.MinSendStatsInterval then Ok interval
-        else Error <| SendStatsIntervalIsWrong(Constants.MinSendStatsInterval.TotalSeconds)
+        else Error <| SendStatsValueSmallerThanMin
+
+    let checkSendStatsSettings (interval: string) =
+        match TimeSpan.TryParseExact(interval, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
+        | true, value -> checkSendStatsInterval(value)
+        | false, _    -> Error <| SendStatsConfigValueHasInvalidFormat(interval)
+
+    let checkWarmUpSettings (settings: ScenarioSetting list) =
+        settings
+        |> Seq.tryFind(fun x ->
+            match TimeSpan.TryParseExact(x.WarmUpDuration, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
+            | true, _  -> false
+            | false, _ -> true
+        )
+        |> Option.map(fun x -> Error <| WarmUpConfigValueHasInvalidFormat(x.ScenarioName, x.WarmUpDuration))
+        |> Option.defaultValue(Ok settings)
+
+    let checkLoadSimulationsSettings (settings: ScenarioSetting list) =
+        settings
+        |> Seq.tryFind(fun scenarioSetting ->
+            try
+                scenarioSetting.LoadSimulationsSettings
+                |> Seq.iter(NBomber.Domain.LoadTimeLine.createSimulationFromSettings >> ignore)
+                false
+            with
+            | ex -> true
+        )
+        |> Option.map(fun invalidScenario -> Error <| LoadSimulationConfigValueHasInvalidFormat(invalidScenario.ScenarioName))
+        |> Option.defaultValue(Ok settings)
 
 let empty = {
     TestSuite = Constants.DefaultTestSuite
@@ -68,10 +98,15 @@ let getTestName (context: NBomberContext) =
     |> Option.defaultValue context.TestName
 
 let getScenariosSettings (context: NBomberContext) =
-    context.NBomberConfig
-    |> Option.bind(fun x -> x.GlobalSettings)
-    |> Option.bind(fun x -> x.ScenariosSettings)
-    |> Option.defaultValue List.empty
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.ScenariosSettings
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.map(Validation.checkWarmUpSettings >=> Validation.checkLoadSimulationsSettings)
+    |> Option.defaultValue(Ok List.empty)
 
 let getTargetScenarios (context: NBomberContext) =
     let targetScn =
@@ -109,12 +144,12 @@ let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        let! intervalInDataTime = settings.SendStatsInterval
-        return intervalInDataTime.TimeOfDay
+        return! settings.SendStatsInterval
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.SendStatsInterval
+    |> Option.map(Validation.checkSendStatsSettings)
+    |> Option.defaultValue(Ok context.SendStatsInterval)
 
 let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
@@ -141,8 +176,8 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileName  |> Validation.checkReportName
-        let! sendStatsInterval = context |> getSendStatsInterval |> Validation.checkSendStatsInterval
-        let scenariosSettings  = context |> getScenariosSettings
+        let! sendStatsInterval = context |> getSendStatsInterval
+        let! scenariosSettings  = context |> getScenariosSettings
         let connectionPoolSettings = context |> getConnectionPoolSettings
 
         return {

@@ -7,7 +7,7 @@ open Swensen.Unquote
 open FsCheck
 open FsCheck.Xunit
 
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 
 [<Fact>]
 let ``String concatWithCommaAndQuotes should concat strings with quotes`` () =

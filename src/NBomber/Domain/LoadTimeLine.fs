@@ -2,6 +2,8 @@
 module internal NBomber.Domain.LoadTimeLine
 
 open System
+open System.Globalization
+
 open FsToolkit.ErrorHandling
 
 open NBomber
@@ -17,11 +19,11 @@ let validateSimulation (simulation: LoadSimulation) =
             else Ok copies
 
         let checkDuration (duration) =
-            if duration < TimeSpan.FromSeconds(1.0) then
-                simulation.ToString() |> DurationIsLessThan1Sec |> AppError.createResult
+            if duration < Constants.MinSimulationDuration then
+                simulation.ToString() |> SimulationIsSmallerThanMin |> AppError.createResult
 
-            elif duration > TimeSpan.FromDays(10.0) then
-                simulation.ToString() |> DurationIsBiggerThan10Days |> AppError.createResult
+            elif duration > Constants.MaxSimulationDuration then
+                simulation.ToString() |> SimulationIsBiggerThanMax |> AppError.createResult
 
             else Ok duration
 
@@ -69,10 +71,10 @@ let createWithDuration (loadSimulations: Contracts.LoadSimulation list) = result
 
 let createSimulationFromSettings (settings: Configuration.LoadSimulationSettings) =
     match settings with
-    | Configuration.RampConcurrentScenarios (c,d) -> LoadSimulation.RampConcurrentScenarios(c, d.TimeOfDay)
-    | Configuration.KeepConcurrentScenarios (c,d) -> KeepConcurrentScenarios(c, d.TimeOfDay)
-    | Configuration.RampScenariosPerSec (c,d)     -> LoadSimulation.RampScenariosPerSec(c, d.TimeOfDay)
-    | Configuration.InjectScenariosPerSec (c,d)   -> LoadSimulation.InjectScenariosPerSec(c, d.TimeOfDay)
+    | Configuration.RampConcurrentScenarios (c,time) -> LoadSimulation.RampConcurrentScenarios(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
+    | Configuration.KeepConcurrentScenarios (c,time) -> KeepConcurrentScenarios(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
+    | Configuration.RampScenariosPerSec (c,time)     -> LoadSimulation.RampScenariosPerSec(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
+    | Configuration.InjectScenariosPerSec (c,time)   -> LoadSimulation.InjectScenariosPerSec(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
 
 let getSimulationName (simulation) =
     match simulation with

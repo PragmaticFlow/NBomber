@@ -10,7 +10,7 @@ open Microsoft.Extensions.Configuration
 open Serilog
 
 open NBomber.Configuration
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 
 type CorrelationId = {
     Id: string

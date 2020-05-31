@@ -6,7 +6,7 @@ open System.Data
 open HdrHistogram
 open Nessos.Streams
 
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.StatisticsTypes
@@ -37,7 +37,7 @@ let calcMean (latencies: Stream<Latency>) =
 let calcMax (latencies: Stream<Latency>) =
     latencies |> Stream.maxOrDefault 0
 
-let calcPercentile (histogram: LongHistogram, percentile: float) =
+let calcPercentile (percentile: float) (histogram: LongHistogram) =
     if histogram.TotalCount > 0L then
         percentile |> histogram.GetValueAtPercentile |> int
     else 0
@@ -122,9 +122,9 @@ module RawStepStats =
           Min = calcMin(okLatencies)
           Mean = calcMean(okLatencies)
           Max = calcMax(okLatencies)
-          Percent50 = calcPercentile(histogram, 50.0)
-          Percent75 = calcPercentile(histogram, 75.0)
-          Percent95 = calcPercentile(histogram, 95.0)
+          Percent50 = calcPercentile 50.0 histogram
+          Percent75 = calcPercentile 75.0 histogram
+          Percent95 = calcPercentile 95.0 histogram
           StdDev = calcStdDev(histogram)
           DataTransfer = stepResults.DataTransfer }
 
@@ -149,9 +149,9 @@ module RawStepStats =
               Min = calcMin(okLatencies)
               Mean = calcMean(okLatencies)
               Max = calcMax(okLatencies)
-              Percent50 = calcPercentile(histogram, 50.0)
-              Percent75 = calcPercentile(histogram, 75.0)
-              Percent95 = calcPercentile(histogram, 95.0)
+              Percent50 = calcPercentile 50.0 histogram
+              Percent75 = calcPercentile 75.0 histogram
+              Percent95 = calcPercentile 95.0 histogram
               StdDev = calcStdDev(histogram)
               DataTransfer = dataTransfer })
 

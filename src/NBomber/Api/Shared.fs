@@ -6,8 +6,8 @@ open System.Runtime.CompilerServices
 
 open CsvHelper
 
+open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
-open NBomber.Extensions
 
 [<Extension>]
 type FeedData() =

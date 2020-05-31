@@ -36,3 +36,5 @@ GlobalSettings:
   ReportFormats:
   - Html
   - Txt
+
+  SendStatsInterval: "00:00:30"

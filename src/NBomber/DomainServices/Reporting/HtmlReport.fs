@@ -3,7 +3,8 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
-open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
