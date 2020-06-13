@@ -168,13 +168,19 @@ module internal TestHostConsole =
     let printContextInfo (dep: IGlobalDependency) =
         dep.Logger.Verbose("NBomberConfig: {0}", sprintf "%A" dep.NBomberConfig)
 
-        dep.Plugins
-        |> List.map(fun plugin -> plugin.PluginName)
-        |> fun plugins -> dep.Logger.Information("plugins loaded: {0}", String.concatWithCommaAndQuotes plugins)
+        if dep.Plugins.IsEmpty then
+            dep.Logger.Information("plugins: no plugins were loaded")
+        else
+            dep.Plugins
+            |> List.map(fun plugin -> plugin.PluginName)
+            |> List.iter(fun plugin -> dep.Logger.Information("plugins: '{0}' loaded", plugin))
 
-        dep.ReportingSinks
-        |> List.map(fun sink -> sink.SinkName)
-        |> fun sinks -> dep.Logger.Information("reporting sinks loaded: {0}", String.concatWithCommaAndQuotes sinks)
+        if dep.ReportingSinks.IsEmpty then
+            dep.Logger.Information("reporting sinks: no reporting sinks were loaded")
+        else
+            dep.ReportingSinks
+            |> List.map(fun sink -> sink.SinkName)
+            |> List.iter(fun sink -> dep.Logger.Information("reporting sinks: '{0}' loaded", sink))
 
 module internal TestHostScenario =
 
