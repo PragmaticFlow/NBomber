@@ -33,6 +33,8 @@ type RawStepStats = {
     Percent50: Latency
     Percent75: Latency
     Percent95: Latency
+    Percent99: Latency
+    Percent999: Latency
     StdDev: int
     DataTransfer: DataTransferCount
 }

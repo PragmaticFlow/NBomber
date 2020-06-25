@@ -125,6 +125,8 @@ module RawStepStats =
           Percent50 = calcPercentile 50.0 histogram
           Percent75 = calcPercentile 75.0 histogram
           Percent95 = calcPercentile 95.0 histogram
+          Percent99 = calcPercentile 99.0 histogram
+          Percent999 = calcPercentile 99.9 histogram
           StdDev = calcStdDev(histogram)
           DataTransfer = stepResults.DataTransfer }
 
@@ -152,6 +154,8 @@ module RawStepStats =
               Percent50 = calcPercentile 50.0 histogram
               Percent75 = calcPercentile 75.0 histogram
               Percent95 = calcPercentile 95.0 histogram
+              Percent99 = calcPercentile 99.0 histogram
+              Percent999 = calcPercentile 99.9 histogram
               StdDev = calcStdDev(histogram)
               DataTransfer = dataTransfer })
 
@@ -198,6 +202,8 @@ module NodeStats =
               Percent50 = x.Percent50
               Percent75 = x.Percent75
               Percent95 = x.Percent95
+              Percent99 = x.Percent99
+              Percent999 = x.Percent999
               StdDev = x.StdDev
               MinDataKb = x.DataTransfer.MinKb
               MeanDataKb = x.DataTransfer.MeanKb

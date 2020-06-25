@@ -5,15 +5,15 @@ open NBomber.Contracts
 
 let private getHeader () =
     "scenario,duration,step_name,request_count,ok,failed," +
-    "rps,min,mean,max,50_percent,75_percent,95_percent,std_dev," +
+    "rps,min,mean,max,50_percent,75_percent,95_percent,99_percent,99_9_percent,std_dev," +
     "data_transfer_min_kb,data_transfer_mean_kb,data_transfer_max_kb,data_transfer_all_mb"
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats) =
-    String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
+    String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19}",
                   scenarioName, duration, stats.StepName,
                   stats.RequestCount, stats.OkCount, stats.FailCount,
                   stats.RPS, stats.Min, stats.Mean, stats.Max,
-                  stats.Percent50, stats.Percent75, stats.Percent95, stats.StdDev,
+                  stats.Percent50, stats.Percent75, stats.Percent95, stats.Percent99, stats.Percent999, stats.StdDev,
                   stats.MinDataKb, stats.MeanDataKb, stats.MaxDataKb, stats.AllDataMB)
 
 let private printSteps (scnStats: ScenarioStats) =

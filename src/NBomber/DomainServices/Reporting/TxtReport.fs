@@ -27,7 +27,7 @@ let private printStepsTable (steps: StepStats[]) =
         [ "- name", s.StepName
           "- request count", sprintf "all = %i | OK = %i | failed = %i" s.RequestCount s.OkCount s.FailCount
           "- response time", sprintf "RPS = %i | min = %i | mean = %i | max = %i" s.RPS s.Min s.Mean s.Max
-          "- response time percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.StdDev
+          "- response time percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | 99%% = %i | 99.9%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.Percent99 s.Percent999 s.StdDev
 
           if dataInfoAvailable then
             "- data transfer", sprintf "min = %gKb | mean = %gKb | max = %gKb | all = %gMB"

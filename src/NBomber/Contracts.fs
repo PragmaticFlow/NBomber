@@ -67,6 +67,8 @@ type StepStats = {
     Percent50: int
     Percent75: int
     Percent95: int
+    Percent99: int
+    Percent999: int
     StdDev: int
     MinDataKb: float
     MeanDataKb: float

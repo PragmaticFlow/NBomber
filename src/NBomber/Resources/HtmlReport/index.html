@@ -85,7 +85,7 @@
                                     <th></th>
                                     <th colspan="3">Request Count</th>
                                     <th colspan="4">Request Time</th>
-                                    <th colspan="4">Request Time Percentile</th>
+                                    <th colspan="6">Request Time Percentile</th>
                                     <th colspan="4">Data Transfer</th>
                                 </tr>
                                 <tr>
@@ -100,6 +100,8 @@
                                     <th>50%</th>
                                     <th>75%</th>
                                     <th>95%</th>
+                                    <th>99%</th>
+                                    <th>99.9%</th>
                                     <th>StdDev</th>
                                     <th>Min, KB</th>
                                     <th>Mean, KB</th>
@@ -120,6 +122,8 @@
                                     <td>{{stepStats.Percent50}}</td>
                                     <td>{{stepStats.Percent75}}</td>
                                     <td>{{stepStats.Percent95}}</td>
+                                    <td>{{stepStats.Percent99}}</td>
+                                    <td>{{stepStats.Percent999}}</td>
                                     <td>{{stepStats.StdDev}}</td>
                                     <td>{{stepStats.MinDataKb}}</td>
                                     <td>{{stepStats.MeanDataKb}}</td>
@@ -284,7 +288,7 @@
                      :id="`scenario-${index}-view`"
                      role="tabpanel">
                     <scenarios-stats-table :scenarios-stats="[scenarioStats]"
-                                           :step-properties="['RPS', 'Min', 'Max', 'Percent50', 'Percent75', 'Percent95', 'AllDataMB']"
+                                           :step-properties="['RPS', 'Min', 'Max', 'Percent50', 'Percent75', 'Percent95', 'Percent99', 'Percent999', 'AllDataMB']"
                                            x-axes-label="Scenario Duration"
                                            y-axes-label="">
                     </scenarios-stats-table>
