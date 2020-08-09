@@ -1,0 +1,57 @@
+[v-cloak] {
+    display: none;
+}
+
+:root {
+	--header-padding-top: 0.5vw;
+	--header-padding-bottom: 0.3vw;
+}
+
+.navbar-brand {
+    padding: 0;
+}
+
+.navbar {
+	position: fixed;
+	width: 100%;
+	top: 0;
+	z-index: 1000;
+    padding-top: var(--header-padding-top);
+    padding-bottom: var(--header-padding-bottom);
+}
+
+.card.custom {
+    margin-bottom: 20px;
+}
+
+.card.custom .card-header h6 {
+    margin: 0
+}
+
+.scenario table tr th {
+    text-align: center;
+}
+
+.scenario table tr td {
+    text-align: right;
+}
+
+.scenario table tr td:first-child {
+    text-align: left;
+}
+
+.chart {
+    height: 170px;
+}
+
+.timeline-chart {
+    height: 340px;
+}
+
+[data-toggle="collapse"] .fa {
+    transition: .3s transform ease-in-out;
+}
+
+[data-toggle="collapse"].collapsed .fa {
+    transform: rotate(-90deg);
+}
