@@ -1,0 +1,43 @@
+using System;
+using System.Threading.Tasks;
+
+using NBomber;
+using NBomber.Contracts;
+using NBomber.CSharp;
+
+namespace CSharp.DataFeed
+{
+    public class User
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class DataFeedTest
+    {
+        public static void Run()
+        {
+            var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
+            //var data = FeedData.FromJson<User>("./DataFeed/users_feed_data.json");
+            //var data = FeedData.FromCsv<User>("./DataFeed/users_feed_data.csv");
+
+            var feed = Feed.CreateCircular("numbers", data);
+            //var feed = Feed.CreateConstant("numbers", data);
+            //var feed = Feed.CreateRandom("numbers", data);
+
+            var step = Step.Create("step", feed, async context =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                context.Logger.Information("Data from feed: {FeedItem}", context.FeedItem);
+                return Response.Ok();
+            });
+
+            var scenario = ScenarioBuilder.CreateScenario("Hello World!", step);
+
+            NBomberRunner
+                .RegisterScenarios(scenario)
+                .Run();
+        }
+    }
+}

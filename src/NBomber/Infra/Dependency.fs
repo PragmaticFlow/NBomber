@@ -39,7 +39,7 @@ module Logger =
         let attachFileLogger (config: LoggerConfiguration) =
             config.WriteTo.File(
                 path = "./logs/nbomber-log-" + testInfo.SessionId + ".txt",
-                outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{ThreadId}] {Message:lj}{NewLine}{Exception}",
+                outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
 
