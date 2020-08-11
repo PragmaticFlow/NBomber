@@ -5,7 +5,7 @@ using NBomber.CSharp;
 
 namespace CSharp.HelloWorld
 {
-    public class SimpleHelloWorld
+    public class HelloWorldExample
     {
         public static void Run()
         {
@@ -17,6 +17,8 @@ namespace CSharp.HelloWorld
                 return Response.Ok(42); // this value will be passed as response for the next step
             });
 
+            var pause = Step.CreatePause(TimeSpan.FromMilliseconds(100));
+
             var step2 = Step.Create("step_2", async context =>
             {
                 var value = context.GetPreviousStepResponse<int>(); // 42
@@ -24,12 +26,16 @@ namespace CSharp.HelloWorld
             });
 
             var scenario = ScenarioBuilder
-                .CreateScenario("Hello World!", step1, step2)
+                .CreateScenario("hello_world_scenario", step1, pause, step2)
                 .WithoutWarmUp()
-                .WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromSeconds(30)));
+                .WithLoadSimulations(
+                    Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30))
+                );
 
             NBomberRunner
                 .RegisterScenarios(scenario)
+                .WithTestSuite("example")
+                .WithTestName("hello_world_test")
                 .Run();
         }
     }

@@ -8,6 +8,7 @@ namespace CSharp
         {
             //HttpTests.SimpleHttpTest.Run();
             //HttpTests.AdvancedHttpTest.Run();
+            //HttpTests.AdvancedHttpWithConfig.Run();
             //HttpTests.TracingHttp.Run();
 
             //DataFeedTests.DataFeedTest.Run();
@@ -16,7 +17,10 @@ namespace CSharp
 
             //MongoDb.MongoDbTest.Run();
 
-            HelloWorld.SimpleHelloWorld.Run();
+            //RealtimeReporting.InfluxDbReporting.Run();
+
+            HelloWorld.HelloWorldExample.Run();
+            //HelloWorld.CustomSettingsExample.Run();
         }
     }
 }

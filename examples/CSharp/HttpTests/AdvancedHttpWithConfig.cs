@@ -11,32 +11,18 @@ using NBomber.Plugins.Network.Ping;
 
 namespace CSharp.HttpTests
 {
-    // in this example we use:
-    // - NBomber.Http (https://nbomber.com/docs/plugins-http)
-
-    public class UserResponse
+    public class UserId
     {
         public string Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
     }
 
-    public class PostResponse
-    {
-        public string Id { get; set; }
-        public string UserId { get; set; }
-        public string Title { get; set; }
-        public string Body { get; set; }
-    }
-
-    public class AdvancedHttpTest
+    public class AdvancedHttpWithConfig
     {
         public static void Run()
         {
             var userFeed = Feed.CreateRandom(
                 name: "userFeed",
-                provider: FeedData.FromSeq(new[] {"1", "2", "3", "4", "5"})
+                provider: FeedData.FromJson<UserId>("./HttpTests/Configs/user-feed.json")
             );
 
             var getUser = HttpStep.Create("get_user", userFeed, context =>
@@ -86,14 +72,13 @@ namespace CSharp.HttpTests
                     Simulation.InjectPerSec(rate: 100, during: TimeSpan.FromSeconds(30))
                 });
 
-            var pingPluginConfig = PingPluginConfig.CreateDefault(new[] {"jsonplaceholder.typicode.com"});
-            var pingPlugin = new PingPlugin(pingPluginConfig);
-
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithPlugins(pingPlugin)
+                .WithPlugins(new PingPlugin())
                 .WithTestSuite("http")
                 .WithTestName("advanced_test")
+                .LoadConfig("./HttpTests/Configs/config.json")
+                .LoadInfraConfig("./HttpTests/Configs/infra-config.json")
                 .Run();
         }
     }

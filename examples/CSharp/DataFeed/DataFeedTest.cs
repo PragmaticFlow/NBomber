@@ -18,8 +18,8 @@ namespace CSharp.DataFeed
         public static void Run()
         {
             var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
-            //var data = FeedData.FromJson<User>("./DataFeed/users_feed_data.json");
-            //var data = FeedData.FromCsv<User>("./DataFeed/users_feed_data.csv");
+            //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
+            //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
             var feed = Feed.CreateCircular("numbers", data);
             //var feed = Feed.CreateConstant("numbers", data);

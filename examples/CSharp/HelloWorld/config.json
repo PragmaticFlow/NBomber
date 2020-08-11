@@ -1,0 +1,30 @@
+{
+    "TestSuite": "nbomber_tests",
+    "TestName": "hello_world_test",
+
+    "TargetScenarios": ["my_scenario"],
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "my_scenario",
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "RampConstant": [10, "00:00:05"] },
+                    { "KeepConstant": [10, "00:00:05"] },
+                    { "RampPerSec": [20, "00:00:05"] },
+                    { "InjectPerSec": [20, "00:00:05"] }
+                ],
+
+                "CustomSettings": {
+                    "TestField": 1,
+                    "PauseMs": 200
+                }
+            }
+        ],
+
+        "ReportFileName": "custom_report_name",
+        "ReportFormats": [ "Html", "Txt", "Csv" ]
+    }
+}

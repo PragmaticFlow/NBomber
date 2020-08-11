@@ -25,21 +25,22 @@ namespace CSharp.MongoDb
 
     public class MongoDbTest
     {
-        public static void Run()
+        static Task TestInit(IScenarioContext context)
         {
             var db = new MongoClient().GetDatabase("Test");
 
-            Task initDb(IScenarioContext context)
-            {
-                var testData = Enumerable.Range(0, 2000)
-                    .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
-                    .ToList();
+            var testData = Enumerable.Range(0, 2000)
+                .Select(i => new User { Name = $"Test User {i}", Age = i, IsActive = true })
+                .ToList();
 
-                db.DropCollection("Users", context.CancellationToken);
-                return db.GetCollection<User>("Users")
-                    .InsertManyAsync(testData, cancellationToken: context.CancellationToken);
-            }
+            db.DropCollection("Users", context.CancellationToken);
+            return db.GetCollection<User>("Users")
+                .InsertManyAsync(testData, cancellationToken: context.CancellationToken);
+        }
 
+        public static void Run()
+        {
+            var db = new MongoClient().GetDatabase("Test");
             var usersCollection = db.GetCollection<User>("Users");
 
             var step = Step.Create("query_users", async context =>
@@ -52,7 +53,7 @@ namespace CSharp.MongoDb
 
             var scenario = ScenarioBuilder
                 .CreateScenario("mongo_scenario", step)
-                .WithInit(initDb)
+                .WithInit(TestInit)
                 .WithLoadSimulations(new []
                 {
                     Simulation.KeepConstant(copies: 100, during: TimeSpan.FromSeconds(30))
