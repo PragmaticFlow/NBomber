@@ -24,7 +24,7 @@
     <Compile Include="ScenarioTests.fs" />
     <Compile Include="StatisticsTests.fs" />
     <Compile Include="ConfigurationTests.fs" />
-    <Compile Include="FeedTests.fs" />
+    <Compile Include="DataFeedTests.fs" />
     <Compile Include="LoadTimeLineTests.fs" />
     <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
     <Compile Include="ConnectionPoolTests.fs" />

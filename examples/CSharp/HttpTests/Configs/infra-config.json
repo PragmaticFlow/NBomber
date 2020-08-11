@@ -1,0 +1,19 @@
+{
+    "Serilog": {
+        "WriteTo": [{
+            "Name": "Elasticsearch",
+            "Args": {
+                "nodeUris": "http://localhost:9200",
+                "indexFormat": "nbomber-index-{0:yyyy.MM}"
+            }
+        }]
+    },
+
+    "PingPlugin": {
+        "Hosts": ["jsonplaceholder.typicode.com"],
+        "BufferSizeBytes": 32,
+        "Ttl": 128,
+        "DontFragment": false,
+        "Timeout": 1000
+    }
+}

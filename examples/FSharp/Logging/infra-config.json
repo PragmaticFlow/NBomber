@@ -1,0 +1,11 @@
+{
+    "Serilog": {
+        "WriteTo": [{
+            "Name": "Elasticsearch",
+            "Args": {
+                "nodeUris": "http://localhost:9200",
+                "indexFormat": "nbomber-index-{0:yyyy.MM}"
+            }
+        }]
+    }
+}
