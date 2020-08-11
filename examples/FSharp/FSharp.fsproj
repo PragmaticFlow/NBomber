@@ -38,22 +38,22 @@
         <None Include="Logging\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <Compile Include="MongoDb\MongoDbTest.fs" />
         <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
+        <None Include="MongoDb\docker-compose.yaml" />
         <None Include="RealtimeReporting\docker-compose.yaml" />
         <Compile Include="XUnit\XUnitTest.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+      <PackageReference Include="MongoDB.Driver" Version="2.11.0" />
       <PackageReference Include="NBomber.Http" Version="1.0.0-rc3" />
       <PackageReference Include="NBomber.Sinks.InfluxDB" Version="1.0.0-rc3" />
       <PackageReference Include="Unquote" Version="5.0.0" />
       <PackageReference Include="xunit" Version="2.4.1" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Include="Program.fs" />
     </ItemGroup>
 
 </Project>

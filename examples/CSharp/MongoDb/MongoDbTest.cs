@@ -25,7 +25,7 @@ namespace CSharp.MongoDb
 
     public class MongoDbTest
     {
-        static Task TestInit(IScenarioContext context)
+        static Task ScenarioInit(IScenarioContext context)
         {
             var db = new MongoClient().GetDatabase("Test");
 
@@ -48,12 +48,13 @@ namespace CSharp.MongoDb
                 await usersCollection.Find(u => u.IsActive)
                     .Limit(500)
                     .ToListAsync(context.CancellationToken);
+
                 return Response.Ok();
             });
 
             var scenario = ScenarioBuilder
                 .CreateScenario("mongo_scenario", step)
-                .WithInit(TestInit)
+                .WithInit(ScenarioInit)
                 .WithLoadSimulations(new []
                 {
                     Simulation.KeepConstant(copies: 100, during: TimeSpan.FromSeconds(30))

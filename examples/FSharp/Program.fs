@@ -18,5 +18,7 @@ let main argv =
 
     //RealtimeReporting.InfluxDbReporting.run()
 
+    //MongoDb.MongoDbTest.run()
+
     0 // return an integer exit code
 
