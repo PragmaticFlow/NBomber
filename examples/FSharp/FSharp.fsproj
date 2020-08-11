@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="DataFeed\DataFeedTest.fs" />
+        <Compile Include="HelloWorld\CustomSettingsExample.fs" />
+        <Compile Include="HelloWorld\HelloWorldExample.fs" />
+        <Compile Include="HttpTests\AdvancedHttpTest.fs" />
+        <Compile Include="HttpTests\SimpleHttpTest.fs" />
+        <Compile Include="HttpTests\AdvancedHttpWithConfig.fs" />
+        <Compile Include="HttpTests\TracingHttp.fs" />
+        <Compile Include="Logging\ElasticSearchLogging.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NBomber.Http" Version="1.0.0-rc3" />
+      <PackageReference Include="NBomber.Sinks.InfluxDB" Version="1.0.0-rc3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="DataFeed\users-feed-data.csv" />
+      <None Include="DataFeed\users-feed-data.json" />
+      <None Include="HelloWorld\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="HttpTests\Configs\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="HttpTests\Configs\infra-config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="HttpTests\Configs\user-feed.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Include="HttpTests\docker-compose.yaml" />
+      <None Include="Logging\docker-compose.yaml" />
+      <Compile Include="Program.fs" />
+      <None Include="Logging\infra-config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

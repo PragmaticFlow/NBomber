@@ -65,18 +65,11 @@ namespace CSharp.HttpTests
             });
 
             var scenario = ScenarioBuilder
-                .CreateScenario("rest_api", getUser, getPosts)
-                .WithWarmUpDuration(TimeSpan.FromSeconds(5))
-                .WithLoadSimulations(new[]
-                {
-                    Simulation.InjectPerSec(rate: 100, during: TimeSpan.FromSeconds(30))
-                });
+                .CreateScenario("rest_api", getUser, getPosts);
 
             NBomberRunner
                 .RegisterScenarios(scenario)
                 .WithPlugins(new PingPlugin())
-                .WithTestSuite("http")
-                .WithTestName("advanced_test")
                 .LoadConfig("./HttpTests/Configs/config.json")
                 .LoadInfraConfig("./HttpTests/Configs/infra-config.json")
                 .Run();

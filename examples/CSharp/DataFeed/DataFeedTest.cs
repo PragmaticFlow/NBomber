@@ -9,7 +9,7 @@ namespace CSharp.DataFeed
 {
     public class User
     {
-        public long Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
     }
 
@@ -29,11 +29,11 @@ namespace CSharp.DataFeed
             {
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
-                context.Logger.Information("Data from feed: {FeedItem}", context.FeedItem);
+                context.Logger.Debug("Data from feed: {FeedItem}", context.FeedItem);
                 return Response.Ok();
             });
 
-            var scenario = ScenarioBuilder.CreateScenario("Hello World!", step);
+            var scenario = ScenarioBuilder.CreateScenario("data_feed_scenario", step);
 
             NBomberRunner
                 .RegisterScenarios(scenario)

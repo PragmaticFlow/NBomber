@@ -19,7 +19,7 @@ namespace CSharp.Logging
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // this message will be saved to elastic search
-                context.Logger.Information("hello from NBomber");
+                context.Logger.Debug("hello from NBomber");
 
                 return Response.Ok();
             });
@@ -34,8 +34,8 @@ namespace CSharp.Logging
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithTestSuite("elastic_search")
-                .WithTestName("logging")
+                .WithTestSuite("logging")
+                .WithTestName("elastic_search")
                 .LoadInfraConfig("./Logging/infra-config.json")
                 .Run();
         }

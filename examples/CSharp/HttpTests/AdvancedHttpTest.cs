@@ -54,7 +54,7 @@ namespace CSharp.HttpTests
 
                         return users?.Length == 1
                             ? Response.Ok(users.First()) // we pass user object response to the next step
-                            : Response.Fail("not found user");
+                            : Response.Fail($"not found user: {userId}");
                     });
             });
 

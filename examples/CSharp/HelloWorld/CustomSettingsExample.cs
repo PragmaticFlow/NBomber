@@ -18,7 +18,7 @@ namespace CSharp.HelloWorld
     {
         static CustomScenarioSettings _customSettings = new CustomScenarioSettings();
 
-        static Task TestInit(IScenarioContext context)
+        static Task ScenarioInit(IScenarioContext context)
         {
             _customSettings = context.CustomSettings.Get<CustomScenarioSettings>();
 
@@ -48,17 +48,10 @@ namespace CSharp.HelloWorld
 
             var scenario = ScenarioBuilder
                 .CreateScenario("my_scenario", step, customPause)
-                .WithoutWarmUp()
-                .WithInit(TestInit)
-                .WithLoadSimulations(new []
-                {
-                    Simulation.KeepConstant(copies: 1, TimeSpan.FromSeconds(30))
-                });
+                .WithInit(ScenarioInit);
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithTestSuite("example")
-                .WithTestName("custom_settings")
                 .LoadConfig("./HelloWorld/config.json")
                 .Run();
         }
