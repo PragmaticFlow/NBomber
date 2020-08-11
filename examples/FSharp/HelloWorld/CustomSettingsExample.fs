@@ -39,7 +39,6 @@ let run () =
         return Response.Ok()
     })
 
-
     let customPause = Step.createPause(fun () -> _customSettings.PauseMs)
 
     Scenario.create "my_scenario" [step; customPause]

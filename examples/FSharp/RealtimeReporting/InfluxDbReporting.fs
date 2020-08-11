@@ -1,14 +1,11 @@
-module FSharp.Logging.ElasticSearchLogging
+module FSharp.RealtimeReporting.InfluxDbReporting
 
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber.Contracts
 open NBomber.FSharp
-
-// in this example we use:
-// - Serilog.Sinks.Elasticsearch (https://github.com/serilog/serilog-sinks-elasticsearch)
-// to get more info about logging, please visit: (https://nbomber.com/docs/logging)
+open NBomber.Sinks.InfluxDB
 
 let run () =
 
@@ -22,12 +19,14 @@ let run () =
         return Response.Ok()
     })
 
+    let influxDb = new InfluxDBSink("http://localhost:8086", "default")
+
     Scenario.create "hello_world_scenario" [step]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = minutes 1)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withTestSuite "logging"
-    |> NBomberRunner.withTestName "elastic_search"
-    |> NBomberRunner.loadInfraConfig "./Logging/infra-config.json"
+    |> NBomberRunner.withTestSuite "reporting"
+    |> NBomberRunner.withTestName "influx_test"
+    |> NBomberRunner.withReportingSinks([influxDb], seconds 10)
     |> NBomberRunner.run
     |> ignore

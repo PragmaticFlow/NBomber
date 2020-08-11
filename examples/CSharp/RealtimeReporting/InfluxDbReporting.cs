@@ -26,7 +26,7 @@ namespace CSharp.RealtimeReporting
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithTestSuite("influx")
+                .WithTestSuite("reporting")
                 .WithTestName("influx_test")
                 .WithReportingSinks(
                     reportingSinks: new[] {influxDb},

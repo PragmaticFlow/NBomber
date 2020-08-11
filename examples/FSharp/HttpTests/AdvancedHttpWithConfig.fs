@@ -1,4 +1,4 @@
-module FSharp.HttpTests.AdvancedHttpTestWithConfig
+module FSharp.HttpTests.AdvancedHttpWithConfig
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Newtonsoft.Json

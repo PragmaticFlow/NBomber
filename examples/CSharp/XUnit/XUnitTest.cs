@@ -24,7 +24,7 @@ namespace CSharp.XUnit
                 return Response.Ok(sizeBytes: 1024);
             });
 
-            return ScenarioBuilder.CreateScenario("nunit hello world", step);
+            return ScenarioBuilder.CreateScenario("xunit_hello_world", step);
         }
 
         [Fact]

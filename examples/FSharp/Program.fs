@@ -1,9 +1,22 @@
-﻿// Learn more about F# at http://fsharp.org
-
-open System
+﻿open System
+open FSharp
 
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
+
+    //DataFeed.DataFeedTest.run()
+
+    HelloWorld.HelloWorldExample.run()
+    //HelloWorld.CustomSettingsExample.run()
+
+    //HttpTests.SimpleHttpTest.run()
+    //HttpTests.AdvancedHttpTest.run()
+    //HttpTests.AdvancedHttpWithConfig.run()
+    //HttpTests.TracingHttp.run()
+
+    //Logging.ElasticSearchLogging.run()
+
+    //RealtimeReporting.InfluxDbReporting.run()
+
     0 // return an integer exit code
 
