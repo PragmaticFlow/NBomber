@@ -2,7 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/euee3v8j0eeefjxg?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
+[![Build status](https://ci.appveyor.com/api/projects/status/uf934ofyo2esiyos?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 [![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -26,46 +26,24 @@ Documentation is located [here](https://nbomber.com).
 ### Analyze trends
 ![analyze trends](https://github.com/PragmaticFlow/NBomber/blob/dev/assets/influx_trends.png)
 
-### Features
-- [x] Pull scenario (Request-response)
-- [x] Push scenario (Pub/Sub)
-- [x] Sequential flow
-- [x] Test runner support: [XUnit; NUnit]
-- [x] Cluster support (run scenario from several nodes in parallel)
-- [x] Realtime Reporting: [Plain text; HTML; Csv; Md]
-- [x] Statistics sinks: [InfluxDb]
+### Why we build NBomber and what you can do with it?
 
-### Supported technologies
-- Supported runtimes: .NET Framework (4.6+), .NET Core (2.0+), Mono, CoreRT
-- Supported languages: C#, F#, Visual Basic
-- Supported OS: Windows, Linux, macOS
+1. The main reason behind NBomber is to provide a **lightweight** framework for writing load tests which you can use to test literally **any** system and simulate **any** production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API. 
+2. Another goal is to provide building blocks to validate your POC (proof of concept) projects by applying any complex load distribution.  
+3. With NBomber you can test any PULL or PUSH system (HTTP, WebSockets, GraphQl, gRPC, SQL Databse, MongoDb, Redis etc). 
 
-### Examples
-|Scenario|Language|Example|
-|--|--|--|
-| HTTP | C# | [Test HTTP](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/Http.cs) |
-| MongoDb | C# | [Test MongoDb with 2 READ queries](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/MongoDb.cs)|
-| NUnit integration | C# | [Simple NUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.NUnit/Tests.cs) |
-| WebSockets | C# | [Test ping and pong on WebSockets](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/WebSockets.cs) |
-| Realtime Statistics | C# | [Realtime Statistics with InfluxDb sink](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/RealtimeStatistics.cs) |
-| Data Feed | C# | [Data Feed](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples/Scenarios/DataFeed.cs) |
-| Cluster | C# | [Test HTTP with Cluster](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/CSharp/CSharp.Examples.Cluster/Scenarios/Http.cs) |
-| HTTP | F# | [Test HTTP](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/Http.fs) |
-| XUnit integration | F# | [Simple XUnit test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.XUnit/Tests.fs) |
-| Expecto integration | F# | [Simple Expecto test](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples.Expecto/Tests.fs) |
-| Custom Reporting Sink | F# | [Custom Reporting Sink](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/CustomReportingSink.fs) |
-| Data Feed | F# | [Data Feed](https://github.com/PragmaticFlow/NBomber/blob/dev/examples/FSharp/FSharp.Examples/Scenarios/DataFeed.fs) |
+NBomber as a modern framework provides:
+- Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL) 
+- Zero dependencies on semantic model (Pull/Push)
+- Very flexible configuration and dead simple API
+- Cluster support
+- Reporting sinks
+- CI/CD integration
+- Plugins/extensions support
+- Data feed support
 
-### Contributing
-Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
-
-## Why another {x} framework for load testing?
-The main reasons are:
- - **To be technology agnostic** as much as possible (**no dependency on any protocol: HTTP, WebSockets, SSE etc**).
- - To be able to test .NET implementation of specific driver. During testing, it was identified many times that the performance could be slightly different because of the virtual machine(.NET, Java, PHP, Js, Erlang, different settings for GC) or just quality of drivers. For example there were cases that drivers written in C++ and invoked from NodeJs app worked faster than drivers written in C#/.NET. Therefore, it does make sense to load test your app using your concrete driver and runtime.
-
- ### What makes it very simple?
-NBomber is not really a framework but rather a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
+### What makes it very simple?
+NBomber is a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
 ```csharp
 var step = Step.Create("step", async context =>
 {
@@ -75,8 +53,18 @@ var step = Step.Create("step", async context =>
     return Response.Ok();
 });
 
-var scenario = ScenarioBuilder.CreateScenario("Hello World!", new[] { step });
+var scenario = ScenarioBuilder.CreateScenario("hello_world_scenario", step);
 
-NBomberRunner.RegisterScenarios(scenario)
-             .RunInConsole();
+NBomberRunner
+    .RegisterScenarios(scenario)
+    .Run();
 ```
+
+### Examples
+|Language|Example|
+|--|--|
+| F# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/FSharp) |
+| C# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharp) |
+
+### Contributing
+Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
