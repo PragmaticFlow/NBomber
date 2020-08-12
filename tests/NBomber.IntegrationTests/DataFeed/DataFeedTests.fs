@@ -8,6 +8,12 @@ open Swensen.Unquote
 open NBomber
 open NBomber.Domain
 
+[<CLIMutable>]
+type User = {
+    Id: int
+    Name: string
+}
+
 [<Property>]
 let ``createCircular iterate over array sequentially``(length: int) =
 
@@ -101,3 +107,19 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
         circular.GetNextItem(correlationId, null) |> ignore
         constant.GetNextItem(correlationId, null) |> ignore
         random.GetNextItem(correlationId, null) |> ignore
+
+[<Fact>]
+let ``FeedData.fromJson works correctly``() =
+
+    let data = FeedData.fromJson<User> "./DataFeed/users-feed-data.json"
+    let users = data.GetAllItems()
+
+    test <@ users.Length > 0 @>
+
+[<Fact>]
+let ``FeedData.fromCsv works correctly``() =
+
+    let data = FeedData.fromCsv<User> "./DataFeed/users-feed-data.csv"
+    let users = data.GetAllItems()
+
+    test <@ users.Length > 0 @>
