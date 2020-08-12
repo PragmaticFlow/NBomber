@@ -24,7 +24,6 @@
     <Compile Include="ScenarioTests.fs" />
     <Compile Include="StatisticsTests.fs" />
     <Compile Include="ConfigurationTests.fs" />
-    <Compile Include="DataFeedTests.fs" />
     <Compile Include="LoadTimeLineTests.fs" />
     <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
     <Compile Include="ConnectionPoolTests.fs" />
@@ -32,6 +31,13 @@
     <Compile Include="Plugins\PluginTests.fs" />
     <Compile Include="CliArgsTests.fs" />
     <Compile Include="LoggingTests.fs" />
+    <Compile Include="DataFeed\DataFeedTests.fs" />
+    <None Include="DataFeed\users-feed-data.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DataFeed\users-feed-data.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
