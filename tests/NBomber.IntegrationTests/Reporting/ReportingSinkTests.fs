@@ -51,7 +51,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
     }
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
+    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
     |> NBomberRunner.run
     |> ignore
 
@@ -97,7 +97,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
     }
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportingSinks([reportingSink], TimeSpan.FromSeconds 10.0)
+    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
     |> NBomberRunner.run
     |> ignore
 

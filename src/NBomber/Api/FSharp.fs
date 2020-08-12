@@ -195,7 +195,7 @@ module NBomberRunner =
 
     /// Sets reporting sinks.
     /// Reporting sink is used to save real-time metrics to correspond database
-    let withReportingSinks (reportingSinks: IReportingSink list, sendStatsInterval: TimeSpan) (context: NBomberContext) =
+    let withReportingSinks (reportingSinks: IReportingSink list) (sendStatsInterval: TimeSpan) (context: NBomberContext) =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 

@@ -39,8 +39,8 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="MongoDb\MongoDbTest.fs" />
-        <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
         <None Include="MongoDb\docker-compose.yaml" />
+        <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
         <None Include="RealtimeReporting\docker-compose.yaml" />
         <Compile Include="XUnit\XUnitTest.fs" />
         <Compile Include="Program.fs" />

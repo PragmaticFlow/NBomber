@@ -35,7 +35,7 @@ type PingPluginConfig = {
     /// The default is 1000 ms.
     Timeout: int
 } with
-    static member CreateDefault(hosts: string seq) = {
+    static member CreateDefault([<System.ParamArray>]hosts: string seq) = {
         Hosts = hosts |> Seq.toArray
         BufferSizeBytes = 32
         Ttl = 128
