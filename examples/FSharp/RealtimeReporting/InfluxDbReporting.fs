@@ -19,7 +19,8 @@ let run () =
         return Response.Ok()
     })
 
-    let influxDb = new InfluxDBSink("http://localhost:8086", "default")
+    let influxConfig = InfluxDbSinkConfig.Create("http://localhost:8086", dbName = "default")
+    use influxDb = new InfluxDBSink(influxConfig)
 
     Scenario.create "hello_world_scenario" [step]
     |> Scenario.withoutWarmUp
@@ -27,6 +28,6 @@ let run () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withTestSuite "reporting"
     |> NBomberRunner.withTestName "influx_test"
-    |> NBomberRunner.withReportingSinks([influxDb], seconds 10)
+    |> NBomberRunner.withReportingSinks [influxDb] (seconds 10)
     |> NBomberRunner.run
     |> ignore

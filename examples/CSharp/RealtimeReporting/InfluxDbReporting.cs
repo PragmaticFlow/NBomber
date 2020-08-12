@@ -22,7 +22,8 @@ namespace CSharp.RealtimeReporting
                 .WithoutWarmUp()
                 .WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromMinutes(1)));
 
-            var influxDb = new InfluxDBSink("http://localhost:8086", "default");
+            var influxConfig = InfluxDbSinkConfig.Create("http://localhost:8086", dbName: "default");
+            var influxDb = new InfluxDBSink(influxConfig);
 
             NBomberRunner
                 .RegisterScenarios(scenario)

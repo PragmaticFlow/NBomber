@@ -44,12 +44,30 @@ NBomber as a modern framework provides:
 
 ### What makes it very simple?
 NBomber is a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
+
+```fsharp
+// FSharp example
+
+let step = Step.create("step", fun context -> task {
+
+    // you can do any logic here: go to http, websocket etc
+    do! Task.Delay(seconds 1)
+    return Response.Ok()
+})
+
+Scenario.create "hello_world_scenario" [step]
+|> NBomberRunner.registerScenario
+|> NBomberRunner.run
+```
+
 ```csharp
+// CSharp example
+
 var step = Step.Create("step", async context =>
 {
     // you can do any logic here: go to http, websocket etc
 
-    await Task.Delay(TimeSpan.FromSeconds(0.1));
+    await Task.Delay(TimeSpan.FromSeconds(1));
     return Response.Ok();
 });
 
