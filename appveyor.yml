@@ -1,4 +1,4 @@
-version: 1.0.0-rc3-{build}
+version: 1.0.0-rc4-{build}
 image: Visual Studio 2019
 
 branches:
