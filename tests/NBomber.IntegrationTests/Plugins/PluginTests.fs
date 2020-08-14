@@ -107,7 +107,7 @@ let ``Init should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -135,7 +135,7 @@ let ``StartTest should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -161,7 +161,7 @@ let ``StartTest should be invoked with infra config`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -189,7 +189,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -217,7 +217,7 @@ let ``StopTest should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -257,7 +257,7 @@ let ``stats should be passed to IReportingSink`` () =
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore

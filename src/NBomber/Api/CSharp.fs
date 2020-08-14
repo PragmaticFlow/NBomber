@@ -151,11 +151,12 @@ type NBomberRunner =
         let sinks = reportingSinks |> Seq.toList
         context |> FSharp.NBomberRunner.withReportingSinks sinks sendStatsInterval
 
-    /// Sets plugins.
+    /// Sets worker plugins.
+    /// Worker plugin is a plugin that starts at the test start and works as a background worker.
     [<Extension>]
-    static member WithPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IWorkerPlugin[]) =
+    static member WithWorkerPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IWorkerPlugin[]) =
         let pluginsList = plugins |> Seq.toList
-        context |> FSharp.NBomberRunner.withPlugins(pluginsList)
+        context |> FSharp.NBomberRunner.withWorkerPlugins(pluginsList)
 
     /// Loads configuration.
     /// The following formats are supported:

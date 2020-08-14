@@ -199,8 +199,9 @@ module NBomberRunner =
         { context with ReportingSinks = reportingSinks
                        SendStatsInterval = sendStatsInterval }
 
-    /// Sets plugins.
-    let withPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
+    /// Sets worker plugins.
+    /// Worker plugin is a plugin that starts at the test start and works as a background worker.
+    let withWorkerPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
     /// Loads configuration.
