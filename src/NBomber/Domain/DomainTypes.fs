@@ -49,6 +49,7 @@ type Step = {
 } with
     interface IStep with
         member x.StepName = x.StepName
+        member x.DoNotTrack = x.DoNotTrack
 
 type StepResponse = {
     Response: Response

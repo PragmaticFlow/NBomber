@@ -200,7 +200,7 @@ module NBomberRunner =
                        SendStatsInterval = sendStatsInterval }
 
     /// Sets plugins.
-    let withPlugins (plugins: IPlugin list) (context: NBomberContext) =
+    let withPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
         { context with Plugins = plugins }
 
     /// Loads configuration.

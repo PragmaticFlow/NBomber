@@ -122,7 +122,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
 
     new() = new PingPlugin(PingPluginConfig.CreateDefault Seq.empty)
 
-    interface IPlugin with
+    interface IWorkerPlugin with
         member x.PluginName = _pluginName
 
         member x.Init(logger, infraConfig) =
@@ -133,7 +133,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
                 |> Option.bind(fun x -> x.GetSection("PingPlugin").Get<PingPluginConfig>() |> Option.ofRecord)
                 |> Option.defaultValue pluginConfig
 
-        member x.StartTest(testInfo: TestInfo) =
+        member x.Start(testInfo: TestInfo) =
             execPing()
             |> createStats
             |> Result.map(fun x -> _pluginStats <- x)
@@ -143,5 +143,5 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
             Task.CompletedTask
 
         member x.GetStats() = _pluginStats
-        member x.StopTest() = Task.CompletedTask
+        member x.Stop() = Task.CompletedTask
         member x.Dispose() = ()

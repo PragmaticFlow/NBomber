@@ -153,7 +153,7 @@ type NBomberRunner =
 
     /// Sets plugins.
     [<Extension>]
-    static member WithPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IPlugin[]) =
+    static member WithPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IWorkerPlugin[]) =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withPlugins(pluginsList)
 
