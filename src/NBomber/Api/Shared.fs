@@ -15,7 +15,7 @@ type FeedData() =
     [<CompiledName("FromSeq")>]
     static member fromSeq (items: 'T seq) =
         { new IFeedProvider<'T> with
-            member x.GetAllItems() = Seq.toArray items }
+            member _.GetAllItems() = Seq.toArray items }
 
     [<CompiledName("FromCsv")>]
     static member fromCsv<'T> (filePath: string) =
@@ -27,14 +27,14 @@ type FeedData() =
 
     [<CompiledName("FromJson")>]
     static member fromJson<'T> (filePath: string) =
-        System.IO.File.ReadAllText filePath
+        File.ReadAllText filePath
         |> Newtonsoft.Json.JsonConvert.DeserializeObject<'T[]>
         |> FeedData.fromSeq
 
     [<Extension; CompiledName("ShuffleData")>]
     static member shuffleData (provider: IFeedProvider<'T>) =
         { new IFeedProvider<'T> with
-            member x.GetAllItems() = provider.GetAllItems() |> Array.shuffle }
+            member _.GetAllItems() = provider.GetAllItems() |> Array.shuffle }
 
 /// Data feed helps you to inject dynamic data into your test.
 module Feed =

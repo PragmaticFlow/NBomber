@@ -35,7 +35,7 @@ type PingPluginConfig = {
     /// The default is 1000 ms.
     Timeout: int
 } with
-    static member CreateDefault([<System.ParamArray>]hosts: string seq) = {
+    static member CreateDefault([<ParamArray>]hosts: string seq) = {
         Hosts = hosts |> Seq.toArray
         BufferSizeBytes = 32
         Ttl = 128
@@ -123,9 +123,9 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
     new() = new PingPlugin(PingPluginConfig.CreateDefault Seq.empty)
 
     interface IWorkerPlugin with
-        member x.PluginName = _pluginName
+        member _.PluginName = _pluginName
 
-        member x.Init(logger, infraConfig) =
+        member _.Init(logger, infraConfig) =
             _logger <- logger.ForContext<PingPlugin>()
 
             _config <-
@@ -133,7 +133,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
                 |> Option.bind(fun x -> x.GetSection("PingPlugin").Get<PingPluginConfig>() |> Option.ofRecord)
                 |> Option.defaultValue pluginConfig
 
-        member x.Start(testInfo: TestInfo) =
+        member _.Start(testInfo: TestInfo) =
             execPing()
             |> createStats
             |> Result.map(fun x -> _pluginStats <- x)
@@ -142,6 +142,6 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
 
             Task.CompletedTask
 
-        member x.GetStats() = _pluginStats
-        member x.Stop() = Task.CompletedTask
-        member x.Dispose() = ()
+        member _.GetStats() = _pluginStats
+        member _.Stop() = Task.CompletedTask
+        member _.Dispose() = ()

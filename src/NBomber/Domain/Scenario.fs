@@ -1,4 +1,4 @@
-﻿[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+﻿[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.Scenario
 
 open System
@@ -63,7 +63,7 @@ module Validation =
     let validate =
         checkEmptyScenarioName >=> checkStepsNotEmpty >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
 
-let createCorrelationId (scnName: ScenarioName, copyNumber): Contracts.CorrelationId =
+let createCorrelationId (scnName: ScenarioName, copyNumber): CorrelationId =
     { Id = sprintf "%s_%i" scnName copyNumber
       ScenarioName = scnName
       CopyNumber = copyNumber }
@@ -186,10 +186,10 @@ module ScenarioContext =
 
     let create (nodeInfo, cancelToken, logger) = {
         new IScenarioContext with
-            member x.NodeInfo = nodeInfo
-            member x.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
-            member x.CancellationToken = cancelToken
-            member x.Logger = logger
+            member _.NodeInfo = nodeInfo
+            member _.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
+            member _.CancellationToken = cancelToken
+            member _.Logger = logger
     }
 
     let setCustomSettings (context: IScenarioContext, customSettings: string) =
@@ -202,7 +202,7 @@ module ScenarioContext =
             | _ -> ConfigurationBuilder().Build() :> IConfiguration
 
         { new IScenarioContext with
-            member x.NodeInfo = context.NodeInfo
-            member x.CustomSettings = parseCustomSettings(customSettings)
-            member x.CancellationToken = context.CancellationToken
-            member x.Logger = context.Logger }
+            member _.NodeInfo = context.NodeInfo
+            member _.CustomSettings = parseCustomSettings(customSettings)
+            member _.CancellationToken = context.CancellationToken
+            member _.Logger = context.Logger }

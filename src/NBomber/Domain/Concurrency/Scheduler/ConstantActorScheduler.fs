@@ -83,13 +83,13 @@ type ConstantActorScheduler(dep: ActorDep) =
             stop()
         }
 
-    member x.AvailableActors = _actorPool
-    member x.WorkingActorCount = _scheduledActorCount
-    member x.Stop() = stop()
+    member _.AvailableActors = _actorPool
+    member _.WorkingActorCount = _scheduledActorCount
+    member _.Stop() = stop()
 
-    member x.AddActors(count) =
+    member _.AddActors(count) =
         _scheduledActorCount <- _scheduledActorCount + count
-        if _stop = true then startScheduler() |> ignore
+        if _stop then startScheduler() |> ignore
 
-    member x.RemoveActors(count) =
+    member _.RemoveActors(count) =
         _scheduledActorCount <- removeFromScheduler(_scheduledActorCount, count)

@@ -79,7 +79,7 @@ type Step =
 type ScenarioBuilder =
 
     /// Creates scenario with steps which will be executed sequentially.
-    static member CreateScenario(name: string, [<System.ParamArray>]steps: IStep[]) =
+    static member CreateScenario(name: string, [<ParamArray>]steps: IStep[]) =
         FSharp.Scenario.create name (Seq.toList steps)
 
     /// Initializes scenario.
@@ -106,14 +106,14 @@ type ScenarioBuilder =
     /// Sets load simulations.
     /// Default value is: InjectPerSec(rate = 50, during = minutes 1)
     [<Extension>]
-    static member WithLoadSimulations (scenario: Scenario, [<System.ParamArray>]loadSimulations: LoadSimulation[]) =
+    static member WithLoadSimulations (scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
 [<Extension>]
 type NBomberRunner =
 
     /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
-    static member RegisterScenarios([<System.ParamArray>]scenarios: Contracts.Scenario[]) =
+    static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     /// Sets test suite name
@@ -135,7 +135,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     [<Extension>]
-    static member WithReportFormats(context: NBomberContext, [<System.ParamArray>]reportFormats: ReportFormat[]) =
+    static member WithReportFormats(context: NBomberContext, [<ParamArray>]reportFormats: ReportFormat[]) =
         let formats = reportFormats |> Seq.toList
         context |> FSharp.NBomberRunner.withReportFormats(formats)
 
@@ -154,7 +154,7 @@ type NBomberRunner =
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
     [<Extension>]
-    static member WithWorkerPlugins(context: NBomberContext, [<System.ParamArray>]plugins: IWorkerPlugin[]) =
+    static member WithWorkerPlugins(context: NBomberContext, [<ParamArray>]plugins: IWorkerPlugin[]) =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withWorkerPlugins(pluginsList)
 
@@ -203,7 +203,7 @@ type NBomberRunner =
     /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
     /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
     [<Extension>]
-    static member Run(context: NBomberContext, [<System.ParamArray>]args: string[]) =
+    static member Run(context: NBomberContext, [<ParamArray>]args: string[]) =
         match FSharp.NBomberRunner.runWithArgs args context with
         | Ok stats  -> stats
         | Error msg -> failwith msg

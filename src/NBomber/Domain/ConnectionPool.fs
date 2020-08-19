@@ -26,19 +26,19 @@ type ConnectionPoolArgs<'TConnection>(name: string, connectionCount: int,
         )
     )
 
-    member x.PoolName = name
-    member x.ConnectionCount = connectionCount
-    member x.OpenConnection(number, token) = openConnection(number, token)
-    member x.CloseConnection(connection, token) = closeConnection(connection, token)
-    member x.GetUntyped() = untypedArgs
-    member x.Clone(newName: string) = ConnectionPoolArgs<'TConnection>(newName, connectionCount, openConnection, closeConnection)
-    member x.Clone(newConnectionCount: int) = ConnectionPoolArgs<'TConnection>(name, newConnectionCount, openConnection, closeConnection)
+    member _.PoolName = name
+    member _.ConnectionCount = connectionCount
+    member _.OpenConnection(number, token) = openConnection(number, token)
+    member _.CloseConnection(connection, token) = closeConnection(connection, token)
+    member _.GetUntyped() = untypedArgs
+    member _.Clone(newName: string) = ConnectionPoolArgs<'TConnection>(newName, connectionCount, openConnection, closeConnection)
+    member _.Clone(newConnectionCount: int) = ConnectionPoolArgs<'TConnection>(name, newConnectionCount, openConnection, closeConnection)
 
     interface IConnectionPoolArgs<'TConnection> with
-        member x.PoolName = name
-        member x.ConnectionCount = connectionCount
-        member x.OpenConnection(number, token) = openConnection(number, token)
-        member x.CloseConnection(connection, token) = closeConnection(connection, token)
+        member _.PoolName = name
+        member _.ConnectionCount = connectionCount
+        member _.OpenConnection(number, token) = openConnection(number, token)
+        member _.CloseConnection(connection, token) = closeConnection(connection, token)
 
 type ConnectionPoolEvent =
     | StartedInit           of poolName:string
@@ -109,12 +109,12 @@ type ConnectionPool(args: ConnectionPoolArgs<obj>) =
             use e = _eventStream
             e |> ignore
 
-    member x.PoolName = args.PoolName
-    member x.ConnectionCount = args.ConnectionCount
-    member x.AliveConnections = _aliveConnections
-    member x.EventStream = _eventStream :> IObservable<_>
-    member x.Init(token) = initPool(token)
-    member x.Destroy(token) = destroy(token)
+    member _.PoolName = args.PoolName
+    member _.ConnectionCount = args.ConnectionCount
+    member _.AliveConnections = _aliveConnections
+    member _.EventStream = _eventStream :> IObservable<_>
+    member _.Init(token) = initPool(token)
+    member _.Destroy(token) = destroy(token)
 
     interface IDisposable with
-        member x.Dispose() = destroy(CancellationToken.None)
+        member _.Dispose() = destroy(CancellationToken.None)

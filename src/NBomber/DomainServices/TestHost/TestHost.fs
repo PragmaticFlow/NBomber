@@ -21,7 +21,7 @@ open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.NBomberContext
 
-type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as x =
+type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as this =
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
@@ -50,7 +50,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 dep.Logger.Warning("stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
             )
 
-        | StopTest (reason) -> x.StopScenarios(reason) |> ignore
+        | StopTest (reason) -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list) =
 
@@ -96,13 +96,13 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         progressBars |> List.iter(fun x -> x.Dispose())
     }
 
-    member x.TestInfo = sessionArgs.TestInfo
-    member x.CurrentOperation = _currentOperation
-    member x.CurrentNodeInfo = getCurrentNodeInfo()
-    member x.RegisteredScenarios = registeredScenarios
-    member x.TargetScenarios = _targetScenarios
+    member _.TestInfo = sessionArgs.TestInfo
+    member _.CurrentOperation = _currentOperation
+    member _.CurrentNodeInfo = getCurrentNodeInfo()
+    member _.RegisteredScenarios = registeredScenarios
+    member _.TargetScenarios = _targetScenarios
 
-    member x.StartInit() = task {
+    member _.StartInit() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Init
         do! Task.Yield()
@@ -122,7 +122,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             return AppError.createResult(InitScenarioError e)
     }
 
-    member x.StartWarmUp() = task {
+    member _.StartWarmUp() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.WarmUp
         do! Task.Yield()
@@ -135,7 +135,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.None
     }
 
-    member x.StartBombing() = task {
+    member _.StartBombing() = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Bombing
         do! Task.Yield()
@@ -143,13 +143,13 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         dep.Logger.Information("starting bombing...")
         let isWarmUp = false
         do! startBombing(isWarmUp)
-        do! x.StopScenarios()
+        do! this.StopScenarios()
 
         _currentOperation <- NodeOperationType.Complete
     }
 
-    member x.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
-        if _currentOperation <> NodeOperationType.Stop && _stopped = false then
+    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
+        if _currentOperation <> NodeOperationType.Stop && not _stopped then
             _currentOperation <- NodeOperationType.Stop
             do! Task.Yield()
 
@@ -167,17 +167,17 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             _currentOperation <- NodeOperationType.None
     }
 
-    member x.GetNodeStats(executionTime) = getNodeStats(executionTime)
-    member x.GetTimeLineNodeStats() = List.rev _timeLineStats
+    member _.GetNodeStats(executionTime) = getNodeStats(executionTime)
+    member _.GetTimeLineNodeStats() = List.rev _timeLineStats
 
-    member x.RunSession() = taskResult {
-        do! x.StartInit()
+    member _.RunSession() = taskResult {
+        do! this.StartInit()
 
         let currentOperationTimer = Stopwatch()
 
         // warm-up
         currentOperationTimer.Restart()
-        do! x.StartWarmUp()
+        do! this.StartWarmUp()
         let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
@@ -195,7 +195,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             )
 
         currentOperationTimer.Restart()
-        do! x.StartBombing()
+        do! this.StartBombing()
         reportingTimer.Stop()
 
         let finalStats = getNodeStats(currentOperationTimer.Elapsed)
@@ -205,6 +205,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     interface IDisposable with
-        member x.Dispose() =
-            x.StopScenarios().Wait()
+        member _.Dispose() =
+            this.StopScenarios().Wait()
             dep.Dispose()

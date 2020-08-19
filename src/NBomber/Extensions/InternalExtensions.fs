@@ -36,14 +36,14 @@ module internal InternalExtensions =
 
     type MaybeBuilder() =
 
-        member x.Bind(m, bind) =
+        member _.Bind(m, bind) =
             match m with
             | Some value -> bind value
             | None       -> None
 
-        member x.Return(value) = Some value
-        member x.ReturnFrom(value) = value
-        member x.Zero () = None
+        member _.Return(value) = Some value
+        member _.ReturnFrom(value) = value
+        member _.Zero () = None
 
     let maybe = MaybeBuilder()
 

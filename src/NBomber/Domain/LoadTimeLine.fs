@@ -63,7 +63,7 @@ let createTimeLine (simulations: LoadSimulation list) =
 
     create(TimeSpan.Zero, 0, simulations)
 
-let createWithDuration (loadSimulations: Contracts.LoadSimulation list) = result {
+let createWithDuration (loadSimulations: LoadSimulation list) = result {
     let! timeLine = loadSimulations |> createTimeLine
     let timeItem = timeLine |> List.last
     return {| LoadTimeLine = timeLine; ScenarioDuration = timeItem.EndTime |}

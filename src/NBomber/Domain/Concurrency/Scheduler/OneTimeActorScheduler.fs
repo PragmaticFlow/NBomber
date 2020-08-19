@@ -44,11 +44,11 @@ type OneTimeActorScheduler(dep: ActorDep) =
         _scheduledActorCount <- 0
         ScenarioActorPool.releaseActors(_actorPool)
 
-    member x.ScheduledActorCount = _scheduledActorCount
-    member x.AvailableActors = _actorPool
+    member _.ScheduledActorCount = _scheduledActorCount
+    member _.AvailableActors = _actorPool
 
-    member x.InjectActors(scheduledCount) =
+    member _.InjectActors(scheduledCount) =
         _scheduledActorCount <- scheduledCount
         _actorPool <- startActors(_actorPool, _scheduledActorCount)
 
-    member x.Stop() = stop()
+    member _.Stop() = stop()

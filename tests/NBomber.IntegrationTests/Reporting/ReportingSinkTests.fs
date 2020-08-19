@@ -34,20 +34,20 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
 
     let reportingSink = {
         new IReportingSink with
-            member x.SinkName = "TestSink"
-            member x.Init(_, _) = ()
-            member x.Start(_) = Task.CompletedTask
-            member x.SaveRealtimeStats(_) =
+            member _.SinkName = "TestSink"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.SaveRealtimeStats(_) =
                 // 1 invoke per 5 sec
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
-            member x.SaveFinalStats(_) =
+            member _.SaveFinalStats(_) =
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
-            member x.Stop() = Task.CompletedTask
-            member x.Dispose() = ()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios [scenario]
@@ -77,23 +77,23 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
 
     let reportingSink = {
         new IReportingSink with
-            member x.SinkName = "TestSink"
-            member x.Init(_, _) = ()
-            member x.Start(_) = Task.CompletedTask
+            member _.SinkName = "TestSink"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
 
-            member x.SaveRealtimeStats(stats) =
+            member _.SaveRealtimeStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
                 | NodeOperationType.Bombing
                 | NodeOperationType.Complete -> bombingCounter <- bombingCounter + 1
                 | _                          -> failwith "operation type is invalid for SaveStatistics"
                 Task.CompletedTask
 
-            member x.SaveFinalStats(_) =
+            member _.SaveFinalStats(_) =
                 completeCounter <- completeCounter + 1
                 Task.CompletedTask
 
-            member x.Stop() = Task.CompletedTask
-            member x.Dispose() = ()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios [scenario]
