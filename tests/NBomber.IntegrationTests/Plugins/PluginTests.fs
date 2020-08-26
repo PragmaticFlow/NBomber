@@ -97,17 +97,17 @@ let ``Init should be invoked once`` () =
     let mutable pluginInitInvokedCounter = 0
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.GetStats() = new DataSet()
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -121,21 +121,21 @@ let ``StartTest should be invoked once`` () =
     let mutable pluginStartTestInvokedCounter = 0
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = ()
 
-            member x.StartTest(_) =
+            member x.Start(_) =
                 pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
                 Task.CompletedTask
 
             member x.GetStats() = new DataSet()
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -150,18 +150,18 @@ let ``StartTest should be invoked with infra config`` () =
     let mutable pluginConfig = None
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(logger, infraConfig) = pluginConfig <- infraConfig
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.GetStats() = new DataSet()
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -175,21 +175,21 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
     let mutable pluginGetStatsInvokedCounter = 0
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
 
             member x.GetStats() =
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 new DataSet()
 
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -203,13 +203,13 @@ let ``StopTest should be invoked once`` () =
     let mutable pluginFinishTestInvokedCounter = 0
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.GetStats() = new DataSet()
 
-            member x.StopTest() =
+            member x.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
                 Task.CompletedTask
 
@@ -217,7 +217,7 @@ let ``StopTest should be invoked once`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore
@@ -231,12 +231,12 @@ let ``stats should be passed to IReportingSink`` () =
     let mutable _nodeStats = Array.empty
 
     let plugin = {
-        new IPlugin with
+        new IWorkerPlugin with
             member x.PluginName = "TestPlugin"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.GetStats() = PluginStatisticsHelper.createPluginStats()
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
@@ -244,20 +244,20 @@ let ``stats should be passed to IReportingSink`` () =
         new IReportingSink with
             member x.SinkName = "TestSink"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.SaveRealtimeStats(_) = Task.CompletedTask
 
             member x.SaveFinalStats(stats) =
                 _nodeStats <- stats
                 Task.CompletedTask
 
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
-    |> NBomberRunner.withPlugins [plugin]
+    |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError(fun x -> failwith x)
     |> ignore

@@ -84,7 +84,7 @@ let empty = {
     ReportFormats = Constants.AllReportFormats
     ReportingSinks = List.empty
     SendStatsInterval = Constants.MinSendStatsInterval
-    Plugins = List.empty
+    WorkerPlugins = List.empty
     ApplicationType = None
 }
 

@@ -56,30 +56,30 @@ module internal TestHostReporting =
     let startReportingSinks (dep: IGlobalDependency, testInfo: TestInfo) =
         for sink in dep.ReportingSinks do
             try
-                sink.StartTest(testInfo) |> ignore
+                sink.Start(testInfo) |> ignore
             with
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
     let stopReportingSinks (dep: IGlobalDependency) =
         for sink in dep.ReportingSinks do
             try
-                sink.StopTest().Wait()
+                sink.Stop().Wait()
             with
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 
 module internal TestHostPlugins =
 
     let startPlugins (dep: IGlobalDependency, testInfo: TestInfo) =
-        for plugin in dep.Plugins do
+        for plugin in dep.WorkerPlugins do
             try
-                plugin.StartTest(testInfo).Wait()
+                plugin.Start(testInfo).Wait()
             with
             | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
 
     let stopPlugins (dep: IGlobalDependency) =
-        for plugin in dep.Plugins do
+        for plugin in dep.WorkerPlugins do
             try
-                plugin.StopTest().Wait()
+                plugin.Stop().Wait()
                 plugin.Dispose()
             with
             | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
@@ -174,10 +174,10 @@ module internal TestHostConsole =
     let printContextInfo (dep: IGlobalDependency) =
         dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
 
-        if dep.Plugins.IsEmpty then
+        if dep.WorkerPlugins.IsEmpty then
             dep.Logger.Information("plugins: no plugins were loaded")
         else
-            dep.Plugins
+            dep.WorkerPlugins
             |> List.iter(fun plugin -> dep.Logger.Information("plugins: '{PluginName}' loaded", plugin.PluginName))
 
         if dep.ReportingSinks.IsEmpty then

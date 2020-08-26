@@ -28,7 +28,7 @@ type IGlobalDependency =
     abstract ProgressBarEnv: IProgressBarEnv
     abstract Logger: ILogger
     abstract ReportingSinks: IReportingSink list
-    abstract Plugins: IPlugin list
+    abstract WorkerPlugins: IWorkerPlugin list
 
 module Logger =
 
@@ -135,17 +135,17 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member x.ProgressBarEnv = ProgressBarEnv.create()
         member x.Logger = logger
         member x.ReportingSinks = context.ReportingSinks
-        member x.Plugins = context.Plugins
+        member x.WorkerPlugins = context.WorkerPlugins
         member x.Dispose() =
             x.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
-            x.Plugins |> Seq.iter(fun x -> x.Dispose()) }
+            x.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
 
 let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig
     Serilog.Log.Logger <- logger
 
     dep.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
-    dep.Plugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
+    dep.WorkerPlugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
 
     { new IGlobalDependency with
         member x.NBomberVersion = dep.NBomberVersion
@@ -157,5 +157,5 @@ let init (testInfo: TestInfo) (dep: IGlobalDependency) =
         member x.ProgressBarEnv = dep.ProgressBarEnv
         member x.Logger = logger
         member x.ReportingSinks = dep.ReportingSinks
-        member x.Plugins = dep.Plugins
+        member x.WorkerPlugins = dep.WorkerPlugins
         member x.Dispose() = dep.Dispose() }

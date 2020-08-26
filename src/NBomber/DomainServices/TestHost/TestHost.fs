@@ -36,7 +36,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let getNodeStats (executionTime) =
         let nodeInfo = getCurrentNodeInfo()
-        let pluginStats = dep.Plugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
+        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
         let scnStats = _scnSchedulers |> Stream.ofList |> Stream.map(fun x -> x.GetScenarioStats executionTime)
         NodeStats.create nodeInfo scnStats pluginStats
 

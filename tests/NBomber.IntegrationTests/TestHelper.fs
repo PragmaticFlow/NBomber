@@ -51,7 +51,7 @@ module internal Dependency =
                 member x.ProgressBarEnv = dep.ProgressBarEnv
                 member x.Logger = dep.Logger
                 member x.ReportingSinks = dep.ReportingSinks
-                member x.Plugins = dep.Plugins
+                member x.WorkerPlugins = dep.WorkerPlugins
                 member x.Dispose() = dep.Dispose() }
 
         {| TestInfo = testInfo

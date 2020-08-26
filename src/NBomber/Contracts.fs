@@ -158,6 +158,7 @@ type IScenarioContext =
 
 type IStep =
     abstract StepName: string
+    abstract DoNotTrack: bool
 
 type LoadSimulation =
     /// Injects a given number of scenario copies with a linear ramp over a given duration. Use it for ramp up and rump down.
@@ -187,18 +188,18 @@ type IReportingSink =
     inherit IDisposable
     abstract SinkName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
-    abstract StartTest: testInfo:TestInfo -> Task
+    abstract Start: testInfo:TestInfo -> Task
     abstract SaveRealtimeStats: stats:NodeStats[] -> Task
     abstract SaveFinalStats: stats:NodeStats[] -> Task
-    abstract StopTest: unit -> Task
+    abstract Stop: unit -> Task
 
-type IPlugin =
+type IWorkerPlugin =
     inherit IDisposable
     abstract PluginName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
-    abstract StartTest: testInfo:TestInfo -> Task
+    abstract Start: testInfo:TestInfo -> Task
     abstract GetStats: unit -> DataSet
-    abstract StopTest: unit -> Task
+    abstract Stop: unit -> Task
 
 type ApplicationType =
     | Process = 0
@@ -215,7 +216,7 @@ type NBomberContext = {
     ReportFormats: ReportFormat list
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
-    Plugins: IPlugin list
+    WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
 }
 

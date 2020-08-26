@@ -36,7 +36,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
         new IReportingSink with
             member x.SinkName = "TestSink"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
             member x.SaveRealtimeStats(_) =
                 // 1 invoke per 5 sec
                 statsInvokedCounter <- statsInvokedCounter + 1
@@ -46,7 +46,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 
@@ -79,7 +79,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
         new IReportingSink with
             member x.SinkName = "TestSink"
             member x.Init(_, _) = ()
-            member x.StartTest(_) = Task.CompletedTask
+            member x.Start(_) = Task.CompletedTask
 
             member x.SaveRealtimeStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
@@ -92,7 +92,7 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
                 completeCounter <- completeCounter + 1
                 Task.CompletedTask
 
-            member x.StopTest() = Task.CompletedTask
+            member x.Stop() = Task.CompletedTask
             member x.Dispose() = ()
     }
 

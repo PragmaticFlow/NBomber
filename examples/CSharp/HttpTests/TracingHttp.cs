@@ -1,8 +1,8 @@
 using System;
+using Serilog;
 using NBomber.CSharp;
 using NBomber.Plugins.Http.CSharp;
 using NBomber.Plugins.Network.Ping;
-using Serilog;
 
 namespace CSharp.HttpTests
 {

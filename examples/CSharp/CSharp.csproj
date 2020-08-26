@@ -42,8 +42,4 @@
       </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
-    </ItemGroup>
-
 </Project>
