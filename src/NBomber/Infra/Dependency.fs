@@ -135,7 +135,7 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member x.ProgressBarEnv = ProgressBarEnv.create()
         member x.Logger = logger
         member x.ReportingSinks = context.ReportingSinks
-        member x.WorkerPlugins = context.Plugins
+        member x.WorkerPlugins = context.WorkerPlugins
         member x.Dispose() =
             x.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
             x.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }

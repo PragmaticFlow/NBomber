@@ -216,7 +216,7 @@ type NBomberContext = {
     ReportFormats: ReportFormat list
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan
-    Plugins: IWorkerPlugin list
+    WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
 }
 
