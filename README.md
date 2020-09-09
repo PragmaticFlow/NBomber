@@ -55,7 +55,7 @@ let step = Step.create("step", fun context -> task {
     return Response.Ok()
 })
 
-Scenario.create "hello_world_scenario" [step]
+Scenario.create "scenario" [step]
 |> NBomberRunner.registerScenario
 |> NBomberRunner.run
 ```
@@ -71,7 +71,7 @@ var step = Step.Create("step", async context =>
     return Response.Ok();
 });
 
-var scenario = ScenarioBuilder.CreateScenario("hello_world_scenario", step);
+var scenario = ScenarioBuilder.CreateScenario("scenario", step);
 
 NBomberRunner
     .RegisterScenarios(scenario)
