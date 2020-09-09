@@ -136,9 +136,9 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member _.Logger = logger
         member _.ReportingSinks = context.ReportingSinks
         member _.WorkerPlugins = context.WorkerPlugins
-        member __.Dispose() =
-            __.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
-            __.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
+        member this.Dispose() =
+            this.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
+            this.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
 
 let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig

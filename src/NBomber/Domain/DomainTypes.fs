@@ -48,8 +48,8 @@ type Step = {
     DoNotTrack: bool
 } with
     interface IStep with
-        member __.StepName = __.StepName
-        member __.DoNotTrack = __.DoNotTrack
+        member this.StepName = this.StepName
+        member this.DoNotTrack = this.DoNotTrack
 
 type StepResponse = {
     Response: Response
