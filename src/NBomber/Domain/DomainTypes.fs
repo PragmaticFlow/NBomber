@@ -20,23 +20,23 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
                                           connection, data, feedItem, logger,
                                           execStopCommand: StopCommand -> unit) =
     interface IStepContext<'TConnection,'TFeedItem> with
-        member x.CorrelationId = correlationId
-        member x.CancellationToken = cancellationToken
-        member x.Connection = connection
-        member x.Data = data
-        member x.FeedItem = feedItem
-        member x.Logger = logger
+        member _.CorrelationId = correlationId
+        member _.CancellationToken = cancellationToken
+        member _.Connection = connection
+        member _.Data = data
+        member _.FeedItem = feedItem
+        member _.Logger = logger
 
-        member x.GetPreviousStepResponse<'T>() =
+        member _.GetPreviousStepResponse<'T>() =
             try
                 data.[Constants.StepResponseKey] :?> 'T
             with
             | ex -> Unchecked.defaultof<'T>
 
-        member x.StopScenario(scenarioName, reason) = StopScenario(scenarioName, reason) |> execStopCommand
-        member x.StopCurrentTest(reason) = StopTest(reason) |> execStopCommand
+        member _.StopScenario(scenarioName, reason) = StopScenario(scenarioName, reason) |> execStopCommand
+        member _.StopCurrentTest(reason) = StopTest(reason) |> execStopCommand
 
-    member x.ExecStopCommand(command) = execStopCommand(command)
+    member _.ExecStopCommand(command) = execStopCommand(command)
 
 type Step = {
     StepName: StepName
@@ -48,8 +48,8 @@ type Step = {
     DoNotTrack: bool
 } with
     interface IStep with
-        member x.StepName = x.StepName
-        member x.DoNotTrack = x.DoNotTrack
+        member __.StepName = __.StepName
+        member __.DoNotTrack = __.DoNotTrack
 
 type StepResponse = {
     Response: Response

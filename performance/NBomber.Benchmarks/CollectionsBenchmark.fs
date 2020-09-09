@@ -5,7 +5,7 @@ open FSharpx.Collections
 open Nessos.Streams
 
 [<MemoryDiagnoser>]
-type CollectionsBenchmark() =
+type CollectionsBenchmark() as this =
 
     let mutable _data = Array.empty
     let mutable _dataResizeArray = ResizeArray.ofList []
@@ -17,46 +17,46 @@ type CollectionsBenchmark() =
     member val N = 0 with get, set
 
     [<GlobalSetup>]
-    member x.Setup() =
-        _data <- Array.create x.N -1
+    member _.Setup() =
+        _data <- Array.create this.N -1
         _dataResizeArray <- ResizeArray(_data)
         _dataList <- _data |> List.ofArray
         _dataStream <- _data |> Stream.ofArray
 
     [<Benchmark>]
-    member x.ResizeArrayAdd() =
+    member _.ResizeArrayAdd() =
         let resizeArray = ResizeArray()
-        for i = 0 to x.N do
+        for i = 0 to this.N do
             resizeArray.Add(i)
 
     [<Benchmark>]
-    member x.ResizeArrayIterate() =
+    member _.ResizeArrayIterate() =
         _dataResizeArray
-        |> ResizeArray.iter(fun x -> ())
+        |> ResizeArray.iter ignore
 
     [<Benchmark>]
-    member x.FSharpListAdd() =
+    member _.FSharpListAdd() =
         let mutable items = []
-        for i = 0 to x.N do
+        for i = 0 to this.N do
             items <- i :: items
 
     [<Benchmark>]
-    member x.FSharpListIterate() =
+    member _.FSharpListIterate() =
         _dataList
-        |> List.iter(fun x -> ())
+        |> List.iter ignore
 
     [<Benchmark>]
-    member x.SeqIterate() =
+    member _.SeqIterate() =
         _dataList
-        |> Seq.iter(fun x -> ())
+        |> Seq.iter ignore
 
     [<Benchmark>]
-    member x.StreamIterate() =
+    member _.StreamIterate() =
         _dataStream
-        |> Stream.iter(fun x -> ())
+        |> Stream.iter ignore
 
     [<Benchmark>]
-    member x.StreamInitAndIterate() =
+    member _.StreamInitAndIterate() =
         _data
         |> Stream.ofArray
-        |> Stream.iter(fun x -> ())
+        |> Stream.iter ignore

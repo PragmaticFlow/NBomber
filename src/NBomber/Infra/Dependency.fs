@@ -107,10 +107,10 @@ module ProgressBarEnv =
 
     let create () =
         { new IProgressBarEnv with
-            member x.CreateManualProgressBar(ticks) =
+            member _.CreateManualProgressBar(ticks) =
                 new ProgressBar(ticks, String.Empty, options) :> IProgressBar
 
-            member x.CreateAutoProgressBar(duration) =
+            member _.CreateAutoProgressBar(duration) =
                 new FixedDurationBar(duration, String.Empty, options) :> IProgressBar }
 
 let createSessionId () =
@@ -123,39 +123,39 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
     let logger = Logger.create emptyTestInfo context.CreateLoggerConfig context.InfraConfig
     let version = typeof<ApplicationType>.Assembly.GetName().Version
 
-    Serilog.Log.Logger <- logger
+    Log.Logger <- logger
 
     { new IGlobalDependency with
-        member x.NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
-        member x.ApplicationType = appType
-        member x.NodeType = nodeType
-        member x.NBomberConfig = context.NBomberConfig
-        member x.InfraConfig = context.InfraConfig
-        member x.CreateLoggerConfig = context.CreateLoggerConfig
-        member x.ProgressBarEnv = ProgressBarEnv.create()
-        member x.Logger = logger
-        member x.ReportingSinks = context.ReportingSinks
-        member x.WorkerPlugins = context.WorkerPlugins
-        member x.Dispose() =
-            x.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
-            x.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
+        member _.NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
+        member _.ApplicationType = appType
+        member _.NodeType = nodeType
+        member _.NBomberConfig = context.NBomberConfig
+        member _.InfraConfig = context.InfraConfig
+        member _.CreateLoggerConfig = context.CreateLoggerConfig
+        member _.ProgressBarEnv = ProgressBarEnv.create()
+        member _.Logger = logger
+        member _.ReportingSinks = context.ReportingSinks
+        member _.WorkerPlugins = context.WorkerPlugins
+        member __.Dispose() =
+            __.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
+            __.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
 
 let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig
-    Serilog.Log.Logger <- logger
+    Log.Logger <- logger
 
     dep.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
     dep.WorkerPlugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
 
     { new IGlobalDependency with
-        member x.NBomberVersion = dep.NBomberVersion
-        member x.ApplicationType = dep.ApplicationType
-        member x.NodeType = dep.NodeType
-        member x.NBomberConfig = dep.NBomberConfig
-        member x.InfraConfig = dep.InfraConfig
-        member x.CreateLoggerConfig = dep.CreateLoggerConfig
-        member x.ProgressBarEnv = dep.ProgressBarEnv
-        member x.Logger = logger
-        member x.ReportingSinks = dep.ReportingSinks
-        member x.WorkerPlugins = dep.WorkerPlugins
-        member x.Dispose() = dep.Dispose() }
+        member _.NBomberVersion = dep.NBomberVersion
+        member _.ApplicationType = dep.ApplicationType
+        member _.NodeType = dep.NodeType
+        member _.NBomberConfig = dep.NBomberConfig
+        member _.InfraConfig = dep.InfraConfig
+        member _.CreateLoggerConfig = dep.CreateLoggerConfig
+        member _.ProgressBarEnv = dep.ProgressBarEnv
+        member _.Logger = logger
+        member _.ReportingSinks = dep.ReportingSinks
+        member _.WorkerPlugins = dep.WorkerPlugins
+        member _.Dispose() = dep.Dispose() }

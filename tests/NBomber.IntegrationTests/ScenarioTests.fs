@@ -233,8 +233,8 @@ let ``applyScenariosSettings() should override initial settings if the name is m
 
     let originalScenarios =
         [Scenario.create scnName2 [Step.createPause(1)]
-         |> Scenario.withLoadSimulations [LoadSimulation.RampConstant(500, duration2)] ]
-        |> NBomber.Domain.Scenario.createScenarios
+        |> Scenario.withLoadSimulations [RampConstant(500, duration2)] ]
+        |> Scenario.createScenarios
         |> Result.getOk
 
     let updatedScenarios = Scenario.applySettings [settings] originalScenarios
@@ -265,10 +265,10 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
          Scenario.create scnName2 [Step.createPause(120)]
          |> Scenario.withoutWarmUp
          |> Scenario.withLoadSimulations [
-             NBomber.Contracts.LoadSimulation.KeepConstant(500, duration2)
+             LoadSimulation.KeepConstant(500, duration2)
          ]
          |> List.singleton
-         |> NBomber.Domain.Scenario.createScenarios
+         |> Scenario.createScenarios
          |> Result.getOk
 
     let updatedScenario = Scenario.applySettings [settings] scenario

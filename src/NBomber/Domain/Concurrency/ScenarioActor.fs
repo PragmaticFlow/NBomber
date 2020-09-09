@@ -35,18 +35,18 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     let mutable _reserved = false
     let mutable _currentTask = Unchecked.defaultof<Task>
 
-    member x.CorrelationId = correlationId
-    member x.Working = _working
-    member x.Reserved = _reserved
-    member x.CurrentTask = _currentTask
+    member _.CorrelationId = correlationId
+    member _.Working = _working
+    member _.Reserved = _reserved
+    member _.CurrentTask = _currentTask
 
-    member x.ReserveForScheduler() =
+    member _.ReserveForScheduler() =
         _reserved <- true
 
-    member x.LeaveScheduler() =
+    member _.LeaveScheduler() =
         _reserved <- false
 
-    member x.ExecSteps() = task {
+    member _.ExecSteps() = task {
         if _reserved then
             _working <- true
             _currentTask <- Step.execSteps(_stepDep, dep.Scenario.Steps, _allScnResponses)
@@ -54,7 +54,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
             _working <- false
     }
 
-    member x.GetStepResults(duration) =
+    member _.GetStepResults(duration) =
         let filteredResponses = _allScnResponses |> Array.map(Stream.ofResizeArray >> Step.filterByDuration duration)
 
         dep.Scenario.Steps

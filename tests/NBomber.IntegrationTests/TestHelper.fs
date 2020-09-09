@@ -42,17 +42,17 @@ module internal Dependency =
 
         let dependency = {
             new IGlobalDependency with
-                member x.NBomberVersion = dep.NBomberVersion
-                member x.ApplicationType = dep.ApplicationType
-                member x.NodeType = dep.NodeType
-                member x.NBomberConfig = dep.NBomberConfig
-                member x.InfraConfig = dep.InfraConfig
-                member x.CreateLoggerConfig = dep.CreateLoggerConfig
-                member x.ProgressBarEnv = dep.ProgressBarEnv
-                member x.Logger = dep.Logger
-                member x.ReportingSinks = dep.ReportingSinks
-                member x.WorkerPlugins = dep.WorkerPlugins
-                member x.Dispose() = dep.Dispose() }
+                member _.NBomberVersion = dep.NBomberVersion
+                member _.ApplicationType = dep.ApplicationType
+                member _.NodeType = dep.NodeType
+                member _.NBomberConfig = dep.NBomberConfig
+                member _.InfraConfig = dep.InfraConfig
+                member _.CreateLoggerConfig = dep.CreateLoggerConfig
+                member _.ProgressBarEnv = dep.ProgressBarEnv
+                member _.Logger = dep.Logger
+                member _.ReportingSinks = dep.ReportingSinks
+                member _.WorkerPlugins = dep.WorkerPlugins
+                member _.Dispose() = dep.Dispose() }
 
         {| TestInfo = testInfo
            Dep = dependency

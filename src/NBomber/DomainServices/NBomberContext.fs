@@ -65,7 +65,7 @@ module Validation =
         |> Seq.tryFind(fun scenarioSetting ->
             try
                 scenarioSetting.LoadSimulationsSettings
-                |> Seq.iter(NBomber.Domain.LoadTimeLine.createSimulationFromSettings >> ignore)
+                |> Seq.iter(LoadTimeLine.createSimulationFromSettings >> ignore)
                 false
             with
             | ex -> true

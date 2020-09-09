@@ -160,16 +160,16 @@ type ScenarioScheduler(dep: ActorDep) =
             _eventStream.OnNext(progressInfo)
         )
 
-    member x.Working = _timer.Enabled
+    member _.Working = _timer.Enabled
 
-    member x.Start(isWarmUp) =
+    member _.Start(isWarmUp) =
         _warmUp <- isWarmUp
         start()
 
-    member x.Stop() =
+    member _.Stop() =
         stop()
 
-    member x.EventStream = _eventStream :> IObservable<_>
-    member x.Scenario = dep.Scenario
-    member x.AllActors = getAllActors()
-    member x.GetScenarioStats(duration) = getScenarioStats(duration)
+    member _.EventStream = _eventStream :> IObservable<_>
+    member _.Scenario = dep.Scenario
+    member _.AllActors = getAllActors()
+    member _.GetScenarioStats(duration) = getScenarioStats(duration)
