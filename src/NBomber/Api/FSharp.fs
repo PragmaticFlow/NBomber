@@ -275,7 +275,7 @@ module NBomberRunner =
 
     let run (context: NBomberContext) =
         context
-        |> runWithResult Array.empty
+        |> runWithResult List.empty
         |> Result.mapError(AppError.toString)
 
     /// Runs scenarios with arguments.
@@ -283,8 +283,8 @@ module NBomberRunner =
     /// -c or --config: loads configuration,
     /// -i or --infra: loads infrastructure configuration.
     /// Examples of possible args:
-    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
-    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
+    /// -c config.json -i infra_config.json
+    /// --config=config.json --infra=infra_config.json
     let runWithArgs (args) (context: NBomberContext) =
         context
         |> runWithResult args

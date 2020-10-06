@@ -112,7 +112,8 @@ type ScenarioBuilder =
 [<Extension>]
 type NBomberRunner =
 
-    /// Registers scenarios in NBomber environment. Scenarios will be run in parallel.
+    /// Registers scenarios in NBomber environment. 
+    /// Scenarios will be run in parallel.
     static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
@@ -200,8 +201,8 @@ type NBomberRunner =
     /// -c or --config: loads configuration,
     /// -i or --infra: loads infrastructure configuration.
     /// Examples of possible args:
-    /// [|"-c"; "config.yaml"; "-i"; "infra_config.yaml"|]
-    /// [|"--config"; "config.yaml"; "--infra"; "infra_config.yaml"|]
+    /// -c config.json -i infra_config.json
+    /// --config=config.json --infra=infra_config.json
     [<Extension>]
     static member Run(context: NBomberContext, [<ParamArray>]args: string[]) =
         match FSharp.NBomberRunner.runWithArgs args context with
