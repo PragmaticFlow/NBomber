@@ -38,7 +38,6 @@ type ConstantActorScheduler(dep: ActorDep) =
 
     let stop () =
         _stop <- true
-        _scheduledActorCount <- 0
         ScenarioActorPool.releaseActors(_actorPool)
 
     let startScheduler () =

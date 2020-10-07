@@ -31,7 +31,7 @@ let private printStepsTable (steps: StepStats[]) =
           "- latency percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | 99%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.Percent99 s.StdDev
 
           if dataInfoAvailable then
-            "- data transfer", sprintf "min = %g Kb | mean = %g Kb | max = %g Kb | all = %g MB"
+            "- data transfer", sprintf "min = %g KB | mean = %g KB | max = %g KB | all = %g MB"
                                    s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
           if steps.Length > 1 && i < (steps.Length - 1) then
             "", ""

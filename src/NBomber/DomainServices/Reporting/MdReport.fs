@@ -49,7 +49,7 @@ module MdNodeStats =
         let count = sprintf "all = `%i`, ok = `%i`, failed = `%i`" s.RequestCount s.OkCount s.FailCount
         let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
         let percentile = sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, 99%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.Percent99 s.StdDev
-        let dataTransfer = sprintf "min = `%.3f Kb`, mean = `%.3f Kb`, max = `%.3f Kb`, all = `%.3f MB`" s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
+        let dataTransfer = sprintf "min = `%.3f KB`, mean = `%.3f KB`, max = `%.3f KB`, all = `%.3f MB`" s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
 
         [ ["name"; name]
           ["request count"; count]

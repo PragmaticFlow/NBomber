@@ -4,9 +4,7 @@
     Html report builder supports the following commands enclosed in comments:
     - include asset: replaces a line with a style/script block specified into href/src attribute.
                      It only works for assets that are contained in embedded resources.
-    - include test info: includes test info (test suite, test name).
-    - include stats data: includes statistics data.
-    - include time line stats data: includes time line statistics data.
+    - include data: includes data.
     - remove: removes a line.
 -->
 <!DOCTYPE HTML>
@@ -27,18 +25,14 @@
     <script type="text/x-template" id="no-data-template">
         <h3>No Data</h3>
     </script>
-    <!-- No Data Template -->
+
     <!-- Scenario Header -->
     <script type="text/x-template" id="scenario-header-template">
         <span>
-            scenario: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.ScenarioName}}</span>,&nbsp;
-            duration: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.Duration}}</span>,&nbsp;
-            ok count: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.OkCount}}</span>,&nbsp;
-            fail count: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.FailCount}}</span>,&nbsp;
-            all data: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.AllDataMB}}</span> MB
+            scenario #{{scenarioIndex + 1}}: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.ScenarioName}}</span>
         </span>
     </script>
-    <!-- Scenario Header -->
+
     <!-- Cluster Info Table -->
     <script type="text/x-template" id="node-info-table-template">
         <div class="card custom" v-if="nodeInfo">
@@ -47,23 +41,23 @@
             </div>
             <div class="card-body">
                 <table class="table table-hover table-sm table-responsive-lg">
-                    <thead class="mdb-color lighten-3 white-text">
-                    <tr>
-                        <th>Machine Name</th>
-                        <th>OS</th>
-                        <th>.NET Runtime</th>
-                        <th>Processor</th>
-                        <th>Cores</th>
-                    </tr>
+                    <thead class="mdb-color lighten-2 white-text">
+                        <tr>
+                            <th>Machine Name</th>
+                            <th>OS</th>
+                            <th>.NET Runtime</th>
+                            <th>Processor</th>
+                            <th>Cores</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>{{nodeInfo.MachineName}}</td>
-                        <td>{{nodeInfo.OS.VersionString}}</td>
-                        <td>{{nodeInfo.DotNetVersion}}</td>
-                        <td>{{nodeInfo.Processor}}</td>
-                        <td>{{nodeInfo.CoresCount}}</td>
-                    </tr>
+                        <tr>
+                            <td>{{nodeInfo.MachineName}}</td>
+                            <td>{{nodeInfo.OS.VersionString}}</td>
+                            <td>{{nodeInfo.DotNetVersion}}</td>
+                            <td>{{nodeInfo.Processor}}</td>
+                            <td>{{nodeInfo.CoresCount}}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -71,121 +65,81 @@
         </div>
         <no-data v-else></no-data>
     </script>
-    <!-- Cluster Info Table -->
-    <!-- Scenarios Stats Table Template -->
-    <script type="text/x-template" id="scenarios-stats-table-template">
-        <div>
-            <div v-for="(scenarioStats, index) in scenariosStats" :key="`scenario-stats-${viewId}-${index}`" v-if="scenariosStats">
-                <div class="row">
-                    <div class="col">
-                        <div class="card custom scenario">
-                            <div class="card-header mdb-color darken-2 white-text">
-                                <h6>
-                                    <a href="#" class="white-text"
-                                       v-if="JSON.parse(collapsable)"
-                                       data-toggle="collapse" :data-target="`#scenario-content-${viewId}-${index}`"
-                                       aria-expanded="true" :aria-controls="`scenario-content-${viewId}$-{index}`">
-                                        <span class="fa fa-chevron-down float-right"></span>
-                                        <scenario-header :scenario-stats="scenarioStats" />
-                                    </a>
-                                    <scenario-header :scenario-stats="scenarioStats" v-else />
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div :id="`scenario-content-${viewId}-${index}`" class="show">
-                                    <table class="table table-hover table-striped table-bordered table-sm table-responsive-lg">
-                                        <thead class="mdb-color lighten-3 white-text">
-                                        <tr>
-                                            <th></th>
-                                            <th colspan="3">request count</th>
-                                            <th colspan="4">latency</th>
-                                            <th colspan="5">latency percentile</th>
-                                            <th colspan="4">data transfer</th>
-                                        </tr>
-                                        <tr>
-                                            <th>step</th>
-                                            <th>all</th>
-                                            <th>ok</th>
-                                            <th>failed</th>
-                                            <th>RPS</th>
-                                            <th>min</th>
-                                            <th>mean</th>
-                                            <th>max</th>
-                                            <th>50%</th>
-                                            <th>75%</th>
-                                            <th>95%</th>
-                                            <th>99%</th>
-                                            <th>StdDev</th>
-                                            <th>min, Kb</th>
-                                            <th>mean, Kb</th>
-                                            <th>max, Kb</th>
-                                            <th>all, MB</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr v-for="(stepStats, stepIndex) in scenarioStats.StepStats" :key="`step-stats-${stepIndex}`">
-                                            <td>{{stepStats.StepName}}</td>
-                                            <td>{{stepStats.RequestCount}}</td>
-                                            <td>{{stepStats.OkCount}}</td>
-                                            <td>{{stepStats.FailCount}}</td>
-                                            <td>{{stepStats.RPS}}</td>
-                                            <td>{{stepStats.Min}}</td>
-                                            <td>{{stepStats.Mean}}</td>
-                                            <td>{{stepStats.Max}}</td>
-                                            <td>{{stepStats.Percent50}}</td>
-                                            <td>{{stepStats.Percent75}}</td>
-                                            <td>{{stepStats.Percent95}}</td>
-                                            <td>{{stepStats.Percent99}}</td>
-                                            <td>{{stepStats.StdDev}}</td>
-                                            <td>{{stepStats.MinDataKb}}</td>
-                                            <td>{{stepStats.MeanDataKb}}</td>
-                                            <td>{{stepStats.MaxDataKb}}</td>
-                                            <td>{{stepStats.AllDataMB}}</td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                    <hr />
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <!-- Indicators -->
-                                            <latency-chart :latency-count="scenarioStats.LatencyCount"
-                                                           :fail-count="scenarioStats.FailCount"
-                                                           class="chart">
-                                            </latency-chart>
-                                            <!-- Indicators -->
-                                        </div>
-                                        <div class="col-4">
-                                            <!-- Number of Requests -->
-                                            <requests-chart :ok-count="scenarioStats.OkCount"
-                                                            :fail-count="scenarioStats.FailCount"
-                                                            class="chart">
-                                            </requests-chart>
-                                            <!-- Number of Requests -->
-                                        </div>
-                                    </div>
-<!--                                    <div class="row">-->
-<!--                                        <div class="col">-->
-<!--                                            <hr />-->
-<!--                                            <time-line-stats-chart :stats="timeLineStatsData"-->
-<!--                                                                   :scenarioName="scenarioStats.ScenarioName"-->
-<!--                                                                   :step-properties="stepProperties"-->
-<!--                                                                   :hidden-step-properties="hiddenStepProperties"-->
-<!--                                                                   :x-axes-label="xAxesLabel"-->
-<!--                                                                   :y-axes-label="yAxesLabel"-->
-<!--                                                                   class="timeline-chart">-->
-<!--                                            </time-line-stats-chart>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
 
-                                </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    </script>
     <!-- Scenarios Stats Table Template -->
+    <script type="text/x-template" id="scenario-stats-table-template">
+        <table class="table table-hover table-striped table-bordered table-sm table-responsive-lg">
+            <thead class="mdb-color lighten-2 white-text">
+                <tr>
+                    <th></th>
+                    <th colspan="4">request number</th>
+                    <th colspan="3">latency, ms</th>
+                    <th colspan="5">latency percentile, ms</th>
+                    <th colspan="4">data transfer</th>
+                </tr>
+                <tr>
+                    <th>step</th>
+                    <th>all</th>
+                    <th>ok</th>
+                    <th>failed</th>
+                    <th>RPS</th>
+                    <th>min</th>
+                    <th>mean</th>
+                    <th>max</th>
+                    <th>50th</th>
+                    <th>75th</th>
+                    <th>95th</th>
+                    <th>99th</th>
+                    <th>StdDev</th>
+                    <th>min, KB</th>
+                    <th>mean, KB</th>
+                    <th>max, KB</th>
+                    <th>all, MB</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
+                    <td>{{stepStats.StepName}}</td>
+                    <td>{{stepStats.RequestCount}}</td>
+                    <td>{{stepStats.OkCount}}</td>
+                    <td>{{stepStats.FailCount}}</td>
+                    <td>{{stepStats.RPS}}</td>
+                    <td>{{stepStats.Min}}</td>
+                    <td>{{stepStats.Mean}}</td>
+                    <td>{{stepStats.Max}}</td>
+                    <td>{{stepStats.Percent50}}</td>
+                    <td>{{stepStats.Percent75}}</td>
+                    <td>{{stepStats.Percent95}}</td>
+                    <td>{{stepStats.Percent99}}</td>
+                    <td>{{stepStats.StdDev}}</td>
+                    <td>{{stepStats.MinDataKb}}</td>
+                    <td>{{stepStats.MeanDataKb}}</td>
+                    <td>{{stepStats.MaxDataKb}}</td>
+                    <td>{{stepStats.AllDataMB}}</td>
+                </tr>
+                <tr class="mdb-color lighten-2 white-text">
+                    <th>total</th>
+                    <th>{{scenarioStats.RequestCount}}</th>
+                    <th>{{scenarioStats.OkCount}}</th>
+                    <th>{{scenarioStats.FailCount}}</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>{{scenarioStats.AllDataMB}}</th>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+
     <!-- Plugins Stats Table Template -->
     <script type="text/x-template" id="plugins-stats-table-template">
         <div class="row">
@@ -199,180 +153,307 @@
                     </div>
                     <div class="card-body">
                         <table class="table table-hover table-striped table-sm table-responsive-lg">
-                            <thead class="mdb-color lighten-3 white-text">
-                            <tr>
-                                <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
-                                    {{col}}
-                                </th>
-                            </tr>
+                            <thead class="mdb-color lighten-2 white-text">
+                                <tr>
+                                    <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
+                                        {{col}}
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
-                                <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
-                                    {{value}}
-                                </td>
-                            </tr>
+                                <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
+                                    <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
+                                        {{value}}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-
                     </div>
                 </div>
             </div>
         </div>
     </script>
-    <!-- Plugins Stats Table Template -->
 
 </head>
 <body>
-<div id="app">
-    <!-- Navbar -->
-    <nav class="navbar mdb-color darken-3">
-        <a class="navbar-brand" href="#">
-            <img src="https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_logo.png"
-                 height="50" class="d-inline-block align-top" alt="NBomber" />
-        </a>
-    </nav>
-    <!-- Navbar -->
-    <!-- Sidebar -->
-    <div id="wrapper" :class="{ active: sideBarActive }" v-cloak>
-        <div id="sidebar-wrapper" class="mdb-color darken-3">
-            <!-- Menu -->
-            <ul id="sidebar_menu" class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a id="menu-toggle" href="#" @click.prevent="toggleSideBar">
-                        Menu<span class="main_icon fas fa-align-justify"></span>
-                    </a>
-                </li>
-            </ul>
-            <!-- Menu -->
-
-            <ul class="sidebar-nav nav nav-pills mb-3" role="tablist">
-                <li class="nav-item">
-                    <a data-toggle="pill" href="#env-view" role="tab" aria-controls="env-view">
-                        Environment <span class="sub_icon fas fa-desktop"></span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a data-toggle="pill" href="#test-suite-view" class="active" role="tab" aria-controls="test-suite-view">
-                        Test Suite <span class="sub_icon fas fa-flask"></span>
-                    </a>
-                </li>
-
-                <li v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="`nav-scenario-stats-${index}`">
-                    <a data-toggle="pill"
-                       :href="`#scenario-${index}-view`"
-                       role="tab"
-                       :aria-controls="`scenario-${index}-view`">
-                        Scenario {{index + 1}} <span class="sub_icon fas fa-arrow-right"></span>
-                    </a>
-                </li>
-
-                <li class="nav-item" v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
-                    <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view">
-                        Plugins <span class="sub_icon fas fa-puzzle-piece"></span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <!-- Sidebar -->
-
-    <!-- Content -->
-    <div id="page-content-wrapper" :class="{ active: !sideBarActive }">
-        <div class="container">
-
-            <div class="text-center" v-if="false">
-                <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
+    <div id="app">
+        <!-- Navbar -->
+        <nav class="navbar mdb-color darken-3">
+            <a class="navbar-brand" href="https://nbomber.com/" target="_blank">
+                <img src="https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_logo.png"
+                     height="50" class="d-inline-block align-top" alt="NBomber" />
+            </a>
+            <div class="custom-control custom-switch" v-show="showChartsSwitcher" v-cloak>
+                <input type="checkbox" class="custom-control-input" id="charts-switcher" v-model="showCharts">
+                <label class="custom-control-label white-text" for="charts-switcher">Toggle Charts</label>
             </div>
+        </nav>
 
-            <div class="tab-content" id="pills-tabContent" v-cloak>
-                <!-- Environment View -->
-                <div class="tab-pane fade show" id="env-view" role="tabpanel">
-                    <div class="row">
-                        <div class="col">
-                            <node-info-table :node-info="statsData.NodeInfo"></node-info-table>
-                        </div>
+        <!-- Sidebar -->
+        <div id="wrapper" :class="{ active: sideBarActive }" v-cloak>
+            <div id="sidebar-wrapper" class="mdb-color darken-3">
+                <!-- Menu -->
+                <ul class="sidebar-nav">
+                    <li class="sidebar-brand">
+                        <a id="menu-toggle" href="#" @click.prevent="toggleSideBar">
+                            Menu<span class="main-icon fas fa-align-justify"></span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="sidebar-nav nav nav-pills mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a data-toggle="pill" href="#env-view" role="tab" aria-controls="env-view"
+                           @click="selectView('environment')">
+                            Environment <span class="sub-icon sub-icon-environment fas fa-desktop"></span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a data-toggle="pill" href="#test-suite-view" class="active" role="tab" aria-controls="test-suite-view"
+                           @click="selectView('test-suite')">
+                            Test Suite <span class="sub-icon sub-icon-test-suite fas fa-flask"></span>
+                        </a>
+                    </li>
+
+                    <li v-for="(scenarioStats, index) in statsData.ScenarioStats"
+                        :key="`nav-scenario-stats-${index}`"
+                        data-toggle="tooltip"
+                        data-placement="right"
+                        :title="scenarioStats.ScenarioName">
+
+                        <a data-toggle="pill"
+                           :href="`#scenario-${index}-view`"
+                           role="tab"
+                           :aria-controls="`scenario-${index}-view`"
+                           @click="selectView(`scenario-${index}`)">
+                            Scenario #{{index + 1}}
+                            <span class="sub-icon sub-icon-scenario fas fa-stack">
+                                <span class="far fa-circle fa-stack-1x"></span>
+                                <span class="fas fa-stack-1x stack-label">{{index + 1}}</span>
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item" v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
+                        <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view"
+                           @click="selectView('plugins')">
+                            Plugins <span class="sub-icon sub-icon-plugin fas fa-puzzle-piece"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div id="page-content-wrapper" :class="{ active: !sideBarActive }">
+            <div class="container">
+
+                <div class="text-center" v-if="false">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <!-- Test Suite View -->
-                <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
-                     v-if="statsData.ScenarioStats && statsData.PluginStats">
 
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mdb-color darken-3">
-                            <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestSuite}}</li>
-                            <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestName}}</li>
-                        </ol>
-                    </nav>
+                <div class="tab-content" v-cloak>
+                    <!-- Environment View -->
+                    <div class="tab-pane fade show" id="env-view" role="tabpanel">
+                        <div class="row">
+                            <div class="col">
+                                <node-info-table :node-info="statsData.NodeInfo"></node-info-table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Test Suite View -->
+                    <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
+                         v-if="statsData.ScenarioStats && statsData.PluginStats">
 
-                    <scenarios-stats-table :scenarios-stats="statsData.ScenarioStats"
-                                           view-id="test-suite"
-                                           :step-properties="['RPS']"
-                                           x-axes-label="Scenario Duration"
-                                           y-axes-label="RPS"
-                                           collapsable="true">
-                    </scenarios-stats-table>
-                    <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
-                </div>
-                <no-data v-else></no-data>
-                <!-- Scenarios Views -->
-                <div v-for="(scenarioStats, index) in statsData.ScenarioStats" :key="`scenario-stats-${index}`"
-                     class="tab-pane fade show"
-                     :id="`scenario-${index}-view`"
-                     role="tabpanel">
-                    <scenarios-stats-table :scenarios-stats="[scenarioStats]"
-                                           :view-id="`scenario-${index}`"
-                                           :step-properties="['RPS', 'Min', 'Max', 'Percent50', 'Percent75', 'Percent95', 'Percent99', 'AllDataMB']"
-                                           :hidden-step-properties="['Min', 'Max', 'Percent50', 'Percent75', 'Percent99', 'AllDataMB']"
-                                           x-axes-label="Scenario Duration"
-                                           y-axes-label=""
-                                           collapsable="false">
-                    </scenarios-stats-table>
-                </div>
-                <!-- Plugins Stats Views -->
-                <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
-                     v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
-                    <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                        <div v-for="(scenarioStats, scenarioIndex) in statsData.ScenarioStats"
+                             :key="`test-suite-scenario-stats-${scenarioIndex}`"
+                             v-if="statsData.ScenarioStats">
+
+                            <div class="row">
+                                <div class="col">
+                                    <div class="card custom scenario">
+                                        <div class="card-header mdb-color darken-2 white-text">
+                                            <h6>
+                                                <a href="#" class="white-text"
+                                                   data-toggle="collapse" :data-target="`#test-suite-scenario-content-${scenarioIndex}`"
+                                                   aria-expanded="true" :aria-controls="`test-suite-scenario-content-${scenarioIndex}`">
+                                                    <span class="fa fa-chevron-down float-right"></span>
+                                                    <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
+                                                </a>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div :id="`test-suite-scenario-content-${scenarioIndex}`" class="show">
+                                                <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                                <div v-show="showCharts">
+                                                    <div class="row">
+                                                        <div class="col-8">
+                                                            <!-- TestSuite View / Scenario Latency (Columns) -->
+                                                            <chart-scenario-latency-indicators :scenario-stats="scenarioStats"></chart-scenario-latency-indicators>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <!-- TestSuite View / Scenario Requests -->
+                                                            <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <!-- Test View / Scenario Latency -->
+                                                            <chart-scenario-latency-distribution :timeline-stats="timeLineStatsData"
+                                                                                                 :scenario-index="scenarioIndex">
+                                                            </chart-scenario-latency-distribution>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                    </div>
+                    <no-data v-else></no-data>
+                    <!-- Scenarios Views -->
+                    <div v-for="(scenarioStats, scenarioIndex) in statsData.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
+                         class="tab-pane fade show"
+                         :id="`scenario-${scenarioIndex}-view`"
+                         role="tabpanel">
+
+                        <!-- Scenario Stats -->
+                        <div class="row">
+                            <div class="col">
+                                <div class="card custom scenario">
+                                    <div class="card-header mdb-color darken-2 white-text">
+                                        <h6>
+                                            <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                        <lazy-load :loaded-views="loadedViews" :load-for-view="`scenario-${scenarioIndex}`">
+                                            <div class="row">
+                                                <div class="col-8">
+                                                    <!-- Scenario View / Scenario Latency (Column) -->
+                                                    <chart-scenario-latency-indicators :scenario-stats="scenarioStats"></chart-scenario-latency-indicators>
+                                                </div>
+                                                <div class="col-4">
+                                                    <!-- Scenario View / Scenario Requests -->
+                                                    <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
+                                                </div>
+                                            </div>
+                                        </lazy-load>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step Stats -->
+                        <div class="row">
+                            <div class="col-2">
+                                <div class="sticky-wrapper">
+                                    <div class="card custom steps sticky">
+                                        <div class="card-header mdb-color darken-2 white-text">
+                                            <h6>steps</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="nav flex-column nav-step-stats" role="tablist" aria-orientation="vertical">
+                                                <a v-for="(stepStats, stepIndex) in scenarioStats.StepStats"
+                                                   :key="`scenario-stats-${scenarioIndex}-step-stats-${stepIndex}-link`"
+                                                   :class="{'nav-link': true, active: stepIndex === 0}"
+                                                   data-toggle="pill"
+                                                   :href="`#scenario-${scenarioIndex}-view-step-${stepIndex}`"
+                                                   role="tab"
+                                                   :aria-controls="`#scenario-${scenarioIndex}-view-step-${stepIndex}`"
+                                                   aria-selected="false"
+                                                   data-placement="right"
+                                                   :title="stepStats.StepName"
+                                                   @click="selectView(`scenario-${scenarioIndex}-step-${stepIndex}`)">
+                                                    Step #{{stepIndex + 1}}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-10">
+                                <div class="tab-content">
+
+                                    <div v-for="(stepStats, stepIndex) in scenarioStats.StepStats"
+                                         :key="`scenario-stats-${scenarioIndex}-step-stats-${stepIndex}-tab`"
+                                         :class="{ 'tab-pane': true, fade: true, show: stepIndex === 0, active: stepIndex === 0 }"
+                                         :id="`scenario-${scenarioIndex}-view-step-${stepIndex}`"
+                                         role="tabpanel"
+                                         :aria-labelledby="`scenario-${scenarioIndex}-view-step-${stepIndex}`">
+
+                                        <div class="card custom step">
+                                            <div class="card-header mdb-color darken-2 white-text">
+                                                <h6>
+                                                    step #{{stepIndex + 1}}: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{stepStats.StepName}}</span>
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <lazy-load :loaded-views="loadedViews"
+                                                           :load-for-view="stepIndex === 0 ? `scenario-${scenarioIndex}` : `scenario-${scenarioIndex}-step-${stepIndex}`">
+
+                                                    <!-- Scenario Step View / Step Throughput -->
+                                                    <chart-timeline-step-throughput :timeline-stats="timeLineStatsData"
+                                                                                    :scenario-index="scenarioIndex"
+                                                                                    :step-index="stepIndex">
+                                                    </chart-timeline-step-throughput>
+
+                                                    <!-- Scenario Step View / Step Latency -->
+                                                    <chart-timeline-step-latency :timeline-stats="timeLineStatsData"
+                                                                                 :scenario-index="scenarioIndex"
+                                                                                 :step-index="stepIndex">
+                                                    </chart-timeline-step-latency>
+                                                </lazy-load>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plugins Stats Views -->
+                    <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
+                         v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mdb-color darken-3">
+                                <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestSuite}}</li>
+                                <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestName}}</li>
+                                <li class="breadcrumb-item active white-text" aria-current="page">Plugins</li>
+                            </ol>
+                        </nav>
+                        <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Content -->
-</div>
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-chartjs/3.5.0/vue-chartjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 
-<script src="assets/js/index.js"></script> <!-- include asset -->
-<script src="assets/js/data.js"></script> <!-- remove-->
 
-<script>
-    const testInfo = getTestInfo(); // <!-- include test info -->
-    const statsData = getStatsData(); // <!-- include stats data -->
-    const timeLineStatsData = getTimeLineStatsData(); // <!-- include time line stats data -->
-    const app = new Vue({
-        el: '#app',
-        data: {
-            testInfo,
-            statsData,
-            timeLineStatsData,
-            sideBarActive: true
-        },
-        methods: {
-            toggleSideBar: function () {
-                this.sideBarActive = !this.sideBarActive;
-            }
-        }
-    });
-</script>
+    <script src="assets/js/index.js"></script> <!-- include asset -->
+    <script src="assets/js/data.js"></script> <!-- remove-->
+
+    <script>
+        // example of view model structure can be found in data.js
+        // <!-- include view model -->
+        initApp('#app', viewModel);
+    </script>
 
 </body>
 </html>

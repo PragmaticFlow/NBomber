@@ -33,19 +33,13 @@ module internal AssetsUtils =
 
 let private applyHtmlReplace (testInfoJsonData: string) (statsJsonData: string) (timeLineStatsJsonData: string) (line: string) =
     let removeLineCommand = "<!-- remove-->"
-    let includeTestInfoCommand = "<!-- include test info -->"
-    let includeStatsDataCommand = "<!-- include stats data -->"
-    let includeTimeLineStatsDataCommand = "<!-- include time line stats data -->"
+    let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
 
     if line.Contains(removeLineCommand) then
         String.Empty
-    else if line.Contains(includeTestInfoCommand) then
-        sprintf "const testInfo = %s;" testInfoJsonData
-    else if line.Contains(includeStatsDataCommand) then
-        sprintf "const statsData = %s;" statsJsonData
-    else if line.Contains(includeTimeLineStatsDataCommand) then
-        sprintf "const timeLineStatsData = %s;" timeLineStatsJsonData
+    else if line.Contains(includeViewModelCommand) then
+        sprintf "const viewModel = { testInfo: %s, statsData: %s, timeLineStatsData: %s};" testInfoJsonData statsJsonData timeLineStatsJsonData
     else if line.Contains(includeAssetCommand) then
         AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.map(fun x -> x)
