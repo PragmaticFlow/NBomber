@@ -5,6 +5,7 @@ open System.Data
 
 open HdrHistogram
 open Nessos.Streams
+open FSharp.UMX
 
 open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
@@ -51,15 +52,19 @@ let calcStdDev (histogram: LongHistogram) =
 let fromBytesToKb (sizeBytes: int) =
     if sizeBytes > 0 then float(sizeBytes) / 1024.0
     else 0.0
+    |> UMX.tag<kb>
 
-let fromKbToMb (sizeKb: float) =
-    if sizeKb > 0.0 then sizeKb / 1024.0
+let fromKbToMb (sizeKb: float<kb>) =
+    let size = % sizeKb
+    if size > 0.0 then size / 1024.0
     else 0.0
+    |> UMX.tag<mb>
+
+let toMB = fromBytesToKb >> fromKbToMb
 
 let calcAllMB (sizesBytes: Stream<int>) =
-    let toMB (sizeBytes) = sizeBytes |> fromBytesToKb |> fromKbToMb
     sizesBytes
-    |> Stream.fold(fun sizeMb sizeKb -> sizeMb + toMB sizeKb) 0.0
+    |> Stream.fold(fun sizeMb sizeByte -> sizeMb + toMB sizeByte) (UMX.tag<mb> 0.0)
 
 module StepResults =
 
@@ -82,11 +87,12 @@ module StepResults =
             let result = Math.Round(value, 2)
             if result > 0.01 then result
             else Math.Round(value, 4)
+            |> UMX.tag
 
-        { MinKb  = counts |> Stream.map(fun x -> x.MinKb) |> Stream.minOrDefault 0.0 |> roundResult
-          MeanKb = counts |> Stream.map(fun x -> x.MeanKb) |> Stream.averageOrDefault 0.0 |> roundResult
-          MaxKb  = counts |> Stream.map(fun x -> x.MaxKb) |> Stream.maxOrDefault 0.0 |> roundResult
-          AllMB  = counts |> Stream.sumBy(fun x -> x.AllMB) |> roundResult }
+        { MinKb  = counts |> Stream.map(fun x -> % x.MinKb) |> Stream.minOrDefault 0.0 |> roundResult
+          MeanKb = counts |> Stream.map(fun x -> % x.MeanKb) |> Stream.averageOrDefault 0.0 |> roundResult
+          MaxKb  = counts |> Stream.map(fun x -> % x.MaxKb) |> Stream.maxOrDefault 0.0 |> roundResult
+          AllMB  = counts |> Stream.sumBy(fun x -> % x.AllMB) |> roundResult }
 
     let merge (stepsResults: Stream<RawStepResults>) =
         stepsResults
@@ -176,7 +182,7 @@ module RawScenarioStats =
           RequestCount = mergedStepsStats |> Stream.sumBy(fun x -> x.RequestCount)
           OkCount = mergedStepsStats |> Stream.sumBy(fun x -> x.OkCount)
           FailCount = mergedStepsStats |> Stream.sumBy(fun x -> x.FailCount)
-          AllDataMB = mergedStepsStats |> Stream.sumBy(fun x -> x.DataTransfer.AllMB)
+          AllDataMB = mergedStepsStats |> Stream.sumBy(fun x -> % x.DataTransfer.AllMB)
           LatencyCount = mergedStepsStats |> calcLatencyCount
           RawStepsStats = RawStepStats.merge stepsStats executionTime
           LoadSimulationStats = simulationStats
@@ -209,10 +215,10 @@ module NodeStats =
               Percent95 = x.Percent95
               Percent99 = x.Percent99
               StdDev = x.StdDev
-              MinDataKb = x.DataTransfer.MinKb
-              MeanDataKb = x.DataTransfer.MeanKb
-              MaxDataKb = x.DataTransfer.MaxKb
-              AllDataMB = x.DataTransfer.AllMB }
+              MinDataKb = % x.DataTransfer.MinKb
+              MeanDataKb = % x.DataTransfer.MeanKb
+              MaxDataKb = % x.DataTransfer.MaxKb
+              AllDataMB = % x.DataTransfer.AllMB }
         )
 
     let mapScenarioStats (scnStats: Stream<RawScenarioStats>) =

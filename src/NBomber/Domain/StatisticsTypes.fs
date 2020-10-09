@@ -7,11 +7,14 @@ open Nessos.Streams
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
+[<Measure>] type kb
+[<Measure>] type mb
+
 type DataTransferCount = {
-    MinKb: float
-    MeanKb: float
-    MaxKb: float
-    AllMB: float
+    MinKb: float<kb>
+    MeanKb: float<kb>
+    MaxKb: float<kb>
+    AllMB: float<mb>
 }
 
 type RawStepResults = {
