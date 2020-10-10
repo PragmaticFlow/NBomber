@@ -3,8 +3,8 @@
 }
 
 :root {
-	--header-padding-top: 0.5vw;
-	--header-padding-bottom: 0.3vw;
+    --header-padding-top: 0.5vw;
+    --header-padding-bottom: 0.3vw;
 }
 
 .navbar-brand {
@@ -12,21 +12,53 @@
 }
 
 .navbar {
-	position: fixed;
-	width: 100%;
-	top: 0;
-	z-index: 1000;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
     padding-top: var(--header-padding-top);
     padding-bottom: var(--header-padding-bottom);
+}
+
+.nav-step-stats.nav > a {
+    color: #2e3951;
+}
+
+    .nav-step-stats.nav > a:hover {
+        color: #2196f3;
+    }
+
+    .nav-step-stats.nav > a.active, .nav-step-stats.nav > a.active:hover {
+        color: #2196f3;
+        font-weight: bold;
+    }
+
+.sticky-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding-left: 15px;
+}
+
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 60px;
+}
+
+h6 {
+    padding: 10px;
 }
 
 .card.custom {
     margin-bottom: 20px;
 }
 
-.card.custom .card-header h6 {
-    margin: 0
-}
+    .card.custom .card-header h6 {
+        margin: 0
+    }
 
 .scenario table tr th {
     text-align: center;
@@ -36,17 +68,21 @@
     text-align: right;
 }
 
-.scenario table tr td:first-child {
-    text-align: left;
-}
+    .scenario table tr td:first-child {
+        text-align: left;
+    }
 
 .chart {
-    height: 170px;
+    height: 200px;
 }
 
-.timeline-chart {
-    height: 340px;
-}
+    .chart.chart-timeline {
+        height: 400px;
+    }
+
+    .chart.chart-timelinechart-timeline-scenario-load {
+        height: 100px;
+    }
 
 [data-toggle="collapse"] .fa {
     transition: .3s transform ease-in-out;

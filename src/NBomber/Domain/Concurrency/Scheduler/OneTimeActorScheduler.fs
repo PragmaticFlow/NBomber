@@ -41,7 +41,6 @@ type OneTimeActorScheduler(dep: ActorDep) =
             ScenarioActorPool.updatePool(currentPool, result)
 
     let stop () =
-        _scheduledActorCount <- 0
         ScenarioActorPool.releaseActors(_actorPool)
 
     member _.ScheduledActorCount = _scheduledActorCount
