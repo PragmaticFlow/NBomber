@@ -69,7 +69,7 @@ namespace CSharp.HttpTests
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithPlugins(new PingPlugin())
+                .WithWorkerPlugins(new PingPlugin())
                 .LoadConfig("./HttpTests/Configs/config.json")
                 .LoadInfraConfig("./HttpTests/Configs/infra-config.json")
                 .Run();

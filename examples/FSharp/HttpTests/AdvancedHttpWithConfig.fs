@@ -66,7 +66,7 @@ let run () =
 
     Scenario.create "rest_api" [getUser; getPosts]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withPlugins [new PingPlugin()]
+    |> NBomberRunner.withWorkerPlugins [new PingPlugin()]
     |> NBomberRunner.loadConfig "./HttpTests/Configs/config.json"
     |> NBomberRunner.loadInfraConfig "./HttpTests/Configs/infra-config.json"
     |> NBomberRunner.run

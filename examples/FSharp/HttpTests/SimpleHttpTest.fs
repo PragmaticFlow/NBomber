@@ -23,7 +23,7 @@ let run () =
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withPlugins [pingPlugin]
+    |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.withTestSuite "http"
     |> NBomberRunner.withTestName "simple_test"
     |> NBomberRunner.run

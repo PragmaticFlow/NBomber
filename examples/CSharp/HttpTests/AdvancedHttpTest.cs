@@ -91,7 +91,7 @@ namespace CSharp.HttpTests
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithPlugins(pingPlugin)
+                .WithWorkerPlugins(pingPlugin)
                 .WithTestSuite("http")
                 .WithTestName("advanced_test")
                 .Run();

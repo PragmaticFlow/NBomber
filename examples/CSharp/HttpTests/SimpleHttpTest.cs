@@ -30,7 +30,7 @@ namespace CSharp.HttpTests
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithPlugins(pingPlugin)
+                .WithWorkerPlugins(pingPlugin)
                 .WithTestSuite("http")
                 .WithTestName("simple_test")
                 .Run();

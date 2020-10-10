@@ -32,7 +32,7 @@ namespace CSharp.HttpTests
 
             NBomberRunner
                 .RegisterScenarios(scenario)
-                .WithPlugins(pingPlugin)
+                .WithWorkerPlugins(pingPlugin)
                 .WithTestSuite("http")
                 .WithTestName("tracing_test")
                 .WithLoggerConfig(() => new LoggerConfiguration().MinimumLevel.Verbose()) // set log to verbose
