@@ -1,12 +1,12 @@
 module Tests.CliArgs
 
+open System
 open System.IO
 
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Swensen.Unquote
 open Xunit
 
-open System
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp

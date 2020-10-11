@@ -24,7 +24,8 @@
             }
         ],
 
-        "ReportFileName": "custom_report_name",
-        "ReportFormats": [ "Html", "Txt", "Csv" ]
+        "ReportFileName": "my_report_name",
+        "ReportFolder": "./my_reports",
+        "ReportFormats": [ "Html", "Md", "Txt", "Csv" ]
     }
 }

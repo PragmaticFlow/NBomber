@@ -1,6 +1,7 @@
 ﻿module internal NBomber.DomainServices.NBomberContext
 
 open System
+open System.IO
 open System.Globalization
 
 open FsToolkit.ErrorHandling
@@ -37,9 +38,15 @@ module Validation =
         if List.isEmpty(notFoundScenarios) then Ok targetScenarios
         else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
 
-    let checkReportName (name: string) =
+    let checkReportName (name) =
         if String.IsNullOrWhiteSpace(name) then Error EmptyReportName
+        elif Path.GetInvalidFileNameChars() |> name.IndexOfAny <> -1 then Error InvalidReportName
         else Ok name
+
+    let checkReportFolder (folderPath) =
+       if String.IsNullOrWhiteSpace(folderPath) then Error EmptyReportFolderPath
+       elif Path.GetInvalidPathChars() |> folderPath.IndexOfAny <> -1 then Error InvalidReportFolderPath
+       else Ok folderPath
 
     let checkSendStatsInterval (interval: TimeSpan) =
         if interval >= Constants.MinSendStatsInterval then Ok interval
@@ -81,6 +88,7 @@ let empty = {
     InfraConfig = None
     CreateLoggerConfig = None
     ReportFileName = None
+    ReportFolder = None
     ReportFormats = Constants.AllReportFormats
     ReportingSinks = List.empty
     SendStatsInterval = Constants.MinSendStatsInterval
@@ -127,6 +135,17 @@ let getReportFileName (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.orElse(context.ReportFileName)
     |> Option.defaultValue(Constants.DefaultReportName)
+
+let getReportFolder (context: NBomberContext) =
+    let tryGetFromConfig (ctx) = maybe {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.ReportFolder
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.orElse(context.ReportFolder)
+    |> Option.defaultValue(Constants.DefaultReportFolder)
 
 let getReportFormats (context: NBomberContext) =
     let tryGetFromConfig (ctx) = maybe {
@@ -177,6 +196,7 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileName  |> Validation.checkReportName
+        let! reportFolder      = context |> getReportFolder    |> Validation.checkReportFolder
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
         let connectionPoolSettings = context |> getConnectionPoolSettings

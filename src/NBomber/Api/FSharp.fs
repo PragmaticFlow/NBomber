@@ -186,6 +186,11 @@ module NBomberRunner =
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
         { context with ReportFileName = Some reportFileName }
 
+    /// Sets output report folder path.
+    /// Default folder path: "./reports".
+    let withReportFolder (reportFolderPath: string) (context: NBomberContext) =
+        { context with ReportFolder = Some reportFolderPath }
+
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
         { context with ReportFormats = reportFormats }
 

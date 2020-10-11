@@ -1,5 +1,6 @@
 ﻿module internal NBomber.Errors
 
+open System.IO
 open NBomber.Extensions.InternalExtensions
 
 type DomainError =
@@ -14,12 +15,15 @@ type ValidationError =
 
     // ScenarioValidation errors
     | EmptyReportName
+    | InvalidReportName
+    | EmptyReportFolderPath
+    | InvalidReportFolderPath
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string list
     | EmptyStepName         of scenarioName:string
     | EmptySteps            of scenarioName:string
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
-    | TargetGroupsAreNotFound of notFoundTargetGroups:string[]
+    | TargetGroupsAreNotFound       of notFoundTargetGroups:string[]
     | SessionIsWrong
     | SendStatsValueSmallerThanMin
     | SendStatsConfigValueHasInvalidFormat of value:string
@@ -62,17 +66,18 @@ type AppError =
         | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
             sprintf """ScenariosSettings for scenario '%s' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00".""" scenarioName
 
-        | EmptyReportName -> "Report File Name can not be empty string."
-        | EmptyScenarioName -> "Scenario name can not be empty."
+        | EmptyReportName -> "Report file name can not be empty string."
+        | InvalidReportName -> sprintf "Report file name contains invalid chars %A" (Path.GetInvalidFileNameChars())
 
+        | EmptyReportFolderPath -> "Report folder path can not be empty string."
+        | InvalidReportFolderPath -> sprintf "Report folder path contains invalid chars %A" (Path.GetInvalidFileNameChars())
+
+        | EmptyScenarioName -> "Scenario name can not be empty."
         | DuplicateScenarioName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
 
-        | EmptyStepName scenarioName ->
-            sprintf "Step names are empty in scenario: %s." scenarioName
-
-        | EmptySteps scenarioName ->
-            sprintf "Scenario '%s' has no steps." scenarioName
+        | EmptyStepName scenarioName -> sprintf "Step names are empty in scenario: %s." scenarioName
+        | EmptySteps scenarioName -> sprintf "Scenario '%s' has no steps." scenarioName
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
             sprintf "The current target group not matched, current target group is %s." currentTargetGroup

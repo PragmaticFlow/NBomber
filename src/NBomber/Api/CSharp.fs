@@ -112,7 +112,7 @@ type ScenarioBuilder =
 [<Extension>]
 type NBomberRunner =
 
-    /// Registers scenarios in NBomber environment. 
+    /// Registers scenarios in NBomber environment.
     /// Scenarios will be run in parallel.
     static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
@@ -134,6 +134,12 @@ type NBomberRunner =
     [<Extension>]
     static member WithReportFileName(context: NBomberContext, reportFileName: string) =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
+
+    /// Sets output report folder path.
+    /// Default folder path: "./reports".
+    [<Extension>]
+    static member WithReportFolder(context: NBomberContext, reportFolderPath: string) =
+        context |> FSharp.NBomberRunner.withReportFolder(reportFolderPath)
 
     [<Extension>]
     static member WithReportFormats(context: NBomberContext, [<ParamArray>]reportFormats: ReportFormat[]) =

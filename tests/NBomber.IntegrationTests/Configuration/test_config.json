@@ -28,7 +28,8 @@
     ],
 
     "TargetScenarios": [ "test_youtube" ],
-    "ReportFileName": "custom_report_name_from_json",
+    "ReportFileName": "custom_report_name",
+    "ReportFolder": "./my_reports",
     "ReportFormats": ["Html", "Txt"],
     "SendStatsInterval": "00:00:30"
   }

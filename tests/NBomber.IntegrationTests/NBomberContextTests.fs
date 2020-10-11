@@ -1,6 +1,7 @@
 ﻿module Tests.NBomberContext
 
 open System
+open System.IO
 
 open Xunit
 open Swensen.Unquote
@@ -18,6 +19,7 @@ open NBomber.DomainServices
 let baseGlobalSettings = {
     ScenariosSettings = None
     ReportFileName = None
+    ReportFolder = None
     ReportFormats = None
     SendStatsInterval = None
 }
@@ -48,6 +50,7 @@ let context = {
     InfraConfig = None
     CreateLoggerConfig = None
     ReportFileName = None
+    ReportFolder = None
     ReportFormats = List.empty
     ReportingSinks = List.empty
     SendStatsInterval = Constants.MinSendStatsInterval
@@ -159,11 +162,11 @@ let ``getConnectionPoolSettings should return from Config with updated poolName,
         let glSettings = { baseGlobalSettings with ScenariosSettings = Some [scnSettings] }
         let config = { config with GlobalSettings = Some glSettings }
         let ctx = { context with NBomberConfig = Some config }
-        let resut = NBomberContext.getConnectionPoolSettings(ctx)
+        let result = NBomberContext.getConnectionPoolSettings(ctx)
 
-        test <@ resut.Head.ConnectionCount = poolSettings.ConnectionCount @>
-        test <@ resut.Head.PoolName = Domain.Scenario.createConnectionPoolName(scnSettings.ScenarioName, poolSettings.PoolName) @>
-        test <@ resut.Head.PoolName <> poolSettings.PoolName @>
+        test <@ result.Head.ConnectionCount = poolSettings.ConnectionCount @>
+        test <@ result.Head.PoolName = Domain.Scenario.createConnectionPoolName(scnSettings.ScenarioName, poolSettings.PoolName) @>
+        test <@ result.Head.PoolName <> poolSettings.PoolName @>
 
     | None ->
         let result = NBomberContext.getConnectionPoolSettings(context)
@@ -184,10 +187,36 @@ let ``checkAvailableTarget should return fail if TargetScenarios has values whic
     | _ -> failwith ""
 
 [<Fact>]
-let ``checkEmptyReportName should return fail if ReportFileName is empty`` () =
+let ``checkReportName should return fail if ReportFileName is empty`` () =
     match NBomberContext.Validation.checkReportName(" ") with
     | Error (EmptyReportName _) -> ()
     | _ -> failwith ""
+
+[<Fact>]
+let ``checkReportName should return fail if ReportFileName contains invalid chars`` () =
+    Path.GetInvalidFileNameChars()
+    |> Seq.map(Array.singleton >> String)
+    |> Seq.iter(fun x ->
+        match NBomberContext.Validation.checkReportName(x) with
+        | Error (InvalidReportName _) -> ()
+        | _ -> failwith ""
+    )
+
+[<Fact>]
+let ``checkReportFolder should return fail if ReportFolderPath is empty`` () =
+    match NBomberContext.Validation.checkReportFolder(" ") with
+    | Error (EmptyReportFolderPath _) -> ()
+    | _ -> failwith ""
+
+[<Fact>]
+let ``checkReportFolder should return fail if ReportFolderPath contains invalid chars`` () =
+    Path.GetInvalidPathChars()
+    |> Seq.map(Array.singleton >> String)
+    |> Seq.iter(fun x ->
+        match NBomberContext.Validation.checkReportFolder(x) with
+        | Error (InvalidReportFolderPath _) -> ()
+        | _ -> failwith ""
+    )
 
 [<Fact>]
 let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =

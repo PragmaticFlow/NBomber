@@ -213,6 +213,7 @@ type NBomberContext = {
     InfraConfig: IConfiguration option
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
     ReportFileName: string option
+    ReportFolder: string option
     ReportFormats: ReportFormat list
     ReportingSinks: IReportingSink list
     SendStatsInterval: TimeSpan

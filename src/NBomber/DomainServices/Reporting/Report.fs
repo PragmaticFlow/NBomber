@@ -34,10 +34,10 @@ let build (testInfo: TestInfo) (nodeStats: NodeStats)
       MdReport = MdReport.print(testInfo, nodeStats)
       SessionWithErrors = errorsExist }
 
-let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat list,
+let save (folder: string, fileName: string, reportFormats: ReportFormat list,
           report: ReportsContent, logger: ILogger, testInfo: TestInfo) =
     try
-        let reportsDir = Path.Combine(outPutDir, "reports", testInfo.SessionId)
+        let reportsDir = Path.Combine(folder, testInfo.SessionId)
         Directory.CreateDirectory(reportsDir) |> ignore
 
         let buildReportFile (format: ReportFormat) =
@@ -48,7 +48,7 @@ let save (outPutDir: string, reportFileName: string, reportFormats: ReportFormat
                 | ReportFormat.Csv  -> ".csv"
                 | ReportFormat.Md   -> ".md"
 
-            let filePath = Path.Combine(reportsDir, reportFileName) + fileExt
+            let filePath = Path.Combine(reportsDir, fileName) + fileExt
             { FilePath = filePath; ReportFormat = format }
 
         let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray

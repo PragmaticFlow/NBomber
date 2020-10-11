@@ -43,6 +43,9 @@ let DefaultTestName = "nbomber_default_test_name"
 [<Literal>]
 let DefaultReportName = "nbomber_report"
 
+[<Literal>]
+let DefaultReportFolder = "./reports"
+
 //todo: opaque types instead of ms
 let DefaultSimulationDuration = TimeSpan.FromMinutes 1.0
 let MinSimulationDuration = TimeSpan.FromSeconds 1.0

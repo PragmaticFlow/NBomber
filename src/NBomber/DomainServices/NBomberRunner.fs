@@ -23,11 +23,12 @@ let getApplicationType () =
 
 let saveReports (dep: IGlobalDependency) (context: NBomberContext) (testInfo: TestInfo) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName(context)
+    let folder       = NBomberContext.getReportFolder(context)
     let fileNameDate = sprintf "%s_%s" fileName (DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss")
     let formats      = NBomberContext.getReportFormats(context)
 
     if formats.Length > 0 then
-        Report.save("./", fileNameDate, formats, report, dep.Logger, testInfo) |> ignore
+        Report.save(folder, fileNameDate, formats, report, dep.Logger, testInfo) |> ignore
 
 let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
@@ -56,7 +57,7 @@ let run (context: NBomberContext) =
 
     let appType =
         match context.ApplicationType with
-        | Some apptype -> apptype
+        | Some appType -> appType
         | None         -> getApplicationType()
 
     Dependency.create appType NodeType.SingleNode context

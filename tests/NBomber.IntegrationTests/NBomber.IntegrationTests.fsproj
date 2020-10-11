@@ -5,12 +5,12 @@
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj"/>
+        <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="AssemblyInfo.fs"/>
-        <Compile Include="TestHelper.fs"/>
-        <Compile Include="ExtensionsTests.fs"/>
+        <Compile Include="AssemblyInfo.fs" />
+        <Compile Include="TestHelper.fs" />
+        <Compile Include="ExtensionsTests.fs" />
         <Content Include="Configuration\test_config.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -20,20 +20,21 @@
         <Content Include="Configuration\infra_config.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Compile Include="NBomberContextTests.fs"/>
-        <Compile Include="Response.fs"/>
-        <Compile Include="StepTests.fs"/>
-        <Compile Include="ScenarioTests.fs"/>
-        <Compile Include="StatisticsTests.fs"/>
-        <Compile Include="ConfigurationTests.fs"/>
-        <Compile Include="LoadTimeLineTests.fs"/>
-        <Compile Include="Concurrency\ScenarioSchedulerTests.fs"/>
-        <Compile Include="ConnectionPoolTests.fs"/>
-        <Compile Include="Reporting\ReportingSinkTests.fs"/>
-        <Compile Include="Plugins\PluginTests.fs"/>
-        <Compile Include="CliArgsTests.fs"/>
-        <Compile Include="LoggingTests.fs"/>
-        <Compile Include="DataFeed\DataFeedTests.fs"/>
+        <Compile Include="NBomberContextTests.fs" />
+        <Compile Include="Response.fs" />
+        <Compile Include="StepTests.fs" />
+        <Compile Include="ScenarioTests.fs" />
+        <Compile Include="StatisticsTests.fs" />
+        <Compile Include="ConfigurationTests.fs" />
+        <Compile Include="LoadTimeLineTests.fs" />
+        <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
+        <Compile Include="ConnectionPoolTests.fs" />
+        <Compile Include="Reporting\ReportingSinkTests.fs" />
+        <Compile Include="Reporting\ReportingConfigurationTests.fs" />
+        <Compile Include="Plugins\PluginTests.fs" />
+        <Compile Include="CliArgsTests.fs" />
+        <Compile Include="LoggingTests.fs" />
+        <Compile Include="DataFeed\DataFeedTests.fs" />
         <None Include="DataFeed\users-feed-data.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
@@ -42,19 +43,19 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
-        <PackageReference Include="Serilog.Sinks.InMemory" Version="0.2.0"/>
-        <PackageReference Include="Unquote" Version="5.0.0"/>
-        <PackageReference Include="xunit" Version="2.4.1"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+        <PackageReference Include="Serilog.Sinks.InMemory" Version="0.2.0" />
+        <PackageReference Include="Unquote" Version="5.0.0" />
+        <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FsCheck" Version="2.14.0"/>
-        <PackageReference Include="FsCheck.Xunit" Version="2.14.0"/>
-        <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1"/>
+        <PackageReference Include="FsCheck" Version="2.14.0" />
+        <PackageReference Include="FsCheck.Xunit" Version="2.14.0" />
+        <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Update="FSharp.Core" Version="4.6.2"/>
+        <PackageReference Update="FSharp.Core" Version="4.6.2" />
     </ItemGroup>
 </Project>

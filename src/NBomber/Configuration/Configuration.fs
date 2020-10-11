@@ -30,6 +30,7 @@ type ScenarioSetting = {
 type GlobalSettings = {
     ScenariosSettings: ScenarioSetting list option
     ReportFileName: string option
+    ReportFolder: string option
     ReportFormats: ReportFormat list option
     SendStatsInterval: string option
 }
