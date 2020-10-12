@@ -34,19 +34,6 @@ module internal InternalExtensions =
         let toEmptyIO (results: Result<'T,'E> seq) =
             results |> sequence |> Result.map(ignore) |> Result.mapError(List.head) |> Task.singleton
 
-    type MaybeBuilder() =
-
-        member _.Bind(m, bind) =
-            match m with
-            | Some value -> bind value
-            | None       -> None
-
-        member _.Return(value) = Some value
-        member _.ReturnFrom(value) = value
-        member _.Zero () = None
-
-    let maybe = MaybeBuilder()
-
     module Option =
 
         let ofRecord (value: 'T) =

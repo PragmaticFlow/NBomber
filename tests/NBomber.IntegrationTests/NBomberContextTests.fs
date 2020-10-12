@@ -26,7 +26,7 @@ let baseGlobalSettings = {
 
 let baseScenarioSetting = {
     ScenarioName = "test_scenario"
-    WarmUpDuration = ""
+    WarmUpDuration = None
     LoadSimulationsSettings = List.empty
     ConnectionPoolSettings = None
     CustomSettings = None
@@ -238,14 +238,14 @@ let ``checkSendStatsSetting should return ok if SendStatsInterval has valid form
 
 [<Fact>]
 let ``checkWarmUpSettings should return fail if WarmUp has invalid format`` () =
-    let setting = { baseScenarioSetting with WarmUpDuration = "::"}
+    let setting = { baseScenarioSetting with WarmUpDuration = Some "::"}
     match NBomberContext.Validation.checkWarmUpSettings [setting] with
     | Error (WarmUpConfigValueHasInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
-    let setting = { baseScenarioSetting with WarmUpDuration = "00:00:10"}
+    let setting = { baseScenarioSetting with WarmUpDuration = Some "00:00:10"}
     match NBomberContext.Validation.checkWarmUpSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()
