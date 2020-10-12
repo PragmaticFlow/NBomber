@@ -210,13 +210,17 @@ let ``checkReportFolder should return fail if ReportFolderPath is empty`` () =
 
 [<Fact>]
 let ``checkReportFolder should return fail if ReportFolderPath contains invalid chars`` () =
-    Path.GetInvalidPathChars()
-    |> Seq.map(Array.singleton >> String)
-    |> Seq.iter(fun x ->
-        match NBomberContext.Validation.checkReportFolder(x) with
-        | Error (InvalidReportFolderPath _) -> ()
-        | _ -> failwith ""
-    )
+    try
+
+        Path.GetInvalidPathChars()
+        |> Seq.map(Array.singleton >> String)
+        |> Seq.iter(fun x ->
+            match NBomberContext.Validation.checkReportFolder(x) with
+            | Error (InvalidReportFolderPath _) -> ()
+            | _ -> failwith ""
+        )
+    with
+    | ex -> failwith (ex.ToString())
 
 [<Fact>]
 let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
