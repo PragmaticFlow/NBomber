@@ -114,6 +114,11 @@ let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario li
 
 let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
 
+    let getWarmUpDuration (settings: ScenarioSetting) =
+        match settings.WarmUpDuration with
+        | Some v -> TimeSpan.Parse v
+        | None   -> TimeSpan.Zero
+
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
@@ -123,7 +128,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
             |> Result.getOk
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = TimeSpan.Parse settings.WarmUpDuration
+                        WarmUpDuration = getWarmUpDuration(settings)
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 

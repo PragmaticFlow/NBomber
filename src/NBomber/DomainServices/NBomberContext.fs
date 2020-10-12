@@ -59,12 +59,14 @@ module Validation =
 
     let checkWarmUpSettings (settings: ScenarioSetting list) =
         settings
-        |> Seq.tryFind(fun x ->
-            match TimeSpan.TryParseExact(x.WarmUpDuration, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
+        |> List.filter(fun x -> x.WarmUpDuration |> Option.isSome)
+        |> List.map(fun x -> {| ScnName = x.ScenarioName; WarmUp = x.WarmUpDuration.Value |})
+        |> List.tryFind(fun x ->
+            match TimeSpan.TryParseExact(x.WarmUp, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
             | true, _  -> false
             | false, _ -> true
         )
-        |> Option.map(fun x -> Error <| WarmUpConfigValueHasInvalidFormat(x.ScenarioName, x.WarmUpDuration))
+        |> Option.map(fun x -> Error <| WarmUpConfigValueHasInvalidFormat(x.ScnName, x.WarmUp))
         |> Option.defaultValue(Ok settings)
 
     let checkLoadSimulationsSettings (settings: ScenarioSetting list) =
@@ -107,7 +109,7 @@ let getTestName (context: NBomberContext) =
     |> Option.defaultValue context.TestName
 
 let getScenariosSettings (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ScenariosSettings
@@ -126,7 +128,7 @@ let getTargetScenarios (context: NBomberContext) =
     defaultArg targetScn allScns
 
 let getReportFileName (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportFileName
@@ -137,7 +139,7 @@ let getReportFileName (context: NBomberContext) =
     |> Option.defaultValue(Constants.DefaultReportName)
 
 let getReportFolder (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportFolder
@@ -148,7 +150,7 @@ let getReportFolder (context: NBomberContext) =
     |> Option.defaultValue(Constants.DefaultReportFolder)
 
 let getReportFormats (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! formats = settings.ReportFormats
@@ -161,7 +163,7 @@ let getReportFormats (context: NBomberContext) =
     |> Option.defaultValue List.empty
 
 let getSendStatsInterval (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.SendStatsInterval
@@ -172,13 +174,13 @@ let getSendStatsInterval (context: NBomberContext) =
     |> Option.defaultValue(Ok context.SendStatsInterval)
 
 let getConnectionPoolSettings (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = maybe {
+    let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! scnSettings = settings.ScenariosSettings
 
         return scnSettings |> List.collect(fun scn ->
-            maybe {
+            option {
                 let! poolSettings = scn.ConnectionPoolSettings
                 return poolSettings |> List.map(fun pool ->
                     let newName = Scenario.createConnectionPoolName(scn.ScenarioName, pool.PoolName)
