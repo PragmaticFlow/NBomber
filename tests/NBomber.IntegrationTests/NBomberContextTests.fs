@@ -200,7 +200,9 @@ let ``checkReportName should return fail if ReportFileName contains invalid char
     |> Seq.iter(fun x ->
         match NBomberContext.Validation.checkReportName(x) with
         | Error (InvalidReportName _) -> ()
-        | _ -> failwith ""
+        | Error EmptyReportName -> ()
+        | Ok value -> failwithf "received OK for char: %s" value
+        | error -> error |> Result.getError |> AppError.toString |> failwith
     )
 
 [<Fact>]
