@@ -10,6 +10,7 @@ open FsCheck.Xunit
 open FsToolkit.ErrorHandling
 
 open NBomber
+open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
@@ -210,17 +211,15 @@ let ``checkReportFolder should return fail if ReportFolderPath is empty`` () =
 
 [<Fact>]
 let ``checkReportFolder should return fail if ReportFolderPath contains invalid chars`` () =
-    try
-
-        Path.GetInvalidPathChars()
-        |> Seq.map(Array.singleton >> String)
-        |> Seq.iter(fun x ->
-            match NBomberContext.Validation.checkReportFolder(x) with
-            | Error (InvalidReportFolderPath _) -> ()
-            | _ -> failwith ""
-        )
-    with
-    | ex -> failwith (ex.ToString())
+    Path.GetInvalidPathChars()
+    |> Seq.map(Array.singleton >> String)
+    |> Seq.iter(fun x ->
+        match NBomberContext.Validation.checkReportFolder(x) with
+        | Error (InvalidReportFolderPath _) -> ()
+        | Error EmptyReportFolderPath -> ()
+        | Ok value -> failwithf "received OK for char: %s" value
+        | error -> error |> Result.getError |> AppError.toString |> failwith
+    )
 
 [<Fact>]
 let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
