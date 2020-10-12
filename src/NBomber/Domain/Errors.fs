@@ -66,13 +66,13 @@ type AppError =
         | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
             sprintf """ScenariosSettings for scenario '%s' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00".""" scenarioName
 
-        | EmptyReportName -> "Report file name can not be empty string."
+        | EmptyReportName -> "Report file name cannot be empty string."
         | InvalidReportName -> sprintf "Report file name contains invalid chars %A" (Path.GetInvalidFileNameChars())
 
-        | EmptyReportFolderPath -> "Report folder path can not be empty string."
+        | EmptyReportFolderPath -> "Report folder path cannot be empty string."
         | InvalidReportFolderPath -> sprintf "Report folder path contains invalid chars %A" (Path.GetInvalidFileNameChars())
 
-        | EmptyScenarioName -> "Scenario name can not be empty."
+        | EmptyScenarioName -> "Scenario name cannot be empty."
         | DuplicateScenarioName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
 
