@@ -22,7 +22,8 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
     // "ReportFormats": ["Html", "Txt"],
 
     // delete all directories with all files
-    Directory.Delete("./my_reports", recursive = true)
+    if Directory.Exists "./my_reports" then
+        Directory.Delete("./my_reports", recursive = true)
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
@@ -59,7 +60,8 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
 let ``withReportFileName and withReportFolder should be properly handled`` () =
 
     // delete all directories with all files
-    Directory.Delete("./my_reports", recursive = true)
+    if Directory.Exists "./my_reports" then
+        Directory.Delete("./my_reports", recursive = true)
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)

@@ -10,6 +10,7 @@ open FsCheck.Xunit
 open FsToolkit.ErrorHandling
 
 open NBomber
+open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
@@ -199,7 +200,9 @@ let ``checkReportName should return fail if ReportFileName contains invalid char
     |> Seq.iter(fun x ->
         match NBomberContext.Validation.checkReportName(x) with
         | Error (InvalidReportName _) -> ()
-        | _ -> failwith ""
+        | Error EmptyReportName -> ()
+        | Ok value -> failwithf "received OK for char: %s" value
+        | error -> error |> Result.getError |> AppError.toString |> failwith
     )
 
 [<Fact>]
@@ -215,7 +218,9 @@ let ``checkReportFolder should return fail if ReportFolderPath contains invalid 
     |> Seq.iter(fun x ->
         match NBomberContext.Validation.checkReportFolder(x) with
         | Error (InvalidReportFolderPath _) -> ()
-        | _ -> failwith ""
+        | Error EmptyReportFolderPath -> ()
+        | Ok value -> failwithf "received OK for char: %s" value
+        | error -> error |> Result.getError |> AppError.toString |> failwith
     )
 
 [<Fact>]
