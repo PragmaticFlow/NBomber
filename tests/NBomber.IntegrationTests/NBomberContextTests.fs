@@ -195,7 +195,7 @@ let ``checkReportName should return fail if ReportFileName is empty`` () =
 [<Fact>]
 let ``checkReportName should return fail if ReportFileName contains invalid chars`` () =
     Path.GetInvalidFileNameChars()
-    |> Seq.map(Array.singleton >> string)
+    |> Seq.map(Array.singleton >> String)
     |> Seq.iter(fun x ->
         match NBomberContext.Validation.checkReportName(x) with
         | Error (InvalidReportName _) -> ()
@@ -211,7 +211,7 @@ let ``checkReportFolder should return fail if ReportFolderPath is empty`` () =
 [<Fact>]
 let ``checkReportFolder should return fail if ReportFolderPath contains invalid chars`` () =
     Path.GetInvalidPathChars()
-    |> Seq.map(Array.singleton >> string)
+    |> Seq.map(Array.singleton >> String)
     |> Seq.iter(fun x ->
         match NBomberContext.Validation.checkReportFolder(x) with
         | Error (InvalidReportFolderPath _) -> ()
