@@ -14,14 +14,14 @@ test_script:
   - ps: .\build.ps1 -target=Test
 
 artifacts:
-  - path: ./artifacts/*.nupkg
-    name: NBomber.Http
+  - path: /.*(\.|\.s)nupkg/
+    name: NBomber
 
 deploy:
   - provider: NuGet
     name: production
     api_key:
-      secure: qD9LkWW3omTD4hcBBTCEPjUdxGWgOuGMYBkcWLRwY3U80F5zcB6XPJeh88DhBO/j
+      secure: SH5HLGG0GR/htBPkjTgXcmQaOeEBSB+pUQYZsEYihdxgIIq3hu3FSzZc9OMcyXBM
     on:
       branch: master
       appveyor_repo_tag: false

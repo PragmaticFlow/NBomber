@@ -90,7 +90,10 @@ Task("Pack")
     {
         OutputDirectory = "./artifacts/",
         NoBuild = true,
-        Configuration = configuration
+        IncludeSource = true,
+        IncludeSymbols = true,
+        Configuration = configuration,
+        ArgumentCustomization = args => args.Append("-p:SymbolPackageFormat=snupkg")
     };
 
 	DotNetCorePack(nbomberProject, settings);
