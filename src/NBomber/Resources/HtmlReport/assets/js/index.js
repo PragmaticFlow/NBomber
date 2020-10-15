@@ -134,6 +134,9 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const createSettingsChartScenarioRequests = (theme, scenarioStats, titles) => ({
+        credits: {
+            enabled: false
+        },
         title: {
             text: titles.charts.scenarioRequests
         },
@@ -167,6 +170,9 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const createSettingsChartScenarioLatencyIndicators = (theme, scenarioStats, titles) => ({
+        credits: {
+            enabled: false
+        },
         title: {
             text: titles.charts.latencyIndicators
         },
@@ -193,6 +199,9 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const createSettingsChartScenarioLatencyDistribution = (theme, timelineStats, scenarioIndex, titles) => ({
+        credits: {
+            enabled: false
+        },
         title: {
             text: 'latency distribution'
         },
@@ -253,6 +262,9 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const createSettingsChartStepThroughput = (theme, timelineStats, scenarioIndex, stepIndex, titles) => ({
+        credits: {
+            enabled: false
+        },
         title: {
             text: titles.charts.throughput
         },
@@ -284,6 +296,9 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const createSettingsChartStepLatency = (theme, timelineStats, scenarioIndex, stepIndex, titles) => ({
+        credits: {
+            enabled: false
+        },
         title: {
             text: titles.charts.latency
         },
