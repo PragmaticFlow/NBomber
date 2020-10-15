@@ -216,7 +216,7 @@
                         </a>
                     </li>
 
-                    <li v-for="(scenarioStats, index) in statsData.ScenarioStats"
+                    <li v-for="(scenarioStats, index) in viewModel.statsData.ScenarioStats"
                         :key="`nav-scenario-stats-${index}`"
                         data-toggle="tooltip"
                         data-placement="right"
@@ -235,13 +235,18 @@
                         </a>
                     </li>
 
-                    <li class="nav-item" v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
+                    <li class="nav-item" v-if="viewModel.statsData.PluginStats && viewModel.statsData.PluginStats.length > 0">
                         <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view"
                            @click="selectView('plugins')">
                             Plugins <span class="sub-icon sub-icon-plugin fas fa-puzzle-piece"></span>
                         </a>
                     </li>
                 </ul>
+                <footer>
+                    <p class="blue-grey-text" v-cloak>
+                        <span>v{{viewModel.nBomberInfo.NBomberVersion}}</span>
+                    </p>
+                </footer>
             </div>
         </div>
 
@@ -260,17 +265,17 @@
                     <div class="tab-pane fade show" id="env-view" role="tabpanel">
                         <div class="row">
                             <div class="col">
-                                <node-info-table :node-info="statsData.NodeInfo"></node-info-table>
+                                <node-info-table :node-info="viewModel.statsData.NodeInfo"></node-info-table>
                             </div>
                         </div>
                     </div>
                     <!-- Test Suite View -->
                     <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
-                         v-if="statsData.ScenarioStats && statsData.PluginStats">
+                         v-if="viewModel.statsData.ScenarioStats && viewModel.statsData.PluginStats">
 
-                        <div v-for="(scenarioStats, scenarioIndex) in statsData.ScenarioStats"
+                        <div v-for="(scenarioStats, scenarioIndex) in viewModel.statsData.ScenarioStats"
                              :key="`test-suite-scenario-stats-${scenarioIndex}`"
-                             v-if="statsData.ScenarioStats">
+                             v-if="viewModel.statsData.ScenarioStats">
 
                             <div class="row">
                                 <div class="col">
@@ -302,7 +307,7 @@
                                                     <div class="row">
                                                         <div class="col">
                                                             <!-- Test View / Scenario Latency -->
-                                                            <chart-scenario-latency-distribution :timeline-stats="timeLineStatsData"
+                                                            <chart-scenario-latency-distribution :timeline-stats="viewModel.timeLineStatsData"
                                                                                                  :scenario-index="scenarioIndex">
                                                             </chart-scenario-latency-distribution>
                                                         </div>
@@ -315,11 +320,11 @@
                             </div>
                         </div>
 
-                        <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                        <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
                     </div>
                     <no-data v-else></no-data>
                     <!-- Scenarios Views -->
-                    <div v-for="(scenarioStats, scenarioIndex) in statsData.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
+                    <div v-for="(scenarioStats, scenarioIndex) in viewModel.statsData.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
                          class="tab-pane fade show"
                          :id="`scenario-${scenarioIndex}-view`"
                          role="tabpanel">
@@ -402,13 +407,13 @@
                                                            :load-for-view="stepIndex === 0 ? `scenario-${scenarioIndex}` : `scenario-${scenarioIndex}-step-${stepIndex}`">
 
                                                     <!-- Scenario Step View / Step Throughput -->
-                                                    <chart-timeline-step-throughput :timeline-stats="timeLineStatsData"
+                                                    <chart-timeline-step-throughput :timeline-stats="viewModel.timeLineStatsData"
                                                                                     :scenario-index="scenarioIndex"
                                                                                     :step-index="stepIndex">
                                                     </chart-timeline-step-throughput>
 
                                                     <!-- Scenario Step View / Step Latency -->
-                                                    <chart-timeline-step-latency :timeline-stats="timeLineStatsData"
+                                                    <chart-timeline-step-latency :timeline-stats="viewModel.timeLineStatsData"
                                                                                  :scenario-index="scenarioIndex"
                                                                                  :step-index="stepIndex">
                                                     </chart-timeline-step-latency>
@@ -423,15 +428,15 @@
 
                     <!-- Plugins Stats Views -->
                     <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
-                         v-if="statsData.PluginStats && statsData.PluginStats.length > 0">
+                         v-if="viewModel.statsData.PluginStats && viewModel.statsData.PluginStats.length > 0">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mdb-color darken-3">
-                                <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestSuite}}</li>
-                                <li class="breadcrumb-item active white-text" aria-current="page">{{testInfo.TestName}}</li>
+                                <li class="breadcrumb-item active white-text" aria-current="page">{{viewModel.testInfo.TestSuite}}</li>
+                                <li class="breadcrumb-item active white-text" aria-current="page">{{viewModel.testInfo.TestName}}</li>
                                 <li class="breadcrumb-item active white-text" aria-current="page">Plugins</li>
                             </ol>
                         </nav>
-                        <plugins-stats-table :plugins-stats="statsData.PluginStats"></plugins-stats-table>
+                        <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
                     </div>
                 </div>
             </div>

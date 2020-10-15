@@ -7,6 +7,11 @@ open Newtonsoft.Json
 
 open NBomber.Contracts
 open NBomber.Extensions
+open NBomber.Infra.Dependency
+
+type NBomberInfoViewModel = {
+    NBomberVersion: string
+}
 
 type TestInfoViewModel = {
     TestSuite: string
@@ -33,6 +38,15 @@ type TimeLineStatsViewModel = {
     TimeStamps: string[]
     ScenarioStats: ScenarioStats[][]
 }
+
+module internal AppInfoViewModel =
+
+    let create (dep: IGlobalDependency) = {
+        NBomberVersion = dep.NBomberVersion
+    }
+
+    let serializeJson (viewModel: NBomberInfoViewModel) =
+        JsonConvert.SerializeObject(viewModel, Formatting.Indented)
 
 module internal TestInfoViewModel =
 

@@ -21,9 +21,9 @@
     margin: calc(65px + var(--header-padding-top) + var(--header-padding-bottom)) 0px 0px 200px;
 }
 
-    #page-content-wrapper.active {
-        margin-left: 70px;
-    }
+#page-content-wrapper.active {
+    margin-left: 70px;
+}
 
 .sidebar-nav {
     display: block;
@@ -38,9 +38,9 @@
     padding-left: 200px;
 }
 
-    #wrapper.active #sidebar-wrapper {
-        left: 200px;
-    }
+#wrapper.active #sidebar-wrapper {
+    left: 200px;
+}
 
 #sidebar_menu li a, .sidebar-nav li a {
     display: block;
@@ -60,27 +60,27 @@
     text-indent: 20px;
 }
 
-    .sidebar-nav li a {
-        color: #999999 !important;
-        display: block;
-        text-decoration: none;
-        font-size: 15px;
-    }
+.sidebar-nav li a {
+    color: #999999 !important;
+    display: block;
+    text-decoration: none;
+    font-size: 15px;
+}
 
-        .sidebar-nav li a:hover,
-        .sidebar-nav li a.active {
-            color: #fff !important;
-            background: rgba(255, 255, 255, 0.3) !important;
-            text-decoration: none;
-        }
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    text-decoration: none;
+}
 
-        .sidebar-nav li a:active, .sidebar-nav li a:focus {
-            text-decoration: none;
-        }
+.sidebar-nav li a:active, .sidebar-nav li a:focus {
+    text-decoration: none;
+}
 
-        .sidebar-nav li a.active {
-            font-weight: bold;
-        }
+.sidebar-nav li a.active {
+    font-weight: bold;
+}
 
 .sidebar-nav > .sidebar-brand {
     height: 65px;
@@ -100,26 +100,26 @@
     padding-top: 10px;
 }
 
-    .sub-icon.sub-icon-environment {
-        padding-right: 27px;
-    }
+.sub-icon.sub-icon-environment {
+    padding-right: 27px;
+}
 
-    .sub-icon.sub-icon-test-suite {
-        padding-right: 28px;
-    }
+.sub-icon.sub-icon-test-suite {
+    padding-right: 28px;
+}
 
-    .sub-icon.sub-icon-plugin {
-        padding-right: 25px;
-    }
+.sub-icon.sub-icon-plugin {
+    padding-right: 25px;
+}
 
-    .sub-icon.sub-icon-scenario {
-        padding-right: 88px;
-        padding-top: 3px;
-    }
+.sub-icon.sub-icon-scenario {
+    padding-right: 88px;
+    padding-top: 3px;
+}
 
-    .sub-icon.sub-icon-plugin {
-        padding-right: 22px;
-    }
+.sub-icon.sub-icon-plugin {
+    padding-right: 22px;
+}
 
 .fa-stack .stack-label {
     font-size: 9px;
@@ -130,12 +130,12 @@
     line-height: 65px;
 }
 
-    .content-header h1 {
-        margin: 0;
-        margin-left: 20px;
-        line-height: 65px;
-        display: inline-block;
-    }
+.content-header h1 {
+    margin: 0;
+    margin-left: 20px;
+    line-height: 65px;
+    display: inline-block;
+}
 
 @media (max-width:768px) {
     #wrapper {
@@ -151,9 +151,25 @@
         padding-left: 200px;
     }
 
-        #wrapper.active #sidebar-wrapper {
-            left: 200px;
-            width: 200px;
-            transition: all .4s ease 0s;
-        }
+    #wrapper.active #sidebar-wrapper {
+        left: 200px;
+        width: 200px;
+        transition: all .4s ease 0s;
+    }
+}
+
+footer p {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-bottom: 85px;
+    padding-left: 18px;
+    padding-right: 20px;
+    font-size: 12px;
+    width: 35%;
+    transition: width .4s ease;
+}
+
+.active footer p {
+    width: 100%;
 }

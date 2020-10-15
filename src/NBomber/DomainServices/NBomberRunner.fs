@@ -41,7 +41,7 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         let! nodeStats   = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()
 
-        Report.build testInfo nodeStats timeLineStats
+        Report.build dep testInfo nodeStats timeLineStats
         |> saveReports dep context testInfo
 
         return nodeStats
