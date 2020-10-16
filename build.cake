@@ -41,10 +41,12 @@ Task("Clean")
     CleanDirectories("./src/examples/**/bin");
     CleanDirectories("./tests/**/obj");
     CleanDirectories("./tests/**/bin");
+    CleanDirectories("./examples/**/obj");
+    CleanDirectories("./examples/**/bin");
     CleanDirectories("./artifacts/");
 });
 
-Task("Restore-NuGet-Packages")
+Task("Restore")
     .IsDependentOn("Clean")
     .Does(() =>
 {
@@ -52,7 +54,7 @@ Task("Restore-NuGet-Packages")
 });
 
 Task("Build")
-    .IsDependentOn("Restore-NuGet-Packages")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
     Information("NBomber Version: {0}", nbomberVersion);
