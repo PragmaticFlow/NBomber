@@ -11,6 +11,7 @@ module internal InternalExtensions =
         not(isNull value)
 
     module Json =
+    
         let inline toJson (object) =
             JsonConvert.SerializeObject(object, Formatting.Indented)
 
