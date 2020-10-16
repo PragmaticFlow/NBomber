@@ -10,6 +10,7 @@ open Serilog
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Extensions.InternalExtensions
+open NBomber.Infra.Dependency
 
 type ReportsContent = {
     TxtReport: string
@@ -19,7 +20,7 @@ type ReportsContent = {
     SessionWithErrors: bool
 }
 
-let build (testInfo: TestInfo) (nodeStats: NodeStats)
+let build (dep: IGlobalDependency) (testInfo: TestInfo) (nodeStats: NodeStats)
           (timeLineStats: (TimeSpan * NodeStats) list) =
 
     let errorsExist =
@@ -29,7 +30,7 @@ let build (testInfo: TestInfo) (nodeStats: NodeStats)
         |> Option.isSome
 
     { TxtReport = TxtReport.print(testInfo, nodeStats)
-      HtmlReport = HtmlReport.print(testInfo, nodeStats, timeLineStats)
+      HtmlReport = HtmlReport.print(dep, testInfo, nodeStats, timeLineStats)
       CsvReport = CsvReport.print(testInfo, nodeStats)
       MdReport = MdReport.print(testInfo, nodeStats)
       SessionWithErrors = errorsExist }

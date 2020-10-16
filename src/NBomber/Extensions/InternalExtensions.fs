@@ -3,11 +3,17 @@ namespace NBomber.Extensions
 open System
 open FsToolkit.ErrorHandling
 open Nessos.Streams
+open Newtonsoft.Json
 
 module internal InternalExtensions =
 
     let inline isNotNull (value) =
         not(isNull value)
+
+    module Json =
+    
+        let inline toJson (object) =
+            JsonConvert.SerializeObject(object, Formatting.Indented)
 
     module Result =
 

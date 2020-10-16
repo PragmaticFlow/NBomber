@@ -1,4 +1,4 @@
-﻿module internal NBomber.Domain.Statistics
+module internal NBomber.Domain.Statistics
 
 open System
 open System.Data
@@ -66,6 +66,12 @@ let calcAllMB (sizesBytes: Stream<int>) =
     sizesBytes
     |> Stream.fold(fun sizeMb sizeByte -> sizeMb + toMB sizeByte) (UMX.tag<mb> 0.0)
 
+let roundResult (value: float) =
+    let result = Math.Round(value, 2)
+    if result > 0.01 then result
+    else Math.Round(value, 4)
+    |> UMX.tag
+
 module StepResults =
 
     let calcDataTransfer (responses: Stream<StepResponse>) =
@@ -82,12 +88,6 @@ module StepResults =
           AllMB  = allSizesBytes |> calcAllMB }
 
     let mergeTraffic (counts: Stream<DataTransferCount>) =
-
-        let roundResult (value: float) =
-            let result = Math.Round(value, 2)
-            if result > 0.01 then result
-            else Math.Round(value, 4)
-            |> UMX.tag
 
         { MinKb  = counts |> Stream.map(fun x -> % x.MinKb) |> Stream.minOrDefault 0.0 |> roundResult
           MeanKb = counts |> Stream.map(fun x -> % x.MeanKb) |> Stream.averageOrDefault 0.0 |> roundResult
@@ -182,7 +182,7 @@ module RawScenarioStats =
           RequestCount = mergedStepsStats |> Stream.sumBy(fun x -> x.RequestCount)
           OkCount = mergedStepsStats |> Stream.sumBy(fun x -> x.OkCount)
           FailCount = mergedStepsStats |> Stream.sumBy(fun x -> x.FailCount)
-          AllDataMB = mergedStepsStats |> Stream.sumBy(fun x -> % x.DataTransfer.AllMB)
+          AllDataMB = mergedStepsStats |> Stream.sumBy(fun x -> % x.DataTransfer.AllMB) |> roundResult
           LatencyCount = mergedStepsStats |> calcLatencyCount
           RawStepsStats = RawStepStats.merge stepsStats executionTime
           LoadSimulationStats = simulationStats

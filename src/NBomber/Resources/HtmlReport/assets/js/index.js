@@ -535,9 +535,7 @@ const initApp = (appContainer, viewModel) => {
     const app = new Vue({
         el: appContainer,
         data: {
-            testInfo: viewModel.testInfo,
-            statsData: viewModel.statsData,
-            timeLineStatsData: viewModel.timeLineStatsData,
+            viewModel,
             sideBarActive: true,
             currentView: 'test-suite',
             loadedViews: {},

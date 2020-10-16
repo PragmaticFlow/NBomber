@@ -1,4 +1,7 @@
 const viewModel = {
+    nBomberInfo: {
+        NBomberVersion: "x.x.x"
+    },
     testInfo: {
         "TestSuite": "nbomber_default_test_suite_name",
         "TestName": "nbomber_default_test_name"

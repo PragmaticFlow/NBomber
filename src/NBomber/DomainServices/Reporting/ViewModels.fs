@@ -3,10 +3,13 @@ namespace NBomber.DomainServices.Reporting
 open System
 open System.Data
 
-open Newtonsoft.Json
-
 open NBomber.Contracts
 open NBomber.Extensions
+open NBomber.Infra.Dependency
+
+type NBomberInfoViewModel = {
+    NBomberVersion: string
+}
 
 type TestInfoViewModel = {
     TestSuite: string
@@ -34,15 +37,18 @@ type TimeLineStatsViewModel = {
     ScenarioStats: ScenarioStats[][]
 }
 
+module internal NBomberInfoViewModel =
+
+    let create (dep: IGlobalDependency) = {
+        NBomberVersion = dep.NBomberVersion
+    }
+
 module internal TestInfoViewModel =
 
     let create (testInfo: TestInfo): TestInfoViewModel = {
         TestSuite = testInfo.TestSuite
         TestName = testInfo.TestName
     }
-
-    let serializeJson (viewModel: TestInfoViewModel) =
-        JsonConvert.SerializeObject(viewModel, Formatting.Indented)
 
 module internal NodeStatsViewModel =
 
@@ -68,9 +74,6 @@ module internal NodeStatsViewModel =
         NodeInfo = stats.NodeInfo
     }
 
-    let serializeJson (viewModel: NodeStatsViewModel) =
-        JsonConvert.SerializeObject(viewModel, Formatting.Indented)
-
 module TimeLineStatsViewModel =
 
     let create (timeLineStats: (TimeSpan * NodeStats) list) = {
@@ -82,6 +85,3 @@ module TimeLineStatsViewModel =
                         |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
                         |> Seq.toArray
     }
-
-    let serializeJson (viewModel: TimeLineStatsViewModel) =
-        JsonConvert.SerializeObject(viewModel, Formatting.Indented)

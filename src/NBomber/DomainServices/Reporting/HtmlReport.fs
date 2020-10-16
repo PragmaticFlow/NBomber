@@ -8,6 +8,7 @@ open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting
+open Newtonsoft.Json
 
 module internal AssetsUtils =
 
@@ -31,7 +32,7 @@ module internal AssetsUtils =
     let inline tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private applyHtmlReplace (testInfoJsonData: string) (statsJsonData: string) (timeLineStatsJsonData: string) (line: string) =
+let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: string) (statsJsonData: string) (timeLineStatsJsonData: string) (line: string) =
     let removeLineCommand = "<!-- remove-->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
@@ -39,7 +40,8 @@ let private applyHtmlReplace (testInfoJsonData: string) (statsJsonData: string) 
     if line.Contains(removeLineCommand) then
         String.Empty
     else if line.Contains(includeViewModelCommand) then
-        sprintf "const viewModel = { testInfo: %s, statsData: %s, timeLineStatsData: %s};" testInfoJsonData statsJsonData timeLineStatsJsonData
+        sprintf "const viewModel = { nBomberInfo: %s, testInfo: %s, statsData: %s, timeLineStatsData: %s };"
+                nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData
     else if line.Contains(includeAssetCommand) then
         AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.map(fun x -> x)
@@ -50,11 +52,12 @@ let private applyHtmlReplace (testInfoJsonData: string) (statsJsonData: string) 
 let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (testInfo: TestInfo, stats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) =
-    let testInfoJsonData = testInfo |> TestInfoViewModel.create |> TestInfoViewModel.serializeJson
-    let statsJsonData = stats |> NodeStatsViewModel.create |> NodeStatsViewModel.serializeJson
-    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> TimeLineStatsViewModel.serializeJson
-    let applyHtmlReplace = applyHtmlReplace testInfoJsonData statsJsonData timeLineStatsJsonData
+let print (dep: IGlobalDependency, testInfo: TestInfo, stats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) =
+    let nBomberInfoJsonData = dep |> NBomberInfoViewModel.create |> Json.toJson
+    let testInfoJsonData = testInfo |> TestInfoViewModel.create |> Json.toJson
+    let statsJsonData = stats |> NodeStatsViewModel.create |> Json.toJson
+    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> Json.toJson
+    let applyHtmlReplace = applyHtmlReplace nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription
