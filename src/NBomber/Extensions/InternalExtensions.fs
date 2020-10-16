@@ -10,8 +10,9 @@ module internal InternalExtensions =
     let inline isNotNull (value) =
         not(isNull value)
 
-    let inline toJson (object) =
-        JsonConvert.SerializeObject(object, Formatting.Indented)
+    module Json =
+        let inline toJson (object) =
+            JsonConvert.SerializeObject(object, Formatting.Indented)
 
     module Result =
 
