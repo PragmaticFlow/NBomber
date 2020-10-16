@@ -12,16 +12,3 @@ build_script:
 
 test_script:
   - ps: .\build.ps1 -target=Test
-
-artifacts:
-  - path: ./artifacts/*.nupkg
-    name: NBomber.Http
-
-deploy:
-  - provider: NuGet
-    name: production
-    api_key:
-      secure: qD9LkWW3omTD4hcBBTCEPjUdxGWgOuGMYBkcWLRwY3U80F5zcB6XPJeh88DhBO/j
-    on:
-      branch: master
-      appveyor_repo_tag: false
