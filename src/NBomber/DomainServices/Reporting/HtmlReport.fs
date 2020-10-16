@@ -53,10 +53,10 @@ let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (dep: IGlobalDependency, testInfo: TestInfo, stats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) =
-    let nBomberInfoJsonData = dep |> AppInfoViewModel.create |> AppInfoViewModel.serializeJson
-    let testInfoJsonData = testInfo |> TestInfoViewModel.create |> TestInfoViewModel.serializeJson
-    let statsJsonData = stats |> NodeStatsViewModel.create |> NodeStatsViewModel.serializeJson
-    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> TimeLineStatsViewModel.serializeJson
+    let nBomberInfoJsonData = dep |> NBomberInfoViewModel.create |> toJson
+    let testInfoJsonData = testInfo |> TestInfoViewModel.create |> toJson
+    let statsJsonData = stats |> NodeStatsViewModel.create |> toJson
+    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> toJson
     let applyHtmlReplace = applyHtmlReplace nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData
 
     ResourceManager.readResource("index.html")
