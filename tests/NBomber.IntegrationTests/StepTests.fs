@@ -241,15 +241,15 @@ let ``NBomber should support to run and share the same step within one scenario 
 let ``NBomber should stop execution scenario if too many failed results on a warm-up`` () =
 
     let step = Step.create("step", fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Fail()
     })
 
     let scenario =
         Scenario.create "scenario" [step]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
+        |> Scenario.withWarmUpDuration(seconds 5)
         |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 1, during = TimeSpan.FromSeconds 60.0)
+            KeepConstant(copies = 1, during = seconds 10)
         ]
 
     let result =

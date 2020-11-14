@@ -187,7 +187,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         currentOperationTimer.Restart()
         do! this.StartWarmUp()
         let nodeInfo = getCurrentNodeInfo()
-        let warmUpStats = getBombingOnlyNodeStats(currentOperationTimer.Elapsed, nodeInfo)
+        let warmUpStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
         // we start real-time timer
