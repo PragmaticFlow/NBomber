@@ -34,8 +34,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let getCurrentNodeInfo () =
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
-    let getNodeStats (executionTime) =
-        let nodeInfo = getCurrentNodeInfo()
+    let getNodeStats (executionTime, nodeInfo) =
         let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
         let scnStats = _scnSchedulers |> Stream.ofList |> Stream.map(fun x -> x.GetScenarioStats executionTime)
         NodeStats.create nodeInfo scnStats pluginStats
@@ -178,16 +177,18 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // warm-up
         currentOperationTimer.Restart()
         do! this.StartWarmUp()
-        let warmUpStats = getNodeStats(currentOperationTimer.Elapsed)
+        let nodeInfo = getCurrentNodeInfo()
+        let warmUpStats = getNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
-        // bombing
+        // we start real-time timer
         use reportingTimer =
             TestHostReporting.startReportingTimer(
                 dep, sessionArgs.SendStatsInterval,
                 (fun () ->
                     let operationTime = currentOperationTimer.Elapsed
-                    let nodeStats = getNodeStats(operationTime)
+                    let nodeInfo = getCurrentNodeInfo()
+                    let nodeStats = getNodeStats(operationTime, nodeInfo)
                     // prepend nodeStats to timeLineStats
                     _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
                     _currentOperation, nodeStats
@@ -195,10 +196,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             )
 
         currentOperationTimer.Restart()
+
+        // bombing
         do! this.StartBombing()
         reportingTimer.Stop()
 
-        let finalStats = getNodeStats(currentOperationTimer.Elapsed)
+        // saving final stats
+        let nodeInfo = getCurrentNodeInfo()
+        let finalStats = getNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats

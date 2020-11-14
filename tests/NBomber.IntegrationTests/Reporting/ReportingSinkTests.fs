@@ -19,7 +19,7 @@ open NBomber.FSharp
 let ``SaveRealtimeStats should be invoked many times during test execution to send realtime stats`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Ok()
     })
 
@@ -27,7 +27,7 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
         Scenario.create "realtime stats scenario" [okStep]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 5, during = TimeSpan.FromSeconds 40.0)
+            KeepConstant(copies = 5, during = seconds 40)
         ]
 
     let mutable statsInvokedCounter = 0
@@ -37,12 +37,8 @@ let ``SaveRealtimeStats should be invoked many times during test execution to se
             member _.SinkName = "TestSink"
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
-            member _.SaveRealtimeStats(_) =
+            member _.SaveStats(_) =
                 // 1 invoke per 5 sec
-                statsInvokedCounter <- statsInvokedCounter + 1
-                Task.CompletedTask
-
-            member _.SaveFinalStats(_) =
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
@@ -81,15 +77,11 @@ let ``SaveRealtimeStats should be invoked with correct operation Bombing`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
 
-            member _.SaveRealtimeStats(stats) =
+            member _.SaveStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
-                | NodeOperationType.Bombing
-                | NodeOperationType.Complete -> bombingCounter <- bombingCounter + 1
-                | _                          -> failwith "operation type is invalid for SaveStatistics"
-                Task.CompletedTask
-
-            member _.SaveFinalStats(_) =
-                completeCounter <- completeCounter + 1
+                | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
+                | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
+                | _                          -> failwith "operation type is invalid for SaveStats"
                 Task.CompletedTask
 
             member _.Stop() = Task.CompletedTask
