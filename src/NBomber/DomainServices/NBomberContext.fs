@@ -158,9 +158,7 @@ let getReportFormats (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(if List.isEmpty context.ReportFormats then None
-                     else Some context.ReportFormats)
-    |> Option.defaultValue List.empty
+    |> Option.defaultValue context.ReportFormats
 
 let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
@@ -171,7 +169,7 @@ let getSendStatsInterval (context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.map(Validation.checkSendStatsSettings)
-    |> Option.defaultValue(Ok context.SendStatsInterval)
+    |> Option.defaultValue(context.SendStatsInterval |> Validation.checkSendStatsInterval)
 
 let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {

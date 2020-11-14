@@ -245,9 +245,8 @@ let ``stats should be passed to IReportingSink`` () =
             member _.SinkName = "TestSink"
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
-            member _.SaveRealtimeStats(_) = Task.CompletedTask
 
-            member _.SaveFinalStats(stats) =
+            member _.SaveStats(stats) =
                 _nodeStats <- stats
                 Task.CompletedTask
 

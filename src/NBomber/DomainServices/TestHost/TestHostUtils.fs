@@ -21,13 +21,13 @@ module internal TestHostReporting =
 
     let saveRealtimeStats (sinks: IReportingSink list) (nodeStats: NodeStats list) =
         sinks
-        |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveRealtimeStats)
+        |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveStats)
         |> Task.WhenAll
 
     let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) =
         for sink in dep.ReportingSinks do
             try
-                sink.SaveFinalStats(stats |> Seq.toArray).Wait()
+                sink.SaveStats(stats |> Seq.toArray).Wait()
             with
             | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
 

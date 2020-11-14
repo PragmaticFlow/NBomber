@@ -189,8 +189,7 @@ type IReportingSink =
     abstract SinkName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract Start: testInfo:TestInfo -> Task
-    abstract SaveRealtimeStats: stats:NodeStats[] -> Task
-    abstract SaveFinalStats: stats:NodeStats[] -> Task
+    abstract SaveStats: stats:NodeStats[] -> Task
     abstract Stop: unit -> Task
 
 type IWorkerPlugin =

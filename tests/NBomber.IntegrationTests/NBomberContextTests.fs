@@ -174,6 +174,18 @@ let ``getConnectionPoolSettings should return from Config with updated poolName,
         test <@ result = List.empty @>
 
 [<Fact>]
+let ``getSendStatsInterval should return fail if interval is smaller than min value`` () =
+
+    let okContext = { context with SendStatsInterval = seconds 5 }
+    let errorContext = { context with SendStatsInterval = seconds 2 }
+
+    let ok = NBomberContext.getSendStatsInterval(okContext)
+    let error = NBomberContext.getSendStatsInterval(errorContext)
+
+    test <@ Result.isOk ok @>
+    test <@ Result.isError error @>
+
+[<Fact>]
 let ``checkAvailableTarget should return fail if TargetScenarios has empty value`` () =
     let scn = { baseScenario with ScenarioName = "1" }
     match NBomberContext.Validation.checkAvailableTargets [scn] [" "] with
@@ -225,7 +237,7 @@ let ``checkReportFolder should return fail if ReportFolderPath contains invalid 
 
 [<Fact>]
 let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
-    match NBomberContext.Validation.checkSendStatsInterval(TimeSpan.FromSeconds 9.0) with
+    match NBomberContext.Validation.checkSendStatsInterval(seconds 3) with
     | Error (SendStatsValueSmallerThanMin _) -> ()
     | _ -> failwith ""
 
