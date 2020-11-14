@@ -34,10 +34,19 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let getCurrentNodeInfo () =
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
-    let getNodeStats (executionTime, nodeInfo) =
+    let getNodeStats (executionTime, nodeInfo, includeOnlyBombingScn) =
         let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
-        let scnStats = _scnSchedulers |> Stream.ofList |> Stream.map(fun x -> x.GetScenarioStats executionTime)
+
+        let scnStats =
+            _scnSchedulers
+            |> Stream.ofList
+            |> Stream.filter(fun x -> x.Working = includeOnlyBombingScn)
+            |> Stream.map(fun x -> x.GetScenarioStats executionTime)
+
         NodeStats.create nodeInfo scnStats pluginStats
+
+    let getBombingOnlyNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, true)
+    let getFinalNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, false)
 
     let execStopCommand (command: StopCommand) =
         match command with
@@ -178,7 +187,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         currentOperationTimer.Restart()
         do! this.StartWarmUp()
         let nodeInfo = getCurrentNodeInfo()
-        let warmUpStats = getNodeStats(currentOperationTimer.Elapsed, nodeInfo)
+        let warmUpStats = getBombingOnlyNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
         // we start real-time timer
@@ -188,7 +197,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 (fun () ->
                     let operationTime = currentOperationTimer.Elapsed
                     let nodeInfo = getCurrentNodeInfo()
-                    let nodeStats = getNodeStats(operationTime, nodeInfo)
+                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo)
                     // prepend nodeStats to timeLineStats
                     _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
                     _currentOperation, nodeStats
@@ -203,7 +212,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         // saving final stats
         let nodeInfo = getCurrentNodeInfo()
-        let finalStats = getNodeStats(currentOperationTimer.Elapsed, nodeInfo)
+        let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats
