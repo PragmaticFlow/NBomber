@@ -17,7 +17,7 @@ type ReportsContent = {
     HtmlReport: string
     CsvReport: string
     MdReport: string
-    SessionWithErrors: bool
+    SessionFinishedWithErrors: bool
 }
 
 let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
@@ -32,7 +32,7 @@ let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
       HtmlReport = HtmlReport.print nodeStats timeLineStats
       CsvReport = CsvReport.print nodeStats
       MdReport = MdReport.print nodeStats
-      SessionWithErrors = errorsExist }
+      SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,
           report: ReportsContent, logger: ILogger, testInfo: TestInfo) =
@@ -63,7 +63,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
-        if report.SessionWithErrors then
+        if report.SessionFinishedWithErrors then
             logger.Warning("test finished with errors, please check logs in './logs' folder.")
 
         if reportFiles.Length > 0 then

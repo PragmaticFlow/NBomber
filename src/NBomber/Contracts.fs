@@ -99,6 +99,11 @@ type ScenarioStats = {
     Duration: TimeSpan
 }
 
+type ReportFile = {
+    FilePath: string
+    ReportFormat: ReportFormat
+}
+
 type NodeStats = {
     RequestCount: int
     OkCount: int
@@ -108,6 +113,7 @@ type NodeStats = {
     PluginStats: DataSet[]
     NodeInfo: NodeInfo
     TestInfo: TestInfo
+    ReportFiles: ReportFile[]
 }
 
 type IConnectionPoolArgs<'TConnection> =
@@ -181,11 +187,6 @@ type Scenario = {
     Steps: IStep list
     WarmUpDuration: TimeSpan
     LoadSimulations: LoadSimulation list
-}
-
-type ReportFile = {
-    FilePath: string
-    ReportFormat: ReportFormat
 }
 
 type IReportingSink =

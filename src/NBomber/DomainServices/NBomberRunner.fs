@@ -21,14 +21,17 @@ let getApplicationType () =
     with
     | _ -> ApplicationType.Process
 
-let saveReports (dep: IGlobalDependency) (context: NBomberContext) (testInfo: TestInfo) (report: ReportsContent) =
-    let fileName     = NBomberContext.getReportFileName(context)
-    let folder       = NBomberContext.getReportFolder(context)
+let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
+    let fileName     = NBomberContext.getReportFileName context
+    let folder       = NBomberContext.getReportFolder context
     let fileNameDate = sprintf "%s_%s" fileName (DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss")
-    let formats      = NBomberContext.getReportFormats(context)
+    let formats      = NBomberContext.getReportFormats context
 
     if formats.Length > 0 then
-        Report.save(folder, fileNameDate, formats, report, dep.Logger, testInfo) |> ignore
+        let reportFiles = Report.save(folder, fileNameDate, formats, report, dep.Logger, stats.TestInfo)
+        { stats with ReportFiles = reportFiles }
+    else
+        stats
 
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
@@ -41,10 +44,8 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! nodeStats   = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()
 
-        Report.build nodeStats timeLineStats
-        |> saveReports dep context testInfo
-
-        return nodeStats
+        return Report.build nodeStats timeLineStats
+               |> saveReports dep context nodeStats
     }
 
 let run (context: NBomberContext) =
