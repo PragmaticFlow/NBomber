@@ -19,7 +19,6 @@ type IProgressBarEnv =
 
 type IGlobalDependency =
     inherit IDisposable
-    abstract NBomberVersion: string
     abstract ApplicationType: ApplicationType
     abstract NodeType: NodeType
     abstract NBomberConfig: NBomberConfig option
@@ -86,6 +85,7 @@ module NodeInfo =
                                     .FrameworkName
 
         let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
+        let version = typeof<ApplicationType>.Assembly.GetName().Version
 
         { MachineName = Environment.MachineName
           NodeType = NodeType.SingleNode
@@ -93,7 +93,8 @@ module NodeInfo =
           OS = Environment.OSVersion
           DotNetVersion = dotNetVersion
           Processor = if isNull processor then String.Empty else processor
-          CoresCount = Environment.ProcessorCount }
+          CoresCount = Environment.ProcessorCount
+          NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build }
 
 module ProgressBarEnv =
 
@@ -126,7 +127,6 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
     Log.Logger <- logger
 
     { new IGlobalDependency with
-        member _.NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build
         member _.ApplicationType = appType
         member _.NodeType = nodeType
         member _.NBomberConfig = context.NBomberConfig
@@ -148,7 +148,6 @@ let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     dep.WorkerPlugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
 
     { new IGlobalDependency with
-        member _.NBomberVersion = dep.NBomberVersion
         member _.ApplicationType = dep.ApplicationType
         member _.NodeType = dep.NodeType
         member _.NBomberConfig = dep.NBomberConfig

@@ -20,19 +20,18 @@ type ReportsContent = {
     SessionWithErrors: bool
 }
 
-let build (dep: IGlobalDependency) (testInfo: TestInfo) (nodeStats: NodeStats)
-          (timeLineStats: (TimeSpan * NodeStats) list) =
+let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
 
     let errorsExist =
         timeLineStats
-        |> Seq.map(snd)
+        |> Seq.map snd
         |> Seq.tryFind(fun x -> x.FailCount > 0)
         |> Option.isSome
 
-    { TxtReport = TxtReport.print(testInfo, nodeStats)
-      HtmlReport = HtmlReport.print(dep, testInfo, nodeStats, timeLineStats)
-      CsvReport = CsvReport.print(testInfo, nodeStats)
-      MdReport = MdReport.print(testInfo, nodeStats)
+    { TxtReport = TxtReport.print nodeStats
+      HtmlReport = HtmlReport.print nodeStats timeLineStats
+      CsvReport = CsvReport.print nodeStats
+      MdReport = MdReport.print nodeStats
       SessionWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,

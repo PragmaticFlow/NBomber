@@ -235,11 +235,12 @@ module NodeStats =
               Duration = x.Duration }
         )
 
-    let create (nodeInfo: NodeInfo) (scnStats: Stream<RawScenarioStats>) (pluginStats: Stream<DataSet>) =
+    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: Stream<RawScenarioStats>) (pluginStats: Stream<DataSet>) =
         { RequestCount = scnStats |> Stream.sumBy(fun x -> x.RequestCount)
           OkCount = scnStats |> Stream.sumBy(fun x -> x.OkCount)
           FailCount = scnStats |> Stream.sumBy(fun x -> x.FailCount)
           AllDataMB = scnStats |> Stream.sumBy(fun x -> x.AllDataMB)
           ScenarioStats = scnStats |> mapScenarioStats |> Stream.toArray
           PluginStats = pluginStats |> Stream.toArray
-          NodeInfo = nodeInfo }
+          NodeInfo = nodeInfo
+          TestInfo = testInfo }
