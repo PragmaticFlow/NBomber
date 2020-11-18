@@ -21,6 +21,7 @@ type StepDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     CorrelationId: CorrelationId
+    mutable InvocationCount: uint32
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -33,6 +34,7 @@ let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Respons
                                 untyped.Data,
                                 untyped.FeedItem :?> 'TFeedItem,
                                 untyped.Logger,
+                                untyped.InvocationCount,
                                 context.ExecStopCommand)
         execute(typed)
 
@@ -53,6 +55,7 @@ let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
                               data,
                               step.Feed.GetNextItem(dep.CorrelationId, data),
                               dep.Logger,
+                              dep.InvocationCount,
                               dep.ExecStopCommand)
 
     { step with Context = Some context }

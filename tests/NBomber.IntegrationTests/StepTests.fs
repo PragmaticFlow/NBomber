@@ -331,3 +331,25 @@ let ``context StopTest should stop all scenarios`` () =
         nodeStats.ScenarioStats
         |> Seq.find(fun x -> x.ScenarioName = "test_youtube_1")
         |> fun x -> test <@ x.Duration < duration @>
+
+[<Fact>]
+let ``NBomber should reset step invocation number after warm-up`` () =
+
+    let mutable counter = 0u
+
+    let step = Step.create("step", fun context -> task {
+        do! Task.Delay(seconds 1)
+        counter <- context.InvocationCount
+        return Response.Ok()
+    })
+
+    let scenario =
+        Scenario.create "scenario" [step]
+        |> Scenario.withWarmUpDuration(seconds 5)
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ counter > 0u && counter <= 6u @>
