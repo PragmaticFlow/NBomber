@@ -53,6 +53,7 @@ type NodeInfo = {
     DotNetVersion: string
     Processor: string
     CoresCount: int
+    NBomberVersion: string
 }
 
 type StepStats = {
@@ -106,6 +107,7 @@ type NodeStats = {
     ScenarioStats: ScenarioStats[]
     PluginStats: DataSet[]
     NodeInfo: NodeInfo
+    TestInfo: TestInfo
 }
 
 type IConnectionPoolArgs<'TConnection> =

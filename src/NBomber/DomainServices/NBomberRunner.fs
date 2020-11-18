@@ -30,9 +30,9 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (testInfo: Te
     if formats.Length > 0 then
         Report.save(folder, fileNameDate, formats, report, dep.Logger, testInfo) |> ignore
 
-let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDependency) =
+let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
-        dep.Logger.Information(Constants.NBomberWelcomeText, dep.NBomberVersion, testInfo.SessionId)
+        dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node")
 
         let! sessionArgs = context |> NBomberContext.createSessionArgs(testInfo)
@@ -41,7 +41,7 @@ let runSession (testInfo: TestInfo) (context: NBomberContext) (dep: IGlobalDepen
         let! nodeStats   = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()
 
-        Report.build dep testInfo nodeStats timeLineStats
+        Report.build nodeStats timeLineStats
         |> saveReports dep context testInfo
 
         return nodeStats
@@ -55,14 +55,16 @@ let run (context: NBomberContext) =
         TestName = NBomberContext.getTestName(context)
     }
 
+    let nodeInfo = NodeInfo.init()
+
     let appType =
         match context.ApplicationType with
         | Some appType -> appType
         | None         -> getApplicationType()
 
     Dependency.create appType NodeType.SingleNode context
-    |> Dependency.init(testInfo)
-    |> runSession testInfo context
+    |> Dependency.init testInfo
+    |> runSession testInfo nodeInfo context
     |> TaskResult.mapError(fun error ->
         error |> AppError.toString |> Serilog.Log.Error
         error

@@ -70,8 +70,8 @@ let private printPluginStats (stats: NodeStats) =
         })
     |> String.concatLines
 
-let print (testInfo: TestInfo, stats: NodeStats) =
-    [printTestInfo(testInfo)
-     printNodeStats(stats)
-     printPluginStats(stats)]
+let print (stats: NodeStats) =
+    [printTestInfo stats.TestInfo
+     printNodeStats stats
+     printPluginStats stats]
     |> String.concatLines

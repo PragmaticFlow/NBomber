@@ -104,8 +104,8 @@ module MdPluginStats =
             })
         |> String.concatLines
 
-let print (testInfo: TestInfo, stats: NodeStats) =
-    [MdTestInfo.printTestInfo(testInfo)
-     MdNodeStats.printNodeStats(stats)
-     MdPluginStats.printPluginStats(stats)]
+let print (stats: NodeStats) =
+    [MdTestInfo.printTestInfo stats.TestInfo
+     MdNodeStats.printNodeStats stats
+     MdPluginStats.printPluginStats stats]
     |> String.concatLines

@@ -6,7 +6,6 @@ open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
 
-open Microsoft.Extensions.Configuration
 open Nessos.Streams
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
@@ -43,7 +42,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             |> Stream.filter(fun x -> x.Working = includeOnlyBombingScn)
             |> Stream.map(fun x -> x.GetScenarioStats executionTime)
 
-        NodeStats.create nodeInfo scnStats pluginStats
+        NodeStats.create sessionArgs.TestInfo nodeInfo scnStats pluginStats
 
     let getBombingOnlyNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, true)
     let getFinalNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, false)

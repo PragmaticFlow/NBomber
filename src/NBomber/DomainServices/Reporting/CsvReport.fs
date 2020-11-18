@@ -25,12 +25,16 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
                   stats.Percent50, stats.Percent75, stats.Percent95, stats.Percent99, stats.StdDev,
                   stats.MinDataKb, stats.MeanDataKb, stats.MaxDataKb, stats.AllDataMB)
 
-let private printSteps (testInfo: TestInfo, scnStats: ScenarioStats) =
+let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
     scnStats.StepStats
     |> Array.map(fun stepStats -> getLine(scnStats.ScenarioName, scnStats.Duration, stepStats, testInfo))
-    |> String.concat(Environment.NewLine)
+    |> String.concat Environment.NewLine
 
-let print (testInfo: TestInfo, stats: NodeStats) =
+let print (nodeStats: NodeStats) =
     let header = getHeader()
-    let body = stats.ScenarioStats |> Array.map(fun stats -> printSteps(testInfo, stats)) |> String.concat(String.Empty)
+
+    let body = nodeStats.ScenarioStats
+               |> Array.map(printSteps nodeStats.TestInfo)
+               |> String.concat String.Empty
+
     header + Environment.NewLine + body

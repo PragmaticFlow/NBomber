@@ -42,7 +42,6 @@ module internal Dependency =
 
         let dependency = {
             new IGlobalDependency with
-                member _.NBomberVersion = dep.NBomberVersion
                 member _.ApplicationType = dep.ApplicationType
                 member _.NodeType = dep.NodeType
                 member _.NBomberConfig = dep.NBomberConfig

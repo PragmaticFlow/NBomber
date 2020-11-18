@@ -1,11 +1,10 @@
-namespace NBomber.DomainServices.Reporting
+module internal NBomber.DomainServices.Reporting.ViewModels
 
 open System
 open System.Data
 
 open NBomber.Contracts
 open NBomber.Extensions
-open NBomber.Infra.Dependency
 
 type NBomberInfoViewModel = {
     NBomberVersion: string
@@ -37,20 +36,20 @@ type TimeLineStatsViewModel = {
     ScenarioStats: ScenarioStats[][]
 }
 
-module internal NBomberInfoViewModel =
+module NBomberInfoViewModel =
 
-    let create (dep: IGlobalDependency) = {
-        NBomberVersion = dep.NBomberVersion
+    let create (nodeInfo: NodeInfo) = {
+        NBomberVersion = nodeInfo.NBomberVersion
     }
 
-module internal TestInfoViewModel =
+module TestInfoViewModel =
 
     let create (testInfo: TestInfo): TestInfoViewModel = {
         TestSuite = testInfo.TestSuite
         TestName = testInfo.TestName
     }
 
-module internal NodeStatsViewModel =
+module NodeStatsViewModel =
 
     let private mapDataTableToPluginStatsViewModel (table: DataTable) =
         let tableName = table.TableName

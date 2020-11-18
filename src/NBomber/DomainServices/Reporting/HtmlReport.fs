@@ -7,10 +7,9 @@ open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.Reporting
-open Newtonsoft.Json
+open NBomber.DomainServices.Reporting.ViewModels
 
-module internal AssetsUtils =
+module AssetsUtils =
 
     let tryIncludeAsset (tagName) (regex: Regex) (line: string) =
         let m = line |> regex.Match
@@ -26,13 +25,15 @@ module internal AssetsUtils =
     let private styleRegex = Regex("<link[/\s\w=\"\d]*href=['\"]([\.\d\w\\/-]*)['\"][\s\w=\"'/]*>")
     let private scriptRegex = Regex("<script[\s\w=\"'/]*src\s*=\s*['\"]([\w/\.\d\s-]*)[\"']>")
 
-    let inline tryIncludeStyle (line: string) =
+    let tryIncludeStyle (line: string) =
         line |> tryIncludeAsset "style" styleRegex
 
-    let inline tryIncludeScript (line: string) =
+    let tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: string) (statsJsonData: string) (timeLineStatsJsonData: string) (line: string) =
+let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: string)
+                             (statsJsonData: string) (timeLineStatsJsonData: string)
+                             (line: string) =
     let removeLineCommand = "<!-- remove-->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
@@ -52,9 +53,9 @@ let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: st
 let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (dep: IGlobalDependency, testInfo: TestInfo, stats: NodeStats, timeLineStats: (TimeSpan * NodeStats) list) =
-    let nBomberInfoJsonData = dep |> NBomberInfoViewModel.create |> Json.toJson
-    let testInfoJsonData = testInfo |> TestInfoViewModel.create |> Json.toJson
+let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
+    let nBomberInfoJsonData = stats.NodeInfo |> NBomberInfoViewModel.create |> Json.toJson
+    let testInfoJsonData = stats.TestInfo |> TestInfoViewModel.create |> Json.toJson
     let statsJsonData = stats |> NodeStatsViewModel.create |> Json.toJson
     let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> Json.toJson
     let applyHtmlReplace = applyHtmlReplace nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData
