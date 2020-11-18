@@ -18,7 +18,7 @@ type StopCommand =
 
 type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
                                           connection, data, feedItem, logger,
-                                          execStopCommand: StopCommand -> unit) =
+                                          invocationCount, execStopCommand: StopCommand -> unit) =
     interface IStepContext<'TConnection,'TFeedItem> with
         member _.CorrelationId = correlationId
         member _.CancellationToken = cancellationToken
@@ -26,6 +26,7 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
         member _.Data = data
         member _.FeedItem = feedItem
         member _.Logger = logger
+        member _.InvocationCount = invocationCount
 
         member _.GetPreviousStepResponse<'T>() =
             try

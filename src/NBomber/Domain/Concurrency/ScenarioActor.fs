@@ -8,7 +8,6 @@ open Nessos.Streams
 open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 
-open NBomber.Extensions
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -29,7 +28,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
     let _stepDep = { Logger = dep.Logger; CancellationToken = dep.CancellationToken
                      GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId
-                     ExecStopCommand = dep.ExecStopCommand }
+                     InvocationCount = 0u; ExecStopCommand = dep.ExecStopCommand }
 
     let mutable _working = false
     let mutable _reserved = false
@@ -49,6 +48,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     member _.ExecSteps() = task {
         if _reserved then
             _working <- true
+            _stepDep.InvocationCount <- _stepDep.InvocationCount + 1u
             _currentTask <- Step.execSteps(_stepDep, dep.Scenario.Steps, _allScnResponses)
             do! _currentTask
             _working <- false
