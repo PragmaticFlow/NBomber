@@ -22,6 +22,7 @@ type Response = {
     mutable Payload: obj
     SizeBytes: int
     Exception: exn option
+    ErrorCode: int
     LatencyMs: int
 }
 
@@ -56,6 +57,14 @@ type NodeInfo = {
     NBomberVersion: string
 }
 
+type ErrorCode = int
+
+type ErrorStats = {
+    ErrorCode: ErrorCode
+    Exception: exn
+    Count: int
+}
+
 type StepStats = {
     StepName: string
     RequestCount: int
@@ -74,6 +83,7 @@ type StepStats = {
     MeanDataKb: float
     MaxDataKb: float
     AllDataMB: float
+    ErrorStats: ErrorStats[]
 }
 
 type LatencyCount = {
@@ -96,6 +106,7 @@ type ScenarioStats = {
     StepStats: StepStats[]
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
+    ErrorStats: ErrorStats[]
     Duration: TimeSpan
 }
 
@@ -233,6 +244,7 @@ type Response with
         { Payload = payload
           SizeBytes = sizeBytes
           Exception = None
+          ErrorCode = 0
           LatencyMs = latencyMs }
 
     static member Ok(payload: byte[],
@@ -240,22 +252,28 @@ type Response with
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None
+          ErrorCode = 0
           LatencyMs = latencyMs }
 
     static member Fail() =
         { Payload = null
           SizeBytes = 0
           Exception = Some(Exception "unknown client's error")
+          ErrorCode = 0
           LatencyMs = 0 }
 
-    static member Fail(ex: Exception) =
+    static member Fail(ex: Exception,
+                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
         { Payload = null
           SizeBytes = 0
           Exception = Some(ex)
+          ErrorCode = errorCode
           LatencyMs = 0 }
 
-    static member Fail(reason: string) =
+    static member Fail(reason: string,
+                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
         { Payload = null
           SizeBytes = 0
           Exception = Some(Exception reason)
+          ErrorCode = errorCode
           LatencyMs = 0 }

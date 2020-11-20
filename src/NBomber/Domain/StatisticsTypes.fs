@@ -39,6 +39,7 @@ type RawStepStats = {
     Percent99: Latency
     StdDev: int
     DataTransfer: DataTransferCount
+    ErrorStats: Stream<ErrorStats>
 }
 
 type RawScenarioStats = {
@@ -51,4 +52,5 @@ type RawScenarioStats = {
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
     Duration: TimeSpan
+    ErrorStats: Stream<ErrorStats>
 }

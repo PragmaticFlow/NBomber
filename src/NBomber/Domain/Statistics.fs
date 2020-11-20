@@ -72,6 +72,28 @@ let roundResult (value: float) =
     else Math.Round(value, 4)
     |> UMX.tag
 
+module ErrorStats =
+
+    let create (stepResults: RawStepResults) =
+        stepResults.Responses
+        |> Stream.filter(fun x -> x.Response.Exception.IsSome)
+        |> Stream.groupBy(fun x -> x.Response.ErrorCode)
+        |> Stream.map(fun (code,errorResponses) ->
+            { ErrorCode = code
+              Exception = errorResponses |> Seq.head |> fun x -> x.Response.Exception.Value
+              Count = errorResponses |> Seq.length }
+        )
+
+    let merge (stepStats: Stream<RawStepStats>) =
+        stepStats
+        |> Stream.collect(fun x -> x.ErrorStats)
+        |> Stream.groupBy(fun x -> x.ErrorCode)
+        |> Stream.map(fun (code,errorStats) ->
+            { ErrorCode = code
+              Exception = errorStats |> Seq.head |> fun x -> x.Exception
+              Count = errorStats |> Seq.sumBy(fun x -> x.Count) }
+        )
+
 module StepResults =
 
     let calcDataTransfer (responses: Stream<StepResponse>) =
@@ -113,7 +135,7 @@ module RawStepStats =
 
     let create (executionTime: TimeSpan) (stepResults: RawStepResults) =
         let okLatencies = stepResults.Responses |> Stream.choose(fun x -> if x.Response.Exception.IsNone then Some x.LatencyMs else None)
-        let histogram = buildHistogram(okLatencies)
+        let histogram = buildHistogram okLatencies
 
         let requestCount = stepResults.Responses |> Stream.length
         let okCount = okLatencies |> Stream.length
@@ -125,15 +147,16 @@ module RawStepStats =
           OkCount = okCount
           FailCount = failCount
           RPS = calcRPS executionTime okLatencies
-          Min = calcMin(okLatencies)
-          Mean = calcMean(okLatencies)
-          Max = calcMax(okLatencies)
+          Min = calcMin okLatencies
+          Mean = calcMean okLatencies
+          Max = calcMax okLatencies
           Percent50 = calcPercentile 50.0 histogram
           Percent75 = calcPercentile 75.0 histogram
           Percent95 = calcPercentile 95.0 histogram
           Percent99 = calcPercentile 99.0 histogram
-          StdDev = calcStdDev(histogram)
-          DataTransfer = stepResults.DataTransfer }
+          StdDev = calcStdDev histogram
+          DataTransfer = stepResults.DataTransfer
+          ErrorStats = ErrorStats.create stepResults }
 
     let merge (stepsStats: Stream<RawStepStats>) (executionTime: TimeSpan) =
         stepsStats
@@ -143,7 +166,7 @@ module RawStepStats =
             let dataTransfer = statsStream |> Stream.map(fun x -> x.DataTransfer) |> StepResults.mergeTraffic
             let okLatencies = statsStream |> Stream.collect(fun x -> x.OkLatencies)
             let failCount = statsStream |> Stream.sumBy(fun x -> x.FailCount)
-            let histogram = buildHistogram(okLatencies)
+            let histogram = buildHistogram okLatencies
 
             let okLatenciesCount = okLatencies |> Stream.length
 
@@ -153,15 +176,16 @@ module RawStepStats =
               OkCount = okLatenciesCount
               FailCount = failCount
               RPS = calcRPS executionTime okLatencies
-              Min = calcMin(okLatencies)
-              Mean = calcMean(okLatencies)
-              Max = calcMax(okLatencies)
+              Min = calcMin okLatencies
+              Mean = calcMean okLatencies
+              Max = calcMax okLatencies
               Percent50 = calcPercentile 50.0 histogram
               Percent75 = calcPercentile 75.0 histogram
               Percent95 = calcPercentile 95.0 histogram
               Percent99 = calcPercentile 99.0 histogram
-              StdDev = calcStdDev(histogram)
-              DataTransfer = dataTransfer })
+              StdDev = calcStdDev histogram
+              DataTransfer = dataTransfer
+              ErrorStats = ErrorStats.merge statsStream })
 
 module RawScenarioStats =
 
@@ -186,7 +210,8 @@ module RawScenarioStats =
           LatencyCount = mergedStepsStats |> calcLatencyCount
           RawStepsStats = RawStepStats.merge stepsStats executionTime
           LoadSimulationStats = simulationStats
-          Duration = executionTime }
+          Duration = executionTime
+          ErrorStats = ErrorStats.merge mergedStepsStats }
 
     let create (scenario: Scenario) (executionTime: TimeSpan)
                (simulationStats: LoadSimulationStats)
@@ -218,7 +243,8 @@ module NodeStats =
               MinDataKb = % x.DataTransfer.MinKb
               MeanDataKb = % x.DataTransfer.MeanKb
               MaxDataKb = % x.DataTransfer.MaxKb
-              AllDataMB = % x.DataTransfer.AllMB }
+              AllDataMB = % x.DataTransfer.AllMB
+              ErrorStats = x.ErrorStats |> Stream.toArray }
         )
 
     let mapScenarioStats (scnStats: Stream<RawScenarioStats>) =
@@ -232,6 +258,7 @@ module NodeStats =
               StepStats = x.RawStepsStats |> mapStepStats |> Stream.toArray
               LatencyCount = x.LatencyCount
               LoadSimulationStats = x.LoadSimulationStats
+              ErrorStats = x.ErrorStats |> Stream.toArray
               Duration = x.Duration }
         )
 
