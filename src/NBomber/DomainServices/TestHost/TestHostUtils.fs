@@ -130,6 +130,7 @@ module internal TestHostConsole =
                               | KeepConstant _ -> String.Format("simulation: '{0}', copies: '{1}'", simulationName, x.ConstantActorCount)
                               | RampPerSec _
                               | InjectPerSec _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
+                              | InjectPerSecRandom _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
 
                           pb.Tick(msg) )
 

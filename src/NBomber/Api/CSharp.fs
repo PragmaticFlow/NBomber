@@ -232,3 +232,7 @@ type Simulation =
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     static member InjectPerSec(rate: int, during: TimeSpan) =
         LoadSimulation.InjectPerSec(rate, during)
+
+    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
+        LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)

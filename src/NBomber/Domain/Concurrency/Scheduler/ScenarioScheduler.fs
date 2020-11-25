@@ -34,7 +34,11 @@ let calcScheduleByTime (copiesCount: int, prevSegmentCopiesCount: int, timeSegme
     let result = (float value / 100.0 * float timeSegmentProgress) + float prevSegmentCopiesCount
     int(Math.Round(result, 0, MidpointRounding.AwayFromZero))
 
-let schedule (timeSegment: LoadTimeSegment, timeSegmentProgress: int, constWorkingActorCount: int) =
+let schedule (getRandomValue: int -> int -> int) // min -> max -> result
+             (timeSegment: LoadTimeSegment)
+             (timeSegmentProgress: int)
+             (constWorkingActorCount: int) =
+
     match timeSegment.LoadSimulation with
     | RampConstant (copiesCount, _) ->
         let scheduled = calcScheduleByTime(copiesCount, timeSegment.PrevSegmentCopiesCount, timeSegmentProgress)
@@ -59,6 +63,12 @@ let schedule (timeSegment: LoadTimeSegment, timeSegmentProgress: int, constWorki
         if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount); command]
         else [command]
 
+    | InjectPerSecRandom (minRate, maxRate, _) ->
+        let copiesCount = getRandomValue minRate maxRate
+        let command = InjectOneTimeActors(copiesCount)
+        if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount); command]
+        else [command]
+
 let correctExecutionTime (executionTime: TimeSpan, scnDuration: TimeSpan) =
     if executionTime = TimeSpan.Zero || executionTime > scnDuration then scnDuration
     else executionTime
@@ -79,6 +89,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
+    let _randomGen = Random()
 
     let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
 
@@ -116,6 +127,9 @@ type ScenarioScheduler(dep: ActorDep) =
         |> Stream.collect(fun x -> x.GetStepResults executionTime)
         |> RawScenarioStats.create dep.Scenario executionTime simulationStats
 
+    let getRandomValue minRate maxRate =
+        _randomGen.Next(minRate, maxRate)
+
     do
         _timer.Elapsed.Add(fun _ ->
 
@@ -140,7 +154,7 @@ type ScenarioScheduler(dep: ActorDep) =
                         |> LoadTimeLine.calcTimeSegmentProgress(currentTime)
                         |> LoadTimeLine.correctTimeProgress
 
-                    schedule(timeSegment, timeProgress, _constantScheduler.WorkingActorCount)
+                    schedule getRandomValue timeSegment timeProgress _constantScheduler.WorkingActorCount
                     |> List.iter(function
                         | AddConstantActors count    -> _constantScheduler.AddActors(count)
                         | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
