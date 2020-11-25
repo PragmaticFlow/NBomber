@@ -80,7 +80,7 @@ module ErrorStats =
         |> Stream.groupBy(fun x -> x.Response.ErrorCode)
         |> Stream.map(fun (code,errorResponses) ->
             { ErrorCode = code
-              Exception = errorResponses |> Seq.head |> fun x -> x.Response.Exception.Value
+              Message = errorResponses |> Seq.head |> fun x -> x.Response.Exception.Value.ToString()
               Count = errorResponses |> Seq.length }
         )
 
@@ -90,7 +90,7 @@ module ErrorStats =
         |> Stream.groupBy(fun x -> x.ErrorCode)
         |> Stream.map(fun (code,errorStats) ->
             { ErrorCode = code
-              Exception = errorStats |> Seq.head |> fun x -> x.Exception
+              Message = errorStats |> Seq.head |> fun x -> x.Message
               Count = errorStats |> Seq.sumBy(fun x -> x.Count) }
         )
 

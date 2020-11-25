@@ -83,6 +83,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
 
     let start () =
+        dep.GlobalTimer.Stop()
         _timer.Start()
         _progressInfoTimer.Start()
         _tcs.Task :> Task

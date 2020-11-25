@@ -61,7 +61,7 @@ type ErrorCode = int
 
 type ErrorStats = {
     ErrorCode: ErrorCode
-    Exception: exn
+    Message: string
     Count: int
 }
 
