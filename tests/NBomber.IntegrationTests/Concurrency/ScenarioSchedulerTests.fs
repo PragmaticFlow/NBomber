@@ -11,9 +11,10 @@ open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Concurrency.Scheduler
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.FSharp
+
+let getRandomValue minRate maxRate = 42
 
 [<Theory>]
 [<InlineData(100, 200, 50, 150)>]    // ramp-up
@@ -37,7 +38,7 @@ let ``schedule should correctly handle ramp-up or ramp-down for RampScenariosPer
         LoadSimulation = RampPerSec(copiesCount, TimeSpan.MinValue)
     }
 
-    match ScenarioScheduler.schedule(timeSegment, timeProgress, constWorkingActorCount).Head with
+    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
     | InjectOneTimeActors count -> test <@ count = result @>
     | _                         -> failwith "invalid command"
 
@@ -57,7 +58,7 @@ let ``schedule should correctly handle ramp-up for RampConcurrentScenarios``
         LoadSimulation = RampConstant(copiesCount, TimeSpan.MinValue)
     }
 
-    match ScenarioScheduler.schedule(timeSegment, timeProgress, constWorkingActorCount).Head with
+    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
     | AddConstantActors count -> test <@ count = result @>
     | _                       -> failwith "invalid command"
 
@@ -76,7 +77,7 @@ let ``schedule should correctly handle ramp-down for RampConcurrentScenarios``
         LoadSimulation = RampConstant(copiesCount, TimeSpan.MinValue)
     }
 
-    match ScenarioScheduler.schedule(timeSegment, timeProgress, constWorkingActorCount).Head with
+    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
     | RemoveConstantActors count -> test <@ count = result @>
     | _                          -> failwith "invalid command"
 
@@ -95,7 +96,7 @@ let ``schedule should correctly handle KeepConcurrentScenarios``
         LoadSimulation = KeepConstant(int copiesCount, TimeSpan.MinValue)
     }
 
-    let commands = ScenarioScheduler.schedule(timeSegment, int timeProgress, int constWorkingActorCount)
+    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
     commands
     |> List.iter(function
         | AddConstantActors scheduled    -> test <@ scheduled <> 0 @>
@@ -128,10 +129,43 @@ let ``schedule should correctly handle InjectScenariosPerSec``
         LoadSimulation = InjectPerSec(int copiesCount, TimeSpan.MinValue)
     }
 
-    let commands = ScenarioScheduler.schedule(timeSegment, int timeProgress, int constWorkingActorCount)
+    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
     commands
     |> List.iter(function
         | InjectOneTimeActors scheduled  -> test <@ scheduled <> 0 @>
+
+        | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
+                                            commandCount := 2
+
+        | _ -> failwith "invalid command"
+    )
+
+    test <@ commands.Length = commandCount.Value @>
+
+[<Property>]
+let ``schedule should correctly handle InjectScenariosPerSecRandom``
+    (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
+
+    // condition
+    copiesCount > 0u ==> lazy
+
+    let commandCount = ref 1 // for some reason F# doesn't compile mutable commandCount with FsCheck(==> lazy)
+
+    let getRandomValue minRate maxRate =
+        Random().Next(minRate, maxRate)
+
+    let timeSegment = {
+        StartTime = TimeSpan.MinValue
+        EndTime = TimeSpan.MinValue
+        Duration = TimeSpan.MinValue
+        PrevSegmentCopiesCount = int prevSegmentCopiesCount
+        LoadSimulation = InjectPerSecRandom(5, 10, TimeSpan.MinValue)
+    }
+
+    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
+    commands
+    |> List.iter(function
+        | InjectOneTimeActors scheduled  -> test <@ scheduled >= 5 && scheduled <= 10 @>
 
         | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
                                             commandCount := 2
@@ -158,7 +192,7 @@ let ``schedule should correctly handle RampScenariosPerSec``
         LoadSimulation = RampPerSec(int copiesCount, TimeSpan.MinValue)
     }
 
-    let commands = ScenarioScheduler.schedule(timeSegment, int timeProgress, int constWorkingActorCount)
+    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
     commands
     |> List.iter(function
         | InjectOneTimeActors scheduled  -> test <@ scheduled <> 0 @>

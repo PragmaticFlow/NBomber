@@ -33,6 +33,7 @@ type ValidationError =
     | SimulationIsSmallerThanMin of simulation:string
     | SimulationIsBiggerThanMax of simulation:string
     | CopiesCountIsZeroOrNegative of simulation:string
+    | RateIsZeroOrNegative of simulation:string
 
 type AppError =
     | Domain        of DomainError
@@ -107,6 +108,10 @@ type AppError =
 
         | CopiesCountIsZeroOrNegative simulation ->
             sprintf "Simulation: '%A' has invalid copiesCount value. The value should be bigger than 0." simulation
+
+        | RateIsZeroOrNegative simulation ->
+            sprintf "Simulation: '%A' has invalid rate value. The value should be bigger than 0." simulation
+
 
     static member toString (error: AppError) =
         match error with
