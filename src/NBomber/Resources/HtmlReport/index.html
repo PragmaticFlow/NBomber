@@ -40,7 +40,7 @@
                 <h6>Environment</h6>
             </div>
             <div class="card-body">
-                <table class="table table-hover table-sm table-responsive-lg">
+                <table class="table table-hover table-sm">
                     <thead class="mdb-color lighten-2 white-text">
                         <tr>
                             <th>Machine Name</th>
@@ -68,7 +68,7 @@
 
     <!-- Scenarios Stats Table Template -->
     <script type="text/x-template" id="scenario-stats-table-template">
-        <table class="table table-hover table-striped table-bordered table-sm table-responsive-lg">
+        <table class="table table-hover table-striped table-bordered table-sm">
             <thead class="mdb-color lighten-2 white-text">
                 <tr>
                     <th></th>
@@ -140,6 +140,125 @@
         </table>
     </script>
 
+
+    <!-- Scenarios Stats Requests Number Table Template -->
+    <script type="text/x-template" id="scenario-stats-requests-number-table-template">
+        <table class="table table-hover table-striped table-bordered table-sm">
+            <thead class="mdb-color lighten-2 white-text">
+                <tr>
+                    <th></th>
+                    <th colspan="4">request number</th>
+                </tr>
+                <tr>
+                    <th>step</th>
+                    <th>all</th>
+                    <th>ok</th>
+                    <th>failed</th>
+                    <th>RPS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
+                    <td>{{stepStats.StepName}}</td>
+                    <td>{{stepStats.RequestCount}}</td>
+                    <td>{{stepStats.OkCount}}</td>
+                    <td>{{stepStats.FailCount}}</td>
+                    <td>{{stepStats.RPS}}</td>
+                </tr>
+                <tr class="mdb-color lighten-2 white-text">
+                    <th>total</th>
+                    <th>{{scenarioStats.RequestCount}}</th>
+                    <th>{{scenarioStats.OkCount}}</th>
+                    <th>{{scenarioStats.FailCount}}</th>
+                    <th></th>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+
+    <!-- Scenarios Stats Latency Table Template -->
+    <script type="text/x-template" id="scenario-stats-latency-table-template">
+        <table class="table table-hover table-striped table-bordered table-sm">
+            <thead class="mdb-color lighten-2 white-text">
+                <tr>
+                    <th></th>
+                    <th colspan="3">latency, ms</th>
+                    <th colspan="5">latency percentile, ms</th>
+                </tr>
+                <tr>
+                    <th>step</th>
+                    <th>min</th>
+                    <th>mean</th>
+                    <th>max</th>
+                    <th>50th</th>
+                    <th>75th</th>
+                    <th>95th</th>
+                    <th>99th</th>
+                    <th>StdDev</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
+                    <td>{{stepStats.StepName}}</td>
+                    <td>{{stepStats.Min}}</td>
+                    <td>{{stepStats.Mean}}</td>
+                    <td>{{stepStats.Max}}</td>
+                    <td>{{stepStats.Percent50}}</td>
+                    <td>{{stepStats.Percent75}}</td>
+                    <td>{{stepStats.Percent95}}</td>
+                    <td>{{stepStats.Percent99}}</td>
+                    <td>{{stepStats.StdDev}}</td>
+                </tr>
+                <tr class="mdb-color lighten-2 white-text">
+                    <th>total</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+
+    <!-- Scenarios Stats Data Transfer Table Template -->
+    <script type="text/x-template" id="scenario-stats-data-transfer-table-template">
+        <table class="table table-hover table-striped table-bordered table-sm">
+            <thead class="mdb-color lighten-2 white-text">
+                <tr>
+                    <th></th>
+                    <th colspan="4">data transfer</th>
+                </tr>
+                <tr>
+                    <th>step</th>
+                    <th>min, KB</th>
+                    <th>mean, KB</th>
+                    <th>max, KB</th>
+                    <th>all, MB</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
+                    <td>{{stepStats.StepName}}</td>
+                    <td>{{stepStats.MinDataKb}}</td>
+                    <td>{{stepStats.MeanDataKb}}</td>
+                    <td>{{stepStats.MaxDataKb}}</td>
+                    <td>{{stepStats.AllDataMB}}</td>
+                </tr>
+                <tr class="mdb-color lighten-2 white-text">
+                    <th>total</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>{{scenarioStats.AllDataMB}}</th>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+
     <!-- Plugins Stats Table Template -->
     <script type="text/x-template" id="plugins-stats-table-template">
         <div class="row">
@@ -152,7 +271,7 @@
                         <h6>plugin stats: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{pluginStats.TableName}}</span></h6>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover table-striped table-sm table-responsive-lg">
+                        <table class="table table-hover table-striped table-sm">
                             <thead class="mdb-color lighten-2 white-text">
                                 <tr>
                                     <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
@@ -170,6 +289,29 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="error-stats-table-template">
+        <div class="row" v-if="errorStats && errorStats.length">
+            <div class="col">
+                <table class="table table-hover table-striped table-sm">
+                    <thead class="mdb-color lighten-2 white-text">
+                        <tr>
+                            <th>error code</th>
+                            <th>count</th>
+                            <th>message</th>
+                        </tr>
+                    </thead>
+                    <tr v-for="(errorStats, index) in errorStats" :key="`error-stats-${index}`">
+                        <td>{{errorStats.ErrorCode}}</td>
+                        <td>{{errorStats.Count}}</td>
+                        <td></td>
+                    </tr>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
         </div>
     </script>
@@ -292,16 +434,46 @@
                                         </div>
                                         <div class="card-body">
                                             <div :id="`test-suite-scenario-content-${scenarioIndex}`" class="show">
-                                                <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                                <!-- Test View / Stats Table -->
+                                                <div class="row d-none d-lg-block">
+                                                    <div class="col">
+                                                        <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                                    </div>
+                                                </div>
+                                                <div class="row d-lg-none">
+                                                    <div class="col">
+                                                        <scenario-stats-requests-number-table :scenario-stats="scenarioStats"></scenario-stats-requests-number-table>
+                                                    </div>
+                                                </div>
+                                                <div class="row d-lg-none">
+                                                    <div class="col">
+                                                        <scenario-stats-latency-table :scenario-stats="scenarioStats"></scenario-stats-latency-table>
+                                                    </div>
+                                                </div>
+                                                <div class="row d-lg-none">
+                                                    <div class="col">
+                                                        <scenario-stats-data-transfer-table :scenario-stats="scenarioStats"></scenario-stats-data-transfer-table>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <!-- Test View / Errors Table -->
+                                                        <error-stats-table :error-stats="scenarioStats.ErrorStats"></error-stats-table>
+                                                    </div>
+                                                </div>
                                                 <div v-show="showCharts">
                                                     <div class="row">
-                                                        <div class="col-8">
+                                                        <div class="col-6">
                                                             <!-- TestSuite View / Scenario Latency (Columns) -->
                                                             <chart-scenario-latency-indicators :scenario-stats="scenarioStats"></chart-scenario-latency-indicators>
                                                         </div>
-                                                        <div class="col-4">
+                                                        <div class="col-3">
                                                             <!-- TestSuite View / Scenario Requests -->
                                                             <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <!-- TestSuite View / Errors -->
+                                                            <chart-scenario-errors :error-stats="scenarioStats.ErrorStats"></chart-scenario-errors>
                                                         </div>
                                                     </div>
                                                     <div class="row">
@@ -339,16 +511,46 @@
                                         </h6>
                                     </div>
                                     <div class="card-body">
-                                        <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                        <!-- Scenario View / Stats Table -->
+                                        <div class="row d-none d-lg-block">
+                                            <div class="col">
+                                                <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
+                                            </div>
+                                        </div>
+                                        <div class="row d-lg-none">
+                                            <div class="col">
+                                                <scenario-stats-requests-number-table :scenario-stats="scenarioStats"></scenario-stats-requests-number-table>
+                                            </div>
+                                        </div>
+                                        <div class="row d-lg-none">
+                                            <div class="col">
+                                                <scenario-stats-latency-table :scenario-stats="scenarioStats"></scenario-stats-latency-table>
+                                            </div>
+                                        </div>
+                                        <div class="row d-lg-none">
+                                            <div class="col">
+                                                <scenario-stats-data-transfer-table :scenario-stats="scenarioStats"></scenario-stats-data-transfer-table>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col">
+                                                <!-- Test View / Errors Table -->
+                                                <error-stats-table :error-stats="scenarioStats.ErrorStats"></error-stats-table>
+                                            </div>
+                                        </div>
                                         <lazy-load :loaded-views="loadedViews" :load-for-view="`scenario-${scenarioIndex}`">
                                             <div class="row">
-                                                <div class="col-8">
+                                                <div class="col-6">
                                                     <!-- Scenario View / Scenario Latency (Column) -->
                                                     <chart-scenario-latency-indicators :scenario-stats="scenarioStats"></chart-scenario-latency-indicators>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="col-3">
                                                     <!-- Scenario View / Scenario Requests -->
                                                     <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
+                                                </div>
+                                                <div class="col-3">
+                                                    <!-- Scenario View / Errors -->
+                                                    <chart-scenario-errors :error-stats="scenarioStats.ErrorStats"></chart-scenario-errors>
                                                 </div>
                                             </div>
                                         </lazy-load>

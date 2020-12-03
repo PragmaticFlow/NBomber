@@ -169,6 +169,32 @@ const initApp = (appContainer, viewModel) => {
         ]
     });
 
+    const createSettingsChartScenarioErrors = (theme, errorStats, titles) => ({
+        credits: {
+            enabled: false
+        },
+        title: {
+            text: titles.charts.scenarioErrors
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{point.color}">●</span> {series.name}: <b>{point.y}</b> ({point.percentage:.1f}%)'
+        },
+        plotOptions: createPlotOptions(),
+        legend: {
+            labelFormat: '{name}: {y}'
+        },
+        series: [
+            {
+                type: 'pie',
+                name: 'errors',
+                colorByPoint: true,
+                size: '100%',
+                innerSize: '50%',
+                data: errorStats.map(es => ({ name: es.ErrorCode, y: es.Count }))
+            }
+        ]
+    });
+
     const createSettingsChartScenarioLatencyIndicators = (theme, scenarioStats, titles) => ({
         credits: {
             enabled: false
@@ -403,6 +429,7 @@ const initApp = (appContainer, viewModel) => {
     const titles = {
         charts: {
             scenarioRequests: 'requests number',
+            scenarioErrors: 'error codes',
             latencyIndicators: 'latency indicators',
             throughput: 'throughput',
             latency: 'latency'
@@ -476,9 +503,30 @@ const initApp = (appContainer, viewModel) => {
         template: '#scenario-stats-table-template'
     });
 
+    Vue.component('scenario-stats-requests-number-table', {
+        props: ['scenarioStats'],
+        template: '#scenario-stats-requests-number-table-template'
+    });
+
+    Vue.component('scenario-stats-latency-table', {
+        props: ['scenarioStats'],
+        template: '#scenario-stats-latency-table-template'
+    });
+
+    Vue.component('scenario-stats-data-transfer-table', {
+        props: ['scenarioStats'],
+        template: '#scenario-stats-data-transfer-table-template'
+    });
+
     Vue.component('plugins-stats-table', {
         props: ['pluginsStats'],
         template: '#plugins-stats-table-template'
+    });
+
+
+    Vue.component('error-stats-table', {
+        props: ['errorStats'],
+        template: '#error-stats-table-template'
     });
 
     Vue.component('lazy-load', {
@@ -491,6 +539,15 @@ const initApp = (appContainer, viewModel) => {
         template: '<div ref="container" class="chart chart-scenario-requests"></div>',
         mounted() {
             const settings = createSettingsChartScenarioRequests(theme, this.scenarioStats, titles);
+            renderChart(this.$refs.container, settings);
+        }
+    });
+
+    Vue.component('chart-scenario-errors', {
+        props: ['errorStats'],
+        template: '<div ref="container" class="chart chart-scenario-errors"></div>',
+        mounted() {
+            const settings = createSettingsChartScenarioErrors(theme, this.errorStats, titles);
             renderChart(this.$refs.container, settings);
         }
     });

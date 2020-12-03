@@ -1,357 +1,291 @@
 const viewModel = {
     nBomberInfo: {
-        NBomberVersion: "x.x.x"
-    },
-    testInfo: {
+        "NBomberVersion": "1.1.0"
+    }, testInfo: {
         "TestSuite": "nbomber_default_test_suite_name",
         "TestName": "nbomber_default_test_name"
-    },
-    statsData: {
-        "RequestCount": 5492,
-        "OkCount": 4200,
-        "FailCount": 1292,
-        "AllDataMB": 42.53,
+    }, statsData: {
+        "RequestCount": 246,
+        "OkCount": 152,
+        "FailCount": 94,
+        "AllDataMB": 0.0,
         "ScenarioStats": [
             {
-                "ScenarioName": "test_1",
-                "RequestCount": 1825,
-                "OkCount": 1392,
-                "FailCount": 433,
-                "AllDataMB": 14.11,
+                "ScenarioName": "scenario 1",
+                "RequestCount": 123,
+                "OkCount": 76,
+                "FailCount": 47,
+                "AllDataMB": 0.0,
                 "StepStats": [
                     {
-                        "StepName": "pull html 1",
-                        "RequestCount": 600,
-                        "OkCount": 484,
-                        "FailCount": 116,
-                        "Min": 14,
-                        "Mean": 723,
-                        "Max": 1633,
-                        "RPS": 5,
-                        "Percent50": 731,
-                        "Percent75": 1090,
-                        "Percent95": 1356,
-                        "Percent99": 1569,
-                        "StdDev": 404,
-                        "MinDataKb": 0.13,
-                        "MeanDataKb": 8.44,
-                        "MaxDataKb": 19.88,
-                        "AllDataMB": 4.31
-                    },
-                    {
-                        "StepName": "pull html 2",
-                        "RequestCount": 474,
-                        "OkCount": 349,
-                        "FailCount": 125,
-                        "Min": 38,
-                        "Mean": 717,
-                        "Max": 1489,
-                        "RPS": 3,
-                        "Percent50": 688,
-                        "Percent75": 1136,
-                        "Percent95": 1329,
-                        "Percent99": 1466,
-                        "StdDev": 416,
-                        "MinDataKb": 0.18,
-                        "MeanDataKb": 9.01,
-                        "MaxDataKb": 19.68,
-                        "AllDataMB": 3.35
-                    },
-                    {
-                        "StepName": "pull html 3",
-                        "RequestCount": 339,
-                        "OkCount": 231,
-                        "FailCount": 108,
-                        "Min": 60,
-                        "Mean": 792,
-                        "Max": 1508,
-                        "RPS": 2,
-                        "Percent50": 762,
-                        "Percent75": 1226,
-                        "Percent95": 1478,
-                        "Percent99": 1500,
-                        "StdDev": 439,
-                        "MinDataKb": 0.69,
-                        "MeanDataKb": 10.22,
-                        "MaxDataKb": 19.45,
-                        "AllDataMB": 2.45
-                    },
-                    {
-                        "StepName": "pull html 4",
-                        "RequestCount": 231,
-                        "OkCount": 190,
-                        "FailCount": 41,
-                        "Min": 12,
-                        "Mean": 706,
-                        "Max": 1588,
-                        "RPS": 2,
-                        "Percent50": 609,
-                        "Percent75": 1240,
-                        "Percent95": 1459,
-                        "Percent99": 1507,
-                        "StdDev": 457,
+                        "StepName": "ok step",
+                        "RequestCount": 49,
+                        "OkCount": 49,
+                        "FailCount": 0,
+                        "Min": 127,
+                        "Mean": 511,
+                        "Max": 978,
+                        "RPS": 0,
+                        "Percent50": 407,
+                        "Percent75": 758,
+                        "Percent95": 964,
+                        "Percent99": 978,
+                        "StdDev": 276,
                         "MinDataKb": 0.0,
-                        "MeanDataKb": 11.42,
-                        "MaxDataKb": 19.77,
-                        "AllDataMB": 2.25
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": []
                     },
                     {
-                        "StepName": "pull html 5",
-                        "RequestCount": 181,
-                        "OkCount": 138,
-                        "FailCount": 43,
-                        "Min": 16,
-                        "Mean": 555,
-                        "Max": 1454,
-                        "RPS": 1,
-                        "Percent50": 473,
-                        "Percent75": 748,
-                        "Percent95": 1378,
-                        "Percent99": 1450,
-                        "StdDev": 391,
+                        "StepName": "fail step 1",
+                        "RequestCount": 47,
+                        "OkCount": 27,
+                        "FailCount": 20,
+                        "Min": 574,
+                        "Mean": 1207,
+                        "Max": 1952,
+                        "RPS": 0,
+                        "Percent50": 1191,
+                        "Percent75": 1566,
+                        "Percent95": 1936,
+                        "Percent99": 1952,
+                        "StdDev": 435,
                         "MinDataKb": 0.0,
-                        "MeanDataKb": 13.04,
-                        "MaxDataKb": 19.43,
-                        "AllDataMB": 1.75
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": [
+                            {
+                                "ErrorCode": 500,
+                                "Exception": {
+                                    "TargetSite": null,
+                                    "StackTrace": null,
+                                    "Message": "Internal Server Error",
+                                    "Data": {},
+                                    "InnerException": null,
+                                    "HelpLink": null,
+                                    "Source": null,
+                                    "HResult": -2146233088
+                                },
+                                "Count": 20
+                            }
+                        ]
+                    },
+                    {
+                        "StepName": "fail step 2",
+                        "RequestCount": 27,
+                        "OkCount": 0,
+                        "FailCount": 27,
+                        "Min": 0,
+                        "Mean": 0,
+                        "Max": 0,
+                        "RPS": 0,
+                        "Percent50": 0,
+                        "Percent75": 0,
+                        "Percent95": 0,
+                        "Percent99": 0,
+                        "StdDev": 0,
+                        "MinDataKb": 0.0,
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": [
+                            {
+                                "ErrorCode": 400,
+                                "Exception": {
+                                    "TargetSite": null,
+                                    "StackTrace": null,
+                                    "Message": "Bad Request",
+                                    "Data": {},
+                                    "InnerException": null,
+                                    "HelpLink": null,
+                                    "Source": null,
+                                    "HResult": -2146233088
+                                },
+                                "Count": 27
+                            }
+                        ]
                     }
                 ],
                 "LatencyCount": {
-                    "Less800": 818,
-                    "More800Less1200": 326,
-                    "More1200": 248
+                    "Less800": 46,
+                    "More800Less1200": 17,
+                    "More1200": 13
                 },
                 "LoadSimulationStats": {
-                    "SimulationName": "inject_per_sec",
-                    "Value": 10
+                    "SimulationName": "keep_constant",
+                    "Value": 2
                 },
+                "ErrorStats": [
+                    {
+                        "ErrorCode": 500,
+                        "Exception": {
+                            "TargetSite": null,
+                            "StackTrace": null,
+                            "Message": "Internal Server Error",
+                            "Data": {},
+                            "InnerException": null,
+                            "HelpLink": null,
+                            "Source": null,
+                            "HResult": -2146233088
+                        },
+                        "Count": 20
+                    },
+                    {
+                        "ErrorCode": 400,
+                        "Exception": {
+                            "TargetSite": null,
+                            "StackTrace": null,
+                            "Message": "Bad Request",
+                            "Data": {},
+                            "InnerException": null,
+                            "HelpLink": null,
+                            "Source": null,
+                            "HResult": -2146233088
+                        },
+                        "Count": 27
+                    }
+                ],
                 "Duration": "00:01:00"
             },
             {
-                "ScenarioName": "test_2",
-                "RequestCount": 1832,
-                "OkCount": 1402,
-                "FailCount": 430,
-                "AllDataMB": 14.29,
+                "ScenarioName": "scenario 2",
+                "RequestCount": 123,
+                "OkCount": 76,
+                "FailCount": 47,
+                "AllDataMB": 0.0,
                 "StepStats": [
                     {
-                        "StepName": "pull html 1",
-                        "RequestCount": 600,
-                        "OkCount": 480,
-                        "FailCount": 120,
-                        "Min": 20,
-                        "Mean": 720,
-                        "Max": 1623,
-                        "RPS": 5,
-                        "Percent50": 716,
-                        "Percent75": 1084,
-                        "Percent95": 1339,
-                        "Percent99": 1573,
-                        "StdDev": 401,
-                        "MinDataKb": 0.1,
-                        "MeanDataKb": 8.5,
-                        "MaxDataKb": 19.88,
-                        "AllDataMB": 4.29
-                    },
-                    {
-                        "StepName": "pull html 2",
-                        "RequestCount": 470,
-                        "OkCount": 353,
-                        "FailCount": 117,
-                        "Min": 34,
-                        "Mean": 712,
-                        "Max": 1474,
-                        "RPS": 4,
-                        "Percent50": 686,
-                        "Percent75": 1134,
-                        "Percent95": 1328,
-                        "Percent99": 1459,
-                        "StdDev": 417,
-                        "MinDataKb": 0.18,
-                        "MeanDataKb": 9.01,
-                        "MaxDataKb": 19.67,
-                        "AllDataMB": 3.36
-                    },
-                    {
-                        "StepName": "pull html 3",
-                        "RequestCount": 343,
-                        "OkCount": 234,
-                        "FailCount": 109,
-                        "Min": 55,
-                        "Mean": 793,
-                        "Max": 1506,
-                        "RPS": 2,
-                        "Percent50": 760,
-                        "Percent75": 1231,
-                        "Percent95": 1493,
-                        "Percent99": 1503,
-                        "StdDev": 447,
-                        "MinDataKb": 0.26,
-                        "MeanDataKb": 10.38,
-                        "MaxDataKb": 19.44,
-                        "AllDataMB": 2.49
-                    },
-                    {
-                        "StepName": "pull html 4",
-                        "RequestCount": 234,
-                        "OkCount": 195,
-                        "FailCount": 39,
-                        "Min": 11,
-                        "Mean": 712,
-                        "Max": 1511,
-                        "RPS": 2,
-                        "Percent50": 604,
-                        "Percent75": 1115,
-                        "Percent95": 1444,
-                        "Percent99": 1503,
-                        "StdDev": 451,
+                        "StepName": "ok step",
+                        "RequestCount": 49,
+                        "OkCount": 49,
+                        "FailCount": 0,
+                        "Min": 110,
+                        "Mean": 596,
+                        "Max": 993,
+                        "RPS": 0,
+                        "Percent50": 657,
+                        "Percent75": 811,
+                        "Percent95": 969,
+                        "Percent99": 993,
+                        "StdDev": 257,
                         "MinDataKb": 0.0,
-                        "MeanDataKb": 11.72,
-                        "MaxDataKb": 19.77,
-                        "AllDataMB": 2.34
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": []
                     },
                     {
-                        "StepName": "pull html 5",
-                        "RequestCount": 185,
-                        "OkCount": 140,
-                        "FailCount": 45,
-                        "Min": 16,
-                        "Mean": 536,
-                        "Max": 1556,
-                        "RPS": 1,
-                        "Percent50": 469,
-                        "Percent75": 749,
-                        "Percent95": 1226,
-                        "Percent99": 1402,
-                        "StdDev": 378,
+                        "StepName": "fail step 1",
+                        "RequestCount": 47,
+                        "OkCount": 27,
+                        "FailCount": 20,
+                        "Min": 559,
+                        "Mean": 1225,
+                        "Max": 1889,
+                        "RPS": 0,
+                        "Percent50": 1209,
+                        "Percent75": 1601,
+                        "Percent95": 1812,
+                        "Percent99": 1889,
+                        "StdDev": 433,
                         "MinDataKb": 0.0,
-                        "MeanDataKb": 12.85,
-                        "MaxDataKb": 19.45,
-                        "AllDataMB": 1.81
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": [
+                            {
+                                "ErrorCode": 500,
+                                "Exception": {
+                                    "TargetSite": null,
+                                    "StackTrace": null,
+                                    "Message": "Internal Server Error",
+                                    "Data": {},
+                                    "InnerException": null,
+                                    "HelpLink": null,
+                                    "Source": null,
+                                    "HResult": -2146233088
+                                },
+                                "Count": 20
+                            }
+                        ]
+                    },
+                    {
+                        "StepName": "fail step 2",
+                        "RequestCount": 27,
+                        "OkCount": 0,
+                        "FailCount": 27,
+                        "Min": 0,
+                        "Mean": 0,
+                        "Max": 0,
+                        "RPS": 0,
+                        "Percent50": 0,
+                        "Percent75": 0,
+                        "Percent95": 0,
+                        "Percent99": 0,
+                        "StdDev": 0,
+                        "MinDataKb": 0.0,
+                        "MeanDataKb": 0.0,
+                        "MaxDataKb": 0.0,
+                        "AllDataMB": 0.0,
+                        "ErrorStats": [
+                            {
+                                "ErrorCode": 400,
+                                "Exception": {
+                                    "TargetSite": null,
+                                    "StackTrace": null,
+                                    "Message": "Bad Request",
+                                    "Data": {},
+                                    "InnerException": null,
+                                    "HelpLink": null,
+                                    "Source": null,
+                                    "HResult": -2146233088
+                                },
+                                "Count": 27
+                            }
+                        ]
                     }
                 ],
                 "LatencyCount": {
-                    "Less800": 828,
-                    "More800Less1200": 331,
-                    "More1200": 242
+                    "Less800": 40,
+                    "More800Less1200": 22,
+                    "More1200": 14
                 },
                 "LoadSimulationStats": {
-                    "SimulationName": "inject_per_sec",
-                    "Value": 10
+                    "SimulationName": "keep_constant",
+                    "Value": 2
                 },
-                "Duration": "00:01:00"
-            },
-            {
-                "ScenarioName": "test_3",
-                "RequestCount": 1835,
-                "OkCount": 1406,
-                "FailCount": 429,
-                "AllDataMB": 14.13,
-                "StepStats": [
+                "ErrorStats": [
                     {
-                        "StepName": "pull html 1",
-                        "RequestCount": 600,
-                        "OkCount": 482,
-                        "FailCount": 118,
-                        "Min": 19,
-                        "Mean": 715,
-                        "Max": 1624,
-                        "RPS": 5,
-                        "Percent50": 683,
-                        "Percent75": 1070,
-                        "Percent95": 1327,
-                        "Percent99": 1569,
-                        "StdDev": 402,
-                        "MinDataKb": 0.1,
-                        "MeanDataKb": 8.47,
-                        "MaxDataKb": 19.88,
-                        "AllDataMB": 4.29
+                        "ErrorCode": 500,
+                        "Exception": {
+                            "TargetSite": null,
+                            "StackTrace": null,
+                            "Message": "Internal Server Error",
+                            "Data": {},
+                            "InnerException": null,
+                            "HelpLink": null,
+                            "Source": null,
+                            "HResult": -2146233088
+                        },
+                        "Count": 20
                     },
                     {
-                        "StepName": "pull html 2",
-                        "RequestCount": 472,
-                        "OkCount": 360,
-                        "FailCount": 112,
-                        "Min": 29,
-                        "Mean": 710,
-                        "Max": 1474,
-                        "RPS": 4,
-                        "Percent50": 684,
-                        "Percent75": 1126,
-                        "Percent95": 1329,
-                        "Percent99": 1460,
-                        "StdDev": 420,
-                        "MinDataKb": 0.18,
-                        "MeanDataKb": 8.86,
-                        "MaxDataKb": 19.67,
-                        "AllDataMB": 3.4
-                    },
-                    {
-                        "StepName": "pull html 3",
-                        "RequestCount": 350,
-                        "OkCount": 231,
-                        "FailCount": 119,
-                        "Min": 58,
-                        "Mean": 804,
-                        "Max": 1512,
-                        "RPS": 2,
-                        "Percent50": 765,
-                        "Percent75": 1221,
-                        "Percent95": 1494,
-                        "Percent99": 1506,
-                        "StdDev": 439,
-                        "MinDataKb": 0.68,
-                        "MeanDataKb": 10.05,
-                        "MaxDataKb": 19.44,
-                        "AllDataMB": 2.45
-                    },
-                    {
-                        "StepName": "pull html 4",
-                        "RequestCount": 231,
-                        "OkCount": 191,
-                        "FailCount": 40,
-                        "Min": 13,
-                        "Mean": 713,
-                        "Max": 1541,
-                        "RPS": 2,
-                        "Percent50": 611,
-                        "Percent75": 1236,
-                        "Percent95": 1437,
-                        "Percent99": 1502,
-                        "StdDev": 455,
-                        "MinDataKb": 0.0,
-                        "MeanDataKb": 11.33,
-                        "MaxDataKb": 19.76,
-                        "AllDataMB": 2.23
-                    },
-                    {
-                        "StepName": "pull html 5",
-                        "RequestCount": 182,
-                        "OkCount": 142,
-                        "FailCount": 40,
-                        "Min": 14,
-                        "Mean": 579,
-                        "Max": 1455,
-                        "RPS": 1,
-                        "Percent50": 489,
-                        "Percent75": 863,
-                        "Percent95": 1393,
-                        "Percent99": 1454,
-                        "StdDev": 407,
-                        "MinDataKb": 0.0,
-                        "MeanDataKb": 12.6,
-                        "MaxDataKb": 19.43,
-                        "AllDataMB": 1.76
+                        "ErrorCode": 400,
+                        "Exception": {
+                            "TargetSite": null,
+                            "StackTrace": null,
+                            "Message": "Bad Request",
+                            "Data": {},
+                            "InnerException": null,
+                            "HelpLink": null,
+                            "Source": null,
+                            "HResult": -2146233088
+                        },
+                        "Count": 27
                     }
                 ],
-                "LatencyCount": {
-                    "Less800": 825,
-                    "More800Less1200": 332,
-                    "More1200": 249
-                },
-                "LoadSimulationStats": {
-                    "SimulationName": "inject_per_sec",
-                    "Value": 10
-                },
                 "Duration": "00:01:00"
             }
         ],
@@ -390,2091 +324,3161 @@ const viewModel = {
                 "Platform": 2,
                 "ServicePack": "",
                 "Version": {
-                    "Major": 6,
-                    "Minor": 2,
-                    "Build": 9200,
+                    "Major": 10,
+                    "Minor": 0,
+                    "Build": 18363,
                     "Revision": 0,
                     "MajorRevision": 0,
                     "MinorRevision": 0
                 },
-                "VersionString": "Microsoft Windows NT 6.2.9200.0"
+                "VersionString": "Microsoft Windows NT 10.0.18363.0"
             },
-            "DotNetVersion": ".NETCoreApp,Version=v3.1",
+            "DotNetVersion": ".NETCoreApp,Version=v1.0",
             "Processor": "Intel64 Family 6 Model 94 Stepping 3, GenuineIntel",
-            "CoresCount": 8
+            "CoresCount": 8,
+            "NBomberVersion": "1.1.0"
         }
-    },
-    timeLineStatsData: {
+    }, timeLineStatsData: {
         "TimeStamps": [
+            "00:00:05",
             "00:00:10",
+            "00:00:15",
             "00:00:20",
+            "00:00:25",
             "00:00:30",
-            "00:00:40",
+            "00:00:35",
+            "00:00:39",
+            "00:00:45",
             "00:00:50",
+            "00:00:55",
             "00:01:00"
         ],
         "ScenarioStats": [
             [
                 {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 246,
-                    "OkCount": 177,
-                    "FailCount": 69,
-                    "AllDataMB": 0.19,
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 9,
+                    "OkCount": 5,
+                    "FailCount": 4,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 90,
-                            "OkCount": 68,
-                            "FailCount": 22,
-                            "Min": 113,
-                            "Mean": 380,
-                            "Max": 683,
-                            "RPS": 6,
-                            "Percent50": 379,
-                            "Percent75": 461,
-                            "Percent95": 676,
-                            "Percent99": 679,
-                            "StdDev": 170,
-                            "MinDataKb": 0.13,
-                            "MeanDataKb": 1.21,
-                            "MaxDataKb": 2.0,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 68,
-                            "OkCount": 56,
-                            "FailCount": 12,
-                            "Min": 40,
-                            "Mean": 346,
-                            "Max": 715,
-                            "RPS": 5,
-                            "Percent50": 283,
-                            "Percent75": 510,
-                            "Percent95": 703,
-                            "Percent99": 707,
-                            "StdDev": 225,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 1.37,
-                            "MaxDataKb": 2.2,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 46,
-                            "OkCount": 22,
-                            "FailCount": 24,
-                            "Min": 230,
-                            "Mean": 369,
-                            "Max": 561,
-                            "RPS": 2,
-                            "Percent50": 413,
-                            "Percent75": 437,
-                            "Percent95": 560,
-                            "Percent99": 561,
-                            "StdDev": 120,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.78,
-                            "MaxDataKb": 1.75,
-                            "AllDataMB": 0.03
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 22,
-                            "OkCount": 20,
-                            "FailCount": 2,
-                            "Min": 245,
+                            "StepName": "ok step",
+                            "RequestCount": 5,
+                            "OkCount": 5,
+                            "FailCount": 0,
+                            "Min": 205,
                             "Mean": 422,
-                            "Max": 614,
-                            "RPS": 2,
-                            "Percent50": 481,
-                            "Percent75": 487,
-                            "Percent95": 611,
-                            "Percent99": 614,
-                            "StdDev": 134,
+                            "Max": 668,
+                            "RPS": 1,
+                            "Percent50": 365,
+                            "Percent75": 593,
+                            "Percent95": 668,
+                            "Percent99": 668,
+                            "StdDev": 179,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.8,
-                            "MaxDataKb": 1.87,
-                            "AllDataMB": 0.03
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 20,
-                            "OkCount": 11,
-                            "FailCount": 9,
-                            "Min": 273,
-                            "Mean": 464,
-                            "Max": 546,
-                            "RPS": 1,
-                            "Percent50": 529,
-                            "Percent75": 532,
-                            "Percent95": 546,
-                            "Percent99": 546,
-                            "StdDev": 111,
+                            "StepName": "fail step 1",
+                            "RequestCount": 4,
+                            "OkCount": 0,
+                            "FailCount": 4,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.56,
-                            "MaxDataKb": 1.74,
-                            "AllDataMB": 0.02
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 4
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 177,
+                        "Less800": 5,
                         "More800Less1200": 0,
                         "More1200": 0
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
-                    "Duration": "00:00:10.0471309"
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 4
+                        }
+                    ],
+                    "Duration": "00:00:05.0128846"
                 },
                 {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 252,
-                    "OkCount": 184,
-                    "FailCount": 68,
-                    "AllDataMB": 0.19999999999999998,
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 8,
+                    "OkCount": 4,
+                    "FailCount": 4,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 90,
-                            "OkCount": 68,
-                            "FailCount": 22,
-                            "Min": 113,
-                            "Mean": 380,
-                            "Max": 678,
-                            "RPS": 6,
-                            "Percent50": 379,
-                            "Percent75": 467,
-                            "Percent95": 671,
-                            "Percent99": 674,
-                            "StdDev": 169,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 1.22,
-                            "MaxDataKb": 2.0,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 68,
-                            "OkCount": 59,
-                            "FailCount": 9,
-                            "Min": 40,
-                            "Mean": 337,
-                            "Max": 718,
-                            "RPS": 5,
-                            "Percent50": 248,
-                            "Percent75": 510,
-                            "Percent95": 705,
-                            "Percent99": 707,
-                            "StdDev": 225,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 1.37,
-                            "MaxDataKb": 2.2,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 49,
-                            "OkCount": 24,
-                            "FailCount": 25,
-                            "Min": 55,
-                            "Mean": 357,
-                            "Max": 560,
-                            "RPS": 2,
-                            "Percent50": 416,
-                            "Percent75": 435,
-                            "Percent95": 559,
-                            "Percent99": 560,
-                            "StdDev": 133,
+                            "StepName": "ok step",
+                            "RequestCount": 4,
+                            "OkCount": 4,
+                            "FailCount": 0,
+                            "Min": 343,
+                            "Mean": 594,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 384,
+                            "Percent75": 657,
+                            "Percent95": 993,
+                            "Percent99": 993,
+                            "StdDev": 260,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.77,
-                            "MaxDataKb": 1.74,
-                            "AllDataMB": 0.03
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         },
                         {
-                            "StepName": "pull html 4",
-                            "RequestCount": 24,
-                            "OkCount": 21,
-                            "FailCount": 3,
-                            "Min": 246,
-                            "Mean": 424,
-                            "Max": 614,
-                            "RPS": 2,
-                            "Percent50": 471,
-                            "Percent75": 485,
-                            "Percent95": 613,
-                            "Percent99": 614,
-                            "StdDev": 131,
+                            "StepName": "fail step 1",
+                            "RequestCount": 4,
+                            "OkCount": 0,
+                            "FailCount": 4,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.8,
-                            "MaxDataKb": 1.87,
-                            "AllDataMB": 0.03
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 4
+                                }
+                            ]
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 21,
-                            "OkCount": 12,
-                            "FailCount": 9,
-                            "Min": 268,
-                            "Mean": 464,
-                            "Max": 534,
-                            "RPS": 1,
-                            "Percent50": 527,
-                            "Percent75": 531,
-                            "Percent95": 533,
-                            "Percent99": 534,
-                            "StdDev": 108,
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.61,
-                            "MaxDataKb": 1.74,
-                            "AllDataMB": 0.02
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 184,
-                        "More800Less1200": 0,
+                        "Less800": 3,
+                        "More800Less1200": 1,
                         "More1200": 0
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
-                    "Duration": "00:00:10.0471309"
-                },
-                {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 249,
-                    "OkCount": 181,
-                    "FailCount": 68,
-                    "AllDataMB": 0.19999999999999998,
-                    "StepStats": [
+                    "ErrorStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 91,
-                            "OkCount": 70,
-                            "FailCount": 21,
-                            "Min": 113,
-                            "Mean": 385,
-                            "Max": 707,
-                            "RPS": 7,
-                            "Percent50": 379,
-                            "Percent75": 472,
-                            "Percent95": 679,
-                            "Percent99": 692,
-                            "StdDev": 172,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 1.23,
-                            "MaxDataKb": 2.22,
-                            "AllDataMB": 0.07
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 69,
-                            "OkCount": 57,
-                            "FailCount": 12,
-                            "Min": 47,
-                            "Mean": 347,
-                            "Max": 744,
-                            "RPS": 5,
-                            "Percent50": 395,
-                            "Percent75": 510,
-                            "Percent95": 704,
-                            "Percent99": 710,
-                            "StdDev": 226,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 1.37,
-                            "MaxDataKb": 2.22,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 47,
-                            "OkCount": 22,
-                            "FailCount": 25,
-                            "Min": 221,
-                            "Mean": 361,
-                            "Max": 563,
-                            "RPS": 2,
-                            "Percent50": 413,
-                            "Percent75": 436,
-                            "Percent95": 551,
-                            "Percent99": 563,
-                            "StdDev": 116,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.76,
-                            "MaxDataKb": 1.76,
-                            "AllDataMB": 0.02
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 22,
-                            "OkCount": 20,
-                            "FailCount": 2,
-                            "Min": 248,
-                            "Mean": 413,
-                            "Max": 611,
-                            "RPS": 2,
-                            "Percent50": 471,
-                            "Percent75": 484,
-                            "Percent95": 607,
-                            "Percent99": 611,
-                            "StdDev": 130,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.79,
-                            "MaxDataKb": 1.87,
-                            "AllDataMB": 0.03
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 20,
-                            "OkCount": 12,
-                            "FailCount": 8,
-                            "Min": 265,
-                            "Mean": 466,
-                            "Max": 547,
-                            "RPS": 1,
-                            "Percent50": 527,
-                            "Percent75": 533,
-                            "Percent95": 534,
-                            "Percent99": 547,
-                            "StdDev": 109,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.61,
-                            "MaxDataKb": 1.74,
-                            "AllDataMB": 0.02
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 4
                         }
                     ],
-                    "LatencyCount": {
-                        "Less800": 181,
-                        "More800Less1200": 0,
-                        "More1200": 0
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:10.0471309"
+                    "Duration": "00:00:05.0128846"
                 }
             ],
             [
                 {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 478,
-                    "OkCount": 340,
-                    "FailCount": 138,
-                    "AllDataMB": 0.74,
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 20,
+                    "OkCount": 11,
+                    "FailCount": 9,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 190,
-                            "OkCount": 141,
-                            "FailCount": 49,
-                            "Min": 113,
-                            "Mean": 726,
-                            "Max": 1373,
-                            "RPS": 4,
-                            "Percent50": 731,
-                            "Percent75": 1103,
-                            "Percent95": 1342,
-                            "Percent99": 1365,
-                            "StdDev": 381,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.08,
-                            "MaxDataKb": 4.88,
-                            "AllDataMB": 0.3
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 128,
-                            "OkCount": 94,
-                            "FailCount": 34,
-                            "Min": 40,
-                            "Mean": 657,
-                            "Max": 1325,
-                            "RPS": 3,
-                            "Percent50": 691,
-                            "Percent75": 1136,
-                            "Percent95": 1300,
-                            "Percent99": 1320,
-                            "StdDev": 425,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.66,
-                            "MaxDataKb": 4.45,
-                            "AllDataMB": 0.19
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 87,
-                            "OkCount": 60,
-                            "FailCount": 27,
-                            "Min": 230,
-                            "Mean": 804,
-                            "Max": 1317,
-                            "RPS": 2,
-                            "Percent50": 765,
-                            "Percent75": 1219,
-                            "Percent95": 1313,
-                            "Percent99": 1316,
-                            "StdDev": 381,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.57,
-                            "MaxDataKb": 4.63,
-                            "AllDataMB": 0.16
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 50,
-                            "OkCount": 31,
-                            "FailCount": 19,
-                            "Min": 245,
-                            "Mean": 700,
-                            "Max": 1347,
+                            "StepName": "ok step",
+                            "RequestCount": 11,
+                            "OkCount": 11,
+                            "FailCount": 0,
+                            "Min": 205,
+                            "Mean": 606,
+                            "Max": 978,
                             "RPS": 1,
-                            "Percent50": 487,
-                            "Percent75": 872,
-                            "Percent95": 1338,
-                            "Percent99": 1347,
+                            "Percent50": 668,
+                            "Percent75": 746,
+                            "Percent95": 974,
+                            "Percent99": 978,
+                            "StdDev": 259,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 9,
+                            "OkCount": 0,
+                            "FailCount": 9,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 9
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 9,
+                        "More800Less1200": 2,
+                        "More1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 9
+                        }
+                    ],
+                    "Duration": "00:00:10.0120337"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 19,
+                    "OkCount": 10,
+                    "FailCount": 9,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 10,
+                            "OkCount": 10,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 693,
+                            "Max": 993,
+                            "RPS": 1,
+                            "Percent50": 811,
+                            "Percent75": 904,
+                            "Percent95": 993,
+                            "Percent99": 993,
+                            "StdDev": 272,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 9,
+                            "OkCount": 0,
+                            "FailCount": 9,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 9
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 4,
+                        "More800Less1200": 6,
+                        "More1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 9
+                        }
+                    ],
+                    "Duration": "00:00:10.0120337"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 32,
+                    "OkCount": 16,
+                    "FailCount": 16,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 16,
+                            "OkCount": 16,
+                            "FailCount": 0,
+                            "Min": 138,
+                            "Mean": 517,
+                            "Max": 978,
+                            "RPS": 1,
+                            "Percent50": 407,
+                            "Percent75": 745,
+                            "Percent95": 974,
+                            "Percent99": 978,
+                            "StdDev": 265,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 16,
+                            "OkCount": 0,
+                            "FailCount": 16,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 16
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 14,
+                        "More800Less1200": 2,
+                        "More1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 16
+                        }
+                    ],
+                    "Duration": "00:00:15.0042152"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 31,
+                    "OkCount": 16,
+                    "FailCount": 15,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 16,
+                            "OkCount": 16,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 647,
+                            "Max": 993,
+                            "RPS": 1,
+                            "Percent50": 722,
+                            "Percent75": 835,
+                            "Percent95": 950,
+                            "Percent99": 993,
+                            "StdDev": 264,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 15,
+                            "OkCount": 0,
+                            "FailCount": 15,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 15
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 8,
+                        "More800Less1200": 8,
+                        "More1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 15
+                        }
+                    ],
+                    "Duration": "00:00:15.0042152"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 42,
+                    "OkCount": 22,
+                    "FailCount": 20,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 21,
+                            "OkCount": 21,
+                            "FailCount": 0,
+                            "Min": 138,
+                            "Mean": 538,
+                            "Max": 978,
+                            "RPS": 1,
+                            "Percent50": 510,
+                            "Percent75": 746,
+                            "Percent95": 974,
+                            "Percent99": 978,
+                            "StdDev": 277,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 21,
+                            "OkCount": 1,
+                            "FailCount": 20,
+                            "Min": 1246,
+                            "Mean": 1246,
+                            "Max": 1246,
+                            "RPS": 0,
+                            "Percent50": 1246,
+                            "Percent75": 1246,
+                            "Percent95": 1246,
+                            "Percent99": 1246,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 17,
+                        "More800Less1200": 4,
+                        "More1200": 1
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        }
+                    ],
+                    "Duration": "00:00:20.0127556"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 41,
+                    "OkCount": 21,
+                    "FailCount": 20,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 21,
+                            "OkCount": 21,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 639,
+                            "Max": 993,
+                            "RPS": 1,
+                            "Percent50": 722,
+                            "Percent75": 835,
+                            "Percent95": 950,
+                            "Percent99": 993,
+                            "StdDev": 252,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 20,
+                            "OkCount": 0,
+                            "FailCount": 20,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 0,
+                            "OkCount": 0,
+                            "FailCount": 0,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 12,
+                        "More800Less1200": 9,
+                        "More1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        }
+                    ],
+                    "Duration": "00:00:20.0127556"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 56,
+                    "OkCount": 32,
+                    "FailCount": 24,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 26,
+                            "OkCount": 26,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 501,
+                            "Max": 978,
+                            "RPS": 1,
+                            "Percent50": 390,
+                            "Percent75": 746,
+                            "Percent95": 974,
+                            "Percent99": 978,
+                            "StdDev": 283,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 26,
+                            "OkCount": 6,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 855,
+                            "Max": 1246,
+                            "RPS": 0,
+                            "Percent50": 750,
+                            "Percent75": 1127,
+                            "Percent95": 1246,
+                            "Percent99": 1246,
+                            "StdDev": 246,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 4,
+                            "OkCount": 0,
+                            "FailCount": 4,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 4
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 25,
+                        "More800Less1200": 6,
+                        "More1200": 1
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 4
+                        }
+                    ],
+                    "Duration": "00:00:25.0137593"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 51,
+                    "OkCount": 28,
+                    "FailCount": 23,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 24,
+                            "OkCount": 24,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 650,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 722,
+                            "Percent75": 873,
+                            "Percent95": 987,
+                            "Percent99": 993,
+                            "StdDev": 259,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 24,
+                            "OkCount": 4,
+                            "FailCount": 20,
+                            "Min": 602,
+                            "Mean": 870,
+                            "Max": 1437,
+                            "RPS": 0,
+                            "Percent50": 656,
+                            "Percent75": 785,
+                            "Percent95": 1437,
+                            "Percent99": 1437,
+                            "StdDev": 334,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 3,
+                            "OkCount": 0,
+                            "FailCount": 3,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 3
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 16,
+                        "More800Less1200": 11,
+                        "More1200": 1
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 3
+                        }
+                    ],
+                    "Duration": "00:00:25.0137593"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 63,
+                    "OkCount": 36,
+                    "FailCount": 27,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 28,
+                            "OkCount": 28,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 510,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 390,
+                            "Percent75": 746,
+                            "Percent95": 974,
+                            "Percent99": 978,
+                            "StdDev": 288,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 28,
+                            "OkCount": 8,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1027,
+                            "Max": 1936,
+                            "RPS": 0,
+                            "Percent50": 787,
+                            "Percent75": 1154,
+                            "Percent95": 1936,
+                            "Percent99": 1936,
+                            "StdDev": 416,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 7,
+                            "OkCount": 0,
+                            "FailCount": 7,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 7
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 26,
+                        "More800Less1200": 8,
+                        "More1200": 2
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 7
+                        }
+                    ],
+                    "Duration": "00:00:30.0132978"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 60,
+                    "OkCount": 34,
+                    "FailCount": 26,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 28,
+                            "OkCount": 28,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 634,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 722,
+                            "Percent75": 873,
+                            "Percent95": 987,
+                            "Percent99": 993,
+                            "StdDev": 267,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 26,
+                            "OkCount": 6,
+                            "FailCount": 20,
+                            "Min": 602,
+                            "Mean": 991,
+                            "Max": 1548,
+                            "RPS": 0,
+                            "Percent50": 785,
+                            "Percent75": 1437,
+                            "Percent95": 1548,
+                            "Percent99": 1548,
+                            "StdDev": 370,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 6,
+                            "OkCount": 0,
+                            "FailCount": 6,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 6
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 19,
+                        "More800Less1200": 13,
+                        "More1200": 2
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 6
+                        }
+                    ],
+                    "Duration": "00:00:30.0132978"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 73,
+                    "OkCount": 43,
+                    "FailCount": 30,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 32,
+                            "OkCount": 32,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 501,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 383,
+                            "Percent75": 746,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 279,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 31,
+                            "OkCount": 11,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1061,
+                            "Max": 1936,
+                            "RPS": 0,
+                            "Percent50": 1127,
+                            "Percent75": 1246,
+                            "Percent95": 1466,
+                            "Percent99": 1936,
                             "StdDev": 409,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 1.15,
-                            "MaxDataKb": 4.74,
-                            "AllDataMB": 0.07
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 23,
-                            "OkCount": 14,
-                            "FailCount": 9,
-                            "Min": 273,
-                            "Mean": 555,
-                            "Max": 894,
+                            "StepName": "fail step 2",
+                            "RequestCount": 10,
+                            "OkCount": 0,
+                            "FailCount": 10,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
                             "RPS": 0,
-                            "Percent50": 529,
-                            "Percent75": 546,
-                            "Percent95": 892,
-                            "Percent99": 894,
-                            "StdDev": 200,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.41,
-                            "MaxDataKb": 2.67,
-                            "AllDataMB": 0.02
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 10
+                                }
+                            ]
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 197,
-                        "More800Less1200": 91,
-                        "More1200": 52
+                        "Less800": 31,
+                        "More800Less1200": 8,
+                        "More1200": 4
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
-                    "Duration": "00:00:20.0074136"
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 10
+                        }
+                    ],
+                    "Duration": "00:00:35.0118387"
                 },
                 {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 483,
-                    "OkCount": 343,
-                    "FailCount": 140,
-                    "AllDataMB": 0.73,
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 69,
+                    "OkCount": 40,
+                    "FailCount": 29,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 190,
-                            "OkCount": 138,
-                            "FailCount": 52,
-                            "Min": 113,
-                            "Mean": 714,
-                            "Max": 1370,
-                            "RPS": 4,
-                            "Percent50": 716,
-                            "Percent75": 1101,
-                            "Percent95": 1268,
-                            "Percent99": 1348,
-                            "StdDev": 373,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.78,
-                            "MaxDataKb": 4.86,
-                            "AllDataMB": 0.29
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 127,
-                            "OkCount": 99,
-                            "FailCount": 28,
-                            "Min": 40,
-                            "Mean": 652,
-                            "Max": 1314,
-                            "RPS": 3,
-                            "Percent50": 695,
-                            "Percent75": 1134,
-                            "Percent95": 1301,
-                            "Percent99": 1311,
-                            "StdDev": 430,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.68,
-                            "MaxDataKb": 4.45,
-                            "AllDataMB": 0.2
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 91,
-                            "OkCount": 62,
-                            "FailCount": 29,
-                            "Min": 55,
-                            "Mean": 783,
-                            "Max": 1317,
-                            "RPS": 2,
-                            "Percent50": 758,
-                            "Percent75": 1221,
-                            "Percent95": 1309,
-                            "Percent99": 1314,
-                            "StdDev": 388,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.5,
-                            "MaxDataKb": 4.63,
-                            "AllDataMB": 0.16
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 52,
-                            "OkCount": 30,
-                            "FailCount": 22,
-                            "Min": 246,
-                            "Mean": 664,
-                            "Max": 1336,
-                            "RPS": 1,
-                            "Percent50": 484,
-                            "Percent75": 867,
-                            "Percent95": 1336,
-                            "Percent99": 1336,
-                            "StdDev": 399,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.03,
-                            "MaxDataKb": 4.71,
-                            "AllDataMB": 0.06
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 23,
-                            "OkCount": 14,
-                            "FailCount": 9,
-                            "Min": 268,
-                            "Mean": 523,
-                            "Max": 881,
+                            "StepName": "ok step",
+                            "RequestCount": 31,
+                            "OkCount": 31,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 637,
+                            "Max": 993,
                             "RPS": 0,
-                            "Percent50": 527,
-                            "Percent75": 533,
-                            "Percent95": 871,
-                            "Percent99": 881,
-                            "StdDev": 176,
+                            "Percent50": 681,
+                            "Percent75": 835,
+                            "Percent95": 950,
+                            "Percent99": 993,
+                            "StdDev": 254,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 0.4,
-                            "MaxDataKb": 2.66,
-                            "AllDataMB": 0.02
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 203,
-                        "More800Less1200": 95,
-                        "More1200": 45
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:20.0074136"
-                },
-                {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 486,
-                    "OkCount": 351,
-                    "FailCount": 135,
-                    "AllDataMB": 0.77,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 190,
-                            "OkCount": 139,
-                            "FailCount": 51,
-                            "Min": 113,
-                            "Mean": 708,
-                            "Max": 1360,
-                            "RPS": 4,
-                            "Percent50": 702,
-                            "Percent75": 1094,
-                            "Percent95": 1274,
-                            "Percent99": 1348,
-                            "StdDev": 371,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.8,
-                            "MaxDataKb": 4.86,
-                            "AllDataMB": 0.29
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         },
                         {
-                            "StepName": "pull html 2",
-                            "RequestCount": 131,
-                            "OkCount": 99,
-                            "FailCount": 32,
-                            "Min": 47,
-                            "Mean": 673,
-                            "Max": 1324,
-                            "RPS": 3,
-                            "Percent50": 699,
-                            "Percent75": 1126,
-                            "Percent95": 1310,
-                            "Percent99": 1317,
-                            "StdDev": 429,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.73,
-                            "MaxDataKb": 4.46,
-                            "AllDataMB": 0.21
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 90,
-                            "OkCount": 62,
-                            "FailCount": 28,
-                            "Min": 221,
-                            "Mean": 807,
-                            "Max": 1320,
-                            "RPS": 2,
-                            "Percent50": 773,
-                            "Percent75": 1213,
-                            "Percent95": 1317,
-                            "Percent99": 1318,
-                            "StdDev": 380,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.82,
-                            "MaxDataKb": 4.63,
-                            "AllDataMB": 0.16
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 52,
-                            "OkCount": 34,
-                            "FailCount": 18,
-                            "Min": 248,
-                            "Mean": 722,
-                            "Max": 1345,
-                            "RPS": 1,
-                            "Percent50": 499,
-                            "Percent75": 1315,
-                            "Percent95": 1337,
-                            "Percent99": 1345,
-                            "StdDev": 408,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.77,
-                            "MaxDataKb": 4.73,
-                            "AllDataMB": 0.08
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 25,
-                            "OkCount": 17,
-                            "FailCount": 8,
-                            "Min": 265,
-                            "Mean": 591,
-                            "Max": 942,
-                            "RPS": 0,
-                            "Percent50": 533,
-                            "Percent75": 863,
-                            "Percent95": 888,
-                            "Percent99": 942,
-                            "StdDev": 215,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 0.49,
-                            "MaxDataKb": 3.01,
-                            "AllDataMB": 0.03
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 201,
-                        "More800Less1200": 99,
-                        "More1200": 51
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:20.0074136"
-                }
-            ],
-            [
-                {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 753,
-                    "OkCount": 507,
-                    "FailCount": 246,
-                    "AllDataMB": 1.76,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 290,
-                            "OkCount": 214,
-                            "FailCount": 76,
-                            "Min": 14,
-                            "Mean": 589,
-                            "Max": 1373,
-                            "RPS": 5,
-                            "Percent50": 475,
-                            "Percent75": 888,
-                            "Percent95": 1275,
-                            "Percent99": 1360,
-                            "StdDev": 379,
-                            "MinDataKb": 0.13,
-                            "MeanDataKb": 3.66,
-                            "MaxDataKb": 7.31,
-                            "AllDataMB": 0.74
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 214,
-                            "OkCount": 142,
-                            "FailCount": 72,
-                            "Min": 38,
-                            "Mean": 573,
-                            "Max": 1325,
-                            "RPS": 3,
-                            "Percent50": 512,
-                            "Percent75": 899,
-                            "Percent95": 1213,
-                            "Percent99": 1320,
-                            "StdDev": 383,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 3.92,
-                            "MaxDataKb": 7.66,
-                            "AllDataMB": 0.5
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 132,
-                            "OkCount": 76,
-                            "FailCount": 56,
-                            "Min": 64,
-                            "Mean": 733,
-                            "Max": 1317,
-                            "RPS": 1,
-                            "Percent50": 616,
-                            "Percent75": 982,
-                            "Percent95": 1308,
-                            "Percent99": 1316,
-                            "StdDev": 376,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.04,
-                            "MaxDataKb": 7.43,
-                            "AllDataMB": 0.26
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 76,
-                            "OkCount": 51,
-                            "FailCount": 25,
-                            "Min": 245,
-                            "Mean": 839,
-                            "Max": 1489,
-                            "RPS": 1,
-                            "Percent50": 648,
-                            "Percent75": 1337,
-                            "Percent95": 1474,
-                            "Percent99": 1480,
-                            "StdDev": 442,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.09,
-                            "MaxDataKb": 7.77,
-                            "AllDataMB": 0.19
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 41,
-                            "OkCount": 24,
-                            "FailCount": 17,
-                            "Min": 61,
-                            "Mean": 472,
-                            "Max": 1454,
-                            "RPS": 0,
-                            "Percent50": 513,
-                            "Percent75": 546,
-                            "Percent95": 1450,
-                            "Percent99": 1454,
-                            "StdDev": 397,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.15,
-                            "MaxDataKb": 5.31,
-                            "AllDataMB": 0.07
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 352,
-                        "More800Less1200": 91,
-                        "More1200": 64
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:30.0740001"
-                },
-                {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 755,
-                    "OkCount": 506,
-                    "FailCount": 249,
-                    "AllDataMB": 1.74,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 295,
-                            "OkCount": 211,
-                            "FailCount": 84,
-                            "Min": 21,
-                            "Mean": 580,
-                            "Max": 1370,
-                            "RPS": 5,
-                            "Percent50": 472,
-                            "Percent75": 884,
-                            "Percent95": 1180,
-                            "Percent99": 1345,
-                            "StdDev": 370,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 3.68,
-                            "MaxDataKb": 7.33,
-                            "AllDataMB": 0.73
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 211,
-                            "OkCount": 147,
-                            "FailCount": 64,
-                            "Min": 40,
-                            "Mean": 572,
-                            "Max": 1314,
-                            "RPS": 3,
-                            "Percent50": 513,
-                            "Percent75": 901,
-                            "Percent95": 1268,
-                            "Percent99": 1311,
-                            "StdDev": 388,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 3.92,
-                            "MaxDataKb": 7.67,
-                            "AllDataMB": 0.51
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 137,
-                            "OkCount": 75,
-                            "FailCount": 62,
-                            "Min": 55,
-                            "Mean": 729,
-                            "Max": 1317,
-                            "RPS": 1,
-                            "Percent50": 746,
-                            "Percent75": 976,
-                            "Percent95": 1302,
-                            "Percent99": 1314,
-                            "StdDev": 383,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.99,
-                            "MaxDataKb": 7.44,
-                            "AllDataMB": 0.24
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 75,
-                            "OkCount": 50,
-                            "FailCount": 25,
-                            "Min": 246,
-                            "Mean": 820,
-                            "Max": 1496,
-                            "RPS": 1,
-                            "Percent50": 653,
-                            "Percent75": 1336,
-                            "Percent95": 1472,
-                            "Percent99": 1496,
-                            "StdDev": 442,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.03,
-                            "MaxDataKb": 7.78,
-                            "AllDataMB": 0.19
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 40,
-                            "OkCount": 23,
-                            "FailCount": 17,
-                            "Min": 37,
-                            "Mean": 347,
-                            "Max": 881,
-                            "RPS": 0,
-                            "Percent50": 284,
-                            "Percent75": 530,
-                            "Percent95": 871,
-                            "Percent99": 881,
-                            "StdDev": 258,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.1,
-                            "MaxDataKb": 5.31,
-                            "AllDataMB": 0.07
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 356,
-                        "More800Less1200": 95,
-                        "More1200": 55
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:30.0740001"
-                },
-                {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 771,
-                    "OkCount": 524,
-                    "FailCount": 247,
-                    "AllDataMB": 1.82,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 300,
-                            "OkCount": 213,
-                            "FailCount": 87,
-                            "Min": 19,
-                            "Mean": 575,
-                            "Max": 1360,
-                            "RPS": 5,
-                            "Percent50": 472,
-                            "Percent75": 874,
-                            "Percent95": 1188,
-                            "Percent99": 1341,
-                            "StdDev": 367,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 3.7,
-                            "MaxDataKb": 7.33,
-                            "AllDataMB": 0.73
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 213,
-                            "OkCount": 153,
-                            "FailCount": 60,
-                            "Min": 47,
-                            "Mean": 569,
-                            "Max": 1324,
-                            "RPS": 4,
-                            "Percent50": 510,
-                            "Percent75": 898,
-                            "Percent95": 1270,
-                            "Percent99": 1314,
-                            "StdDev": 391,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 3.91,
-                            "MaxDataKb": 7.67,
-                            "AllDataMB": 0.55
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 143,
-                            "OkCount": 75,
-                            "FailCount": 68,
-                            "Min": 58,
-                            "Mean": 754,
-                            "Max": 1320,
-                            "RPS": 1,
-                            "Percent50": 747,
-                            "Percent75": 981,
-                            "Percent95": 1308,
-                            "Percent99": 1318,
-                            "StdDev": 373,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.22,
-                            "MaxDataKb": 7.45,
-                            "AllDataMB": 0.25
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 75,
-                            "OkCount": 54,
-                            "FailCount": 21,
-                            "Min": 80,
-                            "Mean": 835,
-                            "Max": 1498,
-                            "RPS": 1,
-                            "Percent50": 658,
-                            "Percent75": 1326,
-                            "Percent95": 1482,
-                            "Percent99": 1483,
-                            "StdDev": 448,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.86,
-                            "MaxDataKb": 7.78,
-                            "AllDataMB": 0.2
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 45,
-                            "OkCount": 29,
-                            "FailCount": 16,
-                            "Min": 58,
-                            "Mean": 615,
-                            "Max": 1455,
-                            "RPS": 0,
-                            "Percent50": 533,
-                            "Percent75": 882,
-                            "Percent95": 1454,
-                            "Percent99": 1455,
-                            "StdDev": 468,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 1.2,
-                            "MaxDataKb": 5.31,
-                            "AllDataMB": 0.09
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 359,
-                        "More800Less1200": 99,
-                        "More1200": 66
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:30.0740001"
-                }
-            ],
-            [
-                {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 992,
-                    "OkCount": 690,
-                    "FailCount": 302,
-                    "AllDataMB": 3.46,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 390,
-                            "OkCount": 286,
-                            "FailCount": 104,
-                            "Min": 14,
-                            "Mean": 703,
-                            "Max": 1373,
-                            "RPS": 5,
-                            "Percent50": 720,
-                            "Percent75": 1090,
-                            "Percent95": 1315,
-                            "Percent99": 1357,
-                            "StdDev": 392,
-                            "MinDataKb": 0.13,
-                            "MeanDataKb": 4.96,
-                            "MaxDataKb": 10.59,
-                            "AllDataMB": 1.39
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 276,
-                            "OkCount": 195,
-                            "FailCount": 81,
-                            "Min": 38,
-                            "Mean": 719,
-                            "Max": 1344,
-                            "RPS": 3,
-                            "Percent50": 699,
-                            "Percent75": 1140,
-                            "Percent95": 1323,
-                            "Percent99": 1341,
-                            "StdDev": 414,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 5.18,
-                            "MaxDataKb": 10.69,
-                            "AllDataMB": 1.0
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 177,
-                            "OkCount": 103,
-                            "FailCount": 74,
-                            "Min": 64,
-                            "Mean": 838,
-                            "Max": 1355,
-                            "RPS": 1,
-                            "Percent50": 953,
-                            "Percent75": 1221,
-                            "Percent95": 1313,
-                            "Percent99": 1354,
-                            "StdDev": 377,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 4.09,
-                            "MaxDataKb": 10.39,
-                            "AllDataMB": 0.5
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 91,
-                            "OkCount": 65,
-                            "FailCount": 26,
-                            "Min": 245,
-                            "Mean": 900,
-                            "Max": 1489,
-                            "RPS": 0,
-                            "Percent50": 869,
-                            "Percent75": 1322,
-                            "Percent95": 1474,
-                            "Percent99": 1480,
-                            "StdDev": 412,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.69,
-                            "MaxDataKb": 10.24,
-                            "AllDataMB": 0.33
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 60,
-                            "OkCount": 43,
-                            "FailCount": 17,
-                            "Min": 61,
-                            "Mean": 675,
-                            "Max": 1454,
-                            "RPS": 0,
-                            "Percent50": 732,
-                            "Percent75": 892,
-                            "Percent95": 1233,
-                            "Percent99": 1454,
-                            "StdDev": 400,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.74,
-                            "MaxDataKb": 10.0,
-                            "AllDataMB": 0.24
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 368,
-                        "More800Less1200": 203,
-                        "More1200": 119
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:40.0105409"
-                },
-                {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 996,
-                    "OkCount": 689,
-                    "FailCount": 307,
-                    "AllDataMB": 3.4299999999999997,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 390,
-                            "OkCount": 283,
-                            "FailCount": 107,
-                            "Min": 21,
-                            "Mean": 698,
-                            "Max": 1370,
-                            "RPS": 5,
-                            "Percent50": 716,
-                            "Percent75": 1082,
-                            "Percent95": 1304,
-                            "Percent99": 1343,
-                            "StdDev": 387,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 5.01,
-                            "MaxDataKb": 10.59,
-                            "AllDataMB": 1.38
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 273,
-                            "OkCount": 199,
-                            "FailCount": 74,
-                            "Min": 40,
-                            "Mean": 713,
-                            "Max": 1347,
-                            "RPS": 3,
-                            "Percent50": 700,
-                            "Percent75": 1148,
-                            "Percent95": 1314,
-                            "Percent99": 1344,
-                            "StdDev": 418,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 5.17,
-                            "MaxDataKb": 10.73,
-                            "AllDataMB": 1.0
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 183,
-                            "OkCount": 102,
-                            "FailCount": 81,
-                            "Min": 55,
-                            "Mean": 836,
-                            "Max": 1354,
-                            "RPS": 1,
-                            "Percent50": 956,
-                            "Percent75": 1223,
-                            "Percent95": 1309,
-                            "Percent99": 1353,
-                            "StdDev": 382,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 4.32,
-                            "MaxDataKb": 10.74,
-                            "AllDataMB": 0.5
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 91,
-                            "OkCount": 64,
-                            "FailCount": 27,
-                            "Min": 246,
-                            "Mean": 883,
-                            "Max": 1496,
-                            "RPS": 0,
-                            "Percent50": 846,
-                            "Percent75": 1318,
-                            "Percent95": 1455,
-                            "Percent99": 1480,
-                            "StdDev": 411,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.74,
-                            "MaxDataKb": 10.26,
-                            "AllDataMB": 0.32
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 61,
-                            "OkCount": 41,
+                            "StepName": "fail step 1",
+                            "RequestCount": 29,
+                            "OkCount": 9,
                             "FailCount": 20,
-                            "Min": 37,
-                            "Mean": 621,
-                            "Max": 1226,
+                            "Min": 602,
+                            "Mean": 1053,
+                            "Max": 1797,
                             "RPS": 0,
-                            "Percent50": 534,
-                            "Percent75": 881,
-                            "Percent95": 1217,
-                            "Percent99": 1226,
-                            "StdDev": 392,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.89,
-                            "MaxDataKb": 10.0,
-                            "AllDataMB": 0.23
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 370,
-                        "More800Less1200": 207,
-                        "More1200": 111
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:40.0105409"
-                },
-                {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 1011,
-                    "OkCount": 705,
-                    "FailCount": 306,
-                    "AllDataMB": 3.49,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 390,
-                            "OkCount": 284,
-                            "FailCount": 106,
-                            "Min": 19,
-                            "Mean": 691,
-                            "Max": 1360,
-                            "RPS": 5,
-                            "Percent50": 683,
-                            "Percent75": 1066,
-                            "Percent95": 1291,
-                            "Percent99": 1336,
-                            "StdDev": 386,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 4.98,
-                            "MaxDataKb": 10.62,
-                            "AllDataMB": 1.37
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 275,
-                            "OkCount": 206,
-                            "FailCount": 69,
-                            "Min": 47,
-                            "Mean": 709,
-                            "Max": 1347,
-                            "RPS": 3,
-                            "Percent50": 693,
-                            "Percent75": 1143,
-                            "Percent95": 1319,
-                            "Percent99": 1344,
-                            "StdDev": 421,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 5.17,
-                            "MaxDataKb": 10.73,
-                            "AllDataMB": 1.05
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 192,
-                            "OkCount": 101,
-                            "FailCount": 91,
-                            "Min": 58,
-                            "Mean": 853,
-                            "Max": 1359,
-                            "RPS": 1,
-                            "Percent50": 964,
-                            "Percent75": 1218,
-                            "Percent95": 1308,
-                            "Percent99": 1320,
-                            "StdDev": 369,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 4.11,
-                            "MaxDataKb": 10.71,
-                            "AllDataMB": 0.5
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 90,
-                            "OkCount": 68,
-                            "FailCount": 22,
-                            "Min": 80,
-                            "Mean": 900,
-                            "Max": 1498,
-                            "RPS": 0,
-                            "Percent50": 866,
-                            "Percent75": 1319,
-                            "Percent95": 1482,
-                            "Percent99": 1483,
-                            "StdDev": 420,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 3.37,
-                            "MaxDataKb": 10.26,
-                            "AllDataMB": 0.33
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 66,
-                            "OkCount": 46,
-                            "FailCount": 20,
-                            "Min": 58,
-                            "Mean": 739,
-                            "Max": 1455,
-                            "RPS": 0,
-                            "Percent50": 738,
-                            "Percent75": 1169,
-                            "Percent95": 1454,
-                            "Percent99": 1455,
-                            "StdDev": 428,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 2.67,
-                            "MaxDataKb": 10.0,
-                            "AllDataMB": 0.24
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 373,
-                        "More800Less1200": 210,
-                        "More1200": 122
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:40.0105409"
-                }
-            ],
-            [
-                {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 1361,
-                    "OkCount": 956,
-                    "FailCount": 405,
-                    "AllDataMB": 6.720000000000001,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 490,
-                            "OkCount": 375,
-                            "FailCount": 115,
-                            "Min": 14,
-                            "Mean": 679,
-                            "Max": 1457,
-                            "RPS": 5,
-                            "Percent50": 639,
-                            "Percent75": 961,
-                            "Percent95": 1321,
-                            "Percent99": 1451,
-                            "StdDev": 393,
-                            "MinDataKb": 0.13,
-                            "MeanDataKb": 6.2,
-                            "MaxDataKb": 14.43,
-                            "AllDataMB": 2.49
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 365,
-                            "OkCount": 250,
-                            "FailCount": 115,
-                            "Min": 38,
-                            "Mean": 668,
-                            "Max": 1344,
-                            "RPS": 3,
-                            "Percent50": 623,
-                            "Percent75": 976,
-                            "Percent95": 1317,
-                            "Percent99": 1341,
-                            "StdDev": 396,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 6.02,
-                            "MaxDataKb": 14.31,
-                            "AllDataMB": 1.68
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 250,
-                            "OkCount": 153,
-                            "FailCount": 97,
-                            "Min": 60,
-                            "Mean": 762,
-                            "Max": 1508,
-                            "RPS": 2,
-                            "Percent50": 761,
-                            "Percent75": 1118,
-                            "Percent95": 1317,
-                            "Percent99": 1497,
-                            "StdDev": 407,
-                            "MinDataKb": 0.69,
-                            "MeanDataKb": 6.42,
-                            "MaxDataKb": 14.6,
-                            "AllDataMB": 1.13
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 147,
-                            "OkCount": 109,
-                            "FailCount": 38,
-                            "Min": 92,
-                            "Mean": 754,
-                            "Max": 1588,
-                            "RPS": 1,
-                            "Percent50": 646,
-                            "Percent75": 1240,
-                            "Percent95": 1474,
-                            "Percent99": 1502,
-                            "StdDev": 444,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 6.59,
-                            "MaxDataKb": 14.1,
-                            "AllDataMB": 0.86
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 109,
-                            "OkCount": 69,
-                            "FailCount": 40,
-                            "Min": 18,
-                            "Mean": 604,
-                            "Max": 1454,
-                            "RPS": 1,
-                            "Percent50": 619,
-                            "Percent75": 861,
-                            "Percent95": 1205,
-                            "Percent99": 1450,
-                            "StdDev": 375,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 4.83,
-                            "MaxDataKb": 14.33,
-                            "AllDataMB": 0.56
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 571,
-                        "More800Less1200": 243,
-                        "More1200": 142
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:50.0808147"
-                },
-                {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 1364,
-                    "OkCount": 959,
-                    "FailCount": 405,
-                    "AllDataMB": 6.7299999999999995,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 490,
-                            "OkCount": 371,
-                            "FailCount": 119,
-                            "Min": 20,
-                            "Mean": 676,
-                            "Max": 1457,
-                            "RPS": 5,
-                            "Percent50": 639,
-                            "Percent75": 959,
-                            "Percent95": 1318,
-                            "Percent99": 1441,
-                            "StdDev": 389,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 6.21,
-                            "MaxDataKb": 14.43,
-                            "AllDataMB": 2.46
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 361,
-                            "OkCount": 254,
-                            "FailCount": 107,
-                            "Min": 34,
-                            "Mean": 664,
-                            "Max": 1347,
-                            "RPS": 3,
-                            "Percent50": 621,
-                            "Percent75": 976,
-                            "Percent95": 1309,
-                            "Percent99": 1343,
-                            "StdDev": 400,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 6.0,
-                            "MaxDataKb": 14.33,
-                            "AllDataMB": 1.68
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 254,
-                            "OkCount": 155,
-                            "FailCount": 99,
-                            "Min": 55,
-                            "Mean": 774,
-                            "Max": 1506,
-                            "RPS": 2,
-                            "Percent50": 761,
-                            "Percent75": 1146,
-                            "Percent95": 1492,
-                            "Percent99": 1503,
-                            "StdDev": 419,
-                            "MinDataKb": 0.26,
-                            "MeanDataKb": 6.59,
-                            "MaxDataKb": 14.6,
-                            "AllDataMB": 1.15
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 149,
-                            "OkCount": 110,
-                            "FailCount": 39,
-                            "Min": 82,
-                            "Mean": 726,
-                            "Max": 1503,
-                            "RPS": 1,
-                            "Percent50": 613,
-                            "Percent75": 1087,
-                            "Percent95": 1444,
-                            "Percent99": 1496,
-                            "StdDev": 432,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 6.68,
-                            "MaxDataKb": 14.09,
-                            "AllDataMB": 0.87
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 110,
-                            "OkCount": 69,
-                            "FailCount": 41,
-                            "Min": 35,
-                            "Mean": 563,
-                            "Max": 1226,
-                            "RPS": 1,
-                            "Percent50": 533,
-                            "Percent75": 858,
-                            "Percent95": 1185,
-                            "Percent99": 1222,
-                            "StdDev": 359,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 5.3,
-                            "MaxDataKb": 14.33,
-                            "AllDataMB": 0.57
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 575,
-                        "More800Less1200": 249,
-                        "More1200": 134
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:50.0808147"
-                },
-                {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 1377,
-                    "OkCount": 978,
-                    "FailCount": 399,
-                    "AllDataMB": 6.86,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 490,
-                            "OkCount": 374,
-                            "FailCount": 116,
-                            "Min": 19,
-                            "Mean": 669,
-                            "Max": 1463,
-                            "RPS": 5,
-                            "Percent50": 629,
-                            "Percent75": 955,
-                            "Percent95": 1318,
-                            "Percent99": 1442,
-                            "StdDev": 388,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 6.25,
-                            "MaxDataKb": 14.43,
-                            "AllDataMB": 2.48
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 364,
-                            "OkCount": 262,
-                            "FailCount": 102,
-                            "Min": 29,
-                            "Mean": 663,
-                            "Max": 1347,
-                            "RPS": 3,
-                            "Percent50": 623,
-                            "Percent75": 981,
-                            "Percent95": 1314,
-                            "Percent99": 1343,
-                            "StdDev": 402,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 6.04,
-                            "MaxDataKb": 14.31,
-                            "AllDataMB": 1.75
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 262,
-                            "OkCount": 155,
-                            "FailCount": 107,
-                            "Min": 58,
-                            "Mean": 780,
-                            "Max": 1512,
-                            "RPS": 2,
-                            "Percent50": 765,
-                            "Percent75": 1137,
-                            "Percent95": 1359,
-                            "Percent99": 1506,
-                            "StdDev": 408,
-                            "MinDataKb": 0.68,
-                            "MeanDataKb": 6.81,
-                            "MaxDataKb": 14.6,
-                            "AllDataMB": 1.16
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 149,
-                            "OkCount": 112,
-                            "FailCount": 37,
-                            "Min": 75,
-                            "Mean": 754,
-                            "Max": 1524,
-                            "RPS": 1,
-                            "Percent50": 657,
-                            "Percent75": 1236,
-                            "Percent95": 1446,
-                            "Percent99": 1498,
-                            "StdDev": 439,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 6.25,
-                            "MaxDataKb": 14.1,
-                            "AllDataMB": 0.87
-                        },
-                        {
-                            "StepName": "pull html 5",
-                            "RequestCount": 112,
-                            "OkCount": 75,
-                            "FailCount": 37,
-                            "Min": 18,
-                            "Mean": 640,
-                            "Max": 1455,
-                            "RPS": 1,
-                            "Percent50": 617,
-                            "Percent75": 867,
-                            "Percent95": 1449,
-                            "Percent99": 1454,
-                            "StdDev": 402,
-                            "MinDataKb": 0.0,
-                            "MeanDataKb": 4.99,
-                            "MaxDataKb": 14.33,
-                            "AllDataMB": 0.6
-                        }
-                    ],
-                    "LatencyCount": {
-                        "Less800": 583,
-                        "More800Less1200": 251,
-                        "More1200": 144
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
-                    },
-                    "Duration": "00:00:50.0808147"
-                }
-            ],
-            [
-                {
-                    "ScenarioName": "test_1",
-                    "RequestCount": 1825,
-                    "OkCount": 1392,
-                    "FailCount": 433,
-                    "AllDataMB": 14.11,
-                    "StepStats": [
-                        {
-                            "StepName": "pull html 1",
-                            "RequestCount": 600,
-                            "OkCount": 484,
-                            "FailCount": 116,
-                            "Min": 14,
-                            "Mean": 723,
-                            "Max": 1633,
-                            "RPS": 5,
-                            "Percent50": 731,
-                            "Percent75": 1090,
-                            "Percent95": 1356,
-                            "Percent99": 1569,
+                            "Percent50": 919,
+                            "Percent75": 1437,
+                            "Percent95": 1797,
+                            "Percent99": 1797,
                             "StdDev": 404,
-                            "MinDataKb": 0.13,
-                            "MeanDataKb": 8.44,
-                            "MaxDataKb": 19.88,
-                            "AllDataMB": 4.31
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 474,
-                            "OkCount": 349,
-                            "FailCount": 125,
-                            "Min": 38,
-                            "Mean": 717,
-                            "Max": 1489,
-                            "RPS": 3,
-                            "Percent50": 688,
-                            "Percent75": 1136,
-                            "Percent95": 1329,
-                            "Percent99": 1466,
-                            "StdDev": 416,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 9.01,
-                            "MaxDataKb": 19.68,
-                            "AllDataMB": 3.35
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 339,
-                            "OkCount": 231,
-                            "FailCount": 108,
-                            "Min": 60,
-                            "Mean": 792,
-                            "Max": 1508,
-                            "RPS": 2,
-                            "Percent50": 762,
-                            "Percent75": 1226,
-                            "Percent95": 1478,
-                            "Percent99": 1500,
-                            "StdDev": 439,
-                            "MinDataKb": 0.69,
-                            "MeanDataKb": 10.22,
-                            "MaxDataKb": 19.45,
-                            "AllDataMB": 2.45
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 231,
-                            "OkCount": 190,
-                            "FailCount": 41,
-                            "Min": 12,
-                            "Mean": 706,
-                            "Max": 1588,
-                            "RPS": 2,
-                            "Percent50": 609,
-                            "Percent75": 1240,
-                            "Percent95": 1459,
-                            "Percent99": 1507,
-                            "StdDev": 457,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 11.42,
-                            "MaxDataKb": 19.77,
-                            "AllDataMB": 2.25
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 181,
-                            "OkCount": 138,
-                            "FailCount": 43,
-                            "Min": 16,
-                            "Mean": 555,
-                            "Max": 1454,
-                            "RPS": 1,
-                            "Percent50": 473,
-                            "Percent75": 748,
-                            "Percent95": 1378,
-                            "Percent99": 1450,
-                            "StdDev": 391,
+                            "StepName": "fail step 2",
+                            "RequestCount": 9,
+                            "OkCount": 0,
+                            "FailCount": 9,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 13.04,
-                            "MaxDataKb": 19.43,
-                            "AllDataMB": 1.75
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 9
+                                }
+                            ]
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 818,
-                        "More800Less1200": 326,
-                        "More1200": 248
+                        "Less800": 22,
+                        "More800Less1200": 15,
+                        "More1200": 3
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
-                    "Duration": "00:01:00"
-                },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 9
+                        }
+                    ],
+                    "Duration": "00:00:35.0118387"
+                }
+            ],
+            [
                 {
-                    "ScenarioName": "test_2",
-                    "RequestCount": 1832,
-                    "OkCount": 1402,
-                    "FailCount": 430,
-                    "AllDataMB": 14.290000000000001,
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 81,
+                    "OkCount": 48,
+                    "FailCount": 33,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 600,
-                            "OkCount": 480,
-                            "FailCount": 120,
-                            "Min": 20,
-                            "Mean": 720,
-                            "Max": 1623,
-                            "RPS": 5,
-                            "Percent50": 716,
-                            "Percent75": 1084,
-                            "Percent95": 1339,
-                            "Percent99": 1573,
-                            "StdDev": 401,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 8.5,
-                            "MaxDataKb": 19.88,
-                            "AllDataMB": 4.29
+                            "StepName": "ok step",
+                            "RequestCount": 34,
+                            "OkCount": 34,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 514,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 390,
+                            "Percent75": 758,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 277,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         },
                         {
-                            "StepName": "pull html 2",
-                            "RequestCount": 470,
-                            "OkCount": 353,
-                            "FailCount": 117,
-                            "Min": 34,
-                            "Mean": 712,
-                            "Max": 1474,
-                            "RPS": 4,
-                            "Percent50": 686,
-                            "Percent75": 1134,
-                            "Percent95": 1328,
-                            "Percent99": 1459,
-                            "StdDev": 417,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 9.01,
-                            "MaxDataKb": 19.67,
-                            "AllDataMB": 3.36
+                            "StepName": "fail step 1",
+                            "RequestCount": 34,
+                            "OkCount": 14,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1117,
+                            "Max": 1936,
+                            "RPS": 0,
+                            "Percent50": 1127,
+                            "Percent75": 1466,
+                            "Percent95": 1597,
+                            "Percent99": 1936,
+                            "StdDev": 414,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
                         },
                         {
-                            "StepName": "pull html 3",
-                            "RequestCount": 343,
-                            "OkCount": 234,
-                            "FailCount": 109,
-                            "Min": 55,
-                            "Mean": 793,
-                            "Max": 1506,
-                            "RPS": 2,
-                            "Percent50": 760,
-                            "Percent75": 1231,
-                            "Percent95": 1493,
-                            "Percent99": 1503,
-                            "StdDev": 447,
-                            "MinDataKb": 0.26,
-                            "MeanDataKb": 10.38,
-                            "MaxDataKb": 19.44,
-                            "AllDataMB": 2.49
+                            "StepName": "fail step 2",
+                            "RequestCount": 13,
+                            "OkCount": 0,
+                            "FailCount": 13,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 13
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 32,
+                        "More800Less1200": 10,
+                        "More1200": 6
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
                         },
                         {
-                            "StepName": "pull html 4",
-                            "RequestCount": 234,
-                            "OkCount": 195,
-                            "FailCount": 39,
-                            "Min": 11,
-                            "Mean": 712,
-                            "Max": 1511,
-                            "RPS": 2,
-                            "Percent50": 604,
-                            "Percent75": 1115,
-                            "Percent95": 1444,
-                            "Percent99": 1503,
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 13
+                        }
+                    ],
+                    "Duration": "00:00:39.9994432"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 79,
+                    "OkCount": 47,
+                    "FailCount": 32,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 34,
+                            "OkCount": 34,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 629,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 673,
+                            "Percent75": 873,
+                            "Percent95": 969,
+                            "Percent99": 993,
+                            "StdDev": 261,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 33,
+                            "OkCount": 13,
+                            "FailCount": 20,
+                            "Min": 602,
+                            "Mean": 1112,
+                            "Max": 1797,
+                            "RPS": 0,
+                            "Percent50": 945,
+                            "Percent75": 1437,
+                            "Percent95": 1767,
+                            "Percent99": 1797,
+                            "StdDev": 389,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 12,
+                            "OkCount": 0,
+                            "FailCount": 12,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 12
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 24,
+                        "More800Less1200": 18,
+                        "More1200": 5
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 12
+                        }
+                    ],
+                    "Duration": "00:00:39.9994432"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 92,
+                    "OkCount": 55,
+                    "FailCount": 37,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 38,
+                            "OkCount": 38,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 500,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 390,
+                            "Percent75": 746,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 272,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 37,
+                            "OkCount": 17,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1127,
+                            "Max": 1952,
+                            "RPS": 0,
+                            "Percent50": 1127,
+                            "Percent75": 1466,
+                            "Percent95": 1936,
+                            "Percent99": 1952,
+                            "StdDev": 442,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 17,
+                            "OkCount": 0,
+                            "FailCount": 17,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 17
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 37,
+                        "More800Less1200": 11,
+                        "More1200": 7
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 17
+                        }
+                    ],
+                    "Duration": "00:00:45.0110076"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 90,
+                    "OkCount": 54,
+                    "FailCount": 36,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 37,
+                            "OkCount": 37,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 628,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 673,
+                            "Percent75": 857,
+                            "Percent95": 969,
+                            "Percent99": 993,
+                            "StdDev": 255,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 37,
+                            "OkCount": 17,
+                            "FailCount": 20,
+                            "Min": 559,
+                            "Mean": 1109,
+                            "Max": 1889,
+                            "RPS": 0,
+                            "Percent50": 945,
+                            "Percent75": 1437,
+                            "Percent95": 1797,
+                            "Percent99": 1889,
+                            "StdDev": 425,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 16,
+                            "OkCount": 0,
+                            "FailCount": 16,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 16
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 28,
+                        "More800Less1200": 19,
+                        "More1200": 7
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 16
+                        }
+                    ],
+                    "Duration": "00:00:45.0110076"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 104,
+                    "OkCount": 63,
+                    "FailCount": 41,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 42,
+                            "OkCount": 42,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 488,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 383,
+                            "Percent75": 746,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 279,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 41,
+                            "OkCount": 21,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1153,
+                            "Max": 1952,
+                            "RPS": 0,
+                            "Percent50": 1131,
+                            "Percent75": 1466,
+                            "Percent95": 1936,
+                            "Percent99": 1952,
                             "StdDev": 451,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 11.72,
-                            "MaxDataKb": 19.77,
-                            "AllDataMB": 2.34
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 185,
-                            "OkCount": 140,
-                            "FailCount": 45,
-                            "Min": 16,
-                            "Mean": 536,
-                            "Max": 1556,
-                            "RPS": 1,
-                            "Percent50": 469,
-                            "Percent75": 749,
-                            "Percent95": 1226,
-                            "Percent99": 1402,
-                            "StdDev": 378,
+                            "StepName": "fail step 2",
+                            "RequestCount": 21,
+                            "OkCount": 0,
+                            "FailCount": 21,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 12.85,
-                            "MaxDataKb": 19.45,
-                            "AllDataMB": 1.81
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 21
+                                }
+                            ]
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 828,
-                        "More800Less1200": 331,
-                        "More1200": 242
+                        "Less800": 41,
+                        "More800Less1200": 13,
+                        "More1200": 9
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 21
+                        }
+                    ],
+                    "Duration": "00:00:50.0112838"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 100,
+                    "OkCount": 61,
+                    "FailCount": 39,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 41,
+                            "OkCount": 41,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 619,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 673,
+                            "Percent75": 835,
+                            "Percent95": 969,
+                            "Percent99": 993,
+                            "StdDev": 255,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 40,
+                            "OkCount": 20,
+                            "FailCount": 20,
+                            "Min": 559,
+                            "Mean": 1129,
+                            "Max": 1889,
+                            "RPS": 0,
+                            "Percent50": 1015,
+                            "Percent75": 1437,
+                            "Percent95": 1797,
+                            "Percent99": 1889,
+                            "StdDev": 414,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 19,
+                            "OkCount": 0,
+                            "FailCount": 19,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 19
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 31,
+                        "More800Less1200": 22,
+                        "More1200": 8
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 19
+                        }
+                    ],
+                    "Duration": "00:00:50.0112838"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 112,
+                    "OkCount": 69,
+                    "FailCount": 43,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 45,
+                            "OkCount": 45,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 493,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 390,
+                            "Percent75": 746,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 277,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 44,
+                            "OkCount": 24,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1200,
+                            "Max": 1952,
+                            "RPS": 0,
+                            "Percent50": 1154,
+                            "Percent75": 1566,
+                            "Percent95": 1936,
+                            "Percent99": 1952,
+                            "StdDev": 447,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 23,
+                            "OkCount": 0,
+                            "FailCount": 23,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 23
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 43,
+                        "More800Less1200": 14,
+                        "More1200": 12
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 23
+                        }
+                    ],
+                    "Duration": "00:00:55.0121476"
+                },
+                {
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 110,
+                    "OkCount": 67,
+                    "FailCount": 43,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 44,
+                            "OkCount": 44,
+                            "FailCount": 0,
+                            "Min": 187,
+                            "Mean": 615,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 657,
+                            "Percent75": 828,
+                            "Percent95": 969,
+                            "Percent99": 993,
+                            "StdDev": 249,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 43,
+                            "OkCount": 23,
+                            "FailCount": 20,
+                            "Min": 559,
+                            "Mean": 1167,
+                            "Max": 1889,
+                            "RPS": 0,
+                            "Percent50": 1020,
+                            "Percent75": 1548,
+                            "Percent95": 1812,
+                            "Percent99": 1889,
+                            "StdDev": 438,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 23,
+                            "OkCount": 0,
+                            "FailCount": 23,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 23
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 35,
+                        "More800Less1200": 22,
+                        "More1200": 10
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 23
+                        }
+                    ],
+                    "Duration": "00:00:55.0121476"
+                }
+            ],
+            [
+                {
+                    "ScenarioName": "scenario 1",
+                    "RequestCount": 122,
+                    "OkCount": 75,
+                    "FailCount": 47,
+                    "AllDataMB": 0.0,
+                    "StepStats": [
+                        {
+                            "StepName": "ok step",
+                            "RequestCount": 48,
+                            "OkCount": 48,
+                            "FailCount": 0,
+                            "Min": 127,
+                            "Mean": 506,
+                            "Max": 978,
+                            "RPS": 0,
+                            "Percent50": 390,
+                            "Percent75": 758,
+                            "Percent95": 964,
+                            "Percent99": 978,
+                            "StdDev": 277,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
+                        },
+                        {
+                            "StepName": "fail step 1",
+                            "RequestCount": 47,
+                            "OkCount": 27,
+                            "FailCount": 20,
+                            "Min": 574,
+                            "Mean": 1207,
+                            "Max": 1952,
+                            "RPS": 0,
+                            "Percent50": 1191,
+                            "Percent75": 1566,
+                            "Percent95": 1936,
+                            "Percent99": 1952,
+                            "StdDev": 435,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 27,
+                            "OkCount": 0,
+                            "FailCount": 27,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 27
+                                }
+                            ]
+                        }
+                    ],
+                    "LatencyCount": {
+                        "Less800": 45,
+                        "More800Less1200": 17,
+                        "More1200": 13
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "keep_constant",
+                        "Value": 2
+                    },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 27
+                        }
+                    ],
                     "Duration": "00:01:00"
                 },
                 {
-                    "ScenarioName": "test_3",
-                    "RequestCount": 1835,
-                    "OkCount": 1406,
-                    "FailCount": 429,
-                    "AllDataMB": 14.13,
+                    "ScenarioName": "scenario 2",
+                    "RequestCount": 119,
+                    "OkCount": 74,
+                    "FailCount": 45,
+                    "AllDataMB": 0.0,
                     "StepStats": [
                         {
-                            "StepName": "pull html 1",
-                            "RequestCount": 600,
-                            "OkCount": 482,
-                            "FailCount": 118,
-                            "Min": 19,
-                            "Mean": 715,
-                            "Max": 1624,
-                            "RPS": 5,
-                            "Percent50": 683,
-                            "Percent75": 1070,
-                            "Percent95": 1327,
-                            "Percent99": 1569,
-                            "StdDev": 402,
-                            "MinDataKb": 0.1,
-                            "MeanDataKb": 8.47,
-                            "MaxDataKb": 19.88,
-                            "AllDataMB": 4.29
-                        },
-                        {
-                            "StepName": "pull html 2",
-                            "RequestCount": 472,
-                            "OkCount": 360,
-                            "FailCount": 112,
-                            "Min": 29,
-                            "Mean": 710,
-                            "Max": 1474,
-                            "RPS": 4,
-                            "Percent50": 684,
-                            "Percent75": 1126,
-                            "Percent95": 1329,
-                            "Percent99": 1460,
-                            "StdDev": 420,
-                            "MinDataKb": 0.18,
-                            "MeanDataKb": 8.86,
-                            "MaxDataKb": 19.67,
-                            "AllDataMB": 3.4
-                        },
-                        {
-                            "StepName": "pull html 3",
-                            "RequestCount": 350,
-                            "OkCount": 231,
-                            "FailCount": 119,
-                            "Min": 58,
-                            "Mean": 804,
-                            "Max": 1512,
-                            "RPS": 2,
-                            "Percent50": 765,
-                            "Percent75": 1221,
-                            "Percent95": 1494,
-                            "Percent99": 1506,
-                            "StdDev": 439,
-                            "MinDataKb": 0.68,
-                            "MeanDataKb": 10.05,
-                            "MaxDataKb": 19.44,
-                            "AllDataMB": 2.45
-                        },
-                        {
-                            "StepName": "pull html 4",
-                            "RequestCount": 231,
-                            "OkCount": 191,
-                            "FailCount": 40,
-                            "Min": 13,
-                            "Mean": 713,
-                            "Max": 1541,
-                            "RPS": 2,
-                            "Percent50": 611,
-                            "Percent75": 1236,
-                            "Percent95": 1437,
-                            "Percent99": 1502,
-                            "StdDev": 455,
+                            "StepName": "ok step",
+                            "RequestCount": 47,
+                            "OkCount": 47,
+                            "FailCount": 0,
+                            "Min": 158,
+                            "Mean": 610,
+                            "Max": 993,
+                            "RPS": 0,
+                            "Percent50": 672,
+                            "Percent75": 811,
+                            "Percent95": 969,
+                            "Percent99": 993,
+                            "StdDev": 251,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 11.33,
-                            "MaxDataKb": 19.76,
-                            "AllDataMB": 2.23
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": []
                         },
                         {
-                            "StepName": "pull html 5",
-                            "RequestCount": 182,
-                            "OkCount": 142,
-                            "FailCount": 40,
-                            "Min": 14,
-                            "Mean": 579,
-                            "Max": 1455,
-                            "RPS": 1,
-                            "Percent50": 489,
-                            "Percent75": 863,
-                            "Percent95": 1393,
-                            "Percent99": 1454,
-                            "StdDev": 407,
+                            "StepName": "fail step 1",
+                            "RequestCount": 47,
+                            "OkCount": 27,
+                            "FailCount": 20,
+                            "Min": 559,
+                            "Mean": 1225,
+                            "Max": 1889,
+                            "RPS": 0,
+                            "Percent50": 1209,
+                            "Percent75": 1601,
+                            "Percent95": 1812,
+                            "Percent99": 1889,
+                            "StdDev": 433,
                             "MinDataKb": 0.0,
-                            "MeanDataKb": 12.6,
-                            "MaxDataKb": 19.43,
-                            "AllDataMB": 1.76
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 500,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Internal Server Error",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 20
+                                }
+                            ]
+                        },
+                        {
+                            "StepName": "fail step 2",
+                            "RequestCount": 25,
+                            "OkCount": 0,
+                            "FailCount": 25,
+                            "Min": 0,
+                            "Mean": 0,
+                            "Max": 0,
+                            "RPS": 0,
+                            "Percent50": 0,
+                            "Percent75": 0,
+                            "Percent95": 0,
+                            "Percent99": 0,
+                            "StdDev": 0,
+                            "MinDataKb": 0.0,
+                            "MeanDataKb": 0.0,
+                            "MaxDataKb": 0.0,
+                            "AllDataMB": 0.0,
+                            "ErrorStats": [
+                                {
+                                    "ErrorCode": 400,
+                                    "Exception": {
+                                        "TargetSite": null,
+                                        "StackTrace": null,
+                                        "Message": "Bad Request",
+                                        "Data": {},
+                                        "InnerException": null,
+                                        "HelpLink": null,
+                                        "Source": null,
+                                        "HResult": -2146233088
+                                    },
+                                    "Count": 25
+                                }
+                            ]
                         }
                     ],
                     "LatencyCount": {
-                        "Less800": 825,
-                        "More800Less1200": 332,
-                        "More1200": 249
+                        "Less800": 38,
+                        "More800Less1200": 22,
+                        "More1200": 14
                     },
                     "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 10
+                        "SimulationName": "keep_constant",
+                        "Value": 2
                     },
+                    "ErrorStats": [
+                        {
+                            "ErrorCode": 500,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Internal Server Error",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 20
+                        },
+                        {
+                            "ErrorCode": 400,
+                            "Exception": {
+                                "TargetSite": null,
+                                "StackTrace": null,
+                                "Message": "Bad Request",
+                                "Data": {},
+                                "InnerException": null,
+                                "HelpLink": null,
+                                "Source": null,
+                                "HResult": -2146233088
+                            },
+                            "Count": 25
+                        }
+                    ],
                     "Duration": "00:01:00"
                 }
             ]
