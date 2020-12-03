@@ -62,6 +62,7 @@ let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription
+    |> Option.map(fun html -> html.Replace("\r", ""))
     |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
     |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
     |> Option.map String.concatLines
