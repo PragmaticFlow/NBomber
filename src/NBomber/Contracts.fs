@@ -61,7 +61,7 @@ type ErrorCode = int
 
 type ErrorStats = {
     ErrorCode: ErrorCode
-    Exception: exn
+    Message: string
     Count: int
 }
 
@@ -190,6 +190,8 @@ type LoadSimulation =
     | RampPerSec   of rate:int * during:TimeSpan
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSec of rate:int * during:TimeSpan
+    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan
 
 type Scenario = {
     ScenarioName: string

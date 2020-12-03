@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.ViewModels
+module NBomber.DomainServices.Reporting.ViewModels
 
 open System
 open System.Data
@@ -75,12 +75,44 @@ module NodeStatsViewModel =
 
 module TimeLineStatsViewModel =
 
-    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
-        TimeStamps = timeLineStats
-                     |> Seq.map(fun (timeSpan, _) -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
-                     |> Seq.toArray
+    let private createLatencyCount (prevLatency: LatencyCount) (latency: LatencyCount) = {
+        Less800 = latency.Less800 - prevLatency.Less800
+        More800Less1200 = latency.More800Less1200 - prevLatency.More800Less1200
+        More1200 = latency.More1200 - prevLatency.More1200
+    }
 
-        ScenarioStats = timeLineStats
-                        |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
-                        |> Seq.toArray
+    let private createScenarioStatsForTimeStamp (prevScenarioStats: ScenarioStats[]) (scenarioStats: ScenarioStats[]) =
+        scenarioStats
+        |> Seq.mapi(fun i stats ->
+            let currentLatency = stats.LatencyCount
+            let prevLatency = prevScenarioStats.[i].LatencyCount
+            let latency = createLatencyCount prevLatency currentLatency
+            { stats with LatencyCount = latency }
+        )
+        |> Seq.toArray
+
+    let private createTimeStamps (timeLineStats: (TimeSpan * NodeStats) list) =
+        timeLineStats
+        |> Seq.map(fun (timeSpan, _) -> timeSpan)
+        |> Seq.map(fun timeSpan -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
+        |> Seq.toArray
+
+    let private createScenarioStats (timeLineStats: (TimeSpan * NodeStats) list) =
+        let timeLineScenarioStats =
+            timeLineStats
+            |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+            |> Seq.toArray
+
+        timeLineScenarioStats
+        |> Seq.mapi(fun i scenarioStats ->
+            if i = 0 then
+                scenarioStats
+            else
+                createScenarioStatsForTimeStamp timeLineScenarioStats.[i - 1] scenarioStats
+        )
+        |> Seq.toArray
+
+    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
+        TimeStamps = createTimeStamps(timeLineStats)
+        ScenarioStats = createScenarioStats(timeLineStats)
     }
