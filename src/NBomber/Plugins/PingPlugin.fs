@@ -84,9 +84,24 @@ module internal PingPluginStatistics =
 
         table
 
+module internal PingPluginHintsAnalyzer =
+
+    /// (hostName * result)[]
+    let analyze (pingResults: (string * PingReply)[]) =
+
+        let printHint (hostName) =
+            sprintf "Physical latency to host: '%s' is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency." hostName
+
+        pingResults
+        |> Seq.filter(fun (_,result) -> result.RoundtripTime > 2L)
+        |> Seq.map fst
+        |> Seq.map printHint
+        |> Seq.toArray
+
 type PingPlugin(pluginConfig: PingPluginConfig) =
 
     let mutable _logger = Serilog.Log.ForContext<PingPlugin>()
+    let mutable _pingResults = Array.empty
     let mutable _pluginStats = new DataSet()
     let mutable _config = pluginConfig
     let _pluginName = "NBomber.Plugins.Network.PingPlugin"
@@ -117,7 +132,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
         |> PingPluginStatistics.createTable _pluginName _config
         |> stats.Tables.Add
 
-        return stats
+        return pingResult, stats
     }
 
     new() = new PingPlugin(PingPluginConfig.CreateDefault Seq.empty)
@@ -136,12 +151,16 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
         member _.Start(testInfo: TestInfo) =
             execPing()
             |> createStats
-            |> Result.map(fun x -> _pluginStats <- x)
+            |> Result.map(fun (pingResults,stats) ->
+                _pingResults <- pingResults
+                _pluginStats <- stats
+            )
             |> Result.mapError(fun ex -> _logger.Error(ex.ToString()))
             |> ignore
 
             Task.CompletedTask
 
         member _.GetStats() = _pluginStats
+        member _.GetHints() = PingPluginHintsAnalyzer.analyze _pingResults
         member _.Stop() = Task.CompletedTask
         member _.Dispose() = ()

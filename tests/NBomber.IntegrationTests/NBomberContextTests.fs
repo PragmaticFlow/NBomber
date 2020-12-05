@@ -57,6 +57,7 @@ let context = {
     SendStatsInterval = Constants.MinSendStatsInterval
     WorkerPlugins = List.empty
     ApplicationType = Some ApplicationType.Process
+    UseHintsAnalyzer = false
 }
 
 [<Fact>]

@@ -1,4 +1,4 @@
-module NBomber.DomainServices.Reporting.ViewModels
+namespace NBomber.DomainServices.Reporting.ViewModels
 
 open System
 open System.Data
