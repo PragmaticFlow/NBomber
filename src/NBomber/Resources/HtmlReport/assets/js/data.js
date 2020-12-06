@@ -801,7 +801,7 @@ const viewModel = { nBomberInfo: {
             }
         ],
         "NodeInfo": {
-            "MachineName": "DESKTOP-DMNJHK6",
+            "MachineName": "DESKTOP",
             "NodeType": {
                 "Case": "SingleNode"
             },
