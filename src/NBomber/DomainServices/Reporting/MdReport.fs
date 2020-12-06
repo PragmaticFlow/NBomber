@@ -34,6 +34,17 @@ module MdTestInfo =
          ""]
         |> String.concatLines
 
+module MdErrorStats =
+
+    let headerScenarioErrorStats (scnStats: ScenarioStats) =
+        sprintf "> errors for scenario: `%s`" scnStats.ScenarioName
+
+    let printScenarioErrorStats (errorStats: ErrorStats[]) =
+        errorStats
+        |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.Message])
+        |> Seq.append [["error code"; "count"; "message"]]
+        |> Seq.toList
+
 module MdNodeStats =
 
     let private headerScenario (scnStats: ScenarioStats) =
@@ -61,14 +72,22 @@ module MdNodeStats =
         stats.ScenarioStats
         |> Seq.collect(fun scnStats ->
             seq {
-                yield headerScenario(scnStats)
+                    headerScenario(scnStats)
 
-                yield scnStats.StepStats
-                      |> Seq.collect rowsStepStats
-                      |> Seq.append [headerStepStats]
-                      |> Seq.toList
-                      |> MdUtility.toMdTable
-                      |> String.appendNewLine
+                    scnStats.StepStats
+                    |> Seq.collect rowsStepStats
+                    |> Seq.append [headerStepStats]
+                    |> Seq.toList
+                    |> MdUtility.toMdTable
+                    |> String.appendNewLine
+
+                    if scnStats.ErrorStats.Length > 0 then
+                        MdErrorStats.headerScenarioErrorStats(scnStats)
+                        |> String.appendNewLine
+
+                        MdErrorStats.printScenarioErrorStats(scnStats.ErrorStats)
+                        |> MdUtility.toMdTable
+                        |> String.appendNewLine
             })
         |> String.concatLines
 

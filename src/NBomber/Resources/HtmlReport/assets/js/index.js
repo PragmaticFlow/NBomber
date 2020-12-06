@@ -145,7 +145,10 @@ const initApp = (appContainer, viewModel) => {
         },
         plotOptions: createPlotOptions(),
         legend: {
-            labelFormat: '{name}: {y}'
+            labelFormat: '{name}: {y}',
+            align: 'right',
+            verticalAlign:'middle',
+            padding: 0
         },
         series: [
             {
@@ -169,6 +172,13 @@ const initApp = (appContainer, viewModel) => {
         ]
     });
 
+    const errorColors = [
+        '#d50000', '#ff1744', '#ff5252',
+        '#c51162', '#f50057', '#ff4081',
+        '#ff6d00', '#ff9100', '#ffab40',
+        '#aa00ff', '#d500f9', '#e040fb'
+    ];
+
     const createSettingsChartScenarioErrors = (theme, errorStats, titles) => ({
         credits: {
             enabled: false
@@ -181,7 +191,10 @@ const initApp = (appContainer, viewModel) => {
         },
         plotOptions: createPlotOptions(),
         legend: {
-            labelFormat: '{name}: {y}'
+            labelFormat: '{name}: {y}',
+            align: 'right',
+            verticalAlign:'middle',
+            padding: 0
         },
         series: [
             {
@@ -190,7 +203,11 @@ const initApp = (appContainer, viewModel) => {
                 colorByPoint: true,
                 size: '100%',
                 innerSize: '50%',
-                data: errorStats.map(es => ({ name: es.ErrorCode, y: es.Count }))
+                data: errorStats.map((es, i) => ({
+                    name: es.ErrorCode,
+                    y: es.Count,
+                    color: errorColors[i % errorColors.length]
+                }))
             }
         ]
     });
@@ -525,8 +542,28 @@ const initApp = (appContainer, viewModel) => {
 
 
     Vue.component('error-stats-table', {
-        props: ['errorStats'],
-        template: '#error-stats-table-template'
+        props: ['errorStats', 'maxErrorsNumber'],
+        template: '#error-stats-table-template',
+        data: function() {
+            return {
+                showAll: false
+            }
+        },
+        computed: {
+            errors: function() {
+                return this.showAll || this.errorStats.length <= this.maxErrorsNumber
+                    ? this.errorStats
+                    : this.errorStats.slice(0, this.maxErrorsNumber);
+            },
+            shouldBeLimited: function() {
+                return this.errorStats.length > this.maxErrorsNumber;
+            }
+        },
+        methods: {
+            showAllErrors: function (showAll) {
+                this.showAll = showAll;
+            }
+        }
     });
 
     Vue.component('lazy-load', {

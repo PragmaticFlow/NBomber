@@ -60,11 +60,11 @@ h6 {
         margin: 0
     }
 
-.scenario table tr th {
+table.table-scenario-stats tr th {
     text-align: center;
 }
 
-.scenario table tr td {
+table.table-scenario-stats tr td {
     text-align: right;
 }
 
