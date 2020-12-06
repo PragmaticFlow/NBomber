@@ -312,11 +312,16 @@
             <tfoot v-if="shouldBeLimited">
                 <tr>
                     <td colspan="3">
+                        shown {{maxErrorsNumber}}/{{errorStats.length}} error codes
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
                         <a href="#" v-if="showAll" @click.prevent="showAllErrors(false)">
-                            show first {{maxErrorsNumber}} errors <span class="fa fa-chevron-up"></span>
+                            show less <span class="fa fa-chevron-up"></span>
                         </a>
                         <a href="#" v-else @click.prevent="showAllErrors(true)">
-                            show all {{errorStats.length}} errors <span class="fa fa-chevron-down"></span>
+                            show all <span class="fa fa-chevron-down"></span>
                         </a>
                     </td>
                 </tr>
