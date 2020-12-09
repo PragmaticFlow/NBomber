@@ -102,6 +102,7 @@ let ``Init should be invoked once`` () =
             member _.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
             member _.Start(_) = Task.CompletedTask
             member _.GetStats() = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -129,6 +130,7 @@ let ``StartTest should be invoked once`` () =
                 pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
                 Task.CompletedTask
 
+            member _.GetHints() = Array.empty
             member _.GetStats() = new DataSet()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -154,6 +156,7 @@ let ``StartTest should be invoked with infra config`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(logger, infraConfig) = pluginConfig <- infraConfig
             member _.Start(_) = Task.CompletedTask
+            member _.GetHints() = Array.empty
             member _.GetStats() = new DataSet()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -184,6 +187,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 new DataSet()
 
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -208,6 +212,7 @@ let ``StopTest should be invoked once`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats() = new DataSet()
+            member _.GetHints() = Array.empty
 
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
@@ -236,6 +241,7 @@ let ``stats should be passed to IReportingSink`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats() = PluginStatisticsHelper.createPluginStats()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }

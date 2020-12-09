@@ -190,7 +190,7 @@ type LoadSimulation =
     | RampPerSec   of rate:int * during:TimeSpan
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSec of rate:int * during:TimeSpan
-    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    /// Injects a random number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan
 
 type Scenario = {
@@ -216,6 +216,7 @@ type IWorkerPlugin =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract Start: testInfo:TestInfo -> Task
     abstract GetStats: unit -> DataSet
+    abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 
 type ApplicationType =
@@ -236,6 +237,7 @@ type NBomberContext = {
     SendStatsInterval: TimeSpan
     WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
+    UseHintsAnalyzer: bool
 }
 
 type Response with

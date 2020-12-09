@@ -33,16 +33,26 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
     else
         stats
 
+let getHints (context: NBomberContext) (stats: NodeStats) =
+    if context.UseHintsAnalyzer then
+        context.WorkerPlugins
+        |> Seq.collect(fun x -> x.GetHints())
+        |> Seq.append(HintsAnalyzer.analyze stats)
+        |> Seq.toList
+
+    else List.empty
+
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node")
 
-        let! sessionArgs = context |> NBomberContext.createSessionArgs(testInfo)
-        let! scenarios   = context |> NBomberContext.createScenarios
-        use testHost     = new TestHost(dep, scenarios, sessionArgs)
-        let! nodeStats   = testHost.RunSession()
+        let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
+        let! scenarios    = context |> NBomberContext.createScenarios
+        use testHost      = new TestHost(dep, scenarios, sessionArgs)
+        let! nodeStats    = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()
+        let hints         = getHints context nodeStats
 
         return Report.build nodeStats timeLineStats
                |> saveReports dep context nodeStats

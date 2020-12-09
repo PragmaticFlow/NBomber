@@ -96,6 +96,7 @@ let empty = {
     SendStatsInterval = Constants.MinSendStatsInterval
     WorkerPlugins = List.empty
     ApplicationType = None
+    UseHintsAnalyzer = true
 }
 
 let getTestSuite (context: NBomberContext) =
