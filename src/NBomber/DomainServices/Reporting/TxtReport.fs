@@ -17,6 +17,9 @@ let private printScenarioHeader (scnStats: ScenarioStats) =
     sprintf "scenario: '%s', duration: '%A', ok count: '%A', fail count: '%A', all data: '%A' MB"
         scnStats.ScenarioName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
 
+let private printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
+    sprintf "errors for scenario: '%s'" scnStats.ScenarioName
+
 let inline private printPluginStatsHeader (table: DataTable) =
     sprintf "plugin stats: '%s'" table.TableName
 
@@ -41,6 +44,11 @@ let private printStepsTable (steps: StepStats[]) =
     )
     stepTable.ToStringAlternative()
 
+let private printErrorStatsTable (errorStats: ErrorStats[]) =
+    let errorTable = ConsoleTable("error code", "count", "message")
+    errorStats |> Seq.iter(fun error -> errorTable.AddRow(error.ErrorCode, error.Count, error.Message) |> ignore)
+    errorTable.ToStringAlternative()
+
 let private printPluginStatsTable (table: DataTable) =
     let columnNames = table.GetColumns() |> Array.map(fun x -> x.ColumnName)
     let columnCaptions = table.GetColumns() |> Array.map(fun x -> x.GetColumnCaptionOrName())
@@ -56,7 +64,11 @@ let private printNodeStats (stats: NodeStats) =
     stats.ScenarioStats
     |> Array.map(fun scnStats ->
         [printScenarioHeader(scnStats)
-         printStepsTable(scnStats.StepStats)]
+         printStepsTable(scnStats.StepStats)
+         if scnStats.ErrorStats.Length > 0 then
+             printScenarioErrorStatsHeader(scnStats)
+             printErrorStatsTable(scnStats.ErrorStats)
+        ]
         |> String.concatLines
     )
     |> String.concatLines

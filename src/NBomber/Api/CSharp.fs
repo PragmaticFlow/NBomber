@@ -197,6 +197,12 @@ type NBomberRunner =
     static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
         context |> FSharp.NBomberRunner.withApplicationType(applicationType)
 
+    /// Disables hints analyzer.
+    /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
+    [<Extension>]
+    static member DisableHintsAnalyzer(context: NBomberContext) =
+        context |> FSharp.NBomberRunner.disableHintsAnalyzer
+
     [<Extension>]
     static member Run(context: NBomberContext) =
         match FSharp.NBomberRunner.run context with

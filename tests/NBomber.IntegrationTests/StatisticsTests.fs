@@ -93,7 +93,7 @@ let ``ErrorStats should be calculated properly`` () =
         Scenario.create "realtime stats scenario" [okStep; failStep1; failStep2]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 2, during = seconds 10)
+            KeepConstant(copies = 2, during = seconds 15)
         ]
 
     NBomberRunner.registerScenarios [scenario]

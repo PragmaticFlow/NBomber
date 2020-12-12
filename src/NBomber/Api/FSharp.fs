@@ -264,6 +264,11 @@ module NBomberRunner =
     let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
         { context with ApplicationType = Some applicationType }
 
+    /// Disables hints analyzer.
+    /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
+    let disableHintsAnalyzer (context: NBomberContext) =
+        { context with UseHintsAnalyzer = false }
+
     let internal executeCliArgs (args) (context: NBomberContext) =
         let invokeConfigLoader (configName) (configLoader) (config) (context) =
             if config = String.Empty then sprintf "%s is empty" configName |> failwith

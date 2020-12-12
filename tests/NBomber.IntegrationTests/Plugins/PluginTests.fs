@@ -103,6 +103,7 @@ let ``Init should be invoked once`` () =
             member _.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -131,6 +132,7 @@ let ``StartTest should be invoked once`` () =
                 Task.CompletedTask
 
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -156,6 +158,7 @@ let ``StartTest should be invoked with infra config`` () =
             member _.Init(logger, infraConfig) = pluginConfig <- infraConfig
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -185,6 +188,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 new DataSet()
 
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -209,6 +213,7 @@ let ``StopTest should be invoked once`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
 
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
@@ -237,6 +242,7 @@ let ``stats should be passed to IReportingSink`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -284,6 +290,7 @@ let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` ()
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -294,6 +301,7 @@ let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` ()
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -321,6 +329,7 @@ let ``stats' names should be the same as plugin names`` () =
                 stats.DataSetName <- "Stats"
                 stats
 
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -346,6 +355,7 @@ let ``tryFindPluginStatsByName() should work properly`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -356,6 +366,7 @@ let ``tryFindPluginStatsByName() should work properly`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -392,6 +403,7 @@ let ``NBomber should not throw ex for empty plugin stats tables`` () =
                 stats.Tables.Add(new DataTable())
                 stats
 
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -415,6 +427,7 @@ let ``stats should be passed to reports`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -447,6 +460,7 @@ let ``table should not be passed to reports if table name starts with "."`` () =
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
             member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -484,6 +498,7 @@ let ``tables should not be passed to reports if no rows in table`` () =
                 ds.Tables.Add(table)
                 ds
 
+            member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }

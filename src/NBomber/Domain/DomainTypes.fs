@@ -1,4 +1,4 @@
-﻿module internal NBomber.Domain.DomainTypes
+module internal NBomber.Domain.DomainTypes
 
 open System
 open System.Threading.Tasks
@@ -30,7 +30,11 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
 
         member _.GetPreviousStepResponse<'T>() =
             try
-                data.[Constants.StepResponseKey] :?> 'T
+                let prevStepResponse = data.[Constants.StepResponseKey]
+                if isNull(prevStepResponse) then
+                    Unchecked.defaultof<'T>
+                else
+                    prevStepResponse :?> 'T
             with
             | ex -> Unchecked.defaultof<'T>
 

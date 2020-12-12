@@ -190,7 +190,7 @@ type LoadSimulation =
     | RampPerSec   of rate:int * during:TimeSpan
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSec of rate:int * during:TimeSpan
-    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    /// Injects a random number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan
 
 type Scenario = {
@@ -219,6 +219,7 @@ type IWorkerPlugin =
     /// All tables of DataSet that contain rows considered as plugin stats.
     /// All tables of DataSet with table name starts with "." are not considered as plugin stats.
     abstract GetStats: NodeOperationType -> DataSet
+    abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 
 type ApplicationType =
@@ -239,6 +240,7 @@ type NBomberContext = {
     SendStatsInterval: TimeSpan
     WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
+    UseHintsAnalyzer: bool
 }
 
 type Response with

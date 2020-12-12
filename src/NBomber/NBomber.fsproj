@@ -38,6 +38,7 @@
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Dependency.fs" />
+    <Compile Include="DomainServices\Reporting\HintsAnalyzer.fs" />
     <Compile Include="DomainServices\PluginStats.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />

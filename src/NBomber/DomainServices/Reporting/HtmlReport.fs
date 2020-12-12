@@ -6,8 +6,8 @@ open System.Text.RegularExpressions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
-open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reporting.ViewModels
+open NBomber.Infra.Dependency
 
 module AssetsUtils =
 
@@ -62,6 +62,7 @@ let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription
+    |> Option.map(fun html -> html.Replace("\r", ""))
     |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
     |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
     |> Option.map String.concatLines

@@ -1,4 +1,4 @@
-module NBomber.DomainServices.Reporting.ViewModels
+namespace NBomber.DomainServices.Reporting.ViewModels
 
 open System
 open System.Data
@@ -77,20 +77,24 @@ module NodeStatsViewModel =
 
 module TimeLineStatsViewModel =
 
-    let private createLatencyCount (prevLatency: LatencyCount) (latency: LatencyCount) = {
+    let private getLatencyCountDiff (latency: LatencyCount) (prevLatency: LatencyCount) = {
         Less800 = latency.Less800 - prevLatency.Less800
         More800Less1200 = latency.More800Less1200 - prevLatency.More800Less1200
         More1200 = latency.More1200 - prevLatency.More1200
     }
 
-    let private createScenarioStatsForTimeStamp (prevScenarioStats: ScenarioStats[]) (scenarioStats: ScenarioStats[]) =
+    let private getScenarioStatsDiff (scenarioStats: ScenarioStats) (prevScenarioStats: ScenarioStats) = {
+        scenarioStats with
+            LatencyCount = getLatencyCountDiff scenarioStats.LatencyCount prevScenarioStats.LatencyCount
+            RequestCount = scenarioStats.RequestCount - prevScenarioStats.RequestCount
+            OkCount = scenarioStats.OkCount - prevScenarioStats.OkCount
+            FailCount = scenarioStats.FailCount - prevScenarioStats.FailCount
+            AllDataMB = scenarioStats.AllDataMB - prevScenarioStats.AllDataMB
+    }
+
+    let private getTimeLineScenarioStatsDiff (scenarioStats: ScenarioStats[]) (prevScenarioStats: ScenarioStats[]) =
         scenarioStats
-        |> Seq.mapi(fun i stats ->
-            let currentLatency = stats.LatencyCount
-            let prevLatency = prevScenarioStats.[i].LatencyCount
-            let latency = createLatencyCount prevLatency currentLatency
-            { stats with LatencyCount = latency }
-        )
+        |> Seq.mapi(fun i stats -> getScenarioStatsDiff stats prevScenarioStats.[i])
         |> Seq.toArray
 
     let private createTimeStamps (timeLineStats: (TimeSpan * NodeStats) list) =
@@ -110,7 +114,7 @@ module TimeLineStatsViewModel =
             if i = 0 then
                 scenarioStats
             else
-                createScenarioStatsForTimeStamp timeLineScenarioStats.[i - 1] scenarioStats
+                getTimeLineScenarioStatsDiff scenarioStats timeLineScenarioStats.[i - 1]
         )
         |> Seq.toArray
 
