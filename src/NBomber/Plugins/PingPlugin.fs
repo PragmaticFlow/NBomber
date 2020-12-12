@@ -142,6 +142,6 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
 
             Task.CompletedTask
 
-        member _.GetStats() = _pluginStats
+        member _.GetStats(currentOperation) = _pluginStats
         member _.Stop() = Task.CompletedTask
         member _.Dispose() = ()

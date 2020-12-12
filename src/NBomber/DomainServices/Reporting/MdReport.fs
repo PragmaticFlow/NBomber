@@ -4,6 +4,7 @@ open System
 open System.Data
 
 open NBomber.Contracts
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -91,7 +92,7 @@ module MdPluginStats =
 
     let printPluginStats (stats: NodeStats) =
         stats.PluginStats
-        |> Seq.collect(fun dataSet -> dataSet.GetTables())
+        |> PluginStats.getStatsTables
         |> Seq.collect(fun table ->
             seq {
                 yield table |> headerPluginStats |> String.appendNewLine

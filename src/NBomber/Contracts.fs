@@ -212,10 +212,13 @@ type IReportingSink =
 
 type IWorkerPlugin =
     inherit IDisposable
+    /// Name of plugin. Must be unique.
     abstract PluginName: string
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract Start: testInfo:TestInfo -> Task
-    abstract GetStats: unit -> DataSet
+    /// All tables of DataSet that contain rows considered as plugin stats.
+    /// All tables of DataSet with table name starts with "." are not considered as plugin stats.
+    abstract GetStats: NodeOperationType -> DataSet
     abstract Stop: unit -> Task
 
 type ApplicationType =

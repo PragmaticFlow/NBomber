@@ -8,9 +8,9 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Swensen.Unquote
 open Xunit
 
+open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Domain
-open NBomber.Extensions
 open NBomber.FSharp
 
 module internal PluginTestHelper =
@@ -80,7 +80,7 @@ module internal PluginStatisticsHelper =
 
         table
         |> getPluginStatisticsRows 10 prefix
-        |> Array.iter(fun x -> x |> table.Rows.Add)
+        |> Array.iter table.Rows.Add
 
         table
 
@@ -88,6 +88,7 @@ module internal PluginStatisticsHelper =
         let pluginStats = new DataSet()
         pluginStats.Tables.Add(createTable("PluginStatistics1"))
         pluginStats.Tables.Add(createTable("PluginStatistics2"))
+        pluginStats.Tables.Add(createTable(".PluginStatistics3"))
         pluginStats
 
 [<Fact>]
@@ -101,7 +102,7 @@ let ``Init should be invoked once`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
             member _.Start(_) = Task.CompletedTask
-            member _.GetStats() = new DataSet()
+            member _.GetStats(currentOperation) = new DataSet()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -109,7 +110,7 @@ let ``Init should be invoked once`` () =
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
     test <@ pluginInitInvokedCounter = 1 @>
@@ -129,7 +130,7 @@ let ``StartTest should be invoked once`` () =
                 pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
                 Task.CompletedTask
 
-            member _.GetStats() = new DataSet()
+            member _.GetStats(currentOperation) = new DataSet()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -137,7 +138,7 @@ let ``StartTest should be invoked once`` () =
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
     test <@ pluginStartTestInvokedCounter = 1 @>
@@ -154,7 +155,7 @@ let ``StartTest should be invoked with infra config`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(logger, infraConfig) = pluginConfig <- infraConfig
             member _.Start(_) = Task.CompletedTask
-            member _.GetStats() = new DataSet()
+            member _.GetStats(currentOperation) = new DataSet()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -163,7 +164,7 @@ let ``StartTest should be invoked with infra config`` () =
     |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
     test <@ pluginConfig.IsSome @>
@@ -180,7 +181,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
 
-            member _.GetStats() =
+            member _.GetStats(currentOperation) =
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 new DataSet()
 
@@ -191,7 +192,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
     test <@ pluginGetStatsInvokedCounter >= 2 @>
@@ -207,7 +208,7 @@ let ``StopTest should be invoked once`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
-            member _.GetStats() = new DataSet()
+            member _.GetStats(currentOperation) = new DataSet()
 
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
@@ -219,7 +220,7 @@ let ``StopTest should be invoked once`` () =
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
     test <@ pluginFinishTestInvokedCounter = 1 @>
@@ -235,7 +236,7 @@ let ``stats should be passed to IReportingSink`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = ()
             member _.Start(_) = Task.CompletedTask
-            member _.GetStats() = PluginStatisticsHelper.createPluginStats()
+            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -270,3 +271,235 @@ let ``stats should be passed to IReportingSink`` () =
     test <@ table1.Rows.Count > 0 @>
     test <@ table2.Columns.Count > 0 @>
     test <@ table2.Rows.Count > 0 @>
+
+[<Fact>]
+let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+    let pluginName = "TestPlugin"
+
+    let plugin1 = {
+        new IWorkerPlugin with
+            member _.PluginName = pluginName
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = new DataSet()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let plugin2 = {
+        new IWorkerPlugin with
+            member _.PluginName = pluginName
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = new DataSet()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    Assert.Throws(typeof<Exception>,
+        fun _ ->
+            NBomberRunner.registerScenarios scenarios
+            |> NBomberRunner.withWorkerPlugins [plugin1; plugin2]
+            |> ignore
+        )
+
+[<Fact>]
+let ``stats' names should be the same as plugin names`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+
+            member _.GetStats(currentOperation) =
+                let stats = new DataSet()
+                stats.DataSetName <- "Stats"
+                stats
+
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let pluginStats =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> function
+            | Ok nodeStats -> nodeStats.PluginStats.[0]
+            | Error e -> failwith e
+
+    test <@ pluginStats.DataSetName = "TestPlugin" @>
+
+[<Fact>]
+let ``tryFindPluginStatsByName() should work properly`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin1 = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin1"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = new DataSet()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let plugin2 = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin2"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = new DataSet()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let nodeStats =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin1; plugin2]
+        |> NBomberRunner.run
+        |> function
+            | Ok stats -> stats
+            | Error e -> failwith e
+
+    let pluginStats1 = nodeStats |> PluginStats.tryFindPluginStatsByName "TestPlugin1"
+    let pluginStats2 = nodeStats |> PluginStats.tryFindPluginStatsByName "TestPlugin2"
+    let pluginStats3 = nodeStats |> PluginStats.tryFindPluginStatsByName "TestPlugin3"
+
+    test <@ pluginStats1.IsSome @>
+    test <@ pluginStats2.IsSome @>
+    test <@ pluginStats3.IsNone @>
+
+[<Fact>]
+let ``NBomber should not throw ex for empty plugin stats tables`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+
+            member _.GetStats(currentOperation) =
+                let stats = new DataSet()
+                stats.Tables.Add(new DataTable())
+                stats
+
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    test <@ NBomberRunner.registerScenarios scenarios
+            |> NBomberRunner.withWorkerPlugins [plugin]
+            |> NBomberRunner.run
+            |> function
+                | Ok _    -> true
+                | Error _ -> false
+    @>
+
+[<Fact>]
+let ``stats should be passed to reports`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report ->
+             [ReportFormat.Txt; ReportFormat.Md; ReportFormat.Html]
+             |> Seq.contains report.ReportFormat
+        )
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> report.Contains("PluginStatistics1")) @>
+    test <@ reports |> Seq.forall(fun report -> report.Contains("PluginStatistics2")) @>
+
+[<Fact>]
+let ``table should not be passed to reports if table name starts with "."`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report ->
+             [ReportFormat.Txt; ReportFormat.Md; ReportFormat.Html]
+             |> Seq.contains report.ReportFormat
+        )
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> not(report.Contains(".PluginStatistics3"))) @>
+
+[<Fact>]
+let ``tables should not be passed to reports if no rows in table`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) =
+                let ds = new DataSet()
+                let table = new DataTable()
+                table.TableName <- "EmptyTable"
+                ds.Tables.Add(table)
+                ds
+
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report ->
+             [ReportFormat.Txt; ReportFormat.Md; ReportFormat.Html]
+             |> Seq.contains report.ReportFormat
+        )
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> not(report.Contains("EmptyTable"))) @>

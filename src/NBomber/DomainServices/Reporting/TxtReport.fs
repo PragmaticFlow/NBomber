@@ -5,6 +5,7 @@ open System.Data
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -62,7 +63,7 @@ let private printNodeStats (stats: NodeStats) =
 
 let private printPluginStats (stats: NodeStats) =
     stats.PluginStats
-    |> Seq.collect(fun dataSet -> dataSet.GetTables())
+    |> PluginStats.getStatsTables
     |> Seq.collect(fun table ->
         seq {
             yield table |> printPluginStatsHeader

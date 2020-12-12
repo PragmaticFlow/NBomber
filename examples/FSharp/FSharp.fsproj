@@ -45,7 +45,9 @@
         <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
         <None Include="RealtimeReporting\docker-compose.yaml" />
         <Compile Include="XUnit\XUnitTest.fs" />
+        <Compile Include="XUnit\PluginStatsTest.fs" />
         <Compile Include="Program.fs" />
+        <Folder Include="Plugin" />
     </ItemGroup>
 
     <ItemGroup>

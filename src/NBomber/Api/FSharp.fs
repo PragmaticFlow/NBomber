@@ -1,4 +1,4 @@
-﻿namespace NBomber.FSharp
+namespace NBomber.FSharp
 
 open System
 open System.IO
@@ -206,7 +206,15 @@ module NBomberRunner =
 
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
+    /// Plugin names must be unique.
     let withWorkerPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
+        plugins
+        |> Seq.groupBy(fun plugin -> plugin.PluginName)
+        |> Seq.iter(fun (pluginName, pluginsForName) ->
+            if Seq.length(pluginsForName) > 1 then
+                failwith(sprintf "Duplicated plugin name: '%s'" pluginName)
+        )
+
         { context with WorkerPlugins = plugins }
 
     /// Loads configuration.
@@ -294,3 +302,10 @@ module NBomberRunner =
         context
         |> runWithResult args
         |> Result.mapError(AppError.toString)
+
+/// PluginStats helps to find plugin stats.
+module PluginStats =
+
+    /// Tries to find plugin stats by given name. Returns Some DataSet if plugin exists and None otherwise.
+    let tryFindPluginStatsByName (pluginName) (nodeStats: NodeStats) =
+        DomainServices.PluginStats.tryFindPluginStatsByName pluginName nodeStats

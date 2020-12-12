@@ -160,6 +160,7 @@ type NBomberRunner =
 
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
+    /// Plugin names must be unique.
     [<Extension>]
     static member WithWorkerPlugins(context: NBomberContext, [<ParamArray>]plugins: IWorkerPlugin[]) =
         let pluginsList = plugins |> Seq.toList
@@ -236,3 +237,14 @@ type Simulation =
     /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
+
+/// PluginStats helps to find plugin stats.
+type PluginStats =
+
+    /// Tries to find plugin stats by given name. Returns Tuple<bool, DataSet>.
+    static member TryFindPluginStatsByName(pluginName, nodeStats: NodeStats) =
+        nodeStats
+        |> FSharp.PluginStats.tryFindPluginStatsByName pluginName
+        |> function
+            | Some pluginStats -> (true, pluginStats)
+            | None             -> (false, null)
