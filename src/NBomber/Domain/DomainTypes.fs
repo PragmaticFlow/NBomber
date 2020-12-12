@@ -31,7 +31,7 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
         member _.GetPreviousStepResponse<'T>() =
             try
                 let prevStepResponse = data.[Constants.StepResponseKey]
-                if isNull(prevStepResponse) then
+                if isNull prevStepResponse then
                     Unchecked.defaultof<'T>
                 else
                     prevStepResponse :?> 'T

@@ -87,12 +87,6 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
     let data = Dict.empty
     let mutable skipStep = false
     let mutable stepIndex = 0
-    let resourcesToDispose = ResizeArray<IDisposable>(steps.Length)
-
-    let cleanResources () =
-        for rs in resourcesToDispose do
-            try rs.Dispose()
-            with _ -> ()
 
     for s in steps do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
@@ -101,8 +95,6 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
             let! response = execStep(step, dep.GlobalTimer)
 
             let payload = response.Response.Payload
-            if payload :? IDisposable then
-                resourcesToDispose.Add(payload :?> IDisposable)
 
             if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
                 response.Response.Payload <- null
@@ -114,8 +106,6 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
             else
                 dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
                 skipStep <- true
-
-    cleanResources()
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =
