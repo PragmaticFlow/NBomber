@@ -21,9 +21,13 @@ type StepDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     CorrelationId: CorrelationId
-    mutable InvocationCount: uint32
     ExecStopCommand: StopCommand -> unit
 }
+
+module RunningStep =
+
+    let init (step: Step) =
+        { Value = step; Context = Unchecked.defaultof<_>; InvocationCount = 1 }
 
 let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>) =
     fun (context: StepContext<obj,obj>) ->
@@ -38,7 +42,7 @@ let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Respons
                                 context.ExecStopCommand)
         execute(typed)
 
-let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
+let setStepContext (dep: StepDep, step: RunningStep, data: Dict<string,obj>) =
 
     let getConnection (pool: ConnectionPool option) =
         match pool with
@@ -48,22 +52,23 @@ let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
 
         | None -> () :> obj
 
-    let connection = getConnection(step.ConnectionPool)
+    let connection = getConnection(step.Value.ConnectionPool)
     let context = StepContext(dep.CorrelationId,
                               dep.CancellationToken,
                               connection,
                               data,
-                              step.Feed.GetNextItem(dep.CorrelationId, data),
+                              step.Value.Feed.GetNextItem(dep.CorrelationId, data),
                               dep.Logger,
-                              dep.InvocationCount,
+                              step.InvocationCount,
                               dep.ExecStopCommand)
 
-    { step with Context = Some context }
+    step.Context <- context
+    step
 
-let execStep (step: Step, globalTimer: Stopwatch) = task {
+let execStep (step: RunningStep, globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
-        let! resp = step.Execute(step.Context.Value)
+        let! resp = step.Value.Execute(step.Context)
 
         let latency =
             if resp.LatencyMs > 0 then resp.LatencyMs
@@ -82,7 +87,7 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
-let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<StepResponse>)[]) = task {
+let execSteps (dep: StepDep, steps: RunningStep[], allScnResponses: (ResizeArray<StepResponse>)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
@@ -93,10 +98,11 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
 
             let step = setStepContext(dep, s, data)
             let! response = execStep(step, dep.GlobalTimer)
+            s.InvocationCount <- s.InvocationCount + 1
 
             let payload = response.Response.Payload
 
-            if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
+            if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack then
                 response.Response.Payload <- null
                 allScnResponses.[stepIndex].Add(response)
 
@@ -104,7 +110,7 @@ let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<Ste
                 stepIndex <- stepIndex + 1
                 data.[Constants.StepResponseKey] <- payload
             else
-                dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
+                dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.Value.StepName)
                 skipStep <- true
 }
 

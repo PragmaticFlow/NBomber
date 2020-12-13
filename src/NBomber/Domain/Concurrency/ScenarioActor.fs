@@ -28,7 +28,11 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
     let _stepDep = { Logger = dep.Logger; CancellationToken = dep.CancellationToken
                      GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId
-                     InvocationCount = 0u; ExecStopCommand = dep.ExecStopCommand }
+                     ExecStopCommand = dep.ExecStopCommand }
+
+    let _steps = dep.Scenario.Steps
+                 |> List.map RunningStep.init
+                 |> List.toArray
 
     let mutable _working = false
     let mutable _reserved = false
@@ -48,8 +52,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     member _.ExecSteps() = task {
         if _reserved then
             _working <- true
-            _stepDep.InvocationCount <- _stepDep.InvocationCount + 1u
-            _currentTask <- Step.execSteps(_stepDep, dep.Scenario.Steps, _allScnResponses)
+            _currentTask <- Step.execSteps(_stepDep, _steps, _allScnResponses)
             do! _currentTask
             _working <- false
     }

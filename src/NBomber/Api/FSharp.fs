@@ -69,9 +69,8 @@ type Step =
         { StepName = name
           ConnectionPoolArgs = poolArgs
           ConnectionPool = None
-          Execute = Step.toUntypedExec(execute)
-          Context = None
-          Feed = Feed.toUntypedFeed(feed)
+          Execute = Step.toUntypedExec execute
+          Feed = Feed.toUntypedFeed feed
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
