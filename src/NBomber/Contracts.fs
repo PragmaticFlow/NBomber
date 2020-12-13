@@ -156,7 +156,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     /// NBomber's logger.
     abstract Logger: ILogger
     /// Returns the invocations number of the current step.
-    abstract InvocationCount: uint32
+    abstract InvocationCount: int
     /// Returns response from previous step.
     abstract GetPreviousStepResponse: unit -> 'T
     /// Stops scenario by scenario name.

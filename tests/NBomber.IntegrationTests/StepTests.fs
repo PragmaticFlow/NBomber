@@ -335,7 +335,7 @@ let ``context StopTest should stop all scenarios`` () =
 [<Fact>]
 let ``NBomber should reset step invocation number after warm-up`` () =
 
-    let mutable counter = 0u
+    let mutable counter = 0
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
@@ -352,4 +352,26 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     |> NBomberRunner.run
     |> ignore
 
-    test <@ counter > 0u && counter <= 6u @>
+    test <@ counter > 0 && counter <= 6 @>
+
+[<Fact>]
+let ``NBomber should handle invocation number per step following shared-nothing approach`` () =
+
+    let mutable counter = 0
+
+    let step = Step.create("step", fun context -> task {
+        do! Task.Delay(seconds 1)
+        counter <- context.InvocationCount
+        return Response.Ok()
+    })
+
+    let scenario =
+        Scenario.create "scenario" [step]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ counter > 0 && counter <= 6 @>

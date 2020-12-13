@@ -81,11 +81,15 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let initScenarios () = taskResult {
 
         let defaultScnContext = Scenario.ScenarioContext.create(getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
+
+        let! targetScenarios = registeredScenarios
+                               |> TestHostScenario.filterTargetScenarios sessionArgs
+                               |> TestHostScenario.initScenarios dep defaultScnContext sessionArgs
+
         TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
         TestHostReporting.startReportingSinks(dep, sessionArgs.TestInfo)
 
-        _targetScenarios <- updatedScenarios
+        _targetScenarios <- targetScenarios
     }
 
     let stopScenarios () =

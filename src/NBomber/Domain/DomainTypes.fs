@@ -31,7 +31,7 @@ type StepContext<'TConnection,'TFeedItem>(correlationId, cancellationToken,
         member _.GetPreviousStepResponse<'T>() =
             try
                 let prevStepResponse = data.[Constants.StepResponseKey]
-                if isNull(prevStepResponse) then
+                if isNull prevStepResponse then
                     Unchecked.defaultof<'T>
                 else
                     prevStepResponse :?> 'T
@@ -48,13 +48,18 @@ type Step = {
     ConnectionPoolArgs: ConnectionPoolArgs<obj> option
     ConnectionPool: ConnectionPool option
     Execute: StepContext<obj,obj> -> Task<Response>
-    Context: StepContext<obj,obj> option
     Feed: IFeed<obj>
     DoNotTrack: bool
 } with
     interface IStep with
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack
+
+type RunningStep = {
+    Value: Step
+    mutable Context: StepContext<obj,obj>
+    mutable InvocationCount: int
+}
 
 type StepResponse = {
     Response: Response
