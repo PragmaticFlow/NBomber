@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.ViewModels
+namespace NBomber.DomainServices.Reporting.ViewModels
 
 open System
 open System.Data
@@ -75,12 +75,48 @@ module NodeStatsViewModel =
 
 module TimeLineStatsViewModel =
 
-    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
-        TimeStamps = timeLineStats
-                     |> Seq.map(fun (timeSpan, _) -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
-                     |> Seq.toArray
+    let private getLatencyCountDiff (latency: LatencyCount) (prevLatency: LatencyCount) = {
+        Less800 = latency.Less800 - prevLatency.Less800
+        More800Less1200 = latency.More800Less1200 - prevLatency.More800Less1200
+        More1200 = latency.More1200 - prevLatency.More1200
+    }
 
-        ScenarioStats = timeLineStats
-                        |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
-                        |> Seq.toArray
+    let private getScenarioStatsDiff (scenarioStats: ScenarioStats) (prevScenarioStats: ScenarioStats) = {
+        scenarioStats with
+            LatencyCount = getLatencyCountDiff scenarioStats.LatencyCount prevScenarioStats.LatencyCount
+            RequestCount = scenarioStats.RequestCount - prevScenarioStats.RequestCount
+            OkCount = scenarioStats.OkCount - prevScenarioStats.OkCount
+            FailCount = scenarioStats.FailCount - prevScenarioStats.FailCount
+            AllDataMB = scenarioStats.AllDataMB - prevScenarioStats.AllDataMB
+    }
+
+    let private getTimeLineScenarioStatsDiff (scenarioStats: ScenarioStats[]) (prevScenarioStats: ScenarioStats[]) =
+        scenarioStats
+        |> Seq.mapi(fun i stats -> getScenarioStatsDiff stats prevScenarioStats.[i])
+        |> Seq.toArray
+
+    let private createTimeStamps (timeLineStats: (TimeSpan * NodeStats) list) =
+        timeLineStats
+        |> Seq.map(fun (timeSpan, _) -> timeSpan)
+        |> Seq.map(fun timeSpan -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
+        |> Seq.toArray
+
+    let private createScenarioStats (timeLineStats: (TimeSpan * NodeStats) list) =
+        let timeLineScenarioStats =
+            timeLineStats
+            |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+            |> Seq.toArray
+
+        timeLineScenarioStats
+        |> Seq.mapi(fun i scenarioStats ->
+            if i = 0 then
+                scenarioStats
+            else
+                getTimeLineScenarioStatsDiff scenarioStats timeLineScenarioStats.[i - 1]
+        )
+        |> Seq.toArray
+
+    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
+        TimeStamps = createTimeStamps(timeLineStats)
+        ScenarioStats = createScenarioStats(timeLineStats)
     }

@@ -61,7 +61,7 @@ type ErrorCode = int
 
 type ErrorStats = {
     ErrorCode: ErrorCode
-    Exception: exn
+    Message: string
     Count: int
 }
 
@@ -156,7 +156,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     /// NBomber's logger.
     abstract Logger: ILogger
     /// Returns the invocations number of the current step.
-    abstract InvocationCount: uint32
+    abstract InvocationCount: int
     /// Returns response from previous step.
     abstract GetPreviousStepResponse: unit -> 'T
     /// Stops scenario by scenario name.
@@ -190,6 +190,8 @@ type LoadSimulation =
     | RampPerSec   of rate:int * during:TimeSpan
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     | InjectPerSec of rate:int * during:TimeSpan
+    /// Injects a random number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
+    | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan
 
 type Scenario = {
     ScenarioName: string
@@ -214,6 +216,7 @@ type IWorkerPlugin =
     abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
     abstract Start: testInfo:TestInfo -> Task
     abstract GetStats: unit -> DataSet
+    abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 
 type ApplicationType =
@@ -234,6 +237,7 @@ type NBomberContext = {
     SendStatsInterval: TimeSpan
     WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
+    UseHintsAnalyzer: bool
 }
 
 type Response with

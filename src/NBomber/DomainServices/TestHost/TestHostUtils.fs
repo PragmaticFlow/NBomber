@@ -130,6 +130,7 @@ module internal TestHostConsole =
                               | KeepConstant _ -> String.Format("simulation: '{0}', copies: '{1}'", simulationName, x.ConstantActorCount)
                               | RampPerSec _
                               | InjectPerSec _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
+                              | InjectPerSecRandom _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
 
                           pb.Tick(msg) )
 
@@ -204,10 +205,15 @@ module internal TestHostScenario =
             pool.Destroy(token)
             if subscription.IsSome then subscription.Value.Dispose()
 
-    let initScenarios (dep: IGlobalDependency,
-                       defaultScnContext: IScenarioContext,
-                       registeredScenarios: Scenario list,
-                       sessionArgs: SessionArgs) = taskResult {
+    let filterTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario list) =
+        registeredScenarios
+        |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
+        |> Scenario.applySettings(sessionArgs.ScenariosSettings)
+
+    let initScenarios (dep: IGlobalDependency)
+                      (defaultScnContext: IScenarioContext)
+                      (sessionArgs: SessionArgs)
+                      (targetScenarios: Scenario list) = taskResult {
 
         let tryInitScenario (context: IScenarioContext, initFunc: IScenarioContext -> Task) =
             try
@@ -232,11 +238,6 @@ module internal TestHostScenario =
                 | None -> Ok()
             | [] -> Ok()
         }
-
-        let targetScenarios =
-            registeredScenarios
-            |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
-            |> Scenario.applySettings(sessionArgs.ScenariosSettings)
 
         TestHostConsole.printTargetScenarios(dep, targetScenarios)
         do! targetScenarios |> init |> Result.toEmptyIO

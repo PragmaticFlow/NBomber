@@ -69,9 +69,8 @@ type Step =
         { StepName = name
           ConnectionPoolArgs = poolArgs
           ConnectionPool = None
-          Execute = Step.toUntypedExec(execute)
-          Context = None
-          Feed = Feed.toUntypedFeed(feed)
+          Execute = Step.toUntypedExec execute
+          Feed = Feed.toUntypedFeed feed
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
@@ -255,6 +254,11 @@ module NBomberRunner =
     /// By default NBomber will automatically identify your environment: Process or Console.
     let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
         { context with ApplicationType = Some applicationType }
+
+    /// Disables hints analyzer.
+    /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
+    let disableHintsAnalyzer (context: NBomberContext) =
+        { context with UseHintsAnalyzer = false }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
         let invokeConfigLoader (configName) (configLoader) (config) (context) =

@@ -196,6 +196,12 @@ type NBomberRunner =
     static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
         context |> FSharp.NBomberRunner.withApplicationType(applicationType)
 
+    /// Disables hints analyzer.
+    /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
+    [<Extension>]
+    static member DisableHintsAnalyzer(context: NBomberContext) =
+        context |> FSharp.NBomberRunner.disableHintsAnalyzer
+
     [<Extension>]
     static member Run(context: NBomberContext) =
         match FSharp.NBomberRunner.run context with
@@ -232,3 +238,7 @@ type Simulation =
     /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
     static member InjectPerSec(rate: int, during: TimeSpan) =
         LoadSimulation.InjectPerSec(rate, during)
+
+    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
+        LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
