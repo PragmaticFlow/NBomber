@@ -31,7 +31,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
                      ExecStopCommand = dep.ExecStopCommand }
 
     let _steps = dep.Scenario.Steps
-                 |> List.map RunningStep.init
+                 |> List.map(RunningStep.create _stepDep)
                  |> List.toArray
 
     let mutable _working = false
@@ -52,7 +52,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     member _.ExecSteps() = task {
         if _reserved then
             _working <- true
-            _currentTask <- Step.execSteps(_stepDep, _steps, _allScnResponses)
+            _currentTask <- Step.execSteps _stepDep _steps _allScnResponses
             do! _currentTask
             _working <- false
     }
