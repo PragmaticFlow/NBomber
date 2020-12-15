@@ -80,7 +80,7 @@ module ResourceManager =
 module NodeInfo =
 
     let init () =
-        let dotNetVersion = Assembly.GetEntryAssembly()
+        let dotNetVersion = (Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly())
                                     .GetCustomAttribute<TargetFrameworkAttribute>()
                                     .FrameworkName
 
