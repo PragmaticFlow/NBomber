@@ -5,8 +5,8 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 
-open Serilog
 open CommandLine
+open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
@@ -16,8 +16,8 @@ open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
+open NBomber.Domain.DomainTypes
 open NBomber.DomainServices
 
 type CommandLineArgs = {
@@ -313,4 +313,31 @@ module PluginStats =
 
     /// Tries to find plugin stats by given name. Returns Some DataSet if plugin exists and None otherwise.
     let tryFindPluginStatsByName (pluginName) (nodeStats: NodeStats) =
-        DomainServices.PluginStats.tryFindPluginStatsByName pluginName nodeStats
+        PluginStats.tryFindPluginStatsByName pluginName nodeStats.PluginStats
+
+module CustomPluginDataBuilder =
+
+    let create (title) =
+        { CustomHtmlReportContext.Empty with Title = title }
+
+    let build (context: CustomHtmlReportContext) =
+        DomainServices.PluginStats.createCustomPluginDataTable(context)
+
+    /// Adds a header to HTML report.
+    /// Typically is used for adding scripts, styles in html header.
+    let withHeader (header) (context: CustomHtmlReportContext) =
+        { context with Header = header }
+
+    /// Adds a custom js to HTML report.
+    /// Typically is used for adding Vue.js components.
+    let withJs (js) (context: CustomHtmlReportContext) =
+        { context with Js = js }
+
+    /// Adds a view model that can be used in html template.
+    let withViewModel (viewModel) (context: CustomHtmlReportContext) =
+        { context with ViewModel = viewModel }
+
+    /// Adds a custom HTML template.
+    /// Typically is used for adding html templates for Vue.js components.
+    let withHtmlTemplate (htmlTemplate) (context: CustomHtmlReportContext) =
+        { context with HtmlTemplate = htmlTemplate }

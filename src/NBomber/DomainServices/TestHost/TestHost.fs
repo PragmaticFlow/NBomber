@@ -131,7 +131,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             return Ok()
 
         | Error e ->
-            dep.Logger.Information("init failed")
+            dep.Logger.Error("init failed")
             _currentOperation <- NodeOperationType.Stop
             return AppError.createResult(InitScenarioError e)
     }

@@ -1,4 +1,4 @@
-﻿namespace NBomber.CSharp
+namespace NBomber.CSharp
 
 #nowarn "3211"
 
@@ -254,3 +254,23 @@ type PluginStats =
         |> function
             | Some pluginStats -> (true, pluginStats)
             | None             -> (false, null)
+
+type CustomPluginDataBuilder =
+
+    static member Create(title) =
+        FSharp.CustomPluginDataBuilder.create(title)
+
+    static member Build(context) =
+        FSharp.CustomPluginDataBuilder.build(context)
+
+    static member WithHeader(context, header) =
+        context |> FSharp.CustomPluginDataBuilder.withHeader header
+
+    static member WithJs(context, js) =
+        context |> FSharp.CustomPluginDataBuilder.withJs js
+
+    static member WithViewModel(context, viewModel) =
+        context |> FSharp.CustomPluginDataBuilder.withViewModel viewModel
+
+    static member WithHtmlTemplate(context, htmlTemplate) =
+        context |> FSharp.CustomPluginDataBuilder.withHtmlTemplate htmlTemplate

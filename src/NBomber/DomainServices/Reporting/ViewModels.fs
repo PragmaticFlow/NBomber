@@ -1,11 +1,14 @@
 namespace NBomber.DomainServices.Reporting.ViewModels
 
 open System
+open System.Collections.Generic
 open System.Data
 
 open NBomber.Contracts
 open NBomber.DomainServices
 open NBomber.Extensions
+open NBomber.Extensions.InternalExtensions
+open Newtonsoft.Json
 
 type NBomberInfoViewModel = {
     NBomberVersion: string
@@ -22,6 +25,17 @@ type PluginStatsViewModel = {
     Rows: string[][]
 }
 
+type CustomPluginDataViewModel = {
+    PluginName: string
+    Title: string
+    ViewModel: obj
+} with
+    static member Empty = {
+        PluginName = String.Empty
+        Title = String.Empty
+        ViewModel = Unchecked.defaultof<obj>
+    }
+
 type NodeStatsViewModel = {
     RequestCount: int
     OkCount: int
@@ -29,6 +43,7 @@ type NodeStatsViewModel = {
     AllDataMB: float
     ScenarioStats: ScenarioStats[]
     PluginStats: PluginStatsViewModel[]
+    CustomPluginData: CustomPluginDataViewModel[]
     NodeInfo: NodeInfo
 }
 
@@ -56,7 +71,6 @@ module NodeStatsViewModel =
         let tableName = table.TableName
         let columns = table.GetColumns() |> Array.map(fun col -> col.GetColumnCaptionOrName())
         let rows = table.GetRows() |> Array.map(fun row -> row.ItemArray |> Array.map(fun x -> x.ToString()))
-
         { TableName = tableName; Columns = columns; Rows = rows }
 
     let private mapToPluginStatsViewModel (pluginStats: DataSet[]) =
@@ -65,13 +79,34 @@ module NodeStatsViewModel =
         |> Seq.map mapDataTableToPluginStatsViewModel
         |> Array.ofSeq
 
+    let private mapToCustomPluginDataViewModel (pluginStats: DataSet[]) =
+        pluginStats
+        |> Seq.map(fun ps ->
+            let customPluginData = PluginStats.tryGetCustomPluginData(ps)
+            customPluginData, ps.DataSetName
+        )
+        |> Seq.map(fun (customPluginDataOpt, pluginName) ->
+            customPluginDataOpt
+            |> Option.map(fun customPluginData ->
+                {
+                    PluginName = pluginName
+                    Title = customPluginData.Title
+                    ViewModel = JsonConvert.DeserializeObject(customPluginData.ViewModel)
+                }
+            )
+            |> Option.defaultValue CustomPluginDataViewModel.Empty
+        )
+        |> Seq.filter(fun customPluginData -> not(String.IsNullOrEmpty(customPluginData.Title)))
+        |> Seq.toArray
+
     let create (stats: NodeStats): NodeStatsViewModel = {
         RequestCount = stats.RequestCount
         OkCount = stats.OkCount
         FailCount = stats.FailCount
         AllDataMB = stats.AllDataMB
         ScenarioStats = stats.ScenarioStats
-        PluginStats = stats.PluginStats |> mapToPluginStatsViewModel
+        PluginStats = mapToPluginStatsViewModel(stats.PluginStats)
+        CustomPluginData = mapToCustomPluginDataViewModel(stats.PluginStats)
         NodeInfo = stats.NodeInfo
     }
 

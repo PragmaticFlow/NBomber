@@ -1,4 +1,4 @@
-const initApp = (appContainer, viewModel) => {
+const initApp = (appContainer, viewModel, customJs) => {
     // Utilities
     const createSeriesDataLatency = (scenarioStats, titles) => [
         { name: titles.series.latencyLow, y: scenarioStats.LatencyCount.Less800, color: theme.colors.stats.latency.low },
@@ -390,6 +390,15 @@ const initApp = (appContainer, viewModel) => {
                 },
                 data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'StdDev')
             }, {
+                name: '50%',
+                type: 'area',
+                marker: createSeriesMarker(),
+                color: theme.colors.stats.percentile75,
+                tooltip: {
+                    valueSuffix: ' ms'
+                },
+                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Percent50')
+            }, {
                 name: '75%',
                 type: 'area',
                 marker: createSeriesMarker(),
@@ -540,6 +549,15 @@ const initApp = (appContainer, viewModel) => {
         template: '#plugins-stats-table-template'
     });
 
+    Vue.component('custom-html', {
+        props: ['viewModel', 'pluginName'],
+        template: '#custom-html-template'
+    });
+
+    Vue.component('custom-plugin-data', {
+        props: ['customPluginData'],
+        template: '#custom-plugin-data-template'
+    });
 
     Vue.component('error-stats-table', {
         props: ['errorStats', 'maxErrorsNumber'],
@@ -624,6 +642,12 @@ const initApp = (appContainer, viewModel) => {
             renderChart(this.$refs.container, settings);
         }
     });
+
+    try {
+        customJs();
+    } catch (e) {
+        console.error(`An error has occurred while executing a custom js: ${e}`)
+    }
 
     // Vue Application
     const app = new Vue({

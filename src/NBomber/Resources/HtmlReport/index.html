@@ -2,9 +2,19 @@
     This is a template for building a report in html format.
 
     Html report builder supports the following commands enclosed in comments:
-    - include asset: replaces a line with a style/script block specified into href/src attribute.
-                     It only works for assets that are contained in embedded resources.
-    - include view model: includes view model.
+    - include asset: replaces a line with a style/script block specified in href/src attribute.
+        It only works for assets that reside in embedded resources.
+
+    - include view model: includes the view model.
+
+    - include custom header: includes a custom header.
+        Typically is used for adding scripts, styles in html header.
+
+    - include custom js: includes custom js.
+        Typically is used for adding Vue.js components.
+
+    - include custom html template: includes custom html template.
+
     - remove: removes a line.
 -->
 <!DOCTYPE HTML>
@@ -21,6 +31,17 @@
 
     <link rel="stylesheet" href="assets/css/sidebar.css" /> <!-- include asset -->
     <link rel="stylesheet" href="assets/css/index.css" /> <!-- include asset -->
+
+    <!-- include custom header -->
+
+    <!-- Custom HTML Template -->
+    <script type="text/x-template" id="custom-html-template">
+        <div>
+            <!-- include custom html template -->
+            <div v-if="pluginName === 'CustomHtmlPlugin'"><h3>Message: {{viewModel.message}}</h3></div> <!-- remove -->
+        </div>
+    </script>
+
     <!-- No Data Template -->
     <script type="text/x-template" id="no-data-template">
         <h3>No Data</h3>
@@ -139,7 +160,6 @@
             </tbody>
         </table>
     </script>
-
 
     <!-- Scenarios Stats Requests Number Table Template -->
     <script type="text/x-template" id="scenario-stats-requests-number-table-template">
@@ -293,6 +313,26 @@
         </div>
     </script>
 
+    <!-- Custom Plugin Data Template -->
+    <script type="text/x-template" id="custom-plugin-data-template">
+        <div class="row"
+             v-for="(pluginData, index) in customPluginData"
+             :key="`custom-plugin-data-${index}`"
+             v-if="customPluginData.length">
+            <div class="col">
+                <div class="card custom custom-plugin-data">
+                    <div class="card-header mdb-color darken-2 white-text">
+                        <h6>{{pluginData.Title}}</h6>
+                    </div>
+                    <div class="card-body">
+                        <custom-html :view-model="pluginData.ViewModel" :plugin-name="pluginData.PluginName"></custom-html>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <!-- Error Stats Table Template -->
     <script type="text/x-template" id="error-stats-table-template">
         <table class="table table-hover table-striped table-sm table-error-stats">
             <thead class="mdb-color red accent-2 white-text">
@@ -312,7 +352,8 @@
             <tfoot v-if="shouldBeLimited">
                 <tr>
                     <td colspan="3">
-                        shown {{maxErrorsNumber}}/{{errorStats.length}} error codes
+                        <span v-if="showAll">shown {{errorStats.length}}/{{errorStats.length}} error codes</span>
+                        <span v-else>shown {{maxErrorsNumber}}/{{errorStats.length}} error codes</span>
                     </td>
                 </tr>
                 <tr>
@@ -517,6 +558,7 @@
                         </div>
 
                         <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
+                        <custom-plugin-data :custom-plugin-data="viewModel.statsData.CustomPluginData"></custom-plugin-data>
                     </div>
                     <no-data v-else></no-data>
                     <!-- Scenarios Views -->
@@ -703,9 +745,12 @@
     <script src="assets/js/data.js"></script> <!-- remove-->
 
     <script>
-        // example of view model structure can be found in data.js
-        // <!-- include view model -->
-        initApp('#app', viewModel);
+        const customJs = () => {
+            // <!-- include custom js --> // custom components can be added here
+        };
+
+        // <!-- include view model --> // example of view model structure can be found in data.js
+        initApp('#app', viewModel, customJs);
     </script>
 
 </body>

@@ -1,4 +1,4 @@
-﻿namespace NBomber.Contracts
+namespace NBomber.Contracts
 
 open System
 open System.Data
@@ -284,3 +284,18 @@ type Response with
           Exception = Some(Exception reason)
           ErrorCode = errorCode
           LatencyMs = 0 }
+
+type CustomHtmlReportContext = {
+    Title: string
+    Header: string
+    Js: string
+    HtmlTemplate: string
+    ViewModel: string
+} with
+    static member Empty = {
+        Title = String.Empty
+        Header = String.Empty
+        Js = String.Empty
+        HtmlTemplate = String.Empty
+        ViewModel = String.Empty
+    }
