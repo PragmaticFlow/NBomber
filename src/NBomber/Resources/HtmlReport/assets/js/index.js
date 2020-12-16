@@ -643,6 +643,14 @@ const initApp = (appContainer, viewModel, customJs) => {
         }
     });
 
+    Vue.component('chart-custom', {
+        props: ['settings'],
+        template: '<div ref="container" class="chart chart-custom"></div>',
+        mounted() {
+            renderChart(this.$refs.container, this.settings);
+        }
+    });
+
     try {
         customJs();
     } catch (e) {

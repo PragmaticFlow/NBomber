@@ -255,22 +255,28 @@ type PluginStats =
             | Some pluginStats -> (true, pluginStats)
             | None             -> (false, null)
 
+[<Extension>]
 type CustomPluginDataBuilder =
 
     static member Create(title) =
         FSharp.CustomPluginDataBuilder.create(title)
 
+    [<Extension>]
     static member Build(context) =
         FSharp.CustomPluginDataBuilder.build(context)
 
+    [<Extension>]
     static member WithHeader(context, header) =
         context |> FSharp.CustomPluginDataBuilder.withHeader header
 
+    [<Extension>]
     static member WithJs(context, js) =
         context |> FSharp.CustomPluginDataBuilder.withJs js
 
+    [<Extension>]
     static member WithViewModel(context, viewModel) =
         context |> FSharp.CustomPluginDataBuilder.withViewModel viewModel
 
+    [<Extension>]
     static member WithHtmlTemplate(context, htmlTemplate) =
         context |> FSharp.CustomPluginDataBuilder.withHtmlTemplate htmlTemplate

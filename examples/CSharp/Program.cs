@@ -21,6 +21,9 @@ namespace CSharp
             //MongoDb.MongoDbTest.Run();
 
             //RealtimeReporting.InfluxDbReporting.Run();
+
+            // Plugin.CustomHtmlExample.Run();
+            // Plugin.CustomChartExample.Run();
         }
     }
 }

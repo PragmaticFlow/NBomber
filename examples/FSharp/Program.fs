@@ -20,6 +20,7 @@ let main argv =
 
     //MongoDb.MongoDbTest.run()
     //Plugin.CustomHtmlExample.run()
+    //Plugin.CustomChartExample.run()
 
     0 // return an integer exit code
 

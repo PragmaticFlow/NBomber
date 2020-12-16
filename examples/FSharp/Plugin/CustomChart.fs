@@ -1,5 +1,5 @@
-﻿module FSharp.Plugin.CustomHtmlExample
-//
+﻿module FSharp.Plugin.CustomChartExample
+
 //open System.Data
 //open System.Threading.Tasks
 //
@@ -8,21 +8,31 @@
 //open NBomber.FSharp
 //open NBomber.Contracts
 //
-//type CustomHtmlPlugin () =
-//    let header = "<script>console.log('custom header');</script>"
-//    let js = "console.log('custom js');"
-//    let viewModel = "{ message: 'Hello from custom html' }"
-//    let htmlTemplate = "<h3>Message: {{viewModel.message}}</h3>"
+//type CustomChartPlugin () =
+//
+//    let header = "<style>.my-custom-chart.chart { height: 500px; }</style>"
+//    let viewModel = "{
+//            settings: {
+//                credits: { enabled: false },
+//                title: { text: 'custom chart' },
+//                yAxis: [ { title: { text: 'value' } } ],
+//                xAxis: {
+//                    title: { text: 'time' },
+//                    categories: [\"00:00:05\", \"00:00:10\", \"00:00:15\", \"00:00:20\", \"00:00:25\", \"00:00:30\"]
+//                },
+//                series: [ { name: 'data', type: 'area', data: [100, 150, 120, 120, 150, 100] } ]
+//            }
+//        }"
+//    let htmlTemplate = "<chart-custom class=\"my-custom-chart\" :settings=\"viewModel.settings\"></chart-custom>"
 //
 //    let createPluginStats (currentOperation) =
 //        let pluginStats = new DataSet()
 //
 //        if currentOperation = NodeOperationType.Complete then
 //            let table =
-//                "Custom html"
+//                "Custom chart"
 //                |> CustomPluginDataBuilder.create
 //                |> CustomPluginDataBuilder.withHeader(header)
-//                |> CustomPluginDataBuilder.withJs(js)
 //                |> CustomPluginDataBuilder.withViewModel(viewModel)
 //                |> CustomPluginDataBuilder.withHtmlTemplate(htmlTemplate)
 //                |> CustomPluginDataBuilder.build
@@ -32,7 +42,7 @@
 //        pluginStats
 //
 //    interface IWorkerPlugin with
-//        member _.PluginName = "Plugin1"
+//        member _.PluginName = "CustomChart"
 //        member _.Init(_, _) = ()
 //        member _.Start(_) = Task.CompletedTask
 //        member _.GetStats(currentOperation) = createPluginStats(currentOperation)
@@ -42,7 +52,7 @@
 //
 //let run () =
 //
-//    let plugin = new CustomHtmlPlugin()
+//    let plugin = new CustomChartPlugin()
 //
 //    let step = Step.create("step_1", fun context -> task {
 //        return Response.Ok()
@@ -53,7 +63,7 @@
 //    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 //    |> NBomberRunner.registerScenario
 //    |> NBomberRunner.withWorkerPlugins [plugin]
-//    |> NBomberRunner.withTestSuite "custom_html"
+//    |> NBomberRunner.withTestSuite "custom_chart"
 //    |> NBomberRunner.withTestName "simple_test"
 //    |> NBomberRunner.run
 //    |> ignore

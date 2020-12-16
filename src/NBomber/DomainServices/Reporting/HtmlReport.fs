@@ -46,7 +46,7 @@ module AssetsUtils =
         line |> tryIncludeAsset "script" scriptRegex
 
 let private applyHtmlReplace (viewModelJson: ViewModelJson) (customPluginData: CustomPluginData) (line: string) =
-    let removeLineCommand = "<!-- remove-->"
+    let removeLineCommand = "<!-- remove -->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
     let includeCustomHeaderCommand = "<!-- include custom header -->"

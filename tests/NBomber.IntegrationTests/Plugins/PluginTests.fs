@@ -518,3 +518,57 @@ let ``tables should not be passed to reports if no rows in table`` () =
         |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
 
     test <@ reports |> Seq.forall(fun report -> not(report.Contains("EmptyTable"))) @>
+
+[<Fact>]
+let ``.custom-html-report table should be passed to html report`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let header = "<script>console.log('custom header');</script>"
+    let js = "console.log('custom js');"
+    let message = "Hello from custom html"
+    let viewModel = sprintf "{ message: '%s' }" message
+    let htmlTemplate = "<h3>Message: {{viewModel.message}}</h3>"
+
+    let createPluginStats (currentOperation: NodeOperationType) =
+        let pluginStats = new DataSet()
+
+        if currentOperation = NodeOperationType.Complete then
+            let table =
+                "Custom html"
+                |> CustomPluginDataBuilder.create
+                |> CustomPluginDataBuilder.withHeader(header)
+                |> CustomPluginDataBuilder.withJs(js)
+                |> CustomPluginDataBuilder.withViewModel(viewModel)
+                |> CustomPluginDataBuilder.withHtmlTemplate(htmlTemplate)
+                |> CustomPluginDataBuilder.build
+
+            pluginStats.Tables.Add(table)
+        pluginStats
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = ()
+            member _.Start(_) = Task.CompletedTask
+            member _.GetStats(currentOperation) = createPluginStats(currentOperation)
+            member _.GetHints() = Array.empty
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report -> report.ReportFormat = ReportFormat.Html)
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> report.Contains(header)) @>
+    test <@ reports |> Seq.forall(fun report -> report.Contains(js)) @>
+    test <@ reports |> Seq.forall(fun report -> report.Contains(message)) @>
+    test <@ reports |> Seq.forall(fun report -> report.Contains(htmlTemplate)) @>

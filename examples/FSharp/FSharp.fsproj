@@ -47,6 +47,7 @@
         <Compile Include="XUnit\XUnitTest.fs" />
         <Compile Include="XUnit\PluginStatsTest.fs" />
         <Compile Include="Plugin\CustomHtml.fs" />
+        <Compile Include="Plugin\CustomChart.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

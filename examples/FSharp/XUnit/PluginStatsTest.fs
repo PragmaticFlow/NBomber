@@ -72,8 +72,8 @@
 //
 //    let nodeStats =
 //        Scenario.create "scenario_1" [step]
-//        |> Scenario.withWarmUpDuration(seconds 5)
-//        |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+//        |> Scenario.withoutWarmUp
+//        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 //        |> NBomberRunner.registerScenario
 //        |> NBomberRunner.withWorkerPlugins [plugin]
 //        |> NBomberRunner.withTestSuite "assert_plugin_stats"
