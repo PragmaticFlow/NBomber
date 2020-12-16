@@ -5,8 +5,8 @@
 //
 //open FSharp.Control.Tasks.V2
 //
-//open NBomber.FSharp
 //open NBomber.Contracts
+//open NBomber.FSharp
 //
 //type CustomHtmlPlugin () =
 //    let header = "<script>console.log('custom header');</script>"

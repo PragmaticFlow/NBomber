@@ -6,10 +6,10 @@ open System.Threading
 open System.Threading.Tasks
 
 open CommandLine
-open Serilog
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
+open Serilog
 
 open NBomber
 open NBomber.Contracts
@@ -315,20 +315,23 @@ module PluginStats =
     let tryFindPluginStatsByName (pluginName) (nodeStats: NodeStats) =
         PluginStats.tryFindPluginStatsByName pluginName nodeStats.PluginStats
 
+/// CustomPluginDataBuilder helps to build custom plugin data that is used for injection custom html in report.
 module CustomPluginDataBuilder =
 
+    /// Creates a custom html context.
     let create (title) =
         { CustomHtmlReportContext.Empty with Title = title }
 
+    /// Builds custom plugin data table.
     let build (context: CustomHtmlReportContext) =
         DomainServices.PluginStats.createCustomPluginDataTable(context)
 
-    /// Adds a header to HTML report.
+    /// Adds a header to html report.
     /// Typically is used for adding scripts, styles in html header.
     let withHeader (header) (context: CustomHtmlReportContext) =
         { context with Header = header }
 
-    /// Adds a custom js to HTML report.
+    /// Adds a custom js to html report.
     /// Typically is used for adding Vue.js components.
     let withJs (js) (context: CustomHtmlReportContext) =
         { context with Js = js }

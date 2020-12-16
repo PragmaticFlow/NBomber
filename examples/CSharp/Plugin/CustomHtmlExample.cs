@@ -7,7 +7,6 @@
 // using NBomber.CSharp;
 // using Serilog;
 //
-//
 // namespace CSharp.Plugin
 // {
 //     public class CustomHtmlPlugin: IWorkerPlugin

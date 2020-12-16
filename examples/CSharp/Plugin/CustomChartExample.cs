@@ -24,6 +24,7 @@
 //                 series: [ { name: 'data', type: 'area', data: [100, 150, 120, 120, 150, 100] } ]
 //             }
 //         }";
+//
 //         private const string HtmlTemplate = "<chart-custom class=\"my-custom-chart\" :settings=\"viewModel.settings\"></chart-custom>";
 //
 //         public string PluginName => "CustomChart";

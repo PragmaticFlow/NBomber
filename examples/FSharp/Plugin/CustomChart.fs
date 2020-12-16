@@ -5,8 +5,8 @@
 //
 //open FSharp.Control.Tasks.V2
 //
-//open NBomber.FSharp
 //open NBomber.Contracts
+//open NBomber.FSharp
 //
 //type CustomChartPlugin () =
 //
@@ -23,6 +23,7 @@
 //                series: [ { name: 'data', type: 'area', data: [100, 150, 120, 120, 150, 100] } ]
 //            }
 //        }"
+//
 //    let htmlTemplate = "<chart-custom class=\"my-custom-chart\" :settings=\"viewModel.settings\"></chart-custom>"
 //
 //    let createPluginStats (currentOperation) =

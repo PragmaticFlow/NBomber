@@ -255,28 +255,38 @@ type PluginStats =
             | Some pluginStats -> (true, pluginStats)
             | None             -> (false, null)
 
+/// CustomPluginDataBuilder helps to build custom plugin data that is used for injection custom html in report.
 [<Extension>]
 type CustomPluginDataBuilder =
 
+     /// Creates a custom html context.
     static member Create(title) =
         FSharp.CustomPluginDataBuilder.create(title)
 
+    /// Builds custom plugin data table.
     [<Extension>]
     static member Build(context) =
         FSharp.CustomPluginDataBuilder.build(context)
 
+    /// Adds a header to html report.
+    /// Typically is used for adding scripts, styles in html header.
     [<Extension>]
     static member WithHeader(context, header) =
         context |> FSharp.CustomPluginDataBuilder.withHeader header
 
+    /// Adds a custom js to html report.
+    /// Typically is used for adding Vue.js components.
     [<Extension>]
     static member WithJs(context, js) =
         context |> FSharp.CustomPluginDataBuilder.withJs js
 
+    /// Adds a view model that can be used in html template.
     [<Extension>]
     static member WithViewModel(context, viewModel) =
         context |> FSharp.CustomPluginDataBuilder.withViewModel viewModel
 
+    /// Adds a custom HTML template.
+    /// Typically is used for adding html templates for Vue.js components.
     [<Extension>]
     static member WithHtmlTemplate(context, htmlTemplate) =
         context |> FSharp.CustomPluginDataBuilder.withHtmlTemplate htmlTemplate

@@ -15,7 +15,6 @@
 // {
 //     public class Plugin1 : IWorkerPlugin
 //     {
-//
 //         public string PluginName => "Plugin1";
 //
 //         public void Init(ILogger logger, FSharpOption<IConfiguration> infraConfig)
