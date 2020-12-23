@@ -3,6 +3,7 @@
 open System
 open System.Threading.Tasks
 
+open FsCheck.Xunit
 open Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -11,6 +12,17 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
+
+[<Property>]
+let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
+    let response = Response.Ok(payload)
+
+    let actual = {| Size = response.SizeBytes |}
+
+    if isNull payload then
+        test <@ 0 = actual.Size @>
+    else
+        test <@ payload.Length = actual.Size @>
 
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =

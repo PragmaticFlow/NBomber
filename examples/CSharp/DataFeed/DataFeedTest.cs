@@ -18,6 +18,7 @@ namespace CSharp.DataFeed
         public static void Run()
         {
             var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
+            //var data = FeedData.FromSeq(getItems: () => new[] {1, 2, 3, 4, 5}).ShuffleData();
             //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
@@ -33,7 +34,9 @@ namespace CSharp.DataFeed
                 return Response.Ok();
             });
 
-            var scenario = ScenarioBuilder.CreateScenario("data_feed_scenario", step);
+            var scenario = ScenarioBuilder
+                .CreateScenario("data_feed_scenario", step)
+                .WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromSeconds(1)));
 
             NBomberRunner
                 .RegisterScenarios(scenario)

@@ -1,5 +1,6 @@
 namespace NBomber
 
+open System
 open System.IO
 open System.Globalization
 open System.Runtime.CompilerServices
@@ -15,7 +16,22 @@ type FeedData() =
     [<CompiledName("FromSeq")>]
     static member fromSeq (items: 'T seq) =
         { new IFeedProvider<'T> with
-            member _.GetAllItems() = Seq.toArray items }
+            member _.GetAllItems() = items }
+
+    [<CompiledName("FromSeq")>]
+    static member fromSeq (getItems: Func<'T seq>) =
+        { new IFeedProvider<'T> with
+            member _.GetAllItems() = getItems.Invoke() }
+
+    [<CompiledName("FromSeq")>]
+    static member fromSeq (getItems: Func<'T list>) =
+        { new IFeedProvider<'T> with
+            member _.GetAllItems() = getItems.Invoke() |> Seq.ofList }
+
+    [<CompiledName("FromSeq")>]
+    static member fromSeq (getItems: Func<'T array>) =
+        { new IFeedProvider<'T> with
+            member _.GetAllItems() = getItems.Invoke() |> Seq.ofArray }
 
     [<CompiledName("FromCsv")>]
     static member fromCsv<'T> (filePath: string) =
@@ -34,7 +50,7 @@ type FeedData() =
     [<Extension; CompiledName("ShuffleData")>]
     static member shuffleData (provider: IFeedProvider<'T>) =
         { new IFeedProvider<'T> with
-            member _.GetAllItems() = provider.GetAllItems() |> Array.shuffle }
+            member _.GetAllItems() = provider.GetAllItems() |> Seq.toArray |> Array.shuffle |> Seq.ofArray }
 
 /// Data feed helps you to inject dynamic data into your test.
 module Feed =

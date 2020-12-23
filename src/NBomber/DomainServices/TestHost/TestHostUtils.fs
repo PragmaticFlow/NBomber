@@ -8,6 +8,7 @@ open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
 
 open NBomber
+open NBomber.Errors
 open NBomber.Contracts
 open NBomber.Extensions.InternalExtensions
 open NBomber.Domain
@@ -53,12 +54,14 @@ module internal TestHostReporting =
             timer.Start()
             timer
 
-    let startReportingSinks (dep: IGlobalDependency, testInfo: TestInfo) =
-        for sink in dep.ReportingSinks do
-            try
+    let startReportingSinks (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
+        try
+            for sink in dep.ReportingSinks do
+                dep.Logger.Information("start sink: '{SinkName}'", sink.SinkName)
                 sink.Start(testInfo) |> ignore
-            with
-            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+        with
+        | ex -> return! AppError.createResult(InitScenarioError ex)
+    }
 
     let stopReportingSinks (dep: IGlobalDependency) =
         for sink in dep.ReportingSinks do
@@ -69,16 +72,19 @@ module internal TestHostReporting =
 
 module internal TestHostPlugins =
 
-    let startPlugins (dep: IGlobalDependency, testInfo: TestInfo) =
-        for plugin in dep.WorkerPlugins do
-            try
-                plugin.Start(testInfo).Wait()
-            with
-            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
+    let startPlugins (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
+        try
+            for plugin in dep.WorkerPlugins do
+                dep.Logger.Information("start plugin: '{PluginName}'", plugin.PluginName)
+                do! plugin.Start(testInfo)
+        with
+        | ex -> return! AppError.createResult(InitScenarioError ex)
+    }
 
     let stopPlugins (dep: IGlobalDependency) =
         for plugin in dep.WorkerPlugins do
             try
+                dep.Logger.Information("stop plugin: '{PluginName}'", plugin.PluginName)
                 plugin.Stop().Wait()
                 plugin.Dispose()
             with
@@ -86,7 +92,7 @@ module internal TestHostPlugins =
 
 module internal TestHostConsole =
 
-    let printTargetScenarios (dep: IGlobalDependency, targetScns: Scenario list) =
+    let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
         targetScns
         |> List.map(fun x -> x.ScenarioName)
         |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
@@ -189,15 +195,69 @@ module internal TestHostConsole =
 
 module internal TestHostScenario =
 
-    let initConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
-        taskResult {
+    let initConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) = taskResult {
+        try
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-                do! pool.Init(token)
+                do! pool.Init(token) |> TaskResult.mapError(InitScenarioError >> AppError.create)
                 if subscription.IsSome then subscription.Value.Dispose()
 
             return pools
-        }
+        with
+        | ex -> return! AppError.createResult(InitScenarioError ex)
+    }
+
+    let initDataFeeds (dep: IGlobalDependency) (feeds: IFeed<obj> list) = taskResult {
+        try
+            for feed in feeds do
+                do! feed.Init()
+                dep.Logger.Information("initialized feed: '{0}'", feed.FeedName)
+
+            return feeds
+        with
+        | ex -> return! AppError.createResult(InitScenarioError ex)
+    }
+
+    let initScenarios (dep: IGlobalDependency)
+                      (defaultScnContext: IScenarioContext)
+                      (sessionArgs: SessionArgs)
+                      (registeredScenarios: Scenario list) = taskResult {
+        try
+            let targetScenarios =
+                registeredScenarios
+                |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
+                |> Scenario.applySettings sessionArgs.ScenariosSettings
+
+            TestHostConsole.printTargetScenarios dep targetScenarios
+
+            // scenario init
+            for scn in targetScenarios do
+                match scn.Init with
+                | Some initFunc ->
+
+                    dep.Logger.Information("start init scenario: '{Scenario}'", scn.ScenarioName)
+                    let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
+                    do! initFunc scnContext
+
+                | None -> ()
+
+            // connection pools init
+            let! pools =
+                targetScenarios
+                |> Scenario.ConnectionPool.createConnectionPools sessionArgs.ConnectionPoolSettings
+                |> initConnectionPools dep defaultScnContext.CancellationToken
+
+            // data feed init
+            do! targetScenarios
+                |> Scenario.Feed.filterDistinctAndEmptyFeeds
+                |> initDataFeeds dep
+                |> TaskResult.ignore
+
+            return targetScenarios
+                   |> Scenario.ConnectionPool.setConnectionPools pools
+        with
+        | ex -> return! AppError.createResult(InitScenarioError ex)
+    }
 
     let destroyConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
         for pool in pools do
@@ -205,71 +265,20 @@ module internal TestHostScenario =
             pool.Destroy(token)
             if subscription.IsSome then subscription.Value.Dispose()
 
-    let filterTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario list) =
-        registeredScenarios
-        |> Scenario.filterTargetScenarios(sessionArgs.TargetScenarios)
-        |> Scenario.applySettings(sessionArgs.ScenariosSettings)
-
-    let initScenarios (dep: IGlobalDependency)
-                      (defaultScnContext: IScenarioContext)
-                      (sessionArgs: SessionArgs)
-                      (targetScenarios: Scenario list) = taskResult {
-
-        let tryInitScenario (context: IScenarioContext, initFunc: IScenarioContext -> Task) =
-            try
-                initFunc(context).Wait()
-                Ok()
-            with
-            | ex -> Error ex
-
-        let rec init (scenarios) = seq {
-            match scenarios with
-            | scn :: tail ->
-                match scn.Init with
-                | Some initFunc ->
-                    dep.Logger.Information("start init scenario: '{Scenario}'", scn.ScenarioName)
-
-                    let context = Scenario.ScenarioContext.setCustomSettings(defaultScnContext, scn.CustomSettings)
-
-                    match tryInitScenario(context, initFunc) with
-                    | Ok _     -> yield! init(tail)
-                    | Error ex -> Error ex
-
-                | None -> Ok()
-            | [] -> Ok()
-        }
-
-        TestHostConsole.printTargetScenarios(dep, targetScenarios)
-        do! targetScenarios |> init |> Result.toEmptyIO
-
-        let! pools = targetScenarios
-                     |> Scenario.filterDistinctConnectionPoolsArgs
-                     |> Scenario.applyConnectionPoolSettings(sessionArgs.ConnectionPoolSettings)
-                     |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
-                     |> initConnectionPools dep defaultScnContext.CancellationToken
-
-        let scenariosWithPools = targetScenarios |> Scenario.setConnectionPools(pools)
-        return scenariosWithPools
-    }
-
     let cleanScenarios (dep: IGlobalDependency, defaultScnContext: IScenarioContext, scenarios: Scenario list) =
         scenarios
-        |> Scenario.filterDistinctConnectionPools
+        |> Scenario.ConnectionPool.filterDistinctConnectionPools
         |> destroyConnectionPools dep defaultScnContext.CancellationToken
 
-        let tryClean (context: IScenarioContext, cleanFunc: IScenarioContext -> Task) =
-            try
-                cleanFunc(context).Wait()
-            with
-            | ex -> dep.Logger.Error(ex.ToString(), "clean scenario failed")
-
-        for s in scenarios do
-            match s.Clean with
+        for scn in scenarios do
+            match scn.Clean with
             | Some cleanFunc ->
-                dep.Logger.Information("start clean scenario: '{Scenario}'", s.ScenarioName)
+                dep.Logger.Information("start clean scenario: '{Scenario}'", scn.ScenarioName)
 
-                let context = Scenario.ScenarioContext.setCustomSettings(defaultScnContext, s.CustomSettings)
-
-                tryClean(context, cleanFunc)
+                let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
+                try
+                    cleanFunc(context).Wait()
+                with
+                | ex -> dep.Logger.Error(ex.ToString(), "clean scenario failed")
 
             | None -> ()
