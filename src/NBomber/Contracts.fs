@@ -134,10 +134,11 @@ type IConnectionPoolArgs<'TConnection> =
     abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
 
 type IFeedProvider<'TFeedItem> =
-    abstract GetAllItems: unit -> 'TFeedItem[]
+    abstract GetAllItems: unit -> 'TFeedItem seq
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string
+    abstract Init: unit -> Task
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TConnection,'TFeedItem> =

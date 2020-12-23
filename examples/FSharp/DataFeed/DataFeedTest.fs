@@ -17,6 +17,7 @@ type User = {
 let run () =
 
     let data = [1; 2; 3; 4; 5] |> FeedData.fromSeq |> FeedData.shuffleData
+    //let data = FeedData.fromSeq(getItems = fun () -> [1; 2; 3; 4; 5]) |> FeedData.shuffleData
     //let data = FeedData.fromJson<User>("./DataFeed/users-feed-data.json")
     //let data = FeedData.fromCsv<User>("./DataFeed/users-feed-data.csv")
 
@@ -33,6 +34,7 @@ let run () =
     })
 
     Scenario.create "data_feed_scenario" [step]
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> ignore

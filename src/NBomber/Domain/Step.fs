@@ -119,10 +119,10 @@ let execSteps (dep: StepDep)
     let mutable skipStep = false
     let mutable stepIndex = 0
 
-    for s in steps do
+    for st in steps do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext s data
+                let step = RunningStep.updateContext st data
                 let! response = execStep step dep.GlobalTimer
 
                 let payload = response.Response.Payload
@@ -138,7 +138,7 @@ let execSteps (dep: StepDep)
                     dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.Value.StepName)
                     skipStep <- true
             with
-            | ex -> dep.Logger.Error(ex, "step '{Step}' is failed. ", s.Value.StepName)
+            | ex -> dep.Logger.Error(ex, "step '{Step}' is failed. ", st.Value.StepName)
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =

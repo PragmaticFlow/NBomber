@@ -182,7 +182,7 @@ let getConnectionPoolSettings (context: NBomberContext) =
             option {
                 let! poolSettings = scn.ConnectionPoolSettings
                 return poolSettings |> List.map(fun pool ->
-                    let newName = Scenario.createConnectionPoolName(scn.ScenarioName, pool.PoolName)
+                    let newName = Scenario.ConnectionPool.createPoolName pool.PoolName scn.ScenarioName
                     { pool with PoolName = newName }
                 )
             }

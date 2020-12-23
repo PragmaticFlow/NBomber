@@ -1,12 +1,18 @@
 module Tests.Feed
 
+open System
+open System.Threading.Tasks
+
 open Xunit
 open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
+open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
-open NBomber.Domain
+open NBomber.Contracts
+open NBomber.FSharp
+open NBomber.Extensions.InternalExtensions
 
 [<CLIMutable>]
 type User = {
@@ -24,8 +30,10 @@ let ``createCircular iterate over array sequentially``(length: int) =
     let feed = FeedData.fromSeq orderedList
                |> Feed.createCircular "circular"
 
+    feed.Init().Wait()
+
     let actual = List.init length (fun i ->
-        let correlationId = Scenario.createCorrelationId("test_scn", i)
+        let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed.GetNextItem(correlationId, null)
     )
 
@@ -42,8 +50,10 @@ let ``createConstant returns next value from seq for the same correlationId``(le
     let feed = FeedData.fromSeq orderedList
                |> Feed.createCircular "circular"
 
+    feed.Init().Wait()
+
     let actual = List.init length (fun i ->
-        let correlationId = Scenario.createCorrelationId("test_scn", i)
+        let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed.GetNextItem(correlationId, null), feed.GetNextItem(correlationId, null)
     )
 
@@ -60,8 +70,10 @@ let ``createConstant returns the same value for the same correlationId``(length:
     let feed = FeedData.fromSeq orderedList
                |> Feed.createConstant "constant"
 
+    feed.Init().Wait()
+
     let actual = List.init length (fun i ->
-        let correlationId = Scenario.createCorrelationId("test_scn", i)
+        let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed.GetNextItem(correlationId, null), feed.GetNextItem(correlationId, null)
     )
 
@@ -78,13 +90,16 @@ let ``createRandom returns the random numbers list for each full iteration``() =
     let feed2 = FeedData.fromSeq numbers
                 |> Feed.createRandom "random"
 
+    feed1.Init().Wait()
+    feed2.Init().Wait()
+
     let actual1 = List.init numbers.Length (fun i ->
-        let correlationId = Scenario.createCorrelationId("test_scn", i)
+        let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed1.GetNextItem(correlationId, null)
     )
 
     let actual2 = List.init numbers.Length (fun i ->
-        let correlationId = Scenario.createCorrelationId("test_scn", i)
+        let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed2.GetNextItem(correlationId, null)
     )
 
@@ -97,11 +112,15 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
     let data = FeedData.fromSeq numbers
 
-    let correlationId = Scenario.createCorrelationId("test_scn", numbers.Length)
+    let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", numbers.Length)
 
     let circular = data |> Feed.createCircular "circular"
     let constant = data |> Feed.createConstant "constant"
     let random   = data |> Feed.createRandom "random"
+
+    circular.Init().Wait()
+    constant.Init().Wait()
+    random.Init().Wait()
 
     for i = 0 to int iterationTimes do
         circular.GetNextItem(correlationId, null) |> ignore
@@ -112,7 +131,7 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 let ``FeedData.fromJson works correctly``() =
 
     let data = FeedData.fromJson<User> "./DataFeed/users-feed-data.json"
-    let users = data.GetAllItems()
+    let users = data.GetAllItems() |> Seq.toArray
 
     test <@ users.Length > 0 @>
 
@@ -120,6 +139,123 @@ let ``FeedData.fromJson works correctly``() =
 let ``FeedData.fromCsv works correctly``() =
 
     let data = FeedData.fromCsv<User> "./DataFeed/users-feed-data.csv"
-    let users = data.GetAllItems()
+    let users = data.GetAllItems() |> Seq.toArray
 
     test <@ users.Length > 0 @>
+
+[<Fact>]
+let ``FeedData fromSeq should support lazy initialize``() =
+
+    let mutable data = [-1; -2; -3]
+
+    let feed = FeedData.fromSeq(getItems = fun () -> data)
+               |> Feed.createRandom "my_feed"
+
+    data <- [1; 2; 3]
+
+    let step = Step.create("ok step", feed, fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        if context.FeedItem > 0 then return Response.Ok()
+        else return Response.Fail()
+    })
+
+    Scenario.create "feed test scenario" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats -> test <@ stats.FailCount = 0 @>
+
+[<Fact>]
+let ``Feed with the same name should be supported``() =
+
+    let mutable feed_1_initCount = 0
+    let mutable feed_2_initCount = 0
+
+    let feed1 = { new IFeed<int> with
+        member _.FeedName = "same_name"
+
+        member _.Init() =
+            feed_1_initCount <- feed_1_initCount + 1
+            Task.CompletedTask
+
+        member _.GetNextItem(correlationId, stepData) = 1
+    }
+
+    let feed2 = { new IFeed<int> with
+        member _.FeedName = "same_name"
+
+        member _.Init() =
+            feed_2_initCount <- feed_2_initCount + 1
+            Task.CompletedTask
+
+        member _.GetNextItem(correlationId, stepData) = 1
+    }
+
+    let step1 = Step.create("step_1", feed1, fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    let step2 = Step.create("step_2", feed2, fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    let scn1 =
+        Scenario.create "scenario_1" [step1]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    let scn2 =
+        Scenario.create "scenario_2" [step2]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ feed_1_initCount = 1 @>
+        test <@ feed_2_initCount = 1 @>
+
+[<Fact>]
+let ``Init for the same instance shared btw steps and scenarios should be invoked only once``() =
+
+    let mutable feedInitCount = 0
+
+    let feed = { new IFeed<int> with
+        member _.FeedName = "same_name"
+
+        member _.Init() =
+            feedInitCount <- feedInitCount + 1
+            Task.CompletedTask
+
+        member _.GetNextItem(correlationId, stepData) = 1
+    }
+
+    let step1 = Step.create("step_1", feed, fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    let step2 = Step.create("step_2", feed, fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    let scn1 =
+        Scenario.create "scenario_1" [step1; step2]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    let scn2 =
+        Scenario.create "scenario_2" [step1]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats -> test <@ feedInitCount = 1 @>
