@@ -7,7 +7,7 @@ open NBomber.Configuration
 let NBomberWelcomeText = """
 //        __   __         __   ___  __
 //  |\ | |__) /  \  |\/| |__) |__  |__)
-//  | \| |__) \__/  |  | |__) |___ |  \  '{0}' started a new session: '{1}'
+//  | \| |__) \__/  |  | |__) |___ |  \  '{0}' Started a new session: '{1}'
 //
 """
 

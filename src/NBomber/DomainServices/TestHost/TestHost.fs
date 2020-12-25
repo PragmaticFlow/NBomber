@@ -54,7 +54,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                dep.Logger.Warning("stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
+                dep.Logger.Warning("Stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
             )
 
         | StopTest (reason) -> this.StopScenarios(reason) |> ignore
@@ -117,15 +117,15 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         TestHostConsole.printContextInfo(dep)
 
-        dep.Logger.Information("starting init...")
+        dep.Logger.Information("Starting init...")
         match! initScenarios() with
         | Ok _ ->
-            dep.Logger.Information("init finished")
+            dep.Logger.Information("Init finished.")
             _currentOperation <- NodeOperationType.None
             return Ok()
 
         | Error appError ->
-            dep.Logger.Information("init failed")
+            dep.Logger.Information("Init failed.")
             _currentOperation <- NodeOperationType.Stop
             return AppError.createResult(appError)
     }
@@ -135,7 +135,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.WarmUp
         do! Task.Yield()
 
-        dep.Logger.Information("starting warm up...")
+        dep.Logger.Information("Starting warm up...")
         let isWarmUp = true
         do! startBombing(isWarmUp)
         stopScenarios()
@@ -148,7 +148,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.Bombing
         do! Task.Yield()
 
-        dep.Logger.Information("starting bombing...")
+        dep.Logger.Information("Starting bombing...")
         let isWarmUp = false
         do! startBombing(isWarmUp)
         do! this.StopScenarios()
@@ -162,9 +162,9 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             do! Task.Yield()
 
             if not(String.IsNullOrEmpty reason) then
-                dep.Logger.Warning("stopping test early: '{0}'", reason)
+                dep.Logger.Warning("Stopping test early: '{0}'", reason)
             else
-                dep.Logger.Information("stopping scenarios...")
+                dep.Logger.Information("Stopping scenarios...")
 
             stopScenarios()
             cleanScenarios()

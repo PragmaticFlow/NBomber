@@ -135,10 +135,10 @@ let execSteps (dep: StepDep)
                     stepIndex <- stepIndex + 1
                     data.[Constants.StepResponseKey] <- payload
                 else
-                    dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.Value.StepName)
+                    dep.Logger.Error(response.Response.Exception.Value, "Step '{Step}' is failed. ", step.Value.StepName)
                     skipStep <- true
             with
-            | ex -> dep.Logger.Error(ex, "step '{Step}' is failed. ", st.Value.StepName)
+            | ex -> dep.Logger.Error(ex, "Step '{Step}' is failed. ", st.Value.StepName)
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =
