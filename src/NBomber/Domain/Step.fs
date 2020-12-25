@@ -21,49 +21,78 @@ type StepDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     CorrelationId: CorrelationId
-    mutable InvocationCount: uint32
     ExecStopCommand: StopCommand -> unit
 }
 
-let toUntypedExec (execute: StepContext<'TConnection,'TFeedItem> -> Task<Response>) =
-    fun (context: StepContext<obj,obj>) ->
-        let untyped = context :> IStepContext<obj,obj>
-        let typed = StepContext(untyped.CorrelationId,
-                                untyped.CancellationToken,
-                                untyped.Connection :?> 'TConnection,
-                                untyped.Data,
-                                untyped.FeedItem :?> 'TFeedItem,
-                                untyped.Logger,
-                                untyped.InvocationCount,
-                                context.ExecStopCommand)
-        execute(typed)
+module StepContext =
 
-let setStepContext (dep: StepDep, step: Step, data: Dict<string,obj>) =
+    let create (dep: StepDep) (step: Step) =
 
-    let getConnection (pool: ConnectionPool option) =
-        match pool with
-        | Some v ->
-            let index = dep.CorrelationId.CopyNumber % v.AliveConnections.Length
-            v.AliveConnections.[index]
+        let getConnection (pool: ConnectionPool option) =
+            match pool with
+            | Some v ->
+                let index = dep.CorrelationId.CopyNumber % v.AliveConnections.Length
+                v.AliveConnections.[index]
 
-        | None -> () :> obj
+            | None -> () :> obj
 
-    let connection = getConnection(step.ConnectionPool)
-    let context = StepContext(dep.CorrelationId,
-                              dep.CancellationToken,
-                              connection,
-                              data,
-                              step.Feed.GetNextItem(dep.CorrelationId, data),
-                              dep.Logger,
-                              dep.InvocationCount,
-                              dep.ExecStopCommand)
+        { CorrelationId = dep.CorrelationId
+          CancellationToken = dep.CancellationToken
+          Connection = getConnection(step.ConnectionPool)
+          Logger = dep.Logger
+          FeedItem = Unchecked.defaultof<_>
+          Data = Dict.empty
+          InvocationCount = 0
+          StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ExecStopCommand
+          StopCurrentTest = fun reason -> StopTest(reason) |> dep.ExecStopCommand }
 
-    { step with Context = Some context }
+module RunningStep =
 
-let execStep (step: Step, globalTimer: Stopwatch) = task {
+    let create (dep: StepDep) (step: Step) =
+        { Value = step; Context = StepContext.create dep step }
+
+    let updateContext (step: RunningStep) (data: Dict<string,obj>) =
+        let context = step.Context
+        let feedItem = step.Value.Feed.GetNextItem(context.CorrelationId, data)
+
+        context.InvocationCount <- context.InvocationCount + 1
+        context.Data <- data
+        context.FeedItem <- feedItem
+        step
+
+let toUntypedExec (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>) =
+
+    fun (untypedCtx: UntypedStepContext) ->
+
+        let typedCtx = {
+            new IStepContext<'TConnection,'TFeedItem> with
+                member _.CorrelationId = untypedCtx.CorrelationId
+                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.Connection = untypedCtx.Connection :?> 'TConnection
+                member _.Data = untypedCtx.Data
+                member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
+                member _.Logger = untypedCtx.Logger
+                member _.InvocationCount = untypedCtx.InvocationCount
+                member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
+                member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
+
+                member _.GetPreviousStepResponse() =
+                    try
+                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
+                        if isNull prevStepResponse then
+                            Unchecked.defaultof<'T>
+                        else
+                            prevStepResponse :?> 'T
+                    with
+                    | ex -> Unchecked.defaultof<'T>
+        }
+
+        execute typedCtx
+
+let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
-        let! resp = step.Execute(step.Context.Value)
+        let! resp = step.Value.Execute(step.Context)
 
         let latency =
             if resp.LatencyMs > 0 then resp.LatencyMs
@@ -82,40 +111,34 @@ let execStep (step: Step, globalTimer: Stopwatch) = task {
             return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
-let execSteps (dep: StepDep, steps: Step list, allScnResponses: (ResizeArray<StepResponse>)[]) = task {
+let execSteps (dep: StepDep)
+              (steps: RunningStep[])
+              (allScnResponses: (ResizeArray<StepResponse>)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
     let mutable stepIndex = 0
-    let resourcesToDispose = ResizeArray<IDisposable>(steps.Length)
 
-    let cleanResources () =
-        for rs in resourcesToDispose do
-            try rs.Dispose()
-            with _ -> ()
-
-    for s in steps do
+    for st in steps do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
+            try
+                let step = RunningStep.updateContext st data
+                let! response = execStep step dep.GlobalTimer
 
-            let step = setStepContext(dep, s, data)
-            let! response = execStep(step, dep.GlobalTimer)
+                let payload = response.Response.Payload
 
-            let payload = response.Response.Payload
-            if payload :? IDisposable then
-                resourcesToDispose.Add(payload :?> IDisposable)
+                if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack then
+                    response.Response.Payload <- null
+                    allScnResponses.[stepIndex].Add(response)
 
-            if not dep.CancellationToken.IsCancellationRequested && not step.DoNotTrack then
-                response.Response.Payload <- null
-                allScnResponses.[stepIndex].Add(response)
-
-            if response.Response.Exception.IsNone then
-                stepIndex <- stepIndex + 1
-                data.[Constants.StepResponseKey] <- payload
-            else
-                dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.StepName)
-                skipStep <- true
-
-    cleanResources()
+                if response.Response.Exception.IsNone then
+                    stepIndex <- stepIndex + 1
+                    data.[Constants.StepResponseKey] <- payload
+                else
+                    dep.Logger.Error(response.Response.Exception.Value, "step '{Step}' is failed. ", step.Value.StepName)
+                    skipStep <- true
+            with
+            | ex -> dep.Logger.Error(ex, "step '{Step}' is failed. ", st.Value.StepName)
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =

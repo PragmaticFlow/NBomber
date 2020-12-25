@@ -87,12 +87,13 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let initScenarios () = taskResult {
 
-        let defaultScnContext = Scenario.ScenarioContext.create(getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
-        let! updatedScenarios = TestHostScenario.initScenarios(dep, defaultScnContext, registeredScenarios, sessionArgs)
-        TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
-        TestHostReporting.startReportingSinks(dep, sessionArgs.TestInfo)
+        let defaultScnContext = Scenario.ScenarioContext.create (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let! targetScenarios = TestHostScenario.initScenarios dep defaultScnContext sessionArgs registeredScenarios
 
-        _targetScenarios <- updatedScenarios
+        do! TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
+        do! TestHostReporting.startReportingSinks(dep, sessionArgs.TestInfo)
+
+        _targetScenarios <- targetScenarios
     }
 
     let stopScenarios () =
@@ -100,7 +101,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             _cancelToken.Cancel()
 
     let cleanScenarios () =
-        let defaultScnContext = Scenario.ScenarioContext.create(getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
+        let defaultScnContext = Scenario.ScenarioContext.create (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
         TestHostScenario.cleanScenarios(dep, defaultScnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
@@ -130,10 +131,10 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             _currentOperation <- NodeOperationType.None
             return Ok()
 
-        | Error e ->
+        | Error appError ->
             dep.Logger.Error("init failed")
             _currentOperation <- NodeOperationType.Stop
-            return AppError.createResult(InitScenarioError e)
+            return AppError.createResult(appError)
     }
 
     member _.StartWarmUp() = task {

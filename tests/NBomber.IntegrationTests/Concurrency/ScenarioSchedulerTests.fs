@@ -215,7 +215,7 @@ let ``should run InjectOneTimeActors correctly`` () =
     let scenario = Scenario.create "hello_world_scenario" [step]
                    |> Scenario.withoutWarmUp
                    |> Scenario.withLoadSimulations [
-                       InjectPerSec(rate = 1, during = TimeSpan.FromSeconds 20.0)
+                       InjectPerSec(rate = 1, during = seconds 20)
                    ]
 
     NBomberRunner.registerScenarios [scenario]

@@ -167,7 +167,7 @@ let ``getConnectionPoolSettings should return from Config with updated poolName,
         let result = NBomberContext.getConnectionPoolSettings(ctx)
 
         test <@ result.Head.ConnectionCount = poolSettings.ConnectionCount @>
-        test <@ result.Head.PoolName = Domain.Scenario.createConnectionPoolName(scnSettings.ScenarioName, poolSettings.PoolName) @>
+        test <@ result.Head.PoolName = Domain.Scenario.ConnectionPool.createPoolName poolSettings.PoolName scnSettings.ScenarioName @>
         test <@ result.Head.PoolName <> poolSettings.PoolName @>
 
     | None ->

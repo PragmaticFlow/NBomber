@@ -78,14 +78,14 @@ let ``ErrorStats should be calculated properly`` () =
     })
 
     let failStep1 = Step.create("fail step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return if context.InvocationCount <= 10u then Response.Fail(reason = "reason 1", errorCode = 10)
+        do! Task.Delay(milliseconds 10)
+        return if context.InvocationCount <= 10 then Response.Fail(reason = "reason 1", errorCode = 10)
                else Response.Ok()
     })
 
     let failStep2 = Step.create("fail step 2", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return if context.InvocationCount <= 30u then Response.Fail(reason = "reason 2", errorCode = 20)
+        do! Task.Delay(milliseconds 10)
+        return if context.InvocationCount <= 30 then Response.Fail(reason = "reason 2", errorCode = 20)
                else Response.Ok()
     })
 
@@ -93,7 +93,7 @@ let ``ErrorStats should be calculated properly`` () =
         Scenario.create "realtime stats scenario" [okStep; failStep1; failStep2]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 2, during = seconds 15)
+            KeepConstant(copies = 2, during = seconds 10)
         ]
 
     NBomberRunner.registerScenarios [scenario]
@@ -114,4 +114,4 @@ let ``ErrorStats should be calculated properly`` () =
 
         test <@ fail2Stats
                 |> Seq.find(fun x -> x.ErrorCode = 20)
-                |> fun error -> error.Count = 40 @>
+                |> fun error -> error.Count = 60 @>

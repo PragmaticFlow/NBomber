@@ -134,10 +134,11 @@ type IConnectionPoolArgs<'TConnection> =
     abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
 
 type IFeedProvider<'TFeedItem> =
-    abstract GetAllItems: unit -> 'TFeedItem[]
+    abstract GetAllItems: unit -> 'TFeedItem seq
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string
+    abstract Init: unit -> Task
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TConnection,'TFeedItem> =
@@ -156,7 +157,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     /// NBomber's logger.
     abstract Logger: ILogger
     /// Returns the invocations number of the current step.
-    abstract InvocationCount: uint32
+    abstract InvocationCount: int
     /// Returns response from previous step.
     abstract GetPreviousStepResponse: unit -> 'T
     /// Stops scenario by scenario name.

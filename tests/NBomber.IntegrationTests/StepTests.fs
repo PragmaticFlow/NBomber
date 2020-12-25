@@ -3,6 +3,7 @@
 open System
 open System.Threading.Tasks
 
+open FsCheck.Xunit
 open Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -11,6 +12,17 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
+
+[<Property>]
+let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
+    let response = Response.Ok(payload)
+
+    let actual = {| Size = response.SizeBytes |}
+
+    if isNull payload then
+        test <@ 0 = actual.Size @>
+    else
+        test <@ payload.Length = actual.Size @>
 
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =
@@ -335,7 +347,7 @@ let ``context StopTest should stop all scenarios`` () =
 [<Fact>]
 let ``NBomber should reset step invocation number after warm-up`` () =
 
-    let mutable counter = 0u
+    let mutable counter = 0
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
@@ -352,4 +364,26 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     |> NBomberRunner.run
     |> ignore
 
-    test <@ counter > 0u && counter <= 6u @>
+    test <@ counter > 0 && counter <= 6 @>
+
+[<Fact>]
+let ``NBomber should handle invocation number per step following shared-nothing approach`` () =
+
+    let mutable counter = 0
+
+    let step = Step.create("step", fun context -> task {
+        do! Task.Delay(seconds 1)
+        counter <- context.InvocationCount
+        return Response.Ok()
+    })
+
+    let scenario =
+        Scenario.create "scenario" [step]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ counter > 0 && counter <= 6 @>
