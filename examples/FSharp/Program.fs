@@ -19,6 +19,7 @@ let main argv =
     //RealtimeReporting.InfluxDbReporting.run()
 
     //MongoDb.MongoDbTest.run()
+
     //Plugin.CustomHtmlExample.run()
     //Plugin.CustomChartExample.run()
 

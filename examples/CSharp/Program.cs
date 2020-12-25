@@ -22,8 +22,8 @@ namespace CSharp
 
             //RealtimeReporting.InfluxDbReporting.Run();
 
-            // Plugin.CustomHtmlExample.Run();
-            // Plugin.CustomChartExample.Run();
+            //Plugin.CustomHtmlExample.Run();
+            //Plugin.CustomChartExample.Run();
         }
     }
 }
