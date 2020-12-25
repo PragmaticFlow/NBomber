@@ -137,12 +137,13 @@ module Feed =
 
 module ScenarioContext =
 
-    let create (nodeInfo) (cancelToken) (logger) = {
+    let create (context: IBaseContext) = {
         new IScenarioContext with
-            member _.NodeInfo = nodeInfo
+            member _.TestInfo = context.TestInfo
+            member _.NodeInfo = context.NodeInfo
             member _.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
-            member _.CancellationToken = cancelToken
-            member _.Logger = logger
+            member _.CancellationToken = context.CancellationToken
+            member _.Logger = context.Logger
     }
 
     let setCustomSettings (context: IScenarioContext) (customSettings: string) =
@@ -155,6 +156,7 @@ module ScenarioContext =
             | _ -> ConfigurationBuilder().Build() :> IConfiguration
 
         { new IScenarioContext with
+            member _.TestInfo = context.TestInfo
             member _.NodeInfo = context.NodeInfo
             member _.CustomSettings = parseCustomSettings(customSettings)
             member _.CancellationToken = context.CancellationToken

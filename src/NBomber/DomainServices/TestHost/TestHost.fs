@@ -18,6 +18,7 @@ open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
+open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
 
 type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as this =
@@ -79,8 +80,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         |> List.map(createScheduler _cancelToken.Token)
 
     let initScenarios () = taskResult {
-
-        let defaultScnContext = Scenario.ScenarioContext.create (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let defaultScnContext = Scenario.ScenarioContext.create baseContext
         let! targetScenarios = TestHostScenario.initScenarios dep defaultScnContext sessionArgs registeredScenarios
 
         do! TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
@@ -94,7 +95,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             _cancelToken.Cancel()
 
     let cleanScenarios () =
-        let defaultScnContext = Scenario.ScenarioContext.create (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let defaultScnContext = Scenario.ScenarioContext.create baseContext
         TestHostScenario.cleanScenarios(dep, defaultScnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
