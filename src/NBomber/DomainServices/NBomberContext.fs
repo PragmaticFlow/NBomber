@@ -214,3 +214,11 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
 
 let createScenarios (context: NBomberContext) =
     context.RegisteredScenarios |> Scenario.createScenarios
+
+let createBaseContext (testInfo) (nodeInfo) (token) (logger) = {
+    new IBaseContext with
+        member _.TestInfo = testInfo
+        member _.NodeInfo = nodeInfo
+        member _.CancellationToken = token
+        member _.Logger = logger
+}

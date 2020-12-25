@@ -127,6 +127,17 @@ type NodeStats = {
     ReportFiles: ReportFile[]
 }
 
+type IBaseContext =
+    /// Gets current test info
+    abstract TestInfo: TestInfo
+    /// Gets current node info
+    abstract NodeInfo: NodeInfo
+    /// Cancellation token is a standard mechanics for canceling long-running operations.
+    /// Cancellation token should be used to help NBomber stop scenarios when the test is finished.
+    abstract CancellationToken: CancellationToken
+    /// NBomber's logger
+    abstract Logger: ILogger
+
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
     abstract ConnectionCount: int
@@ -168,6 +179,8 @@ type IStepContext<'TConnection,'TFeedItem> =
     abstract StopCurrentTest: reason:string -> unit
 
 type IScenarioContext =
+    /// Gets current test info
+    abstract TestInfo: TestInfo
     /// Gets current node info
     abstract NodeInfo: NodeInfo
     /// Gets client settings content from configuration file
