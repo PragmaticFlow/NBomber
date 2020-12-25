@@ -30,7 +30,7 @@ module internal TestHostReporting =
             try
                 sink.SaveStats(stats |> Seq.toArray).Wait()
             with
-            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed.", sink.SinkName)
 
     let startReportingTimer (dep: IGlobalDependency,
                              sendStatsInterval: TimeSpan,
@@ -57,7 +57,7 @@ module internal TestHostReporting =
     let startReportingSinks (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
         try
             for sink in dep.ReportingSinks do
-                dep.Logger.Information("start sink: '{SinkName}'", sink.SinkName)
+                dep.Logger.Information("Start sink: '{SinkName}'.", sink.SinkName)
                 sink.Start(testInfo) |> ignore
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
@@ -68,14 +68,14 @@ module internal TestHostReporting =
             try
                 sink.Stop().Wait()
             with
-            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed", sink.SinkName)
+            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed.", sink.SinkName)
 
 module internal TestHostPlugins =
 
     let startPlugins (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
         try
             for plugin in dep.WorkerPlugins do
-                dep.Logger.Information("start plugin: '{PluginName}'", plugin.PluginName)
+                dep.Logger.Information("Start plugin: '{PluginName}'.", plugin.PluginName)
                 do! plugin.Start(testInfo)
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
@@ -84,18 +84,18 @@ module internal TestHostPlugins =
     let stopPlugins (dep: IGlobalDependency) =
         for plugin in dep.WorkerPlugins do
             try
-                dep.Logger.Information("stop plugin: '{PluginName}'", plugin.PluginName)
+                dep.Logger.Information("Stop plugin: '{PluginName}'.", plugin.PluginName)
                 plugin.Stop().Wait()
                 plugin.Dispose()
             with
-            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed", plugin.PluginName)
+            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed.", plugin.PluginName)
 
 module internal TestHostConsole =
 
     let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
         targetScns
         |> List.map(fun x -> x.ScenarioName)
-        |> fun targets -> dep.Logger.Information("target scenarios: {0}", String.concatWithCommaAndQuotes targets)
+        |> fun targets -> dep.Logger.Information("Target scenarios: {0}.", String.concatWithCommaAndQuotes targets)
 
     let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
@@ -118,7 +118,7 @@ module internal TestHostConsole =
                 scheduler.EventStream
                 |> Observable.subscribeWithCompletion
                     (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
-                              let msg = String.Format("scenario: '{0}', simulation: '{1}', keep concurrent: '{2}', inject per sec: '{3}'",
+                              let msg = String.Format("Scenario: '{0}', simulation: '{1}', keep concurrent: '{2}', inject per sec: '{3}'.",
                                                       scheduler.Scenario.ScenarioName, simulationName, x.ConstantActorCount, x.OneTimeActorCount)
                               pb.Tick(msg))
                     (fun () -> pb.Dispose())
@@ -133,10 +133,10 @@ module internal TestHostConsole =
                           let msg =
                               match x.CurrentSimulation with
                               | RampConstant _
-                              | KeepConstant _ -> String.Format("simulation: '{0}', copies: '{1}'", simulationName, x.ConstantActorCount)
+                              | KeepConstant _ -> String.Format("Simulation: '{0}', copies: '{1}'.", simulationName, x.ConstantActorCount)
                               | RampPerSec _
-                              | InjectPerSec _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
-                              | InjectPerSecRandom _ -> String.Format("simulation: '{0}', rate: '{1}'", simulationName, x.OneTimeActorCount)
+                              | InjectPerSec _ -> String.Format("Simulation: '{0}', rate: '{1}'.", simulationName, x.OneTimeActorCount)
+                              | InjectPerSecRandom _ -> String.Format("Simulation: '{0}', rate: '{1}'.", simulationName, x.OneTimeActorCount)
 
                           pb.Tick(msg) )
 
@@ -153,21 +153,21 @@ module internal TestHostConsole =
     let displayConnectionPoolProgress (dep: IGlobalDependency, pool: ConnectionPool) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
-            dep.Logger.Information("start open '{ConnectionCount}' connections for connection pool: '{PoolName}'", pool.ConnectionCount, pool.PoolName)
+            dep.Logger.Information("Start open '{ConnectionCount}' connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
             let pb = dep.ProgressBarEnv.CreateManualProgressBar(pool.ConnectionCount)
             pool.EventStream
             |> Observable.subscribeWithCompletion
                 (fun event ->
                     match event with
-                    | StartedInit poolName -> pb.Message <- sprintf "opening connections for connection pool: '%s'" poolName
-                    | StartedStop poolName -> pb.Message <- sprintf "closing connections for connection pool: '%s'" poolName
+                    | StartedInit poolName -> pb.Message <- sprintf "Opening connections for connection pool: '%s'." poolName
+                    | StartedStop poolName -> pb.Message <- sprintf "Closing connections for connection pool: '%s'." poolName
 
                     | ConnectionOpened (poolName,number) ->
-                        pb.Tick(sprintf "opened connection '%i' for connection pool: '%s'" number poolName)
+                        pb.Tick(sprintf "Opened connection '%i' for connection pool: '%s'." number poolName)
 
                     | ConnectionClosed error ->
                         pb.Tick()
-                        if error.IsSome then dep.Logger.Error(error.Value.ToString(), "close connection exception")
+                        if error.IsSome then dep.Logger.Error(error.Value.ToString(), "Close connection exception.")
 
                     | InitFinished
                     | InitFailed -> pb.Dispose()
@@ -182,16 +182,16 @@ module internal TestHostConsole =
         dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
 
         if dep.WorkerPlugins.IsEmpty then
-            dep.Logger.Information("plugins: no plugins were loaded")
+            dep.Logger.Information("Plugins: no plugins were loaded.")
         else
             dep.WorkerPlugins
-            |> List.iter(fun plugin -> dep.Logger.Information("plugins: '{PluginName}' loaded", plugin.PluginName))
+            |> List.iter(fun plugin -> dep.Logger.Information("Plugins: '{PluginName}' loaded.", plugin.PluginName))
 
         if dep.ReportingSinks.IsEmpty then
-            dep.Logger.Information("reporting sinks: no reporting sinks were loaded")
+            dep.Logger.Information("Reporting sinks: no reporting sinks were loaded.")
         else
             dep.ReportingSinks
-            |> List.iter(fun sink -> dep.Logger.Information("reporting sinks: '{SinkName}' loaded", sink.SinkName))
+            |> List.iter(fun sink -> dep.Logger.Information("Reporting sinks: '{SinkName}' loaded.", sink.SinkName))
 
 module internal TestHostScenario =
 
@@ -211,7 +211,7 @@ module internal TestHostScenario =
         try
             for feed in feeds do
                 do! feed.Init()
-                dep.Logger.Information("initialized feed: '{0}'", feed.FeedName)
+                dep.Logger.Information("Initialized feed: '{0}'.", feed.FeedName)
 
             return feeds
         with
@@ -235,7 +235,7 @@ module internal TestHostScenario =
                 match scn.Init with
                 | Some initFunc ->
 
-                    dep.Logger.Information("start init scenario: '{Scenario}'", scn.ScenarioName)
+                    dep.Logger.Information("Start init scenario: '{Scenario}'.", scn.ScenarioName)
                     let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                     do! initFunc scnContext
 
@@ -273,12 +273,12 @@ module internal TestHostScenario =
         for scn in scenarios do
             match scn.Clean with
             | Some cleanFunc ->
-                dep.Logger.Information("start clean scenario: '{Scenario}'", scn.ScenarioName)
+                dep.Logger.Information("Start clean scenario: '{Scenario}'.", scn.ScenarioName)
 
                 let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 try
                     cleanFunc(context).Wait()
                 with
-                | ex -> dep.Logger.Error(ex.ToString(), "clean scenario failed")
+                | ex -> dep.Logger.Error(ex.ToString(), "Clean scenario failed.")
 
             | None -> ()
