@@ -207,10 +207,10 @@ module internal TestHostScenario =
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
 
-    let initDataFeeds (dep: IGlobalDependency) (feeds: IFeed<obj> list) = taskResult {
+    let initDataFeeds (dep: IGlobalDependency) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
         try
             for feed in feeds do
-                do! feed.Init()
+                do! feed.Init(context)
                 dep.Logger.Information("Initialized feed: '{0}'.", feed.FeedName)
 
             return feeds
@@ -251,7 +251,7 @@ module internal TestHostScenario =
             // data feed init
             do! targetScenarios
                 |> Scenario.Feed.filterDistinctAndEmptyFeeds
-                |> initDataFeeds dep
+                |> initDataFeeds dep baseContext
                 |> TaskResult.ignore
 
             return targetScenarios
