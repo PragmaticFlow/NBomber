@@ -149,7 +149,7 @@ type IFeedProvider<'TFeedItem> =
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string
-    abstract Init: unit -> Task
+    abstract Init: context:IBaseContext -> Task
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TConnection,'TFeedItem> =

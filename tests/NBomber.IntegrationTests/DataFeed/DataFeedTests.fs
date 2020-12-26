@@ -1,6 +1,7 @@
 module Tests.Feed
 
 open System
+open System.Threading
 open System.Threading.Tasks
 
 open Xunit
@@ -13,12 +14,21 @@ open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
+open NBomber.DomainServices
+open NBomber.Infra.Dependency
+open Tests.TestHelper
 
 [<CLIMutable>]
 type User = {
     Id: int
     Name: string
 }
+
+let createBaseContext () =
+    let nodeInfo = NodeInfo.init()
+    let token = CancellationToken.None
+    let dep = Dependency.createFor NodeType.SingleNode
+    NBomberContext.createBaseContext dep.TestInfo nodeInfo token dep.Dep.Logger
 
 [<Property>]
 let ``createCircular iterate over array sequentially``(length: int) =
@@ -30,7 +40,8 @@ let ``createCircular iterate over array sequentially``(length: int) =
     let feed = FeedData.fromSeq orderedList
                |> Feed.createCircular "circular"
 
-    feed.Init().Wait()
+    let context = createBaseContext()
+    feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
         let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
@@ -50,7 +61,8 @@ let ``createConstant returns next value from seq for the same correlationId``(le
     let feed = FeedData.fromSeq orderedList
                |> Feed.createCircular "circular"
 
-    feed.Init().Wait()
+    let context = createBaseContext()
+    feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
         let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
@@ -70,7 +82,8 @@ let ``createConstant returns the same value for the same correlationId``(length:
     let feed = FeedData.fromSeq orderedList
                |> Feed.createConstant "constant"
 
-    feed.Init().Wait()
+    let context = createBaseContext()
+    feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
         let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
@@ -90,8 +103,9 @@ let ``createRandom returns the random numbers list for each full iteration``() =
     let feed2 = FeedData.fromSeq numbers
                 |> Feed.createRandom "random"
 
-    feed1.Init().Wait()
-    feed2.Init().Wait()
+    let context = createBaseContext()
+    feed1.Init(context).Wait()
+    feed2.Init(context).Wait()
 
     let actual1 = List.init numbers.Length (fun i ->
         let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
@@ -118,9 +132,10 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
     let constant = data |> Feed.createConstant "constant"
     let random   = data |> Feed.createRandom "random"
 
-    circular.Init().Wait()
-    constant.Init().Wait()
-    random.Init().Wait()
+    let context = createBaseContext()
+    circular.Init(context).Wait()
+    constant.Init(context).Wait()
+    random.Init(context).Wait()
 
     for i = 0 to int iterationTimes do
         circular.GetNextItem(correlationId, null) |> ignore
@@ -176,7 +191,7 @@ let ``Feed with the same name should be supported``() =
     let feed1 = { new IFeed<int> with
         member _.FeedName = "same_name"
 
-        member _.Init() =
+        member _.Init(context) =
             feed_1_initCount <- feed_1_initCount + 1
             Task.CompletedTask
 
@@ -186,7 +201,7 @@ let ``Feed with the same name should be supported``() =
     let feed2 = { new IFeed<int> with
         member _.FeedName = "same_name"
 
-        member _.Init() =
+        member _.Init(context) =
             feed_2_initCount <- feed_2_initCount + 1
             Task.CompletedTask
 
@@ -228,7 +243,7 @@ let ``Init for the same instance shared btw steps and scenarios should be invoke
     let feed = { new IFeed<int> with
         member _.FeedName = "same_name"
 
-        member _.Init() =
+        member _.Init(context) =
             feedInitCount <- feedInitCount + 1
             Task.CompletedTask
 
