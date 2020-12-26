@@ -141,8 +141,8 @@ type IBaseContext =
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
     abstract ConnectionCount: int
-    abstract OpenConnection: number:int * cancellationToken:CancellationToken -> Task<'TConnection>
-    abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
+    abstract OpenConnection: number:int * context:IBaseContext -> Task<'TConnection>
+    abstract CloseConnection: connection:'TConnection * context:IBaseContext -> Task
 
 type IFeedProvider<'TFeedItem> =
     abstract GetAllItems: unit -> 'TFeedItem seq

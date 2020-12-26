@@ -82,7 +82,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let! targetScenarios = TestHostScenario.initScenarios dep defaultScnContext sessionArgs registeredScenarios
+        let! targetScenarios = TestHostScenario.initScenarios dep baseContext defaultScnContext sessionArgs registeredScenarios
 
         do! TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
         do! TestHostReporting.startReportingSinks(dep, sessionArgs.TestInfo)
@@ -97,7 +97,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        TestHostScenario.cleanScenarios(dep, defaultScnContext, _targetScenarios)
+        TestHostScenario.cleanScenarios(dep, baseContext, defaultScnContext, _targetScenarios)
 
     let startBombing (isWarmUp) = task {
         _scnSchedulers <- createScenarioSchedulers(_targetScenarios)

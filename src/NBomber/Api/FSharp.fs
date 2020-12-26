@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.Threading
 open System.Threading.Tasks
 
 open Serilog
@@ -35,8 +34,8 @@ module TimeSpanApi =
 type ConnectionPoolArgs =
 
     static member create (name: string,
-                          openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task,
+                          openConnection: int * IBaseContext -> Task<'TConnection>,
+                          closeConnection: 'TConnection * IBaseContext -> Task,
                           ?connectionCount: int) =
 
         let count = defaultArg connectionCount Constants.DefaultConnectionCount
@@ -44,8 +43,8 @@ type ConnectionPoolArgs =
         :> IConnectionPoolArgs<'TConnection>
 
     static member create (name: string,
-                          openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task<unit>,
+                          openConnection: int * IBaseContext -> Task<'TConnection>,
+                          closeConnection: 'TConnection * IBaseContext -> Task<unit>,
                           ?connectionCount: int) =
 
         let close = fun (connection,token) -> closeConnection(connection,token) :> Task
