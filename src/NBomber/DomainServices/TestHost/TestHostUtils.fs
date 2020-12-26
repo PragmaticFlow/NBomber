@@ -195,11 +195,11 @@ module internal TestHostConsole =
 
 module internal TestHostScenario =
 
-    let initConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) = taskResult {
+    let initConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) = taskResult {
         try
             for pool in pools do
                 let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-                do! pool.Init(token) |> TaskResult.mapError(InitScenarioError >> AppError.create)
+                do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
                 if subscription.IsSome then subscription.Value.Dispose()
 
             return pools
@@ -219,6 +219,7 @@ module internal TestHostScenario =
     }
 
     let initScenarios (dep: IGlobalDependency)
+                      (baseContext: IBaseContext)
                       (defaultScnContext: IScenarioContext)
                       (sessionArgs: SessionArgs)
                       (registeredScenarios: Scenario list) = taskResult {
@@ -245,7 +246,7 @@ module internal TestHostScenario =
             let! pools =
                 targetScenarios
                 |> Scenario.ConnectionPool.createConnectionPools sessionArgs.ConnectionPoolSettings
-                |> initConnectionPools dep defaultScnContext.CancellationToken
+                |> initConnectionPools dep baseContext
 
             // data feed init
             do! targetScenarios
@@ -259,16 +260,16 @@ module internal TestHostScenario =
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
 
-    let destroyConnectionPools (dep: IGlobalDependency) (token: CancellationToken) (pools: ConnectionPool list) =
+    let destroyConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) =
         for pool in pools do
             let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-            pool.Destroy(token)
+            pool.Destroy(context).Wait()
             if subscription.IsSome then subscription.Value.Dispose()
 
-    let cleanScenarios (dep: IGlobalDependency, defaultScnContext: IScenarioContext, scenarios: Scenario list) =
+    let cleanScenarios (dep: IGlobalDependency, baseContext: IBaseContext, defaultScnContext: IScenarioContext, scenarios: Scenario list) =
         scenarios
         |> Scenario.ConnectionPool.filterDistinctConnectionPools
-        |> destroyConnectionPools dep defaultScnContext.CancellationToken
+        |> destroyConnectionPools dep baseContext
 
         for scn in scenarios do
             match scn.Clean with
