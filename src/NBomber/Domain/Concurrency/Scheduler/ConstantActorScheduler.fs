@@ -77,7 +77,7 @@ type ConstantActorScheduler(dep: ActorDep) =
 
                     | StopScheduler -> stop()
                 with
-                | ex -> dep.Logger.Error(ex.ToString())
+                | ex -> dep.Logger.Fatal(ex.ToString())
 
             stop()
         }
