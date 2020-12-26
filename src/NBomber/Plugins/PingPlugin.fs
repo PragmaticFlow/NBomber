@@ -100,36 +100,35 @@ module internal PingPluginHintsAnalyzer =
 
 type PingPlugin(pluginConfig: PingPluginConfig) =
 
+    let _pluginName = "NBomber.Plugins.Network.PingPlugin"
     let mutable _logger = Serilog.Log.ForContext<PingPlugin>()
     let mutable _pingResults = Array.empty
     let mutable _pluginStats = new DataSet()
-    let mutable _config = pluginConfig
-    let _pluginName = "NBomber.Plugins.Network.PingPlugin"
 
-    let execPing () =
+    let execPing (config: PingPluginConfig) =
         try
             let pingOptions = PingOptions()
-            pingOptions.Ttl <- _config.Ttl
-            pingOptions.DontFragment <- _config.DontFragment
+            pingOptions.Ttl <- config.Ttl
+            pingOptions.DontFragment <- config.DontFragment
 
             let ping = new Ping()
-            let buffer = Array.create _config.BufferSizeBytes '-'
+            let buffer = Array.create config.BufferSizeBytes '-'
                          |> Encoding.ASCII.GetBytes
 
             let replies =
-                _config.Hosts
-                |> Array.map(fun host -> host, ping.Send(host, int _config.Timeout, buffer, pingOptions))
+                config.Hosts
+                |> Array.map(fun host -> host, ping.Send(host, int config.Timeout, buffer, pingOptions))
 
             Ok replies
         with
         | ex -> Error ex
 
-    let createStats (pingReplyResult: Result<(string * PingReply)[], exn>) = result {
+    let createStats (config: PingPluginConfig) (pingReplyResult: Result<(string * PingReply)[], exn>) = result {
         let! pingResult = pingReplyResult
         let stats = new DataSet()
 
         pingResult
-        |> PingPluginStatistics.createTable _pluginName _config
+        |> PingPluginStatistics.createTable _pluginName config
         |> stats.Tables.Add
 
         return pingResult, stats
@@ -140,17 +139,17 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
     interface IWorkerPlugin with
         member _.PluginName = _pluginName
 
-        member _.Init(logger, infraConfig) =
-            _logger <- logger.ForContext<PingPlugin>()
+        member _.Init(context, infraConfig) =
+            _logger <- context.Logger.ForContext<PingPlugin>()
 
-            _config <-
+            let config =
                 infraConfig
                 |> Option.bind(fun x -> x.GetSection("PingPlugin").Get<PingPluginConfig>() |> Option.ofRecord)
                 |> Option.defaultValue pluginConfig
 
-        member _.Start(testInfo: TestInfo) =
-            execPing()
-            |> createStats
+            config
+            |> execPing
+            |> createStats config
             |> Result.map(fun (pingResults,stats) ->
                 _pingResults <- pingResults
                 _pluginStats <- stats
@@ -160,7 +159,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
 
             Task.CompletedTask
 
-        member _.GetStats() = _pluginStats
+        member _.Start() = Task.CompletedTask
+        member _.GetStats(currentOperation) = _pluginStats
         member _.GetHints() = PingPluginHintsAnalyzer.analyze _pingResults
         member _.Stop() = Task.CompletedTask
-        member _.Dispose() = ()

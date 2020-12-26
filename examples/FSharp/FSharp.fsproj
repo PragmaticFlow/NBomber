@@ -58,8 +58,4 @@
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
-    </ItemGroup>
-
 </Project>

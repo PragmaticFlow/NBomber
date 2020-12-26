@@ -35,7 +35,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
     let getNodeStats (executionTime, nodeInfo, includeOnlyBombingScn) =
-        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats())
+        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats(_currentOperation))
 
         let scnStats =
             _scnSchedulers
@@ -82,29 +82,39 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let! targetScenarios = TestHostScenario.initScenarios dep baseContext defaultScnContext sessionArgs registeredScenarios
+        let targetScenarios = TestHostScenario.getTargetScenarios sessionArgs registeredScenarios
 
-        do! TestHostPlugins.startPlugins(dep, sessionArgs.TestInfo)
-        do! TestHostReporting.startReportingSinks(dep, sessionArgs.TestInfo)
+        do! TestHostReporting.initReportingSinks dep baseContext
+        do! TestHostPlugins.initPlugins dep baseContext
+        let! initializedScenarios = TestHostScenario.initScenarios dep baseContext defaultScnContext sessionArgs targetScenarios
 
-        _targetScenarios <- targetScenarios
+        _targetScenarios <- initializedScenarios
     }
 
-    let stopScenarios () =
+    let startBombing (isWarmUp) = task {
+        _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
+        let progressBars = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
+
+        if not isWarmUp then
+            do! TestHostReporting.startReportingSinks dep
+            do! TestHostPlugins.startPlugins dep
+
+        do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
+        progressBars |> List.iter(fun x -> x.Dispose())
+
+        if not isWarmUp then
+            do! TestHostReporting.stopReportingSinks dep
+            do! TestHostPlugins.stopPlugins dep
+    }
+
+    let execCancelToken () =
         if not _cancelToken.IsCancellationRequested then
             _cancelToken.Cancel()
 
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        TestHostScenario.cleanScenarios(dep, baseContext, defaultScnContext, _targetScenarios)
-
-    let startBombing (isWarmUp) = task {
-        _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
-        let progressBars = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
-        do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
-        progressBars |> List.iter(fun x -> x.Dispose())
-    }
+        TestHostScenario.cleanScenarios dep baseContext defaultScnContext _targetScenarios
 
     member _.TestInfo = sessionArgs.TestInfo
     member _.CurrentOperation = _currentOperation
@@ -127,7 +137,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             return Ok()
 
         | Error appError ->
-            dep.Logger.Information("Init failed.")
+            dep.Logger.Fatal("Init failed.")
             _currentOperation <- NodeOperationType.Stop
             return AppError.createResult(appError)
     }
@@ -140,7 +150,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         dep.Logger.Information("Starting warm up...")
         let isWarmUp = true
         do! startBombing(isWarmUp)
-        stopScenarios()
+        execCancelToken()
 
         _currentOperation <- NodeOperationType.None
     }
@@ -168,12 +178,10 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             else
                 dep.Logger.Information("Stopping scenarios...")
 
-            stopScenarios()
-            cleanScenarios()
-            TestHostPlugins.stopPlugins(dep)
-            TestHostReporting.stopReportingSinks(dep)
-            _stopped <- true
+            execCancelToken()
+            do! cleanScenarios()
 
+            _stopped <- true
             _currentOperation <- NodeOperationType.None
     }
 
@@ -215,7 +223,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // saving final stats
         let nodeInfo = getCurrentNodeInfo()
         let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
-        TestHostReporting.saveFinalStats dep [finalStats]
+        do! TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats
     }
@@ -223,4 +231,3 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     interface IDisposable with
         member _.Dispose() =
             this.StopScenarios().Wait()
-            dep.Dispose()

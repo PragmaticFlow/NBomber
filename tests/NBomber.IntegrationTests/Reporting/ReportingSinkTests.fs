@@ -35,15 +35,14 @@ let ``SaveStats should be invoked many times during test execution to send realt
     let reportingSink = {
         new IReportingSink with
             member _.SinkName = "TestSink"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.SaveStats(_) =
                 // 1 invoke per 5 sec
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios [scenario]
@@ -74,8 +73,8 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
     let reportingSink = {
         new IReportingSink with
             member _.SinkName = "TestSink"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
             member _.SaveStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
@@ -85,7 +84,6 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
                 Task.CompletedTask
 
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios [scenario]
@@ -121,8 +119,8 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
     let reportingSink = {
         new IReportingSink with
             member _.SinkName = "TestSink"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
             member _.SaveStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
@@ -149,7 +147,6 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
                 Task.CompletedTask
 
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios [scenario1; scenario2]

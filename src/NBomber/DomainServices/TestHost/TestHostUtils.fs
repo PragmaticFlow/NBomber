@@ -6,6 +6,7 @@ open System.Threading.Tasks
 
 open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
+open FSharp.Control.Tasks.V2.ContextInsensitive
 
 open NBomber
 open NBomber.Errors
@@ -25,12 +26,13 @@ module internal TestHostReporting =
         |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveStats)
         |> Task.WhenAll
 
-    let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) =
+    let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) = task {
         for sink in dep.ReportingSinks do
             try
-                sink.SaveStats(stats |> Seq.toArray).Wait()
+                do! sink.SaveStats(stats |> Seq.toArray)
             with
-            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed.", sink.SinkName)
+            | ex -> dep.Logger.Fatal(ex, "Reporting sink '{SinkName}' failed to save stats.", sink.SinkName)
+    }
 
     let startReportingTimer (dep: IGlobalDependency,
                              sendStatsInterval: TimeSpan,
@@ -54,41 +56,59 @@ module internal TestHostReporting =
             timer.Start()
             timer
 
-    let startReportingSinks (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
+    let initReportingSinks (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
         try
             for sink in dep.ReportingSinks do
-                dep.Logger.Information("Start sink: '{SinkName}'.", sink.SinkName)
-                sink.Start(testInfo) |> ignore
+                dep.Logger.Information("Start init reporting sink: '{SinkName}'.", sink.SinkName)
+                do! sink.Init(context, dep.InfraConfig)
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
 
-    let stopReportingSinks (dep: IGlobalDependency) =
+    let startReportingSinks (dep: IGlobalDependency) = task {
         for sink in dep.ReportingSinks do
             try
-                sink.Stop().Wait()
+                sink.Start() |> ignore
             with
-            | ex -> dep.Logger.Error(ex, "ReportingSink '{SinkName}' failed.", sink.SinkName)
+            | ex -> dep.Logger.Fatal(ex, "Failed to start reporting sink '{SinkName}'.", sink.SinkName)
+    }
+
+    let stopReportingSinks (dep: IGlobalDependency) = task {
+        for sink in dep.ReportingSinks do
+            try
+                dep.Logger.Information("Stop reporting sink: '{SinkName}'.", sink.SinkName)
+                do! sink.Stop()
+            with
+            | ex -> dep.Logger.Fatal(ex, "Stop reporting sink '{SinkName}' failed.", sink.SinkName)
+    }
 
 module internal TestHostPlugins =
 
-    let startPlugins (dep: IGlobalDependency, testInfo: TestInfo) = taskResult {
+    let initPlugins (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
         try
             for plugin in dep.WorkerPlugins do
-                dep.Logger.Information("Start plugin: '{PluginName}'.", plugin.PluginName)
-                do! plugin.Start(testInfo)
+                dep.Logger.Information("Start init plugin: '{PluginName}'.", plugin.PluginName)
+                do! plugin.Init(context, dep.InfraConfig)
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
 
-    let stopPlugins (dep: IGlobalDependency) =
+    let startPlugins (dep: IGlobalDependency) = task {
+        for plugin in dep.WorkerPlugins do
+            try
+                plugin.Start() |> ignore
+            with
+            | ex -> dep.Logger.Fatal(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
+    }
+
+    let stopPlugins (dep: IGlobalDependency) = task {
         for plugin in dep.WorkerPlugins do
             try
                 dep.Logger.Information("Stop plugin: '{PluginName}'.", plugin.PluginName)
-                plugin.Stop().Wait()
-                plugin.Dispose()
+                do! plugin.Stop()
             with
-            | ex -> dep.Logger.Error(ex, "Plugin '{PluginName}' failed.", plugin.PluginName)
+            | ex -> dep.Logger.Fatal(ex, "Stop plugin '{PluginName}' failed.", plugin.PluginName)
+    }
 
 module internal TestHostConsole =
 
@@ -195,6 +215,11 @@ module internal TestHostConsole =
 
 module internal TestHostScenario =
 
+    let getTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario list) =
+        registeredScenarios
+        |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
+        |> Scenario.applySettings sessionArgs.ScenariosSettings
+
     let initConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) = taskResult {
         try
             for pool in pools do
@@ -211,7 +236,7 @@ module internal TestHostScenario =
         try
             for feed in feeds do
                 do! feed.Init(context)
-                dep.Logger.Information("Initialized feed: '{0}'.", feed.FeedName)
+                dep.Logger.Information("Initialized data feed: '{FeedName}'.", feed.FeedName)
 
             return feeds
         with
@@ -222,13 +247,8 @@ module internal TestHostScenario =
                       (baseContext: IBaseContext)
                       (defaultScnContext: IScenarioContext)
                       (sessionArgs: SessionArgs)
-                      (registeredScenarios: Scenario list) = taskResult {
+                      (targetScenarios: Scenario list) = taskResult {
         try
-            let targetScenarios =
-                registeredScenarios
-                |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
-                |> Scenario.applySettings sessionArgs.ScenariosSettings
-
             TestHostConsole.printTargetScenarios dep targetScenarios
 
             // scenario init
@@ -260,13 +280,17 @@ module internal TestHostScenario =
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
 
-    let destroyConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) =
-        for pool in pools do
-            let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
-            pool.Destroy(context).Wait()
-            if subscription.IsSome then subscription.Value.Dispose()
+    let cleanScenarios (dep: IGlobalDependency)
+                       (baseContext: IBaseContext)
+                       (defaultScnContext: IScenarioContext)
+                       (scenarios: Scenario list) = task {
 
-    let cleanScenarios (dep: IGlobalDependency, baseContext: IBaseContext, defaultScnContext: IScenarioContext, scenarios: Scenario list) =
+        let destroyConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) =
+            for pool in pools do
+                let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
+                pool.Destroy(context).Wait()
+                if subscription.IsSome then subscription.Value.Dispose()
+
         scenarios
         |> Scenario.ConnectionPool.filterDistinctConnectionPools
         |> destroyConnectionPools dep baseContext
@@ -278,8 +302,9 @@ module internal TestHostScenario =
 
                 let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 try
-                    cleanFunc(context).Wait()
+                    do! cleanFunc context
                 with
-                | ex -> dep.Logger.Error(ex.ToString(), "Clean scenario failed.")
+                | ex -> dep.Logger.Fatal(ex.ToString(), "Clean scenario: '{Scenario}' failed.", scn.ScenarioName)
 
             | None -> ()
+    }
