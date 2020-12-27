@@ -18,18 +18,6 @@ open NBomber.FSharp
 [<Fact>]
 let ``SaveStats should be invoked many times during test execution to send realtime stats`` () =
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.Ok()
-    })
-
-    let scenario =
-        Scenario.create "realtime stats scenario" [okStep]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 5, during = seconds 40)
-        ]
-
     let mutable statsInvokedCounter = 0
 
     let reportingSink = {
@@ -45,7 +33,16 @@ let ``SaveStats should be invoked many times during test execution to send realt
             member _.Stop() = Task.CompletedTask
     }
 
-    NBomberRunner.registerScenarios [scenario]
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    Scenario.create "realtime stats scenario" [okStep]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./reporting-sinks/1/"
     |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
     |> NBomberRunner.run
     |> ignore
@@ -54,18 +51,6 @@ let ``SaveStats should be invoked many times during test execution to send realt
 
 [<Fact>]
 let ``SaveStats should be invoked with OperationType = Complete only once`` () =
-
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.Ok()
-    })
-
-    let scenario =
-        Scenario.create "realtime stats scenario" [okStep]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 5, during = seconds 30)
-        ]
 
     let mutable bombingCounter = 0
     let mutable completeCounter = 0
@@ -86,7 +71,16 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
             member _.Stop() = Task.CompletedTask
     }
 
-    NBomberRunner.registerScenarios [scenario]
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    Scenario.create "realtime stats scenario" [okStep]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./reporting-sinks/2/"
     |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
     |> NBomberRunner.run
     |> ignore
@@ -95,21 +89,6 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
 
 [<Fact>]
 let ``SaveStats for real-time reporting should contains only bombing stats`` () =
-
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.Ok()
-    })
-
-    let scenario1 =
-        Scenario.create "scenario_1" [okStep]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 20)]
-
-    let scenario2 =
-        Scenario.create "scenario_2" [okStep]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
 
     let mutable scn1BombingInvokedCount = 0
     let mutable scn2BombingInvokedCount = 0
@@ -149,7 +128,23 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
             member _.Stop() = Task.CompletedTask
     }
 
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.Ok()
+    })
+
+    let scenario1 =
+        Scenario.create "scenario_1" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 20)]
+
+    let scenario2 =
+        Scenario.create "scenario_2" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
+
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
     |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
     |> NBomberRunner.run
     |> ignore

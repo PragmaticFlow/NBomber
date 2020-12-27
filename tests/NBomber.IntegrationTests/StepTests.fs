@@ -46,6 +46,7 @@ let ``Response Ok and Fail should be properly count`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/1/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -70,6 +71,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/2/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -103,6 +105,7 @@ let ``can be duplicated to introduce repeatable behaviour`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/3/"
     |> NBomberRunner.run
     |> ignore
 
@@ -132,6 +135,7 @@ let ``StepContext Data should store any payload data from latest step.Response``
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/4/"
     |> NBomberRunner.run
     |> ignore
 
@@ -154,6 +158,7 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/5/"
     |> NBomberRunner.runWithResult Array.empty
     |> Result.getOk
     |> fun result ->
@@ -177,6 +182,7 @@ let ``createPause should work correctly and not printed in statistics`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/6/"
     |> NBomberRunner.runWithResult Array.empty
     |> Result.getOk
     |> fun result ->
@@ -207,6 +213,7 @@ let ``NBomber should support to run and share the same step within one scenario 
 
     let result =
         NBomberRunner.registerScenarios [scenario1; scenario2]
+        |> NBomberRunner.withReportFolder "./steps-tests/7/"
         |> NBomberRunner.runWithResult Array.empty
         |> Result.getOk
 
@@ -225,6 +232,7 @@ let ``NBomber should stop execution scenario if too many failed results on a war
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/8/"
     |> NBomberRunner.runWithResult Array.empty
     |> Result.getError
     |> fun result ->
@@ -249,6 +257,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/9/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -287,6 +296,7 @@ let ``context StopTest should stop all scenarios`` () =
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./steps-tests/10/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -309,6 +319,7 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/11/"
     |> NBomberRunner.run
     |> ignore
 
@@ -329,6 +340,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 5)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/12/"
     |> NBomberRunner.run
     |> ignore
 

@@ -97,6 +97,7 @@ let ``ErrorStats should be calculated properly`` () =
         ]
 
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withReportFolder "./stats-tests/1/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->

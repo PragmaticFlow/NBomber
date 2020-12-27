@@ -45,6 +45,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./scenarios-tests/1/"
     |> NBomberRunner.run
     |> ignore
 
@@ -109,6 +110,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./scenarios-tests/2/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -152,6 +154,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./scenarios-tests/3/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -177,6 +180,7 @@ let ``Warmup should have no effect on stats`` () =
     |> Scenario.withWarmUpDuration(seconds 3)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./scenarios-tests/4/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
