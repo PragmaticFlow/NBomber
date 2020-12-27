@@ -132,15 +132,12 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member _.CreateLoggerConfig = context.CreateLoggerConfig
         member _.ProgressBarEnv = ProgressBarEnv.create()
         member _.Logger = logger
-        member _.ReportingSinks = context.ReportingSinks
+        member _.ReportingSinks = context.Reporting.Sinks
         member _.WorkerPlugins = context.WorkerPlugins }
 
 let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig
     Log.Logger <- logger
-
-    //dep.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
-    //dep.WorkerPlugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
 
     { new IGlobalDependency with
         member _.ApplicationType = dep.ApplicationType

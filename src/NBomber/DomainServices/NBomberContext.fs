@@ -89,11 +89,13 @@ let empty = {
     NBomberConfig = None
     InfraConfig = None
     CreateLoggerConfig = None
-    ReportFileName = None
-    ReportFolder = None
-    ReportFormats = Constants.AllReportFormats
-    ReportingSinks = List.empty
-    SendStatsInterval = Constants.MinSendStatsInterval
+    Reporting = {
+        FolderName = None
+        FileName = None
+        Formats = Constants.AllReportFormats
+        Sinks = List.empty
+        SendStatsInterval = Constants.MinSendStatsInterval
+    }
     WorkerPlugins = List.empty
     ApplicationType = None
     UseHintsAnalyzer = true
@@ -136,7 +138,7 @@ let getReportFileName (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(context.ReportFileName)
+    |> Option.orElse(context.Reporting.FileName)
     |> Option.defaultValue(Constants.DefaultReportName)
 
 let getReportFolder (context: NBomberContext) =
@@ -147,7 +149,7 @@ let getReportFolder (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(context.ReportFolder)
+    |> Option.orElse(context.Reporting.FolderName)
     |> Option.defaultValue(Constants.DefaultReportFolder)
 
 let getReportFormats (context: NBomberContext) =
@@ -159,7 +161,7 @@ let getReportFormats (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.ReportFormats
+    |> Option.defaultValue context.Reporting.Formats
 
 let getSendStatsInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
@@ -170,7 +172,7 @@ let getSendStatsInterval (context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.map(Validation.checkSendStatsSettings)
-    |> Option.defaultValue(context.SendStatsInterval |> Validation.checkSendStatsInterval)
+    |> Option.defaultValue(context.Reporting.SendStatsInterval |> Validation.checkSendStatsInterval)
 
 let getConnectionPoolSettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
