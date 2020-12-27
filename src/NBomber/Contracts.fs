@@ -235,6 +235,14 @@ type ApplicationType =
     | Process = 0
     | Console = 1
 
+type ReportingContext = {
+    FolderName: string option
+    FileName: string option
+    Sinks: IReportingSink list
+    Formats: ReportFormat list
+    SendStatsInterval: TimeSpan
+}
+
 type NBomberContext = {
     TestSuite: string
     TestName: string
@@ -242,11 +250,7 @@ type NBomberContext = {
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
-    ReportFileName: string option
-    ReportFolder: string option
-    ReportFormats: ReportFormat list
-    ReportingSinks: IReportingSink list
-    SendStatsInterval: TimeSpan
+    Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
     UseHintsAnalyzer: bool
