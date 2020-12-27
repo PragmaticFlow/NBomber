@@ -36,22 +36,18 @@ let ``TestClean should be invoked only once and not fail runner`` () =
     }
 
     let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Ok()
     })
 
-    let scenario =
-        Scenario.create "withTestClean test" [okStep]
-        |> Scenario.withClean testClean
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(2,  TimeSpan.FromSeconds(1.0))
-        ]
-
-    let allStats =
-        NBomberRunner.registerScenarios [scenario]
-        |> NBomberRunner.run
-        |> Result.getOk
+    Scenario.create "withTestClean test" [okStep]
+    |> Scenario.withClean testClean
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./scenarios-tests/1/"
+    |> NBomberRunner.run
+    |> ignore
 
     test <@ 1 = cleanInvokeCounter @>
 
@@ -65,7 +61,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
     }
 
     let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Ok()
     })
 
@@ -73,15 +69,11 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
         scnContext.Value.CustomSettings.Get<TestCustomSettings>().PauseMs
     )
 
-    let scenario =
-        Scenario.create "test_youtube" [okStep; pause]
-        |> Scenario.withInit testInit
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(2,  TimeSpan.FromSeconds(2.0))
-        ]
-
-    NBomberRunner.registerScenarios [scenario]
+    Scenario.create "test_youtube" [okStep; pause]
+    |> Scenario.withInit testInit
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 2)]
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.loadConfig "Configuration/test_config.json"
     |> NBomberRunner.run
     |> ignore
@@ -95,10 +87,10 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
 let ``should be stopped via StepContext.StopScenario`` () =
 
     let mutable counter = 0
-    let duration = TimeSpan.FromSeconds(15.0)
+    let duration = seconds 15
 
     let okStep = Step.create("ok step", fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         counter <- counter + 1
 
         if counter = 30 then
@@ -110,18 +102,15 @@ let ``should be stopped via StepContext.StopScenario`` () =
     let scenario1 =
         Scenario.create "test_youtube_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(10, duration)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     let scenario2 =
         Scenario.create "test_youtube_2" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(10, duration)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./scenarios-tests/2/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -139,10 +128,10 @@ let ``should be stopped via StepContext.StopScenario`` () =
 [<Fact>]
 let ``Test execution should be stopped if all scenarios are stopped`` () =
     let mutable counter = 0
-    let duration = TimeSpan.FromSeconds(30.0)
+    let duration = seconds 30
 
     let okStep = Step.create("ok step", fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 50)
         counter <- counter + 1
 
         if counter = 30 then
@@ -157,18 +146,15 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
     let scenario1 =
         Scenario.create "test_youtube_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(10, duration)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     let scenario2 =
         Scenario.create "test_youtube_2" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(10, duration)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
+    |> NBomberRunner.withReportFolder "./scenarios-tests/3/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -181,27 +167,23 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
 let ``Warmup should have no effect on stats`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Ok()
     })
 
     let failStep = Step.create("fail step", fun _ -> task {
-        do! Task.Delay(TimeSpan.FromSeconds(0.1))
+        do! Task.Delay(milliseconds 100)
         return Response.Fail()
     })
 
-    let scenario =
-        Scenario.create "warmup test" [okStep; failStep]
-        |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 3.0)
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 1, during = TimeSpan.FromSeconds 1.0)
-        ]
-
-    let result = NBomberRunner.registerScenarios [scenario]
-                 |> NBomberRunner.run
-
-    match result with
-    | Ok nodeStats ->
+    Scenario.create "warmup test" [okStep; failStep]
+    |> Scenario.withWarmUpDuration(seconds 3)
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./scenarios-tests/4/"
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun nodeStats ->
         let allStepStats = nodeStats.ScenarioStats |> Seq.collect(fun x -> x.StepStats)
         let okStats = allStepStats |> Seq.find(fun x -> x.StepName = "ok step")
         let failStats = allStepStats |> Seq.find(fun x -> x.StepName = "fail step")
@@ -211,17 +193,15 @@ let ``Warmup should have no effect on stats`` () =
         test <@ failStats.OkCount = 0 @>
         test <@ failStats.FailCount <= 10 @>
 
-    | Error msg -> failwith msg
-
 [<Fact>]
 let ``applyScenariosSettings() should override initial settings if the name is matched`` () =
 
     let scnName1 = "scenario_1"
-    let warmUp1 = TimeSpan.FromSeconds 30.0
-    let duration1 = TimeSpan.FromSeconds 50.0
+    let warmUp1 = seconds 30
+    let duration1 = seconds 50
 
     let scnName2 = "scenario_1"
-    let duration2 = TimeSpan.FromSeconds 5.0
+    let duration2 = seconds 5
 
     let settings = {
         ScenarioName = scnName1
@@ -232,7 +212,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
     }
 
     let originalScenarios =
-        [Scenario.create scnName2 [Step.createPause(1)]
+        [Scenario.create scnName2 [Step.createPause 1]
         |> Scenario.withLoadSimulations [RampConstant(500, duration2)] ]
         |> Scenario.createScenarios
         |> Result.getOk
@@ -247,11 +227,11 @@ let ``applyScenariosSettings() should override initial settings if the name is m
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
 
     let scnName1 = "scenario_1"
-    let warmUp1 = TimeSpan.FromSeconds 30.0
-    let duration1 = TimeSpan.FromSeconds 50.0
+    let warmUp1 = seconds 30
+    let duration1 = seconds 50
 
     let scnName2 = "scenario_2"
-    let duration2 = TimeSpan.FromSeconds 5.0
+    let duration2 = seconds 5
 
     let settings = {
         ScenarioName = scnName1
@@ -262,14 +242,12 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
     }
 
     let scenario =
-         Scenario.create scnName2 [Step.createPause(120)]
-         |> Scenario.withoutWarmUp
-         |> Scenario.withLoadSimulations [
-             LoadSimulation.KeepConstant(500, duration2)
-         ]
-         |> List.singleton
-         |> Scenario.createScenarios
-         |> Result.getOk
+        Scenario.create scnName2 [Step.createPause 120]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(500, duration2)]
+        |> List.singleton
+        |> Scenario.createScenarios
+        |> Result.getOk
 
     let updatedScenario = Scenario.applySettings [settings] scenario
 
