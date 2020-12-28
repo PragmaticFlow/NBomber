@@ -18,7 +18,6 @@ type IProgressBarEnv =
     abstract CreateAutoProgressBar: duration:TimeSpan -> IProgressBar
 
 type IGlobalDependency =
-    inherit IDisposable
     abstract ApplicationType: ApplicationType
     abstract NodeType: NodeType
     abstract NBomberConfig: NBomberConfig option
@@ -46,7 +45,8 @@ module Logger =
             config.WriteTo.Logger(fun lc ->
                 lc.WriteTo.Console()
                   .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
-                                                       || event.Level = LogEventLevel.Warning)
+                                                       || event.Level = LogEventLevel.Warning
+                                                       || event.Level = LogEventLevel.Fatal)
                 |> ignore
             )
 
@@ -122,8 +122,6 @@ let createSessionId () =
 let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberContext) =
     let emptyTestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
     let logger = Logger.create emptyTestInfo context.CreateLoggerConfig context.InfraConfig
-    let version = typeof<ApplicationType>.Assembly.GetName().Version
-
     Log.Logger <- logger
 
     { new IGlobalDependency with
@@ -134,18 +132,12 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member _.CreateLoggerConfig = context.CreateLoggerConfig
         member _.ProgressBarEnv = ProgressBarEnv.create()
         member _.Logger = logger
-        member _.ReportingSinks = context.ReportingSinks
-        member _.WorkerPlugins = context.WorkerPlugins
-        member this.Dispose() =
-            this.ReportingSinks |> Seq.iter(fun x -> x.Dispose())
-            this.WorkerPlugins |> Seq.iter(fun x -> x.Dispose()) }
+        member _.ReportingSinks = context.Reporting.Sinks
+        member _.WorkerPlugins = context.WorkerPlugins }
 
 let init (testInfo: TestInfo) (dep: IGlobalDependency) =
     let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig
     Log.Logger <- logger
-
-    dep.ReportingSinks |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
-    dep.WorkerPlugins |> Seq.iter(fun x -> x.Init(logger, dep.InfraConfig))
 
     { new IGlobalDependency with
         member _.ApplicationType = dep.ApplicationType
@@ -156,5 +148,4 @@ let init (testInfo: TestInfo) (dep: IGlobalDependency) =
         member _.ProgressBarEnv = dep.ProgressBarEnv
         member _.Logger = logger
         member _.ReportingSinks = dep.ReportingSinks
-        member _.WorkerPlugins = dep.WorkerPlugins
-        member _.Dispose() = dep.Dispose() }
+        member _.WorkerPlugins = dep.WorkerPlugins }

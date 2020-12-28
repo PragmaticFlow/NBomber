@@ -2,11 +2,10 @@ namespace NBomber.FSharp
 
 open System
 open System.IO
-open System.Threading
 open System.Threading.Tasks
 
 open CommandLine
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 open Serilog
@@ -35,8 +34,8 @@ module TimeSpanApi =
 type ConnectionPoolArgs =
 
     static member create (name: string,
-                          openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task,
+                          openConnection: int * IBaseContext -> Task<'TConnection>,
+                          closeConnection: 'TConnection * IBaseContext -> Task,
                           ?connectionCount: int) =
 
         let count = defaultArg connectionCount Constants.DefaultConnectionCount
@@ -44,8 +43,8 @@ type ConnectionPoolArgs =
         :> IConnectionPoolArgs<'TConnection>
 
     static member create (name: string,
-                          openConnection: int * CancellationToken -> Task<'TConnection>,
-                          closeConnection: 'TConnection * CancellationToken -> Task<unit>,
+                          openConnection: int * IBaseContext -> Task<'TConnection>,
+                          closeConnection: 'TConnection * IBaseContext -> Task<unit>,
                           ?connectionCount: int) =
 
         let close = fun (connection,token) -> closeConnection(connection,token) :> Task
@@ -183,25 +182,30 @@ module NBomberRunner =
     /// Sets output report name.
     /// Default name: nbomber_report.
     let withReportFileName (reportFileName: string) (context: NBomberContext) =
-        { context with ReportFileName = Some reportFileName }
+        let report = { context.Reporting with FileName = Some reportFileName }
+        { context with Reporting = report }
 
     /// Sets output report folder path.
     /// Default folder path: "./reports".
     let withReportFolder (reportFolderPath: string) (context: NBomberContext) =
-        { context with ReportFolder = Some reportFolderPath }
+        let report = { context.Reporting with FolderName = Some reportFolderPath }
+        { context with Reporting = report }
 
     let withReportFormats (reportFormats: ReportFormat list) (context: NBomberContext) =
-        { context with ReportFormats = reportFormats }
+        let report = { context.Reporting with Formats = reportFormats }
+        { context with Reporting  = report }
 
     /// Sets to run without reports
     let withoutReports (context: NBomberContext) =
-        { context with ReportFormats = List.empty }
+        let report = { context.Reporting with Formats = [] }
+        { context with Reporting = report }
 
     /// Sets reporting sinks.
     /// Reporting sink is used to save real-time metrics to correspond database
     let withReportingSinks (reportingSinks: IReportingSink list) (sendStatsInterval: TimeSpan) (context: NBomberContext) =
-        { context with ReportingSinks = reportingSinks
-                       SendStatsInterval = sendStatsInterval }
+        let report = { context.Reporting with Sinks = reportingSinks
+                                              SendStatsInterval = sendStatsInterval }
+        { context with Reporting = report }
 
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.

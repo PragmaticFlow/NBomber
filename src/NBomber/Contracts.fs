@@ -1,4 +1,4 @@
-namespace NBomber.Contracts
+﻿namespace NBomber.Contracts
 
 open System
 open System.Data
@@ -127,18 +127,29 @@ type NodeStats = {
     ReportFiles: ReportFile[]
 }
 
+type IBaseContext =
+    /// Gets current test info
+    abstract TestInfo: TestInfo
+    /// Gets current node info
+    abstract NodeInfo: NodeInfo
+    /// Cancellation token is a standard mechanics for canceling long-running operations.
+    /// Cancellation token should be used to help NBomber stop scenarios when the test is finished.
+    abstract CancellationToken: CancellationToken
+    /// NBomber's logger
+    abstract Logger: ILogger
+
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
     abstract ConnectionCount: int
-    abstract OpenConnection: number:int * cancellationToken:CancellationToken -> Task<'TConnection>
-    abstract CloseConnection: connection:'TConnection * cancellationToken:CancellationToken -> Task
+    abstract OpenConnection: number:int * context:IBaseContext -> Task<'TConnection>
+    abstract CloseConnection: connection:'TConnection * context:IBaseContext -> Task
 
 type IFeedProvider<'TFeedItem> =
     abstract GetAllItems: unit -> 'TFeedItem seq
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string
-    abstract Init: unit -> Task
+    abstract Init: context:IBaseContext -> Task
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TConnection,'TFeedItem> =
@@ -168,6 +179,8 @@ type IStepContext<'TConnection,'TFeedItem> =
     abstract StopCurrentTest: reason:string -> unit
 
 type IScenarioContext =
+    /// Gets current test info
+    abstract TestInfo: TestInfo
     /// Gets current node info
     abstract NodeInfo: NodeInfo
     /// Gets client settings content from configuration file
@@ -204,20 +217,18 @@ type Scenario = {
 }
 
 type IReportingSink =
-    inherit IDisposable
     abstract SinkName: string
-    abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
-    abstract Start: testInfo:TestInfo -> Task
+    abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
+    abstract Start: unit -> Task
     abstract SaveStats: stats:NodeStats[] -> Task
     abstract Stop: unit -> Task
 
 type IWorkerPlugin =
-    inherit IDisposable
     /// Name of plugin. Must be unique.
     abstract PluginName: string
-    abstract Init: logger:ILogger * infraConfig:IConfiguration option -> unit
-    abstract Start: testInfo:TestInfo -> Task
-    /// All tables of DataSet that contain rows considered as plugin stats.
+    abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
+    abstract Start: unit -> Task
+    /// All tables of DataSet that contain rows are considered as plugin stats.
     /// All tables of DataSet with table name starts with "." are not considered as plugin stats.
     abstract GetStats: NodeOperationType -> DataSet
     abstract GetHints: unit -> string[]
@@ -227,6 +238,14 @@ type ApplicationType =
     | Process = 0
     | Console = 1
 
+type ReportingContext = {
+    FolderName: string option
+    FileName: string option
+    Sinks: IReportingSink list
+    Formats: ReportFormat list
+    SendStatsInterval: TimeSpan
+}
+
 type NBomberContext = {
     TestSuite: string
     TestName: string
@@ -234,11 +253,7 @@ type NBomberContext = {
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
-    ReportFileName: string option
-    ReportFolder: string option
-    ReportFormats: ReportFormat list
-    ReportingSinks: IReportingSink list
-    SendStatsInterval: TimeSpan
+    Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
     ApplicationType: ApplicationType option
     UseHintsAnalyzer: bool

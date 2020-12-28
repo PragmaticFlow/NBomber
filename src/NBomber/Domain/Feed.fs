@@ -11,7 +11,7 @@ let toUntypedFeed (feed: IFeed<'TFeedItem>) = {
         override _.Equals(instance) = instance.GetHashCode() = feed.GetHashCode()
     interface IFeed<obj> with
         member _.FeedName = feed.FeedName
-        member _.Init() = feed.Init()
+        member _.Init(context) = feed.Init(context)
         member _.GetNextItem(correlationId, stepData) = feed.GetNextItem(correlationId, stepData) :> obj
 }
 
@@ -23,7 +23,7 @@ let rec createInfiniteStream (items: 'T seq) = seq {
 let empty<'T> = {
     new IFeed<'T> with
         member _.FeedName = Constants.EmptyFeedName
-        member _.Init() = Task.CompletedTask
+        member _.Init(context) = Task.CompletedTask
         member _.GetNextItem(correlationId, stepData) = Unchecked.defaultof<'T>
 }
 
@@ -33,7 +33,7 @@ let constant (name, provider: IFeedProvider<'T>) =
     { new IFeed<'T> with
         member _.FeedName = name
 
-        member _.Init() =
+        member _.Init(context) =
             _allItems <- provider.GetAllItems() |> Seq.toArray
             Task.CompletedTask
 
@@ -47,7 +47,7 @@ let circular (name, provider: IFeedProvider<'T>) =
     { new IFeed<'T> with
         member _.FeedName = name
 
-        member _.Init() =
+        member _.Init(context) =
             let infiniteItems = provider.GetAllItems() |> createInfiniteStream
             _enumerator <- infiniteItems.GetEnumerator()
             Task.CompletedTask
@@ -67,7 +67,7 @@ let random (name, provider: IFeedProvider<'T>) =
     { new IFeed<'T> with
         member _.FeedName = name
 
-        member _.Init() =
+        member _.Init(context) =
             _allItems <- provider.GetAllItems() |> Seq.toArray
             Task.CompletedTask
 

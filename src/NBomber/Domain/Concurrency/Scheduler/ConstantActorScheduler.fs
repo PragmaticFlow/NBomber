@@ -3,7 +3,7 @@ module internal NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open System.Collections.Generic
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 
 open NBomber.Extensions.InternalExtensions
 open NBomber.Domain.Concurrency
@@ -77,7 +77,7 @@ type ConstantActorScheduler(dep: ActorDep) =
 
                     | StopScheduler -> stop()
                 with
-                | ex -> dep.Logger.Error(ex.ToString())
+                | ex -> dep.Logger.Fatal(ex.ToString())
 
             stop()
         }

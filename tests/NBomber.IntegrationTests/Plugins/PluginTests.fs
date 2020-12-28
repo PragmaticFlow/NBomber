@@ -4,7 +4,7 @@ open System
 open System.Data
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open Swensen.Unquote
 open Xunit
 
@@ -100,12 +100,15 @@ let ``Init should be invoked once`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
-            member _.Start(_) = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+
+            member _.Init(_, _) =
+                pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
+                Task.CompletedTask
+
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -125,16 +128,15 @@ let ``StartTest should be invoked once`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
+            member _.Init(_, _) = Task.CompletedTask
 
-            member _.Start(_) =
+            member _.Start() =
                 pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
                 Task.CompletedTask
 
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -155,12 +157,15 @@ let ``StartTest should be invoked with infra config`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(logger, infraConfig) = pluginConfig <- infraConfig
-            member _.Start(_) = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+
+            member _.Init(logger, infraConfig) =
+                pluginConfig <- infraConfig
+                Task.CompletedTask
+
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -181,16 +186,15 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
-            member _.GetStats(currentOperation) =
+            member _.GetStats(_) =
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 new DataSet()
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -210,16 +214,13 @@ let ``StopTest should be invoked once`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
-
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
                 Task.CompletedTask
-
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -239,26 +240,24 @@ let ``stats should be passed to IReportingSink`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
-            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let reportingSink = {
         new IReportingSink with
             member _.SinkName = "TestSink"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
             member _.SaveStats(stats) =
                 _nodeStats <- stats
                 Task.CompletedTask
 
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -287,23 +286,21 @@ let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` ()
     let plugin1 = {
         new IWorkerPlugin with
             member _.PluginName = pluginName
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let plugin2 = {
         new IWorkerPlugin with
             member _.PluginName = pluginName
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     Assert.Throws(typeof<Exception>,
@@ -321,8 +318,8 @@ let ``stats' names should be the same as plugin names`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
             member _.GetStats(currentOperation) =
                 let stats = new DataSet()
@@ -331,7 +328,6 @@ let ``stats' names should be the same as plugin names`` () =
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let pluginStats =
@@ -352,23 +348,21 @@ let ``tryFindPluginStatsByName() should work properly`` () =
     let plugin1 = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin1"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let plugin2 = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin2"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let nodeStats =
@@ -395,8 +389,8 @@ let ``NBomber should not throw ex for empty plugin stats tables`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
 
             member _.GetStats(currentOperation) =
                 let stats = new DataSet()
@@ -405,7 +399,6 @@ let ``NBomber should not throw ex for empty plugin stats tables`` () =
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     test <@ NBomberRunner.registerScenarios scenarios
@@ -424,12 +417,11 @@ let ``stats should be passed to reports`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let reports =
@@ -457,12 +449,11 @@ let ``table should not be passed to reports if table name starts with "."`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let reports =
@@ -489,8 +480,8 @@ let ``tables should not be passed to reports if no rows in table`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) =
                 let ds = new DataSet()
                 let table = new DataTable()
@@ -500,7 +491,6 @@ let ``tables should not be passed to reports if no rows in table`` () =
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let reports =
@@ -549,12 +539,11 @@ let ``.custom-html-report table should be passed to html report`` () =
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = ()
-            member _.Start(_) = Task.CompletedTask
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
             member _.GetStats(currentOperation) = createPluginStats(currentOperation)
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
     }
 
     let reports =

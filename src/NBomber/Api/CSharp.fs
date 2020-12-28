@@ -17,8 +17,8 @@ open NBomber.Configuration
 type ConnectionPoolArgs =
 
     static member Create<'TConnection>(name: string,
-                                       openConnection: Func<int,CancellationToken,Task<'TConnection>>,
-                                       closeConnection: Func<'TConnection,CancellationToken,Task>,
+                                       openConnection: Func<int,IBaseContext,Task<'TConnection>>,
+                                       closeConnection: Func<'TConnection,IBaseContext,Task>,
                                        [<Optional;DefaultParameterValue(Constants.DefaultConnectionCount:int)>]connectionCount: int) =
         FSharp.ConnectionPoolArgs.create(name, openConnection.Invoke, closeConnection.Invoke, connectionCount)
 

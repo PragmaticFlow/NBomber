@@ -50,11 +50,13 @@ let context = {
     NBomberConfig = None
     InfraConfig = None
     CreateLoggerConfig = None
-    ReportFileName = None
-    ReportFolder = None
-    ReportFormats = List.empty
-    ReportingSinks = List.empty
-    SendStatsInterval = Constants.MinSendStatsInterval
+    Reporting = {
+        FileName = None
+        FolderName = None
+        Formats = List.empty
+        Sinks = List.empty
+        SendStatsInterval = Constants.MinSendStatsInterval
+    }
     WorkerPlugins = List.empty
     ApplicationType = Some ApplicationType.Process
     UseHintsAnalyzer = false
@@ -91,9 +93,11 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
     let glSettings = { baseGlobalSettings with ReportFileName = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
-    let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = [ReportFormat.Txt]
-                             ReportFileName = contextValue }
+    let ctx = {
+        context with NBomberConfig = Some config
+                     Reporting = { context.Reporting with Formats = [ReportFormat.Txt]
+                                                          FileName = contextValue }
+    }
 
     let fileName = NBomberContext.getReportFileName(ctx)
 
@@ -110,9 +114,11 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
     let glSettings = { baseGlobalSettings with ReportFormats = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
-    let ctx = { context with NBomberConfig = Some config
-                             ReportFormats = contextValue
-                             ReportFileName = None }
+    let ctx = {
+        context with NBomberConfig = Some config
+                     Reporting = { context.Reporting with Formats = contextValue
+                                                          FileName = None }
+    }
 
     let formats = NBomberContext.getReportFormats(ctx)
     match configValue, contextValue with
@@ -177,8 +183,8 @@ let ``getConnectionPoolSettings should return from Config with updated poolName,
 [<Fact>]
 let ``getSendStatsInterval should return fail if interval is smaller than min value`` () =
 
-    let okContext = { context with SendStatsInterval = seconds 5 }
-    let errorContext = { context with SendStatsInterval = seconds 2 }
+    let okContext =    { context with Reporting = { context.Reporting with SendStatsInterval = seconds 5 }}
+    let errorContext = { context with Reporting = { context.Reporting with SendStatsInterval = seconds 2 }}
 
     let ok = NBomberContext.getSendStatsInterval(okContext)
     let error = NBomberContext.getSendStatsInterval(errorContext)
