@@ -8,7 +8,7 @@ open Xunit
 open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
