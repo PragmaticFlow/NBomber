@@ -288,7 +288,7 @@ let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` ()
             member _.PluginName = pluginName
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -298,7 +298,7 @@ let ``withWorkerPlugins() should throw ex if there's PluginName duplication`` ()
             member _.PluginName = pluginName
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -321,7 +321,7 @@ let ``stats' names should be the same as plugin names`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.GetStats(currentOperation) =
+            member _.GetStats(_) =
                 let stats = new DataSet()
                 stats.DataSetName <- "Stats"
                 stats
@@ -350,7 +350,7 @@ let ``tryFindPluginStatsByName() should work properly`` () =
             member _.PluginName = "TestPlugin1"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -360,7 +360,7 @@ let ``tryFindPluginStatsByName() should work properly`` () =
             member _.PluginName = "TestPlugin2"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = new DataSet()
+            member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -392,7 +392,7 @@ let ``NBomber should not throw ex for empty plugin stats tables`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.GetStats(currentOperation) =
+            member _.GetStats(_) =
                 let stats = new DataSet()
                 stats.Tables.Add(new DataTable())
                 stats
@@ -419,7 +419,7 @@ let ``stats should be passed to reports`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -451,7 +451,7 @@ let ``table should not be passed to reports if table name starts with "."`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) = PluginStatisticsHelper.createPluginStats()
+            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
     }
@@ -482,7 +482,7 @@ let ``tables should not be passed to reports if no rows in table`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(currentOperation) =
+            member _.GetStats(_) =
                 let ds = new DataSet()
                 let table = new DataTable()
                 table.TableName <- "EmptyTable"

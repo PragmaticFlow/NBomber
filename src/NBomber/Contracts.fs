@@ -230,7 +230,7 @@ type IWorkerPlugin =
     abstract Start: unit -> Task
     /// All tables of DataSet that contain rows are considered as plugin stats.
     /// All tables of DataSet with table name starts with "." are not considered as plugin stats.
-    abstract GetStats: NodeOperationType -> DataSet
+    abstract GetStats: currentOperation:NodeOperationType -> DataSet
     abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 
