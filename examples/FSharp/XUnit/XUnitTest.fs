@@ -2,7 +2,7 @@ module FSharp.DataFeed.XUnitTest
 
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Xunit
 open Swensen.Unquote
 

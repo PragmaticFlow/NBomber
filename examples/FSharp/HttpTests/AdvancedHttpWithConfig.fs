@@ -1,6 +1,6 @@
 module FSharp.HttpTests.AdvancedHttpWithConfig
 
-open FSharp.Control.Tasks.NonAffine
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Newtonsoft.Json
 
 open NBomber
