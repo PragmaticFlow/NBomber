@@ -5,7 +5,7 @@ open NBomber.Contracts
 let private analyzeScenarioFails (scnStats: ScenarioStats[]) =
 
     let printHint (scn: ScenarioStats) =
-        sprintf "Scenario '%s' has a '%i' errors that affect overall statistics. NBomber is not taking error request's latency into latency statistics. So make sure that your load tests don't have errors." scn.ScenarioName scn.FailCount
+        sprintf "Scenario '%s' has '%i' errors that affect overall statistics. NBomber is not taking error request's latency into latency statistics. So make sure that your load tests don't have errors." scn.ScenarioName scn.FailCount
 
     scnStats
     |> Seq.filter(fun x -> x.FailCount > 0)
@@ -14,7 +14,7 @@ let private analyzeScenarioFails (scnStats: ScenarioStats[]) =
 let private analyzeRPS (scnStats: ScenarioStats[]) =
 
     let printHint (scnName, stepName) =
-        sprintf "Step '%s' in scenario '%s' has RPS '0' because all response latencies: (min/mean/max) are higher than 1 sec which means there is no request that finished in less than 1 sec." scnName stepName
+        sprintf "Step '%s' in scenario '%s' has RPS '0' because all response latencies (min/mean/max) are higher than 1 sec which means there is no request that finished in less than 1 sec." scnName stepName
 
     scnStats
     |> Seq.collect(fun scn ->

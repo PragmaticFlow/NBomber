@@ -36,6 +36,8 @@ type TimeLineStatsViewModel = {
     ScenarioStats: ScenarioStats[][]
 }
 
+type HintsViewModel = string[]
+
 module NBomberInfoViewModel =
 
     let create (nodeInfo: NodeInfo) = {
@@ -120,3 +122,8 @@ module TimeLineStatsViewModel =
         TimeStamps = createTimeStamps(timeLineStats)
         ScenarioStats = createScenarioStats(timeLineStats)
     }
+
+module HintsViewModel =
+
+    let create(hints: string list) =
+        Array.ofList(hints)

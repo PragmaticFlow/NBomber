@@ -173,7 +173,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     const errorColors = [
-        '#d50000', '#ff1744', '#ff5252',
+        '#ff3547', '#ff1744', '#ff5252',
         '#c51162', '#f50057', '#ff4081',
         '#ff6d00', '#ff9100', '#ffab40',
         '#aa00ff', '#d500f9', '#e040fb'
@@ -479,8 +479,8 @@ const initApp = (appContainer, viewModel) => {
             yAxis: '#212121', //elegant-color-dark
             xAxis: '#212121', //elegant-color-dark
             stats: {
-                okCount: '#26a69a', // teal lighten-2
-                failedCount: '#ff5252', // red accent-2
+                okCount: '#00b74a', // success
+                failedCount: '#ff3547', // danger
                 rps: '#1565c0', // blue darken-3
                 allDataMB: '#4e342e', // brown darken-3
                 min: '#2e7d32', // green darken-3
@@ -492,9 +492,9 @@ const initApp = (appContainer, viewModel) => {
                 percentile99: '#6a1b9a', // purple darken-3
                 loadSimulation: '#ff8f00', // amber darken-3
                 latency: {
-                    low: '#00e676', // green accent-3
+                    low: '#00b74a', // success
                     medium: '#ffea00', // yellow accent-3
-                    high: '#ff9100' // orange accent-3
+                    high: '#ffa900' // warning
                 }
             }
         }
@@ -564,6 +564,11 @@ const initApp = (appContainer, viewModel) => {
                 this.showAll = showAll;
             }
         }
+    });
+
+    Vue.component('hints-table', {
+        props: ['hints'],
+        template: '#hints-table-template'
     });
 
     Vue.component('lazy-load', {

@@ -82,6 +82,10 @@
     font-weight: bold;
 }
 
+.sidebar-nav li a.disabled {
+    color: #616161 !important; /* Gray 500 */
+}
+
 .sidebar-nav > .sidebar-brand {
     height: 65px;
     line-height: 60px;

@@ -20,7 +20,7 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
+let build (nodeStats) (timeLineStats) (hints) =
 
     let errorsExist =
         timeLineStats
@@ -28,10 +28,10 @@ let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) =
         |> Seq.tryFind(fun x -> x.FailCount > 0)
         |> Option.isSome
 
-    { TxtReport = TxtReport.print nodeStats
-      HtmlReport = HtmlReport.print nodeStats timeLineStats
+    { TxtReport = TxtReport.print nodeStats hints
+      HtmlReport = HtmlReport.print nodeStats timeLineStats hints
       CsvReport = CsvReport.print nodeStats
-      MdReport = MdReport.print nodeStats
+      MdReport = MdReport.print nodeStats hints
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,

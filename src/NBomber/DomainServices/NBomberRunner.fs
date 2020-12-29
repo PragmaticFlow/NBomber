@@ -11,7 +11,6 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.Reporting
-open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
@@ -21,7 +20,7 @@ let getApplicationType () =
     with
     | _ -> ApplicationType.Process
 
-let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
+let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report) =
     let fileName     = NBomberContext.getReportFileName context
     let folder       = NBomberContext.getReportFolder context
     let fileNameDate = sprintf "%s_%s" fileName (DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss")
@@ -54,7 +53,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let timeLineStats = testHost.GetTimeLineNodeStats()
         let hints         = getHints context nodeStats
 
-        return Report.build nodeStats timeLineStats
+        return Report.build nodeStats timeLineStats hints
                |> saveReports dep context nodeStats
     }
 

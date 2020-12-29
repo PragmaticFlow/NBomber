@@ -61,7 +61,6 @@
                     </tbody>
                 </table>
             </div>
-
         </div>
         <no-data v-else></no-data>
     </script>
@@ -295,7 +294,7 @@
 
     <script type="text/x-template" id="error-stats-table-template">
         <table class="table table-hover table-striped table-sm table-error-stats">
-            <thead class="mdb-color red accent-2 white-text">
+            <thead class="bg-danger white-text">
             <tr>
                 <th>error code</th>
                 <th>count</th>
@@ -327,6 +326,28 @@
                 </tr>
             </tfoot>
         </table>
+    </script>
+
+    <script type="text/x-template" id="hints-table-template">
+        <div class="card custom">
+            <div class="card-header mdb-color darken-2 white-text">
+                <h6>hints</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover table-striped table-sm table-error-stats">
+                    <thead class="bg-warning white-text">
+                    <tr>
+                        <th>hint</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(hint, index) in hints" :key="`hint-${index}`">
+                        <td>{{hint}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </script>
 
 </head>
@@ -390,10 +411,19 @@
                         </a>
                     </li>
 
-                    <li class="nav-item" v-if="viewModel.statsData.PluginStats && viewModel.statsData.PluginStats.length > 0">
+                    <li class="nav-item">
                         <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view"
-                           @click="selectView('plugins')">
+                           @click="selectView('plugins')"
+                           :class="{disabled: !viewModel.statsData.PluginStats || !viewModel.statsData.PluginStats.length}">
                             Plugins <span class="sub-icon sub-icon-plugin fas fa-puzzle-piece"></span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a data-toggle="pill" href="#hints-view" role="tab" aria-controls="hints-view"
+                           @click="selectView('hints')"
+                           :class="{disabled: !viewModel.hints || !viewModel.hints.length}">
+                            Hints <span class="sub-icon sub-icon-plugin fas fa-exclamation-triangle"></span>
                         </a>
                     </li>
                 </ul>
@@ -430,83 +460,81 @@
 
                         <div v-for="(scenarioStats, scenarioIndex) in viewModel.statsData.ScenarioStats"
                              :key="`test-suite-scenario-stats-${scenarioIndex}`"
-                             v-if="viewModel.statsData.ScenarioStats">
-
-                            <div class="row">
-                                <div class="col">
-                                    <div class="card custom scenario">
-                                        <div class="card-header mdb-color darken-2 white-text">
-                                            <h6>
-                                                <a href="#" class="white-text"
-                                                   data-toggle="collapse" :data-target="`#test-suite-scenario-content-${scenarioIndex}`"
-                                                   aria-expanded="true" :aria-controls="`test-suite-scenario-content-${scenarioIndex}`">
-                                                    <span class="fa fa-chevron-down float-right"></span>
-                                                    <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
-                                                </a>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div :id="`test-suite-scenario-content-${scenarioIndex}`" class="show">
-                                                <!-- TestSuite View / Stats Table -->
-                                                <div class="row d-none d-lg-block">
-                                                    <div class="col">
-                                                        <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
-                                                    </div>
+                             v-if="viewModel.statsData.ScenarioStats"
+                             class="row">
+                            <div class="col">
+                                <div class="card custom scenario">
+                                    <div class="card-header mdb-color darken-2 white-text">
+                                        <h6>
+                                            <a href="#" class="white-text"
+                                               data-toggle="collapse" :data-target="`#test-suite-scenario-content-${scenarioIndex}`"
+                                               aria-expanded="true" :aria-controls="`test-suite-scenario-content-${scenarioIndex}`">
+                                                <span class="fa fa-chevron-down float-right"></span>
+                                                <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
+                                            </a>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div :id="`test-suite-scenario-content-${scenarioIndex}`" class="show">
+                                            <!-- TestSuite View / Stats Table -->
+                                            <div class="row d-none d-lg-block">
+                                                <div class="col">
+                                                    <scenario-stats-table :scenario-stats="scenarioStats"></scenario-stats-table>
                                                 </div>
-                                                <div class="row d-lg-none">
-                                                    <div class="col">
-                                                        <scenario-stats-requests-number-table :scenario-stats="scenarioStats"></scenario-stats-requests-number-table>
-                                                    </div>
+                                            </div>
+                                            <div class="row d-lg-none">
+                                                <div class="col">
+                                                    <scenario-stats-requests-number-table :scenario-stats="scenarioStats"></scenario-stats-requests-number-table>
                                                 </div>
-                                                <div class="row d-lg-none">
-                                                    <div class="col">
-                                                        <scenario-stats-latency-table :scenario-stats="scenarioStats"></scenario-stats-latency-table>
-                                                    </div>
+                                            </div>
+                                            <div class="row d-lg-none">
+                                                <div class="col">
+                                                    <scenario-stats-latency-table :scenario-stats="scenarioStats"></scenario-stats-latency-table>
                                                 </div>
-                                                <div class="row d-lg-none">
-                                                    <div class="col">
-                                                        <scenario-stats-data-transfer-table :scenario-stats="scenarioStats"></scenario-stats-data-transfer-table>
-                                                    </div>
+                                            </div>
+                                            <div class="row d-lg-none">
+                                                <div class="col">
+                                                    <scenario-stats-data-transfer-table :scenario-stats="scenarioStats"></scenario-stats-data-transfer-table>
                                                 </div>
+                                            </div>
+                                            <div class="row" v-if="scenarioStats.ErrorStats && scenarioStats.ErrorStats.length">
+                                                <div class="col">
+                                                    <!-- TestSuite View / Errors Table -->
+                                                    <error-stats-table :error-stats="scenarioStats.ErrorStats" max-errors-number="5"></error-stats-table>
+                                                </div>
+                                            </div>
+                                            <div v-show="showCharts">
                                                 <div class="row" v-if="scenarioStats.ErrorStats && scenarioStats.ErrorStats.length">
-                                                    <div class="col">
-                                                        <!-- TestSuite View / Errors Table -->
-                                                        <error-stats-table :error-stats="scenarioStats.ErrorStats" max-errors-number="5"></error-stats-table>
+                                                    <div class="col-xl-6 col-lg-6 col-md-12">
+                                                        <!-- TestSuite View / Scenario Latency (Columns) -->
+                                                        <chart-scenario-latency-indicators :scenario-stats="scenarioStats" ></chart-scenario-latency-indicators>
+                                                    </div>
+                                                    <div class="col-xl-3 col-lg-6 col-md-12">
+                                                        <!-- TestSuite View / Scenario Requests -->
+                                                        <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
+                                                    </div>
+                                                    <div class="col-xl-3 col-lg-6 col-md-12">
+                                                        <!-- TestSuite View / Errors -->
+                                                        <chart-scenario-errors :error-stats="scenarioStats.ErrorStats"></chart-scenario-errors>
                                                     </div>
                                                 </div>
-                                                <div v-show="showCharts">
-                                                    <div class="row" v-if="scenarioStats.ErrorStats && scenarioStats.ErrorStats.length">
-                                                        <div class="col-xl-6 col-lg-6 col-md-12">
-                                                            <!-- TestSuite View / Scenario Latency (Columns) -->
-                                                            <chart-scenario-latency-indicators :scenario-stats="scenarioStats" ></chart-scenario-latency-indicators>
-                                                        </div>
-                                                        <div class="col-xl-3 col-lg-6 col-md-12">
-                                                            <!-- TestSuite View / Scenario Requests -->
-                                                            <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
-                                                        </div>
-                                                        <div class="col-xl-3 col-lg-6 col-md-12">
-                                                            <!-- TestSuite View / Errors -->
-                                                            <chart-scenario-errors :error-stats="scenarioStats.ErrorStats"></chart-scenario-errors>
-                                                        </div>
+                                                <div class="row" v-else>
+                                                    <div class="col-xl-8 col-lg-8 col-md-12">
+                                                        <!-- TestSuite View / Scenario Latency (Columns) -->
+                                                        <chart-scenario-latency-indicators :scenario-stats="scenarioStats" ></chart-scenario-latency-indicators>
                                                     </div>
-                                                    <div class="row" v-else>
-                                                        <div class="col-xl-8 col-lg-8 col-md-12">
-                                                            <!-- TestSuite View / Scenario Latency (Columns) -->
-                                                            <chart-scenario-latency-indicators :scenario-stats="scenarioStats" ></chart-scenario-latency-indicators>
-                                                        </div>
-                                                        <div class="col-xl-4 col-lg-4 col-md-12">
-                                                            <!-- TestSuite View / Scenario Requests -->
-                                                            <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
-                                                        </div>
+                                                    <div class="col-xl-4 col-lg-4 col-md-12">
+                                                        <!-- TestSuite View / Scenario Requests -->
+                                                        <chart-scenario-requests :scenario-stats="scenarioStats"></chart-scenario-requests>
                                                     </div>
+                                                </div>
 
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            <!-- TestSuite View / Scenario Latency -->
-                                                            <chart-scenario-latency-distribution :timeline-stats="viewModel.timeLineStatsData"
-                                                                                                 :scenario-index="scenarioIndex">
-                                                            </chart-scenario-latency-distribution>
-                                                        </div>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <!-- TestSuite View / Scenario Latency -->
+                                                        <chart-scenario-latency-distribution :timeline-stats="viewModel.timeLineStatsData"
+                                                                                             :scenario-index="scenarioIndex">
+                                                        </chart-scenario-latency-distribution>
                                                     </div>
                                                 </div>
                                             </div>
@@ -516,7 +544,18 @@
                             </div>
                         </div>
 
-                        <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
+                        <div class="row">
+                            <div class="col">
+                                <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
+                            </div>
+                        </div>
+
+                        <div class="row" v-if="viewModel.hints && viewModel.hints.length">
+                            <div class="col">
+                                <!-- TestSuite View / Hints Table -->
+                                <hints-table :hints="viewModel.hints"></hints-table>
+                            </div>
+                        </div>
                     </div>
                     <no-data v-else></no-data>
                     <!-- Scenarios Views -->
@@ -677,15 +716,23 @@
                     <!-- Plugins Stats Views -->
                     <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
                          v-if="viewModel.statsData.PluginStats && viewModel.statsData.PluginStats.length > 0">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mdb-color darken-3">
-                                <li class="breadcrumb-item active white-text" aria-current="page">{{viewModel.testInfo.TestSuite}}</li>
-                                <li class="breadcrumb-item active white-text" aria-current="page">{{viewModel.testInfo.TestName}}</li>
-                                <li class="breadcrumb-item active white-text" aria-current="page">Plugins</li>
-                            </ol>
-                        </nav>
-                        <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
+                        <div class="row">
+                            <div class="col">
+                                <plugins-stats-table :plugins-stats="viewModel.statsData.PluginStats"></plugins-stats-table>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Hints Views -->
+                    <div class="tab-pane fade show" id="hints-view" role="tabpanel"
+                         v-if="viewModel.hints && viewModel.hints.length > 0">
+                        <div class="row" v-if="viewModel.hints && viewModel.hints.length">
+                            <div class="col">
+                                <hints-table :hints="viewModel.hints"></hints-table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
