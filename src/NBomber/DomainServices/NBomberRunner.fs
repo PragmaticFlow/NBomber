@@ -2,6 +2,7 @@ module internal NBomber.DomainServices.NBomberRunner
 
 open System
 
+open System.Threading.Tasks
 open FsToolkit.ErrorHandling
 
 open NBomber
@@ -29,6 +30,11 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
 
     if formats.Length > 0 then
         let reportFiles = Report.save(folder, fileNameDate, formats, report, dep.Logger, stats.TestInfo)
+        dep.ReportingSinks
+        |> List.map(fun x -> x.SaveReports reportFiles)
+        |> Task.WhenAll
+        |> fun t -> t.Wait()
+
         { stats with ReportFiles = reportFiles }
     else
         stats
