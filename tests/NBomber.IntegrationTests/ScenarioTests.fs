@@ -286,8 +286,33 @@ let ``checkEmptyStepName should return fail if scenario has empty step name`` ()
     | _       -> failwith ""
 
 [<Fact>]
-let ``checkStepsNotEmpty should return fail if scenario has no steps`` () =
-    let scn = Scenario.create "1" []
-    match Scenario.Validation.checkStepsNotEmpty(scn) with
-    | Error _ -> ()
-    | _       -> failwith ""
+let ``check that scenario should fail if it has no steps and no init and no clean`` () =
+    Scenario.create "1" []
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getError
+    |> ignore
+
+[<Fact>]
+let ``check that scenario should be ok if it has no steps but clean function exist`` () =
+    Scenario.create "1" []
+    |> Scenario.withClean(fun _ -> task { return () })
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> ignore
+
+[<Fact>]
+let ``check that scenario should be ok if it has no steps but init function exist`` () =
+    Scenario.create "1" []
+    |> Scenario.withInit(fun _ -> task { return () })
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> ignore
