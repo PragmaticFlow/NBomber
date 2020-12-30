@@ -31,7 +31,7 @@ module internal TestHostReporting =
             try
                 do! sink.SaveStats(stats |> Seq.toArray)
             with
-            | ex -> dep.Logger.Fatal(ex, "Reporting sink '{SinkName}' failed to save stats.", sink.SinkName)
+            | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save stats.", sink.SinkName)
     }
 
     let startReportingTimer (dep: IGlobalDependency,
@@ -70,7 +70,7 @@ module internal TestHostReporting =
             try
                 sink.Start() |> ignore
             with
-            | ex -> dep.Logger.Fatal(ex, "Failed to start reporting sink '{SinkName}'.", sink.SinkName)
+            | ex -> dep.Logger.Warning(ex, "Failed to start reporting sink '{SinkName}'.", sink.SinkName)
     }
 
     let stopReportingSinks (dep: IGlobalDependency) = task {
@@ -79,7 +79,7 @@ module internal TestHostReporting =
                 dep.Logger.Information("Stop reporting sink: '{SinkName}'.", sink.SinkName)
                 do! sink.Stop()
             with
-            | ex -> dep.Logger.Fatal(ex, "Stop reporting sink '{SinkName}' failed.", sink.SinkName)
+            | ex -> dep.Logger.Warning(ex, "Stop reporting sink '{SinkName}' failed.", sink.SinkName)
     }
 
 module internal TestHostPlugins =
@@ -98,7 +98,7 @@ module internal TestHostPlugins =
             try
                 plugin.Start() |> ignore
             with
-            | ex -> dep.Logger.Fatal(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
+            | ex -> dep.Logger.Warning(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
     }
 
     let stopPlugins (dep: IGlobalDependency) = task {
@@ -107,7 +107,7 @@ module internal TestHostPlugins =
                 dep.Logger.Information("Stop plugin: '{PluginName}'.", plugin.PluginName)
                 do! plugin.Stop()
             with
-            | ex -> dep.Logger.Fatal(ex, "Stop plugin '{PluginName}' failed.", plugin.PluginName)
+            | ex -> dep.Logger.Warning(ex, "Stop plugin '{PluginName}' failed.", plugin.PluginName)
     }
 
 module internal TestHostConsole =
@@ -304,7 +304,7 @@ module internal TestHostScenario =
                 try
                     do! cleanFunc context
                 with
-                | ex -> dep.Logger.Fatal(ex.ToString(), "Clean scenario: '{Scenario}' failed.", scn.ScenarioName)
+                | ex -> dep.Logger.Warning(ex, "Clean scenario: '{Scenario}' failed.", scn.ScenarioName)
 
             | None -> ()
     }
