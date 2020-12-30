@@ -231,3 +231,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     interface IDisposable with
         member _.Dispose() =
             this.StopScenarios().Wait()
+
+            for sink in dep.ReportingSinks do
+                use x = sink
+                ()
+
+            for plugin in dep.WorkerPlugins do
+                use x = plugin
+                ()

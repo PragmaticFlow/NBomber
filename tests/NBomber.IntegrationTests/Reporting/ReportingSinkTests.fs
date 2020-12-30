@@ -30,7 +30,9 @@ let ``SaveStats should be invoked many times during test execution to send realt
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
+            member _.SaveReports(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     let okStep = Step.create("ok step", fun _ -> task {
@@ -68,7 +70,9 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
                 | _                          -> failwith "operation type is invalid for SaveStats"
                 Task.CompletedTask
 
+            member _.SaveReports(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     let okStep = Step.create("ok step", fun _ -> task {
@@ -125,7 +129,9 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
 
                 Task.CompletedTask
 
+            member _.SaveReports(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     let okStep = Step.create("ok step", fun _ -> task {
