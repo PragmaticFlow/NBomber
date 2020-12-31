@@ -1,6 +1,16 @@
-module internal NBomber.DomainServices.Reporting.HintsAnalyzer
+module internal NBomber.Domain.HintsAnalyzer
 
 open NBomber.Contracts
+
+type SourceType =
+    | Scenario
+    | WorkerPlugin
+
+type HintResult = {
+    SourceName: string
+    SourceType: SourceType
+    Hint: string
+}
 
 let private analyzeScenarioFails (scnStats: ScenarioStats[]) =
 
@@ -9,7 +19,7 @@ let private analyzeScenarioFails (scnStats: ScenarioStats[]) =
 
     scnStats
     |> Seq.filter(fun x -> x.FailCount > 0)
-    |> Seq.map printHint
+    |> Seq.map(fun x -> { SourceName = x.ScenarioName; SourceType = Scenario; Hint = printHint x })
 
 let private analyzeRPS (scnStats: ScenarioStats[]) =
 
@@ -22,7 +32,7 @@ let private analyzeRPS (scnStats: ScenarioStats[]) =
         |> Seq.filter(fun step -> step.RPS = 0)
         |> Seq.map(fun step -> scn.ScenarioName, step.StepName)
     )
-    |> Seq.map printHint
+    |> Seq.map(fun (scnName,stepName) -> { SourceName = scnName; SourceType = Scenario; Hint = printHint(scnName, stepName) })
 
 let private analyzeAllDataMb (scnStats: ScenarioStats[]) =
 
@@ -35,7 +45,7 @@ let private analyzeAllDataMb (scnStats: ScenarioStats[]) =
         |> Seq.filter(fun step -> step.AllDataMB = 0.0)
         |> Seq.map(fun step -> scn.ScenarioName, step.StepName)
     )
-    |> Seq.map printHint
+    |> Seq.map(fun (scnName,stepName) -> { SourceName = scnName; SourceType = Scenario; Hint = printHint(scnName, stepName) })
 
 let analyze (stats: NodeStats) =
     seq {

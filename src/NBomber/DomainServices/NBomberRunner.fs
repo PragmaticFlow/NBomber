@@ -8,6 +8,8 @@ open FsToolkit.ErrorHandling
 open NBomber
 open NBomber.Contracts
 open NBomber.Errors
+open NBomber.Domain
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
@@ -42,7 +44,10 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
 let getHints (context: NBomberContext) (stats: NodeStats) =
     if context.UseHintsAnalyzer then
         context.WorkerPlugins
-        |> Seq.collect(fun x -> x.GetHints())
+        |> Seq.collect(fun plugin ->
+            plugin.GetHints()
+            |> Seq.map(fun x -> { SourceName = plugin.PluginName; SourceType = SourceType.WorkerPlugin; Hint = x })
+        )
         |> Seq.append(HintsAnalyzer.analyze stats)
         |> Seq.toList
 
