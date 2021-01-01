@@ -22,8 +22,6 @@ type ConnectionPoolArgs =
                                        [<Optional;DefaultParameterValue(Constants.DefaultConnectionCount:int)>]connectionCount: int) =
         FSharp.ConnectionPoolArgs.create(name, openConnection.Invoke, closeConnection.Invoke, connectionCount)
 
-    static member Empty = FSharp.ConnectionPoolArgs.empty
-
 type Step =
 
     static member Create<'TConnection,'TFeedItem>
@@ -33,7 +31,7 @@ type Step =
          execute: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, connectionPoolArgs, feed, execute.Invoke, doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, Some connectionPoolArgs, Some feed, Some doNotTrack)
 
     static member Create<'TConnection>
         (name: string,
@@ -41,7 +39,7 @@ type Step =
          execute: Func<IStepContext<'TConnection,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, connectionPoolArgs, Feed.empty, execute, doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, Some connectionPoolArgs, None, Some doNotTrack)
 
     static member Create<'TFeedItem>
         (name: string,
@@ -49,13 +47,13 @@ type Step =
          execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPoolArgs.Empty, feed, execute, doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, None, Some feed, Some doNotTrack)
 
     static member Create(name: string,
                          execute: Func<IStepContext<unit,unit>,Task<Response>>,
                          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        Step.Create(name, ConnectionPoolArgs.Empty, Feed.empty, execute, doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, None, None, Some doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =

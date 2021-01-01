@@ -36,7 +36,7 @@ type Step = {
     ConnectionPoolArgs: ConnectionPoolArgs<obj> option
     ConnectionPool: ConnectionPool option
     Execute: UntypedStepContext -> Task<Response>
-    Feed: IFeed<obj>
+    Feed: IFeed<obj> option
     DoNotTrack: bool
 } with
     interface IStep with

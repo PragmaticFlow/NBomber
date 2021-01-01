@@ -51,50 +51,49 @@ type ConnectionPoolArgs =
         let count = defaultArg connectionCount Constants.DefaultConnectionCount
         ConnectionPoolArgs.create(name, openConnection, close, count)
 
-    static member empty =
-        ConnectionPoolArgs.create(Constants.EmptyPoolName, (fun _ -> Task.singleton()), (fun _ -> Task.singleton()), 0)
-
 type Step =
+
+    static member internal create (name: string,
+                                  execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
+                                  connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
+                                  feed: IFeed<'TFeedItem> option,
+                                  doNotTrack: bool option) =
+        let poolArgs =
+            connectionPoolArgs
+            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
+            |> Option.map(fun x -> x.GetUntyped().Value)
+
+        { StepName = name
+          ConnectionPoolArgs = poolArgs
+          ConnectionPool = None
+          Execute = Step.toUntypedExec execute
+          Feed = feed |> Option.map Feed.toUntypedFeed
+          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+          :> IStep
 
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           feed: IFeed<'TFeedItem>,
                           execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?doNotTrack: bool) =
-
-        let poolArgs = if connectionPoolArgs.PoolName = Constants.EmptyPoolName then None
-                       else Some((connectionPoolArgs :?> ConnectionPoolArgs<'TConnection>).GetUntyped().Value)
-
-        { StepName = name
-          ConnectionPoolArgs = poolArgs
-          ConnectionPool = None
-          Execute = Step.toUntypedExec execute
-          Feed = Feed.toUntypedFeed feed
-          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
-          :> IStep
+        Step.create(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
 
     static member create (name: string,
                           connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                           execute: IStepContext<'TConnection,unit> -> Task<Response>,
                           ?doNotTrack: bool) =
-
-        Step.create(name, connectionPoolArgs, Feed.empty, execute,
-                    defaultArg doNotTrack Constants.DefaultDoNotTrack)
+        Step.create(name, execute, Some connectionPoolArgs, None, doNotTrack)
 
     static member create (name: string,
                           feed: IFeed<'TFeedItem>,
                           execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
                           ?doNotTrack: bool) =
-
-        Step.create(name, ConnectionPoolArgs.empty, feed, execute,
-                    defaultArg doNotTrack Constants.DefaultDoNotTrack)
+        Step.create(name, execute, None, Some feed, doNotTrack)
 
     static member create (name: string,
                           execute: IStepContext<unit,unit> -> Task<Response>,
                           ?doNotTrack: bool) =
-
-        Step.create(name, ConnectionPoolArgs.empty, Feed.empty, execute,
-                    defaultArg doNotTrack Constants.DefaultDoNotTrack)
+        Step.create(name, execute, None, None, doNotTrack)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.

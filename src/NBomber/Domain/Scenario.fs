@@ -133,8 +133,7 @@ module Feed =
     let filterDistinctAndEmptyFeeds (scenarios: Scenario list) =
         scenarios
         |> List.collect(fun x -> x.Steps)
-        |> List.map(fun x -> x.Feed)
-        |> List.filter(fun x -> x.FeedName <> NBomber.Constants.EmptyFeedName)
+        |> List.choose(fun x -> x.Feed)
         |> List.distinctBy id
 
 module ScenarioContext =
