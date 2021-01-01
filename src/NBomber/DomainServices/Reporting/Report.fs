@@ -1,5 +1,7 @@
 module internal NBomber.DomainServices.Reporting.Report
 
+open NBomber.Domain.HintsAnalyzer
+
 #nowarn "0104"
 
 open System
@@ -20,7 +22,7 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats) (timeLineStats) (hints) =
+let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
 
     let errorsExist =
         timeLineStats

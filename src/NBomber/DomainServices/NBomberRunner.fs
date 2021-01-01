@@ -7,6 +7,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.DomainServices.Reporting.Report
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
@@ -23,7 +24,7 @@ let getApplicationType () =
     with
     | _ -> ApplicationType.Process
 
-let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report) =
+let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
     let fileName     = NBomberContext.getReportFileName context
     let folder       = NBomberContext.getReportFolder context
     let fileNameDate = sprintf "%s_%s" fileName (DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss")

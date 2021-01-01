@@ -3,6 +3,7 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
@@ -52,7 +53,7 @@ let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: st
 let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints) =
+let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
     let nBomberInfoJsonData = stats.NodeInfo |> NBomberInfoViewModel.create |> Json.toJson
     let testInfoJsonData = stats.TestInfo |> TestInfoViewModel.create |> Json.toJson
     let statsJsonData = stats |> NodeStatsViewModel.create |> Json.toJson
