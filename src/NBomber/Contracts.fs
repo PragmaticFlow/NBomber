@@ -217,13 +217,16 @@ type Scenario = {
 }
 
 type IReportingSink =
+    inherit IDisposable
     abstract SinkName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
     abstract Start: unit -> Task
     abstract SaveStats: stats:NodeStats[] -> Task
+    abstract SaveReports: files:ReportFile[] -> Task
     abstract Stop: unit -> Task
 
 type IWorkerPlugin =
+    inherit IDisposable
     abstract PluginName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
     abstract Start: unit -> Task

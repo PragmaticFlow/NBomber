@@ -28,8 +28,10 @@ module Validation =
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
-    let checkStepsNotEmpty (scenario: Contracts.Scenario) =
-        if List.isEmpty scenario.Steps then AppError.createResult(EmptySteps scenario.ScenarioName)
+    let checkStepsOrInitOrCleanExist (scenario: Contracts.Scenario) =
+        if List.isEmpty scenario.Steps then
+            if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
+            else AppError.createResult(EmptySteps scenario.ScenarioName)
         else Ok scenario
 
     let checkEmptyStepName (scenario: Contracts.Scenario) =
@@ -61,7 +63,7 @@ module Validation =
         nodesStats |> List.fold folder okState
 
     let validate =
-        checkEmptyScenarioName >=> checkStepsNotEmpty >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
+        checkEmptyScenarioName >=> checkStepsOrInitOrCleanExist >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
 
 module ConnectionPool =
 

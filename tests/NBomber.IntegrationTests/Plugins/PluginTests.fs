@@ -108,6 +108,7 @@ let ``Init should be invoked once`` () =
             member _.GetStats(_) = new DataSet()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -136,6 +137,7 @@ let ``StartTest should be invoked once`` () =
             member _.GetHints() = Array.empty
             member _.GetStats(_) = new DataSet()
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -165,6 +167,7 @@ let ``StartTest should be invoked with infra config`` () =
             member _.GetHints() = Array.empty
             member _.GetStats(_) = new DataSet()
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -194,6 +197,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -220,6 +224,7 @@ let ``StopTest should be invoked once`` () =
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
                 Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios
@@ -244,6 +249,7 @@ let ``stats should be passed to IReportingSink`` () =
             member _.GetStats(_) = PluginStatisticsHelper.createPluginStats()
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     let reportingSink = {
@@ -256,7 +262,9 @@ let ``stats should be passed to IReportingSink`` () =
                 _nodeStats <- stats
                 Task.CompletedTask
 
+            member _.SaveReports(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
     }
 
     NBomberRunner.registerScenarios scenarios

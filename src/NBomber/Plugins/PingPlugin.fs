@@ -163,3 +163,4 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
         member _.GetStats(currentOperation) = _pluginStats
         member _.GetHints() = PingPluginHintsAnalyzer.analyze _pingResults
         member _.Stop() = Task.CompletedTask
+        member _.Dispose() = ()
