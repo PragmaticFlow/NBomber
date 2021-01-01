@@ -35,7 +35,7 @@ module StepContext =
                 let index = dep.CorrelationId.CopyNumber % v.AliveConnections.Length
                 v.AliveConnections.[index]
 
-            | None -> () :> obj
+            | None -> Unchecked.defaultof<_>
 
         { CorrelationId = dep.CorrelationId
           CancellationToken = dep.CancellationToken
@@ -54,7 +54,11 @@ module RunningStep =
 
     let updateContext (step: RunningStep) (data: Dict<string,obj>) =
         let context = step.Context
-        let feedItem = step.Value.Feed.GetNextItem(context.CorrelationId, data)
+
+        let feedItem =
+            match step.Value.Feed with
+            | Some feed -> feed.GetNextItem(context.CorrelationId, data)
+            | None      -> Unchecked.defaultof<_>
 
         context.InvocationCount <- context.InvocationCount + 1
         context.Data <- data

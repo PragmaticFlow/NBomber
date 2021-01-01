@@ -70,7 +70,3 @@ module Feed =
     [<CompiledName("CreateRandom")>]
     let createRandom (name) (provider: IFeedProvider<'T>) =
         NBomber.Domain.Feed.random(name, provider)
-
-    [<CompiledName("Empty")>]
-    let empty =
-        NBomber.Domain.Feed.empty<unit>

@@ -20,13 +20,6 @@ let rec createInfiniteStream (items: 'T seq) = seq {
     yield! createInfiniteStream items
 }
 
-let empty<'T> = {
-    new IFeed<'T> with
-        member _.FeedName = Constants.EmptyFeedName
-        member _.Init(context) = Task.CompletedTask
-        member _.GetNextItem(correlationId, stepData) = Unchecked.defaultof<'T>
-}
-
 let constant (name, provider: IFeedProvider<'T>) =
     let mutable _allItems = Array.empty
 

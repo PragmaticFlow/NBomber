@@ -29,12 +29,6 @@ let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; R
 let StepResponseKey = "nbomber_step_response"
 
 [<Literal>]
-let EmptyPoolName = "nbomber_empty_pool"
-
-[<Literal>]
-let EmptyFeedName = "nbomber_empty_feed"
-
-[<Literal>]
 let DefaultTestSuite = "nbomber_default_test_suite_name"
 
 [<Literal>]
