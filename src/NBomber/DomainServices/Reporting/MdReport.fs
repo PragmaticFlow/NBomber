@@ -27,8 +27,8 @@ module Md =
 
         | [] -> String.Empty
 
-    let createInlineCode (text) =
-        sprintf "`%s`" text
+    let createInlineCode (text: obj) =
+        sprintf "`%A`" text
 
     let createBlockquote (text) =
         sprintf "> %s" text
@@ -57,11 +57,11 @@ module MdNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         sprintf "scenario: %s, duration: %s, ok count: %s, fail count: %s, all data: %s MB"
-            (scnStats.ScenarioName |> String.replace("_", " ") |> Md.createInlineCode)
-            (scnStats.Duration |> sprintf "%A" |> Md.createInlineCode)
-            (scnStats.OkCount.ToString() |> Md.createInlineCode)
-            (scnStats.FailCount.ToString() |> Md.createInlineCode)
-            (scnStats.AllDataMB.ToString() |> Md.createInlineCode)
+            (scnStats.ScenarioName |> Md.createInlineCode)
+            (scnStats.Duration |> Md.createInlineCode)
+            (scnStats.OkCount |> Md.createInlineCode)
+            (scnStats.FailCount |> Md.createInlineCode)
+            (scnStats.AllDataMB |> Md.createInlineCode)
         |> Md.createBlockquote
         |> String.appendNewLine
 
@@ -72,24 +72,24 @@ module MdNodeStats =
 
         let count =
             sprintf "all = %s, ok = %s, failed = %s, RPS = %s"
-                (s.RPS.ToString() |> Md.createInlineCode)
-                (s.RequestCount.ToString() |> Md.createInlineCode)
-                (s.OkCount.ToString() |> Md.createInlineCode)
-                (s.FailCount.ToString() |> Md.createInlineCode)
+                (s.RPS |> Md.createInlineCode)
+                (s.RequestCount |> Md.createInlineCode)
+                (s.OkCount |> Md.createInlineCode)
+                (s.FailCount |> Md.createInlineCode)
 
         let times =
             sprintf "min = %s, mean = %s, max = %s"
-                (s.Min.ToString() |> Md.createInlineCode)
-                (s.Mean.ToString() |> Md.createInlineCode)
-                (s.Max.ToString() |> Md.createInlineCode)
+                (s.Min |> Md.createInlineCode)
+                (s.Mean |> Md.createInlineCode)
+                (s.Max |> Md.createInlineCode)
 
         let percentile =
             sprintf "50%% = %s, 75%% = %s, 95%% = %s, 99%% = %s, StdDev = %s"
-                (s.Percent50.ToString() |> Md.createInlineCode)
-                (s.Percent75.ToString() |> Md.createInlineCode)
-                (s.Percent95.ToString() |> Md.createInlineCode)
-                (s.Percent99.ToString() |> Md.createInlineCode)
-                (s.StdDev.ToString() |> Md.createInlineCode)
+                (s.Percent50 |> Md.createInlineCode)
+                (s.Percent75 |> Md.createInlineCode)
+                (s.Percent95 |> Md.createInlineCode)
+                (s.Percent99 |> Md.createInlineCode)
+                (s.StdDev |> Md.createInlineCode)
 
         let dataTransfer =
             sprintf "min = %s, mean = %s, max = %s, all = %s"
