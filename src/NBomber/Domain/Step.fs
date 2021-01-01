@@ -17,6 +17,7 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.ConnectionPool
 
 type StepDep = {
+    ScenarioName: string
     Logger: ILogger
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
@@ -113,16 +114,16 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
 
 let execSteps (dep: StepDep)
               (steps: RunningStep[])
+              (stepsOrder: int[])
               (allScnResponses: (ResizeArray<StepResponse>)[]) = task {
 
     let data = Dict.empty
     let mutable skipStep = false
-    let mutable stepIndex = 0
 
-    for st in steps do
+    for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext st data
+                let step = RunningStep.updateContext steps.[stepIndex] data
                 let! response = execStep step dep.GlobalTimer
 
                 let payload = response.Response.Payload
@@ -132,13 +133,12 @@ let execSteps (dep: StepDep)
                     allScnResponses.[stepIndex].Add(response)
 
                 if response.Response.Exception.IsNone then
-                    stepIndex <- stepIndex + 1
                     data.[Constants.StepResponseKey] <- payload
                 else
-                    dep.Logger.Error(response.Response.Exception.Value, "Step '{Step}' is failed. ", step.Value.StepName)
+                    dep.Logger.Error(response.Response.Exception.Value, "Step '{StepName}' from scenario '{ScenarioName}' is failed. ", step.Value.StepName, dep.ScenarioName)
                     skipStep <- true
             with
-            | ex -> dep.Logger.Error(ex, "Step '{Step}' is failed. ", st.Value.StepName)
+            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' is failed.", stepIndex, dep.ScenarioName)
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =

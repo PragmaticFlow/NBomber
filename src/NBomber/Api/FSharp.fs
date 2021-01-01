@@ -122,17 +122,15 @@ type Step =
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
-    let create (name: string) (steps: IStep list): Contracts.Scenario = {
-          ScenarioName = name
+    let create (name: string) (steps: IStep list): Contracts.Scenario =
+        let stepsOrder = [|0..steps.Length-1|]
+        { ScenarioName = name
           Init = None
           Clean = None
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
-          LoadSimulations = [
-            LoadSimulation.InjectPerSec(rate = Constants.DefaultCopiesCount,
-                                        during = Constants.DefaultSimulationDuration)
-          ]
-    }
+          LoadSimulations = [LoadSimulation.InjectPerSec(rate = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
+          GetStepsOrder = fun () -> stepsOrder }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -155,6 +153,12 @@ module Scenario =
     /// Default value is: InjectPerSec(rate = 50, during = minutes 1)
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
+
+    /// Sets custom steps order that will be used by NBomber Scenario executor.
+    /// By default, all steps are executing sequentially but you can inject your custom order.
+    /// getStepsOrder function will be invoked on every turn before steps list execution.
+    let withCustomStepsOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
+        { scenario with GetStepsOrder = getStepsOrder }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
