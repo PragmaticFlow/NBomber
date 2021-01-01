@@ -340,7 +340,15 @@ const viewModel = {
        ]
     },
     "hints":[
-        "Scenario 'scenario 1' has '12' errors that affect overall statistics. NBomber is not taking error request's latency into latency statistics. So make sure that your load tests don't have errors.",
-        "Step 'scenario 1' in scenario 'pull html 1' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
+        {
+            "SourceName": "scenario_1",
+            "SourceType": "Scenario",
+            "Hint": "Scenario 'scenario_1' has '16' errors that affect overall statistics. NBomber is not taking error request's latency into latency statistics. So make sure that your load tests don't have errors."
+        },
+        {
+            "SourceName": "scenario_1",
+            "SourceType": "Scenario",
+            "Hint": "Step 'pull-html-1' in scenario 'scenario_1' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
+        }
       ]
  };

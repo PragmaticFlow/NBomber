@@ -52,7 +52,7 @@ let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: st
 let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: string list) =
+let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints) =
     let nBomberInfoJsonData = stats.NodeInfo |> NBomberInfoViewModel.create |> Json.toJson
     let testInfoJsonData = stats.TestInfo |> TestInfoViewModel.create |> Json.toJson
     let statsJsonData = stats |> NodeStatsViewModel.create |> Json.toJson

@@ -337,12 +337,16 @@
                 <table class="table table-hover table-striped table-sm table-error-stats">
                     <thead class="bg-warning white-text">
                     <tr>
+                        <th>source</th>
+                        <th>name</th>
                         <th>hint</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr v-for="(hint, index) in hints" :key="`hint-${index}`">
-                        <td>{{hint}}</td>
+                        <td>{{hint.SourceType}}</td>
+                        <td>{{hint.SourceName}}</td>
+                        <td>{{hint.Hint}}</td>
                     </tr>
                     </tbody>
                 </table>

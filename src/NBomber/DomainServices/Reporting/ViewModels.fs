@@ -4,6 +4,7 @@ open System
 open System.Data
 
 open NBomber.Contracts
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 
 type NBomberInfoViewModel = {
@@ -36,22 +37,28 @@ type TimeLineStatsViewModel = {
     ScenarioStats: ScenarioStats[][]
 }
 
-type HintsViewModel = string[]
+type HintViewModel = {
+    SourceName: string
+    SourceType: string
+    Hint: string
+}
 
-module NBomberInfoViewModel =
+type HintsViewModel = HintViewModel[]
+
+module internal NBomberInfoViewModel =
 
     let create (nodeInfo: NodeInfo) = {
         NBomberVersion = nodeInfo.NBomberVersion
     }
 
-module TestInfoViewModel =
+module internal TestInfoViewModel =
 
     let create (testInfo: TestInfo): TestInfoViewModel = {
         TestSuite = testInfo.TestSuite
         TestName = testInfo.TestName
     }
 
-module NodeStatsViewModel =
+module internal NodeStatsViewModel =
 
     let private mapDataTableToPluginStatsViewModel (table: DataTable) =
         let tableName = table.TableName
@@ -75,7 +82,7 @@ module NodeStatsViewModel =
         NodeInfo = stats.NodeInfo
     }
 
-module TimeLineStatsViewModel =
+module internal TimeLineStatsViewModel =
 
     let private getLatencyCountDiff (latency: LatencyCount) (prevLatency: LatencyCount) = {
         Less800 = latency.Less800 - prevLatency.Less800
@@ -99,14 +106,15 @@ module TimeLineStatsViewModel =
 
     let private createTimeStamps (timeLineStats: (TimeSpan * NodeStats) list) =
         timeLineStats
-        |> Seq.map(fun (timeSpan, _) -> timeSpan)
+        |> Seq.map fst
         |> Seq.map(fun timeSpan -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
         |> Seq.toArray
 
     let private createScenarioStats (timeLineStats: (TimeSpan * NodeStats) list) =
         let timeLineScenarioStats =
             timeLineStats
-            |> Seq.map(fun (_, nodeStats) -> nodeStats.ScenarioStats)
+            |> Seq.map snd
+            |> Seq.map(fun nodeStats -> nodeStats.ScenarioStats)
             |> Seq.toArray
 
         timeLineScenarioStats
@@ -123,7 +131,13 @@ module TimeLineStatsViewModel =
         ScenarioStats = createScenarioStats(timeLineStats)
     }
 
-module HintsViewModel =
+module internal HintsViewModel =
 
-    let create(hints: string list) =
-        Array.ofList(hints)
+    let create(hints: HintResult list) =
+        hints
+        |> Seq.map(fun hint -> {
+            SourceName = hint.SourceName
+            SourceType = hint.SourceType.ToString()
+            Hint = hint.Hint
+        })
+        |> Seq.toArray

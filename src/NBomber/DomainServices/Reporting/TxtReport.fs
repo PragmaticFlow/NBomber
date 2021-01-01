@@ -6,6 +6,7 @@ open System.Data
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -93,23 +94,28 @@ module TxtPluginStats =
         |> String.concatLines
 
 module TxtHints =
-    let printHintsHeader () =
+    let private printHintsHeader () =
         "hints:"
 
-    let printHintsList (hints: string list) =
-        hints |> Seq.map(sprintf "- %s")
+    let private printHintsTable (hints: HintResult list) =
+        let hintTable = ConsoleTable("source", "name", "hint")
 
-    let printHints (hints: string list) =
+        hints
+        |> Seq.iter(fun hint -> hintTable.AddRow(hint.SourceType, hint.SourceName, hint.Hint) |> ignore)
+
+        hintTable.ToStringAlternative()
+
+    let printHints (hints: HintResult list) =
         if hints.Length > 0 then
             seq {
                 yield printHintsHeader()
-                yield! printHintsList(hints)
+                yield printHintsTable(hints)
             }
             |> String.concatLines
         else
             String.Empty
 
-let print (stats: NodeStats) (hints: string list) =
+let print (stats) (hints) =
     [TxtTestInfo.printTestInfo stats.TestInfo
      TxtNodeStats.printNodeStats stats
      TxtPluginStats.printPluginStats stats

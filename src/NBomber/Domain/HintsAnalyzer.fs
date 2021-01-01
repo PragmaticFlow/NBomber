@@ -24,7 +24,7 @@ let private analyzeScenarioFails (scnStats: ScenarioStats[]) =
 let private analyzeRPS (scnStats: ScenarioStats[]) =
 
     let printHint (scnName, stepName) =
-        sprintf "Step '%s' in scenario '%s' has RPS '0' because all response latencies (min/mean/max) are higher than 1 sec which means there is no request that finished in less than 1 sec." scnName stepName
+        sprintf "Step '%s' in scenario '%s' has RPS '0' because all response latencies (min/mean/max) are higher than 1 sec which means there is no request that finished in less than 1 sec." stepName scnName
 
     scnStats
     |> Seq.collect(fun scn ->
@@ -37,7 +37,7 @@ let private analyzeRPS (scnStats: ScenarioStats[]) =
 let private analyzeAllDataMb (scnStats: ScenarioStats[]) =
 
     let printHint (scnName, stepName) =
-        sprintf "Step '%s' in scenario '%s' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)" scnName stepName
+        sprintf "Step '%s' in scenario '%s' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)" stepName scnName
 
     scnStats
     |> Seq.collect(fun scn ->

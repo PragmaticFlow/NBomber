@@ -4,6 +4,7 @@ open System
 open System.Data
 
 open NBomber.Contracts
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -31,9 +32,6 @@ module Md =
 
     let createBlockquote (text) =
         sprintf "> %s" text
-
-    let createUnorderedListItem (text) =
-        sprintf "* %s" text
 
 module MdTestInfo =
     let printTestInfo (testInfo: TestInfo) =
@@ -126,7 +124,8 @@ module MdNodeStats =
                         MdErrorStats.printScenarioErrorStats(scnStats.ErrorStats)
                         |> Md.createTable
                         |> String.appendNewLine
-            })
+            }
+        )
         |> String.concatLines
 
 module MdPluginStats =
@@ -158,27 +157,36 @@ module MdPluginStats =
                 |> List.append [printPluginStatsTableHeader(table)]
                 |> Md.createTable
                 |> String.appendNewLine
-            })
+            }
+        )
         |> String.concatLines
 
 module MdHints =
-    let printHintsHeader () =
+    let private printHintsHeader () =
         Md.createBlockquote("hints:")
 
-    let printHints (hints: string list) =
+    let private printHintsTableHeader () =
+        ["source"; "name"; "hint"]
+
+    let private printHintsTableRows (hint: HintResult) =
+        [hint.SourceType.ToString(); hint.SourceName; hint.Hint]
+
+    let printHints (hints: HintResult list) =
         if hints.Length > 0 then
             seq {
-                printHintsHeader()
+                printHintsHeader() |> String.appendNewLine
 
                 hints
-                |> Seq.map(Md.createUnorderedListItem)
-                |> String.concatLines
+                |> List.map printHintsTableRows
+                |> List.append [printHintsTableHeader()]
+                |> Md.createTable
+                |> String.appendNewLine
             }
             |> String.concatLines
         else
             String.Empty
 
-let print (stats: NodeStats) (hints: string list) =
+let print (stats) (hints) =
     [MdTestInfo.printTestInfo stats.TestInfo
      MdNodeStats.printNodeStats stats
      MdPluginStats.printPluginStats stats
