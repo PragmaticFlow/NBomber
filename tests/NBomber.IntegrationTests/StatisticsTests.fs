@@ -25,6 +25,7 @@ let private scenario = {
     Steps = List.empty
     LoadSimulations = [KeepConstant(copies = 1, during = seconds 1)]
     WarmUpDuration = TimeSpan.FromSeconds(1.0)
+    GetStepsOrder = fun () -> Array.empty
 }
 
 [<Fact>]

@@ -26,7 +26,8 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
     let _allScnResponses = Array.init<ResizeArray<StepResponse>> dep.Scenario.Steps.Length (fun _ -> ResizeArray())
 
-    let _stepDep = { Logger = dep.Logger; CancellationToken = dep.CancellationToken
+    let _stepDep = { ScenarioName = dep.Scenario.ScenarioName
+                     Logger = dep.Logger; CancellationToken = dep.CancellationToken
                      GlobalTimer = dep.GlobalTimer; CorrelationId = correlationId
                      ExecStopCommand = dep.ExecStopCommand }
 
@@ -52,7 +53,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
     member _.ExecSteps() = task {
         if _reserved then
             _working <- true
-            _currentTask <- Step.execSteps _stepDep _steps _allScnResponses
+            _currentTask <- Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
             do! _currentTask
             _working <- false
     }

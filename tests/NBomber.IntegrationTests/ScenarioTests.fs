@@ -316,3 +316,28 @@ let ``check that scenario should be ok if it has no steps but init function exis
     |> NBomberRunner.run
     |> Result.getOk
     |> ignore
+
+[<Fact>]
+let ``withCustomStepsOrder should allow to run steps with custom order`` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.Ok()
+    })
+
+    let step2 = Step.create("step_2", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.Ok()
+    })
+
+    Scenario.create "1" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> Scenario.withCustomStepsOrder(fun () -> [| 1 |])
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let stepsStats = stats.ScenarioStats.[0].StepStats
+        test <@ stepsStats.[0].RequestCount = 0 @>
+        test <@ stepsStats.[1].RequestCount > 0 @>

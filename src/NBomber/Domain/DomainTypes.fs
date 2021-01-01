@@ -74,4 +74,5 @@ type Scenario = {
     PlanedDuration: TimeSpan
     ExecutedDuration: TimeSpan option
     CustomSettings: string
+    GetStepsOrder: unit -> int[]
 }
