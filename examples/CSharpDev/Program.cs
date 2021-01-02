@@ -1,4 +1,5 @@
 ﻿using System;
+using CSharpDev.HelloWorld;
 
 namespace CSharpDev
 {
@@ -6,7 +7,7 @@ namespace CSharpDev
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            HelloWorldExample.Run();
         }
     }
 }

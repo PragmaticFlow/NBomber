@@ -222,6 +222,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         // saving final stats
         let nodeInfo = getCurrentNodeInfo()
+        dep.Logger.Information("Calculating final statistics...")
         let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
         do! TestHostReporting.saveFinalStats dep [finalStats]
 
