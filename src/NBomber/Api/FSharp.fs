@@ -33,10 +33,10 @@ module TimeSpanApi =
 
 type ConnectionPoolArgs =
 
-    static member create (name: string,
-                          openConnection: int * IBaseContext -> Task<'TConnection>,
-                          closeConnection: 'TConnection * IBaseContext -> Task,
-                          ?connectionCount: int) =
+    static member internal create (name: string,
+                                   openConnection: int * IBaseContext -> Task<'TConnection>,
+                                   closeConnection: 'TConnection * IBaseContext -> Task,
+                                   ?connectionCount: int) =
 
         let count = defaultArg connectionCount Constants.DefaultConnectionCount
         ConnectionPoolArgs(name, count, openConnection, closeConnection)

@@ -80,11 +80,13 @@ module ResourceManager =
 module NodeInfo =
 
     let init () =
-        let dotNetVersion = (match Assembly.GetEntryAssembly() with
-                              | null -> Assembly.GetCallingAssembly()
-                              | _ ->  Assembly.GetEntryAssembly())
-                                    .GetCustomAttribute<TargetFrameworkAttribute>()
-                                    .FrameworkName
+
+        let dotNetVersion =
+            let assembly =
+                if isNull(Assembly.GetEntryAssembly()) then Assembly.GetCallingAssembly()
+                else Assembly.GetEntryAssembly()
+
+            assembly.GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName
 
         let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
         let version = typeof<ApplicationType>.Assembly.GetName().Version

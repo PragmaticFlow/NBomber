@@ -85,7 +85,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
     let _constantScheduler = ConstantActorScheduler(dep)
     let _oneTimeScheduler = OneTimeActorScheduler(dep)
-    let _timer = new System.Timers.Timer(SchedulerTickIntervalMs)
+    let _schedulerTimer = new System.Timers.Timer(SchedulerTickIntervalMs)
     let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
@@ -95,14 +95,14 @@ type ScenarioScheduler(dep: ActorDep) =
 
     let start () =
         dep.GlobalTimer.Stop()
-        _timer.Start()
+        _schedulerTimer.Start()
         _progressInfoTimer.Start()
         _tcs.Task :> Task
 
     let stop () =
         if not _disposed then
             _disposed <- true
-            _timer.Stop()
+            _schedulerTimer.Stop()
             _progressInfoTimer.Stop()
             dep.GlobalTimer.Stop()
             _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
@@ -132,7 +132,7 @@ type ScenarioScheduler(dep: ActorDep) =
         _randomGen.Next(minRate, maxRate)
 
     do
-        _timer.Elapsed.Add(fun _ ->
+        _schedulerTimer.Elapsed.Add(fun _ ->
 
             if not dep.GlobalTimer.IsRunning then dep.GlobalTimer.Restart()
 
@@ -175,7 +175,7 @@ type ScenarioScheduler(dep: ActorDep) =
             _eventStream.OnNext(progressInfo)
         )
 
-    member _.Working = _timer.Enabled
+    member _.Working = _schedulerTimer.Enabled
 
     member _.Start(isWarmUp) =
         _warmUp <- isWarmUp
