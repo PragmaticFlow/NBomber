@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <GenerateProgramFile>false</GenerateProgramFile>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+        <RootNamespace>FSharp</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="DataFeed\DataFeedTest.fs" />
+        <None Include="DataFeed\users-feed-data.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="DataFeed\users-feed-data.csv">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <Compile Include="HelloWorld\CustomSettingsExample.fs" />
+        <Compile Include="HelloWorld\HelloWorldExample.fs" />
+        <None Include="HelloWorld\config.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <Compile Include="HttpTests\SimpleHttpTest.fs" />
+        <Compile Include="HttpTests\AdvancedHttpTest.fs" />
+        <Compile Include="HttpTests\AdvancedHttpWithConfig.fs" />
+        <Compile Include="HttpTests\TracingHttp.fs" />
+        <None Include="HttpTests\Configs\config.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="HttpTests\Configs\infra-config.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="HttpTests\Configs\user-feed.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="HttpTests\docker-compose.yaml" />
+        <Compile Include="Logging\ElasticSearchLogging.fs" />
+        <None Include="Logging\docker-compose.yaml" />
+        <None Include="Logging\infra-config.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <Compile Include="MongoDb\MongoDbTest.fs" />
+        <None Include="MongoDb\docker-compose.yaml" />
+        <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
+        <None Include="RealtimeReporting\docker-compose.yaml" />
+        <Compile Include="XUnit\XUnitTest.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+      <PackageReference Include="MongoDB.Driver" Version="2.11.0" />
+      <PackageReference Include="NBomber.Http" Version="1.1.0" />
+      <PackageReference Include="NBomber.Sinks.InfluxDB" Version="1.1.0" />
+      <PackageReference Include="Unquote" Version="5.0.0" />
+      <PackageReference Include="xunit" Version="2.4.1" />
+      <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    </ItemGroup>
+
+</Project>
