@@ -45,6 +45,14 @@ type HintViewModel = {
 
 type HintsViewModel = HintViewModel[]
 
+type HtmlReportViewModel = {
+    nBomberInfo: NBomberInfoViewModel
+    testInfo: TestInfoViewModel
+    statsData: NodeStatsViewModel
+    timeLineStatsData: TimeLineStatsViewModel
+    hints: HintsViewModel
+}
+
 module internal NBomberInfoViewModel =
 
     let create (nodeInfo: NodeInfo) = {

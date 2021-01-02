@@ -11,7 +11,7 @@ open NBomber.Extensions.InternalExtensions
 module Md =
 
     let inline private createTableHeader (header) =
-        String.Join("|", header |> Seq.map(fun x -> sprintf "__%s__" x))
+        String.Join("|", header |> Seq.map(fun x -> $"__{x}__"))
 
     let inline private createTableSeparator (header: string list) =
         String.Join("|", Array.create header.Length "---")
@@ -28,16 +28,17 @@ module Md =
         | [] -> String.Empty
 
     let createInlineCode (text: obj) =
-        sprintf "`%A`" text
+        $"`{text}`"
 
     let createBlockquote (text) =
-        sprintf "> %s" text
+        $"> {text}"
 
 module MdTestInfo =
+
     let printTestInfo (testInfo: TestInfo) =
-        [testInfo.TestSuite |> Md.createInlineCode |> sprintf "test suite: %s" |> Md.createBlockquote
+        [$"test suite: {testInfo.TestSuite |> Md.createInlineCode}" |> Md.createBlockquote
          Md.createBlockquote("")
-         testInfo.TestName |> Md.createInlineCode |> sprintf "test name: %s" |> Md.createBlockquote
+         $"test name: {testInfo.TestName |> Md.createInlineCode}" |> Md.createBlockquote
         ]
         |> String.concatLines
         |> String.appendNewLine
@@ -45,7 +46,7 @@ module MdTestInfo =
 module MdErrorStats =
 
     let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
-        scnStats.ScenarioName |> Md.createInlineCode |> sprintf "errors for scenario: %s" |> Md.createBlockquote
+        $"errors for scenario: {scnStats.ScenarioName |> Md.createInlineCode}" |> Md.createBlockquote
 
     let printScenarioErrorStats (errorStats: ErrorStats[]) =
         errorStats
@@ -56,12 +57,12 @@ module MdErrorStats =
 module MdNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        sprintf "scenario: %s, duration: %s, ok count: %s, fail count: %s, all data: %s MB"
-            (scnStats.ScenarioName |> Md.createInlineCode)
-            (scnStats.Duration |> Md.createInlineCode)
-            (scnStats.OkCount |> Md.createInlineCode)
-            (scnStats.FailCount |> Md.createInlineCode)
-            (scnStats.AllDataMB |> Md.createInlineCode)
+        ($"scenario: {scnStats.ScenarioName |> Md.createInlineCode}" +
+         $", duration: {scnStats.Duration |> Md.createInlineCode}" +
+         $", ok count: {scnStats.OkCount |> Md.createInlineCode}" +
+         $", fail count: {scnStats.FailCount |> Md.createInlineCode}" +
+         $", all data: {scnStats.AllDataMB |> Md.createInlineCode} MB"
+        )
         |> Md.createBlockquote
         |> String.appendNewLine
 
@@ -71,32 +72,26 @@ module MdNodeStats =
         let name = Md.createInlineCode(s.StepName)
 
         let count =
-            sprintf "all = %s, ok = %s, failed = %s, RPS = %s"
-                (s.RPS |> Md.createInlineCode)
-                (s.RequestCount |> Md.createInlineCode)
-                (s.OkCount |> Md.createInlineCode)
-                (s.FailCount |> Md.createInlineCode)
+            $"all = {s.RequestCount |> Md.createInlineCode}" +
+            $", ok = {s.OkCount |> Md.createInlineCode}" +
+            $", failed = {s.FailCount |> Md.createInlineCode}" +
+            $", RPS = {s.RPS |> Md.createInlineCode}"
 
-        let times =
-            sprintf "min = %s, mean = %s, max = %s"
-                (s.Min |> Md.createInlineCode)
-                (s.Mean |> Md.createInlineCode)
-                (s.Max |> Md.createInlineCode)
+        let times = $"min = {s.Min |> Md.createInlineCode}, mean = {s.Mean |> Md.createInlineCode}, max = {s.Max |> Md.createInlineCode}"
 
         let percentile =
-            sprintf "50%% = %s, 75%% = %s, 95%% = %s, 99%% = %s, StdDev = %s"
-                (s.Percent50 |> Md.createInlineCode)
-                (s.Percent75 |> Md.createInlineCode)
-                (s.Percent95 |> Md.createInlineCode)
-                (s.Percent99 |> Md.createInlineCode)
-                (s.StdDev |> Md.createInlineCode)
+            $"50%% = {s.Percent50 |> Md.createInlineCode}" +
+            $", 75%% = {s.Percent75 |> Md.createInlineCode}" +
+            $", 95%% = {s.Percent95 |> Md.createInlineCode}" +
+            $", 99%% = {s.Percent99 |> Md.createInlineCode}" +
+            $", StdDev = {s.StdDev |> Md.createInlineCode}"
 
-        let dataTransfer =
-            sprintf "min = %s, mean = %s, max = %s, all = %s"
-                (s.MinDataKb |> sprintf "%.3f KB" |> Md.createInlineCode)
-                (s.MeanDataKb |> sprintf "%.3f KB" |> Md.createInlineCode)
-                (s.MaxDataKb |> sprintf "%.3f KB" |> Md.createInlineCode)
-                (s.AllDataMB |> sprintf "%.3f MB" |> Md.createInlineCode)
+        let min = $"%.3f{s.MinDataKb} KB" |> Md.createInlineCode
+        let mean = $"%.3f{s.MeanDataKb} KB" |> Md.createInlineCode
+        let max = $"%.3f{s.MaxDataKb} KB" |> Md.createInlineCode
+        let all = $"%.3f{s.AllDataMB} MB" |> Md.createInlineCode
+
+        let dataTransfer = $"min = {min}, mean = {mean}, max = {max}, all = {all}"
 
         [ ["name"; name]
           ["request count"; count]
@@ -131,7 +126,7 @@ module MdNodeStats =
 module MdPluginStats =
 
     let inline private printPluginStatsHeader (table: DataTable) =
-        table.TableName |> Md.createInlineCode |> sprintf "plugin stats: %s" |> Md.createBlockquote
+        $"plugin stats: {table.TableName |> Md.createInlineCode}" |> Md.createBlockquote
 
     let private printPluginStatsTableHeader (table: DataTable) =
         table.GetColumns()

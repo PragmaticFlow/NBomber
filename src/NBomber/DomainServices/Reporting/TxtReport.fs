@@ -13,14 +13,14 @@ open NBomber.Extensions.InternalExtensions
 module TxtTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
-        [sprintf "test suite: '%s'" testInfo.TestSuite; sprintf "test name: '%s'" testInfo.TestName]
+        [$"test suite: '{testInfo.TestSuite}'"; $"test name: '{testInfo.TestName}'"]
         |> String.concatLines
         |> String.appendNewLine
 
 module TxtErrorStats =
 
     let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
-        sprintf "errors for scenario: '%s'" scnStats.ScenarioName
+        $"errors for scenario: '{scnStats.ScenarioName}'"
 
     let printErrorStatsTable (errorStats: ErrorStats[]) =
         let errorTable = ConsoleTable("error code", "count", "message")
@@ -30,8 +30,8 @@ module TxtErrorStats =
 module TxtNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        sprintf "scenario: '%s', duration: '%A', ok count: '%A', fail count: '%A', all data: '%A' MB"
-            scnStats.ScenarioName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
+        $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
+        $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllDataMB}' MB"
 
     let private printStepsTable (steps: StepStats[]) =
         let stepTable = ConsoleTable("step", "details")
@@ -40,13 +40,12 @@ module TxtNodeStats =
             let dataInfoAvailable = s.AllDataMB > 0.0
 
             [ "- name", s.StepName
-              "- request count", sprintf "all = %i | OK = %i | failed = %i | RPS = %i" s.RPS s.RequestCount s.OkCount s.FailCount
-              "- latency", sprintf "min = %i | mean = %i | max = %i" s.Min s.Mean s.Max
-              "- latency percentile", sprintf "50%% = %i | 75%% = %i | 95%% = %i | 99%% = %i | StdDev = %i" s.Percent50 s.Percent75 s.Percent95 s.Percent99 s.StdDev
+              "- request count", $"all = {s.RequestCount} | OK = {s.OkCount} | failed = {s.FailCount} | RPS = {s.RPS}"
+              "- latency", $"min = {s.Min} | mean = {s.Mean} | max = {s.Max}"
+              "- latency percentile", $"50%% = {s.Percent50} | 75%% = {s.Percent75} | 95%% = {s.Percent95} | 99%% = {s.Percent99} | StdDev = {s.StdDev}"
 
               if dataInfoAvailable then
-                "- data transfer", sprintf "min = %g KB | mean = %g KB | max = %g KB | all = %g MB"
-                                       s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
+                "- data transfer", $"min = %g{s.MinDataKb} KB | mean = %g{s.MeanDataKb} KB | max = %g{s.MaxDataKb} KB | all = %g{s.AllDataMB} MB"
               if steps.Length > 1 && i < (steps.Length - 1) then
                 "", ""
             ]
@@ -70,7 +69,7 @@ module TxtNodeStats =
 module TxtPluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        sprintf "plugin stats: '%s'" table.TableName
+        $"plugin stats: '{table.TableName}'"
 
     let private printPluginStatsTable (table: DataTable) =
         let columnNames = table.GetColumns() |> Array.map(fun x -> x.ColumnName)

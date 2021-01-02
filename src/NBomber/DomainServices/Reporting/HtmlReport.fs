@@ -18,9 +18,7 @@ module AssetsUtils =
         if m.Success then
             m.Groups.[1].Value.Replace("/", ".")
             |> ResourceManager.readResource
-            |> Option.bind(fun x ->
-                sprintf "<%s>%s%s%s</%s>" tagName Environment.NewLine x Environment.NewLine tagName
-                |> Some)
+            |> Option.map(fun resource -> $"<{tagName}>{resource}</{tagName}>")
         else None
 
     let private styleRegex = Regex("<link[/\s\w=\"\d]*href=['\"]([\.\d\w\\/-]*)['\"][\s\w=\"'/]*>")
@@ -32,9 +30,7 @@ module AssetsUtils =
     let tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: string)
-                             (statsJsonData: string) (timeLineStatsJsonData: string)
-                             (hintsJsonData: string) (line: string) =
+let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
     let removeLineCommand = "<!-- remove-->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
@@ -42,8 +38,7 @@ let private applyHtmlReplace (nBomberInfoJsonData: string) (testInfoJsonData: st
     if line.Contains(removeLineCommand) then
         String.Empty
     else if line.Contains(includeViewModelCommand) then
-        sprintf "const viewModel = { nBomberInfo: %s, testInfo: %s, statsData: %s, timeLineStatsData: %s, hints: %s };"
-                nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData hintsJsonData
+        $"const viewModel = {viewModel |> Json.toJson};"
     else if line.Contains(includeAssetCommand) then
         AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.defaultValue line
@@ -54,12 +49,15 @@ let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
-    let nBomberInfoJsonData = stats.NodeInfo |> NBomberInfoViewModel.create |> Json.toJson
-    let testInfoJsonData = stats.TestInfo |> TestInfoViewModel.create |> Json.toJson
-    let statsJsonData = stats |> NodeStatsViewModel.create |> Json.toJson
-    let timeLineStatsJsonData = timeLineStats |> TimeLineStatsViewModel.create |> Json.toJson
-    let hintsJsonData = hints |> HintsViewModel.create |> Json.toJson
-    let applyHtmlReplace = applyHtmlReplace nBomberInfoJsonData testInfoJsonData statsJsonData timeLineStatsJsonData hintsJsonData
+    let viewModel = {
+        nBomberInfo = stats.NodeInfo |> NBomberInfoViewModel.create
+        testInfo = stats.TestInfo |> TestInfoViewModel.create
+        statsData = stats |> NodeStatsViewModel.create
+        timeLineStatsData = timeLineStats |> TimeLineStatsViewModel.create
+        hints = hints |> HintsViewModel.create
+    }
+
+    let applyHtmlReplace = applyHtmlReplace viewModel
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription
