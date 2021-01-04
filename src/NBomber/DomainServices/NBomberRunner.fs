@@ -7,6 +7,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.DomainServices.Reporting.Report
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
@@ -14,7 +15,6 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.Reporting
-open NBomber.DomainServices.Reporting.Report
 open NBomber.DomainServices.TestHost
 
 let getApplicationType () =
@@ -65,7 +65,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let timeLineStats = testHost.GetTimeLineNodeStats()
         let hints         = getHints context nodeStats
 
-        return Report.build nodeStats timeLineStats
+        return Report.build nodeStats timeLineStats hints
                |> saveReports dep context nodeStats
     }
 

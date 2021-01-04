@@ -4,13 +4,14 @@ open System
 open System.Data
 
 open NBomber.Contracts
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
-module MdUtility =
+module Md =
 
     let inline private createTableHeader (header) =
-        String.Join("|", header |> Seq.map(fun x -> sprintf "__%s__" x))
+        String.Join("|", header |> Seq.map(fun x -> $"__{x}__"))
 
     let inline private createTableSeparator (header: string list) =
         String.Join("|", Array.create header.Length "---")
@@ -18,7 +19,7 @@ module MdUtility =
     let private createTableRows (rows: string list list) =
         rows |> Seq.map(fun row -> String.Join("|", row)) |> String.concatLines
 
-    let toMdTable (headerWithRows: string list list) =
+    let createTable (headerWithRows: string list list) =
         match headerWithRows with
         | header :: rows ->
             [createTableHeader(header); createTableSeparator(header); createTableRows(rows)]
@@ -26,18 +27,26 @@ module MdUtility =
 
         | [] -> String.Empty
 
+    let createInlineCode (text: obj) =
+        $"`{text}`"
+
+    let createBlockquote (text) =
+        $"> {text}"
+
 module MdTestInfo =
+
     let printTestInfo (testInfo: TestInfo) =
-        [sprintf "> test suite: `%s`" testInfo.TestSuite
-         ">"
-         sprintf "> test name: `%s`" testInfo.TestName
-         ""]
+        [$"test suite: {testInfo.TestSuite |> Md.createInlineCode}" |> Md.createBlockquote
+         Md.createBlockquote("")
+         $"test name: {testInfo.TestName |> Md.createInlineCode}" |> Md.createBlockquote
+        ]
         |> String.concatLines
+        |> String.appendNewLine
 
 module MdErrorStats =
 
-    let headerScenarioErrorStats (scnStats: ScenarioStats) =
-        sprintf "> errors for scenario: `%s`" scnStats.ScenarioName
+    let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
+        $"errors for scenario: {scnStats.ScenarioName |> Md.createInlineCode}" |> Md.createBlockquote
 
     let printScenarioErrorStats (errorStats: ErrorStats[]) =
         errorStats
@@ -47,20 +56,42 @@ module MdErrorStats =
 
 module MdNodeStats =
 
-    let private headerScenario (scnStats: ScenarioStats) =
-        let scnName = scnStats.ScenarioName |> String.replace("_", " ")
-        [sprintf "> scenario: `%s`, duration: `%A`, ok count: `%i`, fail count: `%i`, all data: %f MB" scnName scnStats.Duration scnStats.OkCount scnStats.FailCount scnStats.AllDataMB
-         ""]
-        |> String.concatLines
+    let private printScenarioHeader (scnStats: ScenarioStats) =
+        ($"scenario: {scnStats.ScenarioName |> Md.createInlineCode}" +
+         $", duration: {scnStats.Duration |> Md.createInlineCode}" +
+         $", ok count: {scnStats.OkCount |> Md.createInlineCode}" +
+         $", fail count: {scnStats.FailCount |> Md.createInlineCode}" +
+         $", all data: {scnStats.AllDataMB |> Md.createInlineCode} MB"
+        )
+        |> Md.createBlockquote
+        |> String.appendNewLine
 
-    let private headerStepStats = ["step"; "details"]
+    let private stepStatsColHeaders = ["step"; "details"]
 
-    let private  rowsStepStats (s: StepStats) =
-        let name = sprintf "`%s`" s.StepName
-        let count = sprintf "all = `%i`, ok = `%i`, failed = `%i`" s.RequestCount s.OkCount s.FailCount
-        let times = sprintf "RPS = `%i`, min = `%i`, mean = `%i`, max = `%i`" s.RPS s.Min s.Mean s.Max
-        let percentile = sprintf "50%% = `%i`, 75%% = `%i`, 95%% = `%i`, 99%% = `%i`, StdDev = `%i`" s.Percent50 s.Percent75 s.Percent95 s.Percent99 s.StdDev
-        let dataTransfer = sprintf "min = `%.3f KB`, mean = `%.3f KB`, max = `%.3f KB`, all = `%.3f MB`" s.MinDataKb s.MeanDataKb s.MaxDataKb s.AllDataMB
+    let private printStepStatsRows (s: StepStats) =
+        let name = Md.createInlineCode(s.StepName)
+
+        let count =
+            $"all = {s.RequestCount |> Md.createInlineCode}" +
+            $", ok = {s.OkCount |> Md.createInlineCode}" +
+            $", failed = {s.FailCount |> Md.createInlineCode}" +
+            $", RPS = {s.RPS |> Md.createInlineCode}"
+
+        let times = $"min = {s.Min |> Md.createInlineCode}, mean = {s.Mean |> Md.createInlineCode}, max = {s.Max |> Md.createInlineCode}"
+
+        let percentile =
+            $"50%% = {s.Percent50 |> Md.createInlineCode}" +
+            $", 75%% = {s.Percent75 |> Md.createInlineCode}" +
+            $", 95%% = {s.Percent95 |> Md.createInlineCode}" +
+            $", 99%% = {s.Percent99 |> Md.createInlineCode}" +
+            $", StdDev = {s.StdDev |> Md.createInlineCode}"
+
+        let min = $"%.3f{s.MinDataKb} KB" |> Md.createInlineCode
+        let mean = $"%.3f{s.MeanDataKb} KB" |> Md.createInlineCode
+        let max = $"%.3f{s.MaxDataKb} KB" |> Md.createInlineCode
+        let all = $"%.3f{s.AllDataMB} MB" |> Md.createInlineCode
+
+        let dataTransfer = $"min = {min}, mean = {mean}, max = {max}, all = {all}"
 
         [ ["name"; name]
           ["request count"; count]
@@ -72,36 +103,37 @@ module MdNodeStats =
         stats.ScenarioStats
         |> Seq.collect(fun scnStats ->
             seq {
-                    headerScenario(scnStats)
+                    printScenarioHeader(scnStats)
 
                     scnStats.StepStats
-                    |> Seq.collect rowsStepStats
-                    |> Seq.append [headerStepStats]
+                    |> Seq.collect printStepStatsRows
+                    |> Seq.append [stepStatsColHeaders]
                     |> Seq.toList
-                    |> MdUtility.toMdTable
+                    |> Md.createTable
                     |> String.appendNewLine
 
                     if scnStats.ErrorStats.Length > 0 then
-                        MdErrorStats.headerScenarioErrorStats(scnStats)
+                        MdErrorStats.printScenarioErrorStatsHeader(scnStats)
                         |> String.appendNewLine
 
                         MdErrorStats.printScenarioErrorStats(scnStats.ErrorStats)
-                        |> MdUtility.toMdTable
+                        |> Md.createTable
                         |> String.appendNewLine
-            })
+            }
+        )
         |> String.concatLines
 
 module MdPluginStats =
 
-    let inline private headerPluginStats (table: DataTable) =
-        sprintf "> plugin stats: `%s`" table.TableName
+    let inline private printPluginStatsHeader (table: DataTable) =
+        $"plugin stats: {table.TableName |> Md.createInlineCode}" |> Md.createBlockquote
 
-    let private headerTable (table: DataTable) =
+    let private printPluginStatsTableHeader (table: DataTable) =
         table.GetColumns()
         |> Seq.map(fun col -> col.GetColumnCaptionOrName())
         |> Seq.toList
 
-    let private rowsTable (table: DataTable) =
+    let private printPluginStatsTableRows (table: DataTable) =
         let columns = table.GetColumns()
 
         table.GetRows()
@@ -113,18 +145,45 @@ module MdPluginStats =
         |> Seq.collect(fun dataSet -> dataSet.GetTables())
         |> Seq.collect(fun table ->
             seq {
-                yield table |> headerPluginStats |> String.appendNewLine
+                table |> printPluginStatsHeader |> String.appendNewLine
 
-                yield table
-                      |> rowsTable
-                      |> List.append [headerTable(table)]
-                      |> MdUtility.toMdTable
-                      |> String.appendNewLine
-            })
+                table
+                |> printPluginStatsTableRows
+                |> List.append [printPluginStatsTableHeader(table)]
+                |> Md.createTable
+                |> String.appendNewLine
+            }
+        )
         |> String.concatLines
 
-let print (stats: NodeStats) =
+module MdHints =
+    let private printHintsHeader () =
+        Md.createBlockquote("hints:")
+
+    let private printHintsTableHeader () =
+        ["source"; "name"; "hint"]
+
+    let private printHintsTableRows (hint: HintResult) =
+        [hint.SourceType.ToString(); hint.SourceName; hint.Hint]
+
+    let printHints (hints: HintResult list) =
+        if hints.Length > 0 then
+            seq {
+                printHintsHeader() |> String.appendNewLine
+
+                hints
+                |> List.map printHintsTableRows
+                |> List.append [printHintsTableHeader()]
+                |> Md.createTable
+                |> String.appendNewLine
+            }
+            |> String.concatLines
+        else
+            String.Empty
+
+let print (stats) (hints) =
     [MdTestInfo.printTestInfo stats.TestInfo
      MdNodeStats.printNodeStats stats
-     MdPluginStats.printPluginStats stats]
+     MdPluginStats.printPluginStats stats
+     MdHints.printHints hints]
     |> String.concatLines
