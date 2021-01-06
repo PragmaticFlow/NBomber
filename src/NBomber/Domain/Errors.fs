@@ -12,6 +12,7 @@ type ValidationError =
     | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
     | WarmUpConfigValueHasInvalidFormat of scnName:string * warmUpValue:string
     | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
+    | DuplicatedPluginNames of pluginNames:string list
 
     // ScenarioValidation errors
     | EmptyReportName

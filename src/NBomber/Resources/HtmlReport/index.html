@@ -2,9 +2,10 @@
     This is a template for building a report in html format.
 
     Html report builder supports the following commands enclosed in comments:
-    - include asset: replaces a line with a style/script block specified into href/src attribute.
-                     It only works for assets that are contained in embedded resources.
-    - include view model: includes view model.
+    - include asset: replaces a line with an embedded resource specified in href/src attribute.
+    - include view model: includes the view model.
+    - include custom head: includes a custom head (css styles, Vue.js templates).
+    - include custom body: includes a custom body (html, javascript).
     - remove: removes a line.
 -->
 <!DOCTYPE HTML>
@@ -21,6 +22,9 @@
 
     <link rel="stylesheet" href="assets/css/sidebar.css" /> <!-- include asset -->
     <link rel="stylesheet" href="assets/css/index.css" /> <!-- include asset -->
+
+    <!-- include custom head -->
+
     <!-- No Data Template -->
     <script type="text/x-template" id="no-data-template">
         <h3>No Data</h3>
@@ -355,7 +359,7 @@
     </script>
 
 </head>
-<body>
+<body data-sidebar-active="true" data-current-view="test-suite">
     <div id="app">
         <!-- Navbar -->
         <nav class="navbar mdb-color darken-3">
@@ -370,7 +374,7 @@
         </nav>
 
         <!-- Sidebar -->
-        <div id="wrapper" :class="{ active: sideBarActive }" v-cloak>
+        <div id="wrapper" v-cloak>
             <div id="sidebar-wrapper" class="mdb-color darken-3">
                 <!-- Menu -->
                 <ul class="sidebar-nav">
@@ -440,7 +444,7 @@
         </div>
 
         <!-- Content -->
-        <div id="page-content-wrapper" :class="{ active: !sideBarActive }">
+        <div class="page-content-wrapper">
             <div class="container">
 
                 <div class="text-center" v-if="false">
@@ -751,7 +755,7 @@
 
 
     <script src="assets/js/index.js"></script> <!-- include asset -->
-    <script src="assets/js/data.js"></script> <!-- remove-->
+    <script src="assets/js/data.js"></script> <!-- remove -->
 
     <script>
         // example of view model structure can be found in data.js
@@ -759,5 +763,13 @@
         initApp('#app', viewModel);
     </script>
 
+    <div class="custom-view custom-view-test-suite">
+        <div class="page-content-wrapper">
+            <div class="container">
+                <!-- include custom body -->
+                <h3>Custom html for test suite view</h3> <!-- remove -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>

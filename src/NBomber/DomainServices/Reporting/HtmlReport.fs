@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 
 open NBomber.Domain.HintsAnalyzer
+open NBomber.DomainServices
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts
@@ -13,7 +14,7 @@ open NBomber.Infra.Dependency
 module AssetsUtils =
 
     let tryIncludeAsset (tagName) (regex: Regex) (line: string) =
-        let m = line |> regex.Match
+        let m = regex.Match(line)
 
         if m.Success then
             m.Groups.[1].Value.Replace("/", ".")
@@ -30,10 +31,12 @@ module AssetsUtils =
     let tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
-    let removeLineCommand = "<!-- remove-->"
+let private applyHtmlReplace (viewModel: HtmlReportViewModel) (customHead: string) (customBody: string) (line: string) =
+    let removeLineCommand = "<!-- remove -->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
+    let includeCustomHeadCommand = "<!-- include custom head -->"
+    let includeCustomBodyCommand = "<!-- include custom body -->"
 
     if line.Contains(removeLineCommand) then
         String.Empty
@@ -42,6 +45,10 @@ let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
     else if line.Contains(includeAssetCommand) then
         AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.defaultValue line
+    else if line.Contains(includeCustomHeadCommand) then
+        customHead
+    else if line.Contains(includeCustomBodyCommand) then
+        customBody
     else
         line
 
@@ -57,12 +64,14 @@ let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints
         hints = hints |> HintsViewModel.create
     }
 
-    let applyHtmlReplace = applyHtmlReplace viewModel
+    let customHead = PluginReport.getHtmlReportHead(stats.PluginStats)
+    let customBody = PluginReport.getHtmlReportBody(stats.PluginStats)
+    let applyHtmlReplace = applyHtmlReplace viewModel customHead customBody
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription
-    |> Option.map(fun html -> html.Replace("\r", ""))
+    |> Option.map(fun html -> html.Replace("\r", String.Empty))
     |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
-    |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
+    |> Option.map(Seq.map applyHtmlReplace)
     |> Option.map String.concatLines
     |> Option.defaultValue String.Empty

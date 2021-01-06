@@ -1,11 +1,10 @@
-﻿// Learn more about F# at http://docs.microsoft.com/dotnet/fsharp
-
-open System
-open FSharpDev.HelloWorld
+﻿open FSharpDev.HelloWorld
+open FSharpDev.Plugin
 
 [<EntryPoint>]
 let main argv =
 
     HelloWorldExample.run()
+    //PluginHtmlReportExample.run()
 
     0 // return an integer exit code

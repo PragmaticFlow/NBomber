@@ -212,6 +212,7 @@ module NBomberRunner =
 
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
+    /// Plugin names must be unique.
     let withWorkerPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
         { context with WorkerPlugins = plugins }
 
@@ -305,3 +306,10 @@ module NBomberRunner =
         context
         |> runWithResult args
         |> Result.mapError(AppError.toString)
+
+/// PluginStats helps to find plugin stats.
+module PluginStats =
+
+    /// Tries to find plugin stats by plugin name. Returns Some DataSet if plugin exists and None otherwise.
+    let tryFind (pluginName) (nodeStats: NodeStats) =
+        DomainServices.PluginStats.tryFindDataSetByName pluginName nodeStats.PluginStats

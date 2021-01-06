@@ -1,6 +1,7 @@
 namespace NBomber
 
 open System
+open System.Data
 open System.IO
 open System.Globalization
 open System.Runtime.CompilerServices
@@ -70,3 +71,34 @@ module Feed =
     [<CompiledName("CreateRandom")>]
     let createRandom (name) (provider: IFeedProvider<'T>) =
         NBomber.Domain.Feed.random(name, provider)
+
+//TODO: move to FShartp.fs and CShart.fs
+module PluginReport =
+
+    [<CompiledName("Create")>]
+    let create () =
+        DomainServices.PluginReport.createTable()
+
+    [<CompiledName("AddToTxtReport")>]
+    let addToTxtReport (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.TxtReportText
+        |> DomainServices.PluginReport.addReportElement table
+
+    [<CompiledName("AddToMdReport")>]
+    let addToMdReport (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.MdReportMarkup
+        |> DomainServices.PluginReport.addReportElement table
+
+    [<CompiledName("AddToHtmlReportHead")>]
+    let addToHtmlReportHead (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.HtmlReportHead
+        |> DomainServices.PluginReport.addReportElement table
+
+    [<CompiledName("AddToHtmlReportBody")>]
+    let addToHtmlReportBody (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.HtmlReportBody
+        |> DomainServices.PluginReport.addReportElement table

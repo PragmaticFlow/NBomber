@@ -5,6 +5,7 @@ open System.Data
 
 open NBomber.Contracts
 open NBomber.Domain.HintsAnalyzer
+open NBomber.DomainServices
 open NBomber.Extensions
 
 type NBomberInfoViewModel = {
@@ -77,8 +78,9 @@ module internal NodeStatsViewModel =
 
     let private mapToPluginStatsViewModel (pluginStats: DataSet[]) =
         pluginStats
-        |> Array.collect(fun dataSet -> dataSet.GetTables())
-        |> Array.map mapDataTableToPluginStatsViewModel
+        |> PluginStats.getStatsTables
+        |> Seq.map mapDataTableToPluginStatsViewModel
+        |> Array.ofSeq
 
     let create (stats: NodeStats): NodeStatsViewModel = {
         RequestCount = stats.RequestCount

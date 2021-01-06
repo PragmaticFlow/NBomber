@@ -390,6 +390,15 @@ const initApp = (appContainer, viewModel) => {
                 },
                 data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'StdDev')
             }, {
+                name: '50%',
+                type: 'area',
+                marker: createSeriesMarker(),
+                color: theme.colors.stats.percentile75,
+                tooltip: {
+                    valueSuffix: ' ms'
+                },
+                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Percent50')
+            }, {
                 name: '75%',
                 type: 'area',
                 marker: createSeriesMarker(),
@@ -654,6 +663,16 @@ const initApp = (appContainer, viewModel) => {
 
                 if (!this.loadedViews[view])
                     this.$set(this.loadedViews, view, true);
+            }
+        },
+        watch: {
+            currentView: function (newValue, oldValue) {
+                document.querySelector('body')
+                    .setAttribute('data-current-view', newValue);
+            },
+            sideBarActive: function (newValue, oldValue) {
+                document.querySelector('body')
+                    .setAttribute('data-sidebar-active', newValue);
             }
         }
     });

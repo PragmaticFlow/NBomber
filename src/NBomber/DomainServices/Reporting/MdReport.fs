@@ -5,6 +5,7 @@ open System.Data
 
 open NBomber.Contracts
 open NBomber.Domain.HintsAnalyzer
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -142,7 +143,7 @@ module MdPluginStats =
 
     let printPluginStats (stats: NodeStats) =
         stats.PluginStats
-        |> Seq.collect(fun dataSet -> dataSet.GetTables())
+        |> PluginStats.getStatsTables
         |> Seq.collect(fun table ->
             seq {
                 table |> printPluginStatsHeader |> String.appendNewLine

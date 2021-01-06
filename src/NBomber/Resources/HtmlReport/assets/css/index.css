@@ -91,3 +91,11 @@ table.table-scenario-stats tr td {
 [data-toggle="collapse"].collapsed .fa {
     transform: rotate(-90deg);
 }
+
+.custom-view {
+    display: none;
+}
+
+[data-current-view="test-suite"] .custom-view-test-suite {
+    display: block;
+}
