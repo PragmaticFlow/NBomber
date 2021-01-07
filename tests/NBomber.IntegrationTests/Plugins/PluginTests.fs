@@ -153,7 +153,7 @@ let ``StartTest should be invoked once`` () =
 let ``StartTest should be invoked with infra config`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
-    let mutable pluginConfig = None
+    let mutable pluginConfig = Unchecked.defaultof<_>
 
     let plugin = {
         new IWorkerPlugin with
@@ -177,7 +177,9 @@ let ``StartTest should be invoked with infra config`` () =
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    test <@ pluginConfig.IsSome @>
+    let serilogConfig = pluginConfig.GetSection("Serilog")
+
+    test <@ isNull serilogConfig = false @>
 
 [<Fact>]
 let ``GetStats should be invoked many times even if no IReporingSinks were registered`` () =
