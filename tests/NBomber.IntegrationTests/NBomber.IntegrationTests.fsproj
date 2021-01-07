@@ -29,6 +29,8 @@
         <Compile Include="StatisticsTests.fs" />
         <Compile Include="ConfigurationTests.fs" />
         <Compile Include="LoadTimeLineTests.fs" />
+        <Compile Include="Concurrency\ConstantActorSchedulerTests.fs" />
+        <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />
         <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
         <Compile Include="ConnectionPoolTests.fs" />
         <Compile Include="Reporting\ReportingSinkTests.fs" />
