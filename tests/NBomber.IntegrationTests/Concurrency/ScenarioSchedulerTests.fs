@@ -212,13 +212,10 @@ let ``should run InjectOneTimeActors correctly`` () =
         return Response.Ok(42)
     })
 
-    let scenario = Scenario.create "hello_world_scenario" [step]
-                   |> Scenario.withoutWarmUp
-                   |> Scenario.withLoadSimulations [
-                       InjectPerSec(rate = 1, during = seconds 20)
-                   ]
-
-    NBomberRunner.registerScenarios [scenario]
+    Scenario.create "hello_world_scenario" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 1, during = seconds 20)]
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.map(fun nodeStats ->
         let reqCount = nodeStats.RequestCount

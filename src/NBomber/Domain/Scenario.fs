@@ -164,7 +164,7 @@ module ScenarioContext =
             member _.Logger = context.Logger }
 
 let createCorrelationId (scnName: ScenarioName, copyNumber): CorrelationId =
-    { Id = sprintf "%s_%i" scnName copyNumber
+    { Id = $"{scnName}_{copyNumber}"
       ScenarioName = scnName
       CopyNumber = copyNumber }
 

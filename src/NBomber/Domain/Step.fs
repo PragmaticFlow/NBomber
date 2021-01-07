@@ -39,7 +39,7 @@ module StepContext =
 
         { CorrelationId = dep.CorrelationId
           CancellationToken = dep.CancellationToken
-          Connection = getConnection(step.ConnectionPool)
+          Connection = getConnection step.ConnectionPool
           Logger = dep.Logger
           FeedItem = Unchecked.defaultof<_>
           Data = Dict.empty
@@ -139,10 +139,10 @@ let execSteps (dep: StepDep)
                 if response.Response.Exception.IsNone then
                     data.[Constants.StepResponseKey] <- payload
                 else
-                    dep.Logger.Error(response.Response.Exception.Value, "Step '{StepName}' from scenario '{ScenarioName}' is failed. ", step.Value.StepName, dep.ScenarioName)
+                    dep.Logger.Error(response.Response.Exception.Value, "Step '{StepName}' from scenario '{ScenarioName}' has failed. ", step.Value.StepName, dep.ScenarioName)
                     skipStep <- true
             with
-            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' is failed.", stepIndex, dep.ScenarioName)
+            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
 }
 
 let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) =

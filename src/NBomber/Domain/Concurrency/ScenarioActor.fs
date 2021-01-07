@@ -36,27 +36,36 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
                  |> List.toArray
 
     let mutable _working = false
-    let mutable _reserved = false
-    let mutable _currentTask = Unchecked.defaultof<Task>
 
     member _.CorrelationId = correlationId
     member _.Working = _working
-    member _.Reserved = _reserved
-    member _.CurrentTask = _currentTask
-
-    member _.ReserveForScheduler() =
-        _reserved <- true
-
-    member _.LeaveScheduler() =
-        _reserved <- false
 
     member _.ExecSteps() = task {
-        if _reserved then
-            _working <- true
-            _currentTask <- Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
-            do! _currentTask
+        try
+            if not _working then
+                _working <- true
+                do! Task.Yield()
+                do! Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+            else
+                dep.Logger.Fatal("ExecSteps was invoked for already working actor with scenario '{ScenarioName}'.", dep.Scenario.ScenarioName)
+        finally
             _working <- false
     }
+
+    member _.RunInfinite() = task {
+        try
+            if not _working then
+                _working <- true
+                do! Task.Yield()
+                while _working do
+                    do! Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+            else
+                dep.Logger.Fatal("RunInfinite was invoked for already working actor with scenario '{ScenarioName}'.", dep.Scenario.ScenarioName)
+        finally
+            _working <- false
+    }
+
+    member _.Stop() = _working <- false
 
     member _.GetStepResults(duration) =
         let filteredResponses = _allScnResponses |> Array.map(Stream.ofResizeArray >> Step.filterByDuration duration)

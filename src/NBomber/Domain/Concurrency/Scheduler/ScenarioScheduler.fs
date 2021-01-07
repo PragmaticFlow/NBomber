@@ -83,8 +83,8 @@ type ScenarioScheduler(dep: ActorDep) =
     let mutable _scenario = dep.Scenario
     let mutable _currentSimulation = LoadSimulation.KeepConstant(0, TimeSpan.MinValue)
 
-    let _constantScheduler = ConstantActorScheduler(dep)
-    let _oneTimeScheduler = OneTimeActorScheduler(dep)
+    let _constantScheduler = new ConstantActorScheduler(dep)
+    let _oneTimeScheduler = new OneTimeActorScheduler(dep)
     let _schedulerTimer = new System.Timers.Timer(SchedulerTickIntervalMs)
     let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
     let _eventStream = Subject.broadcast
@@ -102,10 +102,10 @@ type ScenarioScheduler(dep: ActorDep) =
     let stop () =
         if not _disposed then
             _disposed <- true
-            _schedulerTimer.Stop()
-            _progressInfoTimer.Stop()
             dep.GlobalTimer.Stop()
             _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
+            _schedulerTimer.Stop()
+            _progressInfoTimer.Stop()
             _eventStream.OnCompleted()
             _eventStream.Dispose()
             _constantScheduler.Stop()
@@ -119,7 +119,7 @@ type ScenarioScheduler(dep: ActorDep) =
         let simulationStats =
             LoadTimeLine.createSimulationStats(
                 _currentSimulation,
-                _constantScheduler.WorkingActorCount,
+                _constantScheduler.ScheduledActorCount,
                 _oneTimeScheduler.ScheduledActorCount
             )
 
@@ -155,7 +155,7 @@ type ScenarioScheduler(dep: ActorDep) =
                         |> LoadTimeLine.calcTimeSegmentProgress(currentTime)
                         |> LoadTimeLine.correctTimeProgress
 
-                    schedule getRandomValue timeSegment timeProgress _constantScheduler.WorkingActorCount
+                    schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
                     |> List.iter(function
                         | AddConstantActors count    -> _constantScheduler.AddActors(count)
                         | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
@@ -168,7 +168,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
         _progressInfoTimer.Elapsed.Add(fun _ ->
             let progressInfo = {
-                ConstantActorCount = _constantScheduler.WorkingActorCount
+                ConstantActorCount = _constantScheduler.ScheduledActorCount
                 OneTimeActorCount = _oneTimeScheduler.ScheduledActorCount
                 CurrentSimulation = _currentSimulation
             }
@@ -181,8 +181,7 @@ type ScenarioScheduler(dep: ActorDep) =
         _warmUp <- isWarmUp
         start()
 
-    member _.Stop() =
-        stop()
+    member _.Stop() = stop()
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
