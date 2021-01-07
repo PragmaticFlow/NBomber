@@ -56,6 +56,7 @@ let inline private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
+    //todo: use PascalCase
     let viewModel = {
         nBomberInfo = stats.NodeInfo |> NBomberInfoViewModel.create
         testInfo = stats.TestInfo |> TestInfoViewModel.create

@@ -510,6 +510,10 @@ const initApp = (appContainer, viewModel) => {
     };
 
     // Vue Components
+    Vue.component('plugin-card', {
+        template: "#plugin-card-template"
+    });
+
     Vue.component('no-data', {
         template: "#no-data-template"
     });
@@ -583,6 +587,14 @@ const initApp = (appContainer, viewModel) => {
     Vue.component('lazy-load', {
         props: ['loadedViews', 'loadForView'],
         template: '<div><slot v-if="loadedViews[loadForView]"></slot></div>'
+    });
+
+    Vue.component('plugin-chart', {
+        props: ['settings'],
+        template: '<div ref="container" class="chart chart-plugin"></div>',
+        mounted() {
+            renderChart(this.$refs.container, this.settings);
+        }
     });
 
     Vue.component('chart-scenario-requests', {

@@ -182,9 +182,10 @@ module MdHints =
         else
             String.Empty
 
-let print (stats) (hints) =
+let print (stats: NodeStats) (hints: HintResult list) =
     [MdTestInfo.printTestInfo stats.TestInfo
      MdNodeStats.printNodeStats stats
      MdPluginStats.printPluginStats stats
-     MdHints.printHints hints]
+     MdHints.printHints hints
+     PluginReport.getMdReportMarkup(stats.PluginStats)]
     |> String.concatLines

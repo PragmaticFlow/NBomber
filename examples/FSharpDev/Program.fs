@@ -5,6 +5,7 @@ open FSharpDev.Plugin
 let main argv =
 
     HelloWorldExample.run()
-    //PluginHtmlReportExample.run()
+    //SimplePluginReportExample.run()
+    //AdvancedPluginReportExample.run()
 
     0 // return an integer exit code

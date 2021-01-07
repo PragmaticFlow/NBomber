@@ -8,8 +8,9 @@ namespace CSharpDev
     {
         static void Main(string[] args)
         {
-            //HelloWorldExample.Run();
-            PluginHtmlReportExample.Run();
+            HelloWorldExample.Run();
+            //SimplePluginReportExample.Run();
+            //AdvancedPluginReportExample.Run();
         }
     }
 }

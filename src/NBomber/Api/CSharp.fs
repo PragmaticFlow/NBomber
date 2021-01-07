@@ -3,7 +3,7 @@
 #nowarn "3211"
 
 open System
-open System.Threading
+open System.Data
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -259,3 +259,32 @@ type PluginStats =
         |> function
             | Some pluginStats -> (true, pluginStats)
             | None             -> (false, null)
+
+[<Extension>]
+
+type PluginReport =
+
+    /// Creates a plugin report data table
+    [<Extension>]
+    static member Create () =
+        FSharp.PluginReport.create()
+
+    /// Adds a value in a plugin report data table to be added into txt report
+    [<Extension>]
+    static member  AddToTxtReport (table: DataTable, value: string) =
+        FSharp.PluginReport.addToTxtReport value table
+
+    /// Adds a value in a plugin report data table to be added into md report
+    [<Extension>]
+    static member  AddToMdReport (table: DataTable, value: string) =
+        FSharp.PluginReport.addToMdReport value table
+
+    /// Adds a value in a plugin report data table to be added into the head of html report
+    [<Extension>]
+    static member  AddToHtmlReportHead (table: DataTable, value: string) =
+        FSharp.PluginReport.addToHtmlReportHead value table
+
+    /// Adds a value in a plugin report data table to be added to the body of html report
+    [<Extension>]
+    static member  AddToHtmlReportBody (table: DataTable, value: string) =
+        FSharp.PluginReport.addToHtmlReportBody value table

@@ -493,20 +493,102 @@ let ``tables should not be passed to reports if no rows in table`` () =
     test <@ reports |> Seq.forall(fun report -> not(report.Contains("EmptyTable"))) @>
 
 [<Fact>]
-let ``.plugin-report table should be passed to html report`` () =
+let ``plugin stats should be passed to txt report`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
 
-    let head = "<style>.plugin-html { margin-left: 300px; }</style>"
-    let body = "<h3 class=\"plugin-html\">plugin html</h3>"
+    let text = "plugin stats text"
 
     let createPluginStats (currentOperation: NodeOperationType) =
         let pluginStats = new DataSet()
 
         if currentOperation = NodeOperationType.Complete then
-            NBomber.PluginReport.create()
-            |> NBomber.PluginReport.addToHtmlReportHead head
-            |> NBomber.PluginReport.addToHtmlReportBody body
+            PluginReport.create()
+            |> PluginReport.addToTxtReport text
+            |> pluginStats.Tables.Add
+
+        pluginStats
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(currentOperation) = createPluginStats(currentOperation)
+            member _.GetHints() = Array.empty
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report -> report.ReportFormat = ReportFormat.Txt)
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> report.Contains(text)) @>
+
+[<Fact>]
+let ``plugin stats should be passed to md report`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let markup = "plugin stats `markup`"
+
+    let createPluginStats (currentOperation: NodeOperationType) =
+        let pluginStats = new DataSet()
+
+        if currentOperation = NodeOperationType.Complete then
+            PluginReport.create()
+            |> PluginReport.addToMdReport markup
+            |> pluginStats.Tables.Add
+
+        pluginStats
+
+    let plugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(currentOperation) = createPluginStats(currentOperation)
+            member _.GetHints() = Array.empty
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let reports =
+        NBomberRunner.registerScenarios scenarios
+        |> NBomberRunner.withWorkerPlugins [plugin]
+        |> NBomberRunner.run
+        |> Result.mapError failwith
+        |> function
+            | Ok nodeStats -> nodeStats.ReportFiles
+            | Error _      -> Array.empty
+        |> Seq.filter(fun report -> report.ReportFormat = ReportFormat.Md)
+        |> Seq.map(fun report -> System.IO.File.ReadAllText(report.FilePath))
+
+    test <@ reports |> Seq.forall(fun report -> report.Contains(markup)) @>
+
+[<Fact>]
+let ``plugin stats should be passed to html report`` () =
+
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let head = "<style>.plugin-html { margin-left: 300px; }</style>"
+    let body = "<h3 class=\"plugin-html\">plugin stats html</h3>"
+
+    let createPluginStats (currentOperation: NodeOperationType) =
+        let pluginStats = new DataSet()
+
+        if currentOperation = NodeOperationType.Complete then
+            PluginReport.create()
+            |> PluginReport.addToHtmlReportHead head
+            |> PluginReport.addToHtmlReportBody body
             |> pluginStats.Tables.Add
 
         pluginStats

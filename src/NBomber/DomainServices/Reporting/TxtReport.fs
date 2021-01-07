@@ -115,9 +115,10 @@ module TxtHints =
         else
             String.Empty
 
-let print (stats) (hints) =
+let print (stats: NodeStats) (hints: HintResult list) =
     [TxtTestInfo.printTestInfo stats.TestInfo
      TxtNodeStats.printNodeStats stats
      TxtPluginStats.printPluginStats stats
-     TxtHints.printHints hints]
+     TxtHints.printHints hints
+     PluginReport.getTextReportText(stats.PluginStats)]
     |> String.concatLines

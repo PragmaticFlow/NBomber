@@ -25,6 +25,18 @@
 
     <!-- include custom head -->
 
+    <!-- Plugin Card Template -->
+    <script type="text/x-template" id="plugin-card-template">
+        <div class="card custom">
+            <div class="card-header mdb-color darken-2 white-text">
+                <slot name="header"></slot>
+            </div>
+            <div class="card-body">
+                <slot></slot>
+            </div>
+        </div>
+    </script>
+
     <!-- No Data Template -->
     <script type="text/x-template" id="no-data-template">
         <h3>No Data</h3>
@@ -142,7 +154,6 @@
             </tbody>
         </table>
     </script>
-
 
     <!-- Scenarios Stats Requests Number Table Template -->
     <script type="text/x-template" id="scenario-stats-requests-number-table-template">
@@ -767,7 +778,7 @@
         <div class="page-content-wrapper">
             <div class="container">
                 <!-- include custom body -->
-                <h3>Custom html for test suite view</h3> <!-- remove -->
+                <h3>Hello from custom view</h3> <!-- remove -->
             </div>
         </div>
     </div>

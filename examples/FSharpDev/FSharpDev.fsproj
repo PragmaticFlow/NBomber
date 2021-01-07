@@ -24,7 +24,8 @@
         </None>
         <Compile Include="CustomReporting\CustomReporting.fs" />
         <Compile Include="XUnit\PluginStatsTest.fs" />
-        <Compile Include="Plugin\PluginHtmlReport.fs" />
+        <Compile Include="Plugin\SimplePluginReport.fs" />
+        <Compile Include="Plugin\AdvancedPluginReport.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

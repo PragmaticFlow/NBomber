@@ -1,6 +1,7 @@
 ﻿namespace NBomber.FSharp
 
 open System
+open System.Data
 open System.IO
 open System.Threading.Tasks
 
@@ -313,3 +314,33 @@ module PluginStats =
     /// Tries to find plugin stats by plugin name. Returns Some DataSet if plugin exists and None otherwise.
     let tryFind (pluginName) (nodeStats: NodeStats) =
         DomainServices.PluginStats.tryFindDataSetByName pluginName nodeStats.PluginStats
+
+module PluginReport =
+
+    /// Creates a plugin report data table
+    let create () =
+        DomainServices.PluginReport.createTable()
+
+    /// Adds a value in a plugin report data table to be added into txt report
+    let addToTxtReport (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.TxtReportText
+        |> DomainServices.PluginReport.addReportElement table
+
+    /// Adds a value in a plugin report data table to be added into md report
+    let addToMdReport (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.MdReportMarkup
+        |> DomainServices.PluginReport.addReportElement table
+
+    /// Adds a value in a plugin report data table to be added into the head of html report
+    let addToHtmlReportHead (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.HtmlReportHead
+        |> DomainServices.PluginReport.addReportElement table
+
+    /// Adds a value in a plugin report data table to be added to the body of html report
+    let addToHtmlReportBody (value: string) (table: DataTable) =
+        value
+        |> DomainServices.PluginReport.ReportElement.HtmlReportBody
+        |> DomainServices.PluginReport.addReportElement table

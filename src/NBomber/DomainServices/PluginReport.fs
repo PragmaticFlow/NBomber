@@ -4,7 +4,6 @@ open System
 open System.Data
 open System.Linq
 
-open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
 [<Literal>]
