@@ -1,4 +1,4 @@
-module FSharpProd.CustomReportingExample
+module FSharpDev.CustomReportingExample
 
 open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine

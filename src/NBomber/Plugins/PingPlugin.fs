@@ -143,9 +143,12 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
             _logger <- context.Logger.ForContext<PingPlugin>()
 
             let config =
-                infraConfig
-                |> Option.bind(fun x -> x.GetSection("PingPlugin").Get<PingPluginConfig>() |> Option.ofRecord)
+                infraConfig.GetSection("PingPlugin")
+                |> Option.ofObj
+                |> Option.map(fun x -> x.Get<PingPluginConfig>())
                 |> Option.defaultValue pluginConfig
+
+            _logger.Verbose("PingPlugin config: @{PingPluginConfig}", config)
 
             config
             |> execPing

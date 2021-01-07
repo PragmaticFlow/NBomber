@@ -220,7 +220,7 @@ type Scenario = {
 type IReportingSink =
     inherit IDisposable
     abstract SinkName: string
-    abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
+    abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
     abstract SaveStats: stats:NodeStats[] -> Task
     abstract SaveReports: files:ReportFile[] -> Task
@@ -229,7 +229,7 @@ type IReportingSink =
 type IWorkerPlugin =
     inherit IDisposable
     abstract PluginName: string
-    abstract Init: context:IBaseContext * infraConfig:IConfiguration option -> Task
+    abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
     abstract GetStats: currentOperation:NodeOperationType -> DataSet
     abstract GetHints: unit -> string[]

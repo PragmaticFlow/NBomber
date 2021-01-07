@@ -1,6 +1,7 @@
 module internal NBomber.Constants
 
 open System
+open Microsoft.Extensions.Configuration
 open NBomber.Configuration
 
 [<Literal>]
@@ -48,3 +49,5 @@ let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
 let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 2.0
 let OperationTimeOut = TimeSpan.FromSeconds 3.0
+
+let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
