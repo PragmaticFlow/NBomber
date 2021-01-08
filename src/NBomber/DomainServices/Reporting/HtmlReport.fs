@@ -50,11 +50,11 @@ let inline private removeDescription (html: string) =
 
 let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
     let viewModel = {
-        nBomberInfo = stats.NodeInfo |> NBomberInfoViewModel.create
-        testInfo = stats.TestInfo |> TestInfoViewModel.create
-        statsData = stats |> NodeStatsViewModel.create
-        timeLineStatsData = timeLineStats |> TimeLineStatsViewModel.create
-        hints = hints |> HintsViewModel.create
+        NBomberInfo = stats.NodeInfo |> NBomberInfoViewModel.create
+        TestInfo = stats.TestInfo |> TestInfoViewModel.create
+        StatsData = stats |> NodeStatsViewModel.create
+        TimeLineStatsData = timeLineStats |> TimeLineStatsViewModel.create
+        Hints = hints |> HintsViewModel.create
     }
 
     let applyHtmlReplace = applyHtmlReplace viewModel
