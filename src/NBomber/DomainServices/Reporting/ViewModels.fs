@@ -46,11 +46,11 @@ type HintViewModel = {
 type HintsViewModel = HintViewModel[]
 
 type HtmlReportViewModel = {
-    nBomberInfo: NBomberInfoViewModel
-    testInfo: TestInfoViewModel
-    statsData: NodeStatsViewModel
-    timeLineStatsData: TimeLineStatsViewModel
-    hints: HintsViewModel
+    NBomberInfo: NBomberInfoViewModel
+    TestInfo: TestInfoViewModel
+    StatsData: NodeStatsViewModel
+    TimeLineStatsData: TimeLineStatsViewModel
+    Hints: HintsViewModel
 }
 
 module internal NBomberInfoViewModel =

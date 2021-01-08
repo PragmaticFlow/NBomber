@@ -1,12 +1,12 @@
 const viewModel = {
-    "nBomberInfo":{
+    "NBomberInfo":{
        "NBomberVersion":"1.1.0"
     },
-    "testInfo":{
+    "TestInfo":{
        "TestSuite":"nbomber_default_test_suite_name",
        "TestName":"nbomber_default_test_name"
     },
-    "statsData":{
+    "StatsData":{
        "RequestCount":128,
        "OkCount":106,
        "FailCount":22,
@@ -113,7 +113,7 @@ const viewModel = {
           "NBomberVersion":"1.1.0"
        }
     },
-    "timeLineStatsData":{
+    "TimeLineStatsData":{
        "TimeStamps":[
           "00:00:05",
           "00:00:10",
@@ -339,7 +339,7 @@ const viewModel = {
           ]
        ]
     },
-    "hints":[
+    "Hints":[
         {
             "SourceName": "scenario_1",
             "SourceType": "Scenario",
