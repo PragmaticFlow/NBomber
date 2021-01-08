@@ -57,7 +57,7 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
             if not _working then
                 _working <- true
                 do! Task.Yield()
-                while _working do
+                while _working && not dep.CancellationToken.IsCancellationRequested do
                     do! Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
             else
                 dep.Logger.Fatal("RunInfinite was invoked for already working actor with scenario '{ScenarioName}'.", dep.Scenario.ScenarioName)

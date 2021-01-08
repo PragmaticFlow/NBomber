@@ -2,10 +2,13 @@
 
 open System
 open FSharpDev.HelloWorld
+open FSharpDev.HttpTests
 
 [<EntryPoint>]
 let main argv =
 
-    HelloWorldExample.run()
+    //HelloWorldExample.run()
+    //CustomSettingsExample.run()
+    SimpleHttpTest.run()
 
     0 // return an integer exit code

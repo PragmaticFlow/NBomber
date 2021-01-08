@@ -1,7 +1,6 @@
 namespace NBomber.DomainServices.TestHost
 
 open System
-open System.Threading
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -60,7 +59,7 @@ module internal TestHostReporting =
         try
             for sink in dep.ReportingSinks do
                 dep.Logger.Information("Start init reporting sink: '{SinkName}'.", sink.SinkName)
-                do! sink.Init(context, dep.InfraConfig)
+                do! sink.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }
@@ -88,7 +87,7 @@ module internal TestHostPlugins =
         try
             for plugin in dep.WorkerPlugins do
                 dep.Logger.Information("Start init plugin: '{PluginName}'.", plugin.PluginName)
-                do! plugin.Init(context, dep.InfraConfig)
+                do! plugin.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
         with
         | ex -> return! AppError.createResult(InitScenarioError ex)
     }

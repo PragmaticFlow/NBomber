@@ -14,7 +14,7 @@ namespace CSharpDev.CustomReporting
         private ILogger _logger;
         public string SinkName => nameof(CustomReportingSync);
 
-        public Task Init(IBaseContext context, FSharpOption<IConfiguration> infraConfig)
+        public Task Init(IBaseContext context, IConfiguration infraConfig)
         {
             _logger = context.Logger;
             return Task.CompletedTask;
