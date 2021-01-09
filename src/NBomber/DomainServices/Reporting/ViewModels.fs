@@ -123,6 +123,7 @@ module internal TimeLineStatsViewModel =
             timeLineStats
             |> Seq.map snd
             |> Seq.map(fun nodeStats -> nodeStats.ScenarioStats)
+            |> Seq.filter(fun scenarioStats -> scenarioStats.Length > 0)
             |> Seq.toArray
 
         timeLineScenarioStats

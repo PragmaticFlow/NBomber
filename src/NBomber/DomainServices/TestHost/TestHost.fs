@@ -224,6 +224,15 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         let nodeInfo = getCurrentNodeInfo()
         dep.Logger.Information("Calculating final statistics...")
         let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
+
+        // replace the last timeline stats with final stats or add final stats if timeline stats are empty
+        match _timeLineStats with
+        | [] ->
+            _timeLineStats <- [(currentOperationTimer.Elapsed, finalStats)]
+
+        | (currentOperation, _) :: tail ->
+            _timeLineStats <- (currentOperation, finalStats) :: tail
+
         do! TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats
