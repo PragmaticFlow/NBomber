@@ -15,7 +15,7 @@ open NBomber.Extensions.InternalExtensions
 
 [<Property>]
 let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
-    let response = Response.Ok(payload)
+    let response = Response.ok(payload)
 
     let actual = {| Size = response.SizeBytes |}
 
@@ -33,13 +33,13 @@ let ``Response Ok and Fail should be properly count`` () =
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         okCnt <- okCnt + 1
-        return Response.Ok()
+        return Response.ok()
     })
 
     let failStep = Step.create("fail step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         failCnt <- failCnt + 1
-        return Response.Fail()
+        return Response.fail()
     })
 
     Scenario.create "count test" [okStep; failStep]
@@ -64,7 +64,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.create("pull step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(sizeBytes = 100)
+        return Response.ok(sizeBytes = 100)
     })
 
     Scenario.create "latency count test" [pullStep]
@@ -94,11 +94,11 @@ let ``can be duplicated to introduce repeatable behaviour`` () =
 
     let repeatStep = Step.create("repeat_step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        let number = context.GetPreviousStepResponse<int>()
+        let number = context.GetPreviousStepResponse() :?> int
 
         if number = 1 then repeatCounter <- repeatCounter + 1
 
-        return Response.Ok(number + 1)
+        return Response.ok(number + 1)
     })
 
     Scenario.create "latency count test" [repeatStep; repeatStep]
@@ -121,14 +121,14 @@ let ``StepContext Data should store any payload data from latest step.Response``
     let step1 = Step.create("step 1", fun context -> task {
         counter <- counter + 1
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(counter)
+        return Response.ok(counter)
     })
 
     let step2 = Step.create("step 2", fun context -> task {
         step2Counter <- counter
-        counterFromStep1 <- context.GetPreviousStepResponse<int>()
+        counterFromStep1 <- context.GetPreviousStepResponse() :?> int
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "test context.Data" [step1; step2]
@@ -146,12 +146,12 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
 
     let step1 = Step.create("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let step2 = Step.create("step 2", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     }, doNotTrack = true)
 
     Scenario.create "test context.Data" [step1; step2]
@@ -173,7 +173,7 @@ let ``createPause should work correctly and not printed in statistics`` () =
 
     let step1 = Step.create("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let pause4sec = Step.createPause(seconds 4)
@@ -193,12 +193,12 @@ let ``NBomber should support to run and share the same step within one scenario 
 
     let step1 = Step.create("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let step2 = Step.create("step 2", fun context -> task {
         do! Task.Delay(milliseconds 500)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -225,7 +225,7 @@ let ``NBomber should stop execution scenario if too many failed results on a war
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Fail()
+        return Response.fail()
     })
 
     Scenario.create "scenario" [step]
@@ -250,7 +250,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(latencyMs = 2_000) // set custom latency
+        return Response.ok(latencyMs = 2_000) // set custom latency
     })
 
     Scenario.create "scenario" [step]
@@ -282,7 +282,7 @@ let ``context StopTest should stop all scenarios`` () =
         if counter >= 30 then
             context.StopCurrentTest(reason = "custom reason")
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -312,7 +312,7 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
         counter <- context.InvocationCount
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "scenario" [step]
@@ -333,7 +333,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
         counter <- context.InvocationCount
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "scenario" [step]

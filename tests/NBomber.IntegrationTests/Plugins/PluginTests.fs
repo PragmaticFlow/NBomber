@@ -18,17 +18,17 @@ module internal PluginTestHelper =
     let createScenarios () =
         let step1 = Step.create("step 1", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.1))
-            return Response.Ok()
+            return Response.ok()
         })
 
         let step2 = Step.create("step 2", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.2))
-            return Response.Ok()
+            return Response.ok()
         })
 
         let step3 = Step.create("step 3", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.3))
-            return Response.Ok()
+            return Response.ok()
         })
 
         let scenario1 =

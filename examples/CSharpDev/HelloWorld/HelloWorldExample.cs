@@ -21,7 +21,7 @@ namespace CSharpDev.HelloWorld
 
             var step2 = Step.Create("step_2", async context =>
             {
-                var value = context.GetPreviousStepResponse<int>(); // 42
+                var value = (int)context.GetPreviousStepResponse(); // 42
                 return Response.Ok();
             });
 

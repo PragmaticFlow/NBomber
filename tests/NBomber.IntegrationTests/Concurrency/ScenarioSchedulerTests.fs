@@ -209,7 +209,7 @@ let ``schedule should correctly handle RampScenariosPerSec``
 let ``should run InjectOneTimeActors correctly`` () =
 
     let step = Step.create("step_1", fun context -> task {
-        return Response.Ok(42)
+        return Response.ok(42)
     })
 
     Scenario.create "hello_world_scenario" [step]

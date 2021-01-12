@@ -27,7 +27,7 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario =
@@ -65,7 +65,7 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario =

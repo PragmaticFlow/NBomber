@@ -22,7 +22,7 @@ let run () =
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(sizeBytes = 100)
+        return Response.ok(sizeBytes = 100)
     })
 
     Scenario.create "simple_scenario" [step]

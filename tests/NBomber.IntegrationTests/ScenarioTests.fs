@@ -37,7 +37,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "withTestClean test" [okStep]
@@ -62,7 +62,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let pause = Step.createPause(fun () ->
@@ -96,7 +96,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         if counter = 30 then
             context.StopScenario("test_youtube_1", "custom reason")
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -140,7 +140,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
         if counter = 60 then
             context.StopScenario("test_youtube_2", "custom reason")
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -168,12 +168,12 @@ let ``Warmup should have no effect on stats`` () =
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let failStep = Step.create("fail step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Fail()
+        return Response.fail()
     })
 
     Scenario.create "warmup test" [okStep; failStep]
@@ -279,7 +279,7 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
 
 [<Fact>]
 let ``checkEmptyStepName should return fail if scenario has empty step name`` () =
-    let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.Ok()))
+    let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.ok()))
     let scn = Scenario.create "1" [step]
     match Scenario.Validation.checkEmptyStepName(scn) with
     | Error _ -> ()
@@ -322,12 +322,12 @@ let ``withCustomStepsOrder should allow to run steps with custom order`` () =
 
     let step1 = Step.create("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let step2 = Step.create("step_2", fun context -> task {
         do! Task.Delay(milliseconds 10)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "1" [step1; step2]

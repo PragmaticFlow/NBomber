@@ -30,7 +30,7 @@ let run () =
         do! Task.Delay(seconds 1)
 
         context.Logger.Debug("Data from feed: {FeedItem}", context.FeedItem)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "data_feed_scenario" [step]

@@ -21,7 +21,7 @@ let ``set min logger level should work correctly`` () =
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds 0.1)
         context.Logger.Information("this message should not be printed")
-        return Response.Ok()
+        return Response.ok()
     })
 
     let inMemorySink1 = InMemorySink()

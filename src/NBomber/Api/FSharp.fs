@@ -54,10 +54,10 @@ type ConnectionPoolArgs =
 type Step =
 
     static member internal create (name: string,
-                                  execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                                  connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
-                                  feed: IFeed<'TFeedItem> option,
-                                  doNotTrack: bool option) =
+                                   execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
+                                   connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
+                                   feed: IFeed<'TFeedItem> option,
+                                   doNotTrack: bool option) =
         let poolArgs =
             connectionPoolArgs
             |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
@@ -100,7 +100,7 @@ type Step =
     static member createPause (getDuration: unit -> TimeSpan) =
         Step.create(name = "pause",
                     execute = (fun _ -> task { do! Task.Delay(getDuration())
-                                               return Response.Ok() }),
+                                               return Response.ok() }),
                     doNotTrack = true)
 
     /// Creates pause step in milliseconds in lazy mode.

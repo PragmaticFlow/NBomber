@@ -36,7 +36,7 @@ let run () =
             _customSettings.TestField
         )
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let customPause = Step.createPause(fun () -> _customSettings.PauseMs)

@@ -170,7 +170,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     /// Returns the invocations number of the current step.
     abstract InvocationCount: int
     /// Returns response from previous step.
-    abstract GetPreviousStepResponse: unit -> 'T
+    abstract GetPreviousStepResponse: unit -> obj
     /// Stops scenario by scenario name.
     /// It could be useful when you don't know the final scenario duration or it depends on some other criteria (notification event etc).
     abstract StopScenario: scenarioName:string * reason:string -> unit
@@ -262,7 +262,8 @@ type NBomberContext = {
 
 type Response with
 
-    static member Ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
+    [<CompiledName("Ok")>]
+    static member ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
                      [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
                      [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
@@ -271,7 +272,8 @@ type Response with
           ErrorCode = 0
           LatencyMs = latencyMs }
 
-    static member Ok(payload: byte[],
+    [<CompiledName("Ok")>]
+    static member ok(payload: byte[],
                      [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
@@ -279,14 +281,16 @@ type Response with
           ErrorCode = 0
           LatencyMs = latencyMs }
 
-    static member Fail() =
+    [<CompiledName("Fail")>]
+    static member fail() =
         { Payload = null
           SizeBytes = 0
           Exception = Some(Exception "unknown client's error")
           ErrorCode = 0
           LatencyMs = 0 }
 
-    static member Fail(ex: Exception,
+    [<CompiledName("Fail")>]
+    static member fail(ex: Exception,
                        [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
         { Payload = null
           SizeBytes = 0
@@ -294,7 +298,8 @@ type Response with
           ErrorCode = errorCode
           LatencyMs = 0 }
 
-    static member Fail(reason: string,
+    [<CompiledName("Fail")>]
+    static member fail(reason: string,
                        [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
         { Payload = null
           SizeBytes = 0

@@ -80,16 +80,7 @@ let toUntypedExec (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Respon
                 member _.InvocationCount = untypedCtx.InvocationCount
                 member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
                 member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
-
-                member _.GetPreviousStepResponse() =
-                    try
-                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
-                        if isNull prevStepResponse then
-                            Unchecked.defaultof<'T>
-                        else
-                            prevStepResponse :?> 'T
-                    with
-                    | ex -> Unchecked.defaultof<'T>
+                member _.GetPreviousStepResponse() = untypedCtx.Data.[Constants.StepResponseKey]
         }
 
         execute typedCtx
@@ -109,11 +100,11 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        return { Response = Response.Ok(); StartTimeMs = -1.0; LatencyMs = -1 }
+        return { Response = Response.ok(); StartTimeMs = -1.0; LatencyMs = -1 }
 
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
-            return { Response = Response.Fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
+            return { Response = Response.fail ex; StartTimeMs = startTime; LatencyMs = int latency }
 }
 
 let execSteps (dep: StepDep)
