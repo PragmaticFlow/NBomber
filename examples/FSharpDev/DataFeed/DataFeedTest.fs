@@ -25,12 +25,12 @@ let run () =
     //let feed = data |> Feed.createConstant "numbers"
     //let feed = data |> Feed.createRandom "numbers"
 
-    let step = Step.create("step", feed, fun context -> task {
+    let step = Step.createAsync("step", feed, fun context -> task {
 
         do! Task.Delay(seconds 1)
 
         context.Logger.Debug("Data from feed: {FeedItem}", context.FeedItem)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "data_feed_scenario" [step]

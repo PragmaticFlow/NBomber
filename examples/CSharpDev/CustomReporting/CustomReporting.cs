@@ -33,7 +33,7 @@ namespace CSharpDev.CustomReporting
     {
         public static void Run()
         {
-            var step = Step.Create("step", async context =>
+            var step = Step.CreateAsync("step", async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
                 return Response.Ok(sizeBytes: 100);

@@ -168,10 +168,10 @@ let ``FeedData fromSeq should support lazy initialize``() =
 
     data <- [1; 2; 3]
 
-    let step = Step.create("ok step", feed, fun context -> task {
+    let step = Step.createAsync("ok step", feed, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        if context.FeedItem > 0 then return Response.Ok()
-        else return Response.Fail()
+        if context.FeedItem > 0 then return Response.ok()
+        else return Response.fail()
     })
 
     Scenario.create "feed test scenario" [step]
@@ -208,14 +208,14 @@ let ``Feed with the same name should be supported``() =
         member _.GetNextItem(correlationId, stepData) = 1
     }
 
-    let step1 = Step.create("step_1", feed1, fun context -> task {
+    let step1 = Step.createAsync("step_1", feed1, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
-    let step2 = Step.create("step_2", feed2, fun context -> task {
+    let step2 = Step.createAsync("step_2", feed2, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scn1 =
@@ -250,14 +250,14 @@ let ``Init for the same instance shared btw steps and scenarios should be invoke
         member _.GetNextItem(correlationId, stepData) = 1
     }
 
-    let step1 = Step.create("step_1", feed, fun context -> task {
+    let step1 = Step.createAsync("step_1", feed, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
-    let step2 = Step.create("step_2", feed, fun context -> task {
+    let step2 = Step.createAsync("step_2", feed, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scn1 =

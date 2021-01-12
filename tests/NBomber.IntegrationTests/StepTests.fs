@@ -15,7 +15,7 @@ open NBomber.Extensions.InternalExtensions
 
 [<Property>]
 let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
-    let response = Response.Ok(payload)
+    let response = Response.ok(payload)
 
     let actual = {| Size = response.SizeBytes |}
 
@@ -30,16 +30,16 @@ let ``Response Ok and Fail should be properly count`` () =
     let mutable okCnt = 0
     let mutable failCnt = 0
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         okCnt <- okCnt + 1
-        return Response.Ok()
+        return Response.ok()
     })
 
-    let failStep = Step.create("fail step", fun _ -> task {
+    let failStep = Step.createAsync("fail step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         failCnt <- failCnt + 1
-        return Response.Fail()
+        return Response.fail()
     })
 
     Scenario.create "count test" [okStep; failStep]
@@ -62,9 +62,9 @@ let ``Response Ok and Fail should be properly count`` () =
 [<Fact>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
-    let pullStep = Step.create("pull step", fun _ -> task {
+    let pullStep = Step.createAsync("pull step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(sizeBytes = 100)
+        return Response.ok(sizeBytes = 100)
     })
 
     Scenario.create "latency count test" [pullStep]
@@ -92,13 +92,13 @@ let ``can be duplicated to introduce repeatable behaviour`` () =
 
     let mutable repeatCounter = 0
 
-    let repeatStep = Step.create("repeat_step", fun context -> task {
+    let repeatStep = Step.createAsync("repeat_step", fun context -> task {
         do! Task.Delay(milliseconds 100)
         let number = context.GetPreviousStepResponse<int>()
 
         if number = 1 then repeatCounter <- repeatCounter + 1
 
-        return Response.Ok(number + 1)
+        return Response.ok(number + 1)
     })
 
     Scenario.create "latency count test" [repeatStep; repeatStep]
@@ -118,17 +118,17 @@ let ``StepContext Data should store any payload data from latest step.Response``
     let mutable step2Counter = 0
     let mutable counterFromStep1 = 0
 
-    let step1 = Step.create("step 1", fun context -> task {
+    let step1 = Step.createAsync("step 1", fun context -> task {
         counter <- counter + 1
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(counter)
+        return Response.ok(counter)
     })
 
-    let step2 = Step.create("step 2", fun context -> task {
+    let step2 = Step.createAsync("step 2", fun context -> task {
         step2Counter <- counter
         counterFromStep1 <- context.GetPreviousStepResponse<int>()
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "test context.Data" [step1; step2]
@@ -144,14 +144,14 @@ let ``StepContext Data should store any payload data from latest step.Response``
 [<Fact>]
 let ``Step with DoNotTrack = true should has empty stats and not be printed`` () =
 
-    let step1 = Step.create("step 1", fun context -> task {
+    let step1 = Step.createAsync("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
-    let step2 = Step.create("step 2", fun context -> task {
+    let step2 = Step.createAsync("step 2", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     }, doNotTrack = true)
 
     Scenario.create "test context.Data" [step1; step2]
@@ -171,9 +171,9 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
 [<Fact>]
 let ``createPause should work correctly and not printed in statistics`` () =
 
-    let step1 = Step.create("step 1", fun context -> task {
+    let step1 = Step.createAsync("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let pause4sec = Step.createPause(seconds 4)
@@ -191,14 +191,14 @@ let ``createPause should work correctly and not printed in statistics`` () =
 [<Fact>]
 let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
 
-    let step1 = Step.create("step 1", fun context -> task {
+    let step1 = Step.createAsync("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
-    let step2 = Step.create("step 2", fun context -> task {
+    let step2 = Step.createAsync("step 2", fun context -> task {
         do! Task.Delay(milliseconds 500)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -223,9 +223,9 @@ let ``NBomber should support to run and share the same step within one scenario 
 [<Fact>]
 let ``NBomber should stop execution scenario if too many failed results on a warm-up`` () =
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Fail()
+        return Response.fail()
     })
 
     Scenario.create "scenario" [step]
@@ -248,9 +248,9 @@ let ``NBomber should stop execution scenario if too many failed results on a war
 [<Fact>]
 let ``NBomber should allow to set custom response latency and handle it properly`` () =
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(latencyMs = 2_000) // set custom latency
+        return Response.ok(latencyMs = 2_000) // set custom latency
     })
 
     Scenario.create "scenario" [step]
@@ -275,14 +275,14 @@ let ``context StopTest should stop all scenarios`` () =
     let mutable counter = 0
     let duration = seconds 42
 
-    let okStep = Step.create("ok step", fun context -> task {
+    let okStep = Step.createAsync("ok step", fun context -> task {
         do! Task.Delay(milliseconds 100)
         counter <- counter + 1
 
         if counter >= 30 then
             context.StopCurrentTest(reason = "custom reason")
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =
@@ -309,10 +309,10 @@ let ``NBomber should reset step invocation number after warm-up`` () =
 
     let mutable counter = 0
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
         do! Task.Delay(seconds 1)
         counter <- context.InvocationCount
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "scenario" [step]
@@ -330,15 +330,36 @@ let ``NBomber should handle invocation number per step following shared-nothing 
 
     let mutable counter = 0
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
         do! Task.Delay(seconds 1)
         counter <- context.InvocationCount
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "scenario" [step]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/12/"
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ counter > 0 && counter <= 6 @>
+
+[<Fact>]
+let ``NBomber should support synchronous step execution`` () =
+
+    let mutable counter = 0
+
+    let step = Step.create("step", fun context ->
+        Task.Delay(seconds 1).Wait()
+        counter <- context.InvocationCount
+        Response.ok()
+    )
+
+    Scenario.create "scenario" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/12/"
     |> NBomberRunner.run

@@ -31,11 +31,15 @@ type UntypedStepContext = {
     StopCurrentTest: string -> unit       // reason
 }
 
+type StepExecution =
+    | SyncExec  of (UntypedStepContext -> Response)
+    | AsyncExec of (UntypedStepContext -> Task<Response>)
+
 type Step = {
     StepName: StepName
     ConnectionPoolArgs: ConnectionPoolArgs<obj> option
     ConnectionPool: ConnectionPool option
-    Execute: UntypedStepContext -> Task<Response>
+    Execute: StepExecution
     Feed: IFeed<obj> option
     DoNotTrack: bool
 } with

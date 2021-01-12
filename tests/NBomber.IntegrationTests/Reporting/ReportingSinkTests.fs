@@ -35,9 +35,9 @@ let ``SaveStats should be invoked many times during test execution to send realt
             member _.Dispose() = ()
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "realtime stats scenario" [okStep]
@@ -75,9 +75,9 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
             member _.Dispose() = ()
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "realtime stats scenario" [okStep]
@@ -134,9 +134,9 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
             member _.Dispose() = ()
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario1 =

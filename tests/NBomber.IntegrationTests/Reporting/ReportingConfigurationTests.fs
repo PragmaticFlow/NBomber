@@ -25,9 +25,9 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
     if Directory.Exists "./my_custom_reports" then
         Directory.Delete("./my_custom_reports", recursive = true)
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario =
@@ -63,9 +63,9 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     if Directory.Exists "./my_reports" then
         Directory.Delete("./my_reports", recursive = true)
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
-        return Response.Ok()
+        return Response.ok()
     })
 
     let scenario =

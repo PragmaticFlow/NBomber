@@ -25,6 +25,7 @@ type ActorDep = {
 type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
     let _allScnResponses = Array.init<ResizeArray<StepResponse>> dep.Scenario.Steps.Length (fun _ -> ResizeArray())
+    let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
     let _stepDep = { ScenarioName = dep.Scenario.ScenarioName
                      Logger = dep.Logger; CancellationToken = dep.CancellationToken
@@ -45,7 +46,10 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
             if not _working then
                 _working <- true
                 do! Task.Yield()
-                do! Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+                if _isAllExecSync then
+                    Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+                else
+                    do! Step.execStepsAsync _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
             else
                 dep.Logger.Fatal("ExecSteps was invoked for already working actor with scenario '{ScenarioName}'.", dep.Scenario.ScenarioName)
         finally
@@ -58,7 +62,10 @@ type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
                 _working <- true
                 do! Task.Yield()
                 while _working && not dep.CancellationToken.IsCancellationRequested do
-                    do! Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+                    if _isAllExecSync then
+                        Step.execSteps _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
+                    else
+                        do! Step.execStepsAsync _stepDep _steps (dep.Scenario.GetStepsOrder()) _allScnResponses
             else
                 dep.Logger.Fatal("RunInfinite was invoked for already working actor with scenario '{ScenarioName}'.", dep.Scenario.ScenarioName)
         finally

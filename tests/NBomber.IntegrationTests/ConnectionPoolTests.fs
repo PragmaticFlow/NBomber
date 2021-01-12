@@ -26,13 +26,13 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
             connectionCount = poolCount
         )
 
-    let step = Step.create("step", pool, fun context -> task {
+    let step = Step.createAsync("step", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         if context.CorrelationId.CopyNumber <> context.Connection then
-            return Response.Fail "distribution is not following one to one mapping"
+            return Response.fail "distribution is not following one to one mapping"
 
-        else return Response.Ok()
+        else return Response.ok()
     })
 
     Scenario.create "test" [step]
@@ -61,15 +61,15 @@ let ``should distribute connection using modulo if connectionPool.Count < loadSi
             connectionCount = poolCount
         )
 
-    let step = Step.create("step", pool, fun context -> task {
+    let step = Step.createAsync("step", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         let correctConnection = context.CorrelationId.CopyNumber % poolCount
 
         if correctConnection <> context.Connection then
-            return Response.Fail "distribution is not following mapping by modulo"
+            return Response.fail "distribution is not following mapping by modulo"
 
-        else return Response.Ok()
+        else return Response.ok()
     })
 
     Scenario.create "test" [step]
@@ -97,20 +97,20 @@ let ``should be shared btw steps as singlton instance``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
-    let step2 = Step.create("step_2", pool, fun context -> task {
+    let step2 = Step.createAsync("step_2", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         let stepResponse = context.GetPreviousStepResponse<Guid>()
 
         if stepResponse = context.Connection then
-            return Response.Ok()
+            return Response.ok()
 
-        else return Response.Fail()
+        else return Response.fail()
     })
 
     Scenario.create "test" [step1; step2]
@@ -138,9 +138,9 @@ let ``openConnection should stop test session in case of failure``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1]
@@ -168,9 +168,9 @@ let ``openConnection should use try logic in case of some errors``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1]
@@ -197,9 +197,9 @@ let ``closeConnection should not affect test session in case of failure``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1]
@@ -227,14 +227,14 @@ let ``should be initialized one time per scenario``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
-    let step2 = Step.create("step_2", pool, fun context -> task {
+    let step2 = Step.createAsync("step_2", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     let scenario1 =
@@ -275,9 +275,9 @@ let ``should be initialized after scenario init``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1]
@@ -306,9 +306,9 @@ let ``should support 65K of connections``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.create("step_1", pool, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1]
@@ -339,14 +339,14 @@ let ``should not allow to have duplicates with the same name but different imple
             connectionCount = 100
         )
 
-    let step1 = Step.create("step_1", pool1, fun context -> task {
+    let step1 = Step.createAsync("step_1", pool1, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
-    let step2 = Step.create("step_2", pool2, fun context -> task {
+    let step2 = Step.createAsync("step_2", pool2, fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(context.Connection)
+        return Response.ok(context.Connection)
     })
 
     Scenario.create "test" [step1; step2]

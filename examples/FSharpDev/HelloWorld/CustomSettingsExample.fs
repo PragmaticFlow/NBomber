@@ -27,7 +27,7 @@ let run () =
         )
     }
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
 
         do! Task.Delay(seconds 1)
 
@@ -36,7 +36,7 @@ let run () =
             _customSettings.TestField
         )
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     let customPause = Step.createPause(fun () -> _customSettings.PauseMs)

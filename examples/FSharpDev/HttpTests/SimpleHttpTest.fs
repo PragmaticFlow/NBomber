@@ -14,10 +14,10 @@ let run () =
 
     use httpClient = new HttpClient()
 
-    let step = Step.create("fetch_html_page", fun context -> task {
+    let step = Step.createAsync("fetch_html_page", fun context -> task {
         let! response = httpClient.GetAsync("https://nbomber.com")
-        return if response.IsSuccessStatusCode then Response.Ok()
-               else Response.Fail()
+        return if response.IsSuccessStatusCode then Response.ok()
+               else Response.fail()
     })
 
     Scenario.create "nbomber_web_site_scenario" [step]

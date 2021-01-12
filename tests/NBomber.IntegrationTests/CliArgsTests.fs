@@ -11,8 +11,8 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp
 
-let okStep = Step.create("ok step", fun _ -> task {
-    return Response.Ok()
+let okStep = Step.createAsync("ok step", fun _ -> task {
+    return Response.ok()
 })
 
 let scenario = Scenario.create "scenario" [okStep] |> Scenario.withoutWarmUp
