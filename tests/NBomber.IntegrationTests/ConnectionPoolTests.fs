@@ -105,7 +105,7 @@ let ``should be shared btw steps as singlton instance``() =
     let step2 = Step.create("step_2", pool, fun context -> task {
         do! Task.Delay(milliseconds 100)
 
-        let stepResponse = context.GetPreviousStepResponse() :?> Guid
+        let stepResponse = context.GetPreviousStepResponse<Guid>()
 
         if stepResponse = context.Connection then
             return Response.ok()

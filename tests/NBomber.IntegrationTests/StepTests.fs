@@ -94,7 +94,7 @@ let ``can be duplicated to introduce repeatable behaviour`` () =
 
     let repeatStep = Step.create("repeat_step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        let number = context.GetPreviousStepResponse() :?> int
+        let number = context.GetPreviousStepResponse<int>()
 
         if number = 1 then repeatCounter <- repeatCounter + 1
 
@@ -126,7 +126,7 @@ let ``StepContext Data should store any payload data from latest step.Response``
 
     let step2 = Step.create("step 2", fun context -> task {
         step2Counter <- counter
-        counterFromStep1 <- context.GetPreviousStepResponse() :?> int
+        counterFromStep1 <- context.GetPreviousStepResponse<int>()
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })

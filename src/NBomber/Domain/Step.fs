@@ -80,7 +80,16 @@ let toUntypedExec (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Respon
                 member _.InvocationCount = untypedCtx.InvocationCount
                 member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
                 member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
-                member _.GetPreviousStepResponse() = untypedCtx.Data.[Constants.StepResponseKey]
+
+                member _.GetPreviousStepResponse() =
+                    try
+                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
+                        if isNull prevStepResponse then
+                            Unchecked.defaultof<'T>
+                        else
+                            prevStepResponse :?> 'T
+                    with
+                    | ex -> Unchecked.defaultof<'T>
         }
 
         execute typedCtx

@@ -170,7 +170,7 @@ type IStepContext<'TConnection,'TFeedItem> =
     /// Returns the invocations number of the current step.
     abstract InvocationCount: int
     /// Returns response from previous step.
-    abstract GetPreviousStepResponse: unit -> obj
+    abstract GetPreviousStepResponse: unit -> 'T
     /// Stops scenario by scenario name.
     /// It could be useful when you don't know the final scenario duration or it depends on some other criteria (notification event etc).
     abstract StopScenario: scenarioName:string * reason:string -> unit

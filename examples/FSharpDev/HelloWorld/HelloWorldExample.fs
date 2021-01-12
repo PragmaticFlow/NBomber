@@ -19,7 +19,7 @@ let run () =
     let pause = Step.createPause(milliseconds 100)
 
     let step2 = Step.create("step_2", fun context -> task {
-        let value = context.GetPreviousStepResponse() :?> int // 42
+        let value = context.GetPreviousStepResponse<int>() // 42
         return Response.ok();
     })
 
