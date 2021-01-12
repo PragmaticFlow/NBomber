@@ -345,3 +345,24 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     |> ignore
 
     test <@ counter > 0 && counter <= 6 @>
+
+[<Fact>]
+let ``NBomber should support synchronous step execution`` () =
+
+    let mutable counter = 0
+
+    let step = Step.create("step", fun context ->
+        Task.Delay(seconds 1).Wait()
+        counter <- context.InvocationCount
+        Response.ok()
+    )
+
+    Scenario.create "scenario" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/12/"
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ counter > 0 && counter <= 6 @>

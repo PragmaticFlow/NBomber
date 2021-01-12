@@ -65,7 +65,36 @@ module RunningStep =
         context.FeedItem <- feedItem
         step
 
-let toUntypedExec (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>) =
+let toUntypedExecute (execute: IStepContext<'TConnection,'TFeedItem> -> Response) =
+
+    fun (untypedCtx: UntypedStepContext) ->
+
+        let typedCtx = {
+            new IStepContext<'TConnection,'TFeedItem> with
+                member _.CorrelationId = untypedCtx.CorrelationId
+                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.Connection = untypedCtx.Connection :?> 'TConnection
+                member _.Data = untypedCtx.Data
+                member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
+                member _.Logger = untypedCtx.Logger
+                member _.InvocationCount = untypedCtx.InvocationCount
+                member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
+                member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
+
+                member _.GetPreviousStepResponse() =
+                    try
+                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
+                        if isNull prevStepResponse then
+                            Unchecked.defaultof<'T>
+                        else
+                            prevStepResponse :?> 'T
+                    with
+                    | ex -> Unchecked.defaultof<'T>
+        }
+
+        execute typedCtx
+
+let toUntypedExecuteAsync (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>) =
 
     fun (untypedCtx: UntypedStepContext) ->
 
@@ -97,7 +126,10 @@ let toUntypedExec (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Respon
 let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
-        let! resp = step.Value.Execute(step.Context)
+        let! resp =
+            match step.Value.Execute with
+            | SyncExec exec  -> Task.FromResult(exec step.Context)
+            | AsyncExec exec -> exec step.Context
 
         let latency =
             if resp.LatencyMs > 0 then resp.LatencyMs
@@ -113,7 +145,7 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
 
     | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = int(endTime - startTime)
-            return { Response = Response.fail ex; StartTimeMs = startTime; LatencyMs = int latency }
+            return { Response = Response.fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
 }
 
 let execSteps (dep: StepDep)

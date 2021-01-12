@@ -53,6 +53,24 @@ type ConnectionPoolArgs =
 
 type Step =
 
+    static member internal create (name: string,
+                                   execute: IStepContext<'TConnection,'TFeedItem> -> Response,
+                                   connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
+                                   feed: IFeed<'TFeedItem> option,
+                                   doNotTrack: bool option) =
+        let poolArgs =
+            connectionPoolArgs
+            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
+            |> Option.map(fun x -> x.GetUntyped().Value)
+
+        { StepName = name
+          ConnectionPoolArgs = poolArgs
+          ConnectionPool = None
+          Execute = execute |> Step.toUntypedExecute |> SyncExec
+          Feed = feed |> Option.map Feed.toUntypedFeed
+          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+          :> IStep
+
     static member internal createAsync (name: string,
                                         execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
                                         connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
@@ -66,10 +84,17 @@ type Step =
         { StepName = name
           ConnectionPoolArgs = poolArgs
           ConnectionPool = None
-          Execute = Step.toUntypedExec execute
+          Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
+
+    static member create (name: string,
+                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
+                          feed: IFeed<'TFeedItem>,
+                          execute: IStepContext<'TConnection,'TFeedItem> -> Response,
+                          ?doNotTrack: bool) =
+        Step.create(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
 
     static member createAsync (name: string,
                                connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
@@ -78,17 +103,34 @@ type Step =
                                ?doNotTrack: bool) =
         Step.createAsync(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
 
+    static member create (name: string,
+                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
+                          execute: IStepContext<'TConnection,unit> -> Response,
+                          ?doNotTrack: bool) =
+        Step.create(name, execute, Some connectionPoolArgs, None, doNotTrack)
+
     static member createAsync (name: string,
                                connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
                                execute: IStepContext<'TConnection,unit> -> Task<Response>,
                                ?doNotTrack: bool) =
         Step.createAsync(name, execute, Some connectionPoolArgs, None, doNotTrack)
 
+    static member create (name: string,
+                          feed: IFeed<'TFeedItem>,
+                          execute: IStepContext<unit,'TFeedItem> -> Response,
+                          ?doNotTrack: bool) =
+        Step.create(name, execute, None, Some feed, doNotTrack)
+
     static member createAsync (name: string,
                                feed: IFeed<'TFeedItem>,
                                execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
                                ?doNotTrack: bool) =
         Step.createAsync(name, execute, None, Some feed, doNotTrack)
+
+    static member create (name: string,
+                          execute: IStepContext<unit,unit> -> Response,
+                          ?doNotTrack: bool) =
+        Step.create(name, execute, None, None, doNotTrack)
 
     static member createAsync (name: string,
                                execute: IStepContext<unit,unit> -> Task<Response>,
