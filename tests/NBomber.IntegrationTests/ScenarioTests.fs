@@ -131,7 +131,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
     let duration = seconds 30
 
     let okStep = Step.createAsync("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 50)
+        do! Task.Delay(milliseconds 500)
         counter <- counter + 1
 
         if counter = 30 then

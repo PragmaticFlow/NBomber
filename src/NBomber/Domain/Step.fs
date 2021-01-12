@@ -123,7 +123,31 @@ let toUntypedExecuteAsync (execute: IStepContext<'TConnection,'TFeedItem> -> Tas
 
         execute typedCtx
 
-let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
+let execStep (step: RunningStep) (globalTimer: Stopwatch) =
+    let startTime = globalTimer.Elapsed.TotalMilliseconds
+    try
+        let resp =
+            match step.Value.Execute with
+            | SyncExec exec  -> exec step.Context
+            | AsyncExec exec -> (exec step.Context).Result
+
+        let latency =
+            if resp.LatencyMs > 0 then resp.LatencyMs
+            else
+                let endTime = globalTimer.Elapsed.TotalMilliseconds
+                int(endTime - startTime)
+
+        { Response = resp; StartTimeMs = startTime; LatencyMs = latency }
+    with
+    | :? TaskCanceledException
+    | :? OperationCanceledException ->
+        { Response = Response.ok(); StartTimeMs = -1.0; LatencyMs = -1 }
+
+    | ex -> let endTime = globalTimer.Elapsed.TotalMilliseconds
+            let latency = int(endTime - startTime)
+            { Response = Response.fail(ex); StartTimeMs = startTime; LatencyMs = int latency }
+
+let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let! resp =
@@ -151,7 +175,7 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) = task {
 let execSteps (dep: StepDep)
               (steps: RunningStep[])
               (stepsOrder: int[])
-              (allScnResponses: (ResizeArray<StepResponse>)[]) = task {
+              (allScnResponses: (ResizeArray<StepResponse>)[]) =
 
     let data = Dict.empty
     let mutable skipStep = false
@@ -160,7 +184,35 @@ let execSteps (dep: StepDep)
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
                 let step = RunningStep.updateContext steps.[stepIndex] data
-                let! response = execStep step dep.GlobalTimer
+                let response = execStep step dep.GlobalTimer
+
+                let payload = response.Response.Payload
+
+                if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack then
+                    response.Response.Payload <- null
+                    allScnResponses.[stepIndex].Add(response)
+
+                if response.Response.Exception.IsNone then
+                    data.[Constants.StepResponseKey] <- payload
+                else
+                    dep.Logger.Error(response.Response.Exception.Value, "Step '{StepName}' from scenario '{ScenarioName}' has failed. ", step.Value.StepName, dep.ScenarioName)
+                    skipStep <- true
+            with
+            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
+
+let execStepsAsync (dep: StepDep)
+                   (steps: RunningStep[])
+                   (stepsOrder: int[])
+                   (allScnResponses: (ResizeArray<StepResponse>)[]) = task {
+
+    let data = Dict.empty
+    let mutable skipStep = false
+
+    for stepIndex in stepsOrder do
+        if not skipStep && not dep.CancellationToken.IsCancellationRequested then
+            try
+                let step = RunningStep.updateContext steps.[stepIndex] data
+                let! response = execStepAsync step dep.GlobalTimer
 
                 let payload = response.Response.Payload
 
@@ -187,3 +239,9 @@ let filterByDuration (duration: TimeSpan) (stepResponses: Stream<StepResponse>) 
         match x |> createEndTime |> validEndTime with
         | true  -> Some x
         | false -> None)
+
+let isAllExecSync (steps: Step list) =
+    steps
+    |> List.map(fun x -> x.Execute)
+    |> List.forall(function SyncExec _ -> true | AsyncExec _ -> false)
+
