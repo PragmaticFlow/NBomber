@@ -53,11 +53,11 @@ type ConnectionPoolArgs =
 
 type Step =
 
-    static member internal create (name: string,
-                                   execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                                   connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
-                                   feed: IFeed<'TFeedItem> option,
-                                   doNotTrack: bool option) =
+    static member internal createAsync (name: string,
+                                        execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
+                                        connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
+                                        feed: IFeed<'TFeedItem> option,
+                                        doNotTrack: bool option) =
         let poolArgs =
             connectionPoolArgs
             |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
@@ -71,37 +71,37 @@ type Step =
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
-    static member create (name: string,
-                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                          feed: IFeed<'TFeedItem>,
-                          execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
+    static member createAsync (name: string,
+                               connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
+                               feed: IFeed<'TFeedItem>,
+                               execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
+                               ?doNotTrack: bool) =
+        Step.createAsync(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
 
-    static member create (name: string,
-                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                          execute: IStepContext<'TConnection,unit> -> Task<Response>,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, Some connectionPoolArgs, None, doNotTrack)
+    static member createAsync (name: string,
+                               connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
+                               execute: IStepContext<'TConnection,unit> -> Task<Response>,
+                               ?doNotTrack: bool) =
+        Step.createAsync(name, execute, Some connectionPoolArgs, None, doNotTrack)
 
-    static member create (name: string,
-                          feed: IFeed<'TFeedItem>,
-                          execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, None, Some feed, doNotTrack)
+    static member createAsync (name: string,
+                               feed: IFeed<'TFeedItem>,
+                               execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
+                               ?doNotTrack: bool) =
+        Step.createAsync(name, execute, None, Some feed, doNotTrack)
 
-    static member create (name: string,
-                          execute: IStepContext<unit,unit> -> Task<Response>,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, None, None, doNotTrack)
+    static member createAsync (name: string,
+                               execute: IStepContext<unit,unit> -> Task<Response>,
+                               ?doNotTrack: bool) =
+        Step.createAsync(name, execute, None, None, doNotTrack)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.create(name = "pause",
-                    execute = (fun _ -> task { do! Task.Delay(getDuration())
-                                               return Response.ok() }),
-                    doNotTrack = true)
+        Step.createAsync(name = "pause",
+                         execute = (fun _ -> task { do! Task.Delay(getDuration())
+                                                    return Response.ok() }),
+                         doNotTrack = true)
 
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.

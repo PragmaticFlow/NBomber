@@ -18,7 +18,7 @@ open NBomber.FSharp
 [<Fact>]
 let ``set min logger level should work correctly`` () =
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.createAsync("step", fun context -> task {
         do! Task.Delay(TimeSpan.FromSeconds 0.1)
         context.Logger.Information("this message should not be printed")
         return Response.ok()

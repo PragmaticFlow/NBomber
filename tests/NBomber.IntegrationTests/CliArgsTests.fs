@@ -11,7 +11,7 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp
 
-let okStep = Step.create("ok step", fun _ -> task {
+let okStep = Step.createAsync("ok step", fun _ -> task {
     return Response.ok()
 })
 

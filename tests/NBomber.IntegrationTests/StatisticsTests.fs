@@ -73,18 +73,18 @@ let ``calcMax() should not fail and calculate correctly for any args values`` (l
 [<Fact>]
 let ``ErrorStats should be calculated properly`` () =
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
 
-    let failStep1 = Step.create("fail step 1", fun context -> task {
+    let failStep1 = Step.createAsync("fail step 1", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return if context.InvocationCount <= 10 then Response.fail(reason = "reason 1", errorCode = 10)
                else Response.ok()
     })
 
-    let failStep2 = Step.create("fail step 2", fun context -> task {
+    let failStep2 = Step.createAsync("fail step 2", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return if context.InvocationCount <= 30 then Response.fail(reason = "reason 2", errorCode = 20)
                else Response.ok()

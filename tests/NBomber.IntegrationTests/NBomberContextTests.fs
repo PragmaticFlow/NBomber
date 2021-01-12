@@ -33,7 +33,7 @@ let baseScenarioSetting = {
     CustomSettings = None
 }
 
-let failStep = Step.create("fail step", fun _ -> Response.fail() |> Task.singleton)
+let failStep = Step.createAsync("fail step", fun _ -> Response.fail() |> Task.singleton)
 let baseScenario = Scenario.create "1" [failStep] |> Scenario.withoutWarmUp
 
 let config = {

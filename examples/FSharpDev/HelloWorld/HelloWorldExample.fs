@@ -9,7 +9,7 @@ open NBomber.FSharp
 
 let run () =
 
-    let step1 = Step.create("step_1", fun context -> task {
+    let step1 = Step.createAsync("step_1", fun context -> task {
 
         // you can do any logic here: go to http, websocket etc
         do! Task.Delay(seconds 1)
@@ -18,7 +18,7 @@ let run () =
 
     let pause = Step.createPause(milliseconds 100)
 
-    let step2 = Step.create("step_2", fun context -> task {
+    let step2 = Step.createAsync("step_2", fun context -> task {
         let value = context.GetPreviousStepResponse<int>() // 42
         return Response.ok();
     })

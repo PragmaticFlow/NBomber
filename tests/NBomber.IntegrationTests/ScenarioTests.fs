@@ -35,7 +35,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
         failwith "exception was not handled"
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
@@ -60,7 +60,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
         scnContext <- Some context
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
@@ -89,7 +89,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
     let mutable counter = 0
     let duration = seconds 15
 
-    let okStep = Step.create("ok step", fun context -> task {
+    let okStep = Step.createAsync("ok step", fun context -> task {
         do! Task.Delay(milliseconds 100)
         counter <- counter + 1
 
@@ -130,7 +130,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
     let mutable counter = 0
     let duration = seconds 30
 
-    let okStep = Step.create("ok step", fun context -> task {
+    let okStep = Step.createAsync("ok step", fun context -> task {
         do! Task.Delay(milliseconds 50)
         counter <- counter + 1
 
@@ -166,12 +166,12 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
 [<Fact>]
 let ``Warmup should have no effect on stats`` () =
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    let okStep = Step.createAsync("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
 
-    let failStep = Step.create("fail step", fun _ -> task {
+    let failStep = Step.createAsync("fail step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.fail()
     })
@@ -279,7 +279,7 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
 
 [<Fact>]
 let ``checkEmptyStepName should return fail if scenario has empty step name`` () =
-    let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.ok()))
+    let step = NBomber.FSharp.Step.createAsync(" ", fun _ -> Task.FromResult(Response.ok()))
     let scn = Scenario.create "1" [step]
     match Scenario.Validation.checkEmptyStepName(scn) with
     | Error _ -> ()
@@ -320,12 +320,12 @@ let ``check that scenario should be ok if it has no steps but init function exis
 [<Fact>]
 let ``withCustomStepsOrder should allow to run steps with custom order`` () =
 
-    let step1 = Step.create("step_1", fun context -> task {
+    let step1 = Step.createAsync("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return Response.ok()
     })
 
-    let step2 = Step.create("step_2", fun context -> task {
+    let step2 = Step.createAsync("step_2", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return Response.ok()
     })

@@ -30,7 +30,7 @@ namespace CSharpDev.HelloWorld
 
         public static void Run()
         {
-            var step = Step.Create("step", async context =>
+            var step = Step.CreateAsync("step", async context =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
 

@@ -9,7 +9,7 @@ namespace CSharpDev.HelloWorld
     {
         public static void Run()
         {
-            var step1 = Step.Create("step_1", async context =>
+            var step1 = Step.CreateAsync("step_1", async context =>
             {
                 // you can do any logic here: go to http, websocket etc
 
@@ -19,7 +19,7 @@ namespace CSharpDev.HelloWorld
 
             var pause = Step.CreatePause(TimeSpan.FromMilliseconds(100));
 
-            var step2 = Step.Create("step_2", async context =>
+            var step2 = Step.CreateAsync("step_2", async context =>
             {
                 var value = context.GetPreviousStepResponse<int>(); // 42
                 return Response.Ok();

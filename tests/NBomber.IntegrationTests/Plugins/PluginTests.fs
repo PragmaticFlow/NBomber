@@ -16,17 +16,17 @@ open NBomber.FSharp
 module internal PluginTestHelper =
 
     let createScenarios () =
-        let step1 = Step.create("step 1", fun _ -> task {
+        let step1 = Step.createAsync("step 1", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.1))
             return Response.ok()
         })
 
-        let step2 = Step.create("step 2", fun _ -> task {
+        let step2 = Step.createAsync("step 2", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.2))
             return Response.ok()
         })
 
-        let step3 = Step.create("step 3", fun _ -> task {
+        let step3 = Step.createAsync("step 3", fun _ -> task {
             do! Task.Delay(TimeSpan.FromSeconds(0.3))
             return Response.ok()
         })
