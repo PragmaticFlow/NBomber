@@ -107,9 +107,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             do! TestHostPlugins.stopPlugins dep
     }
 
-    let execCancelToken () =
+    let stopSchedulers () =
         if not _cancelToken.IsCancellationRequested then
             _cancelToken.Cancel()
+
+        _scnSchedulers |> List.iter(fun x -> x.Stop())
 
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
@@ -150,7 +152,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         dep.Logger.Information("Starting warm up...")
         let isWarmUp = true
         do! startBombing(isWarmUp)
-        execCancelToken()
+        stopSchedulers()
 
         _currentOperation <- NodeOperationType.None
     }
@@ -178,7 +180,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             else
                 dep.Logger.Information("Stopping scenarios...")
 
-            execCancelToken()
+            stopSchedulers()
             do! cleanScenarios()
 
             _stopped <- true
