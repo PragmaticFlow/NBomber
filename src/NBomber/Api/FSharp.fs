@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Runtime
 open System.Threading.Tasks
 
 open Serilog
@@ -327,6 +328,7 @@ module NBomberRunner =
         | _ -> context
 
     let internal runWithResult (args) (context: NBomberContext) =
+        GCSettings.LatencyMode <- GCLatencyMode.SustainedLowLatency
         context
         |> executeCliArgs args
         |> NBomberRunner.run

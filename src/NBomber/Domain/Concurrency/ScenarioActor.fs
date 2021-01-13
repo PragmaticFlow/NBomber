@@ -24,7 +24,7 @@ type ActorDep = {
 
 type ScenarioActor(dep: ActorDep, correlationId: CorrelationId) =
 
-    let _allScnResponses = Array.init<ResizeArray<StepResponse>> dep.Scenario.Steps.Length (fun _ -> ResizeArray())
+    let _allScnResponses = Array.init<ResizeArray<StepResponse>> dep.Scenario.Steps.Length (fun _ -> ResizeArray(capacity = 1_000_000))
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
     let _stepDep = { ScenarioName = dep.Scenario.ScenarioName
