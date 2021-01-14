@@ -28,9 +28,9 @@ module ConsoleErrorStats =
             [ $"- error code: ${error.ErrorCode}"
               $"- count: ${error.Count}"
               $"- message: ${error.Message}"
-              String.Empty
             ]
             |> String.concatLines
+            |> String.appendNewLine
         )
         |> String.concatLines
 
@@ -98,7 +98,6 @@ module ConsolePluginStats =
             seq {
                 printPluginStatsHeader(table)
                 printPluginStatsList(table)
-                String.Empty
             })
         |> String.concatLines
 
@@ -112,9 +111,9 @@ module ConsoleHints =
             [ $"- source: {hint.SourceType}"
               $"- name: {hint.SourceName}"
               $"- hint: {hint.Hint}"
-              String.Empty
             ]
             |> String.concatLines
+            |> String.appendNewLine
         )
         |> String.concatLines
 
