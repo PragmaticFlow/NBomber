@@ -61,6 +61,7 @@
     <PackageReference Include="FSharp.Json" Version="0.4.0" />
     <PackageReference Include="FSharp.UMX" Version="1.0.0" />
     <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.0.0" />
+    <PackageReference Include="FuncyDown" Version="1.1.0" />
     <PackageReference Include="HdrHistogram" Version="2.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.7" />
     <PackageReference Include="Serilog" Version="2.9.0" />
