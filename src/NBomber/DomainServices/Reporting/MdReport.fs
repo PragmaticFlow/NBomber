@@ -30,18 +30,18 @@ module MdTestInfo =
 
 module MdErrorStats =
 
-    let printScenarioErrorStatsHeader (scnStats: ScenarioStats) (document: Document) =
+    let printErrorStatsHeader (scnStats: ScenarioStats) (document: Document) =
         document
         |> Md.printHeader $"errors for scenario: {scnStats.ScenarioName |> Md.printInlineCode}"
 
-    let private printErrorStatsRows (errorStats: ErrorStats[])=
+    let private createErrorStatsTableRows (errorStats: ErrorStats[])=
         errorStats
         |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.Message])
         |> List.ofSeq
 
     let printErrorStats (errorStats: ErrorStats[]) (document: Document) =
         let headers = ["error code"; "count"; "message"]
-        let rows = printErrorStatsRows(errorStats)
+        let rows = createErrorStatsTableRows(errorStats)
 
         document |> addTable headers rows
 
@@ -57,7 +57,7 @@ module MdNodeStats =
 
         document |> Md.printHeader header
 
-    let private printStepStatsRow (s: StepStats) =
+    let private createStepStatsRow (s: StepStats) =
         let name = s.StepName |> Md.printInlineCode
 
         let count =
@@ -95,21 +95,21 @@ module MdNodeStats =
           ["latency percentile"; percentile]
           if s.AllDataMB > 0.0 then ["data transfer"; dataTransfer] ]
 
-    let private printStepStatsRows (stepStats: StepStats[]) =
+    let private createStepStatsTableRows (stepStats: StepStats[]) =
         stepStats
-        |> Seq.collect printStepStatsRow
+        |> Seq.collect createStepStatsRow
         |> List.ofSeq
 
     let private printScenarioErrorStats (scnStats: ScenarioStats) (document: Document) =
         if scnStats.ErrorStats.Length > 0 then
             document
-            |> MdErrorStats.printScenarioErrorStatsHeader scnStats
+            |> MdErrorStats.printErrorStatsHeader scnStats
             |> MdErrorStats.printErrorStats scnStats.ErrorStats
         else document
 
     let private printScenarioStats (scnStats: ScenarioStats) (document: Document) =
         let headers = ["step"; "details"]
-        let rows = printStepStatsRows(scnStats.StepStats)
+        let rows = createStepStatsTableRows(scnStats.StepStats)
 
         document
         |> printScenarioHeader scnStats
@@ -128,12 +128,12 @@ module MdPluginStats =
         document
         |> Md.printHeader $"plugin stats: {table.TableName |> Md.printInlineCode}"
 
-    let private printPluginStatsTableHeaders (table: DataTable) =
+    let private createPluginStatsTableHeaders (table: DataTable) =
         table.GetColumns()
         |> Seq.map(fun col -> col.GetColumnCaptionOrName())
         |> Seq.toList
 
-    let private printPluginStatsTableRows (table: DataTable) =
+    let private createPluginStatsTableRows (table: DataTable) =
         let columns = table.GetColumns()
 
         table.GetRows()
@@ -141,8 +141,8 @@ module MdPluginStats =
         |> List.ofSeq
 
     let private printPluginStatsTable (table: DataTable) (document: Document) =
-        let headers = printPluginStatsTableHeaders(table)
-        let rows = printPluginStatsTableRows(table)
+        let headers = createPluginStatsTableHeaders(table)
+        let rows = createPluginStatsTableRows(table)
 
         document
         |> printPluginStatsHeader table
@@ -160,7 +160,7 @@ module MdHints =
         document
         |> Md.printHeader "hints:"
 
-    let private printHintsTableRows (hints: HintResult list) =
+    let private createHintsTableRows (hints: HintResult list) =
         hints
         |> Seq.map(fun hint -> [hint.SourceType.ToString(); hint.SourceName; hint.Hint])
         |> List.ofSeq
@@ -168,7 +168,7 @@ module MdHints =
     let printHints (hints: HintResult list) (document: Document) =
         if hints.Length > 0 then
             let headers = ["source"; "name"; "hint"]
-            let rows = printHintsTableRows(hints)
+            let rows = createHintsTableRows(hints)
 
             document
             |> printHintsHeader
