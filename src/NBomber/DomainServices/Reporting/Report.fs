@@ -19,6 +19,7 @@ type ReportsContent = {
     HtmlReport: string
     CsvReport: string
     MdReport: string
+    ConsoleReport: string
     SessionFinishedWithErrors: bool
 }
 
@@ -34,6 +35,7 @@ let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (h
       HtmlReport = HtmlReport.print nodeStats timeLineStats hints
       CsvReport = CsvReport.print nodeStats
       MdReport = MdReport.print nodeStats hints
+      ConsoleReport = ConsoleReport.print nodeStats hints
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,
@@ -72,7 +74,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
             logger.Information("Reports saved in folder: '{0}', {1}",
                 DirectoryInfo(reportsDir).FullName, Environment.NewLine)
 
-        logger.Information(Environment.NewLine + report.TxtReport)
+        logger.Information(Environment.NewLine + report.ConsoleReport)
         reportFiles
     with
     | ex -> logger.Error(ex, "Report.save failed")

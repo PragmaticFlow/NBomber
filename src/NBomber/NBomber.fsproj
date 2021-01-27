@@ -44,6 +44,7 @@
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
     <Compile Include="DomainServices\Reporting\HtmlReport.fs" />
     <Compile Include="DomainServices\Reporting\MdReport.fs" />
+    <Compile Include="DomainServices\Reporting\ConsoleReport.fs" />
     <Compile Include="DomainServices\Reporting\Report.fs" />
     <Compile Include="DomainServices\NBomberContext.fs" />
     <Compile Include="DomainServices\TestHost\TestHostUtils.fs" />
