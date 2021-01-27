@@ -45,7 +45,7 @@ let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
     else
         line
 
-let inline private removeDescription (html: string) =
+let private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
 let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =

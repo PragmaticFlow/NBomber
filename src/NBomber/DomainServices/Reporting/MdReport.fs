@@ -124,7 +124,7 @@ module MdNodeStats =
 
 module MdPluginStats =
 
-    let inline private printPluginStatsHeader (table: DataTable) (document: Document) =
+    let private printPluginStatsHeader (table: DataTable) (document: Document) =
         document
         |> Md.printHeader $"plugin stats: {table.TableName |> Md.printInlineCode}"
 
@@ -156,6 +156,7 @@ module MdPluginStats =
         ) document
 
 module MdHints =
+
     let private printHintsHeader (document: Document) =
         document
         |> Md.printHeader "hints:"
