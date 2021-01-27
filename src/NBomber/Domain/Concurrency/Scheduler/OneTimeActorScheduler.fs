@@ -23,6 +23,7 @@ let schedule (actorPool: ScenarioActor list) (actorCount: int) =
 
 type OneTimeActorScheduler(dep: ActorDep) =
 
+    let _lockObj = obj()
     let mutable _actorPool = List.empty<ScenarioActor>
     let mutable _scheduledActorCount = 0
     let createActors = ScenarioActorPool.createActors dep
@@ -48,8 +49,10 @@ type OneTimeActorScheduler(dep: ActorDep) =
     member _.AvailableActors = _actorPool
 
     member _.InjectActors(count) =
-        _scheduledActorCount <- count
-        execScheduler _scheduledActorCount
+        lock _lockObj (fun _ ->
+            _scheduledActorCount <- count
+            execScheduler _scheduledActorCount
+        )
 
     member _.Stop() = stop()
 
