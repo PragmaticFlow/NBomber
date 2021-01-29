@@ -1,136 +1,234 @@
 module internal NBomber.DomainServices.Reporting.ConsoleReport
 
 open System
+open System.Collections.Generic
 open System.Data
 
-open ConsoleTables
-
 open NBomber.Contracts
+open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
 module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
-        [$"test suite: '{testInfo.TestSuite}'"; $"test name: '{testInfo.TestName}'"]
-        |> String.concatLines
-        |> String.appendNewLine
+        [ Console.addHeader("test info")
+          Console.addEmptyLine()
+          Console.addLine($"test suite: '{testInfo.TestSuite |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addLine($"test name: '{testInfo.TestName |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addEmptyLine() ]
 
 module ConsoleErrorStats =
 
-    let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
-        $"errors for scenario: '{scnStats.ScenarioName}'"
+    let printErrorStatsHeader (scenarioName: string)  =
+        Console.addLine($"errors for scenario: {scenarioName |> Console.highlight}")
 
-    let printErrorStats (errorStats: ErrorStats[]) =
+    let private createErrorStatsTableRows (errorStats: ErrorStats[])=
         errorStats
         |> Seq.map(fun error ->
-            [ $"- error code: ${error.ErrorCode}"
-              $"- count: ${error.Count}"
-              $"- message: ${error.Message}"
-            ]
-            |> String.concatLines
-            |> String.appendNewLine
+            [ error.ErrorCode.ToString()
+              error.Count.ToString()
+              error.ShortMessage |> Console.escapeMarkup |> Console.highlightError ]
         )
-        |> String.concatLines
+        |> List.ofSeq
+
+    let printErrorStats (errorStats: ErrorStats[])  =
+        let headers = ["code"; "count"; "message"]
+        let rows = createErrorStatsTableRows(errorStats)
+
+        Console.addTable headers rows
 
 module ConsoleNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
-        $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllDataMB}' MB"
+        [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addLine($"duration: '{scnStats.Duration |> Console.highlight}'" +
+                          $", ok count: '{scnStats.OkCount |> Console.highlight}'" +
+                          $", fail count: '{scnStats.FailCount |> Console.highlight}'" +
+                          $", all data: '{scnStats.AllDataMB |> Console.highlight}' MB") ]
 
-    let private printStepsTable (steps: StepStats[]) =
-        let stepTable = ConsoleTable("step", "details")
-        steps
-        |> Seq.iteri(fun i s ->
-            let dataInfoAvailable = s.AllDataMB > 0.0
+    let private printLoadSimulation (simulation: LoadSimulation) =
+        let simulationName = LoadTimeLine.getSimulationName(simulation)
 
-            [ "- name", s.StepName
-              "- request count", $"all = {s.RequestCount} | OK = {s.OkCount} | failed = {s.FailCount} | RPS = {s.RPS}"
-              "- latency", $"min = {s.Min} | mean = {s.Mean} | max = {s.Max}"
-              "- latency percentile", $"50%% = {s.Percent50} | 75%% = {s.Percent75} | 95%% = {s.Percent95} | 99%% = {s.Percent99} | StdDev = {s.StdDev}"
+        match simulation with
+        | RampConstant (copies, during)     ->
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", copies: '{copies |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
-              if dataInfoAvailable then
-                "- data transfer", $"min = %g{s.MinDataKb} KB | mean = %g{s.MeanDataKb} KB | max = %g{s.MaxDataKb} KB | all = %g{s.AllDataMB} MB"
-              if steps.Length > 1 && i < (steps.Length - 1) then
-                "", ""
-            ]
-            |> Seq.iter(fun (name, value) -> stepTable.AddRow(name, value) |> ignore)
-        )
-        stepTable.ToStringAlternative()
+        | KeepConstant  (copies, during)    ->
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", copies: '{copies |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
-    let printNodeStats (stats: NodeStats) =
-        stats.ScenarioStats
-        |> Array.map(fun scnStats ->
-            [printScenarioHeader(scnStats)
-             printStepsTable(scnStats.StepStats)
-             if scnStats.ErrorStats.Length > 0 then
-                 ConsoleErrorStats.printScenarioErrorStatsHeader(scnStats)
-                 ConsoleErrorStats.printErrorStats(scnStats.ErrorStats)
-            ]
-            |> String.concatLines
-        )
-        |> String.concatLines
+        | RampPerSec (rate, during)         ->
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", rate: '{rate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
+
+        | InjectPerSec (rate, during)       ->
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", rate: '{rate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
+
+        | InjectPerSecRandom  (minRate, maxRate, during) ->
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", min rate: '{minRate |> Console.highlight}'" +
+            $", max rate: '{maxRate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
+
+        |> Console.addLine
+
+    let private printloadSimulations (simulations: LoadSimulation list) =
+        simulations |> Seq.map printLoadSimulation
+
+    let private createStepStatsRow (i) (s: StepStats) =
+        let name = s.StepName |> Console.highlight
+
+        let count =
+            $"all = {s.RequestCount |> Console.highlight}" +
+            $", ok = {s.OkCount |> Console.highlight}" +
+            $", failed = {s.FailCount |> Console.highlight}" +
+            $", RPS = {s.RPS |> Console.highlight}"
+
+        let times =
+            $"min = {s.Min |> Console.highlight}" +
+            $", mean = {s.Mean |> Console.highlight}" +
+            $", max = {s.Max |> Console.highlight}"
+
+        let percentile =
+            $"50%% = {s.Percent50 |> Console.highlight}" +
+            $", 75%% = {s.Percent75 |> Console.highlight}" +
+            $", 95%% = {s.Percent95 |> Console.highlight}" +
+            $", 99%% = {s.Percent99 |> Console.highlight}" +
+            $", StdDev = {s.StdDev |> Console.highlight}"
+
+        let min = $"%.3f{s.MinDataKb} KB" |> Console.highlight
+        let mean = $"%.3f{s.MeanDataKb} KB" |> Console.highlight
+        let max = $"%.3f{s.MaxDataKb} KB" |> Console.highlight
+        let all = $"%.3f{s.AllDataMB} MB" |> Console.highlight
+
+        let dataTransfer =
+            $"min = {min |> Console.highlight}" +
+            $", mean = {mean |> Console.highlight}" +
+            $", max = {max |> Console.highlight}" +
+            $", all = {all |> Console.highlight}"
+
+        [ if i > 0 then [String.Empty; String.Empty]
+          ["name"; name]
+          ["request count"; count]
+          ["latency"; times]
+          ["latency percentile"; percentile]
+          if s.AllDataMB > 0.0 then ["data transfer"; dataTransfer] ]
+
+    let private createStepStatsTableRows (stepStats: StepStats[]) =
+        stepStats
+        |> Seq.mapi createStepStatsRow
+        |> Seq.concat
+        |> List.ofSeq
+
+    let private printScenarioErrorStats (scnStats: ScenarioStats) =
+        if scnStats.ErrorStats.Length > 0 then
+            [ Console.addEmptyLine()
+              ConsoleErrorStats.printErrorStatsHeader(scnStats.ScenarioName)
+              ConsoleErrorStats.printErrorStats(scnStats.ErrorStats) ]
+        else List.Empty
+
+    let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
+        let headers = ["step"; "details"]
+        let rows = createStepStatsTableRows(scnStats.StepStats)
+
+        [ yield! printScenarioHeader(scnStats)
+          yield! printloadSimulations(simulations)
+          Console.addTable headers rows
+          yield! printScenarioErrorStats(scnStats) ]
+
+    let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>)=
+        let scenarioStats =
+            stats.ScenarioStats
+            |> Seq.map(fun scnStats ->
+                [ yield! printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
+                  Console.addEmptyLine() ]
+            )
+            |> Seq.concat
+            |> List.ofSeq
+
+        [ Console.addHeader("scenario stats")
+          Console.addEmptyLine()
+          yield! scenarioStats ]
 
 module ConsolePluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        $"plugin stats: '{table.TableName}'" |> String.appendNewLine
+        Console.addLine $"plugin stats: {table.TableName |> Console.highlight}"
 
-    let private printPluginStatsList (table: DataTable) =
-        let columns = table.GetColumns()
-
-        table.GetRows()
-        |> Seq.map(fun row ->
-            columns
-            |> Seq.map(fun col -> $"- {col.GetColumnCaptionOrName()}: {row.[col.ColumnName]}")
-            |> String.concatLines
-            |> String.appendNewLine
+    let private createPluginStatsRow (columns: DataColumn[]) (row: DataRow) =
+        columns
+        |> Seq.map(fun col ->
+            [ col.GetColumnCaptionOrName() |> Console.escapeMarkup
+              row.[col].ToString() |> Console.escapeMarkup ]
         )
-        |> String.concatLines
 
+    let private createPluginStatsTable (table: DataTable)=
+        let headers = ["key"; "value"]
+        let createPluginStatsRow = table.GetColumns() |> createPluginStatsRow
+        let rows =
+            table.GetRows()
+            |> Seq.mapi(fun i row ->
+                [ if i > 0 then [String.Empty; String.Empty]
+                  yield! createPluginStatsRow row ]
+            )
+            |> Seq.concat
+            |> Seq.toList
+
+        Console.addTable headers rows
 
     let printPluginStats (stats: NodeStats) =
-        stats.PluginStats
-        |> Seq.collect(fun dataSet -> dataSet.GetTables())
-        |> Seq.collect(fun table ->
-            seq {
-                printPluginStatsHeader(table)
-                printPluginStatsList(table)
-            })
-        |> String.concatLines
+        if stats.PluginStats.Length > 0 then
+            let pluginStats =
+                stats.PluginStats
+                |> Seq.collect(fun dataSet -> dataSet.GetTables())
+                |> Seq.map(fun table ->
+                    [ printPluginStatsHeader(table)
+                      Console.addEmptyLine()
+                      createPluginStatsTable(table)
+                      Console.addEmptyLine() ]
+                )
+                |> Seq.concat
+                |> List.ofSeq
+
+            [ Console.addHeader("plugin stats")
+              Console.addEmptyLine()
+              yield! pluginStats ]
+        else
+            List.empty
 
 module ConsoleHints =
-    let private printHintsHeader () =
-        "hints:" |> String.appendNewLine
 
-    let private printHintsList (hints: HintResult list) =
+    let private createHintsList (hints: HintResult list) =
         hints
         |> Seq.map(fun hint ->
-            [ $"- source: {hint.SourceType}"
-              $"- name: {hint.SourceName}"
-              $"- hint: {hint.Hint}"
-            ]
-            |> String.concatLines
-            |> String.appendNewLine
+            seq {
+                $"hint for {hint.SourceType} '{hint.SourceName |> Console.escapeMarkup |> Console.highlight}':"
+                $"{hint.Hint |> Console.escapeMarkup |> Console.highlightWarning}"
+            }
         )
-        |> String.concatLines
+        |> Console.addList
 
     let printHints (hints: HintResult list) =
         if hints.Length > 0 then
-            seq {
-                yield printHintsHeader()
-                yield printHintsList(hints)
-                yield String.Empty
-            }
-            |> String.concatLines
+            [ Console.addHeader("hints")
+              Console.addEmptyLine()
+              yield! createHintsList(hints) ]
         else
-            String.Empty
+            List.Empty
 
-let print (stats) (hints) =
-    [ConsoleTestInfo.printTestInfo stats.TestInfo
-     ConsoleNodeStats.printNodeStats stats
-     ConsolePluginStats.printPluginStats stats
-     ConsoleHints.printHints hints]
-    |> String.concatLines
+let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+    [ Console.addEmptyLine()
+      yield! ConsoleTestInfo.printTestInfo stats.TestInfo
+      yield! ConsoleNodeStats.printNodeStats stats simulations
+      yield! ConsolePluginStats.printPluginStats stats
+      yield! ConsoleHints.printHints hints
+      Console.addEmptyLine() ]

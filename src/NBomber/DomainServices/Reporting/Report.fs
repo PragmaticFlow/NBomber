@@ -1,29 +1,28 @@
 module internal NBomber.DomainServices.Reporting.Report
 
-open NBomber.Domain.HintsAnalyzer
-
-#nowarn "0104"
-
 open System
+open System.Collections.Generic
 open System.IO
 
 open Serilog
+open Spectre.Console.Rendering
 
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions.InternalExtensions
-open NBomber.Infra.Dependency
 
 type ReportsContent = {
     TxtReport: string
     HtmlReport: string
     CsvReport: string
     MdReport: string
-    ConsoleReport: string
+    ConsoleReport: IRenderable seq
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
+let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list)
+          (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
 
     let errorsExist =
         timeLineStats
@@ -35,7 +34,7 @@ let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (h
       HtmlReport = HtmlReport.print nodeStats timeLineStats hints
       CsvReport = CsvReport.print nodeStats
       MdReport = MdReport.print nodeStats hints
-      ConsoleReport = ConsoleReport.print nodeStats hints
+      ConsoleReport = ConsoleReport.print nodeStats hints simulations
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,
@@ -74,7 +73,6 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
             logger.Information("Reports saved in folder: '{0}', {1}",
                 DirectoryInfo(reportsDir).FullName, Environment.NewLine)
 
-        logger.Information(Environment.NewLine + report.ConsoleReport)
         reportFiles
     with
     | ex -> logger.Error(ex, "Report.save failed")

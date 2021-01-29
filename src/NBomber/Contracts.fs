@@ -1,4 +1,4 @@
-﻿namespace NBomber.Contracts
+namespace NBomber.Contracts
 
 open System
 open System.Data
@@ -61,6 +61,7 @@ type ErrorCode = int
 
 type ErrorStats = {
     ErrorCode: ErrorCode
+    ShortMessage: string
     Message: string
     Count: int
 }

@@ -24,7 +24,7 @@ module TxtErrorStats =
 
     let printErrorStatsTable (errorStats: ErrorStats[]) =
         let errorTable = ConsoleTable("error code", "count", "message")
-        errorStats |> Seq.iter(fun error -> errorTable.AddRow(error.ErrorCode, error.Count, error.Message) |> ignore)
+        errorStats |> Seq.iter(fun error -> errorTable.AddRow(error.ErrorCode, error.Count, error.ShortMessage) |> ignore)
         errorTable.ToStringAlternative()
 
 module TxtNodeStats =

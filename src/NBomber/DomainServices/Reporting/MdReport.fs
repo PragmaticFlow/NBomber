@@ -30,13 +30,13 @@ module MdTestInfo =
 
 module MdErrorStats =
 
-    let printErrorStatsHeader (scnStats: ScenarioStats) (document: Document) =
+    let printErrorStatsHeader (scenarioName: string) (document: Document) =
         document
-        |> Md.printHeader $"errors for scenario: {scnStats.ScenarioName |> Md.printInlineCode}"
+        |> Md.printHeader $"errors for scenario: {scenarioName |> Md.printInlineCode}"
 
     let private createErrorStatsTableRows (errorStats: ErrorStats[])=
         errorStats
-        |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.Message])
+        |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.ShortMessage])
         |> List.ofSeq
 
     let printErrorStats (errorStats: ErrorStats[]) (document: Document) =
@@ -103,7 +103,7 @@ module MdNodeStats =
     let private printScenarioErrorStats (scnStats: ScenarioStats) (document: Document) =
         if scnStats.ErrorStats.Length > 0 then
             document
-            |> MdErrorStats.printErrorStatsHeader scnStats
+            |> MdErrorStats.printErrorStatsHeader scnStats.ScenarioName
             |> MdErrorStats.printErrorStats scnStats.ErrorStats
         else document
 
