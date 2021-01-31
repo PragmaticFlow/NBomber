@@ -1,14 +1,22 @@
 module internal NBomber.Domain.DomainTypes
 
 open System
+open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
 
+open HdrHistogram
 open Serilog
 
 open NBomber.Contracts
 open NBomber.Domain.ConnectionPool
 open NBomber.Extensions.InternalExtensions
+
+[<Measure>] type ticks
+[<Measure>] type ms
+[<Measure>] type bytes
+[<Measure>] type kb
+[<Measure>] type mb
 
 //todo: use opaque types
 type StepName = string
@@ -47,15 +55,38 @@ type Step = {
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack
 
+type RawStepStats = {
+    mutable RequestCount: int
+    mutable MinTicks: float<ticks>
+    mutable MaxTicks: float<ticks>
+    mutable RequestLessSecCount: int
+    mutable Less800: int
+    mutable More800Less1200: int
+    mutable More1200: int
+    LatencyHistogramTicks: LongHistogram
+    mutable MinBytes: float<bytes>
+    mutable MaxBytes: float<bytes>
+    mutable AllMB: float<mb>
+    DataTransferBytes: LongHistogram
+}
+
+type StepExecutionData = {
+    OkStats: RawStepStats
+    FailStats: RawStepStats
+    ErrorStats: Dictionary<ErrorCode,ErrorStats>
+}
+
 type RunningStep = {
     Value: Step
     Context: UntypedStepContext
+    mutable ExecutionData: StepExecutionData
 }
 
+[<Struct>]
 type StepResponse = {
-    Response: Response
-    StartTimeMs: float
-    LatencyMs: int
+    ClientResponse: Response
+    EndTimeTicks: int64<ticks>
+    LatencyTicks: int64<ticks>
 }
 
 type LoadTimeSegment = {

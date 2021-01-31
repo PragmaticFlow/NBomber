@@ -125,8 +125,8 @@ type ScenarioScheduler(dep: ActorDep) =
 
         getAllActors()
         |> Stream.ofList
-        |> Stream.collect(fun x -> x.GetStepResults executionTime)
-        |> RawScenarioStats.create dep.Scenario executionTime simulationStats
+        |> Stream.collect(fun x -> x.GetStepStats executionTime)
+        |> ScenarioStats.create dep.Scenario simulationStats executionTime
 
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)

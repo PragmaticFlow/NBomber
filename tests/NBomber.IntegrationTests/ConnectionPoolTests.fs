@@ -122,8 +122,8 @@ let ``should be shared btw steps as singlton instance``() =
     |> Result.getOk
     |> fun nodeStats ->
         let step_2_stats = nodeStats.ScenarioStats.[0].StepStats |> Seq.find(fun x -> x.StepName = "step_2")
-        test <@ step_2_stats.OkCount > 0 @>
-        test <@ step_2_stats.FailCount = 0 @>
+        test <@ step_2_stats.Ok.Request.Count > 0 @>
+        test <@ step_2_stats.Fail.Request.Count = 0 @>
 
 [<Fact>]
 let ``openConnection should stop test session in case of failure``() =

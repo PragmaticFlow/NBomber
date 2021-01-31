@@ -44,15 +44,21 @@ module ConsoleNodeStats =
         let stepTable = ConsoleTable("step", "details")
         steps
         |> Seq.iteri(fun i s ->
-            let dataInfoAvailable = s.AllDataMB > 0.0
+            let dataInfoAvailable = s.Ok.DataTransfer.AllMB + s.Fail.DataTransfer.AllMB > 0.0
+            let okCount = s.Ok.Request.Count
+            let failCount = s.Fail.Request.Count
+            let reqCount = okCount + failCount
+            let okRPS = s.Ok.Request.RPS
+            let lt = s.Ok.Latency
+            let dt = s.Ok.DataTransfer
 
             [ "- name", s.StepName
-              "- request count", $"all = {s.RequestCount} | OK = {s.OkCount} | failed = {s.FailCount} | RPS = {s.RPS}"
-              "- latency", $"min = {s.Min} | mean = {s.Mean} | max = {s.Max}"
-              "- latency percentile", $"50%% = {s.Percent50} | 75%% = {s.Percent75} | 95%% = {s.Percent95} | 99%% = {s.Percent99} | StdDev = {s.StdDev}"
+              "- request count", $"all = {reqCount} | OK = {okCount} | failed = {failCount} | RPS = {okRPS}"
+              "- latency", $"min = {lt.MinMs} | mean = {lt.MeanMs} | max = {lt.MaxMs}"
+              "- latency percentile", $"50%% = {lt.Percent50} | 75%% = {lt.Percent75} | 95%% = {lt.Percent95} | 99%% = {lt.Percent99} | StdDev = {lt.StdDev}"
 
               if dataInfoAvailable then
-                "- data transfer", $"min = %g{s.MinDataKb} KB | mean = %g{s.MeanDataKb} KB | max = %g{s.MaxDataKb} KB | all = %g{s.AllDataMB} MB"
+                "- data transfer", $"min = %g{dt.MinKb} KB | mean = %g{dt.MeanKb} KB | max = %g{dt.MaxKb} KB | all = %g{dt.AllMB} MB"
               if steps.Length > 1 && i < (steps.Length - 1) then
                 "", ""
             ]

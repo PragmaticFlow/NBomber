@@ -18,12 +18,13 @@ type CorrelationId = {
     CopyNumber: int
 }
 
+[<Struct>]
 type Response = {
     mutable Payload: obj
     SizeBytes: int
     Exception: exn option
     ErrorCode: int
-    LatencyMs: int
+    LatencyMs: float
 }
 
 type TestInfo = {
@@ -65,31 +66,58 @@ type ErrorStats = {
     Count: int
 }
 
-type StepStats = {
-    StepName: string
-    RequestCount: int
-    OkCount: int
-    FailCount: int
-    Min: int
-    Mean: int
-    Max: int
-    RPS: int
-    Percent50: int
-    Percent75: int
-    Percent95: int
-    Percent99: int
-    StdDev: int
-    MinDataKb: float
-    MeanDataKb: float
-    MaxDataKb: float
-    AllDataMB: float
-    ErrorStats: ErrorStats[]
+type RequestStats = {
+    Count: int
+    RPS: float
 }
 
 type LatencyCount = {
     Less800: int
     More800Less1200: int
     More1200: int
+}
+
+type LatencyStats = {
+    MinMs: float
+    MeanMs: float
+    MaxMs: float
+    Percent50: float
+    Percent75: float
+    Percent95: float
+    Percent99: float
+    StdDev: float
+    LatencyCount: LatencyCount
+}
+
+type DataTransferStats = {
+    MinKb: float
+    MeanKb: float
+    MaxKb: float
+    Percent50: float
+    Percent75: float
+    Percent95: float
+    Percent99: float
+    StdDev: float
+    AllMB: float
+}
+
+type OkStepStats = {
+    Request: RequestStats
+    Latency: LatencyStats
+    DataTransfer: DataTransferStats
+}
+
+type FailStepStats = {
+    Request: RequestStats
+    Latency: LatencyStats
+    DataTransfer: DataTransferStats
+    ErrorStats: ErrorStats[]
+}
+
+type StepStats = {
+    StepName: string
+    Ok: OkStepStats
+    Fail: FailStepStats
 }
 
 type LoadSimulationStats = {
@@ -265,7 +293,7 @@ type Response with
     [<CompiledName("Ok")>]
     static member ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
                      [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
-                     [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
+                     [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
           SizeBytes = sizeBytes
           Exception = None
@@ -274,7 +302,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
-                     [<Optional;DefaultParameterValue(0:int)>]latencyMs: int) =
+                     [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None
@@ -287,7 +315,7 @@ type Response with
           SizeBytes = 0
           Exception = Some(Exception "unknown client's error")
           ErrorCode = 0
-          LatencyMs = 0 }
+          LatencyMs = 0.0 }
 
     [<CompiledName("Fail")>]
     static member fail(ex: Exception,
@@ -296,7 +324,7 @@ type Response with
           SizeBytes = 0
           Exception = Some(ex)
           ErrorCode = errorCode
-          LatencyMs = 0 }
+          LatencyMs = 0.0 }
 
     [<CompiledName("Fail")>]
     static member fail(reason: string,
@@ -305,4 +333,4 @@ type Response with
           SizeBytes = 0
           Exception = Some(Exception reason)
           ErrorCode = errorCode
-          LatencyMs = 0 }
+          LatencyMs = 0.0 }

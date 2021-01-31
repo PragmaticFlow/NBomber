@@ -51,17 +51,6 @@ module Validation =
             | [] -> Ok scenario
             | poolName::tail -> AppError.createResult(DuplicateConnectionPoolName(scenario.ScenarioName, poolName))
 
-    let validateWarmUpStats (nodesStats: NodeStats list) =
-        let folder (state) (stats: NodeStats) =
-            state |> Result.bind(fun _ ->
-                if stats.FailCount > stats.OkCount then
-                    AppError.createResult(WarmUpErrorWithManyFailedSteps(stats.OkCount, stats.FailCount))
-                else Ok()
-            )
-
-        let okState = Ok()
-        nodesStats |> List.fold folder okState
-
     let validate =
         checkEmptyScenarioName >=> checkStepsOrInitOrCleanExist >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
 
