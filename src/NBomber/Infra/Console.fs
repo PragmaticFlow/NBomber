@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Console
+module internal NBomber.Infra.Console
 
 open System
 

@@ -39,7 +39,7 @@
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Dependency.fs" />
-    <Compile Include="DomainServices\Console.fs" />
+    <Compile Include="Infra\Console.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />

@@ -62,7 +62,7 @@ type ErrorCode = int
 type ErrorStats = {
     ErrorCode: ErrorCode
     ShortMessage: string
-    Message: string
+    FullMessage: string
     Count: int
 }
 

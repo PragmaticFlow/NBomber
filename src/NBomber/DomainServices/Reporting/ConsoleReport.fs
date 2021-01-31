@@ -7,9 +7,9 @@ open System.Data
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
-open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
+open NBomber.Infra
 
 module ConsoleTestInfo =
 

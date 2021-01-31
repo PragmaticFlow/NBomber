@@ -82,7 +82,7 @@ module ErrorStats =
             let ex = errorResponses |> Seq.head |> fun x -> x.Response.Exception.Value
             { ErrorCode = code
               ShortMessage = ex.Message
-              Message = ex.ToString()
+              FullMessage = ex.ToString()
               Count = errorResponses |> Seq.length }
         )
 
@@ -93,7 +93,7 @@ module ErrorStats =
         |> Stream.map(fun (code,errorStats) ->
             { ErrorCode = code
               ShortMessage = errorStats |> Seq.head |> fun x -> x.ShortMessage
-              Message = errorStats |> Seq.head |> fun x -> x.Message
+              FullMessage = errorStats |> Seq.head |> fun x -> x.FullMessage
               Count = errorStats |> Seq.sumBy(fun x -> x.Count) }
         )
 
