@@ -6,7 +6,6 @@ open NBomber.Extensions.InternalExtensions
 type DomainError =
     | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn
-    | WarmUpErrorWithManyFailedSteps of okCount:int * failedCount:int
 
 type ValidationError =
     | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
@@ -51,8 +50,6 @@ type AppError =
         match error with
         | InitScenarioError ex  -> sprintf "Init scenario error:'%s'." (ex.ToString())
         | CleanScenarioError ex -> sprintf "Clean scenario error:'%s'." (ex.ToString())
-        | WarmUpErrorWithManyFailedSteps (okCount, failedCount) ->
-            sprintf "WarmUp scenario error: too many failed steps: OK:'%i', Failed:'%i'." okCount failedCount
 
     static member toString (error: ValidationError) =
         match error with

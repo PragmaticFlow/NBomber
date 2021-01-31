@@ -59,29 +59,35 @@ module MdNodeStats =
 
     let private createStepStatsRow (s: StepStats) =
         let name = s.StepName |> Md.printInlineCode
+        let okCount = s.Ok.Request.Count
+        let failCount = s.Fail.Request.Count
+        let reqCount = okCount + failCount
+        let okRPS = s.Ok.Request.RPS
+        let lt = s.Ok.Latency
+        let dt = s.Ok.DataTransfer
 
         let count =
-            $"all = {s.RequestCount |> Md.printInlineCode}" +
-            $", ok = {s.OkCount |> Md.printInlineCode}" +
-            $", failed = {s.FailCount |> Md.printInlineCode}" +
-            $", RPS = {s.RPS |> Md.printInlineCode}"
+            $"all = {reqCount |> Md.printInlineCode}" +
+            $", ok = {okCount |> Md.printInlineCode}" +
+            $", failed = {failCount |> Md.printInlineCode}" +
+            $", RPS = {okRPS |> Md.printInlineCode}"
 
         let times =
-            $"min = {s.Min |> Md.printInlineCode}" +
-            $", mean = {s.Mean |> Md.printInlineCode}" +
-            $", max = {s.Max |> Md.printInlineCode}"
+            $"min = {lt.MinMs |> Md.printInlineCode}" +
+            $", mean = {lt.MeanMs |> Md.printInlineCode}" +
+            $", max = {lt.MaxMs |> Md.printInlineCode}"
 
         let percentile =
-            $"50%% = {s.Percent50 |> Md.printInlineCode}" +
-            $", 75%% = {s.Percent75 |> Md.printInlineCode}" +
-            $", 95%% = {s.Percent95 |> Md.printInlineCode}" +
-            $", 99%% = {s.Percent99 |> Md.printInlineCode}" +
-            $", StdDev = {s.StdDev |> Md.printInlineCode}"
+            $"50%% = {lt.Percent50 |> Md.printInlineCode}" +
+            $", 75%% = {lt.Percent75 |> Md.printInlineCode}" +
+            $", 95%% = {lt.Percent95 |> Md.printInlineCode}" +
+            $", 99%% = {lt.Percent99 |> Md.printInlineCode}" +
+            $", StdDev = {lt.StdDev |> Md.printInlineCode}"
 
-        let min = $"%.3f{s.MinDataKb} KB" |> Md.printInlineCode
-        let mean = $"%.3f{s.MeanDataKb} KB" |> Md.printInlineCode
-        let max = $"%.3f{s.MaxDataKb} KB" |> Md.printInlineCode
-        let all = $"%.3f{s.AllDataMB} MB" |> Md.printInlineCode
+        let min = $"%.3f{dt.MinKb} KB" |> Md.printInlineCode
+        let mean = $"%.3f{dt.MeanKb} KB" |> Md.printInlineCode
+        let max = $"%.3f{dt.MaxKb} KB" |> Md.printInlineCode
+        let all = $"%.3f{dt.AllMB} MB" |> Md.printInlineCode
 
         let dataTransfer =
             $"min = {min |> Md.printInlineCode}" +
@@ -93,7 +99,7 @@ module MdNodeStats =
           ["request count"; count]
           ["latency"; times]
           ["latency percentile"; percentile]
-          if s.AllDataMB > 0.0 then ["data transfer"; dataTransfer] ]
+          if dt.AllMB > 0.0 then ["data transfer"; dataTransfer] ]
 
     let private createStepStatsTableRows (stepStats: StepStats[]) =
         stepStats

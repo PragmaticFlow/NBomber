@@ -35,7 +35,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
     let getNodeStats (executionTime, nodeInfo, includeOnlyBombingScn) =
-        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats(_currentOperation))
+        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats _currentOperation)
 
         let scnStats =
             _scnSchedulers
@@ -198,9 +198,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // warm-up
         currentOperationTimer.Restart()
         do! this.StartWarmUp()
-        let nodeInfo = getCurrentNodeInfo()
-        let warmUpStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
-        do! Scenario.Validation.validateWarmUpStats [warmUpStats]
 
         // we start real-time timer
         use reportingTimer =

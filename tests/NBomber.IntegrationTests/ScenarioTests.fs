@@ -185,13 +185,13 @@ let ``Warmup should have no effect on stats`` () =
     |> Result.getOk
     |> fun nodeStats ->
         let allStepStats = nodeStats.ScenarioStats |> Seq.collect(fun x -> x.StepStats)
-        let okStats = allStepStats |> Seq.find(fun x -> x.StepName = "ok step")
-        let failStats = allStepStats |> Seq.find(fun x -> x.StepName = "fail step")
+        let okSt = allStepStats |> Seq.find(fun x -> x.StepName = "ok step")
+        let failSt = allStepStats |> Seq.find(fun x -> x.StepName = "fail step")
 
-        test <@ okStats.OkCount <= 10 @>
-        test <@ okStats.FailCount = 0 @>
-        test <@ failStats.OkCount = 0 @>
-        test <@ failStats.FailCount <= 10 @>
+        test <@ okSt.Ok.Request.Count <= 10 @>
+        test <@ okSt.Fail.Request.Count = 0 @>
+        test <@ failSt.Ok.Request.Count = 0 @>
+        test <@ failSt.Fail.Request.Count <= 10 @>
 
 [<Fact>]
 let ``applyScenariosSettings() should override initial settings if the name is matched`` () =
@@ -339,5 +339,5 @@ let ``withCustomStepsOrder should allow to run steps with custom order`` () =
     |> Result.getOk
     |> fun stats ->
         let stepsStats = stats.ScenarioStats.[0].StepStats
-        test <@ stepsStats.[0].RequestCount = 0 @>
-        test <@ stepsStats.[1].RequestCount > 0 @>
+        test <@ stepsStats.[0].Ok.Request.Count = 0 @>
+        test <@ stepsStats.[1].Ok.Request.Count > 0 @>

@@ -35,14 +35,14 @@ module internal PluginTestHelper =
             Scenario.create "plugin scenario 1" [step1; step2]
             |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 3.0)
+                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 10.0)
             ]
 
         let scenario2 =
             Scenario.create "plugin scenario 2" [step3]
             |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 3.0)
+                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 10.0)
             ]
 
         [scenario1; scenario2]
