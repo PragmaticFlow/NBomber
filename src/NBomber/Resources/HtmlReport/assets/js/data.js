@@ -40,8 +40,7 @@ const viewModel = {
                    "ErrorStats":[
                       {
                          "ErrorCode":0,
-                         "ShortMessage":"unknown client's error",
-                         "FullMessage":"System.Exception: unknown client's error",
+                         "Message":"unknown client's error",
                          "Count":22
                       }
                    ]
@@ -59,8 +58,7 @@ const viewModel = {
              "ErrorStats":[
                 {
                    "ErrorCode":0,
-                   "ShortMessage":"unknown client's error",
-                   "FullMessage":"System.Exception: unknown client's error",
+                   "Message":"unknown client's error",
                    "Count":22
                 }
              ],
@@ -152,8 +150,7 @@ const viewModel = {
                       "ErrorStats":[
                          {
                             "ErrorCode":0,
-                            "ShortMessage":"unknown client's error",
-                            "FullMessage":"System.Exception: unknown client's error",
+                            "Message":"unknown client's error",
                             "Count":2
                          }
                       ]
@@ -171,8 +168,7 @@ const viewModel = {
                 "ErrorStats":[
                    {
                       "ErrorCode":0,
-                      "ShortMessage": "unknown client's error",
-                      "FullMessage":"System.Exception: unknown client's error",
+                      "Message":"unknown client's error",
                       "Count":2
                    }
                 ],
@@ -208,8 +204,7 @@ const viewModel = {
                       "ErrorStats":[
                          {
                             "ErrorCode":0,
-                            "ShortMessage":"unknown client's error",
-                            "FullMessage":"System.Exception: unknown client's error",
+                            "Message":"unknown client's error",
                             "Count":3
                          }
                       ]
@@ -227,8 +222,7 @@ const viewModel = {
                 "ErrorStats":[
                    {
                       "ErrorCode":0,
-                      "ShortMessage": "unknown client's error",
-                      "FullMessage":"System.Exception: unknown client's error",
+                      "Message":"unknown client's error",
                       "Count":3
                    }
                 ],
@@ -264,8 +258,7 @@ const viewModel = {
                       "ErrorStats":[
                          {
                             "ErrorCode":0,
-                            "ShortMessage":"unknown client's error",
-                            "FullMessage":"System.Exception: unknown client's error",
+                            "Message":"unknown client's error",
                             "Count":8
                          }
                       ]
@@ -283,8 +276,7 @@ const viewModel = {
                 "ErrorStats":[
                    {
                       "ErrorCode":0,
-                      "ShortMessage": "unknown client's error",
-                      "FullMessage":"System.Exception: unknown client's error",
+                      "Message":"unknown client's error",
                       "Count":8
                    }
                 ],
@@ -320,8 +312,7 @@ const viewModel = {
                       "ErrorStats":[
                          {
                             "ErrorCode":0,
-                            "ShortMessage": "unknown client's error",
-                            "FullMessage":"System.Exception: unknown client's error",
+                            "Message":"unknown client's error",
                             "Count":18
                          }
                       ]
@@ -339,8 +330,7 @@ const viewModel = {
                 "ErrorStats":[
                    {
                       "ErrorCode":0,
-                      "ShortMessage":"unknown client's error",
-                      "FullMessage":"System.Exception: unknown client's error",
+                      "Message":"unknown client's error",
                       "Count":18
                    }
                 ],
