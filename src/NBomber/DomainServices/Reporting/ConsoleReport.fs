@@ -30,7 +30,7 @@ module ConsoleErrorStats =
         |> Seq.map(fun error ->
             [ error.ErrorCode.ToString()
               error.Count.ToString()
-              error.ShortMessage |> Console.escapeMarkup |> Console.highlightError ]
+              error.Message |> Console.escapeMarkup |> Console.highlightError ]
         )
         |> List.ofSeq
 
@@ -86,29 +86,35 @@ module ConsoleNodeStats =
 
     let private createStepStatsRow (i) (s: StepStats) =
         let name = s.StepName |> Console.highlight
+        let okCount = s.Ok.Request.Count
+        let failCount = s.Fail.Request.Count
+        let reqCount = okCount + failCount
+        let okRPS = s.Ok.Request.RPS
+        let lt = s.Ok.Latency
+        let dt = s.Ok.DataTransfer
 
         let count =
-            $"all = {s.RequestCount |> Console.highlight}" +
-            $", ok = {s.OkCount |> Console.highlight}" +
-            $", failed = {s.FailCount |> Console.highlight}" +
-            $", RPS = {s.RPS |> Console.highlight}"
+            $"all = {reqCount |> Console.highlight}" +
+            $", ok = {okCount |> Console.highlight}" +
+            $", failed = {failCount |> Console.highlight}" +
+            $", RPS = {okRPS |> Console.highlight}"
 
         let times =
-            $"min = {s.Min |> Console.highlight}" +
-            $", mean = {s.Mean |> Console.highlight}" +
-            $", max = {s.Max |> Console.highlight}"
+            $"min = {lt.MinMs |> Console.highlight}" +
+            $", mean = {lt.MeanMs |> Console.highlight}" +
+            $", max = {lt.MaxMs |> Console.highlight}"
 
         let percentile =
-            $"50%% = {s.Percent50 |> Console.highlight}" +
-            $", 75%% = {s.Percent75 |> Console.highlight}" +
-            $", 95%% = {s.Percent95 |> Console.highlight}" +
-            $", 99%% = {s.Percent99 |> Console.highlight}" +
-            $", StdDev = {s.StdDev |> Console.highlight}"
+            $"50%% = {lt.Percent50 |> Console.highlight}" +
+            $", 75%% = {lt.Percent75 |> Console.highlight}" +
+            $", 95%% = {lt.Percent95 |> Console.highlight}" +
+            $", 99%% = {lt.Percent99 |> Console.highlight}" +
+            $", StdDev = {lt.StdDev |> Console.highlight}"
 
-        let min = $"%.3f{s.MinDataKb} KB" |> Console.highlight
-        let mean = $"%.3f{s.MeanDataKb} KB" |> Console.highlight
-        let max = $"%.3f{s.MaxDataKb} KB" |> Console.highlight
-        let all = $"%.3f{s.AllDataMB} MB" |> Console.highlight
+        let min = $"%.3f{dt.MinKb} KB" |> Console.highlight
+        let mean = $"%.3f{dt.MeanKb} KB" |> Console.highlight
+        let max = $"%.3f{dt.MaxKb} KB" |> Console.highlight
+        let all = $"%.3f{dt.AllMB} MB" |> Console.highlight
 
         let dataTransfer =
             $"min = {min |> Console.highlight}" +
@@ -116,12 +122,11 @@ module ConsoleNodeStats =
             $", max = {max |> Console.highlight}" +
             $", all = {all |> Console.highlight}"
 
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name]
+        [ ["name"; name]
           ["request count"; count]
           ["latency"; times]
           ["latency percentile"; percentile]
-          if s.AllDataMB > 0.0 then ["data transfer"; dataTransfer] ]
+          if dt.AllMB > 0.0 then ["data transfer"; dataTransfer] ]
 
     let private createStepStatsTableRows (stepStats: StepStats[]) =
         stepStats

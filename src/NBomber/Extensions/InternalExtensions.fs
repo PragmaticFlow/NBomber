@@ -11,7 +11,7 @@ module internal InternalExtensions =
         not(isNull value)
 
     module Json =
-    
+
         let inline toJson (object) =
             JsonConvert.SerializeObject(object, Formatting.Indented)
 
@@ -76,17 +76,18 @@ module internal InternalExtensions =
     module Stream =
 
         /// Safe variant of `Array.min`
-        let minOrDefault defaultValue stream =
+        let inline minOrDefault defaultValue stream =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.minBy id
 
         /// Safe variant of `Array.average`
-        let averageOrDefault (defaultValue: float) stream =
+        //todo: add proper impl, don't use Seq
+        let inline averageOrDefault (defaultValue: float) stream =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.toSeq |> Seq.average
 
         /// Safe variant of `Array.max`
-        let maxOrDefault defaultValue stream =
+        let inline maxOrDefault defaultValue stream =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.maxBy id
 
@@ -122,6 +123,7 @@ module internal InternalExtensions =
 
     module Dict =
 
+        //todo: remove
         let inline empty<'K,'V when 'K: equality> =
             System.Collections.Generic.Dictionary<'K,'V>()
             :> Dict<'K,'V>

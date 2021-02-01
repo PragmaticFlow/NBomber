@@ -305,7 +305,7 @@
                 <tr v-for="(error, index) in errors" :key="`error-stats-${index}`">
                     <td>{{error.ErrorCode}}</td>
                     <td>{{error.Count}}</td>
-                    <td>{{error.ShortMessage}}</td>
+                    <td>{{error.Message}}</td>
                 </tr>
             </tbody>
             <tfoot v-if="shouldBeLimited">

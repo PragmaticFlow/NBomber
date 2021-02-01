@@ -1,7 +1,6 @@
 module internal NBomber.DomainServices.Reporting.CsvReport
 
 open System
-
 open NBomber.Contracts
 
 let private separator = ","
@@ -17,13 +16,20 @@ let private getHeader () =
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats, testInfo: TestInfo) =
     let format = seq {0 .. 19} |> Seq.map(sprintf "{%i}") |> String.concat(separator) // {0},{1},{2},...
+    let okCount = stats.Ok.Request.Count
+    let failCount = stats.Fail.Request.Count
+    let reqCount = okCount + failCount
+    let okRPS = stats.Ok.Request.RPS
+    let lt = stats.Ok.Latency
+    let dt = stats.Ok.DataTransfer
+
     String.Format(format,
                   testInfo.TestSuite, testInfo.TestName,
                   scenarioName, duration, stats.StepName,
-                  stats.RequestCount, stats.OkCount, stats.FailCount,
-                  stats.RPS, stats.Min, stats.Mean, stats.Max,
-                  stats.Percent50, stats.Percent75, stats.Percent95, stats.Percent99, stats.StdDev,
-                  stats.MinDataKb, stats.MeanDataKb, stats.MaxDataKb, stats.AllDataMB)
+                  reqCount, okCount, failCount,
+                  okRPS, lt.MinMs, lt.MeanMs, lt.MaxMs,
+                  lt.Percent50, lt.Percent75, lt.Percent95, lt.Percent99, lt.StdDev,
+                  dt.MinKb, dt.MeanKb, dt.MaxKb, dt.AllMB)
 
 let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
     scnStats.StepStats
