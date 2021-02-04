@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
@@ -39,6 +39,7 @@
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
     <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\Console.fs" />
+    <Compile Include="Infra\ProgressBar.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
@@ -71,7 +72,6 @@
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-    <PackageReference Include="ShellProgressBar" Version="5.0.0" />
     <PackageReference Include="ConsoleTables" Version="2.4.2" />
     <PackageReference Include="Spectre.Console" Version="0.37.0" />
     <PackageReference Include="Streams" Version="0.6.0" />
