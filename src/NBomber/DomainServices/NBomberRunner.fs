@@ -7,15 +7,13 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.DomainServices.Reporting.Report
-open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
-open NBomber.Infra
-open NBomber.Infra.Dependency
-open NBomber.DomainServices
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.TestHost
+open NBomber.Errors
+open NBomber.Infra
+open NBomber.Infra.Dependency
 
 let getApplicationType () =
     try
@@ -24,10 +22,11 @@ let getApplicationType () =
     with
     | _ -> ApplicationType.Process
 
-let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
+let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: Report.ReportsContent) =
     let fileName     = NBomberContext.getReportFileName context
+    let currentTime  = DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss"
+    let fileNameDate = $"{fileName}_{currentTime}"
     let folder       = NBomberContext.getReportFolder context
-    let fileNameDate = sprintf "%s_%s" fileName (DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss")
     let formats      = NBomberContext.getReportFormats context
 
     if formats.Length > 0 then
@@ -53,10 +52,17 @@ let getHints (context: NBomberContext) (stats: NodeStats) =
 
     else List.empty
 
+let getLoadSimulations (context: NBomberContext) =
+    context.RegisteredScenarios
+    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadSimulations)
+    |> dict
+
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
+        Constants.Logo |> Console.addLogo |> Console.render
+
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
-        dep.Logger.Information("NBomber started as single node")
+        dep.Logger.Information("NBomber started as single node.")
 
         let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
         let! scenarios    = context |> NBomberContext.createScenarios
@@ -64,9 +70,13 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! nodeStats    = testHost.RunSession()
         let timeLineStats = testHost.GetTimeLineNodeStats()
         let hints         = getHints context nodeStats
+        let simulations   = context |> getLoadSimulations
+        let reports       = Report.build nodeStats timeLineStats hints simulations
 
-        return Report.build nodeStats timeLineStats hints
-               |> saveReports dep context nodeStats
+        if dep.ApplicationType = ApplicationType.Console then
+            reports.ConsoleReport |> Seq.iter Console.render
+
+        return reports |> saveReports dep context nodeStats
     }
 
 let run (context: NBomberContext) =

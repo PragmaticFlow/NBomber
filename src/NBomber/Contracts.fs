@@ -1,4 +1,4 @@
-﻿namespace NBomber.Contracts
+namespace NBomber.Contracts
 
 open System
 open System.Data

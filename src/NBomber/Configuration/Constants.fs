@@ -5,12 +5,10 @@ open Microsoft.Extensions.Configuration
 open NBomber.Configuration
 
 [<Literal>]
-let NBomberWelcomeText = """
-//        __   __         __   ___  __
-//  |\ | |__) /  \  |\/| |__) |__  |__)
-//  | \| |__) \__/  |  | |__) |___ |  \  '{0}' Started a new session: '{1}'
-//
-"""
+let Logo = "NBomber"
+
+[<Literal>]
+let NBomberWelcomeText = "NBomber '{0}' Started a new session: '{1}'"
 
 [<Literal>]
 let DefaultCopiesCount = 50
