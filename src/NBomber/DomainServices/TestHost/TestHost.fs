@@ -1,4 +1,4 @@
-namespace NBomber.DomainServices.TestHost
+﻿namespace NBomber.DomainServices.TestHost
 
 open System
 open System.Threading
@@ -93,13 +93,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let startBombing (isWarmUp) = task {
         _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
-        TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp) |> ignore
+        let progressBars = TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp)
 
         if not isWarmUp then
             do! TestHostReporting.startReportingSinks dep
             do! TestHostPlugins.startPlugins dep
 
         do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
+        progressBars |> List.iter(fun x -> x.Dispose())
 
         if not isWarmUp then
             do! TestHostReporting.stopReportingSinks dep

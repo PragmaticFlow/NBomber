@@ -17,9 +17,6 @@ let render (renderable: IRenderable) =
 let highlight (text) =
     $"[lime]{text}[/]"
 
-let highlightInfo (text) =
-    $"[dodgerblue1]{text}[/]"
-
 let highlightError (text) =
     $"[red]{text}[/]"
 
