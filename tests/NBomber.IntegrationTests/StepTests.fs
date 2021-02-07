@@ -82,7 +82,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ stats.Ok.Request.RPS >= 6.0 @>
         test <@ stats.Ok.Request.RPS <= 10.0 @>
         test <@ stats.Ok.Latency.MinMs <= 110.0 @>
-        test <@ stats.Ok.Latency.MeanMs <= 120.0 @>
+        test <@ stats.Ok.Latency.MeanMs <= 135.0 @>
         test <@ stats.Ok.Latency.MaxMs <= 150.0 @>
         test <@ stats.Ok.DataTransfer.MinKb = 0.098 @>
         test <@ stats.Ok.DataTransfer.AllMB >= 0.0015 @>
@@ -114,21 +114,15 @@ let ``can be duplicated to introduce repeatable behaviour`` () =
 [<Fact>]
 let ``StepContext Data should store any payload data from latest step.Response`` () =
 
-    let mutable counter = 0
-    let mutable step2Counter = 0
-    let mutable counterFromStep1 = 0
-
     let step1 = Step.createAsync("step 1", fun context -> task {
-        counter <- counter + 1
         do! Task.Delay(milliseconds 100)
-        return Response.ok(counter)
+        return Response.ok(context.InvocationCount)
     })
 
     let step2 = Step.createAsync("step 2", fun context -> task {
-        step2Counter <- counter
-        counterFromStep1 <- context.GetPreviousStepResponse<int>()
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
+        let prevStepRes = context.GetPreviousStepResponse<int>()
+        if prevStepRes <> context.InvocationCount then return Response.fail()
+        else return Response.ok()
     })
 
     Scenario.create "test context.Data" [step1; step2]
@@ -137,9 +131,8 @@ let ``StepContext Data should store any payload data from latest step.Response``
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/4/"
     |> NBomberRunner.run
-    |> ignore
-
-    test <@ counterFromStep1 = step2Counter @>
+    |> Result.getOk
+    |> fun stats -> test <@ stats.OkCount > 0 @>
 
 [<Fact>]
 let ``Step with DoNotTrack = true should has empty stats and not be printed`` () =
