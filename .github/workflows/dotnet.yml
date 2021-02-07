@@ -19,8 +19,8 @@ jobs:
         dotnet-version: '3.1.x'
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore NBomber.sln
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build NBomber.sln --no-restore
     - name: Test
-      run: dotnet test --configuration Release --project ./tests/NBomber.IntegrationTests/NBomber.IntegrationTests.fsproj --verbosity normal
+      run: dotnet test ./tests/NBomber.IntegrationTests/NBomber.IntegrationTests.fsproj --configuration Release --verbosity normal
