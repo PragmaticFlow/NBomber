@@ -59,7 +59,7 @@ module ConnectionPool =
     let createPoolName (poolName: string) (scenarioName: string) =
         sprintf "%s.%s" scenarioName poolName
 
-    let updatePoolArgsName (scenarioName: ScenarioName) (steps: IStep list) =
+    let updatePoolArgsName (scenarioName: string) (steps: IStep list) =
         steps
         |> Seq.cast<Step>
         |> Seq.map(fun step ->
@@ -152,7 +152,7 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createCorrelationId (scnName: ScenarioName, copyNumber): CorrelationId =
+let createCorrelationId (scnName: string, copyNumber): CorrelationId =
     { Id = $"{scnName}_{copyNumber}"
       ScenarioName = scnName
       CopyNumber = copyNumber }

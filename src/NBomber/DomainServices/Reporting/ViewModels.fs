@@ -93,9 +93,9 @@ module internal NodeStatsViewModel =
 module internal TimeLineStatsViewModel =
 
     let private getLatencyCountDiff (latency: LatencyCount) (prevLatency: LatencyCount) = {
-        Less800 = latency.Less800 - prevLatency.Less800
+        LessOrEq800 = latency.LessOrEq800 - prevLatency.LessOrEq800
         More800Less1200 = latency.More800Less1200 - prevLatency.More800Less1200
-        More1200 = latency.More1200 - prevLatency.More1200
+        MoreOrEq1200 = latency.MoreOrEq1200 - prevLatency.MoreOrEq1200
     }
 
     let private getScenarioStatsDiff (scenarioStats: ScenarioStats) (prevScenarioStats: ScenarioStats) = {

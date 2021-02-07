@@ -206,7 +206,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 (fun () ->
                     let operationTime = currentOperationTimer.Elapsed
                     let nodeInfo = getCurrentNodeInfo()
-                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo)
+                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo) |> NodeStats.roundStats
                     // prepend nodeStats to timeLineStats
                     _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
                     _currentOperation, nodeStats
@@ -222,7 +222,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // saving final stats
         let nodeInfo = getCurrentNodeInfo()
         dep.Logger.Information("Calculating final statistics...")
-        let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo)
+        let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo) |> NodeStats.roundStats
         do! TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats

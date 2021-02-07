@@ -20,9 +20,9 @@ let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: b
     let actual = {| Size = response.SizeBytes |}
 
     if isNull payload then
-        test <@ 0 = actual.Size @>
+        test <@ 0L = actual.Size @>
     else
-        test <@ payload.Length = actual.Size @>
+        test <@ payload.LongLength = actual.Size @>
 
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =
@@ -64,7 +64,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.createAsync("pull step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.ok(sizeBytes = 100)
+        return Response.ok(sizeBytes = 100L)
     })
 
     Scenario.create "latency count test" [pullStep]

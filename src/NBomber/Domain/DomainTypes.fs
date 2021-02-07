@@ -18,13 +18,8 @@ open NBomber.Extensions.InternalExtensions
 [<Measure>] type kb
 [<Measure>] type mb
 
-//todo: use opaque types
-type StepName = string
-type ScenarioName = string
-type Latency = int
-
 type StopCommand =
-    | StopScenario of ScenarioName * reason:string
+    | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
 
 type UntypedStepContext = {
@@ -44,7 +39,7 @@ type StepExecution =
     | AsyncExec of (UntypedStepContext -> Task<Response>)
 
 type Step = {
-    StepName: StepName
+    StepName: string
     ConnectionPoolArgs: ConnectionPoolArgs<obj> option
     ConnectionPool: ConnectionPool option
     Execute: StepExecution
@@ -57,15 +52,15 @@ type Step = {
 
 type RawStepStats = {
     mutable RequestCount: int
-    mutable MinTicks: float<ticks>
-    mutable MaxTicks: float<ticks>
-    mutable RequestLessSecCount: int
-    mutable Less800: int
+    mutable MinTicks: int64<ticks>
+    mutable MaxTicks: int64<ticks>
+    mutable LessOrEq1Sec: int
+    mutable LessOrEq800: int
     mutable More800Less1200: int
-    mutable More1200: int
+    mutable MoreOrEq1200: int
     LatencyHistogramTicks: LongHistogram
-    mutable MinBytes: float<bytes>
-    mutable MaxBytes: float<bytes>
+    mutable MinBytes: int64<bytes>
+    mutable MaxBytes: int64<bytes>
     mutable AllMB: float<mb>
     DataTransferBytes: LongHistogram
 }
@@ -100,7 +95,7 @@ type LoadTimeSegment = {
 type LoadTimeLine = LoadTimeSegment list
 
 type Scenario = {
-    ScenarioName: ScenarioName
+    ScenarioName: string
     Init: (IScenarioContext -> Task) option
     Clean: (IScenarioContext -> Task) option
     Steps: Step list
