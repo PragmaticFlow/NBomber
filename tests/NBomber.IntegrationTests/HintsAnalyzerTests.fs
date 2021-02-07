@@ -69,7 +69,7 @@ let ``analyze should return hint for case when FailCount > 0`` (failCount: uint3
 let ``analyze should return hint for case when RPS = 0`` (rps: uint32) =
 
     let req = { baseStepStats.Ok.Request with RPS = float rps }
-    let dt = { baseStepStats.Ok.DataTransfer with AllMB = 1.0 }
+    let dt = { baseStepStats.Ok.DataTransfer with MinKb = 1.0 }
     let stepStats = { baseStepStats with Ok = { Request = req; Latency = baseStepStats.Ok.Latency; DataTransfer = dt } }
 
     let scnStats = { baseScnStats with StepStats = [| stepStats |] }

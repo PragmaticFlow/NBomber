@@ -281,9 +281,9 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st1.Ok.Request.Count >= 4 && st1.Ok.Request.Count <= 6 @>
         test <@ st1.Ok.Request.RPS >= 1.0 && st1.Ok.Request.RPS <= 1.5 @>
-        test <@ st1.Ok.Latency.MinMs <= 505.0 @>
-        test <@ st1.Ok.Latency.MaxMs <= 515.0 @>
-        test <@ st1.Ok.Latency.Percent50 <= 508.0 @>
+        test <@ st1.Ok.Latency.MinMs <= 510.0 @>
+        test <@ st1.Ok.Latency.MaxMs <= 525.0 @>
+        test <@ st1.Ok.Latency.Percent50 <= 515.0 @>
         test <@ st1.Ok.Latency.LatencyCount.LessOrEq800 >= 4 && st1.Ok.Latency.LatencyCount.LessOrEq800 <= 6 @>
         test <@ st1.Ok.DataTransfer.MinKb = 0.098 @>
         test <@ st1.Ok.DataTransfer.Percent50 = 0.098 @>

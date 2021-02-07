@@ -79,12 +79,12 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
                     |> Seq.collect(fun x -> x.StepStats)
                     |> Seq.find(fun x -> x.StepName = "pull step")
 
-        test <@ stats.Ok.Request.RPS >= 5.0 @>
+        test <@ stats.Ok.Request.RPS >= 6.0 @>
         test <@ stats.Ok.Request.RPS <= 10.0 @>
         test <@ stats.Ok.Latency.MinMs <= 110.0 @>
         test <@ stats.Ok.Latency.MeanMs <= 120.0 @>
         test <@ stats.Ok.Latency.MaxMs <= 150.0 @>
-        test <@ stats.Ok.DataTransfer.MinKb = 0.1 @>
+        test <@ stats.Ok.DataTransfer.MinKb = 0.098 @>
         test <@ stats.Ok.DataTransfer.AllMB >= 0.0015 @>
 
 [<Fact>]
