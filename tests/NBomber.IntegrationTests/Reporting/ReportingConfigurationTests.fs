@@ -33,9 +33,7 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
     let scenario =
         Scenario.create "test" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 5, during = TimeSpan.FromSeconds 5.0)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.loadConfig("./Configuration/test_config_2.json")
@@ -46,12 +44,12 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
     let files = Directory.GetFiles("./my_custom_reports", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
 
     test <@ dirExist @>
-    test <@ files.Length = 2 @> // here we check that only 2 report formats were generated
+    test <@ files.Length = 3 @> // here we check that only 2 report formats were generated + txt 1 log file
 
     files
     |> Seq.map(FileInfo)
     |> Seq.iter(fun file ->
-        test <@ file.Name.Contains "custom_report_name" @>
+        test <@ file.Name.Contains "custom_report_name" || file.Name.Contains "nbomber-log" @>
         test <@ [".html"; ".txt"] |> Seq.contains file.Extension  @>
         test <@ file.Length > 0L  @>
     )
@@ -71,9 +69,7 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     let scenario =
         Scenario.create "test" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 5, during = TimeSpan.FromSeconds 5.0)
-        ]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportFileName "custom_report_name"
@@ -85,12 +81,12 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     let files = Directory.GetFiles("./my_reports", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
 
     test <@ dirExist @>
-    test <@ files.Length = 4 @> // here we check that all report formats were generated
+    test <@ files.Length = 5 @> // here we check that all report formats were generated
 
     files
     |> Seq.map(FileInfo)
     |> Seq.iter(fun file ->
-        test <@ file.Name.Contains "custom_report_name" @>
+        test <@ file.Name.Contains "custom_report_name" || file.Name.Contains "nbomber-log" @>
         test <@ [".html"; ".csv"; ".txt"; ".md"] |> Seq.contains file.Extension  @>
         test <@ file.Length > 0L  @>
     )

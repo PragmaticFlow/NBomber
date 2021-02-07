@@ -30,13 +30,14 @@ type IGlobalDependency =
 
 module Logger =
 
-    let create (testInfo: TestInfo)
+    let create (folder: string)
+               (testInfo: TestInfo)
                (createConfig: (unit -> LoggerConfiguration) option)
                (configPath: IConfiguration option) =
 
         let attachFileLogger (config: LoggerConfiguration) =
             config.WriteTo.File(
-                path = "./logs/nbomber-log-" + testInfo.SessionId + ".txt",
+                path = $"{folder}/{testInfo.SessionId}/nbomber-log.txt",
                 outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
@@ -123,9 +124,11 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberContext) =
-    let emptyTestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
-    let logger = Logger.create emptyTestInfo context.CreateLoggerConfig context.InfraConfig
+let create (folder: string) (testInfo: TestInfo)
+           (appType: ApplicationType) (nodeType: NodeType)
+           (context: NBomberContext) =
+
+    let logger = Logger.create folder testInfo context.CreateLoggerConfig context.InfraConfig
     Log.Logger <- logger
 
     { new IGlobalDependency with
@@ -138,18 +141,3 @@ let create (appType: ApplicationType) (nodeType: NodeType) (context: NBomberCont
         member _.Logger = logger
         member _.ReportingSinks = context.Reporting.Sinks
         member _.WorkerPlugins = context.WorkerPlugins }
-
-let init (testInfo: TestInfo) (dep: IGlobalDependency) =
-    let logger = Logger.create testInfo dep.CreateLoggerConfig dep.InfraConfig
-    Log.Logger <- logger
-
-    { new IGlobalDependency with
-        member _.ApplicationType = dep.ApplicationType
-        member _.NodeType = dep.NodeType
-        member _.NBomberConfig = dep.NBomberConfig
-        member _.InfraConfig = dep.InfraConfig
-        member _.CreateLoggerConfig = dep.CreateLoggerConfig
-        member _.ProgressBarEnv = dep.ProgressBarEnv
-        member _.Logger = logger
-        member _.ReportingSinks = dep.ReportingSinks
-        member _.WorkerPlugins = dep.WorkerPlugins }

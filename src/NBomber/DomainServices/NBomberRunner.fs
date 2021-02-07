@@ -94,8 +94,9 @@ let run (context: NBomberContext) =
         | Some appType -> appType
         | None         -> getApplicationType()
 
-    Dependency.create appType NodeType.SingleNode context
-    |> Dependency.init testInfo
+    let reportFolder = NBomberContext.getReportFolder context
+
+    Dependency.create reportFolder testInfo appType NodeType.SingleNode context
     |> runSession testInfo nodeInfo context
     |> TaskResult.mapError(fun error ->
         error |> AppError.toString |> Serilog.Log.Error
