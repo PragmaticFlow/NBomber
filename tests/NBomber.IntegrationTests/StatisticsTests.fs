@@ -295,7 +295,7 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st2.Ok.Request.Count = 2 @>
         test <@ st2.Ok.Request.RPS = 0.4 @>
-        test <@ st2.Ok.Latency.MinMs <= 55.0 @>
+        test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 50.0 @>
         test <@ st2.Ok.DataTransfer.MinKb = 0.049 @>
 
         test <@ st2.Fail.Request.Count >= 3 && st2.Fail.Request.Count <= 4 @>
