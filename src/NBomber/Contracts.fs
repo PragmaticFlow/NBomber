@@ -21,7 +21,7 @@ type CorrelationId = {
 [<Struct>]
 type Response = {
     mutable Payload: obj
-    SizeBytes: int
+    SizeBytes: int64
     Exception: exn option
     ErrorCode: int
     LatencyMs: float
@@ -72,9 +72,9 @@ type RequestStats = {
 }
 
 type LatencyCount = {
-    Less800: int
+    LessOrEq800: int
     More800Less1200: int
-    More1200: int
+    MoreOrEq1200: int
 }
 
 type LatencyStats = {
@@ -292,7 +292,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
-                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
+                     [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
                      [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
           SizeBytes = sizeBytes
@@ -304,7 +304,7 @@ type Response with
     static member ok(payload: byte[],
                      [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
-          SizeBytes = if isNull payload then 0 else payload.Length
+          SizeBytes = if isNull payload then 0L else payload.LongLength
           Exception = None
           ErrorCode = 0
           LatencyMs = latencyMs }
@@ -312,25 +312,29 @@ type Response with
     [<CompiledName("Fail")>]
     static member fail() =
         { Payload = null
-          SizeBytes = 0
+          SizeBytes = 0L
           Exception = Some(Exception "unknown client's error")
           ErrorCode = 0
           LatencyMs = 0.0 }
 
     [<CompiledName("Fail")>]
     static member fail(ex: Exception,
-                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
+                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
+                       [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
+                       [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = null
-          SizeBytes = 0
+          SizeBytes = sizeBytes
           Exception = Some(ex)
           ErrorCode = errorCode
-          LatencyMs = 0.0 }
+          LatencyMs = latencyMs }
 
     [<CompiledName("Fail")>]
     static member fail(reason: string,
-                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int) =
+                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
+                       [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
+                       [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = null
-          SizeBytes = 0
+          SizeBytes = sizeBytes
           Exception = Some(Exception reason)
           ErrorCode = errorCode
-          LatencyMs = 0.0 }
+          LatencyMs = latencyMs }

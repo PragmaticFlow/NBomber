@@ -57,15 +57,15 @@ module StepExecutionData =
 
         let createStats () = {
             RequestCount = 0
-            MinTicks = % Double.MaxValue
-            MaxTicks = 0.0<ticks>
-            RequestLessSecCount = 0
-            Less800 = 0
+            MinTicks = % Int64.MaxValue
+            MaxTicks = 0L<ticks>
+            LessOrEq1Sec = 0
+            LessOrEq800 = 0
             More800Less1200 = 0
-            More1200 = 0
+            MoreOrEq1200 = 0
             LatencyHistogramTicks = LongHistogram(TimeStamp.Hours(1), 3)
-            MinBytes = % Double.MaxValue
-            MaxBytes = 0.0<bytes>
+            MinBytes = % Int64.MaxValue
+            MaxBytes = 0L<bytes>
             AllMB = 0.0<mb>
             DataTransferBytes = LongHistogram(TimeStamp.Hours(1), 3)
         }
@@ -90,10 +90,10 @@ module StepExecutionData =
         // calc latency
         let latencyTicks =
             if clientRes.LatencyMs > 0.0 then Converter.fromMsToTicks(% clientRes.LatencyMs)
-            else response.LatencyTicks |> float |> UMX.tag
+            else response.LatencyTicks
 
         let latencyMs = Converter.fromTicksToMs latencyTicks
-        let responseBytes = clientRes.SizeBytes |> float |> UMX.tag<bytes>
+        let responseBytes = clientRes.SizeBytes |> UMX.tag<bytes>
 
         let stats =
             match clientRes.Exception with
@@ -105,17 +105,18 @@ module StepExecutionData =
         stats.RequestCount <- stats.RequestCount + 1
 
         // checks that the response is real (it was created after the request was sent)
-        if latencyTicks <> 0.0<ticks> then
+        if latencyTicks > 0L<ticks> then
 
             // add data transfer
             stats.MinTicks <- Statistics.min stats.MinTicks latencyTicks
             stats.MaxTicks <- Statistics.max stats.MaxTicks latencyTicks
-            stats.RequestLessSecCount <- if latencyMs <= 1000.0<ms> then stats.RequestLessSecCount + 1 else stats.RequestLessSecCount
             stats.LatencyHistogramTicks.RecordValue(int64 latencyTicks)
 
-            if latencyMs < 800.0<ms> then stats.Less800 <- stats.Less800 + 1
+            stats.LessOrEq1Sec <- if latencyMs <= 1000.0<ms> then stats.LessOrEq1Sec + 1 else stats.LessOrEq1Sec
+
+            if latencyMs <= 800.0<ms> then stats.LessOrEq800 <- stats.LessOrEq800 + 1
             elif latencyMs > 800.0<ms> && latencyMs < 1200.0<ms> then stats.More800Less1200 <- stats.More800Less1200 + 1
-            elif latencyMs > 1200.0<ms> then stats.More1200 <- stats.More1200 + 1
+            elif latencyMs >= 1200.0<ms> then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
             // add data transfer
             stats.MinBytes <- Statistics.min stats.MinBytes responseBytes
