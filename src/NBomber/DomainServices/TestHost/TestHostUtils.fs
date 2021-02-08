@@ -33,15 +33,13 @@ module internal TestHostReporting =
             | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save stats.", sink.SinkName)
     }
 
-    let startReportingTimer (dep: IGlobalDependency,
-                             sendStatsInterval: TimeSpan,
-                             getData: unit -> (NodeOperationType * NodeStats)) =
+    let createReportingTimer (dep: IGlobalDependency,
+                              sendStatsInterval: TimeSpan,
+                              getData: unit -> (NodeOperationType * NodeStats)) =
 
             let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
             timer.Elapsed.Add(fun _ ->
-
                 let (operation,nodeStats) = getData()
-
                 match operation with
                 | NodeOperationType.Bombing ->
                     if not (List.isEmpty dep.ReportingSinks) then
@@ -49,10 +47,8 @@ module internal TestHostReporting =
                         |> List.singleton
                         |> saveRealtimeStats dep.ReportingSinks
                         |> ignore
-
                 | _ -> ()
             )
-            timer.Start()
             timer
 
     let initReportingSinks (dep: IGlobalDependency) (context: IBaseContext) = taskResult {

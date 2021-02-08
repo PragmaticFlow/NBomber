@@ -46,7 +46,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         NodeStats.create sessionArgs.TestInfo nodeInfo scnStats pluginStats
 
     let getBombingOnlyNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, true)
-    let getFinalNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, false)
+    let getFinalNodeStats (nodeInfo) = getNodeStats(TimeSpan.MaxValue, nodeInfo, false)
 
     let execStopCommand (command: StopCommand) =
         match command with
@@ -157,14 +157,16 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _currentOperation <- NodeOperationType.None
     }
 
-    member _.StartBombing() = task {
+    member _.StartBombing(reportingTimer: Timers.Timer) = task {
         _stopped <- false
         _currentOperation <- NodeOperationType.Bombing
         do! Task.Yield()
 
         dep.Logger.Information("Starting bombing...")
+        reportingTimer.Start()
         let isWarmUp = false
         do! startBombing(isWarmUp)
+        reportingTimer.Stop()
         do! this.StopScenarios()
 
         _currentOperation <- NodeOperationType.Complete
@@ -195,15 +197,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         let currentOperationTimer = Stopwatch()
 
-        // warm-up
-        currentOperationTimer.Restart()
-        do! this.StartWarmUp()
-
-        // we start real-time timer
+        // reports only bombing stats
         use reportingTimer =
-            TestHostReporting.startReportingTimer(
+            TestHostReporting.createReportingTimer(
                 dep, sessionArgs.SendStatsInterval,
                 (fun () ->
+                    if not currentOperationTimer.IsRunning then
+                        currentOperationTimer.Restart()
+
                     let operationTime = currentOperationTimer.Elapsed
                     let nodeInfo = getCurrentNodeInfo()
                     let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo) |> NodeStats.roundStats
@@ -213,16 +214,17 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 )
             )
 
-        currentOperationTimer.Restart()
+        do! this.StartWarmUp()
+        do! this.StartBombing(reportingTimer)
 
-        // bombing
-        do! this.StartBombing()
-        reportingTimer.Stop()
-
-        // saving final stats
+        // gets final stats
         let nodeInfo = getCurrentNodeInfo()
         dep.Logger.Information("Calculating final statistics...")
-        let finalStats = getFinalNodeStats(currentOperationTimer.Elapsed, nodeInfo) |> NodeStats.roundStats
+        let finalStats = nodeInfo |> getFinalNodeStats |> NodeStats.roundStats
+        let maxDuration = finalStats.ScenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max
+
+        // prepend nodeStats to timeLineStats
+        _timeLineStats <- (maxDuration, finalStats) :: _timeLineStats
         do! TestHostReporting.saveFinalStats dep [finalStats]
 
         return finalStats

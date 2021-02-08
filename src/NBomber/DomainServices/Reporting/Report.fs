@@ -50,6 +50,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
                 | ReportFormat.Html -> ".html"
                 | ReportFormat.Csv  -> ".csv"
                 | ReportFormat.Md   -> ".md"
+                | _                 -> failwith "invalid report format."
 
             let filePath = Path.Combine(reportsDir, fileName) + fileExt
             { FilePath = filePath; ReportFormat = format }
@@ -63,6 +64,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
             | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
+            | _                 -> failwith "invalid report format."
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 

@@ -124,11 +124,11 @@ let createSessionId () =
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
     date + "_" + guid
 
-let create (folder: string) (testInfo: TestInfo)
+let create (reportFolder: string) (testInfo: TestInfo)
            (appType: ApplicationType) (nodeType: NodeType)
            (context: NBomberContext) =
 
-    let logger = Logger.create folder testInfo context.CreateLoggerConfig context.InfraConfig
+    let logger = Logger.create reportFolder testInfo context.CreateLoggerConfig context.InfraConfig
     Log.Logger <- logger
 
     { new IGlobalDependency with
