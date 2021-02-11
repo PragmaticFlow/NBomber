@@ -12,6 +12,7 @@ open ShellProgressBar
 
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Infra.ConsoleSerilogSink
 
 type IProgressBarEnv =
     abstract CreateManualProgressBar: tickCount:int -> IProgressBar
@@ -41,12 +42,13 @@ module Logger =
                 rollingInterval = RollingInterval.Day
             )
 
-        let attachConsoleLogger (config: LoggerConfiguration) =
+        let attachAnsiConsoleLogger (config: LoggerConfiguration) =
             config.WriteTo.Logger(fun lc ->
-                lc.WriteTo.Console()
-                  .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
-                                                       || event.Level = LogEventLevel.Warning
-                                                       || event.Level = LogEventLevel.Fatal)
+                let outputTemplate = "{Timestamp:HH:mm:ss} [{Level}] {Message:l}{NewLine}{Exception}"
+                lc.WriteTo.ansiConsole(outputTemplate,  minLevel = LogEventLevel.Information)
+                    .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
+                                                        || event.Level = LogEventLevel.Warning
+                                                        || event.Level = LogEventLevel.Fatal)
                 |> ignore
             )
 
@@ -59,7 +61,7 @@ module Logger =
                                    .Enrich.WithProperty("TestName", testInfo.TestName)
                                    .Enrich.WithThreadId()
             |> attachFileLogger
-            |> attachConsoleLogger
+            |> attachAnsiConsoleLogger
 
         match configPath with
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger

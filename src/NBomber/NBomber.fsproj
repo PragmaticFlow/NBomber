@@ -37,8 +37,9 @@
     <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
+    <Compile Include="Infra\AnsiConsole.fs" />
+    <Compile Include="Infra\AnsiConsoleSerilogSink.fs" />
     <Compile Include="Infra\Dependency.fs" />
-    <Compile Include="Infra\Console.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />

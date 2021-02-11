@@ -1,27 +1,56 @@
-module internal NBomber.Infra.Console
+module internal NBomber.Infra.AnsiConsole
 
 open System
 
 open Spectre.Console
 open Spectre.Console.Rendering
+open System.IO
 
-let private console =
+let create (output: TextWriter) =
     AnsiConsoleSettings(
         ColorSystem = ColorSystemSupport.Detect,
-        Interactive = InteractionSupport.No)
+        Interactive = InteractionSupport.No,
+        Out = output
+    )
     |> AnsiConsole.Create
 
-let render (renderable: IRenderable) =
+let DefaultConsole = create(Unchecked.defaultof<TextWriter>)
+
+let write (console: IAnsiConsole) (text: string) =
+    console.Write(text)
+
+let writeException (console: IAnsiConsole) (ex: Exception) =
+    console.WriteException(ex)
+
+let render (console: IAnsiConsole) (renderable: IRenderable) =
     console.Render(renderable)
 
 let highlight (text) =
     $"[lime]{text}[/]"
 
-let highlightError (text) =
-    $"[red]{text}[/]"
+let highlightMuted (text) =
+    $"[grey]{text}[/]"
+
+let highlightVerbose (text) =
+    highlightMuted(text)
+
+let highlightDebug (text) =
+    $"[silver]{text}[/]"
+
+let highlightInfo (text) =
+    $"[deepskyblue1]{text}[/]"
 
 let highlightWarning (text) =
     $"[yellow]{text}[/]"
+
+let highlightError (text) =
+    $"[red]{text}[/]"
+
+let highlightFatal (text) =
+    $"[maroon]{text}[/]"
+
+let markup (text) =
+    Markup(text)
 
 let escapeMarkup (text) =
     Markup.Escape(text)
@@ -32,8 +61,8 @@ let addLogo (logo) =
 let addEmptyLine () =
     Markup(Environment.NewLine) :> IRenderable
 
-let addLine (header) =
-    Markup($"{header}{Environment.NewLine}") :> IRenderable
+let addLine (text) =
+    Markup($"{text}{Environment.NewLine}") :> IRenderable
 
 let addHeader (header) =
     let rule = Rule(header)

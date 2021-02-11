@@ -59,7 +59,7 @@ let getLoadSimulations (context: NBomberContext) =
 
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
-        Constants.Logo |> Console.addLogo |> Console.render
+        Constants.Logo |> AnsiConsole.addLogo |> AnsiConsole.render AnsiConsole.DefaultConsole
 
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node.")
@@ -74,7 +74,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let reports       = Report.build nodeStats timeLineStats hints simulations
 
         if dep.ApplicationType = ApplicationType.Console then
-            reports.ConsoleReport |> Seq.iter Console.render
+            reports.ConsoleReport |> Seq.iter(AnsiConsole.render AnsiConsole.DefaultConsole)
 
         return reports |> saveReports dep context nodeStats
     }
