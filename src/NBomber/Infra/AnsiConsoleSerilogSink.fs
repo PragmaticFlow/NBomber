@@ -62,6 +62,18 @@ type AnsiConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
 
 type AnsiConsoleRenderer = (LogEvent * TextWriter) -> unit
 
+module LevelOutputFormat =
+    //todo: implement format handling
+    let getLevelMoniker (format: string) (level: LogEventLevel) =
+        match level with
+        | LogEventLevel.Verbose     -> "VERB"
+        | LogEventLevel.Debug       -> "DBUG"
+        | LogEventLevel.Information -> "INFO"
+        | LogEventLevel.Warning     -> "WARN"
+        | LogEventLevel.Error       -> "EROR"
+        | LogEventLevel.Fatal       -> "FATL"
+    
+
 module AnsiConsoleTextFormatter =
 
     let private textRenderer (token: TextToken) (logEvent: LogEvent, output: TextWriter) =
@@ -93,26 +105,16 @@ module AnsiConsoleTextFormatter =
         sv.Render(output, token.Format)
 
     let private levelRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
-        //todo: implement format handling
-        let convertLevelToString (format: string) (level: LogEventLevel) =
-            match level with
-            | LogEventLevel.Verbose     -> "VERB"
-            | LogEventLevel.Debug       -> "DBUG"
-            | LogEventLevel.Information -> "INFO"
-            | LogEventLevel.Warning     -> "WARN"
-            | LogEventLevel.Error       -> "EROR"
-            | LogEventLevel.Fatal       -> "FATL"
-
         let console = AnsiConsole.create(output)
-        let level = convertLevelToString token.Format logEvent.Level
+        let levelMoniker = LevelOutputFormat.getLevelMoniker token.Format logEvent.Level
 
         match logEvent.Level with
-        | LogEventLevel.Verbose     -> level |> AnsiConsole.highlightVerbose
-        | LogEventLevel.Debug       -> level |> AnsiConsole.highlightDebug
-        | LogEventLevel.Information -> level |> AnsiConsole.highlightInfo
-        | LogEventLevel.Warning     -> level |> AnsiConsole.highlightWarning
-        | LogEventLevel.Error       -> level |> AnsiConsole.highlightError
-        | LogEventLevel.Fatal       -> level |> AnsiConsole.highlightFatal
+        | LogEventLevel.Verbose     -> levelMoniker |> AnsiConsole.highlightVerbose
+        | LogEventLevel.Debug       -> levelMoniker |> AnsiConsole.highlightDebug
+        | LogEventLevel.Information -> levelMoniker |> AnsiConsole.highlightInfo
+        | LogEventLevel.Warning     -> levelMoniker |> AnsiConsole.highlightWarning
+        | LogEventLevel.Error       -> levelMoniker |> AnsiConsole.highlightError
+        | LogEventLevel.Fatal       -> levelMoniker |> AnsiConsole.highlightFatal
         |> AnsiConsole.markup
         |> AnsiConsole.render console
 
