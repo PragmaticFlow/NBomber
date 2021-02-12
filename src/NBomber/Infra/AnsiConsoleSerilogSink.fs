@@ -73,7 +73,6 @@ module LevelOutputFormat =
         | LogEventLevel.Error       -> "EROR"
         | LogEventLevel.Fatal       -> "FATL"
     
-
 module AnsiConsoleTextFormatter =
 
     let private textRenderer (token: TextToken) (logEvent: LogEvent, output: TextWriter) =
@@ -143,7 +142,6 @@ module AnsiConsoleTextFormatter =
         |> AnsiConsole.markup
         |> AnsiConsole.render console
 
-
     let private eventPropRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
         propRenderer (token) token.Format (logEvent, output)
 
@@ -162,7 +160,6 @@ module AnsiConsoleTextFormatter =
             textRenderer(token :?> TextToken)
         else
             createPropTokenRenderer outputTemplate (token :?> PropertyToken)
-
 
 type AnsiConsoleTextFormatter (outputTemplate: string) = 
 
