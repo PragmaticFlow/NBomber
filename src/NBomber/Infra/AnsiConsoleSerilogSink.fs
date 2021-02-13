@@ -74,7 +74,7 @@ module LevelOutputFormat =
           upperCaseFormat, ["F"; "FA"; "FTL"; "FATL"; "FATAL"] ]
         |> Map.ofSeq
 
-    let levelMonikers =
+    let private levelMonikers =
         [ LogEventLevel.Verbose, verboseLevelMonikers
           LogEventLevel.Debug, debugLevelMonikers
           LogEventLevel.Information, informationLevelMonikers
@@ -83,7 +83,7 @@ module LevelOutputFormat =
           LogEventLevel.Fatal, fatalLevelMonikers ]
         |> Map.ofSeq
 
-    let getCaseFormat (format: string, defaultValue: string) =
+    let private getCaseFormat (format: string, defaultValue: string) =
         if (isNull format) || (format.Length <> 2 && format.Length <> 3) then
             defaultValue
         else
@@ -93,7 +93,7 @@ module LevelOutputFormat =
             else
                 defaultValue
 
-    let getMonikerWidth (format: string, defaultValue: int) =
+    let private getMonikerWidth (format: string, defaultValue: int) =
         if isNull format then
             defaultValue
         else if format.Length = 2 || format.Length = 3 then
