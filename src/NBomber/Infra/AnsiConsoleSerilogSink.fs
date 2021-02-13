@@ -11,14 +11,6 @@ open Serilog.Formatting
 open Serilog.Formatting.Display
 open Serilog.Parsing
 
-module LogEvent =
-
-    let toString (textFormatter: ITextFormatter) (logEvent: LogEvent) =
-        use writer = new StringWriter()
-        textFormatter.Format(logEvent, writer)
-        writer.Flush()
-        writer.ToString()
-
 module LogEventPropertyValue =
 
     let toString (format: string) (value: LogEventPropertyValue) =
@@ -30,10 +22,7 @@ module LogEventPropertyValue =
 module StructureValue =
 
     let toString (format: string) (value: StructureValue) =
-        use writer = new StringWriter()
-        value.Render(writer, format)
-        writer.Flush()
-        writer.ToString()
+        LogEventPropertyValue.toString format value
 
 module MessageTemplate =
 
@@ -42,25 +31,6 @@ module MessageTemplate =
         |> Seq.exists(fun token ->
             (token :? PropertyToken) && (token :?> PropertyToken).PropertyName = propName
         )
-
-type AnsiConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
-
-    do
-        if isNull textFormatter then
-            nameof textFormatter |> ArgumentNullException |> raise   
-
-    interface ILogEventSink with
-        member _.Emit(logEvent: LogEvent) =
-            if isNull logEvent then
-                nameof logEvent |> ArgumentNullException |> raise
-
-            lock lockObj (fun _ ->
-                logEvent
-                |> LogEvent.toString textFormatter
-                |> AnsiConsole.write AnsiConsole.DefaultConsole
-            )
-
-type AnsiConsoleRenderer = (LogEvent * TextWriter) -> unit
 
 module LevelOutputFormat =
     //todo: implement format handling
@@ -161,6 +131,8 @@ module AnsiConsoleTextFormatter =
         else
             createPropTokenRenderer outputTemplate (token :?> PropertyToken)
 
+type AnsiConsoleRenderer = (LogEvent * TextWriter) -> unit
+            
 type AnsiConsoleTextFormatter (outputTemplate: string) = 
 
     let mutable _renderers: AnsiConsoleRenderer[] = Array.empty<AnsiConsoleRenderer>
@@ -180,6 +152,23 @@ type AnsiConsoleTextFormatter (outputTemplate: string) =
                 nameof output |> ArgumentNullException |> raise
 
             _renderers |> Seq.iter(fun renderer -> renderer(logEvent, output))
+
+type AnsiConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
+
+    do
+        if isNull textFormatter then
+            nameof textFormatter |> ArgumentNullException |> raise   
+
+    interface ILogEventSink with
+        member _.Emit(logEvent: LogEvent) =
+            if isNull logEvent then
+                nameof logEvent |> ArgumentNullException |> raise
+
+            lock lockObj (fun _ ->
+                let output = Console.Out
+                textFormatter.Format(logEvent, output)
+                output.Flush()
+            )
 
 [<Extension>]
 type AnsiConsoleLoggerConfigurationExtensions() =
