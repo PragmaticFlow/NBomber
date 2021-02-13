@@ -44,7 +44,7 @@ module Logger =
 
         let attachAnsiConsoleLogger (config: LoggerConfiguration) =
             config.WriteTo.Logger(fun lc ->
-                let outputTemplate = "{Timestamp:HH:mm:ss} [{Level}] {Message:l}{NewLine}{Exception}"
+                let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:l}{NewLine}{Exception}"
                 lc.WriteTo.ansiConsole(outputTemplate,  minLevel = LogEventLevel.Information)
                     .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
                                                         || event.Level = LogEventLevel.Warning
