@@ -1,4 +1,4 @@
-module internal NBomber.Infra.ConsoleSerilogSink
+module NBomber.Infra.ConsoleSerilogSink
 
 open System
 open System.IO
@@ -10,6 +10,14 @@ open Serilog.Events
 open Serilog.Formatting
 open Serilog.Formatting.Display
 open Serilog.Parsing
+
+module LogEvent =
+
+    let toString (textFormatter: ITextFormatter) (logEvent: LogEvent) =
+        let writer = new StringWriter()
+        textFormatter.Format(logEvent, writer)
+        writer.Flush()
+        writer.ToString()
 
 module LogEventPropertyValue =
 
@@ -129,7 +137,7 @@ module AnsiConsoleTextFormatter =
             |> LogEventPropertyValue.toString
             |> AnsiConsole.highlight
             |> AnsiConsole.markup
-            |> AnsiConsole.render console
+            |> AnsiConsole.renderToConsole console
 
     let private messageRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
         let format = token.Format
@@ -158,7 +166,7 @@ module AnsiConsoleTextFormatter =
         | LogEventLevel.Error       -> levelMoniker |> AnsiConsole.highlightError
         | LogEventLevel.Fatal       -> levelMoniker |> AnsiConsole.highlightFatal
         |> AnsiConsole.markup
-        |> AnsiConsole.render console
+        |> AnsiConsole.renderToConsole console
 
     let private newLineRenderer (logEvent: LogEvent, output: TextWriter) =
         output.WriteLine()
@@ -183,7 +191,7 @@ module AnsiConsoleTextFormatter =
         |> StructureValue.toString
         |> AnsiConsole.highlightMuted
         |> AnsiConsole.markup
-        |> AnsiConsole.render console
+        |> AnsiConsole.renderToConsole console
 
     let private eventPropRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
         propRenderer (token) (logEvent, output)
@@ -238,9 +246,9 @@ type AnsiConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
                 nameof logEvent |> ArgumentNullException |> raise
 
             lock lockObj (fun _ ->
-                let output = Console.Out
-                textFormatter.Format(logEvent, output)
-                output.Flush()
+                logEvent
+                |> LogEvent.toString textFormatter
+                |> AnsiConsole.write
             )
 
 [<Extension>]

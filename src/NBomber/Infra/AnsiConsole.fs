@@ -1,4 +1,4 @@
-module internal NBomber.Infra.AnsiConsole
+module NBomber.Infra.AnsiConsole
 
 open System
 
@@ -14,15 +14,16 @@ let create (output: TextWriter) =
     )
     |> AnsiConsole.Create
 
-let DefaultConsole = create(Unchecked.defaultof<TextWriter>)
-
-let write (console: IAnsiConsole) (text: string) =
-    console.Write(text)
+let write (text: string) =
+    AnsiConsole.Write(text)
 
 let writeException (console: IAnsiConsole) (ex: Exception) =
     console.WriteException(ex)
 
-let render (console: IAnsiConsole) (renderable: IRenderable) =
+let render (renderable: IRenderable) =
+    AnsiConsole.Render(renderable)
+
+let renderToConsole (console: IAnsiConsole) (renderable: IRenderable) =
     console.Render(renderable)
 
 let highlight (text) =
