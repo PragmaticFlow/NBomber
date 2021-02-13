@@ -13,16 +13,19 @@ open Serilog.Parsing
 
 module LogEventPropertyValue =
 
-    let toString (format: string) (value: LogEventPropertyValue) =
+    let toString (value: LogEventPropertyValue) =
         use writer = new StringWriter()
-        value.Render(writer, format)
+        if value :? ScalarValue && (value :?> ScalarValue).Value :? string then
+            writer.Write((value :?> ScalarValue).Value)
+        else
+            value.Render(writer)
         writer.Flush()
         writer.ToString()
 
 module StructureValue =
 
-    let toString (format: string) (value: StructureValue) =
-        LogEventPropertyValue.toString format value
+    let toString (value: StructureValue) =
+        LogEventPropertyValue.toString(value)
 
 module MessageTemplate =
 
@@ -118,12 +121,12 @@ module AnsiConsoleTextFormatter =
     let private textRenderer (token: TextToken) (logEvent: LogEvent, output: TextWriter) =
         output.Write(token.Text)
 
-    let private propRenderer (token: PropertyToken) (format: string) (logEvent: LogEvent, output: TextWriter) =
+    let private propRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
         if logEvent.Properties.ContainsKey(token.PropertyName) then
             let console = AnsiConsole.create(output)
 
             logEvent.Properties.[token.PropertyName]
-            |> LogEventPropertyValue.toString format
+            |> LogEventPropertyValue.toString
             |> AnsiConsole.highlight
             |> AnsiConsole.markup
             |> AnsiConsole.render console
@@ -136,7 +139,7 @@ module AnsiConsoleTextFormatter =
             if token :? TextToken then
                 textRenderer (token :?> TextToken) (logEvent, output)
             else
-                propRenderer (token :?> PropertyToken) format (logEvent, output)
+                propRenderer (token :?> PropertyToken) (logEvent, output)
         )
     
     let private timestampRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
@@ -177,13 +180,13 @@ module AnsiConsoleTextFormatter =
         |> Seq.filter(fun x -> shouldBeRendered(x.Key, logEvent, outputTemplate))
         |> Seq.map(fun x -> LogEventProperty(x.Key, x.Value))
         |> StructureValue
-        |> StructureValue.toString token.Format
+        |> StructureValue.toString
         |> AnsiConsole.highlightMuted
         |> AnsiConsole.markup
         |> AnsiConsole.render console
 
     let private eventPropRenderer (token: PropertyToken) (logEvent: LogEvent, output: TextWriter) =
-        propRenderer (token) token.Format (logEvent, output)
+        propRenderer (token) (logEvent, output)
 
     let private createPropTokenRenderer (outputTemplate: MessageTemplate) (token: PropertyToken) =
         match token.PropertyName with
