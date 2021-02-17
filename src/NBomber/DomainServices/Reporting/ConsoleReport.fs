@@ -14,23 +14,23 @@ open NBomber.Infra
 module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
-        [ AnsiConsole.addHeader("test info")
-          AnsiConsole.addEmptyLine()
-          AnsiConsole.addLine($"test suite: '{testInfo.TestSuite |> AnsiConsole.escapeMarkup |> AnsiConsole.highlight}'")
-          AnsiConsole.addLine($"test name: '{testInfo.TestName |> AnsiConsole.escapeMarkup |> AnsiConsole.highlight}'")
-          AnsiConsole.addEmptyLine() ]
+        [ Console.addHeader("test info")
+          Console.addLine(String.Empty)
+          Console.addLine($"test suite: '{testInfo.TestSuite |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addLine($"test name: '{testInfo.TestName |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addLine(String.Empty) ]
 
 module ConsoleErrorStats =
 
     let printErrorStatsHeader (scenarioName: string)  =
-        AnsiConsole.addLine($"errors for scenario: {scenarioName |> AnsiConsole.highlight}")
+        Console.addLine($"errors for scenario: {scenarioName |> Console.highlight}")
 
     let private createErrorStatsTableRows (errorStats: ErrorStats[])=
         errorStats
         |> Seq.map(fun error ->
             [ error.ErrorCode.ToString()
               error.Count.ToString()
-              error.Message |> AnsiConsole.escapeMarkup |> AnsiConsole.highlightError ]
+              error.Message |> Console.escapeMarkup |> Console.highlightError ]
         )
         |> List.ofSeq
 
@@ -38,54 +38,54 @@ module ConsoleErrorStats =
         let headers = ["code"; "count"; "message"]
         let rows = createErrorStatsTableRows(errorStats)
 
-        AnsiConsole.addTable headers rows
+        Console.addTable headers rows
 
 module ConsoleNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        [ AnsiConsole.addLine($"scenario: '{scnStats.ScenarioName |> AnsiConsole.escapeMarkup |> AnsiConsole.highlight}'")
-          AnsiConsole.addLine($"duration: '{scnStats.Duration |> AnsiConsole.highlight}'" +
-                              $", ok count: '{scnStats.OkCount |> AnsiConsole.highlight}'" +
-                              $", fail count: '{scnStats.FailCount |> AnsiConsole.highlight}'" +
-                              $", all data: '{scnStats.AllDataMB |> AnsiConsole.highlight}' MB") ]
+        [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlight}'")
+          Console.addLine($"duration: '{scnStats.Duration |> Console.highlight}'" +
+                              $", ok count: '{scnStats.OkCount |> Console.highlight}'" +
+                              $", fail count: '{scnStats.FailCount |> Console.highlight}'" +
+                              $", all data: '{scnStats.AllDataMB |> Console.highlight}' MB") ]
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
 
         match simulation with
         | RampConstant (copies, during)     ->
-            $"load simulation: '{simulationName |> AnsiConsole.highlight}'" +
-            $", copies: '{copies |> AnsiConsole.highlight}'" +
-            $", during: '{during |> AnsiConsole.highlight}'"
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", copies: '{copies |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
         | KeepConstant  (copies, during)    ->
-            $"load simulation: '{simulationName |> AnsiConsole.highlight}'" +
-            $", copies: '{copies |> AnsiConsole.highlight}'" +
-            $", during: '{during |> AnsiConsole.highlight}'"
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", copies: '{copies |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
         | RampPerSec (rate, during)         ->
-            $"load simulation: '{simulationName |> AnsiConsole.highlight}'" +
-            $", rate: '{rate |> AnsiConsole.highlight}'" +
-            $", during: '{during |> AnsiConsole.highlight}'"
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", rate: '{rate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
         | InjectPerSec (rate, during)       ->
-            $"load simulation: '{simulationName |> AnsiConsole.highlight}'" +
-            $", rate: '{rate |> AnsiConsole.highlight}'" +
-            $", during: '{during |> AnsiConsole.highlight}'"
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", rate: '{rate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
         | InjectPerSecRandom  (minRate, maxRate, during) ->
-            $"load simulation: '{simulationName |> AnsiConsole.highlight}'" +
-            $", min rate: '{minRate |> AnsiConsole.highlight}'" +
-            $", max rate: '{maxRate |> AnsiConsole.highlight}'" +
-            $", during: '{during |> AnsiConsole.highlight}'"
+            $"load simulation: '{simulationName |> Console.highlight}'" +
+            $", min rate: '{minRate |> Console.highlight}'" +
+            $", max rate: '{maxRate |> Console.highlight}'" +
+            $", during: '{during |> Console.highlight}'"
 
-        |> AnsiConsole.addLine
+        |> Console.addLine
 
     let private printloadSimulations (simulations: LoadSimulation list) =
         simulations |> Seq.map printLoadSimulation
 
     let private createStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName |> AnsiConsole.highlight
+        let name = s.StepName |> Console.highlight
         let okCount = s.Ok.Request.Count
         let failCount = s.Fail.Request.Count
         let reqCount = okCount + failCount
@@ -94,33 +94,33 @@ module ConsoleNodeStats =
         let dt = s.Ok.DataTransfer
 
         let count =
-            $"all = {reqCount |> AnsiConsole.highlight}" +
-            $", ok = {okCount |> AnsiConsole.highlight}" +
-            $", failed = {failCount |> AnsiConsole.highlight}" +
-            $", RPS = {okRPS |> AnsiConsole.highlight}"
+            $"all = {reqCount |> Console.highlight}" +
+            $", ok = {okCount |> Console.highlight}" +
+            $", failed = {failCount |> Console.highlight}" +
+            $", RPS = {okRPS |> Console.highlight}"
 
         let times =
-            $"min = {lt.MinMs |> AnsiConsole.highlight}" +
-            $", mean = {lt.MeanMs |> AnsiConsole.highlight}" +
-            $", max = {lt.MaxMs |> AnsiConsole.highlight}"
+            $"min = {lt.MinMs |> Console.highlight}" +
+            $", mean = {lt.MeanMs |> Console.highlight}" +
+            $", max = {lt.MaxMs |> Console.highlight}"
 
         let percentile =
-            $"50%% = {lt.Percent50 |> AnsiConsole.highlight}" +
-            $", 75%% = {lt.Percent75 |> AnsiConsole.highlight}" +
-            $", 95%% = {lt.Percent95 |> AnsiConsole.highlight}" +
-            $", 99%% = {lt.Percent99 |> AnsiConsole.highlight}" +
-            $", StdDev = {lt.StdDev |> AnsiConsole.highlight}"
+            $"50%% = {lt.Percent50 |> Console.highlight}" +
+            $", 75%% = {lt.Percent75 |> Console.highlight}" +
+            $", 95%% = {lt.Percent95 |> Console.highlight}" +
+            $", 99%% = {lt.Percent99 |> Console.highlight}" +
+            $", StdDev = {lt.StdDev |> Console.highlight}"
 
-        let min = $"%.3f{dt.MinKb} KB" |> AnsiConsole.highlight
-        let mean = $"%.3f{dt.MeanKb} KB" |> AnsiConsole.highlight
-        let max = $"%.3f{dt.MaxKb} KB" |> AnsiConsole.highlight
-        let all = $"%.3f{dt.AllMB} MB" |> AnsiConsole.highlight
+        let min = $"%.3f{dt.MinKb} KB" |> Console.highlight
+        let mean = $"%.3f{dt.MeanKb} KB" |> Console.highlight
+        let max = $"%.3f{dt.MaxKb} KB" |> Console.highlight
+        let all = $"%.3f{dt.AllMB} MB" |> Console.highlight
 
         let dataTransfer =
-            $"min = {min |> AnsiConsole.highlight}" +
-            $", mean = {mean |> AnsiConsole.highlight}" +
-            $", max = {max |> AnsiConsole.highlight}" +
-            $", all = {all |> AnsiConsole.highlight}"
+            $"min = {min |> Console.highlight}" +
+            $", mean = {mean |> Console.highlight}" +
+            $", max = {max |> Console.highlight}" +
+            $", all = {all |> Console.highlight}"
 
         [ ["name"; name]
           ["request count"; count]
@@ -136,7 +136,7 @@ module ConsoleNodeStats =
 
     let private printScenarioErrorStats (scnStats: ScenarioStats) =
         if scnStats.ErrorStats.Length > 0 then
-            [ AnsiConsole.addEmptyLine()
+            [ Console.addLine(String.Empty)
               ConsoleErrorStats.printErrorStatsHeader(scnStats.ScenarioName)
               ConsoleErrorStats.printErrorStats(scnStats.ErrorStats) ]
         else List.Empty
@@ -147,7 +147,7 @@ module ConsoleNodeStats =
 
         [ yield! printScenarioHeader(scnStats)
           yield! printloadSimulations(simulations)
-          AnsiConsole.addTable headers rows
+          Console.addTable headers rows
           yield! printScenarioErrorStats(scnStats) ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>)=
@@ -155,25 +155,25 @@ module ConsoleNodeStats =
             stats.ScenarioStats
             |> Seq.map(fun scnStats ->
                 [ yield! printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
-                  AnsiConsole.addEmptyLine() ]
+                  Console.addLine(String.Empty) ]
             )
             |> Seq.concat
             |> List.ofSeq
 
-        [ AnsiConsole.addHeader("scenario stats")
-          AnsiConsole.addEmptyLine()
+        [ Console.addHeader("scenario stats")
+          Console.addLine(String.Empty)
           yield! scenarioStats ]
 
 module ConsolePluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        AnsiConsole.addLine $"plugin stats: {table.TableName |> AnsiConsole.highlight}"
+        Console.addLine $"plugin stats: {table.TableName |> Console.highlight}"
 
     let private createPluginStatsRow (columns: DataColumn[]) (row: DataRow) =
         columns
         |> Seq.map(fun col ->
-            [ col.GetColumnCaptionOrName() |> AnsiConsole.escapeMarkup
-              row.[col].ToString() |> AnsiConsole.escapeMarkup ]
+            [ col.GetColumnCaptionOrName() |> Console.escapeMarkup
+              row.[col].ToString() |> Console.escapeMarkup ]
         )
 
     let private createPluginStatsTable (table: DataTable)=
@@ -188,7 +188,7 @@ module ConsolePluginStats =
             |> Seq.concat
             |> Seq.toList
 
-        AnsiConsole.addTable headers rows
+        Console.addTable headers rows
 
     let printPluginStats (stats: NodeStats) =
         if stats.PluginStats.Length > 0 then
@@ -197,15 +197,15 @@ module ConsolePluginStats =
                 |> Seq.collect(fun dataSet -> dataSet.GetTables())
                 |> Seq.map(fun table ->
                     [ printPluginStatsHeader(table)
-                      AnsiConsole.addEmptyLine()
+                      Console.addLine(String.Empty)
                       createPluginStatsTable(table)
-                      AnsiConsole.addEmptyLine() ]
+                      Console.addLine(String.Empty) ]
                 )
                 |> Seq.concat
                 |> List.ofSeq
 
-            [ AnsiConsole.addHeader("plugin stats")
-              AnsiConsole.addEmptyLine()
+            [ Console.addHeader("plugin stats")
+              Console.addLine(String.Empty)
               yield! pluginStats ]
         else
             List.empty
@@ -216,24 +216,24 @@ module ConsoleHints =
         hints
         |> Seq.map(fun hint ->
             seq {
-                $"hint for {hint.SourceType} '{hint.SourceName |> AnsiConsole.escapeMarkup |> AnsiConsole.highlight}':"
-                $"{hint.Hint |> AnsiConsole.escapeMarkup |> AnsiConsole.highlightWarning}"
+                $"hint for {hint.SourceType} '{hint.SourceName |> Console.escapeMarkup |> Console.highlight}':"
+                $"{hint.Hint |> Console.escapeMarkup |> Console.highlightWarning}"
             }
         )
-        |> AnsiConsole.addList
+        |> Console.addList
 
     let printHints (hints: HintResult list) =
         if hints.Length > 0 then
-            [ AnsiConsole.addHeader("hints")
-              AnsiConsole.addEmptyLine()
+            [ Console.addHeader("hints")
+              Console.addLine(String.Empty)
               yield! createHintsList(hints) ]
         else
             List.Empty
 
 let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
-    [ AnsiConsole.addEmptyLine()
+    [ Console.addLine(String.Empty)
       yield! ConsoleTestInfo.printTestInfo stats.TestInfo
       yield! ConsoleNodeStats.printNodeStats stats simulations
       yield! ConsolePluginStats.printPluginStats stats
       yield! ConsoleHints.printHints hints
-      AnsiConsole.addEmptyLine() ]
+      Console.addLine(String.Empty) ]

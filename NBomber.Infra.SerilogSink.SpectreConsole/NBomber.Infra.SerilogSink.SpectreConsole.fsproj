@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="LevelOutputFormat.fs" />
+    <Compile Include="SpectreConsole.fs" />
+    <Compile Include="SpectreConsoleTextFormatter.fs" />
+    <Compile Include="SpectreConsoleSerilogSink.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.9.0" />
+    <PackageReference Include="Spectre.Console" Version="0.37.0" />
+  </ItemGroup>
+
+</Project>

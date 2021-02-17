@@ -1,45 +1,15 @@
-module NBomber.Infra.AnsiConsole
+module internal NBomber.Infra.Console
 
 open System
 
 open Spectre.Console
 open Spectre.Console.Rendering
-open System.IO
-
-let create (output: TextWriter) =
-    AnsiConsoleSettings(
-        ColorSystem = ColorSystemSupport.Detect,
-        Interactive = InteractionSupport.No,
-        Out = output
-    )
-    |> AnsiConsole.Create
-
-let write (text: string) =
-    AnsiConsole.Write(text)
-
-let writeException (console: IAnsiConsole) (ex: Exception) =
-    console.WriteException(ex)
 
 let render (renderable: IRenderable) =
     AnsiConsole.Render(renderable)
 
-let renderToConsole (console: IAnsiConsole) (renderable: IRenderable) =
-    console.Render(renderable)
-
 let highlight (text) =
     $"[lime]{text}[/]"
-
-let highlightMuted (text) =
-    $"[grey]{text}[/]"
-
-let highlightVerbose (text) =
-    highlightMuted(text)
-
-let highlightDebug (text) =
-    $"[silver]{text}[/]"
-
-let highlightInfo (text) =
-    $"[deepskyblue1]{text}[/]"
 
 let highlightWarning (text) =
     $"[yellow]{text}[/]"
@@ -47,23 +17,14 @@ let highlightWarning (text) =
 let highlightError (text) =
     $"[red]{text}[/]"
 
-let highlightFatal (text) =
-    $"[maroon]{text}[/]"
-
-let markup (text) =
-    Markup(text)
-
 let escapeMarkup (text) =
     Markup.Escape(text)
 
-let addLogo (logo) =
-    FigletText(logo) :> IRenderable
-
-let addEmptyLine () =
-    Markup(Environment.NewLine) :> IRenderable
-
 let addLine (text) =
     Markup($"{text}{Environment.NewLine}") :> IRenderable
+
+let addLogo (logo) =
+    FigletText(logo) :> IRenderable
 
 let addHeader (header) =
     let rule = Rule(header)
@@ -75,10 +36,10 @@ let addList (items: string seq seq) =
     |> Seq.mapi(fun i renderables ->
         let listItems =
             renderables
-            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addEmptyLine()])
+            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addLine(String.Empty)])
             |> Seq.concat
 
-        [ if i > 0 then addEmptyLine()
+        [ if i > 0 then addLine(String.Empty)
           yield! listItems ]
     )
     |> Seq.concat
