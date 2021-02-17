@@ -1,6 +1,7 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.1
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NBomber", "src\NBomber\NBomber.fsproj", "{52208047-4228-4289-B5AE-D1FC57898DE6}"
 EndProject
@@ -8,13 +9,15 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NBomber.IntegrationTests", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{10398A75-959D-4271-913A-BE99E4ED5744}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpProd", "examples\CSharpProd\CSharpProd.csproj", "{7469B10D-32F4-4D7A-ABA8-8842639C0234}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpProd", "examples\CSharpProd\CSharpProd.csproj", "{7469B10D-32F4-4D7A-ABA8-8842639C0234}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpProd", "examples\FSharpProd\FSharpProd.fsproj", "{FA1C4C84-DB9D-408C-81C4-A16E1A1DC021}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpProd", "examples\FSharpProd\FSharpProd.fsproj", "{FA1C4C84-DB9D-408C-81C4-A16E1A1DC021}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpDev", "examples\CSharpDev\CSharpDev.csproj", "{EF73804A-06F8-4E67-AEB5-F85F44AFC51A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpDev", "examples\CSharpDev\CSharpDev.csproj", "{EF73804A-06F8-4E67-AEB5-F85F44AFC51A}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpDev", "examples\FSharpDev\FSharpDev.fsproj", "{CA06D4A6-14EA-41D4-B2C3-C056F6E8D30F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpDev", "examples\FSharpDev\FSharpDev.fsproj", "{CA06D4A6-14EA-41D4-B2C3-C056F6E8D30F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Serilog.Sinks.SpectreConsole", "src\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj", "{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,6 +101,18 @@ Global
 		{CA06D4A6-14EA-41D4-B2C3-C056F6E8D30F}.Release|x64.Build.0 = Release|Any CPU
 		{CA06D4A6-14EA-41D4-B2C3-C056F6E8D30F}.Release|x86.ActiveCfg = Release|Any CPU
 		{CA06D4A6-14EA-41D4-B2C3-C056F6E8D30F}.Release|x86.Build.0 = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|x64.Build.0 = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Debug|x86.Build.0 = Debug|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|x64.ActiveCfg = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|x64.Build.0 = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|x86.ActiveCfg = Release|Any CPU
+		{9BEE3BC6-91E2-4AED-84A8-A46827299AE8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,10 +15,10 @@ module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
         [ Console.addHeader("test info")
-          Console.addEmptyLine()
+          Console.addLine(String.Empty)
           Console.addLine($"test suite: '{testInfo.TestSuite |> Console.escapeMarkup |> Console.highlight}'")
           Console.addLine($"test name: '{testInfo.TestName |> Console.escapeMarkup |> Console.highlight}'")
-          Console.addEmptyLine() ]
+          Console.addLine(String.Empty) ]
 
 module ConsoleErrorStats =
 
@@ -136,7 +136,7 @@ module ConsoleNodeStats =
 
     let private printScenarioErrorStats (scnStats: ScenarioStats) =
         if scnStats.ErrorStats.Length > 0 then
-            [ Console.addEmptyLine()
+            [ Console.addLine(String.Empty)
               ConsoleErrorStats.printErrorStatsHeader(scnStats.ScenarioName)
               ConsoleErrorStats.printErrorStats(scnStats.ErrorStats) ]
         else List.Empty
@@ -155,13 +155,13 @@ module ConsoleNodeStats =
             stats.ScenarioStats
             |> Seq.map(fun scnStats ->
                 [ yield! printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
-                  Console.addEmptyLine() ]
+                  Console.addLine(String.Empty) ]
             )
             |> Seq.concat
             |> List.ofSeq
 
         [ Console.addHeader("scenario stats")
-          Console.addEmptyLine()
+          Console.addLine(String.Empty)
           yield! scenarioStats ]
 
 module ConsolePluginStats =
@@ -197,15 +197,15 @@ module ConsolePluginStats =
                 |> Seq.collect(fun dataSet -> dataSet.GetTables())
                 |> Seq.map(fun table ->
                     [ printPluginStatsHeader(table)
-                      Console.addEmptyLine()
+                      Console.addLine(String.Empty)
                       createPluginStatsTable(table)
-                      Console.addEmptyLine() ]
+                      Console.addLine(String.Empty) ]
                 )
                 |> Seq.concat
                 |> List.ofSeq
 
             [ Console.addHeader("plugin stats")
-              Console.addEmptyLine()
+              Console.addLine(String.Empty)
               yield! pluginStats ]
         else
             List.empty
@@ -225,15 +225,15 @@ module ConsoleHints =
     let printHints (hints: HintResult list) =
         if hints.Length > 0 then
             [ Console.addHeader("hints")
-              Console.addEmptyLine()
+              Console.addLine(String.Empty)
               yield! createHintsList(hints) ]
         else
             List.Empty
 
 let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
-    [ Console.addEmptyLine()
+    [ Console.addLine(String.Empty)
       yield! ConsoleTestInfo.printTestInfo stats.TestInfo
       yield! ConsoleNodeStats.printNodeStats stats simulations
       yield! ConsolePluginStats.printPluginStats stats
       yield! ConsoleHints.printHints hints
-      Console.addEmptyLine() ]
+      Console.addLine(String.Empty) ]

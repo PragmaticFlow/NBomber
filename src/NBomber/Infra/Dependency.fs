@@ -8,6 +8,7 @@ open System.Runtime.Versioning
 open Microsoft.Extensions.Configuration
 open Serilog
 open Serilog.Events
+open Serilog.Sinks.SpectreConsole
 open ShellProgressBar
 
 open NBomber.Configuration
@@ -42,12 +43,13 @@ module Logger =
                 rollingInterval = RollingInterval.Day
             )
 
-        let attachConsoleLogger (config: LoggerConfiguration) =
+        let attachAnsiConsoleLogger (config: LoggerConfiguration) =
             config.WriteTo.Logger(fun lc ->
-                lc.WriteTo.Console()
-                  .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
-                                                       || event.Level = LogEventLevel.Warning
-                                                       || event.Level = LogEventLevel.Fatal)
+                let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                lc.WriteTo.spectreConsole(outputTemplate,  minLevel = LogEventLevel.Information)
+                    .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
+                                                        || event.Level = LogEventLevel.Warning
+                                                        || event.Level = LogEventLevel.Fatal)
                 |> ignore
             )
 
@@ -60,7 +62,7 @@ module Logger =
                                    .Enrich.WithProperty("TestName", testInfo.TestName)
                                    .Enrich.WithThreadId()
             |> attachFileLogger
-            |> attachConsoleLogger
+            |> attachAnsiConsoleLogger
 
         match configPath with
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger

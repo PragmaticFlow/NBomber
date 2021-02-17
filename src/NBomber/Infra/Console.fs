@@ -5,35 +5,26 @@ open System
 open Spectre.Console
 open Spectre.Console.Rendering
 
-let private console =
-    AnsiConsoleSettings(
-        ColorSystem = ColorSystemSupport.Detect,
-        Interactive = InteractionSupport.No)
-    |> AnsiConsole.Create
-
 let render (renderable: IRenderable) =
-    console.Render(renderable)
+    AnsiConsole.Render(renderable)
 
 let highlight (text) =
     $"[lime]{text}[/]"
 
-let highlightError (text) =
-    $"[red]{text}[/]"
-
 let highlightWarning (text) =
     $"[yellow]{text}[/]"
+
+let highlightError (text) =
+    $"[red]{text}[/]"
 
 let escapeMarkup (text) =
     Markup.Escape(text)
 
+let addLine (text) =
+    Markup($"{text}{Environment.NewLine}") :> IRenderable
+
 let addLogo (logo) =
     FigletText(logo) :> IRenderable
-
-let addEmptyLine () =
-    Markup(Environment.NewLine) :> IRenderable
-
-let addLine (header) =
-    Markup($"{header}{Environment.NewLine}") :> IRenderable
 
 let addHeader (header) =
     let rule = Rule(header)
@@ -45,10 +36,10 @@ let addList (items: string seq seq) =
     |> Seq.mapi(fun i renderables ->
         let listItems =
             renderables
-            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addEmptyLine()])
+            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addLine(String.Empty)])
             |> Seq.concat
 
-        [ if i > 0 then addEmptyLine()
+        [ if i > 0 then addLine(String.Empty)
           yield! listItems ]
     )
     |> Seq.concat

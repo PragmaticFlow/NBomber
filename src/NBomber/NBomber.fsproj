@@ -37,8 +37,8 @@
     <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
-    <Compile Include="Infra\Dependency.fs" />
     <Compile Include="Infra\Console.fs" />
+    <Compile Include="Infra\Dependency.fs" />
     <Compile Include="DomainServices\Reporting\ViewModels.fs" />
     <Compile Include="DomainServices\Reporting\TxtReport.fs" />
     <Compile Include="DomainServices\Reporting\CsvReport.fs" />
@@ -69,7 +69,6 @@
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.1.3" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
     <PackageReference Include="ShellProgressBar" Version="5.0.0" />
     <PackageReference Include="ConsoleTables" Version="2.4.2" />
@@ -85,5 +84,8 @@
     <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
     <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
     <EmbeddedResource Include="Resources\HtmlReport\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj" />
   </ItemGroup>
 </Project>
