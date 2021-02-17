@@ -1,4 +1,4 @@
-module internal NBomber.Infra.SerilogSink.SpectreConsole.SpectreConsole
+module internal SpectreConsole
 
 open System.IO
 

@@ -1,4 +1,4 @@
-namespace NBomber.Infra.SerilogSink.SpectreConsole
+namespace Serilog.Sinks.SpectreConsole
 
 open System
 open System.IO

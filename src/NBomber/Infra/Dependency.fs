@@ -8,11 +8,11 @@ open System.Runtime.Versioning
 open Microsoft.Extensions.Configuration
 open Serilog
 open Serilog.Events
+open Serilog.Sinks.SpectreConsole
 open ShellProgressBar
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Infra.SerilogSink.SpectreConsole
 
 type IProgressBarEnv =
     abstract CreateManualProgressBar: tickCount:int -> IProgressBar

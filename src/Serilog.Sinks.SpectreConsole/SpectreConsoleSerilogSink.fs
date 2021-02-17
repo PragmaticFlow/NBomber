@@ -1,4 +1,4 @@
-namespace NBomber.Infra.SerilogSink.SpectreConsole
+namespace Serilog.Sinks.SpectreConsole
 
 open System
 open System.IO
@@ -18,7 +18,7 @@ module internal LogEvent =
         writer.Flush()
         writer.ToString()
 
-type SpectreConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
+type SpectreConsoleSink (textFormatter: ITextFormatter) =
 
     do
         if isNull textFormatter then
@@ -29,11 +29,9 @@ type SpectreConsoleSink (textFormatter: ITextFormatter, lockObj: obj) =
             if isNull logEvent then
                 nameof logEvent |> ArgumentNullException |> raise
 
-            lock lockObj (fun _ ->
-                logEvent
-                |> LogEvent.toString textFormatter
-                |> AnsiConsole.Write
-            )
+            logEvent
+            |> LogEvent.toString textFormatter
+            |> AnsiConsole.Write
 
 [<Extension>]
 type SpectreConsoleSinkLoggerConfigurationExtensions() =
@@ -42,6 +40,5 @@ type SpectreConsoleSinkLoggerConfigurationExtensions() =
     [<Extension>]
     static member spectreConsole (sinkConfiguration: LoggerSinkConfiguration, outputTemplate: string, minLevel: LogEventLevel) =
         let formatter = SpectreConsoleTextFormatter(outputTemplate)
-        let lockObj = obj()
-        let sink = SpectreConsoleSink(formatter, lockObj)
+        let sink = SpectreConsoleSink(formatter)
         sinkConfiguration.Sink(sink, minLevel)

@@ -1,4 +1,4 @@
-module internal NBomber.Infra.SerilogSink.SpectreConsole.LevelOutputFormat
+module internal LevelOutputFormat
 
 open Serilog.Events
 open System

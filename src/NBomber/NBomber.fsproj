@@ -86,6 +86,6 @@
     <EmbeddedResource Include="Resources\HtmlReport\index.html" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NBomber.Infra.SerilogSink.SpectreConsole\NBomber.Infra.SerilogSink.SpectreConsole.fsproj" />
+    <ProjectReference Include="..\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj" />
   </ItemGroup>
 </Project>
