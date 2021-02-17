@@ -45,9 +45,9 @@ module ConsoleNodeStats =
     let private printScenarioHeader (scnStats: ScenarioStats) =
         [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlight}'")
           Console.addLine($"duration: '{scnStats.Duration |> Console.highlight}'" +
-                              $", ok count: '{scnStats.OkCount |> Console.highlight}'" +
-                              $", fail count: '{scnStats.FailCount |> Console.highlight}'" +
-                              $", all data: '{scnStats.AllDataMB |> Console.highlight}' MB") ]
+                          $", ok count: '{scnStats.OkCount |> Console.highlight}'" +
+                          $", fail count: '{scnStats.FailCount |> Console.highlight}'" +
+                          $", all data: '{scnStats.AllDataMB |> Console.highlight}' MB") ]
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
