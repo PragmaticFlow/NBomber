@@ -9,14 +9,9 @@ open Microsoft.Extensions.Configuration
 open Serilog
 open Serilog.Events
 open Serilog.Sinks.SpectreConsole
-open ShellProgressBar
 
 open NBomber.Configuration
 open NBomber.Contracts
-
-type IProgressBarEnv =
-    abstract CreateManualProgressBar: tickCount:int -> IProgressBar
-    abstract CreateAutoProgressBar: duration:TimeSpan -> IProgressBar
 
 type IGlobalDependency =
     abstract ApplicationType: ApplicationType
@@ -24,7 +19,6 @@ type IGlobalDependency =
     abstract NBomberConfig: NBomberConfig option
     abstract InfraConfig: IConfiguration option
     abstract CreateLoggerConfig: (unit -> LoggerConfiguration) option
-    abstract ProgressBarEnv: IProgressBarEnv
     abstract Logger: ILogger
     abstract ReportingSinks: IReportingSink list
     abstract WorkerPlugins: IWorkerPlugin list
@@ -103,24 +97,6 @@ module NodeInfo =
           CoresCount = Environment.ProcessorCount
           NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build }
 
-module ProgressBarEnv =
-
-    let private options =
-        ProgressBarOptions(ProgressBarOnBottom = true,
-                           ForegroundColor = ConsoleColor.Yellow,
-                           ForegroundColorDone = Nullable<ConsoleColor>(ConsoleColor.DarkGreen),
-                           BackgroundColor = Nullable<ConsoleColor>(ConsoleColor.DarkGray),
-                           BackgroundCharacter = Nullable<char>('\u2593'),
-                           CollapseWhenFinished = false)
-
-    let create () =
-        { new IProgressBarEnv with
-            member _.CreateManualProgressBar(ticks) =
-                new ProgressBar(ticks, String.Empty, options) :> IProgressBar
-
-            member _.CreateAutoProgressBar(duration) =
-                new FixedDurationBar(duration, String.Empty, options) :> IProgressBar }
-
 let createSessionId () =
     let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
@@ -139,7 +115,6 @@ let create (reportFolder: string) (testInfo: TestInfo)
         member _.NBomberConfig = context.NBomberConfig
         member _.InfraConfig = context.InfraConfig
         member _.CreateLoggerConfig = context.CreateLoggerConfig
-        member _.ProgressBarEnv = ProgressBarEnv.create()
         member _.Logger = logger
         member _.ReportingSinks = context.Reporting.Sinks
         member _.WorkerPlugins = context.WorkerPlugins }

@@ -11,6 +11,9 @@ let render (renderable: IRenderable) =
 let highlight (text) =
     $"[lime]{text}[/]"
 
+let highlightParam (text) =
+    $"[deepskyblue1]{text}[/]"
+
 let highlightWarning (text) =
     $"[yellow]{text}[/]"
 

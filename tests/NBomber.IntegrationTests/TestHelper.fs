@@ -45,7 +45,6 @@ module internal Dependency =
                 member _.NBomberConfig = dep.NBomberConfig
                 member _.InfraConfig = dep.InfraConfig
                 member _.CreateLoggerConfig = dep.CreateLoggerConfig
-                member _.ProgressBarEnv = dep.ProgressBarEnv
                 member _.Logger = dep.Logger
                 member _.ReportingSinks = dep.ReportingSinks
                 member _.WorkerPlugins = dep.WorkerPlugins }

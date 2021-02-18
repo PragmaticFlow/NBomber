@@ -20,6 +20,9 @@ let writeException (output: TextWriter) (ex) =
     let console = create(output)
     console.WriteException(ex)
 
+let escapeMarkup (text) =
+    Markup.Escape(text)
+
 let highlightProp (text) =
     $"[lime]{text}[/]"
 
