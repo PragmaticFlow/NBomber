@@ -2,7 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/uf934ofyo2esiyos?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
+![Build status](https://github.com/PragmaticFlow/NBomber/actions/workflows/dotnet.yml/badge.svg)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 [![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
