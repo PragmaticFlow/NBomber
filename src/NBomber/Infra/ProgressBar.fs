@@ -7,7 +7,7 @@ open FSharp.Control.Tasks.NonAffine
 open Spectre.Console
 open Spectre.Console.Rendering
 
-type MultilineColumn () as this =
+type MultilineColumn () =
     inherit ProgressColumn()
 
     static member val NewLine = "|" with get
@@ -19,11 +19,11 @@ type MultilineColumn () as this =
         Markup(text).RightAligned() :> IRenderable
 
 let defaultColumns: ProgressColumn[] =
-        [| MultilineColumn()
-           ProgressBarColumn()
-           PercentageColumn()
-           RemainingTimeColumn()
-           SpinnerColumn() |]
+    [| MultilineColumn()
+       ProgressBarColumn()
+       PercentageColumn()
+       RemainingTimeColumn()
+       SpinnerColumn() |]
 
 type ProgressTaskConfig = {
     Description: string
@@ -43,7 +43,10 @@ let private createProgressTask (ctx: ProgressContext) (config: ProgressTaskConfi
 
     task
 
-let create (columns) (created: ProgressTask list -> unit) (config: ProgressTaskConfig list) =
+let create (columns: ProgressColumn[])
+           (created: ProgressTask list -> unit)
+           (config: ProgressTaskConfig list) =
+
     AnsiConsole.Progress()
     |> fun progress -> ProgressExtensions.AutoRefresh(progress, true)
     |> fun progress -> ProgressExtensions.AutoClear(progress, false)
@@ -51,10 +54,10 @@ let create (columns) (created: ProgressTask list -> unit) (config: ProgressTaskC
     |> fun progress ->
         progress.StartAsync(fun ctx ->
             task {
-                config |> Seq.map(createProgressTask ctx) |> List.ofSeq |> created
+                config |> List.map(createProgressTask ctx) |> created
 
                 while not ctx.IsFinished do
-                    do! Task.Delay(TimeSpan.FromMilliseconds(100.0))
+                    do! Task.Delay(TimeSpan.FromMilliseconds 100.0)
             }
         )
 
