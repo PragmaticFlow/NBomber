@@ -7,7 +7,7 @@ open FSharp.Control.Tasks.NonAffine
 open Spectre.Console
 open Spectre.Console.Rendering
 
-type MultilineColumn () as this =
+type MultilineColumn () =
     inherit ProgressColumn()
 
     static member val NewLine = "|" with get
@@ -19,11 +19,11 @@ type MultilineColumn () as this =
         Markup(text).RightAligned() :> IRenderable
 
 let defaultColumns: ProgressColumn[] =
-        [| MultilineColumn()
-           ProgressBarColumn()
-           PercentageColumn()
-           RemainingTimeColumn()
-           SpinnerColumn() |]
+    [| MultilineColumn()
+       ProgressBarColumn()
+       PercentageColumn()
+       RemainingTimeColumn()
+       SpinnerColumn() |]
 
 type ProgressTaskConfig = {
     Description: string

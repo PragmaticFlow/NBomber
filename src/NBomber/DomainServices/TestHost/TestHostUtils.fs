@@ -122,7 +122,7 @@ module internal TestHostConsole =
             else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
 
         let calcTotalTickCount (schedulers: ScenarioScheduler list) =
-            schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map calcTickCount |> Seq.sum
+            schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map(calcTickCount) |> Seq.sum
 
         let getSimulationValue (progressInfo: ScenarioProgressInfo) =
             match progressInfo.CurrentSimulation with
@@ -164,7 +164,7 @@ module internal TestHostConsole =
             |> ProgressBar.setDescription task
             |> ignore
 
-            ProgressBar.tick task |> ignore
+            task |> ProgressBar.tick |> ignore
 
         let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
             schedulers
@@ -174,7 +174,7 @@ module internal TestHostConsole =
             ]
             |> ProgressBar.create ProgressBar.defaultColumns
                (fun tasks ->
-                    let totalTask = tasks |> Seq.head
+                    let totalTask = tasks.Head
 
                     tasks
                     |> Seq.iteri(fun i task ->
@@ -183,7 +183,7 @@ module internal TestHostConsole =
                             |> Observable.subscribe(fun progressInfo ->
                                 let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
                                 tickProgressTask task scenarioName progressInfo
-                                ProgressBar.tick totalTask |> ignore
+                                totalTask |> ProgressBar.tick |> ignore
                             )
                             |> ignore
                     )
@@ -235,10 +235,10 @@ module internal TestHostConsole =
 
                             | ConnectionOpened (poolName, number) ->
                                 setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightParam}"
-                                ProgressBar.tick task |> ignore
-  
+                                task |> ProgressBar.tick |> ignore
+
                             | ConnectionClosed error ->
-                                ProgressBar.tick task |> ignore
+                                task |> ProgressBar.tick |> ignore
                                 error |> Option.map(fun ex -> dep.Logger.Error(ex, "Close connection exception occurred.")) |> ignore
 
                             | InitFinished
