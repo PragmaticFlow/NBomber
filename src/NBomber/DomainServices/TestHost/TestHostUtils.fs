@@ -122,7 +122,7 @@ module internal TestHostConsole =
             else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
 
         let calcTotalTickCount (schedulers: ScenarioScheduler list) =
-            schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map calcTickCount |> Seq.sum
+            schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map(calcTickCount) |> Seq.sum
 
         let getSimulationValue (progressInfo: ScenarioProgressInfo) =
             match progressInfo.CurrentSimulation with
@@ -183,7 +183,7 @@ module internal TestHostConsole =
                             |> Observable.subscribe(fun progressInfo ->
                                 let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
                                 tickProgressTask task scenarioName progressInfo
-                                ProgressBar.tick totalTask |> ignore
+                                totalTask |> ProgressBar.tick |> ignore
                             )
                             |> ignore
                     )
