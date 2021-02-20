@@ -2,7 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/uf934ofyo2esiyos?svg=true)](https://ci.appveyor.com/project/PragmaticFlowOrg/nbomber)
+![Build status](https://github.com/PragmaticFlow/NBomber/actions/workflows/dotnet.yml/badge.svg?branch=dev)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 [![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -28,12 +28,12 @@ Documentation is located [here](https://nbomber.com/docs/).
 
 ### Why we build NBomber and what you can do with it?
 
-1. The main reason behind NBomber is to provide a **lightweight** framework for writing load tests which you can use to test literally **any** system and simulate **any** production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API. 
-2. Another goal is to provide building blocks to validate your POC (proof of concept) projects by applying any complex load distribution.  
-3. With NBomber you can test any PULL or PUSH system (HTTP, WebSockets, GraphQl, gRPC, SQL Databse, MongoDb, Redis etc). 
+1. The main reason behind NBomber is to provide a **lightweight** framework for writing load tests which you can use to test literally **any** system and simulate **any** production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API.
+2. Another goal is to provide building blocks to validate your POC (proof of concept) projects by applying any complex load distribution.
+3. With NBomber you can test any PULL or PUSH system (HTTP, WebSockets, GraphQl, gRPC, SQL Databse, MongoDb, Redis etc).
 
 NBomber as a modern framework provides:
-- Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL) 
+- Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL)
 - Zero dependencies on semantic model (Pull/Push)
 - Very flexible configuration and dead simple API
 - Cluster support
