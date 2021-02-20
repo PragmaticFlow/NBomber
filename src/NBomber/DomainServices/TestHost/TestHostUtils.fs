@@ -4,8 +4,8 @@ open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
-open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
+open FsToolkit.ErrorHandling
 open Spectre.Console
 
 open NBomber
@@ -276,7 +276,7 @@ module internal TestHostScenario =
         try
             for pool in pools do
                 dep.Logger.Information("Start opening {ConnectionCount} connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
-                let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, List.singleton(pool))
+                let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, [pool])
                 do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
                 progressTask.Wait()
 
