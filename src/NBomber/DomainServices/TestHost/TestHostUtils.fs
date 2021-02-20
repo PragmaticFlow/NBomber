@@ -4,19 +4,22 @@ open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
-open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
+open FsToolkit.ErrorHandling
+open Spectre.Console
 
 open NBomber
-open NBomber.Errors
 open NBomber.Contracts
-open NBomber.Extensions.InternalExtensions
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ConnectionPool
-open NBomber.Infra.Dependency
 open NBomber.DomainServices.NBomberContext
+open NBomber.Errors
+open NBomber.Extensions.InternalExtensions
+open NBomber.Infra
+open NBomber.Infra.Dependency
+open NBomber.Infra.ProgressBar
 
 module internal TestHostReporting =
 
@@ -118,80 +121,134 @@ module internal TestHostConsole =
             if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
             else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
 
-        let getLongestDuration (schedulers: ScenarioScheduler list) =
-            if isWarmUp then schedulers |> List.map(fun x -> x.Scenario.WarmUpDuration) |> List.max
-            else schedulers |> List.map(fun x -> x.Scenario.PlanedDuration) |> List.max
+        let calcTotalTickCount (schedulers: ScenarioScheduler list) =
+            schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map(calcTickCount) |> Seq.sum
+
+        let getSimulationValue (progressInfo: ScenarioProgressInfo) =
+            match progressInfo.CurrentSimulation with
+            | RampConstant _
+            | KeepConstant _ -> progressInfo.ConstantActorCount
+
+            | RampPerSec _
+            | InjectPerSec _
+            | InjectPerSecRandom _ -> progressInfo.OneTimeActorCount
+
+        let createSimulationDescription (simulation: LoadSimulation) (simulationValue: int) =
+            let simulationName = LoadTimeLine.getSimulationName(simulation)
+
+            match simulation with
+            | RampConstant _
+            | KeepConstant _        ->
+                $"{simulationName}, copies: {simulationValue |> Console.highlightParam}"
+
+            | RampPerSec _
+            | InjectPerSec _
+            | InjectPerSecRandom _  ->
+                $"{simulationName}, rate: {simulationValue |> Console.highlightParam}"
+
+        let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
+            let simulationDescription = createSimulationDescription simulation simulationValue
+            $"{scenarioName |> Console.highlight}{MultilineColumn.NewLine}{simulationDescription}"
+
+        let createProgressTaskConfig (scheduler: ScenarioScheduler) =
+            let scenarioName = scheduler.Scenario.ScenarioName
+            let simulation = scheduler.Scenario.LoadTimeLine |> Seq.head |> fun segment -> segment.LoadSimulation
+            let description = createScenarioDescription scenarioName simulation 0
+            let ticks = scheduler.Scenario |> calcTickCount |> float
+            { Description = description; Ticks = ticks }
+
+        let tickProgressTask (task: ProgressTask) (scenarioName: string) (progressInfo: ScenarioProgressInfo) =
+            progressInfo
+            |> getSimulationValue
+            |> createScenarioDescription scenarioName progressInfo.CurrentSimulation
+            |> ProgressBar.setDescription task
+            |> ignore
+
+            ProgressBar.tick task |> ignore
 
         let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
-            let mainPb = schedulers |> getLongestDuration |> dep.ProgressBarEnv.CreateAutoProgressBar
-
             schedulers
-            |> List.map(fun scheduler ->
-                let tickCount = calcTickCount(scheduler.Scenario)
-                let pb = mainPb.Spawn(tickCount, "")
+            |> List.map createProgressTaskConfig
+            |> List.append [
+                { Description = $"All Scenarios{MultilineColumn.NewLine}"; Ticks = schedulers |> calcTotalTickCount |> float }
+            ]
+            |> ProgressBar.create ProgressBar.defaultColumns
+               (fun tasks ->
+                    let totalTask = tasks |> Seq.head
 
-                scheduler.EventStream
-                |> Observable.subscribeWithCompletion
-                    (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
-                              let msg = String.Format("Scenario: '{0}', simulation: '{1}', keep concurrent: '{2}', inject per sec: '{3}'.",
-                                                      scheduler.Scenario.ScenarioName, simulationName, x.ConstantActorCount, x.OneTimeActorCount)
-                              pb.Tick(msg))
-                    (fun () -> pb.Dispose())
-            )
-            |> List.append [mainPb :> IDisposable]
+                    tasks
+                    |> Seq.iteri(fun i task ->
+                        if i > 0 then
+                            schedulers.[i - 1].EventStream
+                            |> Observable.subscribe(fun progressInfo ->
+                                let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
+                                tickProgressTask task scenarioName progressInfo
+                                totalTask |> ProgressBar.tick |> ignore
+                            )
+                            |> ignore
+                    )
+               )
 
         let displayProgressForOneScenario (scheduler: ScenarioScheduler) =
-            let pb = scheduler.Scenario |> calcTickCount |> dep.ProgressBarEnv.CreateManualProgressBar
-            scheduler.EventStream
-            |> Observable.subscribeWithCompletion
-                (fun x -> let simulationName = LoadTimeLine.getSimulationName(x.CurrentSimulation)
-                          let msg =
-                              match x.CurrentSimulation with
-                              | RampConstant _
-                              | KeepConstant _ -> String.Format("Simulation: '{0}', copies: '{1}'.", simulationName, x.ConstantActorCount)
-                              | RampPerSec _
-                              | InjectPerSec _ -> String.Format("Simulation: '{0}', rate: '{1}'.", simulationName, x.OneTimeActorCount)
-                              | InjectPerSecRandom _ -> String.Format("Simulation: '{0}', rate: '{1}'.", simulationName, x.OneTimeActorCount)
+            scheduler
+            |> createProgressTaskConfig
+            |> List.singleton
+            |> ProgressBar.create ProgressBar.defaultColumns
+               (fun tasks ->
+                    let task = tasks |> Seq.head
 
-                          pb.Tick(msg) )
-
-                (fun () -> pb.Dispose())
+                    scheduler.EventStream
+                    |> Observable.subscribe(fun progressInfo ->
+                        let scenarioName = scheduler.Scenario.ScenarioName
+                        tickProgressTask task scenarioName progressInfo
+                    )
+                    |> ignore
+               )
 
         match dep.ApplicationType with
         | ApplicationType.Console ->
             if scnSchedulers.Length > 1 then
-                displayProgressForConcurrentScenarios(scnSchedulers)
+                displayProgressForConcurrentScenarios(scnSchedulers) |> ignore
             else
-                [displayProgressForOneScenario(scnSchedulers.Head)]
-        | _ -> List.empty
+                displayProgressForOneScenario(scnSchedulers.Head) |> ignore
+        | _ -> ()
 
-    let displayConnectionPoolProgress (dep: IGlobalDependency, pool: ConnectionPool) =
+    let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPool list) =
         match dep.ApplicationType with
         | ApplicationType.Console ->
-            dep.Logger.Information("Start open '{ConnectionCount}' connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
-            let pb = dep.ProgressBarEnv.CreateManualProgressBar(pool.ConnectionCount)
-            pool.EventStream
-            |> Observable.subscribeWithCompletion
-                (fun event ->
-                    match event with
-                    | StartedInit poolName -> pb.Message <- sprintf "Opening connections for connection pool: '%s'." poolName
-                    | StartedStop poolName -> pb.Message <- sprintf "Closing connections for connection pool: '%s'." poolName
+            pools
+            |> List.map(fun pool -> { Description = pool.PoolName; Ticks = pool.ConnectionCount |> float })
+            |> ProgressBar.create ProgressBar.defaultColumns
+               (fun tasks ->
+                    tasks
+                    |> Seq.iteri(fun i task ->
+                        pools.[i].EventStream
+                        |> Observable.subscribe(fun event ->
+                            let setPbDescription = ProgressBar.setDescription task >> ignore
 
-                    | ConnectionOpened (poolName,number) ->
-                        pb.Tick(sprintf "Opened connection '%i' for connection pool: '%s'." number poolName)
+                            match event with
+                            | StartedInit poolName ->
+                                setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opening connection"
 
-                    | ConnectionClosed error ->
-                        pb.Tick()
-                        if error.IsSome then dep.Logger.Error(error.Value.ToString(), "Close connection exception.")
+                            | StartedStop poolName ->
+                                setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}closing connection"
 
-                    | InitFinished
-                    | InitFailed -> pb.Dispose()
-                )
-                (fun _ -> pb.Dispose())
+                            | ConnectionOpened (poolName, number) ->
+                                setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightParam}"
+                                ProgressBar.tick task |> ignore
+  
+                            | ConnectionClosed error ->
+                                ProgressBar.tick task |> ignore
+                                error |> Option.map(fun ex -> dep.Logger.Error(ex, "Close connection exception occurred.")) |> ignore
 
-            |> Some
+                            | InitFinished
+                            | InitFailed -> ()
+                        )
+                        |> ignore
+                    )
+               )
 
-        | _ -> None
+        | _ -> Task.FromResult()
 
     let printContextInfo (dep: IGlobalDependency) =
         dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
@@ -218,9 +275,10 @@ module internal TestHostScenario =
     let initConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) = taskResult {
         try
             for pool in pools do
-                let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
+                dep.Logger.Information("Start opening {ConnectionCount} connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
+                let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, [pool])
                 do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
-                if subscription.IsSome then subscription.Value.Dispose()
+                progressTask.Wait()
 
             return pools
         with
@@ -282,9 +340,10 @@ module internal TestHostScenario =
 
         let destroyConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) =
             for pool in pools do
-                let subscription = TestHostConsole.displayConnectionPoolProgress(dep, pool)
+                dep.Logger.Information("Start closing {ConnectionCount} connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
+                let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, List.singleton(pool))
                 pool.Destroy(context).Wait()
-                if subscription.IsSome then subscription.Value.Dispose()
+                progressTask.Wait()
 
         scenarios
         |> Scenario.ConnectionPool.filterDistinctConnectionPools
@@ -293,13 +352,13 @@ module internal TestHostScenario =
         for scn in scenarios do
             match scn.Clean with
             | Some cleanFunc ->
-                dep.Logger.Information("Start clean scenario: '{Scenario}'.", scn.ScenarioName)
+                dep.Logger.Information("Start cleaning scenario: '{Scenario}'.", scn.ScenarioName)
 
                 let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 try
                     do! cleanFunc context
                 with
-                | ex -> dep.Logger.Warning(ex, "Clean scenario: '{Scenario}' failed.", scn.ScenarioName)
+                | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: '{Scenario}'.", scn.ScenarioName)
 
             | None -> ()
     }

@@ -41,6 +41,7 @@ module internal SpectreConsoleTextFormatter =
         if logEvent.Properties.ContainsKey(token.PropertyName) then
             logEvent.Properties.[token.PropertyName]
             |> LogEventPropertyValue.toString
+            |> SpectreConsole.escapeMarkup
             |> SpectreConsole.highlightProp
             |> SpectreConsole.render output
 
@@ -90,6 +91,7 @@ module internal SpectreConsoleTextFormatter =
         |> Seq.map(fun x -> LogEventProperty(x.Key, x.Value))
         |> StructureValue
         |> StructureValue.toString
+        |> SpectreConsole.escapeMarkup
         |> SpectreConsole.highlightMuted
         |> SpectreConsole.render output
 

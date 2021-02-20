@@ -134,10 +134,14 @@ module internal TimeLineStatsViewModel =
         )
         |> Seq.toArray
 
-    let create (timeLineStats: (TimeSpan * NodeStats) list) = {
-        TimeStamps = createTimeStamps(timeLineStats)
-        ScenarioStats = createScenarioStats(timeLineStats)
-    }
+    let create (timeLineStats: (TimeSpan * NodeStats) list) =
+        try
+            { TimeStamps = createTimeStamps(timeLineStats)
+              ScenarioStats = createScenarioStats(timeLineStats) }
+        with
+        | _ ->
+            { TimeStamps = Array.empty
+              ScenarioStats = Array.empty }
 
 module internal HintsViewModel =
 
