@@ -71,7 +71,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         |> ProgressBar.setDescription task
         |> ignore
 
-        ProgressBar.tick task |> ignore
+        Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
 
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
@@ -90,7 +90,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                         |> Observable.subscribe(fun progressInfo ->
                             let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
                             tickProgressTask task scenarioName progressInfo
-                            totalTask |> ProgressBar.tick |> ignore
+                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick totalTask |> ignore
                         )
                         |> ignore
                 )
@@ -140,10 +140,10 @@ let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPoo
 
                         | ConnectionOpened (poolName, number) ->
                             setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightParam}"
-                            ProgressBar.tick task |> ignore
+                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
 
                         | ConnectionClosed error ->
-                            ProgressBar.tick task |> ignore
+                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
                             error |> Option.map(fun ex -> dep.Logger.Error(ex, "Close connection exception occurred.")) |> ignore
 
                         | InitFinished

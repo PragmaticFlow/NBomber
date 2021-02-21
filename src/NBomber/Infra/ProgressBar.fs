@@ -22,7 +22,7 @@ let defaultColumns: ProgressColumn[] =
     [| MultilineColumn()
        ProgressBarColumn()
        PercentageColumn()
-       RemainingTimeColumn()
+       ElapsedTimeColumn()
        SpinnerColumn() |]
 
 type ProgressTaskConfig = {
@@ -65,6 +65,6 @@ let setDescription (task: ProgressTask) (description: string) =
     task.Description <- description
     task
 
-let tick (task: ProgressTask) =
+let tick (task: ProgressTask) (value: float) =
     task.Increment(1.0)
     task
