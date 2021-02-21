@@ -65,8 +65,8 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
 
             member _.SaveStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
-                | NodeOperationType.Bombing  -> bombingCounter <- bombingCounter + 1
-                | NodeOperationType.Complete -> completeCounter <- completeCounter + 1
+                | OperationType.Bombing  -> bombingCounter <- bombingCounter + 1
+                | OperationType.Complete -> completeCounter <- completeCounter + 1
                 | _                          -> failwith "operation type is invalid for SaveStats"
                 Task.CompletedTask
 
@@ -107,7 +107,7 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
 
             member _.SaveStats(stats) =
                 match stats.[0].NodeInfo.CurrentOperation with
-                | NodeOperationType.Bombing ->
+                | OperationType.Bombing ->
                     stats.[0].ScenarioStats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_1")
                     |> Seq.iter(fun _ -> scn1BombingInvokedCount <- scn1BombingInvokedCount + 1)
@@ -116,7 +116,7 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_2")
                     |> Seq.iter(fun _ -> scn2BombingInvokedCount <- scn2BombingInvokedCount + 1)
 
-                | NodeOperationType.Complete ->
+                | OperationType.Complete ->
                     stats.[0].ScenarioStats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_1")
                     |> Seq.iter(fun _ -> scn1CompleteInvokedCount <- scn1CompleteInvokedCount + 1)

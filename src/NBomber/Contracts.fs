@@ -39,7 +39,7 @@ type NodeType =
     | Agent
     | Cluster
 
-type NodeOperationType =
+type OperationType =
     | None = 0
     | Init = 1
     | WarmUp = 2
@@ -50,7 +50,7 @@ type NodeOperationType =
 type NodeInfo = {
     MachineName: string
     NodeType: NodeType
-    CurrentOperation: NodeOperationType
+    CurrentOperation: OperationType
     OS: OperatingSystem
     DotNetVersion: string
     Processor: string
@@ -259,7 +259,7 @@ type IWorkerPlugin =
     abstract PluginName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
-    abstract GetStats: currentOperation:NodeOperationType -> DataSet
+    abstract GetStats: currentOperation:OperationType -> DataSet
     abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 

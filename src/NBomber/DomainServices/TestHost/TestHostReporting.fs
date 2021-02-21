@@ -27,13 +27,13 @@ let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) = task {
 
 let createReportingTimer (dep: IGlobalDependency,
                           sendStatsInterval: TimeSpan,
-                          getData: unit -> (NodeOperationType * NodeStats)) =
+                          getData: unit -> (OperationType * NodeStats)) =
 
         let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
         timer.Elapsed.Add(fun _ ->
             let (operation,nodeStats) = getData()
             match operation with
-            | NodeOperationType.Bombing ->
+            | OperationType.Bombing ->
                 if not (List.isEmpty dep.ReportingSinks) then
                     nodeStats
                     |> List.singleton

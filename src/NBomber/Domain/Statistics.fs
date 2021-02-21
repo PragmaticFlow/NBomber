@@ -63,6 +63,9 @@ module RequestStats =
         { Count = stats |> Stream.sumBy(fun x -> x.Count)
           RPS = stats |> Stream.sumBy(fun x -> x.RPS) }
 
+    let round (stats: RequestStats) =
+        { stats with RPS = stats.RPS |> Converter.round 1 }
+
 module LatencyStats =
 
     let create (stats: RawStepStats) =
@@ -124,6 +127,16 @@ module LatencyStats =
           StdDev = stats |> Stream.map(fun x -> x.StdDev) |> Stream.averageOrDefault 0.0
           LatencyCount = latencyCount }
 
+    let round (stats: LatencyStats) =
+        { stats with MinMs = stats.MinMs |> Converter.round 3
+                     MeanMs = stats.MeanMs |> Converter.round 3
+                     MaxMs = stats.MaxMs |> Converter.round 3
+                     Percent50 = stats.Percent50 |> Converter.round 3
+                     Percent75 = stats.Percent75 |> Converter.round 3
+                     Percent95 = stats.Percent95 |> Converter.round 3
+                     Percent99 = stats.Percent99 |> Converter.round 3
+                     StdDev = stats.StdDev |> Converter.round 3 }
+
 module DataTransferStats =
 
     let create (stats: RawStepStats) =
@@ -178,6 +191,17 @@ module DataTransferStats =
           StdDev = stats |> Stream.map(fun x -> x.StdDev) |> Stream.averageOrDefault 0.0
           AllMB = stats |> Stream.sumBy(fun x -> x.AllMB) }
 
+    let round (stats: DataTransferStats) =
+        { stats with MinKb = stats.MinKb |> Converter.round 3
+                     MeanKb = stats.MeanKb |> Converter.round 3
+                     MaxKb = stats.MaxKb |> Converter.round 3
+                     Percent50 = stats.Percent50 |> Converter.round 3
+                     Percent75 = stats.Percent75 |> Converter.round 3
+                     Percent95 = stats.Percent95 |> Converter.round 3
+                     Percent99 = stats.Percent99 |> Converter.round 3
+                     StdDev = stats.StdDev |> Converter.round 3
+                     AllMB = stats.AllMB |> Converter.round 3 }
+
 module StepStats =
 
     let create (stepName: string) (stepData: StepExecutionData) (duration: TimeSpan) =
@@ -227,6 +251,15 @@ module StepStats =
               Fail = statsStream |> Stream.map(fun x -> x.Fail) |> mergeFailStats }
         )
 
+    let round (stats: StepStats) =
+        { stats with Ok = { stats.Ok with Request = stats.Ok.Request |> RequestStats.round
+                                          Latency = stats.Ok.Latency |> LatencyStats.round
+                                          DataTransfer = stats.Ok.DataTransfer |> DataTransferStats.round }
+
+                     Fail = { stats.Fail with Request = stats.Fail.Request |> RequestStats.round
+                                              Latency = stats.Fail.Latency |> LatencyStats.round
+                                              DataTransfer = stats.Fail.DataTransfer |> DataTransferStats.round } }
+
 module ScenarioStats =
 
     let create (scenario: Scenario) (simulationStats: LoadSimulationStats)
@@ -255,6 +288,10 @@ module ScenarioStats =
         |> StepStats.merge
         |> createByStepStats scenario.ScenarioName duration simulationStats
 
+    let round (stats: ScenarioStats) =
+        { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
+                     StepStats = stats.StepStats |> Array.map(StepStats.round) }
+
 module NodeStats =
 
     let create (testInfo: TestInfo) (nodeInfo: NodeInfo)
@@ -271,44 +308,6 @@ module NodeStats =
           TestInfo = testInfo
           ReportFiles = Array.empty }
 
-    let roundStats (stats: NodeStats) =
-
-        let roundRequest (stats: RequestStats) =
-            { stats with RPS = stats.RPS |> Converter.round 1 }
-
-        let roundLatency (stats: LatencyStats) =
-            { stats with MinMs = stats.MinMs |> Converter.round 3
-                         MeanMs = stats.MeanMs |> Converter.round 3
-                         MaxMs = stats.MaxMs |> Converter.round 3
-                         Percent50 = stats.Percent50 |> Converter.round 3
-                         Percent75 = stats.Percent75 |> Converter.round 3
-                         Percent95 = stats.Percent95 |> Converter.round 3
-                         Percent99 = stats.Percent99 |> Converter.round 3
-                         StdDev = stats.StdDev |> Converter.round 3 }
-
-        let roundDataTransfer (stats: DataTransferStats) =
-            { stats with MinKb = stats.MinKb |> Converter.round 3
-                         MeanKb = stats.MeanKb |> Converter.round 3
-                         MaxKb = stats.MaxKb |> Converter.round 3
-                         Percent50 = stats.Percent50 |> Converter.round 3
-                         Percent75 = stats.Percent75 |> Converter.round 3
-                         Percent95 = stats.Percent95 |> Converter.round 3
-                         Percent99 = stats.Percent99 |> Converter.round 3
-                         StdDev = stats.StdDev |> Converter.round 3
-                         AllMB = stats.AllMB |> Converter.round 3 }
-
-        let roundStepStats (stats: StepStats) =
-            { stats with Ok = { stats.Ok with Request = stats.Ok.Request |> roundRequest
-                                              Latency = stats.Ok.Latency |> roundLatency
-                                              DataTransfer = stats.Ok.DataTransfer |> roundDataTransfer }
-
-                         Fail = { stats.Fail with Request = stats.Fail.Request |> roundRequest
-                                                  Latency = stats.Fail.Latency |> roundLatency
-                                                  DataTransfer = stats.Fail.DataTransfer |> roundDataTransfer } }
-
-        let roundScenarioStats (stats: ScenarioStats) =
-            { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
-                         StepStats = stats.StepStats |> Array.map(roundStepStats) }
-
+    let round (stats: NodeStats) =
         { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
-                     ScenarioStats = stats.ScenarioStats |> Array.map(roundScenarioStats)  }
+                     ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round) }

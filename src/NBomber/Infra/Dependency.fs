@@ -90,7 +90,7 @@ module NodeInfo =
 
         { MachineName = Environment.MachineName
           NodeType = NodeType.SingleNode
-          CurrentOperation = NodeOperationType.None
+          CurrentOperation = OperationType.None
           OS = Environment.OSVersion
           DotNetVersion = dotNetVersion
           Processor = if isNull processor then String.Empty else processor

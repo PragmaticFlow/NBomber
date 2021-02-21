@@ -25,7 +25,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
-    let mutable _currentOperation = NodeOperationType.None
+    let mutable _currentOperation = OperationType.None
     let mutable _scnSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
     let mutable _timeLineStats: (TimeSpan * NodeStats) list = List.empty
@@ -125,7 +125,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     member _.StartInit() = task {
         _stopped <- false
-        _currentOperation <- NodeOperationType.Init
+        _currentOperation <- OperationType.Init
         do! Task.Yield()
 
         TestHostConsole.printContextInfo(dep)
@@ -134,18 +134,18 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         match! initScenarios() with
         | Ok _ ->
             dep.Logger.Information("Init finished.")
-            _currentOperation <- NodeOperationType.None
+            _currentOperation <- OperationType.None
             return Ok()
 
         | Error appError ->
             dep.Logger.Fatal("Init failed.")
-            _currentOperation <- NodeOperationType.Stop
+            _currentOperation <- OperationType.Stop
             return AppError.createResult(appError)
     }
 
     member _.StartWarmUp() = task {
         _stopped <- false
-        _currentOperation <- NodeOperationType.WarmUp
+        _currentOperation <- OperationType.WarmUp
         do! Task.Yield()
 
         dep.Logger.Information("Starting warm up...")
@@ -153,12 +153,12 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! startBombing(isWarmUp)
         stopSchedulers()
 
-        _currentOperation <- NodeOperationType.None
+        _currentOperation <- OperationType.None
     }
 
     member _.StartBombing(reportingTimer: Timers.Timer) = task {
         _stopped <- false
-        _currentOperation <- NodeOperationType.Bombing
+        _currentOperation <- OperationType.Bombing
         do! Task.Yield()
 
         dep.Logger.Information("Starting bombing...")
@@ -168,12 +168,12 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         reportingTimer.Stop()
         do! this.StopScenarios()
 
-        _currentOperation <- NodeOperationType.Complete
+        _currentOperation <- OperationType.Complete
     }
 
     member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
-        if _currentOperation <> NodeOperationType.Stop && not _stopped then
-            _currentOperation <- NodeOperationType.Stop
+        if _currentOperation <> OperationType.Stop && not _stopped then
+            _currentOperation <- OperationType.Stop
             do! Task.Yield()
 
             if not(String.IsNullOrEmpty reason) then
@@ -185,7 +185,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             do! cleanScenarios()
 
             _stopped <- true
-            _currentOperation <- NodeOperationType.None
+            _currentOperation <- OperationType.None
     }
 
     member _.GetNodeStats(executionTime) = getNodeStats(executionTime)
@@ -206,7 +206,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
                     let operationTime = currentOperationTimer.Elapsed
                     let nodeInfo = getCurrentNodeInfo()
-                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo) |> NodeStats.roundStats
+                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo) |> NodeStats.round
                     // prepend nodeStats to timeLineStats
                     _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
                     _currentOperation, nodeStats
@@ -219,7 +219,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // gets final stats
         let nodeInfo = getCurrentNodeInfo()
         dep.Logger.Information("Calculating final statistics...")
-        let finalStats = nodeInfo |> getFinalNodeStats |> NodeStats.roundStats
+        let finalStats = nodeInfo |> getFinalNodeStats |> NodeStats.round
         let maxDuration = finalStats.ScenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max
 
         // prepend nodeStats to timeLineStats
