@@ -32,7 +32,7 @@ module Logger =
 
         let attachFileLogger (config: LoggerConfiguration) =
             config.WriteTo.File(
-                path = $"{folder}/{testInfo.SessionId}/nbomber-log.txt",
+                path = $"{folder}/{testInfo.SessionId}/nbomber-log-.txt",
                 outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
@@ -100,7 +100,7 @@ module NodeInfo =
 let createSessionId () =
     let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
     let guid = Guid.NewGuid().GetHashCode().ToString("x")
-    date + "_" + guid
+    $"{date}_session_{guid}"
 
 let create (reportFolder: string) (testInfo: TestInfo)
            (appType: ApplicationType) (nodeType: NodeType)
