@@ -87,6 +87,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                 |> List.iteri(fun i task ->
                     if i > 0 then
                         schedulers.[i - 1].EventStream
+                        |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                         |> Observable.subscribe(fun progressInfo ->
                             let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
                             tickProgressTask task scenarioName progressInfo
@@ -103,6 +104,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         |> ProgressBar.create ProgressBar.defaultColumns
            (fun tasks ->
                 scheduler.EventStream
+                |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                 |> Observable.subscribe(fun progressInfo ->
                     let scenarioName = scheduler.Scenario.ScenarioName
                     tickProgressTask tasks.Head scenarioName progressInfo

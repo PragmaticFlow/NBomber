@@ -24,13 +24,14 @@ let baseNodeStats = {
     NodeInfo = NodeInfo.init()
     TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
     ReportFiles = Array.empty
+    Duration = TimeSpan.MinValue
 }
 
 let baseScnStats = {
     ScenarioName = "scenario"; RequestCount = 0; OkCount = 0; FailCount = 0;
     AllDataMB = 0.0; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
-    ErrorStats = Array.empty; Duration = TimeSpan.MinValue
+    ErrorStats = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
 }
 
 let baseStepStats = {

@@ -14,44 +14,29 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
+open NBomber.DomainServices.TestHost.TestHostReporting
 
 type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as this =
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = OperationType.None
-    let mutable _scnSchedulers = List.empty<ScenarioScheduler>
+    let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
-    let mutable _timeLineStats: (TimeSpan * NodeStats) list = List.empty
     let _defaultNodeInfo = NodeInfo.init()
 
     let getCurrentNodeInfo () =
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
-    let getNodeStats (executionTime, nodeInfo, includeOnlyBombingScn) =
-        let pluginStats = dep.WorkerPlugins |> Stream.ofList |> Stream.map(fun x -> x.GetStats _currentOperation)
-
-        let scnStats =
-            _scnSchedulers
-            |> Stream.ofList
-            |> Stream.filter(fun x -> x.Working = includeOnlyBombingScn)
-            |> Stream.map(fun x -> x.GetScenarioStats executionTime)
-
-        NodeStats.create sessionArgs.TestInfo nodeInfo scnStats pluginStats
-
-    let getBombingOnlyNodeStats (executionTime, nodeInfo) = getNodeStats(executionTime, nodeInfo, true)
-    let getFinalNodeStats (nodeInfo) = getNodeStats(TimeSpan.MaxValue, nodeInfo, false)
-
     let execStopCommand (command: StopCommand) =
         match command with
         | StopScenario (scenarioName, reason) ->
-            _scnSchedulers
+            _currentSchedulers
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
@@ -72,7 +57,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             }
             ScenarioScheduler(actorDep)
 
-        _scnSchedulers |> List.iter(fun x -> x.Stop())
+        _currentSchedulers |> List.iter(fun x -> x.Stop())
         _cancelToken.Dispose()
         _cancelToken <- new CancellationTokenSource()
 
@@ -80,7 +65,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         |> List.map(createScheduler _cancelToken.Token)
 
     let initScenarios () = taskResult {
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
         let targetScenarios = TestHostScenario.getTargetScenarios sessionArgs registeredScenarios
 
@@ -91,29 +76,44 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _targetScenarios <- initializedScenarios
     }
 
-    let startBombing (isWarmUp) = task {
-        _scnSchedulers <- createScenarioSchedulers(_targetScenarios)
-        TestHostConsole.displayBombingProgress(dep, _scnSchedulers, isWarmUp) |> ignore
+    let startWarmUp (schedulers: ScenarioScheduler list) = task {
+        let isWarmUp = true
+        _currentSchedulers <- schedulers
+        TestHostConsole.displayBombingProgress(dep, schedulers, isWarmUp)
+        do! schedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
+    }
 
-        if not isWarmUp then
-            do! TestHostReporting.startReportingSinks dep
-            do! TestHostPlugins.startPlugins dep
+    let startBombing (schedulers: ScenarioScheduler list,
+                      reportingTimer: Timers.Timer,
+                      currentOperationTimer: Stopwatch) = task {
 
-        do! _scnSchedulers |> List.map(fun x -> x.Start(isWarmUp)) |> Task.WhenAll
+        let isWarmUp = false
+        _currentSchedulers <- schedulers
 
-        if not isWarmUp then
-            do! TestHostReporting.stopReportingSinks dep
-            do! TestHostPlugins.stopPlugins dep
+        TestHostConsole.displayBombingProgress(dep, schedulers, isWarmUp)
+        do! TestHostReporting.startReportingSinks dep
+        do! TestHostPlugins.startPlugins dep
+
+        reportingTimer.Start()
+        currentOperationTimer.Start()
+
+        do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
+
+        reportingTimer.Stop()
+        currentOperationTimer.Stop()
+
+        do! TestHostReporting.stopReportingSinks dep
+        do! TestHostPlugins.stopPlugins dep
     }
 
     let stopSchedulers () =
         if not _cancelToken.IsCancellationRequested then
             _cancelToken.Cancel()
 
-        _scnSchedulers |> List.iter(fun x -> x.Stop())
+        _currentSchedulers |> List.iter(fun x -> x.Stop())
 
     let cleanScenarios () =
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo (getCurrentNodeInfo()) _cancelToken.Token dep.Logger
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
         TestHostScenario.cleanScenarios dep baseContext defaultScnContext _targetScenarios
 
@@ -143,29 +143,27 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             return AppError.createResult(appError)
     }
 
-    member _.StartWarmUp() = task {
+    member _.StartWarmUp(schedulers: ScenarioScheduler list) = task {
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
         do! Task.Yield()
 
         dep.Logger.Information("Starting warm up...")
-        let isWarmUp = true
-        do! startBombing(isWarmUp)
+        do! startWarmUp(schedulers)
         stopSchedulers()
 
         _currentOperation <- OperationType.None
     }
 
-    member _.StartBombing(reportingTimer: Timers.Timer) = task {
+    member _.StartBombing(schedulers: ScenarioScheduler list,
+                          reportingTimer: Timers.Timer,
+                          currentOperationTimer: Stopwatch) = task {
         _stopped <- false
         _currentOperation <- OperationType.Bombing
         do! Task.Yield()
 
         dep.Logger.Information("Starting bombing...")
-        reportingTimer.Start()
-        let isWarmUp = false
-        do! startBombing(isWarmUp)
-        reportingTimer.Stop()
+        do! startBombing(schedulers, reportingTimer, currentOperationTimer)
         do! this.StopScenarios()
 
         _currentOperation <- OperationType.Complete
@@ -188,45 +186,47 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             _currentOperation <- OperationType.None
     }
 
-    member _.GetNodeStats(executionTime) = getNodeStats(executionTime)
-    member _.GetTimeLineNodeStats() = List.rev _timeLineStats
+    member _.GetScenarioBombingStats(duration) =
+        TestHostReporting.getScenarioStats _currentSchedulers (Some true) duration
+        |> Stream.toArray
+
+    member _.GetFinalStats(duration) =
+        TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo (getCurrentNodeInfo()) OperationType.Complete None duration
+
+    member _.CreateScenarioSchedulers() = createScenarioSchedulers(_targetScenarios)
 
     member _.RunSession() = taskResult {
         do! this.StartInit()
+        do! this.StartWarmUp(this.CreateScenarioSchedulers())
+
+        let schedulers = this.CreateScenarioSchedulers()
+        use actor = TestHostReporting.createReportingActor(dep, schedulers, sessionArgs.TestInfo)
+        actor.Error.Subscribe(fun ex -> dep.Logger.Fatal("Reporting actor error", ex)) |> ignore
 
         let currentOperationTimer = Stopwatch()
+        use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
+        reportingTimer.Elapsed.Add(fun _ ->
+            actor.Post(FetchAndSaveBombingStats currentOperationTimer.Elapsed)
+        )
 
-        // reports only bombing stats
-        use reportingTimer =
-            TestHostReporting.createReportingTimer(
-                dep, sessionArgs.SendStatsInterval,
-                (fun () ->
-                    if not currentOperationTimer.IsRunning then
-                        currentOperationTimer.Restart()
-
-                    let operationTime = currentOperationTimer.Elapsed
-                    let nodeInfo = getCurrentNodeInfo()
-                    let nodeStats = getBombingOnlyNodeStats(operationTime, nodeInfo) |> NodeStats.round
-                    // prepend nodeStats to timeLineStats
-                    _timeLineStats <- (operationTime, nodeStats) :: _timeLineStats
-                    _currentOperation, nodeStats
-                )
+        // subscribes on stop scenario event
+        schedulers
+        |> List.iter(fun x ->
+            x.EventStream
+            |> Observable.choose(function ScenarioStopped stats -> Some stats | _ -> None)
+            |> Observable.subscribe(fun stats ->
+                actor.Post(AddAndSaveScenarioStats stats)
             )
+            |> ignore
+        )
 
-        do! this.StartWarmUp()
-        do! this.StartBombing(reportingTimer)
+        do! this.StartBombing(schedulers, reportingTimer, currentOperationTimer)
 
         // gets final stats
-        let nodeInfo = getCurrentNodeInfo()
         dep.Logger.Information("Calculating final statistics...")
-        let finalStats = nodeInfo |> getFinalNodeStats |> NodeStats.round
-        let maxDuration = finalStats.ScenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max
-
-        // prepend nodeStats to timeLineStats
-        _timeLineStats <- (maxDuration, finalStats) :: _timeLineStats
-        do! TestHostReporting.saveFinalStats dep [finalStats]
-
-        return finalStats
+        let finalStats = actor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), currentOperationTimer.Elapsed, reply))
+        let timeLines = actor.PostAndReply(fun reply -> GetTimeLines reply)
+        return {| NodeStats = finalStats; TimeLines = timeLines |}
     }
 
     interface IDisposable with

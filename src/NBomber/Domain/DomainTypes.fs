@@ -2,6 +2,7 @@ module internal NBomber.Domain.DomainTypes
 
 open System
 open System.Collections.Generic
+open System.Data
 open System.Threading
 open System.Threading.Tasks
 
@@ -93,6 +94,12 @@ type LoadTimeSegment = {
 }
 
 type LoadTimeLine = LoadTimeSegment list
+
+type TimeLineHistoryRecord = {
+    Duration: TimeSpan
+    ScenarioStats: ScenarioStats[]
+    PluginStats: DataSet[]
+}
 
 type Scenario = {
     ScenarioName: string

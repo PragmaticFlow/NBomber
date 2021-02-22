@@ -12,8 +12,8 @@ let reportingSink = {
         member _.SinkName = "TestSink"
         member _.Init(context, infraConfig) = Task.CompletedTask
         member _.Start() = Task.CompletedTask
-        member _.SaveStats(stats) = Task.CompletedTask
-        member _.SaveReports(files) = Task.CompletedTask
+        member _.SaveScenarioStats(stats) = Task.CompletedTask
+        member _.SaveFinalStats(stats) = Task.CompletedTask
         member _.Stop() = Task.CompletedTask
         member _.Dispose() = ()
 }

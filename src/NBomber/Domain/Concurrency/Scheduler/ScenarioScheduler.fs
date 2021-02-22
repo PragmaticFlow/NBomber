@@ -29,6 +29,12 @@ type ScenarioProgressInfo = {
     CurrentSimulation: LoadSimulation
 }
 
+[<Struct>]
+type SchedulerEvent =
+    | ScenarioStarted
+    | ScenarioStopped of scenarioStats:ScenarioStats
+    | ProgressUpdated of ScenarioProgressInfo
+
 let calcScheduleByTime (copiesCount: int, prevSegmentCopiesCount: int, timeSegmentProgress: int) =
     let value = copiesCount - prevSegmentCopiesCount
     let result = (float value / 100.0 * float timeSegmentProgress) + float prevSegmentCopiesCount
@@ -82,6 +88,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
     let mutable _currentSimulation = LoadSimulation.KeepConstant(0, TimeSpan.MinValue)
+    let mutable _currentOperation = OperationType.None
 
     let _constantScheduler = new ConstantActorScheduler(dep)
     let _oneTimeScheduler = new OneTimeActorScheduler(dep)
@@ -93,26 +100,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
     let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
 
-    let start () =
-        dep.GlobalTimer.Stop()
-        _schedulerTimer.Start()
-        _progressInfoTimer.Start()
-        _tcs.Task :> Task
-
-    let stop () =
-        if not _disposed then
-            _disposed <- true
-            dep.GlobalTimer.Stop()
-            _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
-            _schedulerTimer.Stop()
-            _progressInfoTimer.Stop()
-            _eventStream.OnCompleted()
-            _eventStream.Dispose()
-            _constantScheduler.Stop()
-            _oneTimeScheduler.Stop()
-            _tcs.TrySetResult() |> ignore
-
-    let getScenarioStats (duration) =
+    let getScenarioStats (currentOperation, duration) =
         let scnDuration = _scenario.ExecutedDuration |> Option.defaultValue(_scenario.PlanedDuration)
         let executionTime = correctExecutionTime(duration, scnDuration)
 
@@ -126,7 +114,33 @@ type ScenarioScheduler(dep: ActorDep) =
         getAllActors()
         |> Stream.ofList
         |> Stream.collect(fun x -> x.GetStepStats executionTime)
-        |> ScenarioStats.create dep.Scenario simulationStats executionTime
+        |> ScenarioStats.create dep.Scenario simulationStats executionTime currentOperation
+
+    let start () =
+        dep.GlobalTimer.Stop()
+        _schedulerTimer.Start()
+        _progressInfoTimer.Start()
+        _eventStream.OnNext(ScenarioStarted)
+        _tcs.Task :> Task
+
+    let stop () =
+        if not _disposed then
+            _disposed <- true
+            _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
+
+            dep.GlobalTimer.Stop()
+            _schedulerTimer.Stop()
+            _progressInfoTimer.Stop()
+            _constantScheduler.Stop()
+            _oneTimeScheduler.Stop()
+
+            _currentOperation <- OperationType.Complete
+            let scnStats = getScenarioStats(_currentOperation, TimeSpan.Zero)
+            _eventStream.OnNext(ScenarioStopped scnStats)
+            _eventStream.OnCompleted()
+            _eventStream.Dispose()
+
+            _tcs.TrySetResult() |> ignore
 
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)
@@ -134,7 +148,8 @@ type ScenarioScheduler(dep: ActorDep) =
     do
         _schedulerTimer.Elapsed.Add(fun _ ->
 
-            if not dep.GlobalTimer.IsRunning then dep.GlobalTimer.Restart()
+            if not dep.GlobalTimer.IsRunning then
+                dep.GlobalTimer.Restart()
 
             let currentTime = dep.GlobalTimer.Elapsed
 
@@ -172,13 +187,19 @@ type ScenarioScheduler(dep: ActorDep) =
                 OneTimeActorCount = _oneTimeScheduler.ScheduledActorCount
                 CurrentSimulation = _currentSimulation
             }
-            _eventStream.OnNext(progressInfo)
+            _eventStream.OnNext(ProgressUpdated progressInfo)
         )
 
     member _.Working = _schedulerTimer.Enabled
 
     member _.Start(isWarmUp) =
         _warmUp <- isWarmUp
+
+        if _warmUp then
+            _currentOperation <- OperationType.WarmUp
+        else
+            _currentOperation <- OperationType.Bombing
+
         start()
 
     member _.Stop() = stop()
@@ -186,4 +207,4 @@ type ScenarioScheduler(dep: ActorDep) =
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
     member _.AllActors = getAllActors()
-    member _.GetScenarioStats(duration) = getScenarioStats(duration)
+    member _.GetScenarioStats(duration) = getScenarioStats(_currentOperation, duration)

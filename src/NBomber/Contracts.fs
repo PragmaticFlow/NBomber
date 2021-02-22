@@ -135,6 +135,7 @@ type ScenarioStats = {
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
     ErrorStats: ErrorStats[]
+    CurrentOperation: OperationType
     Duration: TimeSpan
 }
 
@@ -153,6 +154,7 @@ type NodeStats = {
     NodeInfo: NodeInfo
     TestInfo: TestInfo
     ReportFiles: ReportFile[]
+    Duration: TimeSpan
 }
 
 type IBaseContext =
@@ -250,8 +252,8 @@ type IReportingSink =
     abstract SinkName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
-    abstract SaveStats: stats:NodeStats[] -> Task
-    abstract SaveReports: files:ReportFile[] -> Task
+    abstract SaveScenarioStats: stats:ScenarioStats[] -> Task
+    abstract SaveFinalStats: stats:NodeStats[] -> Task
     abstract Stop: unit -> Task
 
 type IWorkerPlugin =
@@ -259,7 +261,7 @@ type IWorkerPlugin =
     abstract PluginName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
-    abstract GetStats: currentOperation:OperationType -> DataSet
+    abstract GetStats: currentOperation:OperationType -> Task<DataSet>
     abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 

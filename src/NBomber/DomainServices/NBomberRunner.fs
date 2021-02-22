@@ -31,12 +31,13 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
 
     if formats.Length > 0 then
         let reportFiles = Report.save(folder, fileNameDate, formats, report, dep.Logger, stats.TestInfo)
+        let finalStats = { stats with ReportFiles = reportFiles }
         dep.ReportingSinks
-        |> List.map(fun x -> x.SaveReports reportFiles)
+        |> List.map(fun x -> x.SaveFinalStats [| finalStats |])
         |> Task.WhenAll
         |> fun t -> t.Wait()
 
-        { stats with ReportFiles = reportFiles }
+        finalStats
     else
         stats
 
@@ -67,16 +68,16 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
         let! scenarios    = context |> NBomberContext.createScenarios
         use testHost      = new TestHost(dep, scenarios, sessionArgs)
-        let! nodeStats    = testHost.RunSession()
-        let timeLineStats = testHost.GetTimeLineNodeStats()
-        let hints         = getHints context nodeStats
+        let! result       = testHost.RunSession()
+        let hints         = getHints context result.NodeStats
         let simulations   = context |> getLoadSimulations
-        let reports       = Report.build nodeStats timeLineStats hints simulations
+        //let reports       = Report.build result.NodeStats result.TimeLines hints simulations
+        let reports       = Report.build result.NodeStats List.empty hints simulations
 
         if dep.ApplicationType = ApplicationType.Console then
             reports.ConsoleReport |> Seq.iter Console.render
 
-        return reports |> saveReports dep context nodeStats
+        return reports |> saveReports dep context result.NodeStats
     }
 
 let run (context: NBomberContext) =

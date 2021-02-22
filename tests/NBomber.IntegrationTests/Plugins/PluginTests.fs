@@ -105,7 +105,7 @@ let ``Init should be invoked once`` () =
                 Task.CompletedTask
 
             member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = new DataSet()
+            member _.GetStats(_) = Task.FromResult(new DataSet())
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -135,7 +135,7 @@ let ``StartTest should be invoked once`` () =
                 Task.CompletedTask
 
             member _.GetHints() = Array.empty
-            member _.GetStats(_) = new DataSet()
+            member _.GetStats(_) = Task.FromResult(new DataSet())
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -165,7 +165,7 @@ let ``StartTest should be invoked with infra config`` () =
 
             member _.Start() = Task.CompletedTask
             member _.GetHints() = Array.empty
-            member _.GetStats(_) = new DataSet()
+            member _.GetStats(_) = Task.FromResult(new DataSet())
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -195,7 +195,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
 
             member _.GetStats(_) =
                 pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
-                new DataSet()
+                Task.FromResult(new DataSet())
 
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
@@ -221,7 +221,7 @@ let ``StopTest should be invoked once`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = new DataSet()
+            member _.GetStats(_) = Task.FromResult(new DataSet())
             member _.GetHints() = Array.empty
             member _.Stop() =
                 pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
@@ -248,7 +248,7 @@ let ``stats should be passed to IReportingSink`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats()
+            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats() |> Task.FromResult
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -260,11 +260,12 @@ let ``stats should be passed to IReportingSink`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveStats(stats) =
+            member _.SaveScenarioStats(_) = Task.CompletedTask
+
+            member _.SaveFinalStats(stats) =
                 _nodeStats <- stats
                 Task.CompletedTask
 
-            member _.SaveReports(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }

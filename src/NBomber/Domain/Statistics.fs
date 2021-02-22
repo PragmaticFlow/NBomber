@@ -263,7 +263,8 @@ module StepStats =
 module ScenarioStats =
 
     let create (scenario: Scenario) (simulationStats: LoadSimulationStats)
-               (duration: TimeSpan) (allStepsStats: Stream<StepStats>) =
+               (duration: TimeSpan) (currentOperation: OperationType)
+               (allStepsStats: Stream<StepStats>) =
 
         let createByStepStats (scnName: string) (duration: TimeSpan)
                               (simulationStats: LoadSimulationStats)
@@ -281,8 +282,9 @@ module ScenarioStats =
               StepStats = mergedStats |> Stream.toArray
               LatencyCount = { LessOrEq800 = less800; More800Less1200 = more800Less1200; MoreOrEq1200 = more1200 }
               LoadSimulationStats = simulationStats
-              Duration = duration
-              ErrorStats = mergedStats |> Stream.map(fun x -> x.Fail) |> StepStats.mergeErrorStats }
+              ErrorStats = mergedStats |> Stream.map(fun x -> x.Fail) |> StepStats.mergeErrorStats
+              CurrentOperation = currentOperation
+              Duration = duration }
 
         allStepsStats
         |> StepStats.merge
@@ -295,18 +297,20 @@ module ScenarioStats =
 module NodeStats =
 
     let create (testInfo: TestInfo) (nodeInfo: NodeInfo)
-               (scnStats: Stream<ScenarioStats>)
-               (pluginStats: Stream<DataSet>) =
+               (scnStats: Stream<ScenarioStats>) (pluginStats: DataSet[]) =
+
+        let maxDuration = scnStats |> Stream.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
 
         { RequestCount = scnStats |> Stream.sumBy(fun x -> x.RequestCount)
           OkCount = scnStats |> Stream.sumBy(fun x -> x.OkCount)
           FailCount = scnStats |> Stream.sumBy(fun x -> x.FailCount)
           AllDataMB = scnStats |> Stream.sumBy(fun x -> x.AllDataMB)
           ScenarioStats = scnStats |> Stream.toArray
-          PluginStats = pluginStats |> Stream.toArray
+          PluginStats = pluginStats
           NodeInfo = nodeInfo
           TestInfo = testInfo
-          ReportFiles = Array.empty }
+          ReportFiles = Array.empty
+          Duration = maxDuration }
 
     let round (stats: NodeStats) =
         { stats with AllDataMB = stats.AllDataMB |> Converter.round 3

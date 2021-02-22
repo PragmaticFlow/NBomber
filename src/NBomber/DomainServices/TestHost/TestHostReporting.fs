@@ -3,45 +3,111 @@ module internal NBomber.DomainServices.TestHost.TestHostReporting
 open System
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
+open FSharp.Control.Tasks.NonAffine
+open Nessos.Streams
 
 open NBomber
-open NBomber.Contracts
+open NBomber.Domain.DomainTypes
+open NBomber.Domain.Statistics
+open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Errors
+open NBomber.Contracts
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 
-let saveRealtimeStats (sinks: IReportingSink list) (nodeStats: NodeStats list) =
-    sinks
-    |> List.map(fun x -> nodeStats |> List.toArray |> x.SaveStats)
-    |> Task.WhenAll
+type ActorMessage =
+    | FetchAndSaveBombingStats of duration:TimeSpan
+    | AddAndSaveScenarioStats   of ScenarioStats
+    | GetTimeLines      of AsyncReplyChannel<TimeLineHistoryRecord list>
+    | GetFinalStats     of NodeInfo * duration:TimeSpan * AsyncReplyChannel<NodeStats>
 
-let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats list) = task {
+let saveScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = task {
     for sink in dep.ReportingSinks do
         try
-            do! sink.SaveStats(stats |> Seq.toArray)
+            do! sink.SaveScenarioStats(stats)
         with
-        | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save stats.", sink.SinkName)
+        | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save scenario stats.", sink.SinkName)
 }
 
-let createReportingTimer (dep: IGlobalDependency,
-                          sendStatsInterval: TimeSpan,
-                          getData: unit -> (OperationType * NodeStats)) =
+let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats[]) = task {
+    for sink in dep.ReportingSinks do
+        try
+            do! sink.SaveFinalStats(stats)
+        with
+        | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save final stats.", sink.SinkName)
+}
 
-        let timer = new System.Timers.Timer(sendStatsInterval.TotalMilliseconds)
-        timer.Elapsed.Add(fun _ ->
-            let (operation,nodeStats) = getData()
-            match operation with
-            | OperationType.Bombing ->
-                if not (List.isEmpty dep.ReportingSinks) then
-                    nodeStats
-                    |> List.singleton
-                    |> saveRealtimeStats dep.ReportingSinks
-                    |> ignore
-            | _ -> ()
-        )
-        timer
+let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
+    dep.WorkerPlugins
+    |> List.map(fun plugin -> plugin.GetStats operation)
+    |> Task.WhenAll
+
+let getScenarioStats (schedulers: ScenarioScheduler list) (working: Option<bool>) (duration: TimeSpan) =
+    schedulers
+    |> Stream.ofList
+    |> Stream.filter(fun x ->
+        match working with
+        | Some value -> x.Working = value
+        | None       -> true
+    )
+    |> Stream.map(fun x -> x.GetScenarioStats duration)
+
+let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo)
+                 (nodeInfo: NodeInfo) (operation: OperationType)
+                 (working: Option<bool>) (duration: TimeSpan) = task {
+
+    let! pluginStats = getPluginStats dep operation
+    let scenarioStats = getScenarioStats schedulers working duration
+
+    return if Stream.isEmpty scenarioStats then None
+           else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
+}
+
+let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
+    MailboxProcessor.Start(fun inbox ->
+
+        let getBombingPluginStats = getPluginStats dep
+        let getBombingScenarioStats = getScenarioStats schedulers (Some true)
+        let getNodeStats = getNodeStats dep schedulers testInfo
+        let saveScenarioStats = saveScenarioStats dep
+
+        let fetchAndSaveBombingStats (duration, history) = async {
+            let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
+            let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
+            do! scnStats |> saveScenarioStats |> Async.AwaitTask
+            let! pluginStats = pluginStatsTask |> Async.AwaitTask
+            return { Duration = duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
+        }
+
+        let addAndSaveScenarioStats (scnStats, history) = async {
+            let stats = scnStats |> ScenarioStats.round |> Array.singleton
+            do! stats |> saveScenarioStats |> Async.AwaitTask
+            return { Duration = scnStats.Duration; ScenarioStats = stats; PluginStats = Array.empty } :: history
+        }
+
+        let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
+            match! inbox.Receive() with
+            | FetchAndSaveBombingStats duration ->
+                let! newHistory = fetchAndSaveBombingStats(duration, currentHistory)
+                return! loop newHistory
+
+            | AddAndSaveScenarioStats scnStats ->
+                let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
+                return! loop newHistory
+
+            | GetTimeLines reply ->
+                reply.Reply(currentHistory |> List.rev)
+                return! loop currentHistory
+
+            | GetFinalStats (nodeInfo, duration, reply) ->
+                getNodeStats nodeInfo OperationType.Complete None duration
+                |> TaskOption.map(NodeStats.round >> reply.Reply)
+                |> Task.WaitAll
+                return! loop currentHistory
+        }
+        loop List.empty
+    )
 
 let initReportingSinks (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     try

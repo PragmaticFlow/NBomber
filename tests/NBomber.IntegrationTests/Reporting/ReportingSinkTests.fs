@@ -25,12 +25,12 @@ let ``SaveStats should be invoked many times during test execution to send realt
             member _.SinkName = "TestSink"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.SaveStats(_) =
+            member _.SaveScenarioStats(_) =
                 // 1 invoke per 5 sec
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
 
-            member _.SaveReports(_) = Task.CompletedTask
+            member _.SaveFinalStats(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -63,14 +63,14 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveStats(stats) =
-                match stats.[0].NodeInfo.CurrentOperation with
+            member _.SaveScenarioStats(stats) =
+                match stats.[0].CurrentOperation with
                 | OperationType.Bombing  -> bombingCounter <- bombingCounter + 1
                 | OperationType.Complete -> completeCounter <- completeCounter + 1
-                | _                          -> failwith "operation type is invalid for SaveStats"
+                | _                      -> failwith "operation type is invalid for SaveStats"
                 Task.CompletedTask
 
-            member _.SaveReports(_) = Task.CompletedTask
+            member _.SaveFinalStats(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -105,23 +105,23 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveStats(stats) =
-                match stats.[0].NodeInfo.CurrentOperation with
+            member _.SaveScenarioStats(stats) =
+                match stats.[0].CurrentOperation with
                 | OperationType.Bombing ->
-                    stats.[0].ScenarioStats
+                    stats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_1")
                     |> Seq.iter(fun _ -> scn1BombingInvokedCount <- scn1BombingInvokedCount + 1)
 
-                    stats.[0].ScenarioStats
+                    stats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_2")
                     |> Seq.iter(fun _ -> scn2BombingInvokedCount <- scn2BombingInvokedCount + 1)
 
                 | OperationType.Complete ->
-                    stats.[0].ScenarioStats
+                    stats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_1")
                     |> Seq.iter(fun _ -> scn1CompleteInvokedCount <- scn1CompleteInvokedCount + 1)
 
-                    stats.[0].ScenarioStats
+                    stats
                     |> Seq.filter(fun x -> x.ScenarioName = "scenario_2")
                     |> Seq.iter(fun _ -> scn2CompleteInvokedCount <- scn2CompleteInvokedCount + 1)
 
@@ -129,7 +129,7 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
 
                 Task.CompletedTask
 
-            member _.SaveReports(_) = Task.CompletedTask
+            member _.SaveFinalStats(_) = Task.CompletedTask
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
