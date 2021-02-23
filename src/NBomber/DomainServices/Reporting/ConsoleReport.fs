@@ -46,7 +46,7 @@ module ConsoleNodeStats =
         [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlight}'")
           Console.addLine($"duration: '{scnStats.Duration |> Console.highlight}'" +
                           $", ok count: '{scnStats.OkCount |> Console.highlight}'" +
-                          $", fail count: '{scnStats.FailCount |> Console.highlight}'" +
+                          $", fail count: '{scnStats.FailCount |> Console.highlightError}'" +
                           $", all data: '{scnStats.AllDataMB |> Console.highlight}' MB") ]
 
     let private printLoadSimulation (simulation: LoadSimulation) =
@@ -81,52 +81,90 @@ module ConsoleNodeStats =
 
         |> Console.addLine
 
-    let private printloadSimulations (simulations: LoadSimulation list) =
+    let private printLoadSimulations (simulations: LoadSimulation list) =
         simulations |> Seq.map printLoadSimulation
 
     let private createStepStatsRow (i) (s: StepStats) =
         let name = s.StepName |> Console.highlight
-        let okCount = s.Ok.Request.Count
-        let failCount = s.Fail.Request.Count
-        let reqCount = okCount + failCount
+        let okReqCount = s.Ok.Request.Count
+        let failReqCount = s.Fail.Request.Count
+        let allReqCount = okReqCount + failReqCount
         let okRPS = s.Ok.Request.RPS
-        let lt = s.Ok.Latency
-        let dt = s.Ok.DataTransfer
+        let failRPS = s.Fail.Request.RPS
+        let okLatency = s.Ok.Latency
+        let failLatency = s.Fail.Latency
+        let okDataTransfer = s.Ok.DataTransfer
+        let failDataTransfer = s.Fail.DataTransfer
 
-        let count =
-            $"all = {reqCount |> Console.highlight}" +
-            $", ok = {okCount |> Console.highlight}" +
-            $", failed = {failCount |> Console.highlight}" +
+        let allCount = $"all = {allReqCount |> Console.highlight}"
+
+        let okCount =
+            $"ok = {okReqCount |> Console.highlight}" +
             $", RPS = {okRPS |> Console.highlight}"
 
-        let times =
-            $"min = {lt.MinMs |> Console.highlight}" +
-            $", mean = {lt.MeanMs |> Console.highlight}" +
-            $", max = {lt.MaxMs |> Console.highlight}"
+        let failCount =
+            $"fail = {failReqCount |> Console.highlightError}" +
+            $", RPS = {failRPS |> Console.highlightError}"
 
-        let percentile =
-            $"50%% = {lt.Percent50 |> Console.highlight}" +
-            $", 75%% = {lt.Percent75 |> Console.highlight}" +
-            $", 95%% = {lt.Percent95 |> Console.highlight}" +
-            $", 99%% = {lt.Percent99 |> Console.highlight}" +
-            $", StdDev = {lt.StdDev |> Console.highlight}"
+        let okTimes =
+            $"min = {okLatency.MinMs |> Console.highlight}" +
+            $", mean = {okLatency.MeanMs |> Console.highlight}" +
+            $", max = {okLatency.MaxMs |> Console.highlight}"
 
-        let min = $"%.3f{dt.MinKb} KB" |> Console.highlight
-        let mean = $"%.3f{dt.MeanKb} KB" |> Console.highlight
-        let max = $"%.3f{dt.MaxKb} KB" |> Console.highlight
-        let all = $"%.3f{dt.AllMB} MB" |> Console.highlight
+        let failTimes =
+            $"min = {failLatency.MinMs |> Console.highlightError}" +
+            $", mean = {failLatency.MeanMs |> Console.highlightError}" +
+            $", max = {failLatency.MaxMs |> Console.highlightError}"
 
-        let dataTransfer =
-            $"min = {min |> Console.highlight}" +
-            $", mean = {mean |> Console.highlight}" +
-            $", max = {max |> Console.highlight}" +
-            $", all = {all |> Console.highlight}"
+        let okPercentile =
+            $"50%% = {okLatency.Percent50 |> Console.highlight}" +
+            $", 75%% = {okLatency.Percent75 |> Console.highlight}" +
+            $", 95%% = {okLatency.Percent95 |> Console.highlight}" +
+            $", 99%% = {okLatency.Percent99 |> Console.highlight}" +
+            $", StdDev = {okLatency.StdDev |> Console.highlight}"
 
-        [ ["name"; name]
-          ["request count"; count]
-          ["latency"; times]
-          ["latency percentile"; percentile]
-          if dt.AllMB > 0.0 then ["data transfer"; dataTransfer] ]
+        let failPercentile =
+            $"50%% = {failLatency.Percent50 |> Console.highlightError}" +
+            $", 75%% = {failLatency.Percent75 |> Console.highlightError}" +
+            $", 95%% = {failLatency.Percent95 |> Console.highlightError}" +
+            $", 99%% = {failLatency.Percent99 |> Console.highlightError}" +
+            $", StdDev = {failLatency.StdDev |> Console.highlightError}"
+
+        let okDtMin = $"%.3f{okDataTransfer.MinKb} KB" |> Console.highlight
+        let okDtMean = $"%.3f{okDataTransfer.MeanKb} KB" |> Console.highlight
+        let okDtMax = $"%.3f{okDataTransfer.MaxKb} KB" |> Console.highlight
+        let okDtAll = $"%.3f{okDataTransfer.AllMB} MB" |> Console.highlight
+
+        let okDt =
+            $"min = {okDtMin |> Console.highlight}" +
+            $", mean = {okDtMean |> Console.highlight}" +
+            $", max = {okDtMax |> Console.highlight}" +
+            $", all = {okDtAll |> Console.highlight}"
+
+        let failDtMin = $"%.3f{failDataTransfer.MinKb} KB" |> Console.highlightError
+        let failDtMean = $"%.3f{failDataTransfer.MeanKb} KB" |> Console.highlightError
+        let failDtMax = $"%.3f{failDataTransfer.MaxKb} KB" |> Console.highlightError
+        let failDtAll = $"%.3f{failDataTransfer.AllMB} MB" |> Console.highlightError
+
+        let failDt =
+            $"min = {failDtMin |> Console.highlightError}" +
+            $", mean = {failDtMean |> Console.highlightError}" +
+            $", max = {failDtMax |> Console.highlightError}" +
+            $", all = {failDtAll |> Console.highlightError}"
+
+        [ if i > 0 then [" "; " "]
+          ["name"; name]
+          ["all request count"; allCount]
+          ["ok stats"; String.Empty]
+          ["ok request count"; okCount]
+          ["ok latency"; okTimes]
+          ["ok latency percentile"; okPercentile]
+          if okDataTransfer.AllMB > 0.0 then ["ok data transfer"; okDt]
+          ["fail stats"; String.Empty]
+          ["fail request count"; failCount]
+          ["fail latency"; failTimes]
+          ["fail latency percentile"; failPercentile]
+          if failDataTransfer.AllMB > 0.0 then ["fail data transfer"; failDt] ]
 
     let private createStepStatsTableRows (stepStats: StepStats[]) =
         stepStats
@@ -146,7 +184,7 @@ module ConsoleNodeStats =
         let rows = createStepStatsTableRows(scnStats.StepStats)
 
         [ yield! printScenarioHeader(scnStats)
-          yield! printloadSimulations(simulations)
+          yield! printLoadSimulations(simulations)
           Console.addTable headers rows
           yield! printScenarioErrorStats(scnStats) ]
 

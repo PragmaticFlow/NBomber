@@ -33,30 +33,99 @@ module TxtNodeStats =
         $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
         $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllDataMB}' MB"
 
-    let private printStepsTable (steps: StepStats[]) =
+    let private createStepStatsRow (i) (s: StepStats) =
+        let name = s.StepName
+        let okReqCount = s.Ok.Request.Count
+        let failReqCount = s.Fail.Request.Count
+        let allReqCount = okReqCount + failReqCount
+        let okRPS = s.Ok.Request.RPS
+        let failRPS = s.Fail.Request.RPS
+        let okLatency = s.Ok.Latency
+        let failLatency = s.Fail.Latency
+        let okDataTransfer = s.Ok.DataTransfer
+        let failDataTransfer = s.Fail.DataTransfer
+
+        let allCount = $"all = {allReqCount}"
+
+        let okCount =
+            $"ok = {okReqCount}" +
+            $", RPS = {okRPS}"
+
+        let failCount =
+            $"fail = {failReqCount}" +
+            $", RPS = {failRPS}"
+
+        let okTimes =
+            $"min = {okLatency.MinMs}" +
+            $", mean = {okLatency.MeanMs}" +
+            $", max = {okLatency.MaxMs}"
+
+        let failTimes =
+            $"min = {failLatency.MinMs}" +
+            $", mean = {failLatency.MeanMs}" +
+            $", max = {failLatency.MaxMs}"
+
+        let okPercentile =
+            $"50%% = {okLatency.Percent50}" +
+            $", 75%% = {okLatency.Percent75}" +
+            $", 95%% = {okLatency.Percent95}" +
+            $", 99%% = {okLatency.Percent99}" +
+            $", StdDev = {okLatency.StdDev}"
+
+        let failPercentile =
+            $"50%% = {failLatency.Percent50}" +
+            $", 75%% = {failLatency.Percent75}" +
+            $", 95%% = {failLatency.Percent95}" +
+            $", 99%% = {failLatency.Percent99}" +
+            $", StdDev = {failLatency.StdDev}"
+
+        let okDtMin = $"%.3f{okDataTransfer.MinKb} KB"
+        let okDtMean = $"%.3f{okDataTransfer.MeanKb} KB"
+        let okDtMax = $"%.3f{okDataTransfer.MaxKb} KB"
+        let okDtAll = $"%.3f{okDataTransfer.AllMB} MB"
+
+        let okDt =
+            $"min = {okDtMin}" +
+            $", mean = {okDtMean}" +
+            $", max = {okDtMax}" +
+            $", all = {okDtAll}"
+
+        let failDtMin = $"%.3f{failDataTransfer.MinKb} KB"
+        let failDtMean = $"%.3f{failDataTransfer.MeanKb} KB"
+        let failDtMax = $"%.3f{failDataTransfer.MaxKb} KB"
+        let failDtAll = $"%.3f{failDataTransfer.AllMB} MB"
+
+        let failDt =
+            $"min = {failDtMin}" +
+            $", mean = {failDtMean}" +
+            $", max = {failDtMax}" +
+            $", all = {failDtAll}"
+
+        [ if i > 0 then [" "; " "]
+          ["name"; name]
+          ["all request count"; allCount]
+          ["ok stats"; String.Empty]
+          ["ok request count"; okCount]
+          ["ok latency"; okTimes]
+          ["ok latency percentile"; okPercentile]
+          if okDataTransfer.AllMB > 0.0 then ["ok data transfer"; okDt]
+          ["fail stats"; String.Empty]
+          ["fail request count"; failCount]
+          ["fail latency"; failTimes]
+          ["fail latency percentile"; failPercentile]
+          if failDataTransfer.AllMB > 0.0 then ["fail data transfer"; failDt] ]
+
+    let private createStepStatsTableRows (stepStats: StepStats[]) =
+        stepStats
+        |> Seq.mapi createStepStatsRow
+        |> Seq.concat
+
+    let private printStepsTable (stepStats: StepStats[]) =
         let stepTable = ConsoleTable("step", "details")
-        steps
-        |> Seq.iteri(fun i s ->
-            let dataInfoAvailable = s.Ok.DataTransfer.AllMB + s.Fail.DataTransfer.AllMB > 0.0
-            let okCount = s.Ok.Request.Count
-            let failCount = s.Fail.Request.Count
-            let reqCount = okCount + failCount
-            let okRPS = s.Ok.Request.RPS
-            let lt = s.Ok.Latency
-            let dt = s.Ok.DataTransfer
+        stepStats
+        |> createStepStatsTableRows
+        |> Seq.iter(fun row -> stepTable.AddRow(row.[0], row.[1]) |> ignore)
 
-            [ "- name", s.StepName
-              "- request count", $"all = {reqCount} | OK = {okCount} | failed = {failCount} | RPS = {okRPS}"
-              "- latency", $"min = {lt.MinMs} | mean = {lt.MeanMs} | max = {lt.MaxMs}"
-              "- latency percentile", $"50%% = {lt.Percent50} | 75%% = {lt.Percent75} | 95%% = {lt.Percent95} | 99%% = {lt.Percent99} | StdDev = {lt.StdDev}"
-
-              if dataInfoAvailable then
-                "- data transfer", $"min = %g{dt.MinKb} KB | mean = %g{dt.MeanKb} KB | max = %g{dt.MaxKb} KB | all = %g{dt.AllMB} MB"
-              if steps.Length > 1 && i < (steps.Length - 1) then
-                "", ""
-            ]
-            |> Seq.iter(fun (name, value) -> stepTable.AddRow(name, value) |> ignore)
-        )
         stepTable.ToStringAlternative()
 
     let printNodeStats (stats: NodeStats) =

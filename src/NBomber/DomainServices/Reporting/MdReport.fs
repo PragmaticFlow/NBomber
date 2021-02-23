@@ -1,5 +1,6 @@
 module internal NBomber.DomainServices.Reporting.MdReport
 
+open System
 open System.Data
 
 open FuncyDown.Document
@@ -20,6 +21,11 @@ module Md =
         |> addBlockQuote header
         |> addNewline
         |> addNewline
+
+    let printBold (text) =
+        emptyDocument
+        |> addStrongEmphasis text
+        |> asString
 
 module MdTestInfo =
 
@@ -57,53 +63,93 @@ module MdNodeStats =
 
         document |> Md.printHeader header
 
-    let private createStepStatsRow (s: StepStats) =
+    let private createStepStatsRow (i) (s: StepStats) =
         let name = s.StepName |> Md.printInlineCode
-        let okCount = s.Ok.Request.Count
-        let failCount = s.Fail.Request.Count
-        let reqCount = okCount + failCount
+        let okReqCount = s.Ok.Request.Count
+        let failReqCount = s.Fail.Request.Count
+        let allReqCount = okReqCount + failReqCount
         let okRPS = s.Ok.Request.RPS
-        let lt = s.Ok.Latency
-        let dt = s.Ok.DataTransfer
+        let failRPS = s.Fail.Request.RPS
+        let okLatency = s.Ok.Latency
+        let failLatency = s.Fail.Latency
+        let okDataTransfer = s.Ok.DataTransfer
+        let failDataTransfer = s.Fail.DataTransfer
 
-        let count =
-            $"all = {reqCount |> Md.printInlineCode}" +
-            $", ok = {okCount |> Md.printInlineCode}" +
-            $", failed = {failCount |> Md.printInlineCode}" +
+        let allCount = $"all = {allReqCount |> Md.printInlineCode}"
+
+        let okCount =
+            $"ok = {okReqCount |> Md.printInlineCode}" +
             $", RPS = {okRPS |> Md.printInlineCode}"
 
-        let times =
-            $"min = {lt.MinMs |> Md.printInlineCode}" +
-            $", mean = {lt.MeanMs |> Md.printInlineCode}" +
-            $", max = {lt.MaxMs |> Md.printInlineCode}"
+        let failCount =
+            $"fail = {failReqCount |> Md.printInlineCode}" +
+            $", RPS = {failRPS |> Md.printInlineCode}"
 
-        let percentile =
-            $"50%% = {lt.Percent50 |> Md.printInlineCode}" +
-            $", 75%% = {lt.Percent75 |> Md.printInlineCode}" +
-            $", 95%% = {lt.Percent95 |> Md.printInlineCode}" +
-            $", 99%% = {lt.Percent99 |> Md.printInlineCode}" +
-            $", StdDev = {lt.StdDev |> Md.printInlineCode}"
+        let okTimes =
+            $"min = {okLatency.MinMs |> Md.printInlineCode}" +
+            $", mean = {okLatency.MeanMs |> Md.printInlineCode}" +
+            $", max = {okLatency.MaxMs |> Md.printInlineCode}"
 
-        let min = $"%.3f{dt.MinKb} KB" |> Md.printInlineCode
-        let mean = $"%.3f{dt.MeanKb} KB" |> Md.printInlineCode
-        let max = $"%.3f{dt.MaxKb} KB" |> Md.printInlineCode
-        let all = $"%.3f{dt.AllMB} MB" |> Md.printInlineCode
+        let failTimes =
+            $"min = {failLatency.MinMs |> Md.printInlineCode}" +
+            $", mean = {failLatency.MeanMs |> Md.printInlineCode}" +
+            $", max = {failLatency.MaxMs |> Md.printInlineCode}"
 
-        let dataTransfer =
-            $"min = {min |> Md.printInlineCode}" +
-            $", mean = {mean |> Md.printInlineCode}" +
-            $", max = {max |> Md.printInlineCode}" +
-            $", all = {all |> Md.printInlineCode}"
+        let okPercentile =
+            $"50%% = {okLatency.Percent50 |> Md.printInlineCode}" +
+            $", 75%% = {okLatency.Percent75 |> Md.printInlineCode}" +
+            $", 95%% = {okLatency.Percent95 |> Md.printInlineCode}" +
+            $", 99%% = {okLatency.Percent99 |> Md.printInlineCode}" +
+            $", StdDev = {okLatency.StdDev |> Md.printInlineCode}"
 
-        [ ["name"; name]
-          ["request count"; count]
-          ["latency"; times]
-          ["latency percentile"; percentile]
-          if dt.AllMB > 0.0 then ["data transfer"; dataTransfer] ]
+        let failPercentile =
+            $"50%% = {failLatency.Percent50 |> Md.printInlineCode}" +
+            $", 75%% = {failLatency.Percent75 |> Md.printInlineCode}" +
+            $", 95%% = {failLatency.Percent95 |> Md.printInlineCode}" +
+            $", 99%% = {failLatency.Percent99 |> Md.printInlineCode}" +
+            $", StdDev = {failLatency.StdDev |> Md.printInlineCode}"
+
+        let okDtMin = $"%.3f{okDataTransfer.MinKb} KB" |> Md.printInlineCode
+        let okDtMean = $"%.3f{okDataTransfer.MeanKb} KB" |> Md.printInlineCode
+        let okDtMax = $"%.3f{okDataTransfer.MaxKb} KB" |> Md.printInlineCode
+        let okDtAll = $"%.3f{okDataTransfer.AllMB} MB" |> Md.printInlineCode
+
+        let okDt =
+            $"min = {okDtMin |> Md.printInlineCode}" +
+            $", mean = {okDtMean |> Md.printInlineCode}" +
+            $", max = {okDtMax |> Md.printInlineCode}" +
+            $", all = {okDtAll |> Md.printInlineCode}"
+
+
+        let failDtMin = $"%.3f{failDataTransfer.MinKb} KB" |> Md.printInlineCode
+        let failDtMean = $"%.3f{failDataTransfer.MeanKb} KB" |> Md.printInlineCode
+        let failDtMax = $"%.3f{failDataTransfer.MaxKb} KB" |> Md.printInlineCode
+        let failDtAll = $"%.3f{failDataTransfer.AllMB} MB" |> Md.printInlineCode
+
+        let failDt =
+            $"min = {failDtMin |> Md.printInlineCode}" +
+            $", mean = {failDtMean |> Md.printInlineCode}" +
+            $", max = {failDtMax |> Md.printInlineCode}" +
+            $", all = {failDtAll |> Md.printInlineCode}"
+
+        [ if i > 0 then [" "; " "]
+          ["name"; name]
+          ["all request count"; allCount]
+          ["ok stats"; String.Empty]
+          ["ok request count"; okCount]
+          ["ok latency"; okTimes]
+          ["ok latency percentile"; okPercentile]
+          if okDataTransfer.AllMB > 0.0 then ["ok data transfer"; okDt]
+          ["fail stats"; String.Empty]
+          ["fail request count"; failCount]
+          ["fail latency"; failTimes]
+          ["fail latency percentile"; failPercentile]
+          if failDataTransfer.AllMB > 0.0 then ["fail data transfer"; failDt] ]
 
     let private createStepStatsTableRows (stepStats: StepStats[]) =
         stepStats
-        |> Seq.collect createStepStatsRow
+        |> Seq.mapi createStepStatsRow
+        |> Seq.concat
         |> List.ofSeq
 
     let private printScenarioErrorStats (scnStats: ScenarioStats) (document: Document) =

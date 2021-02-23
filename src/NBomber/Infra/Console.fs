@@ -20,6 +20,9 @@ let highlightWarning (text) =
 let highlightError (text) =
     $"[red]{text}[/]"
 
+let bold (text) =
+    $"[bold]{text}[/]"
+
 let escapeMarkup (text) =
     Markup.Escape(text)
 
