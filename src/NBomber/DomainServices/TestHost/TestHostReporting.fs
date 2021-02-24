@@ -18,9 +18,9 @@ open NBomber.Infra.Dependency
 
 type ActorMessage =
     | FetchAndSaveBombingStats of duration:TimeSpan
-    | AddAndSaveScenarioStats   of ScenarioStats
-    | GetTimeLines      of AsyncReplyChannel<TimeLineHistoryRecord list>
-    | GetFinalStats     of NodeInfo * duration:TimeSpan * AsyncReplyChannel<NodeStats>
+    | AddAndSaveScenarioStats  of ScenarioStats
+    | GetTimeLines             of AsyncReplyChannel<TimeLineHistoryRecord list>
+    | GetFinalStats            of NodeInfo * duration:TimeSpan * AsyncReplyChannel<NodeStats>
 
 let saveScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = task {
     for sink in dep.ReportingSinks do

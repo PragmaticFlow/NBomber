@@ -1,11 +1,12 @@
 using System;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.Configuration;
-using Microsoft.FSharp.Core;
+using Serilog;
+
 using NBomber.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using Serilog;
 
 namespace CSharpDev.CustomReporting
 {
@@ -21,8 +22,8 @@ namespace CSharpDev.CustomReporting
         }
 
         public Task Start() => Task.CompletedTask;
-        public Task SaveStats(NodeStats[] stats) => Task.CompletedTask;
-        public Task SaveReports(ReportFile[] files) => Task.CompletedTask;
+        public Task SaveScenarioStats(ScenarioStats[] stats) => Task.CompletedTask;
+        public Task SaveFinalStats(NodeStats[] stats) => Task.CompletedTask;
         public Task Stop() => Task.CompletedTask;
 
         public void Dispose()

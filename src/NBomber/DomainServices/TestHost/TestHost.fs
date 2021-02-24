@@ -43,7 +43,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 dep.Logger.Warning("Stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
             )
 
-        | StopTest (reason) -> this.StopScenarios(reason) |> ignore
+        | StopTest reason -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list) =
 
@@ -213,7 +213,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         schedulers
         |> List.iter(fun x ->
             x.EventStream
-            |> Observable.choose(function ScenarioStopped stats -> Some stats | _ -> None)
+            |> Observable.choose(function
+                | ScenarioStarted stats -> Some stats
+                | ScenarioStopped stats -> Some stats
+                | _ -> None
+            )
             |> Observable.subscribe(fun stats ->
                 actor.Post(AddAndSaveScenarioStats stats)
             )

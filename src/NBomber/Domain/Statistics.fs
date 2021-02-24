@@ -290,6 +290,9 @@ module ScenarioStats =
         |> StepStats.merge
         |> createByStepStats scenario.ScenarioName duration simulationStats
 
+    let empty (scenario) (simulationStats) (currentOperation) =
+        create scenario simulationStats TimeSpan.Zero currentOperation Stream.empty
+
     let round (stats: ScenarioStats) =
         { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
                      StepStats = stats.StepStats |> Array.map(StepStats.round) }

@@ -56,6 +56,7 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
 
     let mutable bombingCounter = 0
     let mutable completeCounter = 0
+    let mutable finalStatsCounter = 0
 
     let reportingSink = {
         new IReportingSink with
@@ -70,7 +71,10 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
                 | _                      -> failwith "operation type is invalid for SaveStats"
                 Task.CompletedTask
 
-            member _.SaveFinalStats(_) = Task.CompletedTask
+            member _.SaveFinalStats(stats) =
+                finalStatsCounter <- finalStatsCounter + 1
+                Task.CompletedTask
+
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -89,7 +93,9 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
     |> NBomberRunner.run
     |> ignore
 
-    test <@ bombingCounter > 0 && completeCounter = 1 @>
+    test <@ bombingCounter > 0 @>
+    test <@ completeCounter = 1 @>
+    test <@ finalStatsCounter = 1 @>
 
 [<Fact>]
 let ``SaveStats for real-time reporting should contains only bombing stats`` () =
@@ -157,3 +163,40 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
 
     test <@ scn1BombingInvokedCount < scn2BombingInvokedCount @> // since scenario_2 has bigger duration
     test <@ scn1CompleteInvokedCount = scn2CompleteInvokedCount && scn2CompleteInvokedCount = 1 @>
+
+[<Fact>]
+let ``SaveStats receive 1 initial stats`` () =
+
+    let mutable initialStatsCounter = 0
+
+    let reportingSink = {
+        new IReportingSink with
+            member _.SinkName = "TestSink"
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+
+            member _.SaveScenarioStats(stats) =
+                let s = stats.[0]
+                if s.OkCount = 0 && s.Duration = TimeSpan.Zero then initialStatsCounter <- initialStatsCounter + 1
+                Task.CompletedTask
+
+            member _.SaveFinalStats(_) = Task.CompletedTask
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let okStep = Step.createAsync("ok step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    Scenario.create "realtime stats scenario" [okStep]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./reporting-sinks/1/"
+    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ initialStatsCounter = 1 @> // 1 invoke as empty
