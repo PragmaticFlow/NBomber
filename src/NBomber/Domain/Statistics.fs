@@ -57,7 +57,7 @@ module RequestStats =
 
     let create (stats: RawStepStats) (executionTime: TimeSpan) =
         { Count = stats.RequestCount
-          RPS = calcRPS stats.LessOrEq1Sec executionTime }
+          RPS = calcRPS stats.RequestCount executionTime }
 
     let merge (stats: Stream<RequestStats>) =
         { Count = stats |> Stream.sumBy(fun x -> x.Count)

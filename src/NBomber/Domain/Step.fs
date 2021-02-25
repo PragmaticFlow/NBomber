@@ -59,7 +59,6 @@ module StepExecutionData =
             RequestCount = 0
             MinTicks = % Int64.MaxValue
             MaxTicks = 0L<ticks>
-            LessOrEq1Sec = 0
             LessOrEq800 = 0
             More800Less1200 = 0
             MoreOrEq1200 = 0
@@ -111,8 +110,6 @@ module StepExecutionData =
             stats.MinTicks <- Statistics.min stats.MinTicks latencyTicks
             stats.MaxTicks <- Statistics.max stats.MaxTicks latencyTicks
             stats.LatencyHistogramTicks.RecordValue(int64 latencyTicks)
-
-            stats.LessOrEq1Sec <- if latencyMs <= 1000.0<ms> then stats.LessOrEq1Sec + 1 else stats.LessOrEq1Sec
 
             if latencyMs <= 800.0<ms> then stats.LessOrEq800 <- stats.LessOrEq800 + 1
             elif latencyMs > 800.0<ms> && latencyMs < 1200.0<ms> then stats.More800Less1200 <- stats.More800Less1200 + 1

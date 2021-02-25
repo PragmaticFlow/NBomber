@@ -55,7 +55,6 @@ type RawStepStats = {
     mutable RequestCount: int
     mutable MinTicks: int64<ticks>
     mutable MaxTicks: int64<ticks>
-    mutable LessOrEq1Sec: int
     mutable LessOrEq800: int
     mutable More800Less1200: int
     mutable MoreOrEq1200: int

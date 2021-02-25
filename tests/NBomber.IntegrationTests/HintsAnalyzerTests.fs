@@ -56,32 +56,6 @@ let baseStepStats = {
 }
 
 [<Property>]
-let ``analyze should return hint for case when FailCount > 0`` (failCount: uint32) =
-
-    let scnStats = { baseScnStats with FailCount = int failCount }
-    let nodeStats = { baseNodeStats with ScenarioStats = [| scnStats |] }
-
-    match HintsAnalyzer.analyze nodeStats with
-    | hint::tail when failCount > 0u -> ()
-    | [] when failCount = 0u         -> ()
-    | _                              -> failwith "analyzer finished with error"
-
-[<Property>]
-let ``analyze should return hint for case when RPS = 0`` (rps: uint32) =
-
-    let req = { baseStepStats.Ok.Request with RPS = float rps }
-    let dt = { baseStepStats.Ok.DataTransfer with MinKb = 1.0 }
-    let stepStats = { baseStepStats with Ok = { Request = req; Latency = baseStepStats.Ok.Latency; DataTransfer = dt } }
-
-    let scnStats = { baseScnStats with StepStats = [| stepStats |] }
-    let nodeStats = { baseNodeStats with ScenarioStats = [| scnStats |] }
-
-    match HintsAnalyzer.analyze nodeStats with
-    | hint::tail when rps = 0u -> ()
-    | [] when rps > 0u         -> ()
-    | _                        -> failwith "analyzer finished with error"
-
-[<Property>]
 let ``analyze should return hint for case when DataTransfer.MinKb = 0`` (minKb: uint32) =
 
     let req = { baseStepStats.Ok.Request with RPS = 1.0 }

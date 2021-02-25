@@ -71,12 +71,10 @@ module StepExecutionData =
         let lessOrEq800 = latencies |> Seq.filter(fun x -> x <= 800u) |> Seq.length
         let more800Less1200 = latencies |> Seq.filter(fun x -> x > 800u && x < 1200u) |> Seq.length
         let moreOrEq1200 = latencies |> Seq.filter(fun x -> x >= 1200u) |> Seq.length
-        let lessOrEq1Sec = latencies |> Seq.filter(fun x -> x <= 1000u) |> Seq.length
 
         test <@ data.OkStats.LessOrEq800 = lessOrEq800 @>
         test <@ data.OkStats.More800Less1200 = more800Less1200 @>
         test <@ data.OkStats.MoreOrEq1200 = moreOrEq1200 @>
-        test <@ data.OkStats.LessOrEq1Sec = lessOrEq1Sec @>
 
     [<Property>]
     let ``addResponse should properly handle OkStats and FailStats`` (latencies: (bool * uint32) list) =

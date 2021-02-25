@@ -251,7 +251,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
                  |> Seq.find(fun x -> x.StepName = "step")
 
         test <@ st.Ok.Request.Count > 5 @>
-        test <@ st.Ok.Request.RPS = 0.0 @>
+        test <@ st.Ok.Request.RPS >= 9.0 @>
         test <@ st.Ok.Latency.MinMs = 2_000.0 @>
 
 [<Fact>]
