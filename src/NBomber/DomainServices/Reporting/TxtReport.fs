@@ -1,11 +1,13 @@
 module internal NBomber.DomainServices.Reporting.TxtReport
 
 open System
+open System.Collections.Generic
 open System.Data
 
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
@@ -33,112 +35,166 @@ module TxtNodeStats =
         $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
         $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllDataMB}' MB"
 
-    let private createStepStatsRow (i) (s: StepStats) =
+    let private printLoadSimulation (simulation: LoadSimulation) =
+        let simulationName = LoadTimeLine.getSimulationName(simulation)
+
+        match simulation with
+        | RampConstant (copies, during)     ->
+            $"load simulation: '{simulationName}'" +
+            $", copies: '{copies}'" +
+            $", during: '{during}'"
+
+        | KeepConstant (copies, during)     ->
+            $"load simulation: '{simulationName}'" +
+            $", copies: '{copies}'" +
+            $", during: '{during}'"
+
+        | RampPerSec (rate, during)         ->
+            $"load simulation: '{simulationName}'" +
+            $", rate: '{rate}'" +
+            $", during: '{during}'"
+
+        | InjectPerSec (rate, during)       ->
+            $"load simulation: '{simulationName}'" +
+            $", rate: '{rate}'" +
+            $", during: '{during}'"
+
+        | InjectPerSecRandom (minRate, maxRate, during) ->
+            $"load simulation: '{simulationName}'" +
+            $", min rate: '{minRate}'" +
+            $", max rate: '{maxRate}'" +
+            $", during: '{during}'"
+
+    let private printLoadSimulations (simulations: LoadSimulation list) =
+        simulations |> Seq.map printLoadSimulation |> String.concatLines
+
+    let private createOkStepStatsRow (i) (s: StepStats) =
         let name = s.StepName
         let okReqCount = s.Ok.Request.Count
         let failReqCount = s.Fail.Request.Count
         let allReqCount = okReqCount + failReqCount
         let okRPS = s.Ok.Request.RPS
-        let failRPS = s.Fail.Request.RPS
         let okLatency = s.Ok.Latency
-        let failLatency = s.Fail.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let failDataTransfer = s.Fail.DataTransfer
+        let okDtMin = $"%.3f{okDataTransfer.MinKb}"
+        let okDtMean = $"%.3f{okDataTransfer.MeanKb}"
+        let okDtMax = $"%.3f{okDataTransfer.MaxKb}"
+        let okDtAll = $"%.3f{okDataTransfer.AllMB}"
 
-        let allCount = $"all = {allReqCount}"
-
-        let okCount =
-            $"ok = {okReqCount}" +
+        let reqCount =
+            $"all = {allReqCount}" +
+            $", ok = {okReqCount}" +
+            $", fail = {failReqCount}" +
             $", RPS = {okRPS}"
 
-        let failCount =
-            $"fail = {failReqCount}" +
-            $", RPS = {failRPS}"
-
-        let okTimes =
+        let okLatencies =
             $"min = {okLatency.MinMs}" +
             $", mean = {okLatency.MeanMs}" +
-            $", max = {okLatency.MaxMs}"
-
-        let failTimes =
-            $"min = {failLatency.MinMs}" +
-            $", mean = {failLatency.MeanMs}" +
-            $", max = {failLatency.MaxMs}"
+            $", max = {okLatency.MaxMs}" +
+            $", StdDev = {okLatency.StdDev}"
 
         let okPercentile =
             $"50%% = {okLatency.Percent50}" +
             $", 75%% = {okLatency.Percent75}" +
             $", 95%% = {okLatency.Percent95}" +
-            $", 99%% = {okLatency.Percent99}" +
-            $", StdDev = {okLatency.StdDev}"
+            $", 99%% = {okLatency.Percent99}"
+
+        let okDt =
+            $"min = {okDtMin} KB" +
+            $", mean = {okDtMean} KB" +
+            $", max = {okDtMax} KB" +
+            $", all = {okDtAll} MB"
+
+        [ if i > 0 then [String.Empty; String.Empty]
+          ["name"; name]
+          ["request count"; reqCount]
+          ["latency"; okLatencies]
+          ["latency percentile"; okPercentile]
+          if okDataTransfer.AllMB > 0.0 then ["data transfer"; okDt] ]
+
+    let private createFailStepStatsRow (i) (s: StepStats) =
+        let name = s.StepName
+        let okReqCount = s.Ok.Request.Count
+        let failReqCount = s.Fail.Request.Count
+        let allReqCount = okReqCount + failReqCount
+        let failRPS = s.Fail.Request.RPS
+        let failLatency = s.Fail.Latency
+        let failDataTransfer = s.Fail.DataTransfer
+        let failDtMin = $"%.3f{failDataTransfer.MinKb}"
+        let failDtMean = $"%.3f{failDataTransfer.MeanKb}"
+        let failDtMax = $"%.3f{failDataTransfer.MaxKb}"
+        let failDtAll = $"%.3f{failDataTransfer.AllMB}"
+
+        let reqCount =
+            $"all = {allReqCount}" +
+            $", ok = {okReqCount}" +
+            $", fail = {failReqCount}" +
+            $", RPS = {failRPS}"
+
+        let failLatencies =
+            $"min = {failLatency.MinMs}" +
+            $", mean = {failLatency.MeanMs}" +
+            $", max = {failLatency.MaxMs}" +
+            $", StdDev = {failLatency.StdDev}"
 
         let failPercentile =
             $"50%% = {failLatency.Percent50}" +
             $", 75%% = {failLatency.Percent75}" +
             $", 95%% = {failLatency.Percent95}" +
-            $", 99%% = {failLatency.Percent99}" +
-            $", StdDev = {failLatency.StdDev}"
-
-        let okDtMin = $"%.3f{okDataTransfer.MinKb} KB"
-        let okDtMean = $"%.3f{okDataTransfer.MeanKb} KB"
-        let okDtMax = $"%.3f{okDataTransfer.MaxKb} KB"
-        let okDtAll = $"%.3f{okDataTransfer.AllMB} MB"
-
-        let okDt =
-            $"min = {okDtMin}" +
-            $", mean = {okDtMean}" +
-            $", max = {okDtMax}" +
-            $", all = {okDtAll}"
-
-        let failDtMin = $"%.3f{failDataTransfer.MinKb} KB"
-        let failDtMean = $"%.3f{failDataTransfer.MeanKb} KB"
-        let failDtMax = $"%.3f{failDataTransfer.MaxKb} KB"
-        let failDtAll = $"%.3f{failDataTransfer.AllMB} MB"
+            $", 99%% = {failLatency.Percent99}"
 
         let failDt =
-            $"min = {failDtMin}" +
-            $", mean = {failDtMean}" +
-            $", max = {failDtMax}" +
-            $", all = {failDtAll}"
+            $"min = {failDtMin} KB" +
+            $", mean = {failDtMean} KB" +
+            $", max = {failDtMax} KB" +
+            $", all = {failDtAll} MB"
 
-        [ if i > 0 then [" "; " "]
+        [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name]
-          ["all request count"; allCount]
-          ["ok stats"; String.Empty]
-          ["ok request count"; okCount]
-          ["ok latency"; okTimes]
-          ["ok latency percentile"; okPercentile]
-          if okDataTransfer.AllMB > 0.0 then ["ok data transfer"; okDt]
-          ["fail stats"; String.Empty]
-          ["fail request count"; failCount]
-          ["fail latency"; failTimes]
-          ["fail latency percentile"; failPercentile]
-          if failDataTransfer.AllMB > 0.0 then ["fail data transfer"; failDt] ]
+          ["request count"; reqCount]
+          ["latency"; failLatencies]
+          ["latency percentile"; failPercentile]
+          if failDataTransfer.AllMB > 0.0 then ["data transfer"; failDt] ]
 
-    let private createStepStatsTableRows (stepStats: StepStats[]) =
+    let private printOkStepStatsTable (stepStats: StepStats[]) =
+        let table = ConsoleTable("step", "ok stats")
+
         stepStats
-        |> Seq.mapi createStepStatsRow
+        |> Array.mapi createOkStepStatsRow
         |> Seq.concat
+        |> Seq.iter(fun row -> table.AddRow(row.[0], row.[1]) |> ignore)
 
-    let private printStepsTable (stepStats: StepStats[]) =
-        let stepTable = ConsoleTable("step", "details")
+        table.ToStringAlternative()
+
+    let private printFailStepStatsTable (stepStats: StepStats[]) =
+        let table = ConsoleTable("step", "error stats")
+
         stepStats
-        |> createStepStatsTableRows
-        |> Seq.iter(fun row -> stepTable.AddRow(row.[0], row.[1]) |> ignore)
+        |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
+        |> Seq.mapi createFailStepStatsRow
+        |> Seq.concat
+        |> Seq.iter(fun row -> table.AddRow(row.[0], row.[1]) |> ignore)
 
-        stepTable.ToStringAlternative()
+        table.ToStringAlternative()
 
-    let printNodeStats (stats: NodeStats) =
+    let private errorStepStatsExist (stepStats: StepStats[]) =
+        stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
+
+    let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
+        [ printScenarioHeader(scnStats)
+          printLoadSimulations(simulations)
+          printOkStepStatsTable(scnStats.StepStats)
+          if errorStepStatsExist(scnStats.StepStats) then printFailStepStatsTable(scnStats.StepStats)
+          if scnStats.ErrorStats.Length > 0 then
+             TxtErrorStats.printScenarioErrorStatsHeader(scnStats)
+             TxtErrorStats.printErrorStatsTable(scnStats.ErrorStats) ]
+
+    let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats
         |> Array.map(fun scnStats ->
-            [printScenarioHeader(scnStats)
-             printStepsTable(scnStats.StepStats)
-             if scnStats.ErrorStats.Length > 0 then
-                 TxtErrorStats.printScenarioErrorStatsHeader(scnStats)
-                 TxtErrorStats.printErrorStatsTable(scnStats.ErrorStats)
-            ]
-            |> String.concatLines
+            printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
         )
+        |> Seq.concat
         |> String.concatLines
 
 module TxtPluginStats =
@@ -189,9 +245,9 @@ module TxtHints =
         else
             String.Empty
 
-let print (stats) (hints) =
+let print (stats) (hints) (simulations: IDictionary<string, LoadSimulation list>) =
     [TxtTestInfo.printTestInfo stats.TestInfo
-     TxtNodeStats.printNodeStats stats
+     TxtNodeStats.printNodeStats stats simulations
      TxtPluginStats.printPluginStats stats
      TxtHints.printHints hints]
     |> String.concatLines

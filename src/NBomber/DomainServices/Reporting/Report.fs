@@ -30,10 +30,10 @@ let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list)
         |> Seq.tryFind(fun x -> x.FailCount > 0)
         |> Option.isSome
 
-    { TxtReport = TxtReport.print nodeStats hints
+    { TxtReport = TxtReport.print nodeStats hints simulations
       HtmlReport = HtmlReport.print nodeStats timeLineStats hints
       CsvReport = CsvReport.print nodeStats
-      MdReport = MdReport.print nodeStats hints
+      MdReport = MdReport.print nodeStats hints simulations
       ConsoleReport = ConsoleReport.print nodeStats hints simulations
       SessionFinishedWithErrors = errorsExist }
 

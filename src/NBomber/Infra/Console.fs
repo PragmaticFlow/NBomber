@@ -8,16 +8,19 @@ open Spectre.Console.Rendering
 let render (renderable: IRenderable) =
     AnsiConsole.Render(renderable)
 
-let highlight (text) =
+let highlightPrimary (text) =
     $"[lime]{text}[/]"
 
-let highlightParam (text) =
+let highlightSecondary (text) =
     $"[deepskyblue1]{text}[/]"
+
+let highlightSuccess (text) =
+    $"[lime]{text}[/]"
 
 let highlightWarning (text) =
     $"[yellow]{text}[/]"
 
-let highlightError (text) =
+let highlightDanger (text) =
     $"[red]{text}[/]"
 
 let bold (text) =
