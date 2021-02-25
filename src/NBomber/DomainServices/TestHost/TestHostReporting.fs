@@ -25,7 +25,7 @@ type ActorMessage =
 let saveScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = task {
     for sink in dep.ReportingSinks do
         try
-            do! sink.SaveScenarioStats(stats)
+            do! sink.SaveRealtimeStats(stats)
         with
         | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save scenario stats.", sink.SinkName)
 }

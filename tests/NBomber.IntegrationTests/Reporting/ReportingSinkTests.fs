@@ -25,7 +25,7 @@ let ``SaveStats should be invoked many times during test execution to send realt
             member _.SinkName = "TestSink"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.SaveScenarioStats(_) =
+            member _.SaveRealtimeStats(_) =
                 // 1 invoke per 5 sec
                 statsInvokedCounter <- statsInvokedCounter + 1
                 Task.CompletedTask
@@ -65,7 +65,7 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveScenarioStats(stats) =
+            member _.SaveRealtimeStats(stats) =
                 match stats.[0].CurrentOperation with
                 | OperationType.Bombing  -> bombingCounter <- bombingCounter + 1
                 | OperationType.Complete -> completeCounter <- completeCounter + 1
@@ -113,7 +113,7 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveScenarioStats(stats) =
+            member _.SaveRealtimeStats(stats) =
                 match stats.[0].CurrentOperation with
                 | OperationType.Bombing ->
                     stats
@@ -178,7 +178,7 @@ let ``SaveStats receive 1 initial stats`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.SaveScenarioStats(stats) =
+            member _.SaveRealtimeStats(stats) =
                 let s = stats.[0]
                 if s.OkCount = 0 && s.Duration = TimeSpan.Zero then initialStatsCounter <- initialStatsCounter + 1
                 Task.CompletedTask

@@ -22,7 +22,7 @@ namespace CSharpDev.CustomReporting
         }
 
         public Task Start() => Task.CompletedTask;
-        public Task SaveScenarioStats(ScenarioStats[] stats) => Task.CompletedTask;
+        public Task SaveRealtimeStats(ScenarioStats[] stats) => Task.CompletedTask;
         public Task SaveFinalStats(NodeStats[] stats) => Task.CompletedTask;
         public Task Stop() => Task.CompletedTask;
 

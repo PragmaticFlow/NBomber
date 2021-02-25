@@ -252,7 +252,7 @@ type IReportingSink =
     abstract SinkName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
-    abstract SaveScenarioStats: stats:ScenarioStats[] -> Task
+    abstract SaveRealtimeStats: stats:ScenarioStats[] -> Task
     abstract SaveFinalStats: stats:NodeStats[] -> Task
     abstract Stop: unit -> Task
 
