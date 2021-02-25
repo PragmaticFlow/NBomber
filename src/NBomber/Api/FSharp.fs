@@ -246,11 +246,16 @@ module NBomberRunner =
         let report = { context.Reporting with Formats = [] }
         { context with Reporting = report }
 
+    /// Sets real-time reporting interval.
+    /// Default value: 10 seconds, min value: 5 sec
+    let withReportingInterval (interval: TimeSpan) (context: NBomberContext) =
+        let report = { context.Reporting with SendStatsInterval = interval }
+        { context with Reporting = report }
+
     /// Sets reporting sinks.
     /// Reporting sink is used to save real-time metrics to correspond database
-    let withReportingSinks (reportingSinks: IReportingSink list) (sendStatsInterval: TimeSpan) (context: NBomberContext) =
-        let report = { context.Reporting with Sinks = reportingSinks
-                                              SendStatsInterval = sendStatsInterval }
+    let withReportingSinks (reportingSinks: IReportingSink list) (context: NBomberContext) =
+        let report = { context.Reporting with Sinks = reportingSinks }
         { context with Reporting = report }
 
     /// Sets worker plugins.

@@ -31,7 +31,8 @@ let run () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withTestSuite "reporting"
     |> NBomberRunner.withTestName "custom_reporting_test"
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.withReportFolder "./custom_reports"
     |> NBomberRunner.withReportFormats [ReportFormat.Html; ReportFormat.Md]
     |> NBomberRunner.run

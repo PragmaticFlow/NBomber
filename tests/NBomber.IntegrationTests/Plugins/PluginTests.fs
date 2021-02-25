@@ -271,7 +271,8 @@ let ``stats should be passed to IReportingSink`` () =
     }
 
     NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.run
     |> Result.mapError failwith

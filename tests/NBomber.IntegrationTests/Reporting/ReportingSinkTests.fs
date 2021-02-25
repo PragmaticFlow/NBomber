@@ -45,7 +45,8 @@ let ``SaveStats should be invoked many times during test execution to send realt
     |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./reporting-sinks/1/"
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.run
     |> ignore
 
@@ -89,7 +90,8 @@ let ``SaveStats should be invoked with OperationType = Complete only once`` () =
     |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./reporting-sinks/2/"
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.run
     |> ignore
 
@@ -157,7 +159,8 @@ let ``SaveStats for real-time reporting should contains only bombing stats`` () 
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
     |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.run
     |> ignore
 
@@ -195,7 +198,8 @@ let ``SaveStats receive 1 initial stats`` () =
     |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 40)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./reporting-sinks/1/"
-    |> NBomberRunner.withReportingSinks [reportingSink] (seconds 10)
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.run
     |> ignore
 

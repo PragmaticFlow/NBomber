@@ -45,6 +45,7 @@ let MinSimulationDuration = TimeSpan.FromSeconds 1.0
 let MaxSimulationDuration = TimeSpan.FromDays 10.0
 let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
 let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
+let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 1.0
 let OperationTimeOut = TimeSpan.FromSeconds 3.0
 

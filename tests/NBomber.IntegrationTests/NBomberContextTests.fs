@@ -55,7 +55,7 @@ let context = {
         FolderName = None
         Formats = List.empty
         Sinks = List.empty
-        SendStatsInterval = Constants.MinSendStatsInterval
+        SendStatsInterval = Constants.DefaultSendStatsInterval
     }
     WorkerPlugins = List.empty
     ApplicationType = Some ApplicationType.Process

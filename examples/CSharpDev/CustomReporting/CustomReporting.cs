@@ -49,10 +49,8 @@ namespace CSharpDev.CustomReporting
                 .RegisterScenarios(scenario)
                 .WithTestSuite("reporting")
                 .WithTestName("custom_reporting_test")
-                .WithReportingSinks(
-                    reportingSinks: new[] {new CustomReportingSync()},
-                    sendStatsInterval: TimeSpan.FromSeconds(10)
-                )
+                .WithReportingSinks(reportingSinks: new[] {new CustomReportingSync()})
+                .WithReportingInterval(interval: TimeSpan.FromSeconds(10))
                 .WithReportFolder("./custom_reports")
                 .WithReportFormats(ReportFormat.Html, ReportFormat.Md, ReportFormat.Txt, ReportFormat.Csv)
                 .Run();

@@ -26,7 +26,7 @@ type SessionArgs = {
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
         ConnectionPoolSettings = List.empty
-        SendStatsInterval = Constants.MinSendStatsInterval
+        SendStatsInterval = Constants.DefaultSendStatsInterval
     }
 
 module Validation =
@@ -94,7 +94,7 @@ let empty = {
         FileName = None
         Formats = Constants.AllReportFormats
         Sinks = List.empty
-        SendStatsInterval = Constants.MinSendStatsInterval
+        SendStatsInterval = Constants.DefaultSendStatsInterval
     }
     WorkerPlugins = List.empty
     ApplicationType = None
