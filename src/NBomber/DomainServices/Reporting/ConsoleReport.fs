@@ -185,7 +185,7 @@ module ConsoleNodeStats =
         |> Seq.mapi createFailStepStatsRow
         |> Seq.concat
         |> List.ofSeq
-        |> Console.addTable ["step"; "error stats"]
+        |> Console.addTable ["step"; "fail stats"]
 
     let private printScenarioErrorStats (scnStats: ScenarioStats) =
         if scnStats.ErrorStats.Length > 0 then

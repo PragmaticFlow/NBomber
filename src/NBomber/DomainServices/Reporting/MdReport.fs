@@ -211,7 +211,7 @@ module MdNodeStats =
             |> fun rows ->
                 document
                 |> addNewline
-                |> addTable ["step"; "error stats"] rows
+                |> addTable ["step"; "fail stats"] rows
         else
             document
 

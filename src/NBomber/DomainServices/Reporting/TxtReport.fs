@@ -167,7 +167,7 @@ module TxtNodeStats =
         table.ToStringAlternative()
 
     let private printFailStepStatsTable (stepStats: StepStats[]) =
-        let table = ConsoleTable("step", "error stats")
+        let table = ConsoleTable("step", "fail stats")
 
         stepStats
         |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
