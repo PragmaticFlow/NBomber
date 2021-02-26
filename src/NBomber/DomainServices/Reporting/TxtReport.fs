@@ -84,7 +84,6 @@ module TxtNodeStats =
         let reqCount =
             $"all = {allReqCount}" +
             $", ok = {okReqCount}" +
-            $", fail = {failReqCount}" +
             $", RPS = {okRPS}"
 
         let okLatencies =
@@ -127,7 +126,6 @@ module TxtNodeStats =
 
         let reqCount =
             $"all = {allReqCount}" +
-            $", ok = {okReqCount}" +
             $", fail = {failReqCount}" +
             $", RPS = {failRPS}"
 

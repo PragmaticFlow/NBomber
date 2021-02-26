@@ -119,7 +119,6 @@ module MdNodeStats =
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
             $", ok = {okReqCount |> Md.printInlineCode}" +
-            $", fail = {failReqCount |> Md.printInlineCode}" +
             $", RPS = {okRPS |> Md.printInlineCode}"
 
         let okLatencies =
@@ -162,7 +161,6 @@ module MdNodeStats =
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
-            $", ok = {okReqCount |> Md.printInlineCode}" +
             $", fail = {failReqCount |> Md.printInlineCode}" +
             $", RPS = {failRPS |> Md.printInlineCode}"
 

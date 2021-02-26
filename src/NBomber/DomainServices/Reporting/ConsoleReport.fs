@@ -100,7 +100,6 @@ module ConsoleNodeStats =
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
             $", ok = {okReqCount |> Console.highlightSuccess}" +
-            $", fail = {failReqCount |> Console.highlightDanger}" +
             $", RPS = {okRPS |> Console.highlightSuccess}"
 
         let okLatencies =
@@ -143,7 +142,6 @@ module ConsoleNodeStats =
 
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
-            $", ok = {okReqCount |> Console.highlightSuccess}" +
             $", fail = {failReqCount |> Console.highlightDanger}" +
             $", RPS = {failRPS |> Console.highlightDanger}"
 
