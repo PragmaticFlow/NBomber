@@ -16,12 +16,15 @@ namespace CSharpDev.DataFeed
     {
         public static void Run()
         {
-            var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
-            //var data = FeedData.FromSeq(getItems: () => new[] {1, 2, 3, 4, 5}).ShuffleData();
+            var data = new[] {1, 2, 3, 4, 5}.ShuffleData();
             //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
             var feed = Feed.CreateCircular("numbers", data);
+
+            // lazy
+            //var feed = Feed.CreateCircular("numbers", getData: () => data);
+
             //var feed = Feed.CreateConstant("numbers", data);
             //var feed = Feed.CreateRandom("numbers", data);
 

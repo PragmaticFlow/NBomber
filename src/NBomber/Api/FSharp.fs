@@ -52,6 +52,35 @@ type ConnectionPoolArgs =
         let count = defaultArg connectionCount Constants.DefaultConnectionCount
         ConnectionPoolArgs.create(name, openConnection, close, count)
 
+/// Data feed helps you to inject dynamic data into your test.
+module Feed =
+
+    /// Creates Feed that picks constant value per Step copy.
+    /// Every Step copy will have unique constant value.
+    let createConstant (name) (data: 'T seq) =
+        NBomber.Domain.Feed.constant(name, data)
+
+    /// Creates Feed that picks constant value per Step copy.
+    /// Every Step copy will have unique constant value.
+    let createConstantLazy (name) (getData: unit -> 'T seq) =
+        NBomber.Domain.Feed.constant(name, getData())
+
+    /// Creates Feed that randomly picks an item per Step invocation.
+    let createCircular (name) (data: 'T seq) =
+        NBomber.Domain.Feed.circular(name, data)
+
+    /// Creates Feed that randomly picks an item per Step invocation.
+    let createCircularLazy (name) (getData: unit -> 'T seq) =
+        NBomber.Domain.Feed.circular(name, getData())
+
+    /// Creates Feed that returns values from value on every Step invocation.
+    let createRandom (name) (data: 'T seq) =
+        NBomber.Domain.Feed.random(name, data)
+
+    /// Creates Feed that returns values from value on every Step invocation.
+    let createRandomLazy (name) (getData: unit -> 'T seq) =
+        NBomber.Domain.Feed.random(name, getData())
+
 type Step =
 
     static member internal create (name: string,

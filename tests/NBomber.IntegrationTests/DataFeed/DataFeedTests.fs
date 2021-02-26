@@ -37,8 +37,7 @@ let ``createCircular iterate over array sequentially``(length: int) =
 
     let orderedList = [0 .. length - 1]
 
-    let feed = FeedData.fromSeq orderedList
-               |> Feed.createCircular "circular"
+    let feed = orderedList |> Feed.createCircular "circular"
 
     let context = createBaseContext()
     feed.Init(context).Wait()
@@ -58,8 +57,7 @@ let ``createConstant returns next value from seq for the same correlationId``(le
     let orderedList = [0 .. length - 1]
     let sameValues = orderedList |> List.map(fun i -> i, i)
 
-    let feed = FeedData.fromSeq orderedList
-               |> Feed.createCircular "circular"
+    let feed = orderedList |> Feed.createCircular "circular"
 
     let context = createBaseContext()
     feed.Init(context).Wait()
@@ -79,8 +77,7 @@ let ``createConstant returns the same value for the same correlationId``(length:
     let orderedList = [0 .. length - 1]
     let sameValues = orderedList |> List.map(fun i -> i, i)
 
-    let feed = FeedData.fromSeq orderedList
-               |> Feed.createConstant "constant"
+    let feed = orderedList |> Feed.createConstant "constant"
 
     let context = createBaseContext()
     feed.Init(context).Wait()
@@ -97,11 +94,8 @@ let ``createRandom returns the random numbers list for each full iteration``() =
 
     let numbers = [1;2;3;4;5;6;7;8]
 
-    let feed1 = FeedData.fromSeq numbers
-                |> Feed.createRandom "random"
-
-    let feed2 = FeedData.fromSeq numbers
-                |> Feed.createRandom "random"
+    let feed1 = numbers |> Feed.createRandom "random"
+    let feed2 = numbers |> Feed.createRandom "random"
 
     let context = createBaseContext()
     feed1.Init(context).Wait()
@@ -124,13 +118,11 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
     (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u) ==> lazy
 
-    let data = FeedData.fromSeq numbers
-
     let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", numbers.Length)
 
-    let circular = data |> Feed.createCircular "circular"
-    let constant = data |> Feed.createConstant "constant"
-    let random   = data |> Feed.createRandom "random"
+    let circular = numbers |> Feed.createCircular "circular"
+    let constant = numbers |> Feed.createConstant "constant"
+    let random   = numbers |> Feed.createRandom "random"
 
     let context = createBaseContext()
     circular.Init(context).Wait()
@@ -146,7 +138,7 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 let ``FeedData.fromJson works correctly``() =
 
     let data = FeedData.fromJson<User> "./DataFeed/users-feed-data.json"
-    let users = data.GetAllItems() |> Seq.toArray
+    let users = data |> Seq.toArray
 
     test <@ users.Length > 0 @>
 
@@ -154,7 +146,7 @@ let ``FeedData.fromJson works correctly``() =
 let ``FeedData.fromCsv works correctly``() =
 
     let data = FeedData.fromCsv<User> "./DataFeed/users-feed-data.csv"
-    let users = data.GetAllItems() |> Seq.toArray
+    let users = data |> Seq.toArray
 
     test <@ users.Length > 0 @>
 
@@ -163,8 +155,7 @@ let ``FeedData fromSeq should support lazy initialize``() =
 
     let mutable data = [-1; -2; -3]
 
-    let feed = FeedData.fromSeq(getItems = fun () -> data)
-               |> Feed.createRandom "my_feed"
+    let feed = Feed.createRandomLazy "my_feed" (fun () -> seq { yield! data })
 
     data <- [1; 2; 3]
 

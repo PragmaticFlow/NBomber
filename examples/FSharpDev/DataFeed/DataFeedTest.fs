@@ -16,12 +16,12 @@ type User = {
 
 let run () =
 
-    let data = [1; 2; 3; 4; 5] |> FeedData.fromSeq |> FeedData.shuffleData
-    //let data = FeedData.fromSeq(getItems = fun () -> [1; 2; 3; 4; 5]) |> FeedData.shuffleData
+    let data = [1; 2; 3; 4; 5] |> FeedData.shuffleData
     //let data = FeedData.fromJson<User>("./DataFeed/users-feed-data.json")
     //let data = FeedData.fromCsv<User>("./DataFeed/users-feed-data.csv")
 
     let feed = data |> Feed.createCircular "numbers"
+    //let feed = Feed.createCircularLazy "numbers" (fun () -> seq { yield! data })
     //let feed = data |> Feed.createConstant "numbers"
     //let feed = data |> Feed.createRandom "numbers"
 

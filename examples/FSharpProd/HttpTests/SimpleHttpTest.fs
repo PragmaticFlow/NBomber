@@ -1,6 +1,5 @@
 module FSharpProd.HttpTests.SimpleHttpTest
 
-open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Plugins.Http.FSharp
@@ -16,10 +15,11 @@ let run () =
         |> Http.withHeader "Accept" "text/html"
     )
 
+    // it's optional Ping plugin that brings additional reporting data
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
     let pingPlugin = new PingPlugin(pingPluginConfig)
 
-    Scenario.create "nbomber_web_site" [step]
+    Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
     |> NBomberRunner.registerScenario

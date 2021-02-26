@@ -18,7 +18,7 @@ namespace CSharpProd.HttpTests
             );
 
             var scenario = ScenarioBuilder
-                .CreateScenario("nbomber_web_site", step)
+                .CreateScenario("simple_http", step)
                 .WithWarmUpDuration(TimeSpan.FromSeconds(5))
                 .WithLoadSimulations(new[]
                 {
@@ -31,8 +31,6 @@ namespace CSharpProd.HttpTests
             NBomberRunner
                 .RegisterScenarios(scenario)
                 .WithWorkerPlugins(pingPlugin)
-                .WithTestSuite("http")
-                .WithTestName("simple_test")
                 .Run();
         }
     }

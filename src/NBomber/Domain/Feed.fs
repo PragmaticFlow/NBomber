@@ -2,7 +2,6 @@ module internal NBomber.Domain.Feed
 
 open System
 open System.Threading.Tasks
-open NBomber
 open NBomber.Contracts
 
 let toUntypedFeed (feed: IFeed<'TFeedItem>) = {
@@ -20,28 +19,28 @@ let rec createInfiniteStream (items: 'T seq) = seq {
     yield! createInfiniteStream items
 }
 
-let constant (name, provider: IFeedProvider<'T>) =
+let constant (name, data: 'T seq) =
     let mutable _allItems = Array.empty
 
     { new IFeed<'T> with
         member _.FeedName = name
 
         member _.Init(context) =
-            _allItems <- provider.GetAllItems() |> Seq.toArray
+            _allItems <- data |> Seq.toArray
             Task.CompletedTask
 
         member _.GetNextItem(correlationId, stepData) =
             let index = correlationId.CopyNumber % _allItems.Length
             _allItems.[index] }
 
-let circular (name, provider: IFeedProvider<'T>) =
+let circular (name, data: 'T seq) =
     let mutable _enumerator = Unchecked.defaultof<_>
 
     { new IFeed<'T> with
         member _.FeedName = name
 
         member _.Init(context) =
-            let infiniteItems = provider.GetAllItems() |> createInfiniteStream
+            let infiniteItems = data |> createInfiniteStream
             _enumerator <- infiniteItems.GetEnumerator()
             Task.CompletedTask
 
@@ -49,7 +48,7 @@ let circular (name, provider: IFeedProvider<'T>) =
          _enumerator.MoveNext() |> ignore
          _enumerator.Current }
 
-let random (name, provider: IFeedProvider<'T>) =
+let random (name, data: 'T seq) =
     let _random = Random()
     let mutable _allItems = Array.empty
 
@@ -61,7 +60,7 @@ let random (name, provider: IFeedProvider<'T>) =
         member _.FeedName = name
 
         member _.Init(context) =
-            _allItems <- provider.GetAllItems() |> Seq.toArray
+            _allItems <- data |> Seq.toArray
             Task.CompletedTask
 
         member _.GetNextItem(correlationId, stepData) = getRandomItem() }

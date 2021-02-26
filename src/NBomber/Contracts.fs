@@ -174,9 +174,6 @@ type IConnectionPoolArgs<'TConnection> =
     abstract OpenConnection: number:int * context:IBaseContext -> Task<'TConnection>
     abstract CloseConnection: connection:'TConnection * context:IBaseContext -> Task
 
-type IFeedProvider<'TFeedItem> =
-    abstract GetAllItems: unit -> 'TFeedItem seq
-
 type IFeed<'TFeedItem> =
     abstract FeedName: string
     abstract Init: context:IBaseContext -> Task

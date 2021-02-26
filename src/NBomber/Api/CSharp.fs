@@ -22,6 +22,35 @@ type ConnectionPoolArgs =
                                        [<Optional;DefaultParameterValue(Constants.DefaultConnectionCount:int)>]connectionCount: int) =
         FSharp.ConnectionPoolArgs.create(name, openConnection.Invoke, closeConnection.Invoke, connectionCount)
 
+/// Data feed helps you to inject dynamic data into your test.
+type Feed =
+
+    /// Creates Feed that picks constant value per Step copy.
+    /// Every Step copy will have unique constant value.
+    static member CreateConstant (name, data: 'T seq) =
+        NBomber.Domain.Feed.constant(name, data)
+
+    /// Creates Feed that picks constant value per Step copy.
+    /// Every Step copy will have unique constant value.
+    static member CreateConstant (name, getData: Func<'T seq>) =
+        NBomber.Domain.Feed.constant(name, getData.Invoke())
+
+    /// Creates Feed that randomly picks an item per Step invocation.
+    static member CreateCircular (name, data: 'T seq) =
+        NBomber.Domain.Feed.circular(name, data)
+
+    /// Creates Feed that randomly picks an item per Step invocation.
+    static member CreateCircular (name, getData: Func<'T seq>) =
+        NBomber.Domain.Feed.circular(name, getData.Invoke())
+
+    /// Creates Feed that returns values from  value on every Step invocation.
+    static member CreateRandom (name, data: 'T seq) =
+        NBomber.Domain.Feed.random(name, data)
+
+    /// Creates Feed that returns values from  value on every Step invocation.
+    static member CreateRandom (name, getData: Func<'T seq>) =
+        NBomber.Domain.Feed.random(name, getData.Invoke())
+
 type Step =
 
     static member Create<'TConnection,'TFeedItem>
