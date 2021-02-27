@@ -33,8 +33,13 @@ module Converter =
 
     let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
-let inline min a b = if a < b then a else b
-let inline max a b = if a > b then a else b
+module Histogram =
+
+    let min (histogram: HistogramBase) = histogram.RecordedValues() |> Seq.head |> fun x -> x.ValueIteratedTo
+    let mean (histogram: HistogramBase) = histogram.GetMean()
+    let max (histogram: HistogramBase) = histogram.GetMaxValue()
+    let getPercentile (percentile: float) (histogram: HistogramBase) = histogram.GetValueAtPercentile(percentile)
+    let stdDev (histogram: HistogramBase) = histogram.GetStdDeviation()
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =
     let totalSec = if executionTime.TotalSeconds < 1.0 then 1.0
@@ -77,36 +82,14 @@ module LatencyStats =
             if stats.LatencyHistogramTicks.TotalCount > 0L then ValueSome(stats.LatencyHistogramTicks.Copy())
             else ValueNone
 
-        let minTicks = if % stats.MinTicks = Int64.MaxValue then 0L<ticks> else stats.MinTicks
-
-        { MinMs = minTicks |> Converter.fromTicksToMs |> UMX.untag
-
-          MeanMs = latencies
-                   |> ValueOption.map(fun x -> x.GetMean() |> floatTicksToMs)
-                   |> ValueOption.defaultValue 0.0
-
-          MaxMs = stats.MaxTicks |> Converter.fromTicksToMs |> UMX.untag
-
-          Percent50 = latencies
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(50.0) |> ticksToMs)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent75 = latencies
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(75.0) |> ticksToMs)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent95 = latencies
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(95.0) |> ticksToMs)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent99 = latencies
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(99.0) |> ticksToMs)
-                      |> ValueOption.defaultValue 0.0
-
-          StdDev = latencies
-                   |> ValueOption.map(fun x -> x.GetStdDeviation() |> floatTicksToMs)
-                   |> ValueOption.defaultValue 0.0
-
+        { MinMs  = if latencies.IsSome then latencies.Value |> Histogram.min |> ticksToMs else 0.0
+          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> floatTicksToMs else 0.0
+          MaxMs  = if latencies.IsSome then latencies.Value |> Histogram.max |> ticksToMs else 0.0
+          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> ticksToMs else 0.0
+          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> ticksToMs else 0.0
+          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> ticksToMs else 0.0
+          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> ticksToMs else 0.0
+          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> floatTicksToMs else 0.0
           LatencyCount = { LessOrEq800 = stats.LessOrEq800; More800Less1200 = stats.More800Less1200; MoreOrEq1200 = stats.MoreOrEq1200 } }
 
     let merge (stats: Stream<LatencyStats>) =
@@ -148,37 +131,15 @@ module DataTransferStats =
             if stats.DataTransferBytes.TotalCount > 0L then ValueSome(stats.DataTransferBytes.Copy()) // we copy for safe enumeration
             else ValueNone
 
-        let minBytes = if % stats.MinBytes = Int64.MaxValue then 0L<bytes> else stats.MinBytes
-
-        { MinKb = minBytes |> Converter.fromBytesToKb |> UMX.untag
-
-          MeanKb = dataTransfer
-                   |> ValueOption.map(fun x -> x.GetMean() |> floatBytesToKb)
-                   |> ValueOption.defaultValue 0.0
-
-          MaxKb = stats.MaxBytes |> Converter.fromBytesToKb |> UMX.untag
-
-          Percent50 = dataTransfer
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(50.0) |> bytesToKb)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent75 = dataTransfer
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(75.0) |> bytesToKb)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent95 = dataTransfer
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(95.0) |> bytesToKb)
-                      |> ValueOption.defaultValue 0.0
-
-          Percent99 = dataTransfer
-                      |> ValueOption.map(fun x -> x.GetValueAtPercentile(99.0) |> bytesToKb)
-                      |> ValueOption.defaultValue 0.0
-
-          StdDev = dataTransfer
-                   |> ValueOption.map(fun x -> x.GetStdDeviation() |> floatBytesToKb)
-                   |> ValueOption.defaultValue 0.0
-
-          AllMB = % stats.AllMB }
+        { MinKb  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.min |> bytesToKb else 0.0
+          MeanKb = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> floatBytesToKb else 0.0
+          MaxKb  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.max |> bytesToKb else 0.0
+          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) |> bytesToKb else 0.0
+          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> bytesToKb else 0.0
+          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> bytesToKb else 0.0
+          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> bytesToKb else 0.0
+          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> floatBytesToKb else 0.0
+          AllMB     = % stats.AllMB }
 
     let merge (stats: Stream<DataTransferStats>) =
         { MinKb = stats |> Stream.map(fun x -> x.MinKb) |> Stream.minOrDefault 0.0

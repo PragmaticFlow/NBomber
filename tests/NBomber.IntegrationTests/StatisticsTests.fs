@@ -4,14 +4,15 @@ open System
 open System.Threading.Tasks
 
 open FSharp.UMX
-open Xunit
-open FsCheck.Xunit
-open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
+open FsCheck.Xunit
+open Xunit
+open Swensen.Unquote
 
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Statistics
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
 open Tests.TestHelper
@@ -46,7 +47,9 @@ module StepExecutionData =
             if clientResMs > 0.0 then clientResMs |> UMX.tag |> fromMsToTicks
             else stepResMs |> UMX.tag
 
-        test <@ data.OkStats.MinTicks = minTicks @>
+        let min = data.OkStats.LatencyHistogramTicks |> Histogram.min |> UMX.tag
+
+        test <@ min = minTicks @>
 
     [<Property>]
     let ``addResponse should properly calc latency count`` (latencies: uint32 list) =
@@ -84,19 +87,19 @@ module StepExecutionData =
         let latencies =
             latencies
             |> List.filter(fun (_,latency) -> latency > 0u)
-            |> List.map(fun (isOk,latency) -> isOk, latency |> float |> UMX.tag<ms>)
+            |> List.map(fun (isOk,latency) -> isOk, latency |> int64)
 
         latencies
         |> Seq.iter(fun (isOk,latency) ->
             let clientResponse = {
                 Payload = (); SizeBytes = 10L
                 Exception = if isOk then None else Some(Exception())
-                ErrorCode = 0; LatencyMs = % latency
+                ErrorCode = 0; LatencyMs = 0.0
             }
             let stepResponse = {
                 ClientResponse = clientResponse
                 EndTimeTicks = % Int64.MaxValue
-                LatencyTicks = 0L<ticks>
+                LatencyTicks = % latency
             }
             data <- Step.StepExecutionData.addResponse data stepResponse
         )
@@ -104,36 +107,31 @@ module StepExecutionData =
         // calc OkStats
         let okLatencies = latencies |> Seq.filter(fun (isOk,_) -> isOk)
         let okCount = okLatencies |> Seq.length
-        let okLessOrEq800 = okLatencies |> Seq.filter(fun (_,latency) -> latency <= 800.0<ms>) |> Seq.length
-
-        let okMin =
-            if okCount > 0 then okLatencies |> Seq.map(snd >> fromMsToTicks) |> Seq.min
-            else % Int64.MaxValue
-        let okMax =
-            if okCount > 0 then okLatencies |> Seq.map(snd >> fromMsToTicks) |> Seq.max
-            else 0L<ticks>
+        let okLessOrEq800 = okLatencies |> Seq.filter(fun (_,latency) -> latency <= 800L) |> Seq.length
+        let okMinStats = if okCount > 0 then okLatencies |> Seq.map(snd) |> Seq.min else 0L
+        let okMaxStats = if okCount > 0 then okLatencies |> Seq.map(snd) |> Seq.max else 0L
 
         // calc FailStats
         let failLatencies = latencies |> Seq.filter(fun (isOk,_) -> isOk = false)
         let failCount = failLatencies |> Seq.length
-        let failLessOrEq800 = failLatencies |> Seq.filter(fun (_,latency) -> latency <= 800.0<ms>) |> Seq.length
+        let failLessOrEq800 = failLatencies |> Seq.filter(fun (_,latency) -> latency <= 800L) |> Seq.length
+        let failMinStats = if failCount > 0 then failLatencies |> Seq.map(snd) |> Seq.min else 0L
+        let failMaxStats = if failCount > 0 then failLatencies |> Seq.map(snd) |> Seq.max else 0L
 
-        let failMin =
-            if failCount > 0 then failLatencies |> Seq.map(snd >> fromMsToTicks) |> Seq.min
-            else % Int64.MaxValue
-        let failMax =
-            if failCount > 0 then failLatencies |> Seq.map(snd >> fromMsToTicks) |> Seq.max
-            else 0L<ticks>
+        let okMin = if okCount > 0 then data.OkStats.LatencyHistogramTicks |> Histogram.min else 0L
+        let okMax = if okCount > 0 then data.OkStats.LatencyHistogramTicks |> Histogram.max else 0L
+        let failMin = if failCount > 0 then data.FailStats.LatencyHistogramTicks |> Histogram.min else 0L
+        let failMax = if failCount > 0 then data.FailStats.LatencyHistogramTicks |> Histogram.max else 0L
 
         test <@ data.OkStats.RequestCount = okCount @>
         test <@ data.OkStats.LessOrEq800 = okLessOrEq800 @>
-        test <@ data.OkStats.MinTicks = okMin @>
-        test <@ data.OkStats.MaxTicks = okMax @>
+        test <@ okMin = okMinStats @>
+        test <@ okMax = okMaxStats @>
 
         test <@ data.FailStats.RequestCount = failCount @>
         test <@ data.FailStats.LessOrEq800 = failLessOrEq800 @>
-        test <@ data.FailStats.MinTicks = failMin @>
-        test <@ data.FailStats.MaxTicks = failMax @>
+        test <@ failMin = failMinStats @>
+        test <@ failMax = failMaxStats @>
 
     [<Property>]
     let ``addResponse should properly calc response sizes`` (responseSizes: (bool * uint32) list) =
@@ -143,7 +141,7 @@ module StepExecutionData =
         let responseSizes =
             responseSizes
             |> List.filter(fun (_,resSize) -> resSize > 0u)
-            |> List.map(fun (isOk,resSize) -> isOk, resSize |> int64 |> UMX.tag<bytes>)
+            |> List.map(fun (isOk,resSize) -> isOk, resSize |> int64)
 
         responseSizes
         |> Seq.iter(fun (isOk,resSize) ->
@@ -164,38 +162,31 @@ module StepExecutionData =
         let okResponses = responseSizes |> Seq.filter(fun (isOk,_) -> isOk)
         let okCount = okResponses |> Seq.length
 
-        let okMinBytes =
-            if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.min
-            else % Int64.MaxValue
-        let okMaxBytes =
-            if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.max
-            else 0L<bytes>
-        let okAllMB =
-            if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.sum |> fromBytesToMB
-            else 0.0<mb>
+        let okMinBytes = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.min else 0L
+        let okMaxBytes = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.max else 0L
+        let okAllMB    = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.sum |> UMX.tag |> fromBytesToMB else % 0.0
 
         // calc FailStatsData
         let failResponses = responseSizes |> Seq.filter(fun (isOk,_) -> isOk = false)
         let failCount = failResponses |> Seq.length
 
-        let failMinBytes =
-            if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.min
-            else % Int64.MaxValue
-        let failMaxBytes =
-            if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.max
-            else 0L<bytes>
-        let failAllMB =
-            if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.sum |> fromBytesToMB
-            else 0.0<mb>
+        let failMinBytes = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.min else 0L
+        let failMaxBytes = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.max else 0L
+        let failAllMB    = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.sum |> UMX.tag |> fromBytesToMB else % 0.0
+
+        let okMin = if okCount > 0 then data.OkStats.DataTransferBytes |> Histogram.min else 0L
+        let okMax = if okCount > 0 then data.OkStats.DataTransferBytes |> Histogram.max else 0L
+        let failMin = if failCount > 0 then data.FailStats.DataTransferBytes |> Histogram.min else 0L
+        let failMax = if failCount > 0 then data.FailStats.DataTransferBytes |> Histogram.max else 0L
 
         test <@ data.OkStats.RequestCount = okCount @>
-        test <@ data.OkStats.MinBytes = okMinBytes @>
-        test <@ data.OkStats.MaxBytes = okMaxBytes @>
+        test <@ okMin = okMinBytes @>
+        test <@ okMax = okMaxBytes @>
         test <@ data.OkStats.AllMB = okAllMB @>
 
         test <@ data.FailStats.RequestCount = failCount @>
-        test <@ data.FailStats.MinBytes = failMinBytes @>
-        test <@ data.FailStats.MaxBytes = failMaxBytes @>
+        test <@ failMin = failMinBytes @>
+        test <@ failMax = failMaxBytes @>
         test <@ data.FailStats.AllMB = failAllMB @>
 
 [<Fact>]
@@ -279,12 +270,12 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st1.Ok.Request.Count >= 4 && st1.Ok.Request.Count <= 6 @>
         test <@ st1.Ok.Request.RPS >= 1.0 && st1.Ok.Request.RPS <= 1.5 @>
-        test <@ st1.Ok.Latency.MinMs <= 510.0 @>
-        test <@ st1.Ok.Latency.MaxMs <= 525.0 @>
-        test <@ st1.Ok.Latency.Percent50 <= 515.0 @>
+        test <@ st1.Ok.Latency.MinMs <= 530.0 @>
+        test <@ st1.Ok.Latency.MaxMs <= 550.0 @>
+        test <@ st1.Ok.Latency.Percent50 <= 525.0 @>
         test <@ st1.Ok.Latency.LatencyCount.LessOrEq800 >= 4 && st1.Ok.Latency.LatencyCount.LessOrEq800 <= 6 @>
-        test <@ st1.Ok.DataTransfer.MinKb = 0.098 @>
-        test <@ st1.Ok.DataTransfer.Percent50 = 0.098 @>
+        test <@ st1.Ok.DataTransfer.MinKb = 0.101 @>
+        test <@ st1.Ok.DataTransfer.Percent50 = 0.101 @>
         test <@ st1.Ok.DataTransfer.StdDev = 0.0 @>
 
         test <@ st1.Fail.Request.Count = 0 @>
@@ -294,7 +285,7 @@ let ``NodeStats should be calculated properly`` () =
         test <@ st2.Ok.Request.Count = 2 @>
         test <@ st2.Ok.Request.RPS = 0.4 @>
         test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 50.0 @>
-        test <@ st2.Ok.DataTransfer.MinKb = 0.049 @>
+        test <@ st2.Ok.DataTransfer.MinKb = 0.05 @>
 
         test <@ st2.Fail.Request.Count >= 3 && st2.Fail.Request.Count <= 4 @>
         test <@ st2.Fail.Request.RPS >= 0.6 && st1.Fail.Request.RPS <= 0.8 @>

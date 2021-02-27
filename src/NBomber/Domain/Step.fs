@@ -57,16 +57,12 @@ module StepExecutionData =
 
         let createStats () = {
             RequestCount = 0
-            MinTicks = % Int64.MaxValue
-            MaxTicks = 0L<ticks>
             LessOrEq800 = 0
             More800Less1200 = 0
             MoreOrEq1200 = 0
-            LatencyHistogramTicks = LongHistogram(TimeStamp.Hours(1), 3)
-            MinBytes = % Int64.MaxValue
-            MaxBytes = 0L<bytes>
             AllMB = 0.0<mb>
-            DataTransferBytes = LongHistogram(TimeStamp.Hours(1), 3)
+            LatencyHistogramTicks = LongHistogram(highestTrackableValue = Int64.MaxValue, numberOfSignificantValueDigits = 1)
+            DataTransferBytes = LongHistogram(highestTrackableValue = Int64.MaxValue, numberOfSignificantValueDigits = 1)
         }
 
         { OkStats = createStats()
@@ -107,8 +103,6 @@ module StepExecutionData =
         if latencyTicks > 0L<ticks> then
 
             // add data transfer
-            stats.MinTicks <- Statistics.min stats.MinTicks latencyTicks
-            stats.MaxTicks <- Statistics.max stats.MaxTicks latencyTicks
             stats.LatencyHistogramTicks.RecordValue(int64 latencyTicks)
 
             if latencyMs <= 800.0<ms> then stats.LessOrEq800 <- stats.LessOrEq800 + 1
@@ -116,8 +110,6 @@ module StepExecutionData =
             elif latencyMs >= 1200.0<ms> then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
             // add data transfer
-            stats.MinBytes <- Statistics.min stats.MinBytes responseBytes
-            stats.MaxBytes <- Statistics.max stats.MaxBytes responseBytes
             stats.AllMB <- stats.AllMB + Statistics.Converter.fromBytesToMB responseBytes
             stats.DataTransferBytes.RecordValue(int64 responseBytes)
 

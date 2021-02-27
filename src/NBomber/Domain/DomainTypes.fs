@@ -53,15 +53,11 @@ type Step = {
 
 type RawStepStats = {
     mutable RequestCount: int
-    mutable MinTicks: int64<ticks>
-    mutable MaxTicks: int64<ticks>
     mutable LessOrEq800: int
     mutable More800Less1200: int
     mutable MoreOrEq1200: int
-    LatencyHistogramTicks: LongHistogram
-    mutable MinBytes: int64<bytes>
-    mutable MaxBytes: int64<bytes>
     mutable AllMB: float<mb>
+    LatencyHistogramTicks: LongHistogram
     DataTransferBytes: LongHistogram
 }
 

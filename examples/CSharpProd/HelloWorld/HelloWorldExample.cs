@@ -25,6 +25,9 @@ namespace CSharpProd.HelloWorld
                 return Response.Ok();
             });
 
+            // here you create scenario and define (default) step order
+            // you also can define them in opposite direction, like [step2; step1]
+            // or even repeat [step1; step1; step1; step2]
             var scenario = ScenarioBuilder
                 .CreateScenario("hello_world_scenario", step1, pause, step2)
                 .WithoutWarmUp()
