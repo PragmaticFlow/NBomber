@@ -77,13 +77,13 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
             let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
             do! scnStats |> saveScenarioStats |> Async.AwaitTask
             let! pluginStats = pluginStatsTask |> Async.AwaitTask
-            return { Duration = duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
+            return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
             let stats = scnStats |> ScenarioStats.round |> Array.singleton
             do! stats |> saveScenarioStats |> Async.AwaitTask
-            return { Duration = scnStats.Duration; ScenarioStats = stats; PluginStats = Array.empty } :: history
+            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = Array.empty } :: history
         }
 
         let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
@@ -97,7 +97,7 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
                 return! loop newHistory
 
             | GetTimeLines reply ->
-                reply.Reply(currentHistory |> List.rev)
+                reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration))
                 return! loop currentHistory
 
             | GetFinalStats (nodeInfo, duration, reply) ->

@@ -256,7 +256,8 @@ module ScenarioStats =
 
     let round (stats: ScenarioStats) =
         { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
-                     StepStats = stats.StepStats |> Array.map(StepStats.round) }
+                     StepStats = stats.StepStats |> Array.map(StepStats.round)
+                     Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
 module NodeStats =
 
@@ -278,4 +279,5 @@ module NodeStats =
 
     let round (stats: NodeStats) =
         { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
-                     ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round) }
+                     ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
+                     Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
