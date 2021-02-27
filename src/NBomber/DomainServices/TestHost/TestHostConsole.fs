@@ -46,16 +46,16 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         match simulation with
         | RampConstant _
         | KeepConstant _        ->
-            $"{simulationName}, copies: {simulationValue |> Console.highlightParam}"
+            $"{simulationName}, copies: {simulationValue |> Console.highlightSecondary}"
 
         | RampPerSec _
         | InjectPerSec _
         | InjectPerSecRandom _  ->
-            $"{simulationName}, rate: {simulationValue |> Console.highlightParam}"
+            $"{simulationName}, rate: {simulationValue |> Console.highlightSecondary}"
 
     let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
         let simulationDescription = createSimulationDescription simulation simulationValue
-        $"{scenarioName |> Console.highlight}{MultilineColumn.NewLine}{simulationDescription}"
+        $"{scenarioName |> Console.highlightPrimary}{MultilineColumn.NewLine}{simulationDescription}"
 
     let createProgressTaskConfig (scheduler: ScenarioScheduler) =
         let scenarioName = scheduler.Scenario.ScenarioName
@@ -135,13 +135,13 @@ let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPoo
 
                         match event with
                         | StartedInit poolName ->
-                            setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opening connection"
+                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opening connection"
 
                         | StartedStop poolName ->
-                            setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}closing connection"
+                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}closing connection"
 
                         | ConnectionOpened (poolName, number) ->
-                            setPbDescription $"{poolName |> Console.highlight}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightParam}"
+                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightSecondary}"
                             Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
 
                         | ConnectionClosed error ->
