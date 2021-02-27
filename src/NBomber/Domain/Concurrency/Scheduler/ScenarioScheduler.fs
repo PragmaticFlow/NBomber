@@ -148,7 +148,6 @@ type ScenarioScheduler(dep: ActorDep) =
         let currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
         let simulationStats = LoadTimeLine.createSimulationStats(currentSimulation, 0, 0)
         ScenarioStats.empty dep.Scenario simulationStats OperationType.Bombing
-
     do
         _schedulerTimer.Elapsed.Add(fun _ ->
 
