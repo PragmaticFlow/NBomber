@@ -3,6 +3,7 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
@@ -48,15 +49,8 @@ let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
 let private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (stats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list) (hints: HintResult list) =
-    let viewModel = {
-        NBomberInfo = stats.NodeInfo |> NBomberInfoViewModel.create
-        TestInfo = stats.TestInfo |> TestInfoViewModel.create
-        StatsData = stats |> NodeStatsViewModel.create
-        TimeLineStatsData = timeLineStats |> TimeLineStatsViewModel.create
-        Hints = hints |> HintsViewModel.create
-    }
-
+let print (stats: NodeStats) (timeLines: TimeLineHistoryRecord list) (hints: HintResult list) =
+    let viewModel = HtmlReportViewModel.create(stats, timeLines, hints)
     let applyHtmlReplace = applyHtmlReplace viewModel
 
     ResourceManager.readResource("index.html")

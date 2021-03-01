@@ -4,152 +4,47 @@ open System
 open System.Data
 
 open NBomber.Contracts
+open NBomber.Domain.DomainTypes
 open NBomber.Domain.HintsAnalyzer
-open NBomber.Extensions
 
-type NBomberInfoViewModel = {
-    NBomberVersion: string
-}
-
-type TestInfoViewModel = {
-    TestSuite: string
-    TestName: string
-}
-
-type PluginStatsViewModel = {
-    TableName: string
-    Columns: string[]
-    Rows: string[][]
-}
-
-type NodeStatsViewModel = {
-    RequestCount: int
-    OkCount: int
-    FailCount: int
-    AllDataMB: float
+type TimeLineHistoryRecordViewModel = {
+    Duration: TimeSpan
     ScenarioStats: ScenarioStats[]
-    PluginStats: PluginStatsViewModel[]
-    NodeInfo: NodeInfo
+    PluginStats: DataSet[]
 }
 
-type TimeLineStatsViewModel = {
-    TimeStamps: string[]
-    ScenarioStats: ScenarioStats[][]
-}
-
-type HintViewModel = {
+type HintResultViewModel = {
     SourceName: string
     SourceType: string
     Hint: string
 }
 
-type HintsViewModel = HintViewModel[]
-
 type HtmlReportViewModel = {
-    NBomberInfo: NBomberInfoViewModel
-    TestInfo: TestInfoViewModel
-    StatsData: NodeStatsViewModel
-    TimeLineStatsData: TimeLineStatsViewModel
-    Hints: HintsViewModel
+    NodeStats: NodeStats
+    TimeLineStats: TimeLineHistoryRecordViewModel[]
+    Hints: HintResultViewModel[]
 }
 
-module internal NBomberInfoViewModel =
+module internal TimeLineHistoryRecordViewModel =
 
-    let create (nodeInfo: NodeInfo) = {
-        NBomberVersion = nodeInfo.NBomberVersion
+    let create (record: TimeLineHistoryRecord) = {
+        Duration = record.Duration
+        ScenarioStats = record.ScenarioStats
+        PluginStats = record.PluginStats
     }
 
-module internal TestInfoViewModel =
+module internal HintResultViewModel =
 
-    let create (testInfo: TestInfo): TestInfoViewModel = {
-        TestSuite = testInfo.TestSuite
-        TestName = testInfo.TestName
+    let create (hint: HintResult) = {
+        SourceName = hint.SourceName
+        SourceType = hint.SourceType.ToString()
+        Hint = hint.Hint
     }
 
-module internal NodeStatsViewModel =
+module internal HtmlReportViewModel =
 
-    let private mapDataTableToPluginStatsViewModel (table: DataTable) =
-        let tableName = table.TableName
-        let columns = table.GetColumns() |> Array.map(fun col -> col.GetColumnCaptionOrName())
-        let rows = table.GetRows() |> Array.map(fun row -> row.ItemArray |> Array.map(fun x -> x.ToString()))
-
-        { TableName = tableName; Columns = columns; Rows = rows }
-
-    let private mapToPluginStatsViewModel (pluginStats: DataSet[]) =
-        pluginStats
-        |> Array.collect(fun dataSet -> dataSet.GetTables())
-        |> Array.map mapDataTableToPluginStatsViewModel
-
-    let create (stats: NodeStats): NodeStatsViewModel = {
-        RequestCount = stats.RequestCount
-        OkCount = stats.OkCount
-        FailCount = stats.FailCount
-        AllDataMB = stats.AllDataMB
-        ScenarioStats = stats.ScenarioStats
-        PluginStats = stats.PluginStats |> mapToPluginStatsViewModel
-        NodeInfo = stats.NodeInfo
+    let create (stats: NodeStats, timeLineStats: TimeLineHistoryRecord list, hints: HintResult list) = {
+        NodeStats = stats
+        TimeLineStats = timeLineStats |> Seq.map TimeLineHistoryRecordViewModel.create |> Array.ofSeq
+        Hints = hints |> Seq.map HintResultViewModel.create |> Array.ofSeq
     }
-
-module internal TimeLineStatsViewModel =
-
-    let private getLatencyCountDiff (latency: LatencyCount) (prevLatency: LatencyCount) = {
-        LessOrEq800 = latency.LessOrEq800 - prevLatency.LessOrEq800
-        More800Less1200 = latency.More800Less1200 - prevLatency.More800Less1200
-        MoreOrEq1200 = latency.MoreOrEq1200 - prevLatency.MoreOrEq1200
-    }
-
-    let private getScenarioStatsDiff (scenarioStats: ScenarioStats) (prevScenarioStats: ScenarioStats) = {
-        scenarioStats with
-            LatencyCount = getLatencyCountDiff scenarioStats.LatencyCount prevScenarioStats.LatencyCount
-            RequestCount = scenarioStats.RequestCount - prevScenarioStats.RequestCount
-            OkCount = scenarioStats.OkCount - prevScenarioStats.OkCount
-            FailCount = scenarioStats.FailCount - prevScenarioStats.FailCount
-            AllDataMB = scenarioStats.AllDataMB - prevScenarioStats.AllDataMB
-    }
-
-    let private getTimeLineScenarioStatsDiff (scenarioStats: ScenarioStats[]) (prevScenarioStats: ScenarioStats[]) =
-        scenarioStats
-        |> Seq.mapi(fun i stats -> getScenarioStatsDiff stats prevScenarioStats.[i])
-        |> Seq.toArray
-
-    let private createTimeStamps (timeLineStats: (TimeSpan * NodeStats) list) =
-        timeLineStats
-        |> Seq.map fst
-        |> Seq.map(fun timeSpan -> TimeSpan(0, 0, (int)timeSpan.TotalSeconds).ToString())
-        |> Seq.toArray
-
-    let private createScenarioStats (timeLineStats: (TimeSpan * NodeStats) list) =
-        let timeLineScenarioStats =
-            timeLineStats
-            |> Seq.map snd
-            |> Seq.map(fun nodeStats -> nodeStats.ScenarioStats)
-            |> Seq.toArray
-
-        timeLineScenarioStats
-        |> Seq.mapi(fun i scenarioStats ->
-            if i = 0 then
-                scenarioStats
-            else
-                getTimeLineScenarioStatsDiff scenarioStats timeLineScenarioStats.[i - 1]
-        )
-        |> Seq.toArray
-
-    let create (timeLineStats: (TimeSpan * NodeStats) list) =
-        try
-            { TimeStamps = createTimeStamps(timeLineStats)
-              ScenarioStats = createScenarioStats(timeLineStats) }
-        with
-        | _ ->
-            { TimeStamps = Array.empty
-              ScenarioStats = Array.empty }
-
-module internal HintsViewModel =
-
-    let create(hints: HintResult list) =
-        hints
-        |> Seq.map(fun hint -> {
-            SourceName = hint.SourceName
-            SourceType = hint.SourceType.ToString()
-            Hint = hint.Hint
-        })
-        |> Seq.toArray

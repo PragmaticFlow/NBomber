@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.IO
 
+open NBomber.Domain.DomainTypes
 open Serilog
 open Spectre.Console.Rendering
 
@@ -21,17 +22,13 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats: NodeStats) (timeLineStats: (TimeSpan * NodeStats) list)
+let build (nodeStats: NodeStats) (timeLines: TimeLineHistoryRecord list)
           (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
 
-    let errorsExist =
-        timeLineStats
-        |> Seq.map snd
-        |> Seq.tryFind(fun x -> x.FailCount > 0)
-        |> Option.isSome
+    let errorsExist = nodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
 
     { TxtReport = TxtReport.print nodeStats hints simulations
-      HtmlReport = HtmlReport.print nodeStats timeLineStats hints
+      HtmlReport = HtmlReport.print nodeStats timeLines hints
       CsvReport = CsvReport.print nodeStats
       MdReport = MdReport.print nodeStats hints simulations
       ConsoleReport = ConsoleReport.print nodeStats hints simulations
