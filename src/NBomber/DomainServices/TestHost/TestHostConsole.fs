@@ -1,5 +1,6 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
+open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -64,6 +65,9 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         let ticks = scheduler.Scenario |> calcTickCount |> float
         { Description = description; Ticks = ticks }
 
+    let getProgressTickInterval () =
+        Constants.SchedulerNotificationTickInterval.TotalMilliseconds / 1000.0
+
     let tickProgressTask (task: ProgressTask) (scenarioName: string) (progressInfo: ScenarioProgressInfo) =
         progressInfo
         |> getSimulationValue
@@ -71,7 +75,11 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         |> ProgressBar.setDescription task
         |> ignore
 
-        Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
+        getProgressTickInterval() |> ProgressBar.tick task |> ignore
+
+    let createDescriptionForStoppedTask (task: ProgressTask) (scenarioName) =
+        let percentage = $"{task.Percentage:F1}%%"
+        $"{scenarioName |> Console.highlightDanger}{MultilineColumn.NewLine}stopped: {percentage |> Console.highlightSecondary}"
 
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
@@ -79,7 +87,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         |> List.append [
             { Description = $"All Scenarios{MultilineColumn.NewLine}"; Ticks = schedulers |> calcTotalTickCount |> float }
         ]
-        |> ProgressBar.create ProgressBar.defaultColumns
+        |> ProgressBar.create
            (fun tasks ->
                 let totalTask = tasks.Head
 
@@ -88,11 +96,29 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                     if i > 0 then
                         schedulers.[i - 1].EventStream
                         |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
-                        |> Observable.subscribe(fun progressInfo ->
-                            let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
-                            tickProgressTask task scenarioName progressInfo
-                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick totalTask |> ignore
-                        )
+                        |> Observable.subscribeWithCompletion
+                            (fun progressInfo ->
+                                let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
+                                tickProgressTask task scenarioName progressInfo
+                                let numberOfTicks = Constants.SchedulerNotificationTickInterval.TotalMilliseconds / 1000.0
+                                numberOfTicks |> ProgressBar.tick totalTask |> ignore
+                            )
+                            (fun () ->
+                                let leftNumberOfTicks = getProgressTickInterval() |> ProgressBar.getLeftNumberOfTicks task
+
+                                if leftNumberOfTicks > 0.0 then
+                                    task.StopTask()
+
+                                    schedulers.[i - 1].Scenario.ScenarioName
+                                    |> createDescriptionForStoppedTask task
+                                    |> ProgressBar.setDescription task
+                                    |> ignore
+
+                                    // set 100% for progress task since .StopTask() method doesn't stop progress task completely
+                                    leftNumberOfTicks |> ProgressBar.tick task |> ignore
+                                    // add left number of ticks to total task
+                                    leftNumberOfTicks |> ProgressBar.tick totalTask |> ignore
+                            )
                         |> ignore
                 )
            )
@@ -101,14 +127,30 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         scheduler
         |> createProgressTaskConfig
         |> List.singleton
-        |> ProgressBar.create ProgressBar.defaultColumns
+        |> ProgressBar.create
            (fun tasks ->
                 scheduler.EventStream
                 |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
-                |> Observable.subscribe(fun progressInfo ->
-                    let scenarioName = scheduler.Scenario.ScenarioName
-                    tickProgressTask tasks.Head scenarioName progressInfo
-                )
+                |> Observable.subscribeWithCompletion
+                    (fun progressInfo ->
+                        let scenarioName = scheduler.Scenario.ScenarioName
+                        tickProgressTask tasks.Head scenarioName progressInfo
+                    )
+                    (fun () ->
+                        let task = tasks.Head
+                        let leftNumberOfTicks = getProgressTickInterval() |> ProgressBar.getLeftNumberOfTicks task
+
+                        if leftNumberOfTicks > 0.0 then
+                            task.StopTask() |> ignore
+
+                            scheduler.Scenario.ScenarioName
+                            |> createDescriptionForStoppedTask task
+                            |> ProgressBar.setDescription task
+                            |> ignore
+
+                            // set 100% for progress task since .StopTask() method doesn't stop progress task completely
+                            leftNumberOfTicks |> ProgressBar.tick task |> ignore
+                    )
                 |> ignore
            )
 
@@ -125,7 +167,7 @@ let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPoo
     | ApplicationType.Console ->
         pools
         |> List.map(fun pool -> { Description = pool.PoolName; Ticks = pool.ConnectionCount |> float })
-        |> ProgressBar.create ProgressBar.defaultColumns
+        |> ProgressBar.create
            (fun tasks ->
                 tasks
                 |> List.iteri(fun i task ->
