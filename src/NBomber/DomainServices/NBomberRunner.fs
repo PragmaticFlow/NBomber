@@ -71,8 +71,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! result       = testHost.RunSession()
         let hints         = getHints context result.NodeStats
         let simulations   = context |> getLoadSimulations
-        //let reports       = Report.build result.NodeStats result.TimeLines hints simulations
-        let reports       = Report.build result.NodeStats List.empty hints simulations
+        let reports       = Report.build result.NodeStats result.TimeLines hints simulations
 
         if dep.ApplicationType = ApplicationType.Console then
             reports.ConsoleReport |> Seq.iter Console.render
