@@ -1,6 +1,7 @@
 module internal NBomber.DomainServices.TestHost.TestHostReporting
 
 open System
+open System.Data
 open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
@@ -11,6 +12,7 @@ open NBomber
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.DomainServices
 open NBomber.Errors
 open NBomber.Contracts
 open NBomber.Extensions.InternalExtensions
@@ -40,7 +42,12 @@ let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats[]) = task {
 
 let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
     dep.WorkerPlugins
-    |> List.map(fun plugin -> plugin.GetStats operation)
+    |> List.map(fun plugin ->
+        let pluginStatsTask = plugin.GetStats operation
+        pluginStatsTask.ContinueWith(fun (pluginStatsTask: Task<DataSet>) ->
+            WorkerPlugin.enrichPluginStats(pluginStatsTask.Result, plugin) |> ignore) |> ignore
+        pluginStatsTask
+    )
     |> Task.WhenAll
 
 let getScenarioStats (schedulers: ScenarioScheduler list) (working: Option<bool>) (duration: TimeSpan) =

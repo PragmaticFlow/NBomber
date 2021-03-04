@@ -383,3 +383,11 @@ module NBomberRunner =
         context
         |> runWithResult args
         |> Result.mapError(AppError.toString)
+
+/// WorkerPluginStats helps to find worker plugin stats.
+module WorkerPluginStats =
+
+     /// Tries to find stats for given worker plugin. Returns Some DataSet if plugin exists or None otherwise.
+    let tryFindPluginStats (plugin: IWorkerPlugin) (nodeStats: NodeStats) =
+        let pluginFullName = WorkerPlugin.getFullName(plugin)
+        nodeStats.PluginStats |> WorkerPlugin.tryFindPluginStats pluginFullName

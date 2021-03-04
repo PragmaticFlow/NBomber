@@ -82,6 +82,16 @@ module Validation =
         |> Option.map(fun invalidScenario -> Error <| LoadSimulationConfigValueHasInvalidFormat(invalidScenario.ScenarioName))
         |> Option.defaultValue(Ok settings)
 
+    let checkWorkerPlugins (plugins: IWorkerPlugin list) =
+        plugins
+        |> Seq.groupBy(WorkerPlugin.getFullName)
+        |> Seq.filter(fun (_, plugins) -> Seq.length(plugins) > 1)
+        |> Seq.map fst
+        |> fun duplicatedPluginNames ->
+            if Seq.length(duplicatedPluginNames) = 0 then
+                Ok plugins
+            else duplicatedPluginNames |> List.ofSeq |> DuplicatePluginFullName |> Error
+
 let empty = {
     TestSuite = Constants.DefaultTestSuite
     TestName = Constants.DefaultTestName
@@ -200,6 +210,7 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileName  |> Validation.checkReportName
         let! reportFolder      = context |> getReportFolder    |> Validation.checkReportFolder
+        let! workerPlugins = context.WorkerPlugins |> Validation.checkWorkerPlugins
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
         let connectionPoolSettings = context |> getConnectionPoolSettings

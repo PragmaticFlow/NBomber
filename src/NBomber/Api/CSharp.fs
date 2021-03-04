@@ -3,7 +3,6 @@
 #nowarn "3211"
 
 open System
-open System.Threading
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -315,3 +314,16 @@ type Simulation =
     /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
+
+/// WorkerPluginStats helps to find worker plugin stats.
+[<Extension>]
+type WorkerPluginStats =
+
+    /// Tries to find stats for given worker plugin. Returns Tuple<bool, DataSet>.
+    [<Extension>]
+    static member TryFindPluginStats(nodeStats: NodeStats, plugin: IWorkerPlugin) =
+        nodeStats
+        |> FSharp.WorkerPluginStats.tryFindPluginStats plugin
+        |> function
+            | Some pluginStats -> (true, pluginStats)
+            | None             -> (false, null)

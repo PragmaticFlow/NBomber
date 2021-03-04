@@ -34,6 +34,9 @@ type ValidationError =
     | CopiesCountIsZeroOrNegative of simulation:string
     | RateIsZeroOrNegative of simulation:string
 
+    // Plugin errors
+    | DuplicatePluginFullName of pluginFullNames: string list
+
 type AppError =
     | Domain        of DomainError
     | Validation    of ValidationError
@@ -109,6 +112,9 @@ type AppError =
         | RateIsZeroOrNegative simulation ->
             sprintf "Simulation: '%A' has invalid rate value. The value should be bigger than 0." simulation
 
+        | DuplicatePluginFullName pluginFullNames ->
+            sprintf "Plugins: registered plugins with duplicated ful names: %s"
+                (String.concatWithCommaAndQuotes(pluginFullNames))
 
     static member toString (error: AppError) =
         match error with
