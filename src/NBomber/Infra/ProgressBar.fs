@@ -43,14 +43,13 @@ let private createProgressTask (ctx: ProgressContext) (config: ProgressTaskConfi
 
     task
 
-let create (columns: ProgressColumn[])
-           (created: ProgressTask list -> unit)
+let create (created: ProgressTask list -> unit)
            (config: ProgressTaskConfig list) =
 
     AnsiConsole.Progress()
     |> fun progress -> ProgressExtensions.AutoRefresh(progress, true)
     |> fun progress -> ProgressExtensions.AutoClear(progress, false)
-    |> fun progress -> ProgressExtensions.Columns(progress, columns)
+    |> fun progress -> ProgressExtensions.Columns(progress, defaultColumns)
     |> fun progress ->
         progress.StartAsync(fun ctx ->
             task {
@@ -65,6 +64,9 @@ let setDescription (task: ProgressTask) (description: string) =
     task.Description <- description
     task
 
-let tick (task: ProgressTask) (value: float) =
-    task.Increment(1.0)
+let tick (task: ProgressTask) (progressTickInterval: float) =
+    task.Increment(progressTickInterval)
     task
+
+let getLeftNumberOfTicks (task: ProgressTask) (progressTickInterval: float) =
+    (task.MaxValue - task.Value) * progressTickInterval
