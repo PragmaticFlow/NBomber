@@ -159,7 +159,7 @@ const initApp = (appContainer, viewModel) => {
         },
         plotOptions: createPlotOptions(),
         legend: {
-            labelFormat: '{name}: {y}',
+            labelFormat: '{name}',
             align: 'right',
             verticalAlign:'middle',
             padding: 0
@@ -205,7 +205,7 @@ const initApp = (appContainer, viewModel) => {
         },
         plotOptions: createPlotOptions(),
         legend: {
-            labelFormat: '{name}: {y}',
+            labelFormat: '{name}',
             align: 'right',
             verticalAlign:'middle',
             padding: 0
@@ -530,23 +530,43 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('scenario-stats-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-requests-number-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-requests-number-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-requests-number-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-latency-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-latency-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-latency-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-data-transfer-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-data-transfer-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-data-transfer-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     const convertPluginStats = pluginsStats =>
