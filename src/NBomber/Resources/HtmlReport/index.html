@@ -29,7 +29,7 @@
     <!-- Scenario Header -->
     <script type="text/x-template" id="scenario-header-template">
         <span>
-            scenario #{{scenarioIndex + 1}}: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioStats.ScenarioName}}</span>
+            scenario #{{scenarioIndex + 1}}: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{scenarioName}}</span>
         </span>
     </script>
 
@@ -72,8 +72,8 @@
                 <tr>
                     <th></th>
                     <th colspan="4">request number</th>
-                    <th colspan="3">latency, ms</th>
-                    <th colspan="5">latency percentile, ms</th>
+                    <th colspan="4">latency, ms</th>
+                    <th colspan="4">latency percentile, ms</th>
                     <th colspan="4">data transfer</th>
                 </tr>
                 <tr>
@@ -85,11 +85,11 @@
                     <th>min</th>
                     <th>mean</th>
                     <th>max</th>
+                    <th>StdDev</th>
                     <th>50th</th>
                     <th>75th</th>
                     <th>95th</th>
                     <th>99th</th>
-                    <th>StdDev</th>
                     <th>min, KB</th>
                     <th>mean, KB</th>
                     <th>max, KB</th>
@@ -99,22 +99,22 @@
             <tbody>
                 <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                     <td>{{stepStats.StepName}}</td>
-                    <td>{{stepStats.RequestCount}}</td>
-                    <td>{{stepStats.OkCount}}</td>
-                    <td>{{stepStats.FailCount}}</td>
-                    <td>{{stepStats.RPS}}</td>
-                    <td>{{stepStats.Min}}</td>
-                    <td>{{stepStats.Mean}}</td>
-                    <td>{{stepStats.Max}}</td>
-                    <td>{{stepStats.Percent50}}</td>
-                    <td>{{stepStats.Percent75}}</td>
-                    <td>{{stepStats.Percent95}}</td>
-                    <td>{{stepStats.Percent99}}</td>
-                    <td>{{stepStats.StdDev}}</td>
-                    <td>{{stepStats.MinDataKb}}</td>
-                    <td>{{stepStats.MeanDataKb}}</td>
-                    <td>{{stepStats.MaxDataKb}}</td>
-                    <td>{{stepStats.AllDataMB}}</td>
+                    <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
+                    <td>{{stepStats.Ok.Request.Count}}</td>
+                    <td>{{stepStats.Fail.Request.Count}}</td>
+                    <td>{{stepStats.Ok.Request.RPS}}</td>
+                    <td>{{stepStats.Ok.Latency.MinMs}}</td>
+                    <td>{{stepStats.Ok.Latency.MeanMs}}</td>
+                    <td>{{stepStats.Ok.Latency.MaxMs}}</td>
+                    <td>{{stepStats.Ok.Latency.StdDev}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent50}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent75}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent95}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent99}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MinKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MaxKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MaxKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.AllMB}}</td>
                 </tr>
                 <tr class="mdb-color lighten-2 white-text">
                     <th>total</th>
@@ -139,7 +139,6 @@
         </table>
     </script>
 
-
     <!-- Scenarios Stats Requests Number Table Template -->
     <script type="text/x-template" id="scenario-stats-requests-number-table-template">
         <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
@@ -159,10 +158,10 @@
             <tbody>
                 <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                     <td>{{stepStats.StepName}}</td>
-                    <td>{{stepStats.RequestCount}}</td>
-                    <td>{{stepStats.OkCount}}</td>
-                    <td>{{stepStats.FailCount}}</td>
-                    <td>{{stepStats.RPS}}</td>
+                    <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
+                    <td>{{stepStats.Ok.Request.Count}}</td>
+                    <td>{{stepStats.Fail.Request.Count}}</td>
+                    <td>{{stepStats.Ok.Request.RPS}}</td>
                 </tr>
                 <tr class="mdb-color lighten-2 white-text">
                     <th>total</th>
@@ -181,32 +180,32 @@
             <thead class="mdb-color lighten-2 white-text">
                 <tr>
                     <th></th>
-                    <th colspan="3">latency, ms</th>
-                    <th colspan="5">latency percentile, ms</th>
+                    <th colspan="4">latency, ms</th>
+                    <th colspan="4">latency percentile, ms</th>
                 </tr>
                 <tr>
                     <th>step</th>
                     <th>min</th>
                     <th>mean</th>
                     <th>max</th>
+                    <th>StdDev</th>
                     <th>50th</th>
                     <th>75th</th>
                     <th>95th</th>
                     <th>99th</th>
-                    <th>StdDev</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                     <td>{{stepStats.StepName}}</td>
-                    <td>{{stepStats.Min}}</td>
-                    <td>{{stepStats.Mean}}</td>
-                    <td>{{stepStats.Max}}</td>
-                    <td>{{stepStats.Percent50}}</td>
-                    <td>{{stepStats.Percent75}}</td>
-                    <td>{{stepStats.Percent95}}</td>
-                    <td>{{stepStats.Percent99}}</td>
-                    <td>{{stepStats.StdDev}}</td>
+                    <td>{{stepStats.Ok.Latency.MinMs}}</td>
+                    <td>{{stepStats.Ok.Latency.MeanMs}}</td>
+                    <td>{{stepStats.Ok.Latency.MaxMs}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent50}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent75}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent95}}</td>
+                    <td>{{stepStats.Ok.Latency.Percent99}}</td>
+                    <td>{{stepStats.Ok.Latency.StdDev}}</td>
                 </tr>
                 <tr class="mdb-color lighten-2 white-text">
                     <th>total</th>
@@ -242,10 +241,10 @@
             <tbody>
                 <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                     <td>{{stepStats.StepName}}</td>
-                    <td>{{stepStats.MinDataKb}}</td>
-                    <td>{{stepStats.MeanDataKb}}</td>
-                    <td>{{stepStats.MaxDataKb}}</td>
-                    <td>{{stepStats.AllDataMB}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MinKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MaxKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.MaxKb}}</td>
+                    <td>{{stepStats.Ok.DataTransfer.AllMB}}</td>
                 </tr>
                 <tr class="mdb-color lighten-2 white-text">
                     <th>total</th>
@@ -262,24 +261,24 @@
     <script type="text/x-template" id="plugins-stats-table-template">
         <div class="row">
             <div class="col">
-                <div v-for="(pluginStats, pluginIndex) in pluginsStats"
-                     :key="`plugin-stats-${pluginIndex}`"
+                <div v-for="(table, tableIndex) in tables"
+                     :key="`plugin-stats-${tableIndex}`"
                      v-if="pluginsStats"
                      class="card custom scenario">
                     <div class="card-header mdb-color darken-2 white-text">
-                        <h6>plugin stats: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{pluginStats.TableName}}</span></h6>
+                        <h6>plugin stats: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{table.name}}</span></h6>
                     </div>
                     <div class="card-body">
                         <table class="table table-hover table-striped table-sm table-plugin-stats">
                             <thead class="mdb-color lighten-2 white-text">
                                 <tr>
-                                    <th v-for="(col, index) in pluginStats.Columns" :key="`plugin-stats-col-${index}`">
+                                    <th v-for="(col, index) in table.cols" :key="`plugin-stats-col-${index}`">
                                         {{col}}
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(row, index) in pluginStats.Rows" :key="`plugin-stats-row-${index}`">
+                                <tr v-for="(row, index) in table.rows" :key="`plugin-stats-row-${index}`">
                                     <td v-for="(value, colIndex) in row" :key="`plugin-stats-row-${index}-${colIndex}`">
                                         {{value}}
                                     </td>
@@ -396,7 +395,7 @@
                         </a>
                     </li>
 
-                    <li v-for="(scenarioStats, index) in viewModel.StatsData.ScenarioStats"
+                    <li v-for="(scenarioStats, index) in viewModel.NodeStats.ScenarioStats"
                         :key="`nav-scenario-stats-${index}`"
                         data-toggle="tooltip"
                         data-placement="right"
@@ -418,7 +417,7 @@
                     <li class="nav-item">
                         <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view"
                            @click="selectView('plugins')"
-                           :class="{disabled: !viewModel.StatsData.PluginStats || !viewModel.StatsData.PluginStats.length}">
+                           :class="{disabled: !viewModel.NodeStats.PluginStats || !viewModel.NodeStats.PluginStats.length}">
                             Plugins <span class="sub-icon sub-icon-plugin fas fa-puzzle-piece"></span>
                         </a>
                     </li>
@@ -433,7 +432,7 @@
                 </ul>
                 <footer>
                     <p class="blue-grey-text" v-cloak>
-                        <span>v{{viewModel.NBomberInfo.NBomberVersion}}</span>
+                        <span>v{{viewModel.NodeStats.NodeInfo.NBomberVersion}}</span>
                     </p>
                 </footer>
             </div>
@@ -454,17 +453,17 @@
                     <div class="tab-pane fade show" id="env-view" role="tabpanel">
                         <div class="row">
                             <div class="col">
-                                <node-info-table :node-info="viewModel.StatsData.NodeInfo"></node-info-table>
+                                <node-info-table :node-info="viewModel.NodeStats.NodeInfo"></node-info-table>
                             </div>
                         </div>
                     </div>
                     <!-- Test Suite View -->
                     <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
-                         v-if="viewModel.StatsData.ScenarioStats && viewModel.StatsData.PluginStats">
+                         v-if="viewModel.NodeStats.ScenarioStats && viewModel.NodeStats.PluginStats">
 
-                        <div v-for="(scenarioStats, scenarioIndex) in viewModel.StatsData.ScenarioStats"
+                        <div v-for="(scenarioStats, scenarioIndex) in viewModel.NodeStats.ScenarioStats"
                              :key="`test-suite-scenario-stats-${scenarioIndex}`"
-                             v-if="viewModel.StatsData.ScenarioStats"
+                             v-if="viewModel.NodeStats.ScenarioStats"
                              class="row">
                             <div class="col">
                                 <div class="card custom scenario">
@@ -474,7 +473,7 @@
                                                data-toggle="collapse" :data-target="`#test-suite-scenario-content-${scenarioIndex}`"
                                                aria-expanded="true" :aria-controls="`test-suite-scenario-content-${scenarioIndex}`">
                                                 <span class="fa fa-chevron-down float-right"></span>
-                                                <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
+                                                <scenario-header :scenario-index="scenarioIndex" :scenario-name="scenarioStats.ScenarioName"></scenario-header>
                                             </a>
                                         </h6>
                                     </div>
@@ -536,8 +535,8 @@
                                                 <div class="row">
                                                     <div class="col">
                                                         <!-- TestSuite View / Scenario Latency -->
-                                                        <chart-scenario-latency-distribution :timeline-stats="viewModel.TimeLineStatsData"
-                                                                                             :scenario-index="scenarioIndex">
+                                                        <chart-scenario-latency-distribution :timeline-stats="timeLineStats"
+                                                                                             :scenario-name="scenarioStats.ScenarioName">
                                                         </chart-scenario-latency-distribution>
                                                     </div>
                                                 </div>
@@ -550,7 +549,7 @@
 
                         <div class="row">
                             <div class="col">
-                                <plugins-stats-table :plugins-stats="viewModel.StatsData.PluginStats"></plugins-stats-table>
+                                <plugins-stats-table :plugins-stats="viewModel.NodeStats.PluginStats"></plugins-stats-table>
                             </div>
                         </div>
 
@@ -563,7 +562,7 @@
                     </div>
                     <no-data v-else></no-data>
                     <!-- Scenarios Views -->
-                    <div v-for="(scenarioStats, scenarioIndex) in viewModel.StatsData.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
+                    <div v-for="(scenarioStats, scenarioIndex) in viewModel.NodeStats.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
                          class="tab-pane fade show"
                          :id="`scenario-${scenarioIndex}-view`"
                          role="tabpanel">
@@ -574,7 +573,7 @@
                                 <div class="card custom scenario">
                                     <div class="card-header mdb-color darken-2 white-text">
                                         <h6>
-                                            <scenario-header :scenario-stats="scenarioStats" :scenario-index="scenarioIndex"></scenario-header>
+                                            <scenario-header :scenario-index="scenarioIndex" :scenario-name="scenarioStats.ScenarioName"></scenario-header>
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -698,15 +697,15 @@
                                                     </chart-scenario-errors>
 
                                                     <!-- Step View / Step Throughput -->
-                                                    <chart-timeline-step-throughput :timeline-stats="viewModel.TimeLineStatsData"
-                                                                                    :scenario-index="scenarioIndex"
-                                                                                    :step-index="stepIndex">
+                                                    <chart-timeline-step-throughput :timeline-stats="timeLineStats"
+                                                                                    :scenario-name="scenarioStats.ScenarioName"
+                                                                                    :step-name="stepStats.StepName">
                                                     </chart-timeline-step-throughput>
 
                                                     <!-- Step View / Step Latency -->
-                                                    <chart-timeline-step-latency :timeline-stats="viewModel.TimeLineStatsData"
-                                                                                 :scenario-index="scenarioIndex"
-                                                                                 :step-index="stepIndex">
+                                                    <chart-timeline-step-latency :timeline-stats="timeLineStats"
+                                                                                 :scenario-name="scenarioStats.ScenarioName"
+                                                                                 :step-name="stepStats.StepName">
                                                     </chart-timeline-step-latency>
                                                 </lazy-load>
                                             </div>
@@ -719,10 +718,10 @@
 
                     <!-- Plugins Stats Views -->
                     <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
-                         v-if="viewModel.StatsData.PluginStats && viewModel.StatsData.PluginStats.length > 0">
+                         v-if="viewModel.NodeStats.PluginStats && viewModel.NodeStats.PluginStats.length > 0">
                         <div class="row">
                             <div class="col">
-                                <plugins-stats-table :plugins-stats="viewModel.StatsData.PluginStats"></plugins-stats-table>
+                                <plugins-stats-table :plugins-stats="viewModel.NodeStats.PluginStats"></plugins-stats-table>
                             </div>
                         </div>
                     </div>

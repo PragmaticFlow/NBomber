@@ -1,6 +1,8 @@
 namespace NBomber.Extensions
 
 open System
+
+open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling
 open Nessos.Streams
 open Newtonsoft.Json
@@ -13,7 +15,7 @@ module internal InternalExtensions =
     module Json =
 
         let inline toJson (object) =
-            JsonConvert.SerializeObject(object, Formatting.Indented)
+            JsonConvert.SerializeObject(object, Formatting.Indented, DataSetConverter())
 
     module Result =
 

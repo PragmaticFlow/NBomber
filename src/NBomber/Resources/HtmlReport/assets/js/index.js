@@ -1,23 +1,36 @@
 const initApp = (appContainer, viewModel) => {
     // Utilities
     const createSeriesDataLatency = (scenarioStats, titles) => [
-        { name: titles.series.latencyLow, y: scenarioStats.LatencyCount.Less800, color: theme.colors.stats.latency.low },
+        { name: titles.series.latencyLow, y: scenarioStats.LatencyCount.LessOrEq800, color: theme.colors.stats.latency.low },
         { name: titles.series.latencyMedium, y: scenarioStats.LatencyCount.More800Less1200, color: theme.colors.stats.latency.medium },
-        { name: titles.series.latencyHigh, y: scenarioStats.LatencyCount.More1200, color: theme.colors.stats.latency.high },
+        { name: titles.series.latencyHigh, y: scenarioStats.LatencyCount.MoreOrEq1200, color: theme.colors.stats.latency.high },
         { name: titles.series.failed, y: scenarioStats.FailCount, color: theme.colors.stats.failedCount }
     ];
 
-    const createSeriesDataScenarioStats = (timelineStats, scenarioIndex, statsName) =>
-        timelineStats.ScenarioStats.map(scenarios => scenarios[scenarioIndex][statsName]);
+    const createTimeLineStatsForScenario = (timelineStats, scenarioName) =>
+        timelineStats
+            .filter(x => x.scenarioName === scenarioName)
+            .flatMap(x => x.timeLineStats);
 
-    const createSeriesDataScenarioStatsLatency = (timelineStats, scenarioIndex, latencyName) =>
-        timelineStats.ScenarioStats.map(scenarios => scenarios[scenarioIndex].LatencyCount[latencyName]);
+    const createSeriesDataScenarioStats = (timelineStats, scenarioName, scenarioStatsMapper) =>
+        createTimeLineStatsForScenario(timelineStats, scenarioName)
+            .map(scenarioStats => scenarioStatsMapper(scenarioStats));
 
-    const createSeriesDataScenarioStatsLoadSimulation = (timelineStats, scenarioIndex) =>
-        timelineStats.ScenarioStats.map(scenarios => scenarios[scenarioIndex].LoadSimulationStats.Value);
+    const createSeriesDataScenarioStatsLatency = (timelineStats, scenarioName, latencyName) => {
+        const timeLineStats = createTimeLineStatsForScenario(timelineStats, scenarioName);
+        return timeLineStats.map((scenarioStats, i) => {
+            const currentValue = scenarioStats.LatencyCount[latencyName];
+            if (i === 0) return currentValue;
+            const prevValue = timeLineStats[i - 1].LatencyCount[latencyName]
+            return currentValue - prevValue;
+        });
+    };
 
-    const createSeriesDataStepStats = (timelineStats, scenarioIndex, stepIndex, statsName) =>
-        timelineStats.ScenarioStats.map(scenarios => scenarios[scenarioIndex].StepStats[stepIndex][statsName]);
+    const createSeriesDataStepStats = (timelineStats, scenarioName, stepName, stepStatsMapper) =>
+        createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.StepStats)
+            .flatMap(x => x)
+            .filter(stepStats => stepStats.StepName === stepName)
+            .map(stepStats => stepStatsMapper(stepStats));
 
     const createSeriesMarker = () => ({
         symbol: 'circle'
@@ -46,7 +59,7 @@ const initApp = (appContainer, viewModel) => {
         crosshair: true
     });
 
-    const createAxisXTimeline = (title, color, timelineStats) => ({
+    const createAxisXTimeline = (title, color, timelineStats, scenarioName) => ({
         title: {
             text: title,
             style: {
@@ -60,7 +73,7 @@ const initApp = (appContainer, viewModel) => {
                 color
             }
         },
-        categories: timelineStats.TimeStamps,
+        categories: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.Duration),
         crosshair: true
     });
 
@@ -126,9 +139,10 @@ const initApp = (appContainer, viewModel) => {
         shared: true
     });
 
-    const createTooltipLoadSimulation = (timelineStats, scenarioIndex) => ({
+    const createTooltipLoadSimulation = (timelineStats, scenarioName) => ({
         pointFormatter: function (tooltip) {
-            const loadSimulationName = timelineStats.ScenarioStats[this.index][scenarioIndex].LoadSimulationStats.SimulationName;
+            const timeLineStats = createTimeLineStatsForScenario(timelineStats, scenarioName);
+            const loadSimulationName = timeLineStats[this.index].LoadSimulationStats.SimulationName;
             return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${loadSimulationName} ${this.y}</b>`;
         }
     });
@@ -241,7 +255,7 @@ const initApp = (appContainer, viewModel) => {
         ]
     });
 
-    const createSettingsChartScenarioLatencyDistribution = (theme, timelineStats, scenarioIndex, titles) => ({
+    const createSettingsChartScenarioLatencyDistribution = (theme, timelineStats, scenarioName, titles) => ({
         credits: {
             enabled: false
         },
@@ -252,7 +266,7 @@ const initApp = (appContainer, viewModel) => {
             createAxisY(titles.axisY.latency, theme.colors.xAxis, false),
             createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true),
         ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats),
+        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
         tooltip: createTooltip(),
         plotOptions: createPlotOptionsLatencyDistribution(),
         series: [
@@ -263,7 +277,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' requests'
                 },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioIndex, 'Less800')
+                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'LessOrEq800')
             },
             {
                 type: 'column',
@@ -272,7 +286,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' requests'
                 },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioIndex, 'More800Less1200')
+                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'More800Less1200')
             },
             {
                 type: 'column',
@@ -281,7 +295,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' requests'
                 },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioIndex, 'More1200')
+                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'MoreOrEq1200')
             },
             {
                 type: 'column',
@@ -290,7 +304,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' requests'
                 },
-                data: createSeriesDataScenarioStats(timelineStats, scenarioIndex, 'FailCount')
+                data: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.FailCount)
             },
             {
                 name: titles.series.loadSimulation,
@@ -298,13 +312,13 @@ const initApp = (appContainer, viewModel) => {
                 zIndex: 1,
                 marker: createSeriesMarker(),
                 color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioIndex),
-                data: createSeriesDataScenarioStatsLoadSimulation(timelineStats, scenarioIndex)
+                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
+                data: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
             }
         ]
     });
 
-    const createSettingsChartStepThroughput = (theme, timelineStats, scenarioIndex, stepIndex, titles) => ({
+    const createSettingsChartStepThroughput = (theme, timelineStats, scenarioName, stepName, titles) => ({
         credits: {
             enabled: false
         },
@@ -315,7 +329,7 @@ const initApp = (appContainer, viewModel) => {
             createAxisY(titles.axisY.rps, theme.colors.stats.rps, false),
             createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true)
         ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats),
+        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
         tooltip: createTooltip(),
         plotOptions: createPlotOptions(),
         series: [
@@ -324,7 +338,7 @@ const initApp = (appContainer, viewModel) => {
                 type: 'area',
                 marker: createSeriesMarker(),
                 color: theme.colors.stats.rps,
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'RPS')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Request.RPS)
             },
             {
                 name: titles.series.loadSimulation,
@@ -332,13 +346,13 @@ const initApp = (appContainer, viewModel) => {
                 zIndex: 1,
                 marker: createSeriesMarker(),
                 color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioIndex),
-                data: createSeriesDataScenarioStatsLoadSimulation(timelineStats, scenarioIndex)
+                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
+                data:  createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
             }
         ]
     });
 
-    const createSettingsChartStepLatency = (theme, timelineStats, scenarioIndex, stepIndex, titles) => ({
+    const createSettingsChartStepLatency = (theme, timelineStats, scenarioName, stepName, titles) => ({
         credits: {
             enabled: false
         },
@@ -350,7 +364,7 @@ const initApp = (appContainer, viewModel) => {
             createAxisY('data, MB', theme.colors.stats.allDataMB, true, true),
             createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true)
         ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats),
+        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
         tooltip: createTooltip(),
         plotOptions: createPlotOptions(),
         series: [
@@ -361,7 +375,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Min')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MinMs)
             }, {
                 name: 'mean',
                 type: 'area',
@@ -370,7 +384,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Mean')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MeanMs)
             }, {
                 name: 'max',
                 type: 'area',
@@ -379,7 +393,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Max')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MaxMs)
             }, {
                 name: 'stdDev',
                 type: 'area',
@@ -388,7 +402,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'StdDev')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.StdDev)
             }, {
                 name: '75%',
                 type: 'area',
@@ -397,7 +411,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Percent75')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent75)
             }, {
                 name: '95%',
                 type: 'area',
@@ -406,7 +420,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Percent95')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent95)
             }, {
                 name: '99%',
                 type: 'area',
@@ -415,7 +429,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' ms'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'Percent99')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent99)
             },
             {
                 name: 'data',
@@ -426,7 +440,7 @@ const initApp = (appContainer, viewModel) => {
                 tooltip: {
                     valueSuffix: ' MB'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioIndex, stepIndex, 'AllDataMB')
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.DataTransfer.AllMB)
             },
             {
                 name: titles.series.loadSimulation,
@@ -434,8 +448,8 @@ const initApp = (appContainer, viewModel) => {
                 zIndex: 2,
                 marker: createSeriesMarker(),
                 color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioIndex),
-                data: createSeriesDataScenarioStatsLoadSimulation(timelineStats, scenarioIndex)
+                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
+                data:  createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
             }
         ]
     });
@@ -506,7 +520,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('scenario-header', {
-        props: ['scenarioStats', 'scenarioIndex'],
+        props: ['scenarioIndex', 'scenarioName'],
         template: '#scenario-header-template'
     });
 
@@ -535,11 +549,31 @@ const initApp = (appContainer, viewModel) => {
         template: '#scenario-stats-data-transfer-table-template'
     });
 
+    const convertPluginStats = pluginsStats =>
+        pluginsStats.reduce((acc, dataset) => {
+            Object.entries(dataset.Tables).forEach(([key, value]) => {
+                const name = key;
+                const table = value;
+                const cols = table.Columns.map(col => col.Caption)
+                const colNames = table.Columns.map(col => col.ColumnName)
+                const rows = table.Rows.map(row => colNames.map(colName => row[colName]));
+
+                acc.push({name, cols, rows});
+            });
+            return acc;
+        }, []);
+
     Vue.component('plugins-stats-table', {
         props: ['pluginsStats'],
-        template: '#plugins-stats-table-template'
-    });
+        template: '#plugins-stats-table-template',
+        data: function() {
+            const tables = convertPluginStats(this.pluginsStats || [])
 
+            return {
+                tables
+            };
+        }
+    });
 
     Vue.component('error-stats-table', {
         props: ['errorStats', 'maxErrorsNumber'],
@@ -604,37 +638,51 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('chart-scenario-latency-distribution', {
-        props: ['timelineStats', 'scenarioIndex'],
+        props: ['timelineStats', 'scenarioName'],
         template: '<div ref="container" class="chart chart-timeline chart-timeline-scenario-load"></div>',
         mounted() {
-            const settings = createSettingsChartScenarioLatencyDistribution(theme, this.timelineStats, this.scenarioIndex, titles);
+            const settings = createSettingsChartScenarioLatencyDistribution(theme, this.timelineStats, this.scenarioName, titles);
             renderChart(this.$refs.container, settings);
         }
     });
 
     Vue.component('chart-timeline-step-throughput', {
-        props: ['timelineStats', 'scenarioIndex', 'stepIndex'],
+        props: ['timelineStats', 'scenarioName', 'stepName'],
         template: '<div ref="container" class="chart chart-timeline chart-timeline-step-throughput"></div>',
         mounted() {
-            const settings = createSettingsChartStepThroughput(theme, this.timelineStats, this.scenarioIndex, this.stepIndex, titles);
+            const settings = createSettingsChartStepThroughput(theme, this.timelineStats, this.scenarioName, this.stepName, titles);
             renderChart(this.$refs.container, settings);
         }
     });
 
     Vue.component('chart-timeline-step-latency', {
-        props: ['timelineStats', 'scenarioIndex', 'stepIndex'],
+        props: ['timelineStats', 'scenarioName', 'stepName'],
         template: '<div ref="container" class="chart chart-timeline chart-timeline-step-latency"></div>',
         mounted() {
-            const settings = createSettingsChartStepLatency(theme, this.timelineStats, this.scenarioIndex, this.stepIndex, titles);
+            const settings = createSettingsChartStepLatency(theme, this.timelineStats, this.scenarioName, this.stepName, titles);
             renderChart(this.$refs.container, settings);
         }
     });
+
+    const createTimeLinesStatsForScenario = (timeLineStats, scenarioName) =>
+        timeLineStats
+            .flatMap(x => x.ScenarioStats)
+            .filter(x => x.ScenarioName === scenarioName);
+
+    const timeLineStats =
+      viewModel.NodeStats.ScenarioStats
+          .map(x => x.ScenarioName)
+          .map(x => ({
+              scenarioName: x,
+              timeLineStats: createTimeLinesStatsForScenario(viewModel.TimeLineStats, x)
+          }));
 
     // Vue Application
     const app = new Vue({
         el: appContainer,
         data: {
             viewModel,
+            timeLineStats,
             sideBarActive: true,
             currentView: 'test-suite',
             loadedViews: {},
