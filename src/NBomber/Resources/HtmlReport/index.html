@@ -81,37 +81,37 @@
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
             <p>{{statsName}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
-                <thead class="white-text">
+                <thead class="mdb-color lighten-1 white-text">
                     <tr>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-3" :colspan="(failStats || scenarioStats.FailCount > 0) ? 3 : 4">request number</th>
-                        <th class="mdb-color lighten-2" colspan="4">latency, ms</th>
-                        <th class="mdb-color lighten-3" colspan="4">latency percentile, ms</th>
-                        <th class="mdb-color lighten-2" colspan="4">data transfer</th>
+                        <th></th>
+                        <th :colspan="(failStats || scenarioStats.FailCount > 0) ? 3 : 4">request number</th>
+                        <th colspan="4">latency, ms</th>
+                        <th colspan="4">latency percentile, ms</th>
+                        <th colspan="4">data transfer</th>
                     </tr>
                     <tr>
-                        <th class="mdb-color lighten-2">step</th>
-                        <th class="mdb-color lighten-3">all</th>
-                        <th class="mdb-color lighten-3" v-if="!failStats">&nbsp;&nbsp;&nbsp;ok&nbsp;&nbsp;&nbsp;</span></th>
-                        <th class="mdb-color lighten-3" v-if="failStats || scenarioStats.FailCount === 0">failed</th>
-                        <th class="mdb-color lighten-3">RPS</th>
-                        <th class="mdb-color lighten-2">min</th>
-                        <th class="mdb-color lighten-2">mean</th>
-                        <th class="mdb-color lighten-2">max</th>
-                        <th class="mdb-color lighten-2">StdDev</th>
-                        <th class="mdb-color lighten-3">50th</th>
-                        <th class="mdb-color lighten-3">75th</th>
-                        <th class="mdb-color lighten-3">95th</th>
-                        <th class="mdb-color lighten-3">99th</th>
-                        <th class="mdb-color lighten-2">min, KB</th>
-                        <th class="mdb-color lighten-2">mean, KB</th>
-                        <th class="mdb-color lighten-2">max, KB</th>
-                        <th class="mdb-color lighten-2">all, MB</th>
+                        <th>step</th>
+                        <th>all</th>
+                        <th v-if="!failStats">&nbsp;&nbsp;&nbsp;ok&nbsp;&nbsp;&nbsp;</span></th>
+                        <th v-if="failStats || scenarioStats.FailCount === 0">failed</th>
+                        <th>RPS</th>
+                        <th>min</th>
+                        <th>mean</th>
+                        <th>max</th>
+                        <th>StdDev</th>
+                        <th>50th</th>
+                        <th>75th</th>
+                        <th>95th</th>
+                        <th>99th</th>
+                        <th>min, KB</th>
+                        <th>mean, KB</th>
+                        <th>max, KB</th>
+                        <th>all, MB</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
-                        <td>{{stepStats.StepName}}</td>
+                        <td><strong>{{stepStats.StepName}}</strong></td>
                         <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
                         <td v-if="!failStats">{{stepStats.Ok.Request.Count}}</td>
                         <td v-if="failStats || scenarioStats.FailCount === 0">{{stepStats.Fail.Request.Count}}</td>
@@ -139,7 +139,7 @@
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
             <p>{{statsName}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
-                <thead class="mdb-color lighten-3 white-text">
+                <thead class="mdb-color lighten-1 white-text">
                     <tr>
                         <th></th>
                         <th :colspan="failStats ? 3 : 4">request number</th>
@@ -154,7 +154,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
-                        <td>{{stepStats.StepName}}</td>
+                        <td><strong>{{stepStats.StepName}}</strong></td>
                         <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
                         <td v-if="!failStats">{{stepStats.Ok.Request.Count}}</td>
                         <td v-if="failStats || scenarioStats.FailCount === 0">{{stepStats.Fail.Request.Count}}</td>
@@ -170,7 +170,7 @@
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
             <p>{{statsName}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm">
-                <thead class="mdb-color lighten-2 white-text">
+                <thead class="mdb-color lighten-1 white-text">
                     <tr>
                         <th></th>
                         <th colspan="4">latency, ms</th>
@@ -190,7 +190,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
-                        <td>{{stepStats.StepName}}</td>
+                        <td><strong>{{stepStats.StepName}}</strong></td>
                         <td>{{stepStats[statsName].Latency.MinMs}}</td>
                         <td>{{stepStats[statsName].Latency.MeanMs}}</td>
                         <td>{{stepStats[statsName].Latency.MaxMs}}</td>
@@ -210,7 +210,7 @@
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
             <p>{{statsName}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
-                <thead class="mdb-color lighten-3 white-text">
+                <thead class="mdb-color lighten-1 white-text">
                     <tr>
                         <th></th>
                         <th colspan="4">data transfer</th>
@@ -225,7 +225,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
-                        <td>{{stepStats.StepName}}</td>
+                        <td><strong>{{stepStats.StepName}}</strong></td>
                         <td>{{stepStats[statsName].DataTransfer.MinKb}}</td>
                         <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
                         <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
@@ -274,7 +274,7 @@
         <div class="note note-danger scenario-stats">
             <p>Scenario Errors</p>
             <table class="table table-hover table-striped table-sm table-error-stats">
-            <thead class="mdb-color lighten-2 white-text">
+            <thead class="mdb-color lighten-1 white-text">
             <tr>
                 <th>error code</th>
                 <th>count</th>
@@ -283,7 +283,7 @@
             </thead>
             <tbody>
                 <tr v-for="(error, index) in errors" :key="`error-stats-${index}`">
-                    <td>{{error.ErrorCode}}</td>
+                    <td><strong>{{error.ErrorCode}}</strong></td>
                     <td>{{error.Count}}</td>
                     <td>{{error.Message}}</td>
                 </tr>
