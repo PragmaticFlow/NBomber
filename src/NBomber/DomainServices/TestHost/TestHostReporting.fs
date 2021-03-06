@@ -81,10 +81,25 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
+            let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
             let stats = scnStats |> ScenarioStats.round |> Array.singleton
             do! stats |> saveScenarioStats |> Async.AwaitTask
-            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = Array.empty } :: history
+            let! pluginStats = pluginStatsTask |> Async.AwaitTask
+            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = pluginStats } :: history
         }
+
+        let removeDuplicates (currentHistory: TimeLineHistoryRecord list) =
+
+            let filterOnlyCompleted (history: TimeLineHistoryRecord list) =
+                history
+                |> List.filter(fun x -> x.ScenarioStats |> Array.exists(fun x -> x.CurrentOperation = OperationType.Complete))
+
+            currentHistory
+            |> List.groupBy(fun x -> x.Duration)
+            |> List.collect(fun (duration,history) ->
+                if history.Length > 1 then history |> filterOnlyCompleted
+                else history
+            )
 
         let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
             match! inbox.Receive() with
@@ -97,7 +112,7 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
                 return! loop newHistory
 
             | GetTimeLines reply ->
-                reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration))
+                reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration) |> removeDuplicates)
                 return! loop currentHistory
 
             | GetFinalStats (nodeInfo, duration, reply) ->
