@@ -404,6 +404,15 @@ const initApp = (appContainer, viewModel) => {
                 },
                 data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.StdDev)
             }, {
+                name: '50%',
+                type: 'area',
+                marker: createSeriesMarker(),
+                color: theme.colors.stats.percentile50,
+                tooltip: {
+                    valueSuffix: ' ms'
+                },
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent50)
+            }, {
                 name: '75%',
                 type: 'area',
                 marker: createSeriesMarker(),
@@ -501,6 +510,7 @@ const initApp = (appContainer, viewModel) => {
                 mean: '#9e9d24', // lime darken-3
                 max: '#ff3d00', // deep-orange  darken-3
                 stdDev: '#558b2f', // light-green darken-3
+                percentile50: '#00838f', // cyan darken-3
                 percentile75: '#0277bd', // light-blue darken-3
                 percentile95: '#283593', // indigo darken-3
                 percentile99: '#6a1b9a', // purple darken-3
