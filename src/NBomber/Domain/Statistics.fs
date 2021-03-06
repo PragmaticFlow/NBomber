@@ -4,6 +4,7 @@ open System
 open System.Data
 
 open HdrHistogram
+open NBomber
 open Nessos.Streams
 open FSharp.UMX
 
@@ -17,8 +18,8 @@ module Converter =
         if sizeBytes > 0.0<bytes> then (% sizeBytes) / 1024.0<kb>
         else 0.0<kb>
 
-    let inline fromBytesToKb (sizeBytes: int64<bytes>) =
-        if sizeBytes > 0L<bytes> then (% float sizeBytes) / 1024.0<kb>
+    let inline fromBytesToKb (sizeBytes: int<bytes>) =
+        if sizeBytes > 0<bytes> then (% float sizeBytes) / 1024.0<kb>
         else 0.0<kb>
 
     let inline fromKbToMB (sizeKb: float<kb>) =
@@ -111,20 +112,20 @@ module LatencyStats =
           LatencyCount = latencyCount }
 
     let round (stats: LatencyStats) =
-        { stats with MinMs = stats.MinMs |> Converter.round 3
-                     MeanMs = stats.MeanMs |> Converter.round 3
-                     MaxMs = stats.MaxMs |> Converter.round 3
-                     Percent50 = stats.Percent50 |> Converter.round 3
-                     Percent75 = stats.Percent75 |> Converter.round 3
-                     Percent95 = stats.Percent95 |> Converter.round 3
-                     Percent99 = stats.Percent99 |> Converter.round 3
-                     StdDev = stats.StdDev |> Converter.round 3 }
+        { stats with MinMs = stats.MinMs |> Converter.round(Constants.DefaultStatsRounding)
+                     MeanMs = stats.MeanMs |> Converter.round(Constants.DefaultStatsRounding)
+                     MaxMs = stats.MaxMs |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent50 = stats.Percent50 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent75 = stats.Percent75 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent95 = stats.Percent95 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent99 = stats.Percent99 |> Converter.round(Constants.DefaultStatsRounding)
+                     StdDev = stats.StdDev |> Converter.round(Constants.DefaultStatsRounding) }
 
 module DataTransferStats =
 
     let create (stats: RawStepStats) =
 
-        let inline bytesToKb (value: int64) = value |> UMX.tag<bytes> |> Converter.fromBytesToKb |> UMX.untag
+        let inline bytesToKb (value: int64) = value |> int |> UMX.tag<bytes> |> Converter.fromBytesToKb |> UMX.untag
         let inline floatBytesToKb (value: float) = value |> UMX.tag<bytes> |> Converter.fromFloatBytesToKb |> UMX.untag
 
         let dataTransfer =
@@ -153,15 +154,15 @@ module DataTransferStats =
           AllMB = stats |> Stream.sumBy(fun x -> x.AllMB) }
 
     let round (stats: DataTransferStats) =
-        { stats with MinKb = stats.MinKb |> Converter.round 3
-                     MeanKb = stats.MeanKb |> Converter.round 3
-                     MaxKb = stats.MaxKb |> Converter.round 3
-                     Percent50 = stats.Percent50 |> Converter.round 3
-                     Percent75 = stats.Percent75 |> Converter.round 3
-                     Percent95 = stats.Percent95 |> Converter.round 3
-                     Percent99 = stats.Percent99 |> Converter.round 3
-                     StdDev = stats.StdDev |> Converter.round 3
-                     AllMB = stats.AllMB |> Converter.round 3 }
+        { stats with MinKb = stats.MinKb |> Converter.round(Constants.DefaultStatsRounding)
+                     MeanKb = stats.MeanKb |> Converter.round(Constants.DefaultStatsRounding)
+                     MaxKb = stats.MaxKb |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent50 = stats.Percent50 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent75 = stats.Percent75 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent95 = stats.Percent95 |> Converter.round(Constants.DefaultStatsRounding)
+                     Percent99 = stats.Percent99 |> Converter.round(Constants.DefaultStatsRounding)
+                     StdDev = stats.StdDev |> Converter.round(Constants.DefaultStatsRounding)
+                     AllMB = stats.AllMB |> Converter.round(Constants.DefaultStatsRounding) }
 
 module StepStats =
 
@@ -255,7 +256,7 @@ module ScenarioStats =
         create scenario simulationStats TimeSpan.Zero currentOperation Stream.empty
 
     let round (stats: ScenarioStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
+        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.DefaultStatsRounding)
                      StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
@@ -278,6 +279,6 @@ module NodeStats =
           Duration = maxDuration }
 
     let round (stats: NodeStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round 3
+        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.DefaultStatsRounding)
                      ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }

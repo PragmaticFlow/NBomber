@@ -61,8 +61,8 @@ module StepExecutionData =
             More800Less1200 = 0
             MoreOrEq1200 = 0
             AllMB = 0.0<mb>
-            LatencyHistogramTicks = LongHistogram(highestTrackableValue = Int64.MaxValue, numberOfSignificantValueDigits = 1)
-            DataTransferBytes = LongHistogram(highestTrackableValue = Int64.MaxValue, numberOfSignificantValueDigits = 1)
+            LatencyHistogramTicks = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
+            DataTransferBytes = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
         }
 
         { OkStats = createStats()

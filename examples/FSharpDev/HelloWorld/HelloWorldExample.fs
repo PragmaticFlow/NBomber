@@ -13,7 +13,7 @@ let run () =
 
         // you can do any logic here: go to http, websocket etc
         do! Task.Delay(milliseconds 1)
-        return Response.ok(42, sizeBytes = System.Int64.MaxValue / 2L) // this value will be passed as response for the next step
+        return Response.ok(42, sizeBytes = 2) // this value will be passed as response for the next step
     })
 
     let pause = Step.createPause(milliseconds 100)
