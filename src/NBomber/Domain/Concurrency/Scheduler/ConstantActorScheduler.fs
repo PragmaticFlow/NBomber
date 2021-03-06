@@ -31,7 +31,6 @@ type ConstantActorScheduler(dep: ActorDep) =
 
     let stop () =
         ScenarioActorPool.stopActors _actorPool
-        _scheduledActorCount <- 0
 
     let execScheduler (scheduledActorCount) =
         let workingActors = ScenarioActorPool.getWorkingActors _actorPool

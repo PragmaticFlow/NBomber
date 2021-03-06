@@ -30,7 +30,6 @@ type OneTimeActorScheduler(dep: ActorDep) =
 
     let stop () =
         ScenarioActorPool.stopActors _actorPool
-        _scheduledActorCount <- 0
 
     let execScheduler (scheduledActorCount: int) =
 
