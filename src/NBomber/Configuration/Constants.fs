@@ -53,4 +53,5 @@ let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue
-let DefaultStatsRounding = 2
+let StatsRounding = 1
+let TransferStatsRounding = 2

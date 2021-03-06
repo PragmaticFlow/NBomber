@@ -112,14 +112,14 @@ module LatencyStats =
           LatencyCount = latencyCount }
 
     let round (stats: LatencyStats) =
-        { stats with MinMs = stats.MinMs |> Converter.round(Constants.DefaultStatsRounding)
-                     MeanMs = stats.MeanMs |> Converter.round(Constants.DefaultStatsRounding)
-                     MaxMs = stats.MaxMs |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent50 = stats.Percent50 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent75 = stats.Percent75 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent95 = stats.Percent95 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent99 = stats.Percent99 |> Converter.round(Constants.DefaultStatsRounding)
-                     StdDev = stats.StdDev |> Converter.round(Constants.DefaultStatsRounding) }
+        { stats with MinMs = stats.MinMs |> Converter.round(Constants.StatsRounding)
+                     MeanMs = stats.MeanMs |> Converter.round(Constants.StatsRounding)
+                     MaxMs = stats.MaxMs |> Converter.round(Constants.StatsRounding)
+                     Percent50 = stats.Percent50 |> Converter.round(Constants.StatsRounding)
+                     Percent75 = stats.Percent75 |> Converter.round(Constants.StatsRounding)
+                     Percent95 = stats.Percent95 |> Converter.round(Constants.StatsRounding)
+                     Percent99 = stats.Percent99 |> Converter.round(Constants.StatsRounding)
+                     StdDev = stats.StdDev |> Converter.round(Constants.StatsRounding) }
 
 module DataTransferStats =
 
@@ -154,15 +154,15 @@ module DataTransferStats =
           AllMB = stats |> Stream.sumBy(fun x -> x.AllMB) }
 
     let round (stats: DataTransferStats) =
-        { stats with MinKb = stats.MinKb |> Converter.round(Constants.DefaultStatsRounding)
-                     MeanKb = stats.MeanKb |> Converter.round(Constants.DefaultStatsRounding)
-                     MaxKb = stats.MaxKb |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent50 = stats.Percent50 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent75 = stats.Percent75 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent95 = stats.Percent95 |> Converter.round(Constants.DefaultStatsRounding)
-                     Percent99 = stats.Percent99 |> Converter.round(Constants.DefaultStatsRounding)
-                     StdDev = stats.StdDev |> Converter.round(Constants.DefaultStatsRounding)
-                     AllMB = stats.AllMB |> Converter.round(Constants.DefaultStatsRounding) }
+        { stats with MinKb = stats.MinKb |> Converter.round(Constants.TransferStatsRounding)
+                     MeanKb = stats.MeanKb |> Converter.round(Constants.TransferStatsRounding)
+                     MaxKb = stats.MaxKb |> Converter.round(Constants.TransferStatsRounding)
+                     Percent50 = stats.Percent50 |> Converter.round(Constants.TransferStatsRounding)
+                     Percent75 = stats.Percent75 |> Converter.round(Constants.TransferStatsRounding)
+                     Percent95 = stats.Percent95 |> Converter.round(Constants.TransferStatsRounding)
+                     Percent99 = stats.Percent99 |> Converter.round(Constants.TransferStatsRounding)
+                     StdDev = stats.StdDev |> Converter.round(Constants.TransferStatsRounding)
+                     AllMB = stats.AllMB |> Converter.round(Constants.TransferStatsRounding) }
 
 module StepStats =
 
@@ -256,7 +256,7 @@ module ScenarioStats =
         create scenario simulationStats TimeSpan.Zero currentOperation Stream.empty
 
     let round (stats: ScenarioStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.DefaultStatsRounding)
+        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.TransferStatsRounding)
                      StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
@@ -279,6 +279,6 @@ module NodeStats =
           Duration = maxDuration }
 
     let round (stats: NodeStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.DefaultStatsRounding)
+        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.TransferStatsRounding)
                      ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }

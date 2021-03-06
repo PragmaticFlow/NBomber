@@ -64,7 +64,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.createAsync("pull step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.ok(sizeBytes = 100)
+        return Response.ok(sizeBytes = 1000)
     })
 
     Scenario.create "latency count test" [pullStep]
@@ -84,8 +84,8 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ stats.Ok.Latency.MinMs <= 103.0 @>
         test <@ stats.Ok.Latency.MeanMs <= 105.0 @>
         test <@ stats.Ok.Latency.MaxMs <= 115.0 @>
-        test <@ stats.Ok.DataTransfer.MinKb = 0.1 @>
-        test <@ stats.Ok.DataTransfer.AllMB >= 0.01 @>
+        test <@ stats.Ok.DataTransfer.MinKb = 0.98 @>
+        test <@ stats.Ok.DataTransfer.AllMB >= 0.05 && stats.Ok.DataTransfer.AllMB <= 0.09 @>
 
 [<Fact>]
 let ``can be duplicated to introduce repeatable behaviour`` () =
