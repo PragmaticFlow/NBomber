@@ -20,9 +20,9 @@ let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: b
     let actual = {| Size = response.SizeBytes |}
 
     if isNull payload then
-        test <@ 0L = actual.Size @>
+        test <@ 0 = actual.Size @>
     else
-        test <@ payload.LongLength = actual.Size @>
+        test <@ payload.Length = actual.Size @>
 
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =
@@ -64,12 +64,12 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.createAsync("pull step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.ok(sizeBytes = 100L)
+        return Response.ok(sizeBytes = 100)
     })
 
     Scenario.create "latency count test" [pullStep]
     |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/2/"
     |> NBomberRunner.run
@@ -81,11 +81,11 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
         test <@ stats.Ok.Request.RPS >= 6.0 @>
         test <@ stats.Ok.Request.RPS <= 10.0 @>
-        test <@ stats.Ok.Latency.MinMs <= 110.0 @>
-        test <@ stats.Ok.Latency.MeanMs <= 135.0 @>
-        test <@ stats.Ok.Latency.MaxMs <= 150.0 @>
-        test <@ stats.Ok.DataTransfer.MinKb = 0.098 @>
-        test <@ stats.Ok.DataTransfer.AllMB >= 0.0015 @>
+        test <@ stats.Ok.Latency.MinMs <= 103.0 @>
+        test <@ stats.Ok.Latency.MeanMs <= 105.0 @>
+        test <@ stats.Ok.Latency.MaxMs <= 115.0 @>
+        test <@ stats.Ok.DataTransfer.MinKb = 0.1 @>
+        test <@ stats.Ok.DataTransfer.AllMB >= 0.01 @>
 
 [<Fact>]
 let ``can be duplicated to introduce repeatable behaviour`` () =
@@ -252,7 +252,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
 
         test <@ st.Ok.Request.Count > 5 @>
         test <@ st.Ok.Request.RPS >= 9.0 @>
-        test <@ st.Ok.Latency.MinMs = 2_000.0 @>
+        test <@ st.Ok.Latency.MinMs <= 2_001.0 @>
 
 [<Fact>]
 let ``context StopTest should stop all scenarios`` () =

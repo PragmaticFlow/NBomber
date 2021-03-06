@@ -32,9 +32,9 @@ module StepExecutionData =
         let emptyData = Step.StepExecutionData.createEmpty()
 
         let clientResMs = if isClient then float latency else 0.0
-        let stepResMs = 200L
+        let stepResMs = int64 Int32.MaxValue
 
-        let clientResponse = { Payload = (); SizeBytes = 10L; Exception = None
+        let clientResponse = { Payload = (); SizeBytes = 10; Exception = None
                                ErrorCode = 0; LatencyMs = clientResMs }
         let stepResponse = {
             ClientResponse = clientResponse
@@ -43,13 +43,14 @@ module StepExecutionData =
         }
 
         let data = Step.StepExecutionData.addResponse emptyData stepResponse
-        let minTicks =
-            if clientResMs > 0.0 then clientResMs |> UMX.tag |> fromMsToTicks
-            else stepResMs |> UMX.tag
+        let realMinTicks =
+            if clientResMs > 0.0 then clientResMs |> UMX.tag |> fromMsToTicks |> UMX.untag
+            else stepResMs
 
-        let min = data.OkStats.LatencyHistogramTicks |> Histogram.min |> UMX.tag
+        let min = data.OkStats.LatencyHistogramTicks |> Histogram.min
 
-        test <@ min = minTicks @>
+        let acceptableDifference = min - realMinTicks
+        test <@ acceptableDifference < 1_000L @> // acceptableDifference is close to 0.1 ms
 
     [<Property>]
     let ``addResponse should properly calc latency count`` (latencies: uint32 list) =
@@ -60,7 +61,7 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun latency ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10L; Exception = None
+                Payload = (); SizeBytes = 10; Exception = None
                 ErrorCode = 0; LatencyMs = float latency
             }
             let stepResponse = {
@@ -92,7 +93,7 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun (isOk,latency) ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10L
+                Payload = (); SizeBytes = 10
                 Exception = if isOk then None else Some(Exception())
                 ErrorCode = 0; LatencyMs = 0.0
             }
@@ -146,7 +147,7 @@ module StepExecutionData =
         responseSizes
         |> Seq.iter(fun (isOk,resSize) ->
             let clientResponse = {
-                Payload = (); SizeBytes = int64 resSize
+                Payload = (); SizeBytes = int resSize
                 Exception = if isOk then None else Some(Exception())
                 ErrorCode = 0; LatencyMs = 1.0
             }
@@ -242,16 +243,16 @@ let ``NodeStats should be calculated properly`` () =
 
     let okStep = Step.createAsync("ok step", fun context -> task {
         do! Task.Delay(milliseconds 500)
-        return Response.ok(sizeBytes = 100L)
+        return Response.ok(sizeBytes = 100)
     })
 
     let failStep = Step.createAsync("fail step 1", fun context -> task {
         if context.InvocationCount <= 2 then
             do! Task.Delay(milliseconds 50)
-            return Response.ok(sizeBytes = 50L)
+            return Response.ok(sizeBytes = 50)
         else
             do! Task.Delay(milliseconds 500)
-            return Response.fail(reason = "reason 1", errorCode = 10, sizeBytes = 10L)
+            return Response.fail(reason = "reason 1", errorCode = 10, sizeBytes = 10)
     })
 
     let scenario =
@@ -270,12 +271,12 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st1.Ok.Request.Count >= 4 && st1.Ok.Request.Count <= 6 @>
         test <@ st1.Ok.Request.RPS >= 1.0 && st1.Ok.Request.RPS <= 1.5 @>
-        test <@ st1.Ok.Latency.MinMs <= 530.0 @>
-        test <@ st1.Ok.Latency.MaxMs <= 550.0 @>
-        test <@ st1.Ok.Latency.Percent50 <= 525.0 @>
+        test <@ st1.Ok.Latency.MinMs <= 503.0 @>
+        test <@ st1.Ok.Latency.MaxMs <= 515.0 @>
+        test <@ st1.Ok.Latency.Percent50 <= 505.0 @>
         test <@ st1.Ok.Latency.LatencyCount.LessOrEq800 >= 4 && st1.Ok.Latency.LatencyCount.LessOrEq800 <= 6 @>
-        test <@ st1.Ok.DataTransfer.MinKb = 0.101 @>
-        test <@ st1.Ok.DataTransfer.Percent50 = 0.101 @>
+        test <@ st1.Ok.DataTransfer.MinKb = 0.1 @>
+        test <@ st1.Ok.DataTransfer.Percent50 = 0.1 @>
         test <@ st1.Ok.DataTransfer.StdDev = 0.0 @>
 
         test <@ st1.Fail.Request.Count = 0 @>

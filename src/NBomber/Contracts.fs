@@ -21,7 +21,7 @@ type CorrelationId = {
 [<Struct>]
 type Response = {
     mutable Payload: obj
-    SizeBytes: int64
+    SizeBytes: int
     Exception: exn option
     ErrorCode: int
     LatencyMs: float
@@ -291,7 +291,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
-                     [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
+                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
                      [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
           SizeBytes = sizeBytes
@@ -303,7 +303,7 @@ type Response with
     static member ok(payload: byte[],
                      [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = payload
-          SizeBytes = if isNull payload then 0L else payload.LongLength
+          SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None
           ErrorCode = 0
           LatencyMs = latencyMs }
@@ -311,7 +311,7 @@ type Response with
     [<CompiledName("Fail")>]
     static member fail() =
         { Payload = null
-          SizeBytes = 0L
+          SizeBytes = 0
           Exception = Some(Exception "unknown client's error")
           ErrorCode = 0
           LatencyMs = 0.0 }
@@ -319,7 +319,7 @@ type Response with
     [<CompiledName("Fail")>]
     static member fail(ex: Exception,
                        [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
-                       [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
+                       [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
@@ -330,7 +330,7 @@ type Response with
     [<CompiledName("Fail")>]
     static member fail(reason: string,
                        [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
-                       [<Optional;DefaultParameterValue(0L:int64)>]sizeBytes: int64,
+                       [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
