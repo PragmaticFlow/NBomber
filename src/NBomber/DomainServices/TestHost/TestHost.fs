@@ -214,7 +214,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         |> List.iter(fun x ->
             x.EventStream
             |> Observable.choose(function
-                | ScenarioStarted stats -> Some stats
                 | ScenarioStopped stats -> Some stats
                 | _ -> None
             )

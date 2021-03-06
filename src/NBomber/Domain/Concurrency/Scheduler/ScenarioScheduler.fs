@@ -31,7 +31,7 @@ type ScenarioProgressInfo = {
 
 [<Struct>]
 type SchedulerEvent =
-    | ScenarioStarted of initialStats:ScenarioStats
+    | ScenarioStarted
     | ScenarioStopped of finalStats:ScenarioStats
     | ProgressUpdated of ScenarioProgressInfo
 
@@ -144,15 +144,11 @@ type ScenarioScheduler(dep: ActorDep) =
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)
 
-    let getInitialStats () =
-        let currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
-        let simulationStats = LoadTimeLine.createSimulationStats(currentSimulation, 0, 0)
-        ScenarioStats.empty dep.Scenario simulationStats OperationType.Bombing
     do
         _schedulerTimer.Elapsed.Add(fun _ ->
 
             if not dep.GlobalTimer.IsRunning then
-                _eventStream.OnNext(ScenarioStarted(getInitialStats()))
+                _eventStream.OnNext(ScenarioStarted)
                 dep.GlobalTimer.Restart()
 
             let currentTime = dep.GlobalTimer.Elapsed
