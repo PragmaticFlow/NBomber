@@ -21,6 +21,7 @@
 
     <link rel="stylesheet" href="assets/css/sidebar.css" /> <!-- include asset -->
     <link rel="stylesheet" href="assets/css/index.css" /> <!-- include asset -->
+
     <!-- No Data Template -->
     <script type="text/x-template" id="no-data-template">
         <h3>No Data</h3>
@@ -63,6 +64,16 @@
             </div>
         </div>
         <no-data v-else></no-data>
+    </script>
+
+    <!-- Scenarios Stats Template -->
+    <script type="text/x-template" id="scenario-stats-template">
+        <p class="note">
+            requests: <span class="text-primary">{{scenarioStats.RequestCount}}</span>,
+            ok requests: <span class="text-primary">{{scenarioStats.OkCount}}</span>,
+            fail requests: <span class="text-primary">{{scenarioStats.FailCount}}</span>,
+            all data: <span class="text-primary">{{scenarioStats.AllDataMB}}</span> MB
+        </p>
     </script>
 
     <!-- Scenarios Stats Table Template -->
@@ -118,25 +129,6 @@
                         <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
                         <td>{{stepStats[statsName].DataTransfer.AllMB}}</td>
                     </tr>
-                    <tr class="white-text">
-                        <th class="mdb-color lighten-2">total</th>
-                        <th class="mdb-color lighten-3">{{scenarioStats.RequestCount}}</th>
-                        <th class="mdb-color lighten-3" v-if="!failStats">{{scenarioStats.OkCount}}</th>
-                        <th class="mdb-color lighten-3" v-if="failStats || scenarioStats.FailCount === 0">{{scenarioStats.FailCount}}</th>
-                        <th class="mdb-color lighten-3"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-3"></th>
-                        <th class="mdb-color lighten-3"></th>
-                        <th class="mdb-color lighten-3"></th>
-                        <th class="mdb-color lighten-3"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"></th>
-                        <th class="mdb-color lighten-2"><span v-if="!failStats">{{scenarioStats.AllDataMB}}</span></th>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -167,13 +159,6 @@
                         <td v-if="!failStats">{{stepStats.Ok.Request.Count}}</td>
                         <td v-if="failStats || scenarioStats.FailCount === 0">{{stepStats.Fail.Request.Count}}</td>
                         <td>{{stepStats[statsName].Request.RPS}}</td>
-                    </tr>
-                    <tr class="mdb-color lighten-3 white-text">
-                        <th>total</th>
-                        <th>{{scenarioStats.RequestCount}}</th>
-                        <th v-if="!failStats">{{scenarioStats.OkCount}}</th>
-                        <th v-if="failStats || scenarioStats.FailCount === 0">{{scenarioStats.FailCount}}</th>
-                        <th></th>
                     </tr>
                 </tbody>
             </table>
@@ -215,17 +200,6 @@
                         <td>{{stepStats[statsName].Latency.Percent99}}</td>
                         <td>{{stepStats[statsName].Latency.StdDev}}</td>
                     </tr>
-                    <tr class="mdb-color lighten-2 white-text">
-                        <th>total</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -256,13 +230,6 @@
                         <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
                         <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
                         <td>{{stepStats[statsName].DataTransfer.AllMB}}</td>
-                    </tr>
-                    <tr class="mdb-color lighten-3 white-text">
-                        <th>total</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th><span v-if="!failStats">{{scenarioStats.AllDataMB}}</span></th>
                     </tr>
                 </tbody>
             </table>
@@ -495,6 +462,11 @@
                                     <div class="card-body">
                                         <div :id="`test-suite-scenario-content-${scenarioIndex}`" class="show">
                                             <!-- TestSuite View / Stats Table -->
+                                            <div class="row">
+                                                <div class="col">
+                                                    <scenario-stats :scenario-stats="scenarioStats"></scenario-stats>
+                                                </div>
+                                            </div>
                                             <div class="row d-none d-lg-block">
                                                 <div class="col">
                                                     <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-table>
@@ -613,6 +585,11 @@
                                     </div>
                                     <div class="card-body">
                                         <!-- Scenario View / Stats Table -->
+                                        <div class="row">
+                                            <div class="col">
+                                                <scenario-stats :scenario-stats="scenarioStats"></scenario-stats>
+                                            </div>
+                                        </div>
                                         <div class="row d-none d-lg-block">
                                             <div class="col">
                                                 <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-table>

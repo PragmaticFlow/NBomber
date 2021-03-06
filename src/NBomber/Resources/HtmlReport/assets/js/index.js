@@ -529,6 +529,11 @@ const initApp = (appContainer, viewModel) => {
         template: '#node-info-table-template'
     });
 
+    Vue.component('scenario-stats', {
+        props: ['scenarioStats'],
+        template: '#scenario-stats-template'
+    });
+
     Vue.component('scenario-stats-table', {
         props: ['scenarioStats', 'failStats'],
         template: '#scenario-stats-table-template',
