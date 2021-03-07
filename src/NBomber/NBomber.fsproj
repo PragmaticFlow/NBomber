@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>PragmaticFlow</Authors>
     <Company>PragmaticFlow</Company>
-    <Version>2.0.0-beta</Version>
+    <Version>2.0.0-beta1</Version>
     <Copyright>PragmaticFlow@2021</Copyright>
     <PackageLicenseUrl>https://github.com/PragmaticFlow/NBomber/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
@@ -37,6 +37,10 @@
     <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
     <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
+    <Compile Include="Infra\SpectreConsole\LevelOutputFormat.fs" />
+    <Compile Include="Infra\SpectreConsole\SpectreConsole.fs" />
+    <Compile Include="Infra\SpectreConsole\SpectreConsoleTextFormatter.fs" />
+    <Compile Include="Infra\SpectreConsole\SpectreConsoleSerilogSink.fs" />
     <Compile Include="Infra\Console.fs" />
     <Compile Include="Infra\ProgressBar.fs" />
     <Compile Include="Infra\Dependency.fs" />
@@ -89,8 +93,5 @@
     <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
     <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
     <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj" />
-  </ItemGroup>
+  </ItemGroup>  
 </Project>
