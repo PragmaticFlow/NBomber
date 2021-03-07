@@ -1,18 +1,12 @@
-module Tests.OneTimeActorScheduler
+module Tests.Concurrency.OneTimeActorScheduler
 
-open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
-open NBomber.Domain.Concurrency.Scheduler
 open Serilog
-open Tests
-open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
+open Xunit
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
@@ -70,5 +64,5 @@ let ``Stop should stop all working actors`` () =
     scheduler.Stop()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
-    test <@ scheduler.ScheduledActorCount = 0 @>
+    test <@ scheduler.ScheduledActorCount = 20 @>
     test <@ workingActors.Length = 0 @>
