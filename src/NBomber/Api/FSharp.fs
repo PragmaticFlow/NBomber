@@ -32,6 +32,7 @@ module TimeSpanApi =
     let inline seconds (value: int) = value |> float |> TimeSpan.FromSeconds
     let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
 
+[<RequireQualifiedAccess>]
 type ConnectionPoolArgs =
 
     static member internal create (name: string,
@@ -53,6 +54,7 @@ type ConnectionPoolArgs =
         ConnectionPoolArgs.create(name, openConnection, close, count)
 
 /// Data feed helps you to inject dynamic data into your test.
+[<RequireQualifiedAccess>]
 module Feed =
 
     /// Creates Feed that picks constant value per Step copy.
@@ -81,6 +83,7 @@ module Feed =
     let createRandomLazy (name) (getData: unit -> 'T seq) =
         NBomber.Domain.Feed.random(name, getData())
 
+[<RequireQualifiedAccess>]
 type Step =
 
     static member create (name: string,
@@ -124,6 +127,7 @@ type Step =
         Step.createPause(fun () -> milliseconds)
 
 /// Scenario helps to organize steps into sequential flow with different load simulations (concurrency control).
+[<RequireQualifiedAccess>]
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
@@ -167,6 +171,7 @@ module Scenario =
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
+[<RequireQualifiedAccess>]
 module NBomberRunner =
 
     /// Registers scenario in NBomber environment.
@@ -326,6 +331,7 @@ namespace NBomber.FSharp.SyncApi
     open NBomber.Domain.DomainTypes
     open NBomber.Domain.ConnectionPool
 
+    [<RequireQualifiedAccess>]
     type SyncStep =
 
         static member create (name: string,

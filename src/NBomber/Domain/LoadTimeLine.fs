@@ -1,4 +1,4 @@
-[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module internal NBomber.Domain.LoadTimeLine
 
 open System
