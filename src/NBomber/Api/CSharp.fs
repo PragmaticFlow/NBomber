@@ -55,67 +55,67 @@ type Step =
 
     static member Create<'TConnection,'TFeedItem>
         (name: string,
-         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
+         pool: IConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<'TConnection,'TFeedItem>,Response>,
+         exec: Func<IStepContext<'TConnection,'TFeedItem>,Response>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, Some connectionPoolArgs, Some feed, Some doNotTrack)
-
-    static member CreateAsync<'TConnection,'TFeedItem>
-        (name: string,
-         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-         feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.createAsync(name, execute.Invoke, Some connectionPoolArgs, Some feed, Some doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, pool, feed, doNotTrack)
 
     static member Create<'TConnection>
         (name: string,
-         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-         execute: Func<IStepContext<'TConnection,unit>,Response>,
+         pool: IConnectionPoolArgs<'TConnection>,
+         exec: Func<IStepContext<'TConnection,unit>,Response>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, Some connectionPoolArgs, None, Some doNotTrack)
-
-    static member CreateAsync<'TConnection>
-        (name: string,
-         connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-         execute: Func<IStepContext<'TConnection,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.createAsync(name, execute.Invoke, Some connectionPoolArgs, None, Some doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
 
     static member Create<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<unit,'TFeedItem>,Response>,
+         exec: Func<IStepContext<unit,'TFeedItem>,Response>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, None, Some feed, Some doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
+
+    static member Create
+        (name: string,
+         exec: Func<IStepContext<unit,unit>,Response>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+        FSharp.Step.create(name, exec.Invoke, doNotTrack = doNotTrack)
+
+    static member CreateAsync<'TConnection,'TFeedItem>
+        (name: string,
+         pool: IConnectionPoolArgs<'TConnection>,
+         feed: IFeed<'TFeedItem>,
+         exec: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+        FSharp.Step.createAsync(name, exec.Invoke, pool, feed, doNotTrack)
+
+    static member CreateAsync<'TConnection>
+        (name: string,
+         pool: IConnectionPoolArgs<'TConnection>,
+         exec: Func<IStepContext<'TConnection,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+        FSharp.Step.createAsync(name, exec.Invoke, pool, doNotTrack = doNotTrack)
 
     static member CreateAsync<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
+         exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.createAsync(name, execute.Invoke, None, Some feed, Some doNotTrack)
-
-    static member Create
-        (name: string,
-         execute: Func<IStepContext<unit,unit>,Response>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.create(name, execute.Invoke, None, None, Some doNotTrack)
+        FSharp.Step.createAsync(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
 
     static member CreateAsync
         (name: string,
-         execute: Func<IStepContext<unit,unit>,Task<Response>>,
+         exec: Func<IStepContext<unit,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.createAsync(name, execute.Invoke, None, None, Some doNotTrack)
+        FSharp.Step.createAsync(name, exec.Invoke, doNotTrack = doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =
