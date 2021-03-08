@@ -87,7 +87,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let mutable _disposed = false
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
-    let mutable _currentSimulation = LoadSimulation.KeepConstant(0, TimeSpan.MinValue)
+    let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
     let mutable _currentOperation = OperationType.None
 
     let _constantScheduler = new ConstantActorScheduler(dep)
