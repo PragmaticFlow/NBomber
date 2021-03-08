@@ -193,18 +193,18 @@ module StepExecutionData =
 [<Fact>]
 let ``ErrorStats should be calculated properly`` () =
 
-    let okStep = Step.createAsync("ok step", fun _ -> task {
+    let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
 
-    let failStep1 = Step.createAsync("fail step 1", fun context -> task {
+    let failStep1 = Step.create("fail step 1", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return if context.InvocationCount <= 10 then Response.fail(reason = "reason 1", errorCode = 10)
                else Response.ok()
     })
 
-    let failStep2 = Step.createAsync("fail step 2", fun context -> task {
+    let failStep2 = Step.create("fail step 2", fun context -> task {
         do! Task.Delay(milliseconds 10)
         return if context.InvocationCount <= 30 then Response.fail(reason = "reason 2", errorCode = 20)
                else Response.ok()
@@ -241,12 +241,12 @@ let ``ErrorStats should be calculated properly`` () =
 [<Fact>]
 let ``NodeStats should be calculated properly`` () =
 
-    let okStep = Step.createAsync("ok step", fun context -> task {
+    let okStep = Step.create("ok step", fun context -> task {
         do! Task.Delay(milliseconds 500)
         return Response.ok(sizeBytes = 100)
     })
 
-    let failStep = Step.createAsync("fail step 1", fun context -> task {
+    let failStep = Step.create("fail step 1", fun context -> task {
         if context.InvocationCount <= 2 then
             do! Task.Delay(milliseconds 50)
             return Response.ok(sizeBytes = 50)

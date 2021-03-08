@@ -84,28 +84,10 @@ module Feed =
 type Step =
 
     static member create (name: string,
-                          exec: IStepContext<'TConnection,'TFeedItem> -> Response,
+                          exec: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
                           ?pool: IConnectionPoolArgs<'TConnection>,
                           ?feed: IFeed<'TFeedItem>,
                           ?doNotTrack: bool) =
-        let poolArgs =
-            pool
-            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-            |> Option.map(fun x -> x.GetUntyped().Value)
-
-        { StepName = name
-          ConnectionPoolArgs = poolArgs
-          ConnectionPool = None
-          Execute = exec |> Step.toUntypedExecute |> SyncExec
-          Feed = feed |> Option.map Feed.toUntypedFeed
-          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
-          :> IStep
-
-    static member createAsync (name: string,
-                               exec: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                               ?pool: IConnectionPoolArgs<'TConnection>,
-                               ?feed: IFeed<'TFeedItem>,
-                               ?doNotTrack: bool) =
         let poolArgs =
             pool
             |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
@@ -122,7 +104,7 @@ type Step =
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.createAsync(name = "pause",
+        Step.create(name = "pause",
                          exec = (fun _ -> task { do! Task.Delay(getDuration())
                                                  return Response.ok() }),
                          doNotTrack = true)
@@ -335,3 +317,31 @@ module NBomberRunner =
         context
         |> runWithResult args
         |> Result.mapError(AppError.toString)
+
+namespace NBomber.FSharp.SyncApi
+
+    open NBomber
+    open NBomber.Contracts
+    open NBomber.Domain
+    open NBomber.Domain.DomainTypes
+    open NBomber.Domain.ConnectionPool
+
+    type SyncStep =
+
+        static member create (name: string,
+                              exec: IStepContext<'TConnection,'TFeedItem> -> Response,
+                              ?pool: IConnectionPoolArgs<'TConnection>,
+                              ?feed: IFeed<'TFeedItem>,
+                              ?doNotTrack: bool) =
+                let poolArgs =
+                    pool
+                    |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
+                    |> Option.map(fun x -> x.GetUntyped().Value)
+
+                { StepName = name
+                  ConnectionPoolArgs = poolArgs
+                  ConnectionPool = None
+                  Execute = exec |> Step.toUntypedExecute |> SyncExec
+                  Feed = feed |> Option.map Feed.toUntypedFeed
+                  DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+                  :> IStep

@@ -3,7 +3,6 @@
 #nowarn "3211"
 
 open System
-open System.Threading
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
@@ -57,7 +56,7 @@ type Step =
         (name: string,
          pool: IConnectionPoolArgs<'TConnection>,
          feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<'TConnection,'TFeedItem>,Response>,
+         exec: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
         FSharp.Step.create(name, exec.Invoke, pool, feed, doNotTrack)
@@ -65,7 +64,7 @@ type Step =
     static member Create<'TConnection>
         (name: string,
          pool: IConnectionPoolArgs<'TConnection>,
-         exec: Func<IStepContext<'TConnection,unit>,Response>,
+         exec: Func<IStepContext<'TConnection,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
         FSharp.Step.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
@@ -73,49 +72,17 @@ type Step =
     static member Create<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<unit,'TFeedItem>,Response>,
+         exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
         FSharp.Step.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
 
     static member Create
         (name: string,
-         exec: Func<IStepContext<unit,unit>,Response>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.create(name, exec.Invoke, doNotTrack = doNotTrack)
-
-    static member CreateAsync<'TConnection,'TFeedItem>
-        (name: string,
-         pool: IConnectionPoolArgs<'TConnection>,
-         feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.createAsync(name, exec.Invoke, pool, feed, doNotTrack)
-
-    static member CreateAsync<'TConnection>
-        (name: string,
-         pool: IConnectionPoolArgs<'TConnection>,
-         exec: Func<IStepContext<'TConnection,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.createAsync(name, exec.Invoke, pool, doNotTrack = doNotTrack)
-
-    static member CreateAsync<'TFeedItem>
-        (name: string,
-         feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-        FSharp.Step.createAsync(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
-
-    static member CreateAsync
-        (name: string,
          exec: Func<IStepContext<unit,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
-        FSharp.Step.createAsync(name, exec.Invoke, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, doNotTrack = doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =
@@ -315,3 +282,46 @@ type Simulation =
     /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
+
+namespace NBomber.CSharp.SyncApi
+
+    open System
+    open System.Runtime.InteropServices
+
+    open NBomber
+    open NBomber.Contracts
+    open NBomber.FSharp.SyncApi
+
+    type SyncStep =
+
+        static member Create<'TConnection,'TFeedItem>
+            (name: string,
+             pool: IConnectionPoolArgs<'TConnection>,
+             feed: IFeed<'TFeedItem>,
+             exec: Func<IStepContext<'TConnection,'TFeedItem>,Response>,
+             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+            SyncStep.create(name, exec.Invoke, pool, feed, doNotTrack)
+
+        static member Create<'TConnection>
+            (name: string,
+             pool: IConnectionPoolArgs<'TConnection>,
+             exec: Func<IStepContext<'TConnection,unit>,Response>,
+             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+            SyncStep.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
+
+        static member Create<'TFeedItem>
+            (name: string,
+             feed: IFeed<'TFeedItem>,
+             exec: Func<IStepContext<unit,'TFeedItem>,Response>,
+             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+            SyncStep.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
+
+        static member Create
+            (name: string,
+             exec: Func<IStepContext<unit,unit>,Response>,
+             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+
+            SyncStep.create(name, exec.Invoke, doNotTrack = doNotTrack)

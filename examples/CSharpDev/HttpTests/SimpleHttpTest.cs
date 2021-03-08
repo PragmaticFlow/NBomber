@@ -11,7 +11,7 @@ namespace CSharpDev.HttpTests
         {
             using var httpClient = new HttpClient();
 
-            var step = Step.CreateAsync("fetch_html_page", async context =>
+            var step = Step.Create("fetch_html_page", async context =>
             {
                 var response = await httpClient.GetAsync("https://nbomber.com");
 

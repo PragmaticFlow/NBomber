@@ -4,12 +4,15 @@ open System.Net.Http
 open FSharp.Control.Tasks.NonAffine
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.FSharp.SyncApi
 
 let run () =
 
     use httpClient = new HttpClient()
 
-    let step = Step.createAsync("fetch_html_page", fun context -> task {
+
+
+    let step = Step.create("fetch_html_page", fun context -> task {
 
         let! response = httpClient.GetAsync("https://nbomber.com")
 

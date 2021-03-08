@@ -26,7 +26,7 @@ let ``should distribute connection with one to one mapping if connectionPool.Cou
             connectionCount = poolCount
         )
 
-    let step = Step.createAsync("step", pool = pool, exec = fun context -> task {
+    let step = Step.create("step", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         if context.CorrelationId.CopyNumber <> context.Connection then
@@ -61,7 +61,7 @@ let ``should distribute connection using modulo if connectionPool.Count < loadSi
             connectionCount = poolCount
         )
 
-    let step = Step.createAsync("step", pool = pool, exec = fun context -> task {
+    let step = Step.create("step", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         let correctConnection = context.CorrelationId.CopyNumber % poolCount
@@ -97,12 +97,12 @@ let ``should be shared btw steps as singlton instance``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
 
-    let step2 = Step.createAsync("step_2", pool = pool, exec = fun context -> task {
+    let step2 = Step.create("step_2", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         let stepResponse = context.GetPreviousStepResponse<Guid>()
@@ -138,7 +138,7 @@ let ``openConnection should stop test session in case of failure``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -168,7 +168,7 @@ let ``openConnection should use try logic in case of some errors``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -197,7 +197,7 @@ let ``closeConnection should not affect test session in case of failure``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -227,12 +227,12 @@ let ``should be initialized one time per scenario``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
 
-    let step2 = Step.createAsync("step_2", pool = pool, exec = fun context -> task {
+    let step2 = Step.create("step_2", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -275,7 +275,7 @@ let ``should be initialized after scenario init``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -306,7 +306,7 @@ let ``should support 65K of connections``() =
             connectionCount = poolCount
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
@@ -339,12 +339,12 @@ let ``should not allow to have duplicates with the same name but different imple
             connectionCount = 100
         )
 
-    let step1 = Step.createAsync("step_1", pool = pool1, exec = fun context -> task {
+    let step1 = Step.create("step_1", pool = pool1, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
 
-    let step2 = Step.createAsync("step_2", pool = pool2, exec = fun context -> task {
+    let step2 = Step.create("step_2", pool = pool2, exec = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Connection)
     })
