@@ -47,12 +47,12 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         match simulation with
         | RampConstant _
         | KeepConstant _        ->
-            $"{simulationName}, copies: {simulationValue |> Console.highlightSecondary}"
+            $"load: {simulationName |> Console.highlightSecondary}, copies: {simulationValue |> Console.highlightSecondary}"
 
         | RampPerSec _
         | InjectPerSec _
         | InjectPerSecRandom _  ->
-            $"{simulationName}, rate: {simulationValue |> Console.highlightSecondary}"
+            $"load: {simulationName |> Console.highlightSecondary}, rate: {simulationValue |> Console.highlightSecondary}"
 
     let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
         let simulationDescription = createSimulationDescription simulation simulationValue
