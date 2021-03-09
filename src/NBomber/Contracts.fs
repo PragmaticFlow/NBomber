@@ -168,12 +168,14 @@ type IBaseContext =
     /// NBomber's logger
     abstract Logger: ILogger
 
+[<AllowNullLiteral>]
 type IConnectionPoolArgs<'TConnection> =
     abstract PoolName: string
     abstract ConnectionCount: int
     abstract OpenConnection: number:int * context:IBaseContext -> Task<'TConnection>
     abstract CloseConnection: connection:'TConnection * context:IBaseContext -> Task
 
+[<AllowNullLiteral>]
 type IFeed<'TFeedItem> =
     abstract FeedName: string
     abstract Init: context:IBaseContext -> Task
