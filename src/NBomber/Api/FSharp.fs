@@ -88,12 +88,6 @@ type Step =
                           ?pool: IConnectionPoolArgs<'TConnection>,
                           ?feed: IFeed<'TFeedItem>,
                           ?doNotTrack: bool) =
-
-        // validate that user set pool = null or feed = null
-        let pool = pool |> Option.bind(Option.ofObj)
-        let feed = feed |> Option.bind(Option.ofObj)
-        let doNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
-
         let poolArgs =
             pool
             |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
@@ -103,8 +97,8 @@ type Step =
           ConnectionPoolArgs = poolArgs
           ConnectionPool = None
           Execute = exec |> Step.toUntypedExecuteAsync |> AsyncExec
-          Feed = feed |> Option.map(Feed.toUntypedFeed)
-          DoNotTrack = doNotTrack }
+          Feed = feed |> Option.map Feed.toUntypedFeed
+          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
     /// Creates pause step with specified duration in lazy mode.
@@ -339,21 +333,15 @@ namespace NBomber.FSharp.SyncApi
                               ?pool: IConnectionPoolArgs<'TConnection>,
                               ?feed: IFeed<'TFeedItem>,
                               ?doNotTrack: bool) =
+                let poolArgs =
+                    pool
+                    |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
+                    |> Option.map(fun x -> x.GetUntyped().Value)
 
-            // validate that user set pool = null or feed = null
-            let pool = pool |> Option.bind(Option.ofObj)
-            let feed = feed |> Option.bind(Option.ofObj)
-            let doNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
-
-            let poolArgs =
-                pool
-                |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-                |> Option.map(fun x -> x.GetUntyped().Value)
-
-            { StepName = name
-              ConnectionPoolArgs = poolArgs
-              ConnectionPool = None
-              Execute = exec |> Step.toUntypedExecute |> SyncExec
-              Feed = feed |> Option.map Feed.toUntypedFeed
-              DoNotTrack = doNotTrack }
-              :> IStep
+                { StepName = name
+                  ConnectionPoolArgs = poolArgs
+                  ConnectionPool = None
+                  Execute = exec |> Step.toUntypedExecute |> SyncExec
+                  Feed = feed |> Option.map Feed.toUntypedFeed
+                  DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+                  :> IStep
