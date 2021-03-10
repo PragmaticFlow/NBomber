@@ -75,9 +75,11 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
         let fetchAndSaveBombingStats (duration, history) = async {
             let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
             let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
-            do! scnStats |> saveScenarioStats |> Async.AwaitTask
-            let! pluginStats = pluginStatsTask |> Async.AwaitTask
-            return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
+            if Array.isEmpty scnStats then return history
+            else
+                do! scnStats |> saveScenarioStats |> Async.AwaitTask
+                let! pluginStats = pluginStatsTask |> Async.AwaitTask
+                return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
@@ -102,24 +104,27 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
             )
 
         let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
-            match! inbox.Receive() with
-            | FetchAndSaveBombingStats duration ->
-                let! newHistory = fetchAndSaveBombingStats(duration, currentHistory)
-                return! loop newHistory
+            try
+                match! inbox.Receive() with
+                | FetchAndSaveBombingStats duration ->
+                    let! newHistory = fetchAndSaveBombingStats(duration, currentHistory)
+                    return! loop newHistory
 
-            | AddAndSaveScenarioStats scnStats ->
-                let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
-                return! loop newHistory
+                | AddAndSaveScenarioStats scnStats ->
+                    let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
+                    return! loop newHistory
 
-            | GetTimeLines reply ->
-                reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration) |> removeDuplicates)
-                return! loop currentHistory
+                | GetTimeLines reply ->
+                    reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration) |> removeDuplicates)
+                    return! loop currentHistory
 
-            | GetFinalStats (nodeInfo, duration, reply) ->
-                getNodeStats nodeInfo OperationType.Complete None duration
-                |> TaskOption.map(NodeStats.round >> reply.Reply)
-                |> Task.WaitAll
-                return! loop currentHistory
+                | GetFinalStats (nodeInfo, duration, reply) ->
+                    getNodeStats nodeInfo OperationType.Complete None duration
+                    |> TaskOption.map(NodeStats.round >> reply.Reply)
+                    |> Task.WaitAll
+                    return! loop currentHistory
+            with
+            | ex -> dep.Logger.Fatal(ex, "Reporting actor failed.")
         }
         loop List.empty
     )
