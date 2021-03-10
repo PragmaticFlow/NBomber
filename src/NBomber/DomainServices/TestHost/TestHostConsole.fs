@@ -1,6 +1,5 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
-open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -141,7 +140,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                         let leftNumberOfTicks = getProgressTickInterval() |> ProgressBar.getLeftNumberOfTicks task
 
                         if leftNumberOfTicks > 0.0 then
-                            task.StopTask() |> ignore
+                            task.StopTask()
 
                             scheduler.Scenario.ScenarioName
                             |> createDescriptionForStoppedTask task
