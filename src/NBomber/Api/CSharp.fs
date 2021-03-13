@@ -13,13 +13,13 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
 
-type ConnectionPoolArgs =
+type ClientFactory =
 
-    static member Create<'TConnection>(name: string,
-                                       openConnection: Func<int,IBaseContext,Task<'TConnection>>,
-                                       closeConnection: Func<'TConnection,IBaseContext,Task>,
-                                       [<Optional;DefaultParameterValue(Constants.DefaultConnectionCount:int)>]connectionCount: int) =
-        FSharp.ConnectionPoolArgs.create(name, openConnection.Invoke, closeConnection.Invoke, connectionCount)
+    static member Create<'TClient>(name: string,
+                                   initClient: Func<int,IBaseContext,Task<'TClient>>,
+                                   [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
+
+        FSharp.ClientFactory.create(name, initClient.Invoke, clientCount)
 
 /// Data feed helps you to inject dynamic data into your test.
 type Feed =
@@ -52,35 +52,35 @@ type Feed =
 
 type Step =
 
-    static member Create<'TConnection,'TFeedItem>
+    static member Create<'TClient,'TFeedItem>
         (name: string,
-         pool: IConnectionPoolArgs<'TConnection>,
+         clientFactory: IClientFactory<'TClient>,
          feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<'TConnection,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+         exec: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, pool, feed, doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, clientFactory, feed, doNotTrack)
 
-    static member Create<'TConnection>
+    static member Create<'TClient>
         (name: string,
-         pool: IConnectionPoolArgs<'TConnection>,
-         exec: Func<IStepContext<'TConnection,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+         clientFactory: IClientFactory<'TClient>,
+         exec: Func<IStepContext<'TClient,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, exec.Invoke, clientFactory, doNotTrack = doNotTrack)
 
     static member Create<'TFeedItem>
         (name: string,
          feed: IFeed<'TFeedItem>,
          exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
 
         FSharp.Step.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
 
     static member Create
         (name: string,
          exec: Func<IStepContext<unit,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
 
         FSharp.Step.create(name, exec.Invoke, doNotTrack = doNotTrack)
 
@@ -294,19 +294,19 @@ namespace NBomber.CSharp.SyncApi
 
     type SyncStep =
 
-        static member Create<'TConnection,'TFeedItem>
+        static member Create<'TClient,'TFeedItem>
             (name: string,
-             pool: IConnectionPoolArgs<'TConnection>,
+             pool: IClientFactory<'TClient>,
              feed: IFeed<'TFeedItem>,
-             exec: Func<IStepContext<'TConnection,'TFeedItem>,Response>,
+             exec: Func<IStepContext<'TClient,'TFeedItem>,Response>,
              [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
             SyncStep.create(name, exec.Invoke, pool, feed, doNotTrack)
 
-        static member Create<'TConnection>
+        static member Create<'TClient>
             (name: string,
-             pool: IConnectionPoolArgs<'TConnection>,
-             exec: Func<IStepContext<'TConnection,unit>,Response>,
+             pool: IClientFactory<'TClient>,
+             exec: Func<IStepContext<'TClient,unit>,Response>,
              [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
 
             SyncStep.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)

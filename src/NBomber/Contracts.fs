@@ -168,26 +168,25 @@ type IBaseContext =
     /// NBomber's logger
     abstract Logger: ILogger
 
-type IConnectionPoolArgs<'TConnection> =
-    abstract PoolName: string
-    abstract ConnectionCount: int
-    abstract OpenConnection: number:int * context:IBaseContext -> Task<'TConnection>
-    abstract CloseConnection: connection:'TConnection * context:IBaseContext -> Task
+type IClientFactory<'TClient> =
+    abstract FactoryName: string
+    abstract ClientCount: int
+    abstract InitClient: number:int * context:IBaseContext -> Task<'TClient>
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string
     abstract Init: context:IBaseContext -> Task
     abstract GetNextItem: correlationId:CorrelationId * stepData:Dict<string,obj> -> 'TFeedItem
 
-type IStepContext<'TConnection,'TFeedItem> =
+type IStepContext<'TClient,'TFeedItem> =
     /// It's unique identifier which represent current scenario thread
     /// correlation_id = scenario_name + scenario_copy_number
     abstract CorrelationId: CorrelationId
     /// Cancellation token is a standard mechanics for canceling long-running operations.
     /// Cancellation token should be used to help NBomber stop scenarios when the test is finished.
     abstract CancellationToken: CancellationToken
-    /// Connection which is taken from attached ConnectionPool.
-    abstract Connection: 'TConnection
+    /// Client which is taken from the ClientPool.
+    abstract Client: 'TClient
     /// Step's dictionary which you can use to share data between steps (within one scenario).
     abstract Data: Dict<string,obj>
     /// Feed item taken from attached feed.
@@ -290,9 +289,9 @@ type NBomberContext = {
 type Response with
 
     [<CompiledName("Ok")>]
-    static member ok([<Optional;DefaultParameterValue(null:obj)>]payload: obj,
-                     [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
-                     [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
+    static member ok([<Optional;DefaultParameterValue(null:obj)>] payload: obj,
+                     [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
+                     [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
         { Payload = payload
           SizeBytes = sizeBytes
           Exception = None
@@ -301,7 +300,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
-                     [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
+                     [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None
@@ -318,9 +317,9 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail(ex: Exception,
-                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
-                       [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
-                       [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
+                       [<Optional;DefaultParameterValue(0:int)>] errorCode: int,
+                       [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
+                       [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
           Exception = Some(ex)
@@ -329,9 +328,9 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail(reason: string,
-                       [<Optional;DefaultParameterValue(0:int)>]errorCode: int,
-                       [<Optional;DefaultParameterValue(0:int)>]sizeBytes: int,
-                       [<Optional;DefaultParameterValue(0.0:float)>]latencyMs: float) =
+                       [<Optional;DefaultParameterValue(0:int)>] errorCode: int,
+                       [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
+                       [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
           Exception = Some(Exception reason)

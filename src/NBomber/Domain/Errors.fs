@@ -26,7 +26,7 @@ type ValidationError =
     | SessionIsWrong
     | SendStatsValueSmallerThanMin
     | SendStatsConfigValueHasInvalidFormat of value:string
-    | DuplicateConnectionPoolName of scenarioName:string * poolName:string
+    | DuplicateClientFactoryName of scenarioName:string * factoryName:string
 
     // ConcurrencyScheduler
     | SimulationIsSmallerThanMin of simulation:string
@@ -94,8 +94,8 @@ type AppError =
         | SendStatsConfigValueHasInvalidFormat value ->
             sprintf """SendStatsInterval config value: '%s' has invalid format. The value should be in this format: "00:00:00".""" value
 
-        | DuplicateConnectionPoolName (scenarioName, poolName) ->
-            sprintf "Scenario: '%s' contains connection pool with duplicated name: '%s'." scenarioName poolName
+        | DuplicateClientFactoryName (scenarioName, factoryName) ->
+            $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'."
 
         | SimulationIsSmallerThanMin simulation ->
             sprintf "Simulation duration: '%A' is smaller than min value: '%s'." simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))

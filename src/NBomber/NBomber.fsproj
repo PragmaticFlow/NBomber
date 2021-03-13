@@ -23,7 +23,7 @@
     <Compile Include="Configuration\Configuration.fs" />
     <Compile Include="Configuration\Constants.fs" />
     <Compile Include="Contracts.fs" />
-    <Compile Include="Domain\ConnectionPool.fs" />
+    <Compile Include="Domain\ClientPool.fs" />
     <Compile Include="Domain\DomainTypes.fs" />
     <Compile Include="Domain\Statistics.fs" />
     <Compile Include="Domain\HintsAnalyzer.fs" />

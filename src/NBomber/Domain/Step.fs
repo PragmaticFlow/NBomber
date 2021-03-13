@@ -16,7 +16,7 @@ open NBomber
 open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.Domain.Statistics
 
 type StepDep = {
@@ -33,17 +33,17 @@ module StepContext =
 
     let create (dep: StepDep) (step: Step) =
 
-        let getConnection (pool: ConnectionPool option) =
+        let getClient (pool: ClientPool option) =
             match pool with
             | Some v ->
-                let index = dep.CorrelationId.CopyNumber % v.AliveConnections.Length
-                v.AliveConnections.[index]
+                let index = dep.CorrelationId.CopyNumber % v.InitializedClients.Length
+                v.InitializedClients.[index]
 
             | None -> Unchecked.defaultof<_>
 
         { CorrelationId = dep.CorrelationId
           CancellationToken = dep.CancellationToken
-          Connection = getConnection step.ConnectionPool
+          Client = getClient step.ClientPool
           Logger = dep.Logger
           FeedItem = Unchecked.defaultof<_>
           Data = Dict.empty
@@ -133,15 +133,15 @@ module RunningStep =
         context.FeedItem <- feedItem
         step
 
-let toUntypedExecute (execute: IStepContext<'TConnection,'TFeedItem> -> Response) =
+let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
 
     fun (untypedCtx: UntypedStepContext) ->
 
         let typedCtx = {
-            new IStepContext<'TConnection,'TFeedItem> with
+            new IStepContext<'TClient,'TFeedItem> with
                 member _.CorrelationId = untypedCtx.CorrelationId
                 member _.CancellationToken = untypedCtx.CancellationToken
-                member _.Connection = untypedCtx.Connection :?> 'TConnection
+                member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
                 member _.Logger = untypedCtx.Logger
@@ -162,15 +162,15 @@ let toUntypedExecute (execute: IStepContext<'TConnection,'TFeedItem> -> Response
 
         execute typedCtx
 
-let toUntypedExecuteAsync (execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>) =
+let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>) =
 
     fun (untypedCtx: UntypedStepContext) ->
 
         let typedCtx = {
-            new IStepContext<'TConnection,'TFeedItem> with
+            new IStepContext<'TClient,'TFeedItem> with
                 member _.CorrelationId = untypedCtx.CorrelationId
                 member _.CancellationToken = untypedCtx.CancellationToken
-                member _.Connection = untypedCtx.Connection :?> 'TConnection
+                member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
                 member _.Logger = untypedCtx.Logger

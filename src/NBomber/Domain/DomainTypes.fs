@@ -10,7 +10,7 @@ open HdrHistogram
 open Serilog
 
 open NBomber.Contracts
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.Extensions.InternalExtensions
 
 [<Measure>] type ticks
@@ -26,7 +26,7 @@ type StopCommand =
 type UntypedStepContext = {
     CorrelationId: CorrelationId
     CancellationToken: CancellationToken
-    Connection: obj
+    Client: obj
     Logger: ILogger
     mutable FeedItem: obj
     mutable Data: Dict<string,obj>
@@ -41,8 +41,8 @@ type StepExecution =
 
 type Step = {
     StepName: string
-    ConnectionPoolArgs: ConnectionPoolArgs<obj> option
-    ConnectionPool: ConnectionPool option
+    ClientFactory: ClientFactory<obj> option
+    ClientPool: ClientPool option
     Execute: StepExecution
     Feed: IFeed<obj> option
     DoNotTrack: bool

@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Runtime
+open System.Runtime.InteropServices
 open System.Threading.Tasks
 
 open Serilog
@@ -17,7 +18,7 @@ open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.DomainServices
 
 type CommandLineArgs = {
@@ -33,25 +34,13 @@ module TimeSpanApi =
     let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
 
 [<RequireQualifiedAccess>]
-type ConnectionPoolArgs =
-
-    static member internal create (name: string,
-                                   openConnection: int * IBaseContext -> Task<'TConnection>,
-                                   closeConnection: 'TConnection * IBaseContext -> Task,
-                                   ?connectionCount: int) =
-
-        let count = defaultArg connectionCount Constants.DefaultConnectionCount
-        ConnectionPoolArgs(name, count, openConnection, closeConnection)
-        :> IConnectionPoolArgs<'TConnection>
+type ClientFactory =
 
     static member create (name: string,
-                          openConnection: int * IBaseContext -> Task<'TConnection>,
-                          closeConnection: 'TConnection * IBaseContext -> Task<unit>,
-                          ?connectionCount: int) =
+                          initClient: int * IBaseContext -> Task<'TClient>,
+                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
 
-        let close = fun (connection,token) -> closeConnection(connection,token) :> Task
-        let count = defaultArg connectionCount Constants.DefaultConnectionCount
-        ConnectionPoolArgs.create(name, openConnection, close, count)
+        ClientFactory(name, clientCount, initClient) :> IClientFactory<'TClient>
 
 /// Data feed helps you to inject dynamic data into your test.
 [<RequireQualifiedAccess>]
@@ -87,18 +76,19 @@ module Feed =
 type Step =
 
     static member create (name: string,
-                          exec: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                          ?pool: IConnectionPoolArgs<'TConnection>,
+                          exec: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
+                          ?clientFactory: IClientFactory<'TClient>,
                           ?feed: IFeed<'TFeedItem>,
                           ?doNotTrack: bool) =
-        let poolArgs =
-            pool
-            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-            |> Option.map(fun x -> x.GetUntyped().Value)
+
+        let factory =
+            clientFactory
+            |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
+            |> Option.map(fun x -> x.GetUntyped())
 
         { StepName = name
-          ConnectionPoolArgs = poolArgs
-          ConnectionPool = None
+          ClientFactory = factory
+          ClientPool = None
           Execute = exec |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
@@ -329,25 +319,26 @@ namespace NBomber.FSharp.SyncApi
     open NBomber.Contracts
     open NBomber.Domain
     open NBomber.Domain.DomainTypes
-    open NBomber.Domain.ConnectionPool
+    open NBomber.Domain.ClientPool
 
     [<RequireQualifiedAccess>]
     type SyncStep =
 
         static member create (name: string,
-                              exec: IStepContext<'TConnection,'TFeedItem> -> Response,
-                              ?pool: IConnectionPoolArgs<'TConnection>,
+                              exec: IStepContext<'TClient,'TFeedItem> -> Response,
+                              ?clientFactory: IClientFactory<'TClient>,
                               ?feed: IFeed<'TFeedItem>,
                               ?doNotTrack: bool) =
-                let poolArgs =
-                    pool
-                    |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-                    |> Option.map(fun x -> x.GetUntyped().Value)
 
-                { StepName = name
-                  ConnectionPoolArgs = poolArgs
-                  ConnectionPool = None
-                  Execute = exec |> Step.toUntypedExecute |> SyncExec
-                  Feed = feed |> Option.map Feed.toUntypedFeed
-                  DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
-                  :> IStep
+            let factory =
+                clientFactory
+                |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
+                |> Option.map(fun x -> x.GetUntyped())
+
+            { StepName = name
+              ClientFactory = factory
+              ClientPool = None
+              Execute = exec |> Step.toUntypedExecute |> SyncExec
+              Feed = feed |> Option.map Feed.toUntypedFeed
+              DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+              :> IStep

@@ -11,7 +11,7 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -161,11 +161,11 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
             displayProgressForOneScenario(scnSchedulers.Head) |> ignore
     | _ -> ()
 
-let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPool list) =
+let displayClientPoolsProgress (dep: IGlobalDependency, pools: ClientPool list) =
     match dep.ApplicationType with
     | ApplicationType.Console ->
         pools
-        |> List.map(fun pool -> { Description = pool.PoolName; Ticks = pool.ConnectionCount |> float })
+        |> List.map(fun pool -> { Description = pool.PoolName; Ticks = pool.ClientCount |> float })
         |> ProgressBar.create
            (fun tasks ->
                 tasks
@@ -175,19 +175,16 @@ let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPoo
                         let setPbDescription = ProgressBar.setDescription task >> ignore
 
                         match event with
-                        | StartedInit poolName ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opening connection"
+                        | StartedInit poolName
+                        | StartedDispose poolName -> ()
 
-                        | StartedStop poolName ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}closing connection"
-
-                        | ConnectionOpened (poolName, number) ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightSecondary}"
+                        | ClientInitialized (poolName, number) ->
+                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}initialized client: {number |> Console.highlightSecondary}"
                             Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
 
-                        | ConnectionClosed error ->
+                        | ClientDisposed error ->
                             Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
-                            error |> Option.map(fun ex -> dep.Logger.Error(ex, "Close connection exception occurred.")) |> ignore
+                            error |> Option.map(fun ex -> dep.Logger.Error(ex, "Client exception occurred.")) |> ignore
 
                         | InitFinished
                         | InitFailed -> ()

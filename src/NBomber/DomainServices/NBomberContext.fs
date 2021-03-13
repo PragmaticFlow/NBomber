@@ -18,14 +18,14 @@ type SessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
-    ConnectionPoolSettings: ConnectionPoolSetting list
+    ClientFactorySettings: ClientFactorySetting list
     SendStatsInterval: TimeSpan
 } with
     static member Empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
-        ConnectionPoolSettings = List.empty
+        ClientFactorySettings = List.empty
         SendStatsInterval = Constants.DefaultSendStatsInterval
     }
 
@@ -174,7 +174,7 @@ let getSendStatsInterval (context: NBomberContext) =
     |> Option.map(Validation.checkSendStatsSettings)
     |> Option.defaultValue(context.Reporting.SendStatsInterval |> Validation.checkSendStatsInterval)
 
-let getConnectionPoolSettings (context: NBomberContext) =
+let getClientFactorySettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -182,10 +182,10 @@ let getConnectionPoolSettings (context: NBomberContext) =
 
         return scnSettings |> List.collect(fun scn ->
             option {
-                let! poolSettings = scn.ConnectionPoolSettings
-                return poolSettings |> List.map(fun pool ->
-                    let newName = Scenario.ConnectionPool.createPoolName pool.PoolName scn.ScenarioName
-                    { pool with PoolName = newName }
+                let! factorySettings = scn.ClientFactorySettings
+                return factorySettings |> List.map(fun pool ->
+                    let newName = Scenario.ClientFactory.createName pool.FactoryName scn.ScenarioName
+                    { pool with FactoryName = newName }
                 )
             }
             |> Option.defaultValue List.empty
@@ -202,13 +202,13 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         let! reportFolder      = context |> getReportFolder    |> Validation.checkReportFolder
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
-        let connectionPoolSettings = context |> getConnectionPoolSettings
+        let clientFactorySettings = context |> getClientFactorySettings
 
         return {
           TestInfo = testInfo
           ScenariosSettings = scenariosSettings
           TargetScenarios = targetScenarios
-          ConnectionPoolSettings = connectionPoolSettings
+          ClientFactorySettings = clientFactorySettings
           SendStatsInterval = sendStatsInterval
         }
     }

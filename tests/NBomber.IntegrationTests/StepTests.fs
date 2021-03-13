@@ -82,7 +82,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ stats.Ok.Request.RPS >= 6.0 @>
         test <@ stats.Ok.Request.RPS <= 10.0 @>
         test <@ stats.Ok.Latency.MinMs <= 103.0 @>
-        test <@ stats.Ok.Latency.MeanMs <= 105.0 @>
+        test <@ stats.Ok.Latency.MeanMs <= 108.0 @>
         test <@ stats.Ok.Latency.MaxMs <= 115.0 @>
         test <@ stats.Ok.DataTransfer.MinKb = 0.98 @>
         test <@ stats.Ok.DataTransfer.AllMB >= 0.05 && stats.Ok.DataTransfer.AllMB <= 0.09 @>
