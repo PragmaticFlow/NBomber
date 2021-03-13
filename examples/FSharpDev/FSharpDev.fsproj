@@ -26,6 +26,7 @@
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <Compile Include="ClientFactory\HttpClientFactory.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

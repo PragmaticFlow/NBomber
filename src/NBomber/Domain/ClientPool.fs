@@ -37,7 +37,7 @@ type ClientPoolEvent =
     | StartedInit       of poolName:string
     | StartedDispose    of poolName:string
     | ClientInitialized of poolName:string * clientNumber:int
-    | ClientDisposed    of error:exn option
+    | ClientDisposed    of poolName:string * clientNumber:int * error:exn option
     | InitFinished
     | InitFailed
 
@@ -86,13 +86,15 @@ type ClientPool(factory: IClientFactory<obj>) =
     let disposeAllClients () =
         _eventStream.OnNext(StartedDispose factory.FactoryName)
 
+        let mutable counter = 0
         for client in _initializedClients do
+            counter <- counter + 1
             try
                 if client :? IDisposable then (client :?> IDisposable).Dispose()
-                _eventStream.OnNext(ClientDisposed(error = None))
+                _eventStream.OnNext(ClientDisposed(factory.FactoryName, counter, error = None))
             with
             | ex ->
-                _eventStream.OnNext(ClientDisposed(error = Some ex))
+                _eventStream.OnNext(ClientDisposed(factory.FactoryName, counter, error = Some ex))
 
     let dispose () =
         if not _disposed then

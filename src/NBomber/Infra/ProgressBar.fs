@@ -43,30 +43,39 @@ let private createProgressTask (ctx: ProgressContext) (config: ProgressTaskConfi
 
     task
 
-let create (created: ProgressTask list -> unit)
-           (config: ProgressTaskConfig list) =
+let create (pbHandler: ProgressTask list -> unit) (config: ProgressTaskConfig list) =
 
     AnsiConsole.Progress()
-    |> fun progress -> ProgressExtensions.AutoRefresh(progress, true)
-    |> fun progress -> ProgressExtensions.AutoClear(progress, false)
-    |> fun progress -> ProgressExtensions.Columns(progress, defaultColumns)
-    |> fun progress ->
-        progress.StartAsync(fun ctx ->
+    |> fun progressBar -> ProgressExtensions.AutoRefresh(progressBar, true)
+    |> fun progressBar -> ProgressExtensions.AutoClear(progressBar, false)
+    |> fun progressBar -> ProgressExtensions.Columns(progressBar, defaultColumns)
+    |> fun progressBar ->
+        progressBar.StartAsync(fun ctx ->
             task {
-                config |> List.map(createProgressTask ctx) |> created
+                config |> List.map(createProgressTask ctx) |> pbHandler
 
                 while not ctx.IsFinished do
-                    do! Task.Delay(TimeSpan.FromMilliseconds 100.0)
+                    do! Task.Delay(TimeSpan.FromMilliseconds 1000.0)
             }
         )
 
-let setDescription (task: ProgressTask) (description: string) =
-    task.Description <- description
-    task
+let setDescription (description: string) (pbTask: ProgressTask) =
+    pbTask.Description <- description
+    pbTask
 
-let tick (task: ProgressTask) (progressTickInterval: float) =
-    task.Increment(progressTickInterval)
-    task
+let tick (progressTickInterval: float) (pbTask: ProgressTask) =
+    pbTask.Increment(progressTickInterval)
 
-let getLeftNumberOfTicks (task: ProgressTask) (progressTickInterval: float) =
-    (task.MaxValue - task.Value) * progressTickInterval
+let maxTick (pbTask: ProgressTask) =
+    pbTask.Increment(Double.MaxValue)
+
+let defaultTick (pbTask: ProgressTask) =
+    pbTask.Increment(1.0)
+
+let getRemainTicks (pbTask: ProgressTask) =
+    (pbTask.MaxValue - pbTask.Value)
+
+let stop (pbTask: ProgressTask) =
+    pbTask.StopTask()
+    // set 100% for progress task since .StopTask() method doesn't stop progress task completely
+    pbTask |> tick(getRemainTicks pbTask)

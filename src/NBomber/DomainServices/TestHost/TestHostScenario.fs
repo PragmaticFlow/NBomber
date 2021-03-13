@@ -1,5 +1,6 @@
 module internal NBomber.DomainServices.TestHost.TestHostScenario
 
+open System
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
@@ -19,8 +20,7 @@ let getTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario
 let initClientPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try
         for pool in pools do
-            dep.Logger.Information($"Start init client pool '{pool.PoolName}' with '{pool.ClientCount}' clients.")
-            let progressTask = TestHostConsole.displayClientPoolsProgress(dep, [pool])
+            let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
             do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
             progressTask.Wait()
 
@@ -83,9 +83,8 @@ let cleanScenarios (dep: IGlobalDependency)
 
     let disposeClientPools (dep: IGlobalDependency) (pools: ClientPool list) =
         for pool in pools do
-            dep.Logger.Information($"Start disposing client pool: '{pool.PoolName}'.")
-            let progressTask = TestHostConsole.displayClientPoolsProgress(dep, List.singleton(pool))
-            use p = pool // dispose
+            let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
+            (pool :> IDisposable).Dispose()
             progressTask.Wait()
 
     scenarios
