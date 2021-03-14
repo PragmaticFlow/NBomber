@@ -289,9 +289,9 @@ type NBomberContext = {
 type Response with
 
     [<CompiledName("Ok")>]
-    static member ok([<Optional;DefaultParameterValue(null:obj)>] payload: obj,
-                     [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
-                     [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
+    static member ok([<Optional;DefaultParameterValue(null)>] payload: obj,
+                     [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
         { Payload = payload
           SizeBytes = sizeBytes
           Exception = None
@@ -300,7 +300,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
-                     [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
+                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
         { Payload = payload
           SizeBytes = if isNull payload then 0 else payload.Length
           Exception = None
@@ -317,9 +317,9 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail(ex: Exception,
-                       [<Optional;DefaultParameterValue(0:int)>] errorCode: int,
-                       [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
-                       [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
+                       [<Optional;DefaultParameterValue(0)>] errorCode: int,
+                       [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+                       [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
           Exception = Some(ex)
@@ -328,9 +328,9 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail(reason: string,
-                       [<Optional;DefaultParameterValue(0:int)>] errorCode: int,
-                       [<Optional;DefaultParameterValue(0:int)>] sizeBytes: int,
-                       [<Optional;DefaultParameterValue(0.0:float)>] latencyMs: float) =
+                       [<Optional;DefaultParameterValue(0)>] errorCode: int,
+                       [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+                       [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
         { Payload = null
           SizeBytes = sizeBytes
           Exception = Some(Exception reason)

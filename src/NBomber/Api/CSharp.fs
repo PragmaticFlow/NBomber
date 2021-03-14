@@ -15,9 +15,9 @@ open NBomber.Configuration
 
 type ClientFactory =
 
-    static member Create<'TClient>(name: string,
-                                   initClient: Func<int,IBaseContext,Task<'TClient>>,
-                                   [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
+    static member Create(name: string,
+                         initClient: Func<int,IBaseContext,Task<'TClient>>,
+                         [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
 
         FSharp.ClientFactory.create(name, initClient.Invoke, clientCount)
 
@@ -52,7 +52,7 @@ type Feed =
 
 type Step =
 
-    static member Create<'TClient,'TFeedItem>
+    static member Create
         (name: string,
          clientFactory: IClientFactory<'TClient>,
          feed: IFeed<'TFeedItem>,
@@ -61,7 +61,7 @@ type Step =
 
         FSharp.Step.create(name, exec.Invoke, clientFactory, feed, doNotTrack)
 
-    static member Create<'TClient>
+    static member Create
         (name: string,
          clientFactory: IClientFactory<'TClient>,
          exec: Func<IStepContext<'TClient,unit>,Task<Response>>,
@@ -69,7 +69,7 @@ type Step =
 
         FSharp.Step.create(name, exec.Invoke, clientFactory, doNotTrack = doNotTrack)
 
-    static member Create<'TFeedItem>
+    static member Create
         (name: string,
          feed: IFeed<'TFeedItem>,
          exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
@@ -294,7 +294,7 @@ namespace NBomber.CSharp.SyncApi
 
     type SyncStep =
 
-        static member Create<'TClient,'TFeedItem>
+        static member Create
             (name: string,
              pool: IClientFactory<'TClient>,
              feed: IFeed<'TFeedItem>,
@@ -303,7 +303,7 @@ namespace NBomber.CSharp.SyncApi
 
             SyncStep.create(name, exec.Invoke, pool, feed, doNotTrack)
 
-        static member Create<'TClient>
+        static member Create
             (name: string,
              pool: IClientFactory<'TClient>,
              exec: Func<IStepContext<'TClient,unit>,Response>,
@@ -311,7 +311,7 @@ namespace NBomber.CSharp.SyncApi
 
             SyncStep.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
 
-        static member Create<'TFeedItem>
+        static member Create
             (name: string,
              feed: IFeed<'TFeedItem>,
              exec: Func<IStepContext<unit,'TFeedItem>,Response>,

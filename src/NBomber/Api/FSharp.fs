@@ -38,7 +38,7 @@ type ClientFactory =
 
     static member create (name: string,
                           initClient: int * IBaseContext -> Task<'TClient>,
-                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
+                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] clientCount: int) =
 
         ClientFactory(name, clientCount, initClient) :> IClientFactory<'TClient>
 
