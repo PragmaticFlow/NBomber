@@ -75,9 +75,8 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         |> ProgressBar.setDescription description
         |> ProgressBar.defaultTick
 
-    let createDescriptionForStoppedTask (task: ProgressTask) (scenarioName) =
-        let percentage = $"{task.Percentage:F1}%%"
-        $"{scenarioName |> Console.highlightDanger}{MultilineColumn.NewLine}stopped: {percentage |> Console.highlightSecondary}"
+    let createDescriptionForStoppedTask (scenarioName) =
+        $"{scenarioName |> Console.highlightDanger}"
 
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
@@ -106,13 +105,13 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                                 if remainCount > 0.0 then
                                     let desc =
                                         schedulers.[i - 1].Scenario.ScenarioName
-                                        |> createDescriptionForStoppedTask pbTask
+                                        |> createDescriptionForStoppedTask
 
                                     pbTask
                                     |> ProgressBar.setDescription desc
                                     |> ProgressBar.stop
 
-                                    pbTotalTask |> ProgressBar.stop
+                                    pbTotalTask |> ProgressBar.tick remainCount
                             )
                         |> ignore
                 )
@@ -138,9 +137,8 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                         if remainTicks > 0.0 then
                             let desc =
                                 scheduler.Scenario.ScenarioName
-                                |> createDescriptionForStoppedTask pbTask
+                                |> createDescriptionForStoppedTask
 
-                            // set 100% for progress task since .StopTask() method doesn't stop progress task completely
                             pbTask
                             |> ProgressBar.setDescription desc
                             |> ProgressBar.stop

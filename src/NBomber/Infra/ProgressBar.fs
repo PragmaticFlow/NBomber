@@ -77,5 +77,3 @@ let getRemainTicks (pbTask: ProgressTask) =
 
 let stop (pbTask: ProgressTask) =
     pbTask.StopTask()
-    // set 100% for progress task since .StopTask() method doesn't stop progress task completely
-    pbTask |> tick(getRemainTicks pbTask)
