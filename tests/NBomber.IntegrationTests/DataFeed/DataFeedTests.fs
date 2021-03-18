@@ -42,12 +42,16 @@ let ``createCircular iterate over array sequentially``(length: int) =
     let context = createBaseContext()
     feed.Init(context).Wait()
 
-    let actual = List.init length (fun i ->
+    let iterateLength = length + length // increase original length
+
+    let actual = List.init iterateLength (fun i ->
         let correlationId = NBomber.Domain.Scenario.createCorrelationId("test_scn", i)
         feed.GetNextItem(correlationId, null)
     )
 
-    test <@ actual = orderedList @>
+    let final = orderedList |> List.append(orderedList)
+
+    test <@ actual = final @>
 
 [<Property>]
 let ``createConstant returns next value from seq for the same correlationId``(length: int) =

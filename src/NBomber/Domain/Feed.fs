@@ -14,11 +14,6 @@ let toUntypedFeed (feed: IFeed<'TFeedItem>) = {
         member _.GetNextItem(correlationId, stepData) = feed.GetNextItem(correlationId, stepData) :> obj
 }
 
-let rec createInfiniteStream (items: 'T seq) = seq {
-    yield! items
-    yield! createInfiniteStream items
-}
-
 let constant (name, data: 'T seq) =
     let mutable _allItems = Array.empty
 
@@ -36,6 +31,11 @@ let constant (name, data: 'T seq) =
 let circular (name, data: 'T seq) =
     let mutable _enumerator = Unchecked.defaultof<_>
 
+    let createInfiniteStream (items: 'T seq) = seq {
+        while true do
+            yield! items
+    }
+
     { new IFeed<'T> with
         member _.FeedName = name
 
@@ -45,8 +45,8 @@ let circular (name, data: 'T seq) =
             Task.CompletedTask
 
         member _.GetNextItem(correlationId, stepData) =
-         _enumerator.MoveNext() |> ignore
-         _enumerator.Current }
+            _enumerator.MoveNext() |> ignore
+            _enumerator.Current }
 
 let random (name, data: 'T seq) =
     let _random = Random()
