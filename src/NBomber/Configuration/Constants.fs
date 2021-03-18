@@ -14,7 +14,7 @@ let NBomberWelcomeText = "NBomber '{0}' Started a new session: '{1}'."
 let DefaultCopiesCount = 50
 
 [<Literal>]
-let DefaultClientCount = 50
+let DefaultClientCount = 1
 
 [<Literal>]
 let TryCount = 5

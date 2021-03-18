@@ -5,6 +5,7 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
 open NBomber.Contracts
 open NBomber.FSharp
+open NBomber.Plugins.Network.Ping
 
 let run () =
 
@@ -23,9 +24,13 @@ let run () =
                else Response.fail()
     })
 
+    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
+    use pingPlugin = new PingPlugin(pingPluginConfig)
+
     Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 20, during = seconds 10)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run
     |> ignore

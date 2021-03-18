@@ -67,13 +67,13 @@ let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (
 let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
     MailboxProcessor.Start(fun inbox ->
 
-        let getBombingPluginStats = getPluginStats dep
+        let getPluginStats = getPluginStats dep
         let getBombingScenarioStats = getScenarioStats schedulers (Some true)
         let getNodeStats = getNodeStats dep schedulers testInfo
         let saveScenarioStats = saveScenarioStats dep
 
         let fetchAndSaveBombingStats (duration, history) = async {
-            let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
+            let pluginStatsTask = getPluginStats OperationType.Bombing
             let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
             if Array.isEmpty scnStats then return history
             else
@@ -83,7 +83,7 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
-            let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
+            let pluginStatsTask = getPluginStats OperationType.Bombing
             let stats = scnStats |> ScenarioStats.round |> Array.singleton
             do! stats |> saveScenarioStats |> Async.AwaitTask
             let! pluginStats = pluginStatsTask |> Async.AwaitTask
