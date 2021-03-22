@@ -34,8 +34,9 @@ module StepExecutionData =
         let clientResMs = if isClient then float latency else 0.0
         let stepResMs = int64 Int32.MaxValue
 
-        let clientResponse = { Payload = (); SizeBytes = 10; Exception = None
-                               ErrorCode = 0; LatencyMs = clientResMs }
+        let clientResponse = { StatusCode = 0; IsError = false
+                               ErrorMessage = ""; SizeBytes = 10
+                               LatencyMs = clientResMs; Payload = null }
         let stepResponse = {
             ClientResponse = clientResponse
             EndTimeTicks = % Int64.MaxValue
@@ -61,8 +62,9 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun latency ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10; Exception = None
-                ErrorCode = 0; LatencyMs = float latency
+                StatusCode = 0; IsError = false
+                ErrorMessage = ""; SizeBytes = 10
+                LatencyMs = float latency; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -93,9 +95,9 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun (isOk,latency) ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10
-                Exception = if isOk then None else Some(Exception())
-                ErrorCode = 0; LatencyMs = 0.0
+                StatusCode = 0; IsError = not isOk
+                ErrorMessage = ""; SizeBytes = 10
+                LatencyMs = 0.0; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -147,9 +149,9 @@ module StepExecutionData =
         responseSizes
         |> Seq.iter(fun (isOk,resSize) ->
             let clientResponse = {
-                Payload = (); SizeBytes = int resSize
-                Exception = if isOk then None else Some(Exception())
-                ErrorCode = 0; LatencyMs = 1.0
+                StatusCode = 0; IsError = not isOk
+                ErrorMessage = ""; SizeBytes = int resSize
+                LatencyMs = 1.0; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -200,13 +202,13 @@ let ``ErrorStats should be calculated properly`` () =
 
     let failStep1 = Step.create("fail step 1", fun context -> task {
         do! Task.Delay(milliseconds 10)
-        return if context.InvocationCount <= 10 then Response.fail(reason = "reason 1", errorCode = 10)
+        return if context.InvocationCount <= 10 then Response.fail(error = "reason 1", statusCode = 10)
                else Response.ok()
     })
 
     let failStep2 = Step.create("fail step 2", fun context -> task {
         do! Task.Delay(milliseconds 10)
-        return if context.InvocationCount <= 30 then Response.fail(reason = "reason 2", errorCode = 20)
+        return if context.InvocationCount <= 30 then Response.fail(error = "reason 2", statusCode = 20)
                else Response.ok()
     })
 
@@ -252,7 +254,7 @@ let ``NodeStats should be calculated properly`` () =
             return Response.ok(sizeBytes = 50)
         else
             do! Task.Delay(milliseconds 500)
-            return Response.fail(reason = "reason 1", errorCode = 10, sizeBytes = 10)
+            return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
     })
 
     let scenario =

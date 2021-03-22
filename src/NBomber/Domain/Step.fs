@@ -72,13 +72,13 @@ module StepExecutionData =
     let addResponse (stData: StepExecutionData) (response: StepResponse) =
 
         let addErrorStats (errors: Dictionary<ErrorCode,ErrorStats>) (res: Response) =
-            match errors.TryGetValue res.ErrorCode with
+            match errors.TryGetValue res.StatusCode with
             | true, errorStats ->
-                errors.[res.ErrorCode] <- { errorStats with Count = errorStats.Count + 1 }
+                errors.[res.StatusCode] <- { errorStats with Count = errorStats.Count + 1 }
             | false, _ ->
-                errors.[res.ErrorCode] <- { ErrorCode = res.ErrorCode
-                                            Message = res.Exception.Value.Message
-                                            Count = 1 }
+                errors.[res.StatusCode] <- { ErrorCode = res.StatusCode
+                                             Message = res.ErrorMessage
+                                             Count = 1 }
 
         let clientRes = response.ClientResponse
 
@@ -91,11 +91,11 @@ module StepExecutionData =
         let responseBytes = clientRes.SizeBytes |> UMX.tag<bytes>
 
         let stats =
-            match clientRes.Exception with
-            | Some _ -> addErrorStats stData.ErrorStats clientRes
-                        stData.FailStats
+            match clientRes.IsError with
+            | true  -> addErrorStats stData.ErrorStats clientRes
+                       stData.FailStats
 
-            | None   -> stData.OkStats
+            | false -> stData.OkStats
 
         stats.RequestCount <- stats.RequestCount + 1
 
@@ -252,12 +252,12 @@ let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
 
                         step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
 
-                        match response.ClientResponse.Exception with
-                        | Some ex ->
-                            dep.Logger.Error(ex, "Step '{StepName}' from scenario '{ScenarioName}' has failed. ", step.Value.StepName, dep.ScenarioName)
+                        match response.ClientResponse.IsError with
+                        | true ->
+                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
-                        | None ->
+                        | false ->
                             data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
@@ -278,12 +278,12 @@ let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = t
 
                         step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
 
-                        match response.ClientResponse.Exception with
-                        | Some ex ->
-                            dep.Logger.Error(ex, "Step '{StepName}' from scenario '{ScenarioName}' has failed. ", step.Value.StepName, dep.ScenarioName)
+                        match response.ClientResponse.IsError with
+                        | true ->
+                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
-                        | None ->
+                        | false ->
                             data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
