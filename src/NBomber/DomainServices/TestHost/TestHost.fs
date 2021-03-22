@@ -114,8 +114,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
-        let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        TestHostScenario.cleanScenarios dep defaultScnContext _targetScenarios
+        let defaultScnContext = Scenario.ScenarioContext.create(baseContext)
+        TestHostScenario.cleanScenarios dep baseContext defaultScnContext _targetScenarios
 
     member _.TestInfo = sessionArgs.TestInfo
     member _.CurrentOperation = _currentOperation

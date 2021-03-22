@@ -38,9 +38,23 @@ type ClientFactory =
 
     static member create (name: string,
                           initClient: int * IBaseContext -> Task<'TClient>,
-                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] clientCount: int) =
+                          ?disposeClient: 'TClient * IBaseContext -> Task<unit>,
+                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] ?clientCount: int) =
 
-        ClientFactory(name, clientCount, initClient) :> IClientFactory<'TClient>
+        let defaultDispose = (fun (client,context) ->
+            match client :> obj with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
+            Task.CompletedTask
+        )
+
+        let dispose =
+            disposeClient
+            |> Option.map(fun dispose -> fun (c,ctx) -> dispose(c,ctx) :> Task)
+            |> Option.defaultValue defaultDispose
+
+        let count = defaultArg clientCount Constants.DefaultClientCount
+        ClientFactory(name, count, initClient, dispose) :> IClientFactory<'TClient>
 
 /// Data feed helps you to inject dynamic data into your test.
 [<RequireQualifiedAccess>]

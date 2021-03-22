@@ -172,6 +172,7 @@ type IClientFactory<'TClient> =
     abstract FactoryName: string
     abstract ClientCount: int
     abstract InitClient: number:int * context:IBaseContext -> Task<'TClient>
+    abstract DisposeClient: client:'TClient * context:IBaseContext -> Task
 
 type IFeed<'TFeedItem> =
     abstract FeedName: string

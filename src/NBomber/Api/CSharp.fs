@@ -15,11 +15,25 @@ open NBomber.Configuration
 
 type ClientFactory =
 
-    static member Create(name: string,
-                         initClient: Func<int,IBaseContext,Task<'TClient>>,
-                         [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
+    static member Create
+        (name: string,
+         initClient: Func<int,IBaseContext,Task<'TClient>>,
+         [<Optional;DefaultParameterValue(null:obj)>] disposeClient: Func<'TClient,IBaseContext,Task>,
+         [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
 
-        FSharp.ClientFactory.create(name, initClient.Invoke, clientCount)
+        let defaultDispose = (fun (client,context) ->
+            match client :> obj with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
+            Task.CompletedTask
+        )
+
+        let dispose =
+            if isNull(disposeClient :> obj) then defaultDispose
+            else disposeClient.Invoke
+
+        NBomber.Domain.ClientPool.ClientFactory(name, clientCount, initClient.Invoke, dispose)
+        :> IClientFactory<'TClient>
 
 /// Data feed helps you to inject dynamic data into your test.
 type Feed =

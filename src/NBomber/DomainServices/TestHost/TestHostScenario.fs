@@ -77,19 +77,20 @@ let initScenarios (dep: IGlobalDependency)
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
+let disposeClientPools (dep: IGlobalDependency) (baseContext: IBaseContext) (pools: ClientPool list) =
+    for pool in pools do
+        let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
+        pool.DisposePool(baseContext)
+        progressTask.Wait()
+
 let cleanScenarios (dep: IGlobalDependency)
+                   (baseContext: IBaseContext)
                    (defaultScnContext: IScenarioContext)
                    (scenarios: Scenario list) = task {
 
-    let disposeClientPools (dep: IGlobalDependency) (pools: ClientPool list) =
-        for pool in pools do
-            let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
-            (pool :> IDisposable).Dispose()
-            progressTask.Wait()
-
     scenarios
     |> Scenario.ClientPool.filterDistinct
-    |> disposeClientPools dep
+    |> disposeClientPools dep baseContext
 
     for scn in scenarios do
         match scn.Clean with

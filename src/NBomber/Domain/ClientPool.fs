@@ -11,7 +11,10 @@ open NBomber
 open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 
-type ClientFactory<'TClient>(name: string, clientCount: int, initClient: int * IBaseContext -> Task<'TClient>) =
+type ClientFactory<'TClient>(name: string,
+                             clientCount: int,
+                             initClient: int * IBaseContext -> Task<'TClient>, // number * context
+                             disposeClient: 'TClient * IBaseContext -> Task) =
 
     // we use lazy to have the ability to check on duplicates (that has the same name but different instances) within one scenario
     let untypedFactory = lazy (
@@ -19,19 +22,21 @@ type ClientFactory<'TClient>(name: string, clientCount: int, initClient: int * I
             initClient = (fun (number,token) -> task {
                 let! client = initClient(number, token)
                 return client :> obj
-            })
+            }),
+            disposeClient = (fun (client,context) -> disposeClient(client :?> 'TClient, context))
         )
     )
 
     member _.FactoryName = name
     member _.GetUntyped() = untypedFactory.Value
-    member _.Clone(newName: string) = ClientFactory<'TClient>(newName, clientCount, initClient)
-    member _.Clone(newClientCount: int) = ClientFactory<'TClient>(name, newClientCount, initClient)
+    member _.Clone(newName: string) = ClientFactory<'TClient>(newName, clientCount, initClient, disposeClient)
+    member _.Clone(newClientCount: int) = ClientFactory<'TClient>(name, newClientCount, initClient, disposeClient)
 
     interface IClientFactory<'TClient> with
         member _.FactoryName = name
         member _.ClientCount = clientCount
         member _.InitClient(number, context) = initClient(number, context)
+        member _.DisposeClient(client, context) = disposeClient(client, context)
 
 type ClientPoolEvent =
     | StartedInit       of poolName:string
@@ -83,23 +88,23 @@ type ClientPool(factory: IClientFactory<obj>) =
             _eventStream.OnNext(InitFailed)
             exs.Head |> Error |> Task.singleton
 
-    let disposeAllClients () =
+    let disposeAllClients (context: IBaseContext) =
         _eventStream.OnNext(StartedDispose factory.FactoryName)
 
         let mutable counter = 0
         for client in _initializedClients do
             counter <- counter + 1
             try
-                if client :? IDisposable then (client :?> IDisposable).Dispose()
+                factory.DisposeClient(client, context).Wait()
                 _eventStream.OnNext(ClientDisposed(factory.FactoryName, counter, error = None))
             with
             | ex ->
                 _eventStream.OnNext(ClientDisposed(factory.FactoryName, counter, error = Some ex))
 
-    let dispose () =
+    let disposePool (context: IBaseContext) =
         if not _disposed then
             _disposed <- true
-            disposeAllClients()
+            disposeAllClients(context)
             _eventStream.OnCompleted()
             _eventStream.Dispose()
 
@@ -107,7 +112,5 @@ type ClientPool(factory: IClientFactory<obj>) =
     member _.ClientCount = factory.ClientCount
     member _.InitializedClients = _initializedClients
     member _.EventStream = _eventStream :> IObservable<_>
-    member _.Init(context) = initPool context
-
-    interface IDisposable with
-        member _.Dispose() = dispose()
+    member _.Init(context) = initPool(context)
+    member _.DisposePool(context) = disposePool(context)

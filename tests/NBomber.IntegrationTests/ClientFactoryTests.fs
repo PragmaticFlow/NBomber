@@ -318,3 +318,64 @@ let ``should not allow to have duplicates with the same name but different imple
     |> NBomberRunner.run
     |> Result.getError
     |> ignore
+
+[<Fact>]
+let ``should provide default dispose client``() =
+
+    let mutable defaultDisposeInvoked = false
+
+    let client = {
+        new IDisposable with
+            member _.Dispose() =
+                defaultDisposeInvoked <- true
+    }
+
+    let factory =
+        ClientFactory.create(
+            name = "factory_1",
+            initClient = (fun (number,context) -> Task.FromResult client)
+        )
+
+    let step = Step.create("step_1", clientFactory = factory, exec = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    Scenario.create "test" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./client-pool/11/"
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ defaultDisposeInvoked = true @>
+
+[<Fact>]
+let ``should provide custom dispose client``() =
+
+    let mutable customDisposeInvoked = false
+
+    let factory =
+        ClientFactory.create(
+            name = "factory_1",
+            initClient = (fun (number,context) -> Task.FromResult 1),
+            disposeClient = (fun (client,context) -> task {
+                customDisposeInvoked <- true
+            })
+        )
+
+    let step = Step.create("step_1", clientFactory = factory, exec = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    Scenario.create "test" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./client-pool/12/"
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ customDisposeInvoked = true @>
