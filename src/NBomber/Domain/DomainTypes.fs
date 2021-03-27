@@ -64,7 +64,7 @@ type RawStepStats = {
 type StepExecutionData = {
     OkStats: RawStepStats
     FailStats: RawStepStats
-    ErrorStats: Dictionary<ErrorCode,ErrorStats>
+    StatusCodes: Dictionary<int,StatusCodeStats>
 }
 
 type RunningStep = {

@@ -20,24 +20,22 @@ module ConsoleTestInfo =
           Console.addLine($"test name: '{testInfo.TestName |> Console.escapeMarkup |> Console.highlightPrimary}'")
           Console.addLine(String.Empty) ]
 
-module ConsoleErrorStats =
+module ConsoleStatusCodesStats =
 
-    let printErrorStatsHeader (scenarioName: string)  =
-        Console.addLine($"errors for scenario: {scenarioName |> Console.highlightPrimary}")
+    let printScenarioHeader (scenarioName: string)  =
+        Console.addLine($"status codes for scenario: {scenarioName |> Console.highlightPrimary}")
 
-    let private createErrorStatsTableRows (errorStats: ErrorStats[])=
-        errorStats
-        |> Seq.map(fun error ->
-            [ error.ErrorCode.ToString()
-              error.Count.ToString()
-              error.Message |> Console.escapeMarkup |> Console.highlightDanger ]
+    let private createTableRows (stats: StatusCodeStats[])=
+        stats
+        |> Seq.map(fun x ->
+            [ x.StatusCode.ToString()
+              x.Count.ToString()
+              x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
         )
-        |> List.ofSeq
 
-    let printErrorStats (errorStats: ErrorStats[])  =
-        let headers = ["code"; "count"; "message"]
-        let rows = createErrorStatsTableRows(errorStats)
-
+    let print (stats: StatusCodeStats[])  =
+        let headers = ["status code"; "count"; "message"]
+        let rows = stats |> createTableRows |> Seq.toList
         Console.addTable headers rows
 
 module ConsoleNodeStats =
@@ -185,11 +183,11 @@ module ConsoleNodeStats =
         |> List.ofSeq
         |> Console.addTable ["step"; "fail stats"]
 
-    let private printScenarioErrorStats (scnStats: ScenarioStats) =
-        if scnStats.ErrorStats.Length > 0 then
+    let private printScenarioStatusCodes (scnStats: ScenarioStats) =
+        if scnStats.StatusCodes.Length > 0 then
             [ Console.addLine(String.Empty)
-              ConsoleErrorStats.printErrorStatsHeader(scnStats.ScenarioName)
-              ConsoleErrorStats.printErrorStats(scnStats.ErrorStats) ]
+              ConsoleStatusCodesStats.printScenarioHeader(scnStats.ScenarioName)
+              ConsoleStatusCodesStats.print(scnStats.StatusCodes) ]
         else List.Empty
 
     let private errorStepStatsExist (stepStats: StepStats[]) =
@@ -199,8 +197,9 @@ module ConsoleNodeStats =
         [ yield! printScenarioHeader(scnStats)
           yield! printLoadSimulations(simulations)
           printOkStepStatsTable(scnStats.StepStats)
-          if errorStepStatsExist(scnStats.StepStats) then printFailStepStatsTable(scnStats.StepStats)
-          yield! printScenarioErrorStats(scnStats) ]
+          if errorStepStatsExist(scnStats.StepStats) then
+              printFailStepStatsTable(scnStats.StepStats)
+          yield! printScenarioStatusCodes(scnStats) ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         let scenarioStats =

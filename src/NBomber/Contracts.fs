@@ -6,8 +6,8 @@ open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
-open Microsoft.Extensions.Configuration
 open Serilog
+open Microsoft.Extensions.Configuration
 
 open NBomber.Configuration
 open NBomber.Extensions.InternalExtensions
@@ -20,7 +20,7 @@ type CorrelationId = {
 
 [<Struct>]
 type Response = {
-    StatusCode: int
+    StatusCode: Nullable<int>
     IsError: bool
     ErrorMessage: string
     SizeBytes: int
@@ -59,12 +59,10 @@ type NodeInfo = {
     NBomberVersion: string
 }
 
-type ErrorCode = int
-
-type ErrorStats = {
-    ErrorCode: ErrorCode
+type StatusCodeStats = {
+    StatusCode: int
     Message: string
-    Count: int
+    mutable Count: int
 }
 
 type RequestStats = {
@@ -102,23 +100,17 @@ type DataTransferStats = {
     AllMB: float
 }
 
-type OkStepStats = {
+type StepDataStats = {
     Request: RequestStats
     Latency: LatencyStats
     DataTransfer: DataTransferStats
-}
-
-type FailStepStats = {
-    Request: RequestStats
-    Latency: LatencyStats
-    DataTransfer: DataTransferStats
-    ErrorStats: ErrorStats[]
 }
 
 type StepStats = {
     StepName: string
-    Ok: OkStepStats
-    Fail: FailStepStats
+    Ok: StepDataStats
+    Fail: StepDataStats
+    StatusCodes: StatusCodeStats[]
 }
 
 type LoadSimulationStats = {
@@ -135,7 +127,7 @@ type ScenarioStats = {
     StepStats: StepStats[]
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
-    ErrorStats: ErrorStats[]
+    StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
 }
@@ -292,7 +284,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok([<Optional;DefaultParameterValue(null)>] payload: obj,
-                     [<Optional;DefaultParameterValue(0)>] statusCode: int,
+                     [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                      [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                      [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
 
@@ -305,7 +297,7 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
-                     [<Optional;DefaultParameterValue(0)>] statusCode: int,
+                     [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                      [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
 
         { StatusCode = statusCode
@@ -317,7 +309,7 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail([<Optional;DefaultParameterValue("")>] error: string,
-                       [<Optional;DefaultParameterValue(0)>] statusCode: int,
+                       [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
 
@@ -330,7 +322,7 @@ type Response with
 
     [<CompiledName("Fail")>]
     static member fail(error: Exception,
-                       [<Optional;DefaultParameterValue(0)>] statusCode: int,
+                       [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
 

@@ -1,6 +1,7 @@
 module internal NBomber.Domain.Statistics
 
 open System
+open System.Collections.Generic
 open System.Data
 
 open HdrHistogram
@@ -47,17 +48,6 @@ let calcRPS (requestCount: int) (executionTime: TimeSpan) =
                    else executionTime.TotalSeconds
 
     float requestCount / totalSec
-
-module ErrorStats =
-
-    let merge (stats: Stream<ErrorStats>) =
-        stats
-        |> Stream.groupBy(fun x -> x.ErrorCode)
-        |> Stream.map(fun (code,errorStats) ->
-            { ErrorCode = code
-              Message = errorStats |> Seq.head |> fun x -> x.Message
-              Count = errorStats |> Seq.sumBy(fun x -> x.Count) }
-        )
 
 module RequestStats =
 
@@ -164,6 +154,20 @@ module DataTransferStats =
                      StdDev = stats.StdDev |> Converter.round(Constants.TransferStatsRounding)
                      AllMB = stats.AllMB |> Converter.round(Constants.TransferStatsRounding) }
 
+module StatusCodeStats =
+
+    let create (stats: Dictionary<int,StatusCodeStats>) =
+        stats.Values |> Stream.ofSeq |> Stream.toArray // we use Stream for safe enumeration
+
+    let merge (stats: Stream<StatusCodeStats>) =
+        stats
+        |> Stream.groupBy(fun x -> x.StatusCode)
+        |> Stream.map(fun (code,codeStats) ->
+            { StatusCode = code
+              Message = codeStats |> Seq.head |> fun x -> x.Message
+              Count = codeStats |> Seq.sumBy(fun x -> x.Count) }
+        )
+
 module StepStats =
 
     let create (stepName: string) (stepData: StepExecutionData) (duration: TimeSpan) =
@@ -178,39 +182,28 @@ module StepStats =
             Request = RequestStats.create stepData.FailStats duration
             Latency = LatencyStats.create stepData.FailStats
             DataTransfer = DataTransferStats.create stepData.FailStats
-            ErrorStats = stepData.ErrorStats.Values |> Stream.ofSeq |> Stream.toArray  // we use Stream for safe enumeration
         }
 
         { StepName = stepName
           Ok = okStats
-          Fail = failStats }
-
-    let mergeErrorStats (stepsStats: Stream<FailStepStats>) =
-        stepsStats
-        |> Stream.collect(fun x -> x.ErrorStats |> Stream.ofArray)
-        |> ErrorStats.merge
-        |> Stream.toArray
+          Fail = failStats
+          StatusCodes = StatusCodeStats.create stepData.StatusCodes }
 
     let merge (stepsStats: Stream<StepStats>) =
 
-        let mergeOkStats (stats: Stream<OkStepStats>) =
+        let mergeDataStats (stats: Stream<StepDataStats>) =
             { Request = stats |> Stream.map(fun x -> x.Request) |> RequestStats.merge
               Latency = stats |> Stream.map(fun x -> x.Latency) |> LatencyStats.merge
               DataTransfer = stats |> Stream.map(fun x -> x.DataTransfer) |> DataTransferStats.merge }
 
-        let mergeFailStats (stats: Stream<FailStepStats>) =
-            { Request = stats |> Stream.map(fun x -> x.Request) |> RequestStats.merge
-              Latency = stats |> Stream.map(fun x -> x.Latency) |> LatencyStats.merge
-              DataTransfer = stats |> Stream.map(fun x -> x.DataTransfer) |> DataTransferStats.merge
-              ErrorStats = stats |> mergeErrorStats }
-
         stepsStats
         |> Stream.groupBy(fun x -> x.StepName)
-        |> Stream.map(fun (name, stats) ->
+        |> Stream.map(fun (name,stats) ->
             let statsStream = stats |> Stream.ofSeq
             { StepName = name
-              Ok = statsStream |> Stream.map(fun x -> x.Ok) |> mergeOkStats
-              Fail = statsStream |> Stream.map(fun x -> x.Fail) |> mergeFailStats }
+              Ok = statsStream |> Stream.map(fun x -> x.Ok) |> mergeDataStats
+              Fail = statsStream |> Stream.map(fun x -> x.Fail) |> mergeDataStats
+              StatusCodes = statsStream |> Stream.collect(fun x -> x.StatusCodes |> Stream.ofArray) |> StatusCodeStats.merge |> Stream.toArray }
         )
 
     let round (stats: StepStats) =
@@ -244,7 +237,7 @@ module ScenarioStats =
               StepStats = mergedStats |> Stream.toArray
               LatencyCount = { LessOrEq800 = less800; More800Less1200 = more800Less1200; MoreOrEq1200 = more1200 }
               LoadSimulationStats = simulationStats
-              ErrorStats = mergedStats |> Stream.map(fun x -> x.Fail) |> StepStats.mergeErrorStats
+              StatusCodes = mergedStats |> Stream.collect(fun x -> x.StatusCodes |> Stream.ofArray) |> StatusCodeStats.merge |> Stream.toArray
               CurrentOperation = currentOperation
               Duration = duration }
 

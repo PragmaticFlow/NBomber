@@ -67,18 +67,18 @@ module StepExecutionData =
 
         { OkStats = createStats()
           FailStats = createStats()
-          ErrorStats = Dictionary<ErrorCode,ErrorStats>() }
+          StatusCodes = Dictionary<int,StatusCodeStats>() }
 
     let addResponse (stData: StepExecutionData) (response: StepResponse) =
 
-        let addErrorStats (errors: Dictionary<ErrorCode,ErrorStats>) (res: Response) =
-            match errors.TryGetValue res.StatusCode with
-            | true, errorStats ->
-                errors.[res.StatusCode] <- { errorStats with Count = errorStats.Count + 1 }
+        let updateStatusCodeStats (statuses: Dictionary<int,StatusCodeStats>, res: Response) =
+            let statusCode = res.StatusCode.Value
+            match statuses.TryGetValue statusCode with
+            | true, codeStats -> codeStats.Count <- codeStats.Count + 1
             | false, _ ->
-                errors.[res.StatusCode] <- { ErrorCode = res.StatusCode
-                                             Message = res.ErrorMessage
-                                             Count = 1 }
+                statuses.[statusCode] <- { StatusCode = statusCode
+                                           Message = res.ErrorMessage
+                                           Count = 1 }
 
         let clientRes = response.ClientResponse
 
@@ -92,8 +92,15 @@ module StepExecutionData =
 
         let stats =
             match clientRes.IsError with
-            | true  -> addErrorStats stData.ErrorStats clientRes
-                       stData.FailStats
+            | true when clientRes.StatusCode.HasValue ->
+                updateStatusCodeStats(stData.StatusCodes, clientRes)
+                stData.FailStats
+
+            | true -> stData.FailStats
+
+            | false when clientRes.StatusCode.HasValue ->
+                updateStatusCodeStats(stData.StatusCodes, clientRes)
+                stData.OkStats
 
             | false -> stData.OkStats
 

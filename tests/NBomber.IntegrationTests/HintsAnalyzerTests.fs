@@ -31,7 +31,7 @@ let baseScnStats = {
     ScenarioName = "scenario"; RequestCount = 0; OkCount = 0; FailCount = 0;
     AllDataMB = 0.0; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
-    ErrorStats = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
+    StatusCodes = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
 }
 
 let baseStepStats = {
@@ -51,8 +51,8 @@ let baseStepStats = {
                     LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 } }
         DataTransfer = { MinKb = 0.0; MeanKb = 0.0; MaxKb = 0.0
                          Percent50 = 0.0; Percent75 = 0.0; Percent95 = 0.0; Percent99 = 0.0; StdDev = 0.0; AllMB = 0.0 }
-        ErrorStats = Array.empty
     }
+    StatusCodes = Array.empty
 }
 
 [<Property>]
