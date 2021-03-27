@@ -43,6 +43,7 @@ let baseStepStats = {
                     LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 } }
         DataTransfer = { MinKb = 0.0; MeanKb = 0.0; MaxKb = 0.0
                          Percent50 = 0.0; Percent75 = 0.0; Percent95 = 0.0; Percent99 = 0.0; StdDev = 0.0; AllMB = 0.0 }
+        StatusCodes = Array.empty
     }
     Fail = {
         Request = { Count = 0; RPS = 0.0 }
@@ -51,8 +52,8 @@ let baseStepStats = {
                     LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 } }
         DataTransfer = { MinKb = 0.0; MeanKb = 0.0; MaxKb = 0.0
                          Percent50 = 0.0; Percent75 = 0.0; Percent95 = 0.0; Percent99 = 0.0; StdDev = 0.0; AllMB = 0.0 }
+        StatusCodes = Array.empty
     }
-    StatusCodes = Array.empty
 }
 
 [<Property>]
@@ -60,7 +61,7 @@ let ``analyze should return hint for case when DataTransfer.MinKb = 0`` (minKb: 
 
     let req = { baseStepStats.Ok.Request with RPS = 1.0 }
     let dt = { baseStepStats.Ok.DataTransfer with MinKb = float minKb }
-    let stepStats = { baseStepStats with Ok = { Request = req; Latency = baseStepStats.Ok.Latency; DataTransfer = dt } }
+    let stepStats = { baseStepStats with Ok = { Request = req; Latency = baseStepStats.Ok.Latency; DataTransfer = dt; StatusCodes = Array.empty } }
     let scnStats = { baseScnStats with StepStats = [| stepStats |] }
     let nodeStats = { baseNodeStats with ScenarioStats = [| scnStats |] }
 

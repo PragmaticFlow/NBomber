@@ -63,11 +63,11 @@ module StepExecutionData =
             AllMB = 0.0<mb>
             LatencyHistogramTicks = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
             DataTransferBytes = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
+            StatusCodes = Dictionary<int,StatusCodeStats>()
         }
 
         { OkStats = createStats()
-          FailStats = createStats()
-          StatusCodes = Dictionary<int,StatusCodeStats>() }
+          FailStats = createStats() }
 
     let addResponse (stData: StepExecutionData) (response: StepResponse) =
 
@@ -93,13 +93,13 @@ module StepExecutionData =
         let stats =
             match clientRes.IsError with
             | true when clientRes.StatusCode.HasValue ->
-                updateStatusCodeStats(stData.StatusCodes, clientRes)
+                updateStatusCodeStats(stData.FailStats.StatusCodes, clientRes)
                 stData.FailStats
 
             | true -> stData.FailStats
 
             | false when clientRes.StatusCode.HasValue ->
-                updateStatusCodeStats(stData.StatusCodes, clientRes)
+                updateStatusCodeStats(stData.OkStats.StatusCodes, clientRes)
                 stData.OkStats
 
             | false -> stData.OkStats

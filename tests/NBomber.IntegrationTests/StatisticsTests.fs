@@ -272,7 +272,7 @@ let ``status codes should be calculated properly`` () =
     })
 
     let scenario =
-        Scenario.create "realtime stats scenario" [okStep; failStep; okStepNoStatus]
+        Scenario.create "realtime stats scenario" [okStep; okStepNoStatus; failStep]
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConstant(copies = 2, during = seconds 10)
@@ -284,9 +284,9 @@ let ``status codes should be calculated properly`` () =
     |> Result.getOk
     |> fun stats ->
         let allCodes = stats.ScenarioStats.[0].StatusCodes
-        let okStCodes = stats.ScenarioStats.[0].StepStats.[0].StatusCodes
-        let failStCodes = stats.ScenarioStats.[0].StepStats.[1].StatusCodes
-        let noStatusStCodes = stats.ScenarioStats.[0].StepStats.[2].StatusCodes
+        let okStCodes = stats.ScenarioStats.[0].StepStats.[0].Ok.StatusCodes
+        let okNoStatusStCodes = stats.ScenarioStats.[0].StepStats.[1].Ok.StatusCodes
+        let failStCodes = stats.ScenarioStats.[0].StepStats.[2].Fail.StatusCodes
 
         test <@ allCodes
                 |> Seq.find(fun x -> x.StatusCode = 10 || x.StatusCode = -10)
@@ -300,4 +300,4 @@ let ``status codes should be calculated properly`` () =
                 |> Seq.find(fun x -> x.StatusCode = -10)
                 |> fun error -> error.Count > 10 @>
 
-        test <@ Array.isEmpty noStatusStCodes @>
+        test <@ Array.isEmpty okNoStatusStCodes @>

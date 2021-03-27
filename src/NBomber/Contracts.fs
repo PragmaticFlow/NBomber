@@ -100,17 +100,24 @@ type DataTransferStats = {
     AllMB: float
 }
 
-type StepDataStats = {
+type OkStepStats = {
     Request: RequestStats
     Latency: LatencyStats
     DataTransfer: DataTransferStats
+    StatusCodes: StatusCodeStats[]
+}
+
+type FailStepStats = {
+    Request: RequestStats
+    Latency: LatencyStats
+    DataTransfer: DataTransferStats
+    StatusCodes: StatusCodeStats[]
 }
 
 type StepStats = {
     StepName: string
-    Ok: StepDataStats
-    Fail: StepDataStats
-    StatusCodes: StatusCodeStats[]
+    Ok: OkStepStats
+    Fail: FailStepStats
 }
 
 type LoadSimulationStats = {
