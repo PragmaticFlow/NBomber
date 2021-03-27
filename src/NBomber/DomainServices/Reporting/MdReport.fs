@@ -46,7 +46,7 @@ module MdStatusCodeStats =
         stats
         |> Seq.map(fun x -> [x.StatusCode.ToString(); x.Count.ToString(); x.Message])
 
-    let print (stats: StatusCodeStats[]) (document: Document) =
+    let printStatusCodeTable (stats: StatusCodeStats[]) (document: Document) =
         let headers = ["status code"; "count"; "message"]
         let rows = stats |> createTableRows |> Seq.toList
         document |> addTable headers rows
@@ -215,7 +215,7 @@ module MdNodeStats =
         if scnStats.StatusCodes.Length > 0 then
             document
             |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
-            |> MdStatusCodeStats.print scnStats.StatusCodes
+            |> MdStatusCodeStats.printStatusCodeTable scnStats.StatusCodes
         else document
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =

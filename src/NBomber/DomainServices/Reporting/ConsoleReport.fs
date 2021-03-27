@@ -33,7 +33,7 @@ module ConsoleStatusCodesStats =
               x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
         )
 
-    let print (stats: StatusCodeStats[])  =
+    let printStatusCodeTable (stats: StatusCodeStats[])  =
         let headers = ["status code"; "count"; "message"]
         let rows = stats |> createTableRows |> Seq.toList
         Console.addTable headers rows
@@ -187,7 +187,7 @@ module ConsoleNodeStats =
         if scnStats.StatusCodes.Length > 0 then
             [ Console.addLine(String.Empty)
               ConsoleStatusCodesStats.printScenarioHeader(scnStats.ScenarioName)
-              ConsoleStatusCodesStats.print(scnStats.StatusCodes) ]
+              ConsoleStatusCodesStats.printStatusCodeTable(scnStats.StatusCodes) ]
         else List.Empty
 
     let private errorStepStatsExist (stepStats: StepStats[]) =
