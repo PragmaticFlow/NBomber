@@ -19,15 +19,15 @@ module TxtTestInfo =
         |> String.concatLines
         |> String.appendNewLine
 
-module TxtErrorStats =
+module TxtStatusCodeStats =
 
-    let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
-        $"errors for scenario: '{scnStats.ScenarioName}'"
+    let printScenarioHeader (scenarioName: string) =
+        $"status codes for scenario: '{scenarioName}'"
 
-    let printErrorStatsTable (errorStats: ErrorStats[]) =
-        let errorTable = ConsoleTable("error code", "count", "message")
-        errorStats |> Seq.iter(fun error -> errorTable.AddRow(error.ErrorCode, error.Count, error.Message) |> ignore)
-        errorTable.ToStringAlternative()
+    let printStatusCodeTable (stats: StatusCodeStats[]) =
+        let table = ConsoleTable("status code", "count", "message")
+        stats |> Seq.iter(fun error -> table.AddRow(error.StatusCode, error.Count, error.Message) |> ignore)
+        table.ToStringAlternative()
 
 module TxtNodeStats =
 
@@ -175,17 +175,20 @@ module TxtNodeStats =
 
         table.ToStringAlternative()
 
-    let private errorStepStatsExist (stepStats: StepStats[]) =
+    let private failStepStatsExist (stepStats: StepStats[]) =
         stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
         [ printScenarioHeader(scnStats)
           printLoadSimulations(simulations)
           printOkStepStatsTable(scnStats.StepStats)
-          if errorStepStatsExist(scnStats.StepStats) then printFailStepStatsTable(scnStats.StepStats)
-          if scnStats.ErrorStats.Length > 0 then
-             TxtErrorStats.printScenarioErrorStatsHeader(scnStats)
-             TxtErrorStats.printErrorStatsTable(scnStats.ErrorStats) ]
+
+          if failStepStatsExist(scnStats.StepStats) then
+              printFailStepStatsTable(scnStats.StepStats)
+
+          if scnStats.StatusCodes.Length > 0 then
+             TxtStatusCodeStats.printScenarioHeader(scnStats.ScenarioName)
+             TxtStatusCodeStats.printStatusCodeTable(scnStats.StatusCodes) ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats

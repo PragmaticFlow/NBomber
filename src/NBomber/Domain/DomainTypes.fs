@@ -59,12 +59,12 @@ type RawStepStats = {
     mutable AllMB: float<mb>
     LatencyHistogramTicks: LongHistogram
     DataTransferBytes: LongHistogram
+    StatusCodes: Dictionary<int,StatusCodeStats>
 }
 
 type StepExecutionData = {
     OkStats: RawStepStats
     FailStats: RawStepStats
-    ErrorStats: Dictionary<ErrorCode,ErrorStats>
 }
 
 type RunningStep = {

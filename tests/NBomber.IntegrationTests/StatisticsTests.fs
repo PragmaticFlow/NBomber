@@ -34,8 +34,9 @@ module StepExecutionData =
         let clientResMs = if isClient then float latency else 0.0
         let stepResMs = int64 Int32.MaxValue
 
-        let clientResponse = { Payload = (); SizeBytes = 10; Exception = None
-                               ErrorCode = 0; LatencyMs = clientResMs }
+        let clientResponse = { StatusCode = Nullable(); IsError = false
+                               ErrorMessage = ""; SizeBytes = 10
+                               LatencyMs = clientResMs; Payload = null }
         let stepResponse = {
             ClientResponse = clientResponse
             EndTimeTicks = % Int64.MaxValue
@@ -61,8 +62,9 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun latency ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10; Exception = None
-                ErrorCode = 0; LatencyMs = float latency
+                StatusCode = Nullable(); IsError = false
+                ErrorMessage = ""; SizeBytes = 10
+                LatencyMs = float latency; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -93,9 +95,9 @@ module StepExecutionData =
         latencies
         |> Seq.iter(fun (isOk,latency) ->
             let clientResponse = {
-                Payload = (); SizeBytes = 10
-                Exception = if isOk then None else Some(Exception())
-                ErrorCode = 0; LatencyMs = 0.0
+                StatusCode = Nullable(); IsError = not isOk
+                ErrorMessage = ""; SizeBytes = 10
+                LatencyMs = 0.0; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -147,9 +149,9 @@ module StepExecutionData =
         responseSizes
         |> Seq.iter(fun (isOk,resSize) ->
             let clientResponse = {
-                Payload = (); SizeBytes = int resSize
-                Exception = if isOk then None else Some(Exception())
-                ErrorCode = 0; LatencyMs = 1.0
+                StatusCode = Nullable(); IsError = not isOk
+                ErrorMessage = ""; SizeBytes = int resSize
+                LatencyMs = 1.0; Payload = null
             }
             let stepResponse = {
                 ClientResponse = clientResponse
@@ -191,54 +193,6 @@ module StepExecutionData =
         test <@ data.FailStats.AllMB = failAllMB @>
 
 [<Fact>]
-let ``ErrorStats should be calculated properly`` () =
-
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    let failStep1 = Step.create("fail step 1", fun context -> task {
-        do! Task.Delay(milliseconds 10)
-        return if context.InvocationCount <= 10 then Response.fail(reason = "reason 1", errorCode = 10)
-               else Response.ok()
-    })
-
-    let failStep2 = Step.create("fail step 2", fun context -> task {
-        do! Task.Delay(milliseconds 10)
-        return if context.InvocationCount <= 30 then Response.fail(reason = "reason 2", errorCode = 20)
-               else Response.ok()
-    })
-
-    let scenario =
-        Scenario.create "realtime stats scenario" [okStep; failStep1; failStep2]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 2, during = seconds 10)
-        ]
-
-    NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportFolder "./stats-tests/1/"
-    |> NBomberRunner.run
-    |> Result.getOk
-    |> fun stats ->
-        let allErrorStats = stats.ScenarioStats.[0].ErrorStats
-        let fail1Stats = stats.ScenarioStats.[0].StepStats.[1].Fail.ErrorStats
-        let fail2Stats = stats.ScenarioStats.[0].StepStats.[2].Fail.ErrorStats
-
-        test <@ allErrorStats.Length = 2 @>
-        test <@ fail1Stats.Length = 1 @>
-        test <@ fail2Stats.Length = 1 @>
-
-        test <@ fail1Stats
-                |> Seq.find(fun x -> x.ErrorCode = 10)
-                |> fun error -> error.Count = 20 @>
-
-        test <@ fail2Stats
-                |> Seq.find(fun x -> x.ErrorCode = 20)
-                |> fun error -> error.Count = 60 @>
-
-[<Fact>]
 let ``NodeStats should be calculated properly`` () =
 
     let okStep = Step.create("ok step", fun context -> task {
@@ -252,7 +206,7 @@ let ``NodeStats should be calculated properly`` () =
             return Response.ok(sizeBytes = 50)
         else
             do! Task.Delay(milliseconds 500)
-            return Response.fail(reason = "reason 1", errorCode = 10, sizeBytes = 10)
+            return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
     })
 
     let scenario =
@@ -261,7 +215,7 @@ let ``NodeStats should be calculated properly`` () =
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
 
     NBomberRunner.registerScenarios [scenario]
-    |> NBomberRunner.withReportFolder "./stats-tests/2/"
+    |> NBomberRunner.withReportFolder "./stats-tests/1/"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
@@ -298,3 +252,52 @@ let ``NodeStats should be calculated properly`` () =
         test <@ scnStats.OkCount = st1.Ok.Request.Count + st2.Ok.Request.Count @>
         test <@ scnStats.FailCount = st2.Fail.Request.Count @>
         test <@ scnStats.LatencyCount.LessOrEq800 = scnStats.RequestCount @>
+
+[<Fact>]
+let ``status codes should be calculated properly`` () =
+
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(statusCode = 10)
+    })
+
+    let okStepNoStatus = Step.create("ok step no status", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    let failStep = Step.create("fail step", fun _ -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.fail(statusCode = -10)
+    })
+
+    let scenario =
+        Scenario.create "realtime stats scenario" [okStep; okStepNoStatus; failStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [
+            KeepConstant(copies = 2, during = seconds 10)
+        ]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withReportFolder "./stats-tests/2/"
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let allCodes = stats.ScenarioStats.[0].StatusCodes
+        let okStCodes = stats.ScenarioStats.[0].StepStats.[0].Ok.StatusCodes
+        let okNoStatusStCodes = stats.ScenarioStats.[0].StepStats.[1].Ok.StatusCodes
+        let failStCodes = stats.ScenarioStats.[0].StepStats.[2].Fail.StatusCodes
+
+        test <@ allCodes
+                |> Seq.find(fun x -> x.StatusCode = 10 || x.StatusCode = -10)
+                |> fun x -> x.Count > 10 @>
+
+        test <@ okStCodes
+                |> Seq.find(fun x -> x.StatusCode = 10)
+                |> fun error -> error.Count > 10 @>
+
+        test <@ failStCodes
+                |> Seq.find(fun x -> x.StatusCode = -10)
+                |> fun error -> error.Count > 10 @>
+
+        test <@ Array.isEmpty okNoStatusStCodes @>

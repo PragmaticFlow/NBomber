@@ -6,8 +6,8 @@ open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
-open Microsoft.Extensions.Configuration
 open Serilog
+open Microsoft.Extensions.Configuration
 
 open NBomber.Configuration
 open NBomber.Extensions.InternalExtensions
@@ -20,11 +20,12 @@ type CorrelationId = {
 
 [<Struct>]
 type Response = {
-    mutable Payload: obj
+    StatusCode: Nullable<int>
+    IsError: bool
+    ErrorMessage: string
     SizeBytes: int
-    Exception: exn option
-    ErrorCode: int
     LatencyMs: float
+    mutable Payload: obj
 }
 
 type TestInfo = {
@@ -58,12 +59,10 @@ type NodeInfo = {
     NBomberVersion: string
 }
 
-type ErrorCode = int
-
-type ErrorStats = {
-    ErrorCode: ErrorCode
+type StatusCodeStats = {
+    StatusCode: int
     Message: string
-    Count: int
+    mutable Count: int
 }
 
 type RequestStats = {
@@ -105,13 +104,14 @@ type OkStepStats = {
     Request: RequestStats
     Latency: LatencyStats
     DataTransfer: DataTransferStats
+    StatusCodes: StatusCodeStats[]
 }
 
 type FailStepStats = {
     Request: RequestStats
     Latency: LatencyStats
     DataTransfer: DataTransferStats
-    ErrorStats: ErrorStats[]
+    StatusCodes: StatusCodeStats[]
 }
 
 type StepStats = {
@@ -134,7 +134,7 @@ type ScenarioStats = {
     StepStats: StepStats[]
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
-    ErrorStats: ErrorStats[]
+    StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
 }
@@ -291,49 +291,51 @@ type Response with
 
     [<CompiledName("Ok")>]
     static member ok([<Optional;DefaultParameterValue(null)>] payload: obj,
+                     [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                      [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                      [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
-        { Payload = payload
+
+        { StatusCode = statusCode
+          IsError = false
           SizeBytes = sizeBytes
-          Exception = None
-          ErrorCode = 0
-          LatencyMs = latencyMs }
+          ErrorMessage = String.Empty
+          LatencyMs = latencyMs
+          Payload = payload }
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
+                     [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                      [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
-        { Payload = payload
+
+        { StatusCode = statusCode
+          IsError = false
           SizeBytes = if isNull payload then 0 else payload.Length
-          Exception = None
-          ErrorCode = 0
-          LatencyMs = latencyMs }
+          ErrorMessage = String.Empty
+          LatencyMs = latencyMs
+          Payload = payload }
 
     [<CompiledName("Fail")>]
-    static member fail() =
-        { Payload = null
-          SizeBytes = 0
-          Exception = Some(Exception "unknown client's error")
-          ErrorCode = 0
-          LatencyMs = 0.0 }
-
-    [<CompiledName("Fail")>]
-    static member fail(ex: Exception,
-                       [<Optional;DefaultParameterValue(0)>] errorCode: int,
+    static member fail([<Optional;DefaultParameterValue("")>] error: string,
+                       [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
-        { Payload = null
+
+        { StatusCode = statusCode
+          IsError = true
           SizeBytes = sizeBytes
-          Exception = Some(ex)
-          ErrorCode = errorCode
-          LatencyMs = latencyMs }
+          ErrorMessage = if isNull error then String.Empty else error
+          LatencyMs = latencyMs
+          Payload = null }
 
     [<CompiledName("Fail")>]
-    static member fail(reason: string,
-                       [<Optional;DefaultParameterValue(0)>] errorCode: int,
+    static member fail(error: Exception,
+                       [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
                        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
-        { Payload = null
+
+        { StatusCode = statusCode
+          IsError = true
           SizeBytes = sizeBytes
-          Exception = Some(Exception reason)
-          ErrorCode = errorCode
-          LatencyMs = latencyMs }
+          ErrorMessage = if isNull error then String.Empty else error.Message
+          LatencyMs = latencyMs
+          Payload = null }

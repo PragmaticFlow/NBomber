@@ -20,8 +20,8 @@ let run () =
 
         let! response = context.Client.GetAsync("https://nbomber.com")
 
-        return if response.IsSuccessStatusCode then Response.ok()
-               else Response.fail()
+        return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
+               else Response.fail(statusCode = int response.StatusCode)
     })
 
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]

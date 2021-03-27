@@ -36,21 +36,19 @@ module MdTestInfo =
         |> Md.printHeader $"test suite: {testInfo.TestSuite |> Md.printInlineCode}"
         |> Md.printHeader $"test name: {testInfo.TestName |> Md.printInlineCode}"
 
-module MdErrorStats =
+module MdStatusCodeStats =
 
-    let printErrorStatsHeader (scenarioName: string) (document: Document) =
+    let printScenarioHeader (scenarioName: string) (document: Document) =
         document
-        |> Md.printHeader $"errors for scenario: {scenarioName |> Md.printInlineCode}"
+        |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
 
-    let private createErrorStatsTableRows (errorStats: ErrorStats[])=
-        errorStats
-        |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.Message])
-        |> List.ofSeq
+    let private createTableRows (stats: StatusCodeStats[])=
+        stats
+        |> Seq.map(fun x -> [x.StatusCode.ToString(); x.Count.ToString(); x.Message])
 
-    let printErrorStats (errorStats: ErrorStats[]) (document: Document) =
-        let headers = ["error code"; "count"; "message"]
-        let rows = createErrorStatsTableRows(errorStats)
-
+    let printStatusCodeTable (stats: StatusCodeStats[]) (document: Document) =
+        let headers = ["status code"; "count"; "message"]
+        let rows = stats |> createTableRows |> Seq.toList
         document |> addTable headers rows
 
 module MdNodeStats =
@@ -196,11 +194,11 @@ module MdNodeStats =
         |> List.ofSeq
         |> fun rows -> document |> addTable ["step"; "ok stats"] rows
 
-    let private errorStepStatsExist (stepStats: StepStats[]) =
+    let private failStepStatsExist (stepStats: StepStats[]) =
         stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let private printFailStepStatsTable (stepStats: StepStats[]) (document: Document) =
-        if errorStepStatsExist(stepStats) then
+        if failStepStatsExist(stepStats) then
             stepStats
             |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
             |> Seq.mapi createFailStepStatsRow
@@ -213,11 +211,11 @@ module MdNodeStats =
         else
             document
 
-    let private printScenarioErrorStats (scnStats: ScenarioStats) (document: Document) =
-        if scnStats.ErrorStats.Length > 0 then
+    let private printScenarioStatusCodeStats (scnStats: ScenarioStats) (document: Document) =
+        if scnStats.StatusCodes.Length > 0 then
             document
-            |> MdErrorStats.printErrorStatsHeader scnStats.ScenarioName
-            |> MdErrorStats.printErrorStats scnStats.ErrorStats
+            |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
+            |> MdStatusCodeStats.printStatusCodeTable scnStats.StatusCodes
         else document
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =
@@ -226,7 +224,7 @@ module MdNodeStats =
         |> printLoadSimulations simulations
         |> printOkStepStatsTable scnStats.StepStats
         |> printFailStepStatsTable scnStats.StepStats
-        |> printScenarioErrorStats scnStats
+        |> printScenarioStatusCodeStats scnStats
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) (document: Document) =
         stats.ScenarioStats
