@@ -13,8 +13,8 @@ let run () =
 
         let! response = httpClient.GetAsync("https://nbomber.com")
 
-        return if response.IsSuccessStatusCode then Response.ok()
-               else Response.fail()
+        return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
+               else Response.fail(statusCode = int response.StatusCode)
     })
 
     Scenario.create "simple_http" [step]

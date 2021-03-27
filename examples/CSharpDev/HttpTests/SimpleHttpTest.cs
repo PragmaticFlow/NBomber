@@ -16,8 +16,8 @@ namespace CSharpDev.HttpTests
                 var response = await httpClient.GetAsync("https://nbomber.com");
 
                 return response.IsSuccessStatusCode
-                    ? Response.Ok()
-                    : Response.Fail();
+                    ? Response.Ok(statusCode: (int) response.StatusCode)
+                    : Response.Fail(statusCode: (int) response.StatusCode);
             });
 
             var scenario = ScenarioBuilder
