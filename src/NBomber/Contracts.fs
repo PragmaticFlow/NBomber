@@ -61,6 +61,7 @@ type NodeInfo = {
 
 type StatusCodeStats = {
     StatusCode: int
+    IsError: bool
     Message: string
     mutable Count: int
 }

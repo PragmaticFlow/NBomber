@@ -77,6 +77,7 @@ module StepExecutionData =
             | true, codeStats -> codeStats.Count <- codeStats.Count + 1
             | false, _ ->
                 statuses.[statusCode] <- { StatusCode = statusCode
+                                           IsError = res.IsError
                                            Message = res.ErrorMessage
                                            Count = 1 }
 

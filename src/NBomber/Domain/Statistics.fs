@@ -165,6 +165,7 @@ module StatusCodeStats =
         |> Stream.sortBy(fun (code,codeStats) -> code)
         |> Stream.map(fun (code,codeStats) ->
             { StatusCode = code
+              IsError = codeStats |> Seq.head |> fun x -> x.IsError
               Message = codeStats |> Seq.head |> fun x -> x.Message
               Count = codeStats |> Seq.sumBy(fun x -> x.Count) }
         )
