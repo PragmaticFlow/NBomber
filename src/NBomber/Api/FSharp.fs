@@ -142,7 +142,7 @@ module Scenario =
           Clean = None
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
-          LoadSimulations = [LoadSimulation.InjectPerSec(rate = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
+          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           GetStepsOrder = fun () -> stepsOrder }
 
     /// Initializes scenario.

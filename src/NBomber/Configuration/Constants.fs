@@ -11,7 +11,7 @@ let Logo = "NBomber"
 let NBomberWelcomeText = "NBomber '{0}' Started a new session: '{1}'."
 
 [<Literal>]
-let DefaultCopiesCount = 50
+let DefaultCopiesCount = 1
 
 [<Literal>]
 let DefaultClientCount = 1
