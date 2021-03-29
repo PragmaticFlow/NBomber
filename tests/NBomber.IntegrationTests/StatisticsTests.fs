@@ -8,6 +8,7 @@ open FSharp.Control.Tasks.NonAffine
 open FsCheck.Xunit
 open Xunit
 open Swensen.Unquote
+open Nessos.Streams
 
 open NBomber.Contracts
 open NBomber.Domain
@@ -301,3 +302,21 @@ let ``status codes should be calculated properly`` () =
                 |> fun error -> error.Count > 10 @>
 
         test <@ Array.isEmpty okNoStatusStCodes @>
+
+[<Fact>]
+let ``StatusCodeStats merge function returns sorted results`` () =
+
+    let stats = [
+        { StatusCode = 50; Message = String.Empty; Count = 1 }
+        { StatusCode = 80; Message = String.Empty; Count = 1 }
+        { StatusCode = 10; Message = String.Empty; Count = 1 }
+    ]
+
+    let result =
+        stats
+        |> Stream.ofList
+        |> StatusCodeStats.merge
+        |> Stream.map(fun x -> x.StatusCode)
+        |> Stream.toArray
+
+    test <@ [| 10;50;80 |] = result @>

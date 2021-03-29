@@ -162,6 +162,7 @@ module StatusCodeStats =
     let merge (stats: Stream<StatusCodeStats>) =
         stats
         |> Stream.groupBy(fun x -> x.StatusCode)
+        |> Stream.sortBy(fun (code,codeStats) -> code)
         |> Stream.map(fun (code,codeStats) ->
             { StatusCode = code
               Message = codeStats |> Seq.head |> fun x -> x.Message
