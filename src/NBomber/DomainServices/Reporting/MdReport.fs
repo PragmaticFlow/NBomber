@@ -42,13 +42,63 @@ module MdStatusCodeStats =
         document
         |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
 
-    let private createTableRows (stats: StatusCodeStats[])=
-        stats
-        |> Seq.map(fun x -> [x.StatusCode.ToString(); x.Count.ToString(); x.Message])
+    let private createTableRows (scnStats: ScenarioStats) =
+        let okStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
 
-    let printStatusCodeTable (stats: StatusCodeStats[]) (document: Document) =
+        let failStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
+
+        let okStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.fold(fun acc x -> acc + x.Count) 0
+
+        let failStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.fold(fun acc x -> acc + x.Count) 0
+
+        let okNotAvailableStatusCodes =
+            if okStatusCodesCount < scnStats.OkCount then
+                List.singleton [
+                  "ok"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let failNotAvailableStatusCodes =
+            if failStatusCodesCount < scnStats.FailCount then
+                List.singleton [
+                  "fail"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+        allStatusCodes
+
+    let printStatusCodeTable (scnStats: ScenarioStats) (document: Document) =
         let headers = ["status code"; "count"; "message"]
-        let rows = stats |> createTableRows |> Seq.toList
+        let rows = createTableRows(scnStats)
         document |> addTable headers rows
 
 module MdNodeStats =
@@ -215,7 +265,7 @@ module MdNodeStats =
         if scnStats.StatusCodes.Length > 0 then
             document
             |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
-            |> MdStatusCodeStats.printStatusCodeTable scnStats.StatusCodes
+            |> MdStatusCodeStats.printStatusCodeTable scnStats
         else document
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =

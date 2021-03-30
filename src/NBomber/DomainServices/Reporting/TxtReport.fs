@@ -24,9 +24,61 @@ module TxtStatusCodeStats =
     let printScenarioHeader (scenarioName: string) =
         $"status codes for scenario: '{scenarioName}'"
 
-    let printStatusCodeTable (stats: StatusCodeStats[]) =
+    let printStatusCodeTable (scnStats: ScenarioStats) =
+        let okStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
+
+        let failStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
+
+        let okStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.fold(fun acc x -> acc + x.Count) 0
+
+        let failStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.fold(fun acc x -> acc + x.Count) 0
+
+        let okNotAvailableStatusCodes =
+            if okStatusCodesCount < scnStats.OkCount then
+                List.singleton [
+                  "ok"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let failNotAvailableStatusCodes =
+            if failStatusCodesCount < scnStats.FailCount then
+                List.singleton [
+                  "fail"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+
         let table = ConsoleTable("status code", "count", "message")
-        stats |> Seq.iter(fun error -> table.AddRow(error.StatusCode, error.Count, error.Message) |> ignore)
+        allStatusCodes |> Seq.iter(fun x -> table.AddRow(x.[0], x.[1], x.[2]) |> ignore)
         table.ToStringAlternative()
 
 module TxtNodeStats =
@@ -188,7 +240,7 @@ module TxtNodeStats =
 
           if scnStats.StatusCodes.Length > 0 then
              TxtStatusCodeStats.printScenarioHeader(scnStats.ScenarioName)
-             TxtStatusCodeStats.printStatusCodeTable(scnStats.StatusCodes) ]
+             TxtStatusCodeStats.printStatusCodeTable(scnStats) ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats
