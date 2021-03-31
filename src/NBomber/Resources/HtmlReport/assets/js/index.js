@@ -186,6 +186,12 @@ const initApp = (appContainer, viewModel) => {
         ]
     });
 
+    const okColors = [
+        '#00b74a', '#1b5e20',
+        '#2bbbad', '#00695c',
+        '#c0ca33', '#827717'
+    ];
+
     const errorColors = [
         '#ff3547', '#ff1744', '#ff5252',
         '#c51162', '#f50057', '#ff4081',
@@ -193,7 +199,7 @@ const initApp = (appContainer, viewModel) => {
         '#aa00ff', '#d500f9', '#e040fb'
     ];
 
-    const createSettingsChartScenarioErrors = (theme, errorStats, titles) => ({
+    const createSettingsChartScenarioStatusCodes = (theme, statusCodes, titles) => ({
         credits: {
             enabled: false
         },
@@ -217,10 +223,10 @@ const initApp = (appContainer, viewModel) => {
                 colorByPoint: true,
                 size: '100%',
                 innerSize: '50%',
-                data: errorStats.map((es, i) => ({
-                    name: es.ErrorCode,
-                    y: es.Count,
-                    color: errorColors[i % errorColors.length]
+                data: statusCodes.map((statusCode, i) => ({
+                    name: statusCode.StatusCode,
+                    y: statusCode.Count,
+                    color: statusCode.IsError ? errorColors[i % errorColors.length] : okColors[i % okColors.length]
                 }))
             }
         ]
@@ -469,7 +475,7 @@ const initApp = (appContainer, viewModel) => {
     const titles = {
         charts: {
             scenarioRequests: 'requests number',
-            scenarioErrors: 'error codes',
+            scenarioErrors: 'status codes',
             latencyIndicators: 'latency indicators',
             throughput: 'throughput',
             latency: 'latency'
@@ -610,27 +616,43 @@ const initApp = (appContainer, viewModel) => {
         }
     });
 
-    Vue.component('error-stats-table', {
-        props: ['errorStats', 'maxErrorsNumber'],
-        template: '#error-stats-table-template',
+    Vue.component('status-codes', {
+        props: ['statusCodes', 'okCount', 'failCount'],
+        template: '#status-codes-template',
         data: function() {
+            const okStatusCodes = this.statusCodes.filter(x => !x.IsError);
+            const failStatusCodes = this.statusCodes.filter(x => x.IsError);
+            const okStatusCodesCount = okStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const failStatusCodesCount = failStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const okNotAvailableStatusCodes = [];
+            const failNotAvailableStatusCodes = [];
+
+            if (okStatusCodesCount < this.okCount) {
+                okNotAvailableStatusCodes.push({
+                    StatusCode: 'ok (no status)',
+                    IsError: false,
+                    Message: '',
+                    Count: this.okCount - okStatusCodesCount
+                })
+            }
+
+            if (failStatusCodesCount < this.failCount) {
+                failNotAvailableStatusCodes.push({
+                    StatusCode: 'fail (no status)',
+                    IsError: true,
+                    Message: '',
+                    Count: this.failCount - failStatusCodesCount
+                })
+            }
+
+            const allStatusCodes =
+                okNotAvailableStatusCodes
+                    .concat(okStatusCodes)
+                    .concat(failNotAvailableStatusCodes)
+                    .concat(failStatusCodes);
+
             return {
-                showAll: false
-            }
-        },
-        computed: {
-            errors: function() {
-                return this.showAll || this.errorStats.length <= this.maxErrorsNumber
-                    ? this.errorStats
-                    : this.errorStats.slice(0, this.maxErrorsNumber);
-            },
-            shouldBeLimited: function() {
-                return this.errorStats.length > this.maxErrorsNumber;
-            }
-        },
-        methods: {
-            showAllErrors: function (showAll) {
-                this.showAll = showAll;
+                allStatusCodes
             }
         }
     });
@@ -654,11 +676,11 @@ const initApp = (appContainer, viewModel) => {
         }
     });
 
-    Vue.component('chart-scenario-errors', {
-        props: ['errorStats'],
-        template: '<div ref="container" class="chart chart-scenario-errors"></div>',
+    Vue.component('chart-status-codes', {
+        props: ['status-codes'],
+        template: '<div ref="container" class="chart chart-scenario-status-codes"></div>',
         mounted() {
-            const settings = createSettingsChartScenarioErrors(theme, this.errorStats, titles);
+            const settings = createSettingsChartScenarioStatusCodes(theme, this.statusCodes, titles);
             renderChart(this.$refs.container, settings);
         }
     });

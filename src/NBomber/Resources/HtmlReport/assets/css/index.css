@@ -64,6 +64,10 @@ div.scenario-stats {
     margin: 10px 0;
 }
 
+table.table-status-codes {
+    margin-bottom: 0;
+}
+
 table.table-scenario-stats tr th {
     text-align: center;
 }

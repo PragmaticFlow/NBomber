@@ -25,17 +25,63 @@ module ConsoleStatusCodesStats =
     let printScenarioHeader (scenarioName: string)  =
         Console.addLine($"status codes for scenario: {scenarioName |> Console.highlightPrimary}")
 
-    let private createTableRows (stats: StatusCodeStats[])=
-        stats
-        |> Seq.map(fun x ->
-            [ x.StatusCode.ToString()
-              x.Count.ToString()
-              x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
-        )
+    let private createTableRows (scnStats: ScenarioStats)=
+        let okStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString() |> Console.escapeMarkup |> Console.highlightSuccess
+                  x.Count.ToString()
+                  x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
+            )
+            |> List.ofSeq
 
-    let printStatusCodeTable (stats: StatusCodeStats[])  =
+        let failStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString() |> Console.escapeMarkup |> Console.highlightDanger
+                  x.Count.ToString()
+                  x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
+            )
+            |> List.ofSeq
+
+        let okStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let failStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let okNotAvailableStatusCodes =
+            if okStatusCodesCount < scnStats.OkCount then
+                List.singleton [
+                  "ok (no status)" |> Console.highlightSuccess
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let failNotAvailableStatusCodes =
+            if failStatusCodesCount < scnStats.FailCount then
+                List.singleton [
+                  "fail (no status)" |> Console.highlightDanger
+                  (scnStats.FailCount - failStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+        allStatusCodes
+
+    let printStatusCodeTable (scnStats: ScenarioStats)  =
         let headers = ["status code"; "count"; "message"]
-        let rows = stats |> createTableRows |> Seq.toList
+        let rows = scnStats |> createTableRows |> Seq.toList
         Console.addTable headers rows
 
 module ConsoleNodeStats =
@@ -187,7 +233,7 @@ module ConsoleNodeStats =
         if scnStats.StatusCodes.Length > 0 then
             [ Console.addLine(String.Empty)
               ConsoleStatusCodesStats.printScenarioHeader(scnStats.ScenarioName)
-              ConsoleStatusCodesStats.printStatusCodeTable(scnStats.StatusCodes) ]
+              ConsoleStatusCodesStats.printStatusCodeTable(scnStats) ]
         else List.Empty
 
     let private errorStepStatsExist (stepStats: StepStats[]) =
