@@ -617,7 +617,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('status-codes', {
-        props: ['statusCodes', 'okCount', 'failCount', 'shownNumber'],
+        props: ['statusCodes', 'okCount', 'failCount'],
         template: '#status-codes-template',
         data: function() {
             const okStatusCodes = this.statusCodes.filter(x => !x.IsError);
@@ -629,7 +629,7 @@ const initApp = (appContainer, viewModel) => {
 
             if (okStatusCodesCount < this.okCount) {
                 okNotAvailableStatusCodes.push({
-                    StatusCode: 'ok',
+                    StatusCode: 'ok (no status)',
                     IsError: false,
                     Message: '',
                     Count: this.okCount - okStatusCodesCount
@@ -638,7 +638,7 @@ const initApp = (appContainer, viewModel) => {
 
             if (failStatusCodesCount < this.failCount) {
                 failNotAvailableStatusCodes.push({
-                    StatusCode: 'fail',
+                    StatusCode: 'fail (no status)',
                     IsError: true,
                     Message: '',
                     Count: this.failCount - failStatusCodesCount
@@ -652,23 +652,7 @@ const initApp = (appContainer, viewModel) => {
                     .concat(failStatusCodes);
 
             return {
-                showAll: false,
                 allStatusCodes
-            }
-        },
-        computed: {
-            limitedStatusCodes: function() {
-                return this.showAll || this.allStatusCodes.length <= this.shownNumber
-                    ? this.allStatusCodes
-                    : this.allStatusCodes.slice(0, this.shownNumber);
-            },
-            shouldBeLimited: function() {
-                return this.allStatusCodes.length > this.shownNumber;
-            }
-        },
-        methods: {
-            showAllStatusCodes: function (showAll) {
-                this.showAll = showAll;
             }
         }
     });

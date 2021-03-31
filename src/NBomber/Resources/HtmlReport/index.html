@@ -277,31 +277,19 @@
                     <p>Status Codes</p>
                     <table class="table table-hover table-striped table-sm table-status-codes">
                         <thead class="mdb-color lighten-1 white-text">
-                        <tr>
-                            <th>status code</th>
-                            <th>count</th>
-                            <th>message</th>
-                        </tr>
+                            <tr>
+                                <th>status code</th>
+                                <th>count</th>
+                                <th>message</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(statusCode, index) in limitedStatusCodes" :key="`status-codes-${index}`">
-                            <td><strong :class="{'text-success': !statusCode.IsError, 'text-danger': statusCode.IsError}">{{statusCode.StatusCode}}</strong></td>
-                            <td>{{statusCode.Count}}</td>
-                            <td class="text-danger">{{statusCode.Message}}</td>
-                        </tr>
+                            <tr v-for="(statusCode, index) in allStatusCodes" :key="`status-codes-${index}`">
+                                <td><strong :class="{'text-success': !statusCode.IsError, 'text-danger': statusCode.IsError}">{{statusCode.StatusCode}}</strong></td>
+                                <td>{{statusCode.Count}}</td>
+                                <td class="text-danger">{{statusCode.Message}}</td>
+                            </tr>
                         </tbody>
-                        <tfoot v-if="shouldBeLimited">
-                        <tr>
-                            <td colspan="3">
-                                <a href="#" v-if="showAll" @click.prevent="showAllStatusCodes(false)">
-                                    Show top {{shownNumber}} <span class="fa fa-chevron-up"></span>
-                                </a>
-                                <a href="#" v-else @click.prevent="showAllStatusCodes(true)">
-                                    Show all {{allStatusCodes.length}} <span class="fa fa-chevron-down"></span>
-                                </a>
-                            </td>
-                        </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -515,8 +503,7 @@
                                                     <!-- TestSuite View / Status Codes Table -->
                                                     <status-codes :status-codes="scenarioStats.StatusCodes"
                                                                   :ok-count="scenarioStats.OkCount"
-                                                                  :fail-count="scenarioStats.FailCount"
-                                                                  shown-number="5">
+                                                                  :fail-count="scenarioStats.FailCount">
                                                     </status-codes>
                                                 </div>
                                             </div>
@@ -628,8 +615,7 @@
                                                 <!-- Scenario View / Status Codes Table -->
                                                 <status-codes :status-codes="scenarioStats.StatusCodes"
                                                               :ok-count="scenarioStats.OkCount"
-                                                              :fail-count="scenarioStats.FailCount"
-                                                              shown-number="5">
+                                                              :fail-count="scenarioStats.FailCount">
                                                 </status-codes>
                                             </div>
                                         </div>
@@ -702,8 +688,7 @@
                                                         <!-- Step View / Status Codes Table -->
                                                         <status-codes :status-codes="stepStats.Ok.StatusCodes.concat(stepStats.Fail.StatusCodes)"
                                                                       :ok-count="stepStats.Ok.Request.Count"
-                                                                      :fail-count="stepStats.Fail.Request.Count"
-                                                                      shown-number="5">
+                                                                      :fail-count="stepStats.Fail.Request.Count">
                                                         </status-codes>
                                                     </div>
                                                 </div>

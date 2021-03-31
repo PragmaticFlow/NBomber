@@ -66,17 +66,17 @@ module MdStatusCodeStats =
         let okStatusCodesCount =
             scnStats.StatusCodes
             |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.fold(fun acc x -> acc + x.Count) 0
+            |> Seq.sumBy(fun x -> x.Count)
 
         let failStatusCodesCount =
             scnStats.StatusCodes
             |> Seq.filter(fun x -> x.IsError)
-            |> Seq.fold(fun acc x -> acc + x.Count) 0
+            |> Seq.sumBy(fun x -> x.Count)
 
         let okNotAvailableStatusCodes =
             if okStatusCodesCount < scnStats.OkCount then
                 List.singleton [
-                  "ok"
+                  "ok (no status)"
                   (scnStats.OkCount - okStatusCodesCount).ToString()
                   String.Empty
                 ]
@@ -86,8 +86,8 @@ module MdStatusCodeStats =
         let failNotAvailableStatusCodes =
             if failStatusCodesCount < scnStats.FailCount then
                 List.singleton [
-                  "fail"
-                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  "fail (no status)"
+                  (scnStats.FailCount - failStatusCodesCount).ToString()
                   String.Empty
                 ]
             else
