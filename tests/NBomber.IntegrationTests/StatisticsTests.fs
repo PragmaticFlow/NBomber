@@ -307,9 +307,9 @@ let ``status codes should be calculated properly`` () =
 let ``StatusCodeStats merge function returns sorted results`` () =
 
     let stats = [
-        { StatusCode = 50; Message = String.Empty; Count = 1 }
-        { StatusCode = 80; Message = String.Empty; Count = 1 }
-        { StatusCode = 10; Message = String.Empty; Count = 1 }
+        { StatusCode = 50; IsError = false; Message = String.Empty; Count = 1 }
+        { StatusCode = 80; IsError = false; Message = String.Empty; Count = 1 }
+        { StatusCode = 10; IsError = false; Message = String.Empty; Count = 1 }
     ]
 
     let result =
