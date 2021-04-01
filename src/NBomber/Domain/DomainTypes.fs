@@ -24,7 +24,7 @@ type StopCommand =
     | StopTest of reason:string
 
 type UntypedStepContext = {
-    CorrelationId: CorrelationId
+    ScenarioId: ScenarioId
     CancellationToken: CancellationToken
     Client: obj
     Logger: ILogger

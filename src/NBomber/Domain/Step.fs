@@ -25,7 +25,7 @@ type StepDep = {
     Logger: ILogger
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
-    CorrelationId: CorrelationId
+    ScenarioId: ScenarioId
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -36,12 +36,12 @@ module StepContext =
         let getClient (pool: ClientPool option) =
             match pool with
             | Some v ->
-                let index = dep.CorrelationId.CopyNumber % v.InitializedClients.Length
+                let index = dep.ScenarioId.Number % v.InitializedClients.Length
                 v.InitializedClients.[index]
 
             | None -> Unchecked.defaultof<_>
 
-        { CorrelationId = dep.CorrelationId
+        { ScenarioId = dep.ScenarioId
           CancellationToken = dep.CancellationToken
           Client = getClient step.ClientPool
           Logger = dep.Logger
@@ -133,7 +133,7 @@ module RunningStep =
 
         let feedItem =
             match step.Value.Feed with
-            | Some feed -> feed.GetNextItem(context.CorrelationId, data)
+            | Some feed -> feed.GetNextItem(context.ScenarioId, data)
             | None      -> Unchecked.defaultof<_>
 
         context.InvocationCount <- context.InvocationCount + 1
@@ -147,7 +147,7 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
 
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.CorrelationId = untypedCtx.CorrelationId
+                member _.ScenarioId = untypedCtx.ScenarioId
                 member _.CancellationToken = untypedCtx.CancellationToken
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
@@ -176,7 +176,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
 
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.CorrelationId = untypedCtx.CorrelationId
+                member _.ScenarioId = untypedCtx.ScenarioId
                 member _.CancellationToken = untypedCtx.CancellationToken
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data

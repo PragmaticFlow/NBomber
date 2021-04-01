@@ -12,8 +12,8 @@ type ActorPoolResult = {
 let createActors (dep: ActorDep) count fromIndex =
     List.init count (fun i ->
         let actorIndex = fromIndex + i
-        let correlationId = Scenario.createCorrelationId(dep.Scenario.ScenarioName, actorIndex)
-        ScenarioActor(dep, correlationId)
+        let scenarioId = Scenario.createScenarioId(dep.Scenario.ScenarioName, actorIndex)
+        ScenarioActor(dep, scenarioId)
     )
 
 let rentActors (createActors: int -> int -> ScenarioActor list) // count -> fromIndex

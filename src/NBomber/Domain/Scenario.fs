@@ -154,10 +154,10 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createCorrelationId (scnName: string, copyNumber): CorrelationId =
+let createScenarioId (scnName: string, copyNumber): ScenarioId =
     { Id = $"{scnName}_{copyNumber}"
       ScenarioName = scnName
-      CopyNumber = copyNumber }
+      Number = copyNumber }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {
 
