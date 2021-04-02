@@ -25,7 +25,7 @@ let run () =
     //let feed = data |> Feed.createConstant "numbers"
     //let feed = data |> Feed.createRandom "numbers"
 
-    let step = Step.create("step", feed = feed, exec = fun context -> task {
+    let step = Step.create("step", feed = feed, execute = fun context -> task {
 
         do! Task.Delay(seconds 1)
 

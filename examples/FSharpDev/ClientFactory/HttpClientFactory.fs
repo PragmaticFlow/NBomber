@@ -11,12 +11,14 @@ let run () =
 
     let httpFactory =
         ClientFactory.create(name = "http_factory",
-                             initClient = (fun (number,context) ->
-                                 Task.Delay(1000).Wait()
-                                 Task.FromResult(new HttpClient())),
-                             clientCount = 10)
+                             clientCount = 10,
+                             initClient = fun (number,context) -> task {
+                                 return new HttpClient()
+                             })
 
-    let step = Step.create("fetch_html_page", clientFactory = httpFactory, exec = fun context -> task {
+    let step = Step.create("fetch_html_page",
+                           clientFactory = httpFactory,
+                           execute = fun context -> task {
 
         let! response = context.Client.GetAsync("https://nbomber.com")
 

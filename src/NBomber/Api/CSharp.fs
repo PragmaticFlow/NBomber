@@ -19,7 +19,7 @@ type ClientFactory =
         (name: string,
          initClient: Func<int,IBaseContext,Task<'TClient>>,
          [<Optional;DefaultParameterValue(null:obj)>] disposeClient: Func<'TClient,IBaseContext,Task>,
-         [<Optional;DefaultParameterValue(Constants.DefaultClientCount:int)>] clientCount: int) =
+         [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] clientCount: int) =
 
         let defaultDispose = (fun (client,context) ->
             match client :> obj with
@@ -70,33 +70,33 @@ type Step =
         (name: string,
          clientFactory: IClientFactory<'TClient>,
          feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
+         execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, clientFactory, feed, doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, clientFactory, feed, doNotTrack)
 
     static member Create
         (name: string,
          clientFactory: IClientFactory<'TClient>,
-         exec: Func<IStepContext<'TClient,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
+         execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, clientFactory, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, clientFactory, doNotTrack = doNotTrack)
 
     static member Create
         (name: string,
          feed: IFeed<'TFeedItem>,
-         exec: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
+         execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, feed = feed, doNotTrack = doNotTrack)
 
     static member Create
         (name: string,
-         exec: Func<IStepContext<unit,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>] doNotTrack: bool) =
+         execute: Func<IStepContext<unit,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, exec.Invoke, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, doNotTrack = doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =

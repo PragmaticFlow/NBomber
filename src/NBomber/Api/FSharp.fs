@@ -90,7 +90,7 @@ module Feed =
 type Step =
 
     static member create (name: string,
-                          exec: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
+                          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
                           ?clientFactory: IClientFactory<'TClient>,
                           ?feed: IFeed<'TFeedItem>,
                           ?doNotTrack: bool) =
@@ -103,7 +103,7 @@ type Step =
         { StepName = name
           ClientFactory = factory
           ClientPool = None
-          Execute = exec |> Step.toUntypedExecuteAsync |> AsyncExec
+          Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
@@ -112,9 +112,9 @@ type Step =
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
         Step.create(name = "pause",
-                         exec = (fun _ -> task { do! Task.Delay(getDuration())
-                                                 return Response.ok() }),
-                         doNotTrack = true)
+                    execute = (fun _ -> task { do! Task.Delay(getDuration())
+                                               return Response.ok() }),
+                    doNotTrack = true)
 
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.

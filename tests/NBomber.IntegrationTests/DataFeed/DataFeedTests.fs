@@ -163,7 +163,7 @@ let ``FeedData fromSeq should support lazy initialize``() =
 
     data <- [1; 2; 3]
 
-    let step = Step.create("ok step", feed = feed, exec = fun context -> task {
+    let step = Step.create("ok step", feed = feed, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         if context.FeedItem > 0 then return Response.ok()
         else return Response.fail()
@@ -203,12 +203,12 @@ let ``Feed with the same name should be supported``() =
         member _.GetNextItem(scenarioId, stepData) = 1
     }
 
-    let step1 = Step.create("step_1", feed = feed1, exec = fun context -> task {
+    let step1 = Step.create("step_1", feed = feed1, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
 
-    let step2 = Step.create("step_2", feed = feed2, exec = fun context -> task {
+    let step2 = Step.create("step_2", feed = feed2, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
@@ -245,12 +245,12 @@ let ``Init for the same instance shared btw steps and scenarios should be invoke
         member _.GetNextItem(scenarioId, stepData) = 1
     }
 
-    let step1 = Step.create("step_1", feed = feed, exec = fun context -> task {
+    let step1 = Step.create("step_1", feed = feed, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
 
-    let step2 = Step.create("step_2", feed = feed, exec = fun context -> task {
+    let step2 = Step.create("step_2", feed = feed, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
