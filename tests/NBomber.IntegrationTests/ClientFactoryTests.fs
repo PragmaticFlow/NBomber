@@ -28,7 +28,7 @@ let ``should distribute client with one to one mapping if clientCount = loadSimu
     let step = Step.create("step", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
-        if context.ScenarioId.Number <> context.Client then
+        if context.ScenarioThreadId.ThreadNumber <> context.Client then
             return Response.fail "distribution is not following one to one mapping"
 
         else return Response.ok()
@@ -62,7 +62,7 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
     let step = Step.create("step", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
-        let correctClient = context.ScenarioId.Number % clientCount
+        let correctClient = context.ScenarioThreadId.ThreadNumber % clientCount
 
         if correctClient <> context.Client then
             return Response.fail "distribution is not following mapping by modulo"

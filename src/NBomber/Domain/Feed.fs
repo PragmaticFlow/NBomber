@@ -25,7 +25,7 @@ let constant (name, data: 'T seq) =
             Task.CompletedTask
 
         member _.GetNextItem(scenarioId, stepData) =
-            let index = scenarioId.Number % _allItems.Length
+            let index = scenarioId.ThreadNumber % _allItems.Length
             _allItems.[index] }
 
 let circular (name, data: 'T seq) =
