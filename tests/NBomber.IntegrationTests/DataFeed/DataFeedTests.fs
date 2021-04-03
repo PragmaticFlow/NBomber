@@ -45,8 +45,8 @@ let ``createCircular iterate over array sequentially``(length: int) =
     let iterateLength = length + length // increase original length
 
     let actual = List.init iterateLength (fun i ->
-        let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", i)
-        feed.GetNextItem(scenarioId, null)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", i)
+        feed.GetNextItem(scenarioInfo, null)
     )
 
     let final = orderedList |> List.append(orderedList)
@@ -67,14 +67,14 @@ let ``createConstant returns next value from seq for the same scenarioThreadId``
     feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
-        let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", i)
-        feed.GetNextItem(scenarioId, null), feed.GetNextItem(scenarioId, null)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", i)
+        feed.GetNextItem(scenarioInfo, null), feed.GetNextItem(scenarioInfo, null)
     )
 
     test <@ actual <> sameValues @>
 
 [<Property>]
-let ``createConstant returns the same value for the same scenarioId``(length: int) =
+let ``createConstant returns the same value for the same scenarioInfo``(length: int) =
 
     length > 10 ==> lazy
 
@@ -87,8 +87,8 @@ let ``createConstant returns the same value for the same scenarioId``(length: in
     feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
-        let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", i)
-        feed.GetNextItem(scenarioId, null), feed.GetNextItem(scenarioId, null)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", i)
+        feed.GetNextItem(scenarioInfo, null), feed.GetNextItem(scenarioInfo, null)
     )
 
     test <@ actual = sameValues @>
@@ -106,13 +106,13 @@ let ``createRandom returns the random numbers list for each full iteration``() =
     feed2.Init(context).Wait()
 
     let actual1 = List.init numbers.Length (fun i ->
-        let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", i)
-        feed1.GetNextItem(scenarioId, null)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", i)
+        feed1.GetNextItem(scenarioInfo, null)
     )
 
     let actual2 = List.init numbers.Length (fun i ->
-        let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", i)
-        feed2.GetNextItem(scenarioId, null)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", i)
+        feed2.GetNextItem(scenarioInfo, null)
     )
 
     test <@ actual1 <> actual2 @>
@@ -122,7 +122,7 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
     (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u) ==> lazy
 
-    let scenarioId = NBomber.Domain.Scenario.createScenarioThreadId("test_scn", numbers.Length)
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", numbers.Length)
 
     let circular = numbers |> Feed.createCircular "circular"
     let constant = numbers |> Feed.createConstant "constant"
@@ -134,9 +134,9 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
     random.Init(context).Wait()
 
     for i = 0 to int iterationTimes do
-        circular.GetNextItem(scenarioId, null) |> ignore
-        constant.GetNextItem(scenarioId, null) |> ignore
-        random.GetNextItem(scenarioId, null) |> ignore
+        circular.GetNextItem(scenarioInfo, null) |> ignore
+        constant.GetNextItem(scenarioInfo, null) |> ignore
+        random.GetNextItem(scenarioInfo, null) |> ignore
 
 [<Fact>]
 let ``FeedData.fromJson works correctly``() =
@@ -190,7 +190,7 @@ let ``Feed with the same name should be supported``() =
             feed_1_initCount <- feed_1_initCount + 1
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) = 1
+        member _.GetNextItem(scenarioInfo, stepData) = 1
     }
 
     let feed2 = { new IFeed<int> with
@@ -200,7 +200,7 @@ let ``Feed with the same name should be supported``() =
             feed_2_initCount <- feed_2_initCount + 1
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) = 1
+        member _.GetNextItem(scenarioInfo, stepData) = 1
     }
 
     let step1 = Step.create("step_1", feed = feed1, execute = fun context -> task {
@@ -242,7 +242,7 @@ let ``Init for the same instance shared btw steps and scenarios should be invoke
             feedInitCount <- feedInitCount + 1
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) = 1
+        member _.GetNextItem(scenarioInfo, stepData) = 1
     }
 
     let step1 = Step.create("step_1", feed = feed, execute = fun context -> task {

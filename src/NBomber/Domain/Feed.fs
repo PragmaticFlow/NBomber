@@ -11,7 +11,7 @@ let toUntypedFeed (feed: IFeed<'TFeedItem>) = {
     interface IFeed<obj> with
         member _.FeedName = feed.FeedName
         member _.Init(context) = feed.Init(context)
-        member _.GetNextItem(scenarioId, stepData) = feed.GetNextItem(scenarioId, stepData) :> obj
+        member _.GetNextItem(scenarioInfo, stepData) = feed.GetNextItem(scenarioInfo, stepData) :> obj
 }
 
 let constant (name, data: 'T seq) =
@@ -24,8 +24,8 @@ let constant (name, data: 'T seq) =
             _allItems <- data |> Seq.toArray
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) =
-            let index = scenarioId.ThreadNumber % _allItems.Length
+        member _.GetNextItem(scenarioInfo, stepData) =
+            let index = scenarioInfo.ThreadNumber % _allItems.Length
             _allItems.[index] }
 
 let circular (name, data: 'T seq) =
@@ -44,7 +44,7 @@ let circular (name, data: 'T seq) =
             _enumerator <- infiniteItems.GetEnumerator()
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) =
+        member _.GetNextItem(scenarioInfo, stepData) =
             _enumerator.MoveNext() |> ignore
             _enumerator.Current }
 
@@ -63,4 +63,4 @@ let random (name, data: 'T seq) =
             _allItems <- data |> Seq.toArray
             Task.CompletedTask
 
-        member _.GetNextItem(scenarioId, stepData) = getRandomItem() }
+        member _.GetNextItem(scenarioInfo, stepData) = getRandomItem() }

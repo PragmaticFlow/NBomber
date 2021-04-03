@@ -12,11 +12,6 @@ open Microsoft.Extensions.Configuration
 open NBomber.Configuration
 open NBomber.Extensions.InternalExtensions
 
-type ScenarioThreadId = {
-    Id: string
-    ThreadNumber: int
-}
-
 [<Struct>]
 type Response = {
     StatusCode: Nullable<int>
@@ -157,6 +152,14 @@ type NodeStats = {
     Duration: TimeSpan
 }
 
+type ScenarioInfo = {
+    /// Gets the current scenario thread id.
+    /// You can use it as correlation id.
+    ThreadId: string
+    ThreadNumber: int
+    ScenarioName: string
+}
+
 type IBaseContext =
     /// Gets current test info
     abstract TestInfo: TestInfo
@@ -177,12 +180,12 @@ type IClientFactory<'TClient> =
 type IFeed<'TFeedItem> =
     abstract FeedName: string
     abstract Init: context:IBaseContext -> Task
-    abstract GetNextItem: scenarioThreadId:ScenarioThreadId * stepData:Dict<string,obj> -> 'TFeedItem
+    abstract GetNextItem: scenarioInfo:ScenarioInfo * stepData:Dict<string,obj> -> 'TFeedItem
 
 type IStepContext<'TClient,'TFeedItem> =
-    /// It's unique identifier that represent current scenario thread.
-    /// You can use it as a correlation id.
-    abstract ScenarioThreadId: ScenarioThreadId
+    /// Gets info about the currently running scenario.
+    /// You can use ScenarioInfo.ThreadId as correlation id.
+    abstract ScenarioInfo: ScenarioInfo
     /// Cancellation token is a standard mechanics for canceling long-running operations.
     /// Cancellation token should be used to help NBomber stop scenarios when the test is finished.
     abstract CancellationToken: CancellationToken

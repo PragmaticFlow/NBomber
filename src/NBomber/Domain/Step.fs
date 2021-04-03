@@ -20,12 +20,11 @@ open NBomber.Domain.ClientPool
 open NBomber.Domain.Statistics
 
 type StepDep = {
-    ScenarioName: string
+    ScenarioInfo: ScenarioInfo
     ScenarioMaxDuration: int64<ticks>
     Logger: ILogger
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
-    ScenarioThreadId: ScenarioThreadId
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -36,12 +35,12 @@ module StepContext =
         let getClient (pool: ClientPool option) =
             match pool with
             | Some v ->
-                let index = dep.ScenarioThreadId.ThreadNumber % v.InitializedClients.Length
+                let index = dep.ScenarioInfo.ThreadNumber % v.InitializedClients.Length
                 v.InitializedClients.[index]
 
             | None -> Unchecked.defaultof<_>
 
-        { ScenarioThreadId = dep.ScenarioThreadId
+        { ScenarioInfo = dep.ScenarioInfo
           CancellationToken = dep.CancellationToken
           Client = getClient step.ClientPool
           Logger = dep.Logger
@@ -133,7 +132,7 @@ module RunningStep =
 
         let feedItem =
             match step.Value.Feed with
-            | Some feed -> feed.GetNextItem(context.ScenarioThreadId, data)
+            | Some feed -> feed.GetNextItem(context.ScenarioInfo, data)
             | None      -> Unchecked.defaultof<_>
 
         context.InvocationCount <- context.InvocationCount + 1
@@ -147,7 +146,7 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
 
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.ScenarioThreadId = untypedCtx.ScenarioThreadId
+                member _.ScenarioInfo = untypedCtx.ScenarioInfo
                 member _.CancellationToken = untypedCtx.CancellationToken
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
@@ -176,7 +175,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
 
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.ScenarioThreadId = untypedCtx.ScenarioThreadId
+                member _.ScenarioInfo = untypedCtx.ScenarioInfo
                 member _.CancellationToken = untypedCtx.CancellationToken
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
@@ -262,13 +261,13 @@ let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
+                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
                         | false ->
                             data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 
 let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = task {
 
@@ -288,13 +287,13 @@ let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = t
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
+                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
                         | false ->
                             data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, "Step with index '{0}' from scenario '{ScenarioName}' has failed.", stepIndex, dep.ScenarioName)
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 }
 
 let isAllExecSync (steps: Step list) =

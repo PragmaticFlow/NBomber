@@ -22,14 +22,15 @@ type ActorDep = {
     ExecStopCommand: StopCommand -> unit
 }
 
-type ScenarioActor(dep: ActorDep, scenarioThreadId: ScenarioThreadId) =
+type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
-    let _stepDep = { ScenarioName = dep.Scenario.ScenarioName
+    let _stepDep = { ScenarioInfo = scenarioInfo
                      ScenarioMaxDuration = % dep.Scenario.PlanedDuration.Ticks
-                     Logger = dep.Logger; CancellationToken = dep.CancellationToken
-                     GlobalTimer = dep.GlobalTimer; ScenarioThreadId = scenarioThreadId
+                     Logger = dep.Logger
+                     CancellationToken = dep.CancellationToken
+                     GlobalTimer = dep.GlobalTimer
                      ExecStopCommand = dep.ExecStopCommand }
 
     let _steps = dep.Scenario.Steps
@@ -38,7 +39,7 @@ type ScenarioActor(dep: ActorDep, scenarioThreadId: ScenarioThreadId) =
 
     let mutable _working = false
 
-    member _.ScenarioThreadId = scenarioThreadId
+    member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
 
     member _.ExecSteps() = task {
