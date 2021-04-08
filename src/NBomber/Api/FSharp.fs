@@ -33,9 +33,12 @@ module TimeSpanApi =
     let inline seconds (value: int) = value |> float |> TimeSpan.FromSeconds
     let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
 
+/// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 [<RequireQualifiedAccess>]
 type ClientFactory =
 
+    /// Creates ClientFactory.
+    /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
     static member create (name: string,
                           initClient: int * IBaseContext -> Task<'TClient>,
                           ?disposeClient: 'TClient * IBaseContext -> Task<unit>,
@@ -56,7 +59,7 @@ type ClientFactory =
         let count = defaultArg clientCount Constants.DefaultClientCount
         ClientFactory(name, count, initClient, dispose) :> IClientFactory<'TClient>
 
-/// Data feed helps you to inject dynamic data into your test.
+/// DataFeed helps inject test data into your load test. It represents a data source.
 [<RequireQualifiedAccess>]
 module Feed =
 
@@ -86,9 +89,12 @@ module Feed =
     let createRandomLazy (name) (getData: unit -> 'T seq) =
         NBomber.Domain.Feed.random(name, getData())
 
+/// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]
 type Step =
 
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
     static member create (name: string,
                           execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
                           ?clientFactory: IClientFactory<'TClient>,
@@ -130,11 +136,16 @@ type Step =
     static member createPause (milliseconds: int) =
         Step.createPause(fun () -> milliseconds)
 
-/// Scenario helps to organize steps into sequential flow with different load simulations (concurrency control).
+/// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+/// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+/// You should think about Scenario as a system thread.
 [<RequireQualifiedAccess>]
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
+    /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+    /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+    /// You should think about Scenario as a system thread.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         let stepsOrder = [|0..steps.Length-1|]
         { ScenarioName = name
@@ -163,7 +174,9 @@ module Scenario =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
     /// Sets load simulations.
-    /// Default value is: InjectPerSec(rate = 50, during = minutes 1)
+    /// Default value is: KeepConstant(copies = 1, during = minutes 1)
+    /// NBomber is always running simulations in sequential order that you defined them.
+    /// All defined simulations are represent the whole Scenario duration.
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
 

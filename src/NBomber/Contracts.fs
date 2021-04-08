@@ -226,15 +226,24 @@ type IStep =
     abstract DoNotTrack: bool
 
 type LoadSimulation =
-    /// Injects a given number of scenario copies with a linear ramp over a given duration. Use it for ramp up and rump down.
+    /// Injects a given number of scenario copies (threads) with a linear ramp over a given duration.
+    /// Every single scenario copy will iterate while the specified duration.
+    /// Use it for ramp up and rump down.
     | RampConstant of copies:int * during:TimeSpan
-    /// Injects a given number of scenario copies at once and keep them running, during a given duration.
+    /// A fixed number of scenario copies (threads) executes as many iterations as possible for a specified amount of time.
+    /// Every single scenario copy will iterate while the specified duration.
+    /// Use it when you need to run a specific amount of scenario copies (threads) for a certain amount of time.
     | KeepConstant of copies:int * during:TimeSpan
-    /// Injects a given number of scenario copies from the current rate to target rate, defined in scenarios per second, during a given duration.
+    /// Injects a given number of scenario copies (threads) per 1 sec from the current rate to target rate during a given duration.
+    /// Every single scenario copy will run only once.
     | RampPerSec   of rate:int * during:TimeSpan
-    /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
+    /// Injects a given number of scenario copies (threads) per 1 sec during a given duration.
+    /// Every single scenario copy will run only once.
+    /// Use it when you want to maintain a constant rate of requests without being affected by the performance of the system under test.
     | InjectPerSec of rate:int * during:TimeSpan
-    /// Injects a random number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
+    /// Injects a random number of scenario copies (threads) per 1 sec defined in scenarios per second during a given duration.
+    /// Every single scenario copy will run only once.
+    /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
     | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan
 
 type Scenario = {

@@ -13,12 +13,15 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
 
+/// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 type ClientFactory =
 
+    /// Creates ClientFactory.
+    /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
     static member Create
         (name: string,
          initClient: Func<int,IBaseContext,Task<'TClient>>,
-         [<Optional;DefaultParameterValue(null:obj)>] disposeClient: Func<'TClient,IBaseContext,Task>,
+         [<Optional;DefaultParameterValue(null)>] disposeClient: Func<'TClient,IBaseContext,Task>,
          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] clientCount: int) =
 
         let defaultDispose = (fun (client,context) ->
@@ -35,7 +38,7 @@ type ClientFactory =
         NBomber.Domain.ClientPool.ClientFactory(name, clientCount, initClient.Invoke, dispose)
         :> IClientFactory<'TClient>
 
-/// Data feed helps you to inject dynamic data into your test.
+/// DataFeed helps inject test data into your load test. It represents a data source.
 type Feed =
 
     /// Creates Feed that picks constant value per Step copy.
@@ -64,8 +67,11 @@ type Feed =
     static member CreateRandom (name, getData: Func<'T seq>) =
         NBomber.Domain.Feed.random(name, getData.Invoke())
 
+/// Step represents a single user action like login, logout, etc.
 type Step =
 
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          clientFactory: IClientFactory<'TClient>,
@@ -75,6 +81,8 @@ type Step =
 
         FSharp.Step.create(name, execute.Invoke, clientFactory, feed, doNotTrack)
 
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          clientFactory: IClientFactory<'TClient>,
@@ -83,6 +91,8 @@ type Step =
 
         FSharp.Step.create(name, execute.Invoke, clientFactory, doNotTrack = doNotTrack)
 
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          feed: IFeed<'TFeedItem>,
@@ -91,6 +101,8 @@ type Step =
 
         FSharp.Step.create(name, execute.Invoke, feed = feed, doNotTrack = doNotTrack)
 
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          execute: Func<IStepContext<unit,unit>,Task<Response>>,
@@ -116,10 +128,16 @@ type Step =
     static member CreatePause(getDuration: Func<int>) =
         FSharp.Step.createPause(getDuration.Invoke)
 
+/// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+/// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+/// You should think about Scenario as a system thread.
 [<Extension>]
 type ScenarioBuilder =
 
     /// Creates scenario with steps which will be executed sequentially.
+    /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+    /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+    /// You should think about Scenario as a system thread.
     static member CreateScenario(name: string, [<ParamArray>]steps: IStep[]) =
         FSharp.Scenario.create name (Seq.toList steps)
 
@@ -145,7 +163,9 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withoutWarmUp
 
     /// Sets load simulations.
-    /// Default value is: InjectPerSec(rate = 50, during = minutes 1)
+    /// Default value is: KeepConstant(copies = 1, during = minutes 1)
+    /// NBomber is always running simulations in sequential order that you defined them.
+    /// All defined simulations are represent the whole Scenario duration.
     [<Extension>]
     static member WithLoadSimulations (scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
