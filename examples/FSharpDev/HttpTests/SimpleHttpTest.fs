@@ -11,7 +11,7 @@ let run () =
 
     let step = Step.create("fetch_html_page", fun context -> task {
 
-        let! response = httpClient.GetAsync("https://nbomber.com")
+        let! response = httpClient.GetAsync("https://nbomber.com", context.CancellationToken)
 
         return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
                else Response.fail(statusCode = int response.StatusCode)
@@ -19,7 +19,8 @@ let run () =
 
     Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 20, during = seconds 30)]
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+    |> Scenario.withStepTimeout(milliseconds 500)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> ignore

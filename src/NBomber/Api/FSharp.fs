@@ -117,7 +117,7 @@ type Step =
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.create(name = "pause",
+        Step.create(name = Constants.StepPauseName,
                     execute = (fun _ -> task { do! Task.Delay(getDuration())
                                                return Response.ok() }),
                     doNotTrack = true)
@@ -154,7 +154,8 @@ module Scenario =
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          GetStepsOrder = fun () -> stepsOrder }
+          GetStepsOrder = fun () -> stepsOrder
+          StepTimeout = Constants.StepTimeout }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -185,6 +186,11 @@ module Scenario =
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     let withCustomStepsOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
         { scenario with GetStepsOrder = getStepsOrder }
+
+    /// Sets step's timeout
+    /// By default it's: 1 sec
+    let withStepTimeout (timeout: TimeSpan) (scenario: Contracts.Scenario) =
+        { scenario with StepTimeout = timeout }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.

@@ -341,3 +341,25 @@ let ``withCustomStepsOrder should allow to run steps with custom order`` () =
         let stepsStats = stats.ScenarioStats.[0].StepStats
         test <@ stepsStats.[0].Ok.Request.Count = 0 @>
         test <@ stepsStats.[1].Ok.Request.Count > 0 @>
+
+[<Fact>]
+let ``withStepTimeout should set step timeout`` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(seconds 2)
+        return Response.ok()
+    })
+
+    Scenario.create "1" [step1]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
+    |> Scenario.withStepTimeout(seconds 1)
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let stepsStats = stats.ScenarioStats.[0].StepStats
+        test <@ stepsStats.[0].Ok.Request.Count = 0 @>
+        test <@ stepsStats.[0].Fail.Request.Count > 0 @>
+        test <@ stepsStats.[0].Fail.StatusCodes.[0].StatusCode = -100 @>
+        test <@ stepsStats.[0].Fail.StatusCodes.[0].Count = stepsStats.[0].Fail.Request.Count @>

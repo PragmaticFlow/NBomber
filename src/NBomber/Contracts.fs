@@ -254,6 +254,7 @@ type Scenario = {
     WarmUpDuration: TimeSpan
     LoadSimulations: LoadSimulation list
     GetStepsOrder: unit -> int[]
+    StepTimeout: TimeSpan
 }
 
 type IReportingSink =

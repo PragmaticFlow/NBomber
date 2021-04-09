@@ -13,7 +13,10 @@ namespace CSharpDev.HttpTests
 
             var step = Step.Create("fetch_html_page", async context =>
             {
-                var response = await httpClient.GetAsync("https://nbomber.com");
+                var response = await httpClient.GetAsync(
+                    "https://nbomber.com",
+                    context.CancellationToken
+                );
 
                 return response.IsSuccessStatusCode
                     ? Response.Ok(statusCode: (int) response.StatusCode)
@@ -25,7 +28,8 @@ namespace CSharpDev.HttpTests
                 .WithWarmUpDuration(TimeSpan.FromSeconds(5))
                 .WithLoadSimulations(
                     Simulation.InjectPerSec(rate: 1, during: TimeSpan.FromSeconds(30))
-                );
+                )
+                .WithStepTimeout(TimeSpan.FromMilliseconds(500));
 
             NBomberRunner
                 .RegisterScenarios(scenario)

@@ -124,8 +124,12 @@ module StepExecutionData =
 
 module RunningStep =
 
-    let create (dep: StepDep) (step: Step) =
-        { Value = step; Context = StepContext.create dep step; ExecutionData = StepExecutionData.createEmpty()  }
+    let create (dep: StepDep) (timeout: TimeSpan) (step: Step) = {
+        Value = step
+        Context = StepContext.create dep step
+        StepTimeout = timeout
+        ExecutionData = StepExecutionData.createEmpty()
+    }
 
     let updateContext (step: RunningStep) (data: Dict<string,obj>) =
         let context = step.Context
@@ -213,7 +217,11 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        { ClientResponse = Response.ok(); EndTimeTicks = 0L<ticks>; LatencyTicks = 0L<ticks> }
+        let endTime = globalTimer.Elapsed
+        let latency = endTime - startTime
+        { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+          EndTimeTicks = % endTime.Ticks
+          LatencyTicks = % latency.Ticks }
 
     | ex ->
         let endTime = globalTimer.Elapsed
@@ -223,24 +231,39 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
 let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed
     try
-        let! resp =
+        let responseTask =
             match step.Value.Execute with
             | SyncExec exec  -> Task.FromResult(exec step.Context)
             | AsyncExec exec -> exec step.Context
 
-        let endTime = globalTimer.Elapsed
-        let latency = endTime - startTime
+        if step.Value.StepName = Constants.StepPauseName then
+            let! pause = responseTask
+            return { ClientResponse = pause; EndTimeTicks = 0L<ticks>; LatencyTicks = 0L<ticks> }
+        else
+            let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.StepTimeout, step.Context.CancellationToken))
+            let endTime = globalTimer.Elapsed
+            let latency = endTime - startTime
 
-        return { ClientResponse = resp; EndTimeTicks = % endTime.Ticks; LatencyTicks = % latency.Ticks }
+            if finishedTask.Id = responseTask.Id then
+                return { ClientResponse = responseTask.Result
+                         EndTimeTicks = % endTime.Ticks
+                         LatencyTicks = % latency.Ticks }
+            else
+                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+                         EndTimeTicks = % endTime.Ticks
+                         LatencyTicks = % latency.Ticks }
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        return { ClientResponse = Response.ok(); EndTimeTicks = 0L<ticks>; LatencyTicks = 0L<ticks> }
-
+        let endTime = globalTimer.Elapsed
+        let latency = endTime - startTime
+        return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+                 EndTimeTicks = % endTime.Ticks
+                 LatencyTicks = % latency.Ticks }
     | ex ->
         let endTime = globalTimer.Elapsed
         let latency = endTime - startTime
-        return { ClientResponse = Response.fail(ex); EndTimeTicks = % endTime.Ticks; LatencyTicks = % latency.Ticks }
+        return { ClientResponse = Response.fail(error = ex.Message); EndTimeTicks = % endTime.Ticks; LatencyTicks = % latency.Ticks }
 }
 
 let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =

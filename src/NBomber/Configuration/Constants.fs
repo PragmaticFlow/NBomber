@@ -25,6 +25,9 @@ let DefaultDoNotTrack = false
 let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
 
 [<Literal>]
+let StepPauseName = "nbomber_step_pause"
+
+[<Literal>]
 let StepResponseKey = "nbomber_step_response"
 
 [<Literal>]
@@ -48,6 +51,8 @@ let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
 let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 1.0
 let OperationTimeOut = TimeSpan.FromSeconds 3.0
+let StepTimeout = TimeSpan.FromSeconds 1.0
+let TimeoutStatusCode = -100
 
 let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 

@@ -11,7 +11,7 @@ let run () =
 
     let httpFactory =
         ClientFactory.create(name = "http_factory",
-                             clientCount = 10,
+                             clientCount = 1,
                              initClient = fun (number,context) -> task {
                                  return new HttpClient()
                              })
@@ -20,7 +20,7 @@ let run () =
                            clientFactory = httpFactory,
                            execute = fun context -> task {
 
-        let! response = context.Client.GetAsync("https://nbomber.com")
+        let! response = context.Client.GetAsync("https://nbomber.com", cancellationToken = context.CancellationToken)
 
         return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
                else Response.fail(statusCode = int response.StatusCode)
@@ -31,7 +31,8 @@ let run () =
 
     Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 20, during = seconds 10)]
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+    |> Scenario.withStepTimeout(milliseconds 500)
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run

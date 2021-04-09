@@ -70,6 +70,7 @@ type StepExecutionData = {
 type RunningStep = {
     Value: Step
     Context: UntypedStepContext
+    StepTimeout: TimeSpan
     mutable ExecutionData: StepExecutionData
 }
 
@@ -107,4 +108,5 @@ type Scenario = {
     ExecutedDuration: TimeSpan option
     CustomSettings: string
     GetStepsOrder: unit -> int[]
+    StepTimeout: TimeSpan
 }

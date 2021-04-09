@@ -34,7 +34,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                      ExecStopCommand = dep.ExecStopCommand }
 
     let _steps = dep.Scenario.Steps
-                 |> List.map(RunningStep.create _stepDep)
+                 |> List.map(RunningStep.create _stepDep dep.Scenario.StepTimeout)
                  |> List.toArray
 
     let mutable _working = false
