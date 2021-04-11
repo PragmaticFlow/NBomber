@@ -11,7 +11,7 @@ let run () =
 
     let step = Step.create("fetch_html_page", fun context -> task {
 
-        let! response = httpClient.GetAsync("https://nbomber.com")
+        let! response = httpClient.GetAsync("https://nbomber.com", context.CancellationToken)
 
         return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
                else Response.fail(statusCode = int response.StatusCode)

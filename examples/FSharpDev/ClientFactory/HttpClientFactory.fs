@@ -20,7 +20,7 @@ let run () =
                            clientFactory = httpFactory,
                            execute = fun context -> task {
 
-        let! response = context.Client.GetAsync("https://nbomber.com")
+        let! response = context.Client.GetAsync("https://nbomber.com", context.CancellationToken)
 
         return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
                else Response.fail(statusCode = int response.StatusCode)
