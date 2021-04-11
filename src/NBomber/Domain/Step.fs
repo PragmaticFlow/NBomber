@@ -213,12 +213,17 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        { ClientResponse = Response.ok(); EndTimeTicks = 0L<ticks>; LatencyTicks = 0L<ticks> }
-
+        let endTime = globalTimer.Elapsed
+        let latency = endTime - startTime
+        { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+          EndTimeTicks = % endTime.Ticks
+          LatencyTicks = % latency.Ticks }
     | ex ->
         let endTime = globalTimer.Elapsed
         let latency = endTime - startTime
-        { ClientResponse = Response.fail(ex); EndTimeTicks = % endTime.Ticks; LatencyTicks = % latency.Ticks }
+        { ClientResponse = Response.fail(error = ex.Message)
+          EndTimeTicks = % endTime.Ticks
+          LatencyTicks = % latency.Ticks }
 
 let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed
