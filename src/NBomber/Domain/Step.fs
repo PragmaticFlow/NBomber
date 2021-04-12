@@ -117,8 +117,9 @@ module StepExecutionData =
             elif latencyMs >= 1200.0<ms> then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
             // add data transfer
-            stats.AllMB <- stats.AllMB + Statistics.Converter.fromBytesToMB responseBytes
-            stats.DataTransferBytes.RecordValue(int64 responseBytes)
+            if responseBytes > 0<bytes> then
+                stats.AllMB <- stats.AllMB + Statistics.Converter.fromBytesToMB responseBytes
+                stats.DataTransferBytes.RecordValue(int64 responseBytes)
 
         stData
 
@@ -221,7 +222,8 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
     | ex ->
         let endTime = globalTimer.Elapsed
         let latency = endTime - startTime
-        { ClientResponse = Response.fail(error = ex.Message)
+        { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
+                                         error = $"step unhandled exception: {ex.Message}")
           EndTimeTicks = % endTime.Ticks
           LatencyTicks = % latency.Ticks }
 
@@ -260,7 +262,8 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
     | ex ->
         let endTime = globalTimer.Elapsed
         let latency = endTime - startTime
-        return { ClientResponse = Response.fail(error = ex.Message)
+        return { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
+                                                error = $"step unhandled exception: {ex.Message}")
                  EndTimeTicks = % endTime.Ticks
                  LatencyTicks = % latency.Ticks }
 }

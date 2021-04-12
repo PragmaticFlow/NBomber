@@ -52,6 +52,7 @@ let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 1.0
 let StepTimeout = TimeSpan.FromSeconds 1.0
 let TimeoutStatusCode = -100
+let StepExceptionStatusCode = -101
 
 let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 
