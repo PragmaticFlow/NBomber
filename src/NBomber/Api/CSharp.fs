@@ -236,7 +236,7 @@ type NBomberRunner =
     /// Sets reporting sinks.
     /// Reporting sink is used to save real-time metrics to correspond database.
     [<Extension>]
-    static member WithReportingSinks(context: NBomberContext, reportingSinks: IReportingSink[]) =
+    static member WithReportingSinks(context: NBomberContext, [<ParamArray>]reportingSinks: IReportingSink[]) =
         let sinks = reportingSinks |> Seq.toList
         context |> FSharp.NBomberRunner.withReportingSinks sinks
 
