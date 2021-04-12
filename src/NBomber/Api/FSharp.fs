@@ -99,6 +99,7 @@ type Step =
                           execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
                           ?clientFactory: IClientFactory<'TClient>,
                           ?feed: IFeed<'TFeedItem>,
+                          ?timeout: TimeSpan,
                           ?doNotTrack: bool) =
 
         let factory =
@@ -106,18 +107,21 @@ type Step =
             |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
             |> Option.map(fun x -> x.GetUntyped())
 
+        let timeout = timeout |> Option.defaultValue(Constants.StepTimeout)
+
         { StepName = name
           ClientFactory = factory
           ClientPool = None
           Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
+          Timeout = timeout
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.create(name = "pause",
+        Step.create(name = Constants.StepPauseName,
                     execute = (fun _ -> task { do! Task.Delay(getDuration())
                                                return Response.ok() }),
                     doNotTrack = true)
@@ -367,5 +371,6 @@ namespace NBomber.FSharp.SyncApi
               ClientPool = None
               Execute = exec |> Step.toUntypedExecute |> SyncExec
               Feed = feed |> Option.map Feed.toUntypedFeed
+              Timeout = Constants.StepTimeout
               DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
               :> IStep

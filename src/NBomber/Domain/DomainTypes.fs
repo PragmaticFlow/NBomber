@@ -45,6 +45,7 @@ type Step = {
     ClientPool: ClientPool option
     Execute: StepExecution
     Feed: IFeed<obj> option
+    Timeout: TimeSpan
     DoNotTrack: bool
 } with
     interface IStep with

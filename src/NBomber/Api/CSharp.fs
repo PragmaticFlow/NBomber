@@ -77,9 +77,11 @@ type Step =
          clientFactory: IClientFactory<'TClient>,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, clientFactory, feed, doNotTrack)
+        let timeout = Option.ofNullable timeout
+        FSharp.Step.create(name, execute.Invoke, clientFactory, feed, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.
@@ -87,9 +89,11 @@ type Step =
         (name: string,
          clientFactory: IClientFactory<'TClient>,
          execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, clientFactory, doNotTrack = doNotTrack)
+        let timeout = Option.ofNullable timeout
+        FSharp.Step.create(name, execute.Invoke, clientFactory, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.
@@ -97,18 +101,22 @@ type Step =
         (name: string,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
+         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, feed = feed, doNotTrack = doNotTrack)
+        let timeout = Option.ofNullable timeout
+        FSharp.Step.create(name, execute.Invoke, feed = feed, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          execute: Func<IStepContext<unit,unit>,Task<Response>>,
+         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
-        FSharp.Step.create(name, execute.Invoke, doNotTrack = doNotTrack)
+        let timeout = Option.ofNullable timeout
+        FSharp.Step.create(name, execute.Invoke, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates pause step with specified duration.
     static member CreatePause(duration: TimeSpan) =
@@ -167,14 +175,14 @@ type ScenarioBuilder =
     /// NBomber is always running simulations in sequential order that you defined them.
     /// All defined simulations are represent the whole Scenario duration.
     [<Extension>]
-    static member WithLoadSimulations (scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
+    static member WithLoadSimulations(scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
     /// Sets custom steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     [<Extension>]
-    static member WithCustomStepsOrder (scenario: Scenario, getStepsOrder: Func<int[]>) =
+    static member WithCustomStepsOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
         scenario |> FSharp.Scenario.withCustomStepsOrder(getStepsOrder.Invoke)
 
 [<Extension>]
