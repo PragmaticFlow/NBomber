@@ -10,6 +10,7 @@ open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 open Microsoft.Extensions.Configuration
 
+open NBomber
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration

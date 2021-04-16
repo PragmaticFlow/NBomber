@@ -9,6 +9,7 @@ open FsCheck.Xunit
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler

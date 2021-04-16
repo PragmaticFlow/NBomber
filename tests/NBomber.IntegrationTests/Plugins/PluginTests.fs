@@ -8,6 +8,7 @@ open FSharp.Control.Tasks.NonAffine
 open Swensen.Unquote
 open Xunit
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Extensions

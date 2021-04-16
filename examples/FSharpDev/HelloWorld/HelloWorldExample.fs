@@ -4,6 +4,7 @@ open System.Threading.Tasks
 
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -26,7 +27,7 @@ let run () =
     // here you create scenario and define (default) step order
     // you also can define them in opposite direction, like [step2; step1]
     // or even repeat [step1; step1; step1; step2]
-    Scenario.create "hello_world_scenario" [step1] //; pause; step2]
+    Scenario.create "hello_world_scenario" [step1; pause; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 4000, during = minutes 5)]
     |> NBomberRunner.registerScenario

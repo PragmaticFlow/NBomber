@@ -3,6 +3,8 @@ module FSharpDev.ClientFactory.HttpClientFactoryExample
 open System.Net.Http
 open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
+
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Plugins.Network.Ping

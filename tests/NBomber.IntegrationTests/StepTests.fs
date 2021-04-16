@@ -8,6 +8,7 @@ open Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.FSharp

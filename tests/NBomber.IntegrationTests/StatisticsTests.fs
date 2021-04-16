@@ -10,6 +10,7 @@ open Xunit
 open Swensen.Unquote
 open Nessos.Streams
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes

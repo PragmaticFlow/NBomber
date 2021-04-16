@@ -26,13 +26,6 @@ type CommandLineArgs = {
     [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
 }
 
-[<AutoOpen>]
-module TimeSpanApi =
-
-    let inline milliseconds (value: int) = value |> float |> TimeSpan.FromMilliseconds
-    let inline seconds (value: int) = value |> float |> TimeSpan.FromSeconds
-    let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
-
 /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 [<RequireQualifiedAccess>]
 type ClientFactory =

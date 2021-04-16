@@ -3,6 +3,7 @@ module FSharpDev.CustomReportingExample
 open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.FSharp
