@@ -10,6 +10,7 @@ open Xunit
 open Swensen.Unquote
 open Nessos.Streams
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -22,10 +23,6 @@ module StepExecutionData =
 
     let fromMsToTicks (ms: float<ms>) = (ms * float TimeSpan.TicksPerMillisecond) |> int64 |> UMX.tag<ticks>
     let fromTicksToMs (ticks: int64<ticks>) = (float ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
-
-    let fromBytesToMB (bytes: int64<bytes>) =
-        let mb = if bytes > 0L<bytes> then float bytes / 1024.0 / 1024.0 else 0.0
-        mb |> UMX.untag |> UMX.tag<mb>
 
     [<Property>]
     let ``addResponse should take client response latency if it set`` (isClient: bool, latency: uint32) =
@@ -168,7 +165,7 @@ module StepExecutionData =
 
         let okMinBytes = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.min else 0L
         let okMaxBytes = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.max else 0L
-        let okAllMB    = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.sum |> UMX.tag |> fromBytesToMB else % 0.0
+        let okAllBytes = if okCount > 0 then okResponses |> Seq.map(snd) |> Seq.sum else 0L
 
         // calc FailStatsData
         let failResponses = responseSizes |> Seq.filter(fun (isOk,_) -> isOk = false)
@@ -176,7 +173,7 @@ module StepExecutionData =
 
         let failMinBytes = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.min else 0L
         let failMaxBytes = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.max else 0L
-        let failAllMB    = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.sum |> UMX.tag |> fromBytesToMB else % 0.0
+        let failAllBytes    = if failCount > 0 then failResponses |> Seq.map(snd) |> Seq.sum else 0L
 
         let okMin = if okCount > 0 then data.OkStats.DataTransferBytes |> Histogram.min else 0L
         let okMax = if okCount > 0 then data.OkStats.DataTransferBytes |> Histogram.max else 0L
@@ -186,12 +183,12 @@ module StepExecutionData =
         test <@ data.OkStats.RequestCount = okCount @>
         test <@ okMin = okMinBytes @>
         test <@ okMax = okMaxBytes @>
-        test <@ data.OkStats.AllMB = okAllMB @>
+        test <@ data.OkStats.AllBytes = okAllBytes @>
 
         test <@ data.FailStats.RequestCount = failCount @>
         test <@ failMin = failMinBytes @>
         test <@ failMax = failMaxBytes @>
-        test <@ data.FailStats.AllMB = failAllMB @>
+        test <@ data.FailStats.AllBytes = failAllBytes @>
 
 [<Fact>]
 let ``NodeStats should be calculated properly`` () =
@@ -230,23 +227,23 @@ let ``NodeStats should be calculated properly`` () =
         test <@ st1.Ok.Latency.MaxMs <= 515.0 @>
         test <@ st1.Ok.Latency.Percent50 <= 505.0 @>
         test <@ st1.Ok.Latency.LatencyCount.LessOrEq800 >= 4 && st1.Ok.Latency.LatencyCount.LessOrEq800 <= 6 @>
-        test <@ st1.Ok.DataTransfer.MinKb = 0.1 @>
-        test <@ st1.Ok.DataTransfer.Percent50 = 0.1 @>
+        test <@ st1.Ok.DataTransfer.MinBytes = 100 @>
+        test <@ st1.Ok.DataTransfer.Percent50 = 100 @>
         test <@ st1.Ok.DataTransfer.StdDev = 0.0 @>
 
         test <@ st1.Fail.Request.Count = 0 @>
         test <@ st1.Fail.Latency.MinMs = 0.0 @>
-        test <@ st1.Fail.DataTransfer.MinKb = 0.0 @>
+        test <@ st1.Fail.DataTransfer.MinBytes = 0 @>
 
         test <@ st2.Ok.Request.Count = 2 @>
         test <@ st2.Ok.Request.RPS = 0.4 @>
         test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 50.0 @>
-        test <@ st2.Ok.DataTransfer.MinKb = 0.05 @>
+        test <@ st2.Ok.DataTransfer.MinBytes = 50 @>
 
         test <@ st2.Fail.Request.Count >= 3 && st2.Fail.Request.Count <= 4 @>
         test <@ st2.Fail.Request.RPS >= 0.6 && st1.Fail.Request.RPS <= 0.8 @>
-        test <@ st2.Fail.DataTransfer.MinKb = 0.01 @>
-        test <@ st2.Fail.DataTransfer.AllMB = 0.0 @>
+        test <@ st2.Fail.DataTransfer.MinBytes = 10 @>
+        test <@ st2.Fail.DataTransfer.AllBytes = 30L @>
 
         test <@ scnStats.Duration = seconds 5 @>
         test <@ scnStats.RequestCount = scnStats.OkCount + scnStats.FailCount @>

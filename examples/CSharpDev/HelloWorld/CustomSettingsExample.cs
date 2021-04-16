@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.HelloWorld
 {
@@ -32,7 +33,7 @@ namespace CSharpDev.HelloWorld
         {
             var step = Step.Create("step", async context =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(0.1));
+                await Task.Delay(Seconds(0.1));
 
                 context.Logger.Debug(
                     "step received CustomSettings.TestField '{TestField}'",

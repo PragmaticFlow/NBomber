@@ -21,7 +21,7 @@ let private analyzeDataTransfer (scnStats: ScenarioStats[]) =
     scnStats
     |> Seq.collect(fun scn ->
         scn.StepStats
-        |> Seq.filter(fun step -> step.Ok.DataTransfer.MinKb + step.Fail.DataTransfer.MinKb = 0.0)
+        |> Seq.filter(fun step -> step.Ok.DataTransfer.MinBytes + step.Fail.DataTransfer.MinBytes = 0)
         |> Seq.map(fun step -> scn.ScenarioName, step.StepName)
     )
     |> Seq.map(fun (scnName,stepName) -> { SourceName = scnName; SourceType = Scenario; Hint = printHint(scnName, stepName) })

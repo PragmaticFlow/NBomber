@@ -109,7 +109,7 @@ module MdNodeStats =
             $", duration: {scnStats.Duration |> Md.printInlineCode}" +
             $", ok count: {scnStats.OkCount |> Md.printInlineCode}" +
             $", fail count: {scnStats.FailCount |> Md.printInlineCode}" +
-            $", all data: {scnStats.AllDataMB |> Md.printInlineCode} MB"
+            $", all data: {scnStats.AllBytes |> Md.printInlineCode} MB"
 
         document |> Md.printHeader header
 
@@ -159,10 +159,10 @@ module MdNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"%.3f{okDataTransfer.MinKb}"
-        let okDtMean = $"%.3f{okDataTransfer.MeanKb}"
-        let okDtMax = $"%.3f{okDataTransfer.MaxKb}"
-        let okDtAll = $"%.3f{okDataTransfer.AllMB}"
+        let okDtMin = $"{okDataTransfer.MinBytes}"
+        let okDtMean = $"{okDataTransfer.MeanBytes}"
+        let okDtMax = $"{okDataTransfer.MaxBytes}"
+        let okDtAll = $"{okDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -192,7 +192,7 @@ module MdNodeStats =
           ["request count"; reqCount]
           ["latency"; okLatencies]
           ["latency percentile"; okPercentile]
-          if okDataTransfer.AllMB > 0.0 then ["data transfer"; okDt] ]
+          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
 
     let private createFailStepStatsRow (i) (s: StepStats) =
         let name = s.StepName
@@ -202,10 +202,10 @@ module MdNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"%.3f{failDataTransfer.MinKb}"
-        let failDtMean = $"%.3f{failDataTransfer.MeanKb}"
-        let failDtMax = $"%.3f{failDataTransfer.MaxKb}"
-        let failDtAll = $"%.3f{failDataTransfer.AllMB}"
+        let failDtMin = $"{failDataTransfer.MinBytes}"
+        let failDtMean = $"{failDataTransfer.MeanBytes}"
+        let failDtMax = $"{failDataTransfer.MaxBytes}"
+        let failDtAll = $"{failDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -235,7 +235,7 @@ module MdNodeStats =
           ["request count"; reqCount]
           ["latency"; failLatencies]
           ["latency percentile"; failPercentile]
-          if failDataTransfer.AllMB > 0.0 then ["data transfer"; failDt] ]
+          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
 
     let private printOkStepStatsTable (stepStats: StepStats[]) (document: Document) =
         stepStats

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.DataFeed
 {
@@ -30,7 +31,7 @@ namespace CSharpDev.DataFeed
 
             var step = Step.Create("step", feed, async context =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(Seconds(1));
 
                 context.Logger.Debug("Data from feed: {FeedItem}", context.FeedItem);
                 return Response.Ok();

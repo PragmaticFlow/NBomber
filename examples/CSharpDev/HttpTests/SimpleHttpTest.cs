@@ -1,7 +1,10 @@
 using System;
 using System.Net.Http;
+using HdrHistogram;
+using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.HttpTests
 {
@@ -22,7 +25,7 @@ namespace CSharpDev.HttpTests
 
             var scenario = ScenarioBuilder
                 .CreateScenario("simple_http", step)
-                .WithWarmUpDuration(TimeSpan.FromSeconds(5))
+                .WithWarmUpDuration(Seconds(5))
                 .WithLoadSimulations(
                     Simulation.InjectPerSec(rate: 1, during: TimeSpan.FromSeconds(30))
                 );

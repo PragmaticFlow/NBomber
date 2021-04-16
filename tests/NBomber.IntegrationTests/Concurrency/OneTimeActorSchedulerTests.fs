@@ -9,6 +9,7 @@ open Swensen.Unquote
 open Xunit
 open FsToolkit.ErrorHandling
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp

@@ -78,18 +78,18 @@ module internal InternalExtensions =
     module Stream =
 
         /// Safe variant of `Array.min`
-        let inline minOrDefault defaultValue stream =
+        let inline minOrDefault (defaultValue) (stream) =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.minBy id
 
         /// Safe variant of `Array.average`
         //todo: add proper impl, don't use Seq
-        let inline averageOrDefault (defaultValue: float) stream =
+        let inline averageOrDefault (defaultValue) (stream) =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.toSeq |> Seq.average
 
         /// Safe variant of `Array.max`
-        let inline maxOrDefault defaultValue stream =
+        let inline maxOrDefault (defaultValue) (stream) =
             if Stream.isEmpty stream then defaultValue
             else stream |> Stream.maxBy id
 

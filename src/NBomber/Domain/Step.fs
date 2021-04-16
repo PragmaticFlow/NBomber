@@ -59,7 +59,7 @@ module StepExecutionData =
             LessOrEq800 = 0
             More800Less1200 = 0
             MoreOrEq1200 = 0
-            AllMB = 0.0<mb>
+            AllBytes = 0L
             LatencyHistogramTicks = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
             DataTransferBytes = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
             StatusCodes = Dictionary<int,StatusCodeStats>()
@@ -88,7 +88,6 @@ module StepExecutionData =
             else response.LatencyTicks
 
         let latencyMs = Converter.fromTicksToMs latencyTicks
-        let responseBytes = clientRes.SizeBytes |> UMX.tag<bytes>
 
         let stats =
             match clientRes.IsError with
@@ -117,9 +116,9 @@ module StepExecutionData =
             elif latencyMs >= 1200.0<ms> then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
             // add data transfer
-            if responseBytes > 0<bytes> then
-                stats.AllMB <- stats.AllMB + Statistics.Converter.fromBytesToMB responseBytes
-                stats.DataTransferBytes.RecordValue(int64 responseBytes)
+            if clientRes.SizeBytes > 0 then
+                stats.AllBytes <- stats.AllBytes + int64 clientRes.SizeBytes
+                stats.DataTransferBytes.RecordValue(int64 clientRes.SizeBytes)
 
         stData
 

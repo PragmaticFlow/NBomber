@@ -8,6 +8,7 @@ open Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.FSharp
@@ -84,8 +85,8 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ stats.Ok.Latency.MinMs <= 103.0 @>
         test <@ stats.Ok.Latency.MeanMs <= 108.0 @>
         test <@ stats.Ok.Latency.MaxMs <= 115.0 @>
-        test <@ stats.Ok.DataTransfer.MinKb = 0.98 @>
-        test <@ stats.Ok.DataTransfer.AllMB >= 0.05 && stats.Ok.DataTransfer.AllMB <= 0.09 @>
+        test <@ stats.Ok.DataTransfer.MinBytes = 1000 @>
+        test <@ stats.Ok.DataTransfer.AllBytes >= 90_000L && stats.Ok.DataTransfer.AllBytes <= 100_000L @>
 
 [<Fact>]
 let ``can be duplicated to introduce repeatable behaviour`` () =
