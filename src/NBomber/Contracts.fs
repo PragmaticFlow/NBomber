@@ -84,15 +84,15 @@ type LatencyStats = {
 }
 
 type DataTransferStats = {
-    MinKb: float
-    MeanKb: float
-    MaxKb: float
-    Percent50: float
-    Percent75: float
-    Percent95: float
-    Percent99: float
+    MinBytes: int
+    MeanBytes: int
+    MaxBytes: int
+    Percent50: int
+    Percent75: int
+    Percent95: int
+    Percent99: int
     StdDev: float
-    AllMB: float
+    AllBytes: int64
 }
 
 type OkStepStats = {
@@ -125,7 +125,7 @@ type ScenarioStats = {
     RequestCount: int
     OkCount: int
     FailCount: int
-    AllDataMB: float
+    AllBytes: int64
     StepStats: StepStats[]
     LatencyCount: LatencyCount
     LoadSimulationStats: LoadSimulationStats
@@ -143,7 +143,7 @@ type NodeStats = {
     RequestCount: int
     OkCount: int
     FailCount: int
-    AllDataMB: float
+    AllBytes: int64
     ScenarioStats: ScenarioStats[]
     PluginStats: DataSet[]
     NodeInfo: NodeInfo

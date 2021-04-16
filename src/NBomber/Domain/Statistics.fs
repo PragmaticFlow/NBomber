@@ -5,34 +5,19 @@ open System.Collections.Generic
 open System.Data
 
 open HdrHistogram
-open NBomber
 open Nessos.Streams
 open FSharp.UMX
 
+open NBomber
 open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 
 module Converter =
 
-    let inline fromFloatBytesToKb (sizeBytes: float<bytes>) =
-        if sizeBytes > 0.0<bytes> then (% sizeBytes) / 1024.0<kb>
-        else 0.0<kb>
-
-    let inline fromBytesToKb (sizeBytes: int<bytes>) =
-        if sizeBytes > 0<bytes> then (% float sizeBytes) / 1024.0<kb>
-        else 0.0<kb>
-
-    let inline fromKbToMB (sizeKb: float<kb>) =
-        if sizeKb > 0.0<kb> then (% sizeKb) / 1024.0<mb>
-        else 0.0<mb>
-
-    let fromBytesToMB = fromBytesToKb >> fromKbToMB
-
     let inline fromMsToTicks (ms: float<ms>) = (ms * float TimeSpan.TicksPerMillisecond) |> int64 |> UMX.tag<ticks>
     let inline fromTicksToMs (ticks: int64<ticks>) = (float ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
     let inline fromFloatTicksToMs (ticks: float<ticks>) = (% ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
-
     let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
 module Histogram =
@@ -115,44 +100,33 @@ module DataTransferStats =
 
     let create (stats: RawStepStats) =
 
-        let inline bytesToKb (value: int64) = value |> int |> UMX.tag<bytes> |> Converter.fromBytesToKb |> UMX.untag
-        let inline floatBytesToKb (value: float) = value |> UMX.tag<bytes> |> Converter.fromFloatBytesToKb |> UMX.untag
-
         let dataTransfer =
             if stats.DataTransferBytes.TotalCount > 0L then ValueSome(stats.DataTransferBytes.Copy()) // we copy for safe enumeration
             else ValueNone
 
-        { MinKb  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.min |> bytesToKb else 0.0
-          MeanKb = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> floatBytesToKb else 0.0
-          MaxKb  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.max |> bytesToKb else 0.0
-          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) |> bytesToKb else 0.0
-          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> bytesToKb else 0.0
-          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> bytesToKb else 0.0
-          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> bytesToKb else 0.0
-          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> floatBytesToKb else 0.0
-          AllMB     = % stats.AllMB }
+        { MinBytes  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.min |> int else 0
+          MeanBytes = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> int else 0
+          MaxBytes  = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.max |> int else 0
+          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) |> int else 0
+          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> int else 0
+          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> int else 0
+          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> int else 0
+          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev else 0.0
+          AllBytes     = % stats.AllBytes }
 
     let merge (stats: Stream<DataTransferStats>) =
-        { MinKb = stats |> Stream.map(fun x -> x.MinKb) |> Stream.minOrDefault 0.0
-          MeanKb = stats |> Stream.map(fun x -> x.MeanKb) |> Stream.averageOrDefault 0.0
-          MaxKb = stats |> Stream.map(fun x -> x.MaxKb) |> Stream.maxOrDefault 0.0
-          Percent50 = stats |> Stream.map(fun x -> x.Percent50) |> Stream.averageOrDefault 0.0
-          Percent75 = stats |> Stream.map(fun x -> x.Percent75) |> Stream.averageOrDefault 0.0
-          Percent95 = stats |> Stream.map(fun x -> x.Percent95) |> Stream.averageOrDefault 0.0
-          Percent99 = stats |> Stream.map(fun x -> x.Percent99) |> Stream.averageOrDefault 0.0
+        { MinBytes = stats |> Stream.map(fun x -> x.MinBytes) |> Stream.minOrDefault 0
+          MeanBytes = stats |> Stream.map(fun x -> float x.MeanBytes) |> Stream.averageOrDefault 0.0 |> int
+          MaxBytes = stats |> Stream.map(fun x -> x.MaxBytes) |> Stream.maxOrDefault 0
+          Percent50 = stats |> Stream.map(fun x -> float x.Percent50) |> Stream.averageOrDefault 0.0 |> int
+          Percent75 = stats |> Stream.map(fun x -> float x.Percent75) |> Stream.averageOrDefault 0.0 |> int
+          Percent95 = stats |> Stream.map(fun x -> float x.Percent95) |> Stream.averageOrDefault 0.0 |> int
+          Percent99 = stats |> Stream.map(fun x -> float x.Percent99) |> Stream.averageOrDefault 0.0 |> int
           StdDev = stats |> Stream.map(fun x -> x.StdDev) |> Stream.averageOrDefault 0.0
-          AllMB = stats |> Stream.sumBy(fun x -> x.AllMB) }
+          AllBytes = stats |> Stream.sumBy(fun x -> x.AllBytes) }
 
     let round (stats: DataTransferStats) =
-        { stats with MinKb = stats.MinKb |> Converter.round(Constants.TransferStatsRounding)
-                     MeanKb = stats.MeanKb |> Converter.round(Constants.TransferStatsRounding)
-                     MaxKb = stats.MaxKb |> Converter.round(Constants.TransferStatsRounding)
-                     Percent50 = stats.Percent50 |> Converter.round(Constants.TransferStatsRounding)
-                     Percent75 = stats.Percent75 |> Converter.round(Constants.TransferStatsRounding)
-                     Percent95 = stats.Percent95 |> Converter.round(Constants.TransferStatsRounding)
-                     Percent99 = stats.Percent99 |> Converter.round(Constants.TransferStatsRounding)
-                     StdDev = stats.StdDev |> Converter.round(Constants.TransferStatsRounding)
-                     AllMB = stats.AllMB |> Converter.round(Constants.TransferStatsRounding) }
+        { stats with StdDev = stats.StdDev |> Converter.round(Constants.StatsRounding) }
 
 module StatusCodeStats =
 
@@ -242,7 +216,7 @@ module ScenarioStats =
               RequestCount = mergedStats |> Stream.sumBy(fun x -> x.Ok.Request.Count + x.Fail.Request.Count)
               OkCount = mergedStats |> Stream.sumBy(fun x -> x.Ok.Request.Count)
               FailCount = mergedStats |> Stream.sumBy(fun x -> x.Fail.Request.Count)
-              AllDataMB = mergedStats |> Stream.sumBy(fun x -> x.Ok.DataTransfer.AllMB + x.Fail.DataTransfer.AllMB)
+              AllBytes = mergedStats |> Stream.sumBy(fun x -> x.Ok.DataTransfer.AllBytes + x.Fail.DataTransfer.AllBytes)
               StepStats = mergedStats |> Stream.toArray
               LatencyCount = { LessOrEq800 = less800; More800Less1200 = more800Less1200; MoreOrEq1200 = more1200 }
               LoadSimulationStats = simulationStats
@@ -262,8 +236,7 @@ module ScenarioStats =
         |> createByStepStats scenario.ScenarioName duration simulationStats
 
     let round (stats: ScenarioStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.TransferStatsRounding)
-                     StepStats = stats.StepStats |> Array.map(StepStats.round)
+        { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
 module NodeStats =
@@ -276,7 +249,7 @@ module NodeStats =
         { RequestCount = scnStats |> Stream.sumBy(fun x -> x.RequestCount)
           OkCount = scnStats |> Stream.sumBy(fun x -> x.OkCount)
           FailCount = scnStats |> Stream.sumBy(fun x -> x.FailCount)
-          AllDataMB = scnStats |> Stream.sumBy(fun x -> x.AllDataMB)
+          AllBytes = scnStats |> Stream.sumBy(fun x -> x.AllBytes)
           ScenarioStats = scnStats |> Stream.toArray
           PluginStats = pluginStats
           NodeInfo = nodeInfo
@@ -285,6 +258,5 @@ module NodeStats =
           Duration = maxDuration }
 
     let round (stats: NodeStats) =
-        { stats with AllDataMB = stats.AllDataMB |> Converter.round(Constants.TransferStatsRounding)
-                     ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
+        { stats with ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }

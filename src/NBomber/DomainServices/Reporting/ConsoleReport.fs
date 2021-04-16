@@ -91,7 +91,7 @@ module ConsoleNodeStats =
           Console.addLine($"duration: '{scnStats.Duration |> Console.highlightPrimary}'" +
                           $", ok count: '{scnStats.OkCount |> Console.highlightPrimary}'" +
                           $", fail count: '{scnStats.FailCount |> Console.highlightDanger}'" +
-                          $", all data: '{scnStats.AllDataMB |> Console.highlightPrimary}' MB") ]
+                          $", all data: '{scnStats.AllBytes |> Console.highlightPrimary}' MB") ]
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
@@ -136,10 +136,10 @@ module ConsoleNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"%.3f{okDataTransfer.MinKb}"
-        let okDtMean = $"%.3f{okDataTransfer.MeanKb}"
-        let okDtMax = $"%.3f{okDataTransfer.MaxKb}"
-        let okDtAll = $"%.3f{okDataTransfer.AllMB}"
+        let okDtMin = $"{okDataTransfer.MinBytes}"
+        let okDtMean = $"{okDataTransfer.MeanBytes}"
+        let okDtMax = $"{okDataTransfer.MaxBytes}"
+        let okDtAll = $"{okDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
@@ -169,7 +169,7 @@ module ConsoleNodeStats =
           ["request count"; reqCount]
           ["latency"; okLatencies]
           ["latency percentile"; okPercentile]
-          if okDataTransfer.AllMB > 0.0 then ["data transfer"; okDt] ]
+          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
 
     let private createFailStepStatsRow (i) (s: StepStats) =
         let name = s.StepName
@@ -179,10 +179,10 @@ module ConsoleNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"%.3f{failDataTransfer.MinKb}"
-        let failDtMean = $"%.3f{failDataTransfer.MeanKb}"
-        let failDtMax = $"%.3f{failDataTransfer.MaxKb}"
-        let failDtAll = $"%.3f{failDataTransfer.AllMB}"
+        let failDtMin = $"{failDataTransfer.MinBytes}"
+        let failDtMean = $"{failDataTransfer.MeanBytes}"
+        let failDtMax = $"{failDataTransfer.MaxBytes}"
+        let failDtAll = $"{failDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
@@ -212,7 +212,7 @@ module ConsoleNodeStats =
           ["request count"; reqCount]
           ["latency"; failLatencies]
           ["latency percentile"; failPercentile]
-          if failDataTransfer.AllMB > 0.0 then ["data transfer"; failDt] ]
+          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
 
     let private printOkStepStatsTable (stepStats: StepStats[]) =
         stepStats

@@ -15,9 +15,6 @@ open NBomber.Extensions.InternalExtensions
 
 [<Measure>] type ticks
 [<Measure>] type ms
-[<Measure>] type bytes
-[<Measure>] type kb
-[<Measure>] type mb
 
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
@@ -57,7 +54,7 @@ type RawStepStats = {
     mutable LessOrEq800: int
     mutable More800Less1200: int
     mutable MoreOrEq1200: int
-    mutable AllMB: float<mb>
+    mutable AllBytes: int64
     LatencyHistogramTicks: LongHistogram
     DataTransferBytes: LongHistogram
     StatusCodes: Dictionary<int,StatusCodeStats>

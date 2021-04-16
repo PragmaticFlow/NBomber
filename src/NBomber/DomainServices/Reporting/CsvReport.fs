@@ -29,7 +29,7 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
                   reqCount, okCount, failCount,
                   okRPS, lt.MinMs, lt.MeanMs, lt.MaxMs,
                   lt.Percent50, lt.Percent75, lt.Percent95, lt.Percent99, lt.StdDev,
-                  dt.MinKb, dt.MeanKb, dt.MaxKb, dt.AllMB)
+                  dt.MinBytes, dt.MeanBytes, dt.MaxBytes, dt.AllBytes)
 
 let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
     scnStats.StepStats

@@ -20,19 +20,19 @@ let run () =
                            clientFactory = httpFactory,
                            execute = fun context -> task {
 
-        let! response = context.Client.GetAsync("http://www.tourclub.kiev.ua/component/option,com_rsgallery2/Itemid,39/",
+        let! response = context.Client.GetAsync("https://nbomber.com",
                                                 context.CancellationToken)
 
         return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
                else Response.fail(statusCode = int response.StatusCode)
     })
 
-    let pingPluginConfig = PingPluginConfig.CreateDefault ["tourclub.kiev.ua"]
+    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 500, during = seconds 30)]
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run
