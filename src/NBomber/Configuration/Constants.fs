@@ -50,7 +50,7 @@ let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
 let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
 let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 1.0
-let StepTimeout = TimeSpan.FromSeconds 1.0
+let StepTimeout = TimeSpan.FromMilliseconds 700.0
 let TimeoutStatusCode = -100
 let StepExceptionStatusCode = -101
 
