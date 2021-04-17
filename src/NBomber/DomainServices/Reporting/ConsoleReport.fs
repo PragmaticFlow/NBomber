@@ -86,12 +86,18 @@ module ConsoleStatusCodesStats =
 
 module ConsoleNodeStats =
 
+    let private printDataKb (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb |> Console.highlightPrimary} KB"
+
+    let private printAllData (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb4 |> Console.highlightPrimary} MB"
+
     let private printScenarioHeader (scnStats: ScenarioStats) =
         [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlightPrimary}'")
           Console.addLine($"duration: '{scnStats.Duration |> Console.highlightPrimary}'" +
-                          $", ok count: '{scnStats.OkCount |> Console.highlightPrimary}'" +
-                          $", fail count: '{scnStats.FailCount |> Console.highlightDanger}'" +
-                          $", all data: '{scnStats.AllBytes |> Console.highlightPrimary}' MB") ]
+                          $", ok count: {scnStats.OkCount |> Console.highlightPrimary}" +
+                          $", fail count: {scnStats.FailCount |> Console.highlightDanger}" +
+                          $", all data: {scnStats.AllBytes |> printAllData}") ]
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
@@ -99,28 +105,28 @@ module ConsoleNodeStats =
         match simulation with
         | RampConstant (copies, during)     ->
             $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", copies: '{copies |> Console.highlightPrimary}'" +
+            $", copies: {copies |> Console.highlightPrimary}" +
             $", during: '{during |> Console.highlightPrimary}'"
 
         | KeepConstant (copies, during)     ->
             $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", copies: '{copies |> Console.highlightPrimary}'" +
+            $", copies: {copies |> Console.highlightPrimary}" +
             $", during: '{during |> Console.highlightPrimary}'"
 
         | RampPerSec (rate, during)         ->
             $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", rate: '{rate |> Console.highlightPrimary}'" +
+            $", rate: {rate |> Console.highlightPrimary}" +
             $", during: '{during |> Console.highlightPrimary}'"
 
         | InjectPerSec (rate, during)       ->
             $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", rate: '{rate |> Console.highlightPrimary}'" +
+            $", rate: {rate |> Console.highlightPrimary}" +
             $", during: '{during |> Console.highlightPrimary}'"
 
         | InjectPerSecRandom (minRate, maxRate, during) ->
             $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", min rate: '{minRate |> Console.highlightPrimary}'" +
-            $", max rate: '{maxRate |> Console.highlightPrimary}'" +
+            $", min rate: {minRate |> Console.highlightPrimary}" +
+            $", max rate: {maxRate |> Console.highlightPrimary}" +
             $", during: '{during |> Console.highlightPrimary}'"
 
         |> Console.addLine
@@ -136,10 +142,6 @@ module ConsoleNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"{okDataTransfer.MinBytes}"
-        let okDtMean = $"{okDataTransfer.MeanBytes}"
-        let okDtMax = $"{okDataTransfer.MaxBytes}"
-        let okDtAll = $"{okDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
@@ -159,10 +161,10 @@ module ConsoleNodeStats =
             $", 99%% = {okLatency.Percent99 |> Console.highlightSuccess}"
 
         let okDt =
-            $"min = {okDtMin |> Console.highlightSuccess} KB" +
-            $", mean = {okDtMean |> Console.highlightSuccess} KB" +
-            $", max = {okDtMax |> Console.highlightSuccess} KB" +
-            $", all = {okDtAll |> Console.highlightSuccess} MB"
+            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {okDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Console.highlightSecondary]
@@ -179,10 +181,6 @@ module ConsoleNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"{failDataTransfer.MinBytes}"
-        let failDtMean = $"{failDataTransfer.MeanBytes}"
-        let failDtMax = $"{failDataTransfer.MaxBytes}"
-        let failDtAll = $"{failDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Console.highlightSuccess}" +
@@ -202,10 +200,10 @@ module ConsoleNodeStats =
             $", 99%% = {failLatency.Percent99 |> Console.highlightDanger}"
 
         let failDt =
-            $"min = {failDtMin |> Console.highlightDanger} KB" +
-            $", mean = {failDtMean |> Console.highlightDanger} KB" +
-            $", max = {failDtMax |> Console.highlightDanger} KB" +
-            $", all = {failDtAll |> Console.highlightDanger} MB"
+            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {failDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Console.highlightSecondary]

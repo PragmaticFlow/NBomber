@@ -72,7 +72,7 @@
             requests: <span class="text-primary">{{scenarioStats.RequestCount}}</span>,
             ok requests: <span class="text-primary">{{scenarioStats.OkCount}}</span>,
             fail requests: <span class="text-primary">{{scenarioStats.FailCount}}</span>,
-            all data: <span class="text-primary">{{scenarioStats.AllDataMB}}</span> MB
+            all data: <span class="text-primary">{{toMb(scenarioStats.AllBytes)}}</span> MB
         </p>
     </script>
 
@@ -124,10 +124,10 @@
                         <td>{{stepStats[statsName].Latency.Percent75}}</td>
                         <td>{{stepStats[statsName].Latency.Percent95}}</td>
                         <td>{{stepStats[statsName].Latency.Percent99}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.MinKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.AllMB}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MinBytes)}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MeanBytes)}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MaxBytes)}}</td>
+                        <td>{{toMb(stepStats[statsName].DataTransfer.AllBytes)}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -226,10 +226,10 @@
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                         <td><strong>{{stepStats.StepName}}</strong></td>
-                        <td>{{stepStats[statsName].DataTransfer.MinKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.MaxKb}}</td>
-                        <td>{{stepStats[statsName].DataTransfer.AllMB}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MinBytes)}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MeanBytes)}}</td>
+                        <td>{{toKb(stepStats[statsName].DataTransfer.MaxBytes)}}</td>
+                        <td>{{toMb(stepStats[statsName].DataTransfer.AllBytes)}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -433,6 +433,34 @@
                     <!-- Test Suite View -->
                     <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
                          v-if="viewModel.NodeStats.ScenarioStats && viewModel.NodeStats.PluginStats">
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="card custom scenario">
+                                    <div class="card-header mdb-color darken-2 white-text">
+                                        <h6>test info</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-hover table-sm table-cluster-info">
+                                            <thead class="mdb-color lighten-2 white-text">
+                                            <tr>
+                                                <th>session</th>
+                                                <th>test suite</th>
+                                                <th>test name</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>{{viewModel.NodeStats.TestInfo.SessionId}}</td>
+                                                <td>{{viewModel.NodeStats.TestInfo.TestSuite}}</td>
+                                                <td>{{viewModel.NodeStats.TestInfo.TestName}}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div v-for="(scenarioStats, scenarioIndex) in viewModel.NodeStats.ScenarioStats"
                              :key="`test-suite-scenario-stats-${scenarioIndex}`"
