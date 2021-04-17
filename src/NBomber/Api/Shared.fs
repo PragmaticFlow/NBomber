@@ -7,6 +7,7 @@ open System.Runtime.CompilerServices
 
 open CsvHelper
 
+open NBomber.Domain
 open NBomber.Extensions.InternalExtensions
 
 [<Extension>]
@@ -32,10 +33,10 @@ type FeedData() =
 module Converter =
 
     [<CompiledName("KB")>]
-    let inline kb (bytes) = Math.Round(float bytes / 1024.0, 2)
+    let inline kb (bytes) = Statistics.Converter.fromBytesToKb(bytes)
 
     [<CompiledName("MB")>]
-    let inline mb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 2)
+    let inline mb (bytes) = Statistics.Converter.fromBytesToMb(bytes)
 
 [<AutoOpen>]
 module Time =

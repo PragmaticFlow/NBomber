@@ -83,9 +83,15 @@ module TxtStatusCodeStats =
 
 module TxtNodeStats =
 
+    let private printDataKb (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb} KB"
+
+    let private printAllData (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb4} MB"
+
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
-        $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllBytes}' MB"
+        $", ok count: {scnStats.OkCount}, fail count: {scnStats.FailCount}, all data: {scnStats.AllBytes |> printAllData} MB"
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
@@ -93,28 +99,28 @@ module TxtNodeStats =
         match simulation with
         | RampConstant (copies, during)     ->
             $"load simulation: '{simulationName}'" +
-            $", copies: '{copies}'" +
+            $", copies: {copies}" +
             $", during: '{during}'"
 
         | KeepConstant (copies, during)     ->
             $"load simulation: '{simulationName}'" +
-            $", copies: '{copies}'" +
+            $", copies: {copies}" +
             $", during: '{during}'"
 
         | RampPerSec (rate, during)         ->
             $"load simulation: '{simulationName}'" +
-            $", rate: '{rate}'" +
+            $", rate: {rate}" +
             $", during: '{during}'"
 
         | InjectPerSec (rate, during)       ->
             $"load simulation: '{simulationName}'" +
-            $", rate: '{rate}'" +
+            $", rate: {rate}" +
             $", during: '{during}'"
 
         | InjectPerSecRandom (minRate, maxRate, during) ->
             $"load simulation: '{simulationName}'" +
-            $", min rate: '{minRate}'" +
-            $", max rate: '{maxRate}'" +
+            $", min rate: {minRate}" +
+            $", max rate: {maxRate}" +
             $", during: '{during}'"
 
     let private printLoadSimulations (simulations: LoadSimulation list) =
@@ -128,10 +134,6 @@ module TxtNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"{okDataTransfer.MinBytes}"
-        let okDtMean = $"{okDataTransfer.MeanBytes}"
-        let okDtMax = $"{okDataTransfer.MaxBytes}"
-        let okDtAll = $"{okDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount}" +
@@ -151,10 +153,10 @@ module TxtNodeStats =
             $", 99%% = {okLatency.Percent99}"
 
         let okDt =
-            $"min = {okDtMin} KB" +
-            $", mean = {okDtMean} KB" +
-            $", max = {okDtMax} KB" +
-            $", all = {okDtAll} MB"
+            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {okDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name]
@@ -171,10 +173,6 @@ module TxtNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"{failDataTransfer.MinBytes}"
-        let failDtMean = $"{failDataTransfer.MeanBytes}"
-        let failDtMax = $"{failDataTransfer.MaxBytes}"
-        let failDtAll = $"{failDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount}" +
@@ -194,10 +192,10 @@ module TxtNodeStats =
             $", 99%% = {failLatency.Percent99}"
 
         let failDt =
-            $"min = {failDtMin} KB" +
-            $", mean = {failDtMean} KB" +
-            $", max = {failDtMax} KB" +
-            $", all = {failDtAll} MB"
+            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {failDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name]

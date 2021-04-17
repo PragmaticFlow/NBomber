@@ -103,13 +103,19 @@ module MdStatusCodeStats =
 
 module MdNodeStats =
 
+    let private printDataKb (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb |> Md.printInlineCode} KB"
+
+    let private printAllData (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb4 |> Md.printInlineCode} MB"
+
     let private printScenarioHeader (scnStats: ScenarioStats) (document: Document) =
         let header =
             $"scenario: {scnStats.ScenarioName |> Md.printInlineCode}" +
             $", duration: {scnStats.Duration |> Md.printInlineCode}" +
             $", ok count: {scnStats.OkCount |> Md.printInlineCode}" +
             $", fail count: {scnStats.FailCount |> Md.printInlineCode}" +
-            $", all data: {scnStats.AllBytes |> Md.printInlineCode} MB"
+            $", all data: {scnStats.AllBytes |> printAllData} MB"
 
         document |> Md.printHeader header
 
@@ -159,10 +165,6 @@ module MdNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"{okDataTransfer.MinBytes}"
-        let okDtMean = $"{okDataTransfer.MeanBytes}"
-        let okDtMax = $"{okDataTransfer.MaxBytes}"
-        let okDtAll = $"{okDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -182,10 +184,10 @@ module MdNodeStats =
             $", 99%% = {okLatency.Percent99 |> Md.printInlineCode}"
 
         let okDt =
-            $"min = {okDtMin |> Md.printInlineCode} KB" +
-            $", mean = {okDtMean |> Md.printInlineCode} KB" +
-            $", max = {okDtMax |> Md.printInlineCode} KB" +
-            $", all = {okDtAll |> Md.printInlineCode} MB"
+            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {okDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Md.printInlineCode]
@@ -202,10 +204,6 @@ module MdNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"{failDataTransfer.MinBytes}"
-        let failDtMean = $"{failDataTransfer.MeanBytes}"
-        let failDtMax = $"{failDataTransfer.MaxBytes}"
-        let failDtAll = $"{failDataTransfer.AllBytes}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -225,10 +223,10 @@ module MdNodeStats =
             $", 99%% = {failLatency.Percent99 |> Md.printInlineCode}"
 
         let failDt =
-            $"min = {failDtMin |> Md.printInlineCode} KB" +
-            $", mean = {failDtMean |> Md.printInlineCode} KB" +
-            $", max = {failDtMax |> Md.printInlineCode} KB" +
-            $", all = {failDtAll |> Md.printInlineCode} MB"
+            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {failDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Md.printInlineCode]

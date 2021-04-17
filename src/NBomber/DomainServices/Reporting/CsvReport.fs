@@ -1,7 +1,9 @@
 module internal NBomber.DomainServices.Reporting.CsvReport
 
 open System
+
 open NBomber.Contracts
+open NBomber.Domain
 
 let private separator = ","
 
@@ -14,8 +16,14 @@ let private getHeader () =
      "data_transfer_min_kb"; "data_transfer_mean_kb"; "data_transfer_max_kb"; "data_transfer_all_mb"]
     |> String.concat(separator)
 
+let private toKb (bytes: int) =
+    bytes |> Statistics.Converter.fromBytesToKb
+
+let private toMb (bytes: int64) =
+    bytes |> Statistics.Converter.fromBytesToMb4
+
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats, testInfo: TestInfo) =
-    let format = seq {0 .. 19} |> Seq.map(sprintf "{%i}") |> String.concat(separator) // {0},{1},{2},...
+    let format = seq {0 .. 20} |> Seq.map(sprintf "{%i}") |> String.concat(separator) // {0},{1},{2},...
     let okCount = stats.Ok.Request.Count
     let failCount = stats.Fail.Request.Count
     let reqCount = okCount + failCount
@@ -29,7 +37,7 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
                   reqCount, okCount, failCount,
                   okRPS, lt.MinMs, lt.MeanMs, lt.MaxMs,
                   lt.Percent50, lt.Percent75, lt.Percent95, lt.Percent99, lt.StdDev,
-                  dt.MinBytes, dt.MeanBytes, dt.MaxBytes, dt.AllBytes)
+                  dt.MinBytes |> toKb, dt.MeanBytes |> toKb, dt.MaxBytes |> toKb, dt.AllBytes |> toMb)
 
 let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
     scnStats.StepStats

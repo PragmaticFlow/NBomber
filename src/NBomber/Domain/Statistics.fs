@@ -18,6 +18,9 @@ module Converter =
     let inline fromMsToTicks (ms: float<ms>) = (ms * float TimeSpan.TicksPerMillisecond) |> int64 |> UMX.tag<ticks>
     let inline fromTicksToMs (ticks: int64<ticks>) = (float ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
     let inline fromFloatTicksToMs (ticks: float<ticks>) = (% ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
+    let inline fromBytesToKb (bytes) = Math.Round(float bytes / 1024.0, 2)
+    let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 2)
+    let inline fromBytesToMb4 (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 4)
     let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
 module Histogram =

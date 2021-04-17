@@ -763,3 +763,7 @@ const initApp = (appContainer, viewModel) => {
         }
     });
 };
+
+const toKb = bytes => (bytes / 1024.0).toFixed(2)
+
+const toMb = bytes => (bytes / 1024.0 / 1024.0).toFixed(4)
