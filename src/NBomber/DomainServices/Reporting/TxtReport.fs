@@ -87,7 +87,7 @@ module TxtNodeStats =
         $"{bytes |> Statistics.Converter.fromBytesToKb} KB"
 
     let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb4} MB"
+        $"{bytes |> Statistics.Converter.fromBytesToMb} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +

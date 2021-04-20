@@ -90,7 +90,7 @@ module ConsoleNodeStats =
         $"{bytes |> Statistics.Converter.fromBytesToKb |> Console.highlightPrimary} KB"
 
     let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb4 |> Console.highlightPrimary} MB"
+        $"{bytes |> Statistics.Converter.fromBytesToMb |> Console.highlightPrimary} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlightPrimary}'")

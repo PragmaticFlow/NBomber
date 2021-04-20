@@ -20,7 +20,7 @@ let private toKb (bytes: int) =
     bytes |> Statistics.Converter.fromBytesToKb
 
 let private toMb (bytes: int64) =
-    bytes |> Statistics.Converter.fromBytesToMb4
+    bytes |> Statistics.Converter.fromBytesToMb
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats, testInfo: TestInfo) =
     let format = seq {0 .. 20} |> Seq.map(sprintf "{%i}") |> String.concat(separator) // {0},{1},{2},...

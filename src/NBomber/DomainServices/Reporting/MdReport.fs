@@ -107,7 +107,7 @@ module MdNodeStats =
         $"{bytes |> Statistics.Converter.fromBytesToKb |> Md.printInlineCode} KB"
 
     let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb4 |> Md.printInlineCode} MB"
+        $"{bytes |> Statistics.Converter.fromBytesToMb |> Md.printInlineCode} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) (document: Document) =
         let header =
