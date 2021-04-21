@@ -1,3 +1,7 @@
+const toKb = bytes => (bytes / 1024.0).toFixed(3);
+
+const toMb = bytes => (bytes / 1024.0 / 1024.0).toFixed(4);
+
 const initApp = (appContainer, viewModel) => {
     // Utilities
     const createSeriesDataLatency = (scenarioStats, titles) => [
@@ -367,7 +371,7 @@ const initApp = (appContainer, viewModel) => {
         },
         yAxis: [
             createAxisY('response time, ms', theme.colors.yAxis, false),
-            createAxisY('data, MB', theme.colors.stats.allDataMB, true, true),
+            createAxisY('data, MB', theme.colors.stats.allBytes, true, true),
             createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true)
         ],
         xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
@@ -451,11 +455,11 @@ const initApp = (appContainer, viewModel) => {
                 yAxis: 1,
                 zIndex: 1,
                 marker: createSeriesMarker(),
-                color: theme.colors.stats.allDataMB,
+                color: theme.colors.stats.allBytes,
                 tooltip: {
                     valueSuffix: ' MB'
                 },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.DataTransfer.AllMB)
+                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => +toMb(stepStats.Ok.DataTransfer.AllBytes))
             },
             {
                 name: titles.series.loadSimulation,
@@ -511,7 +515,7 @@ const initApp = (appContainer, viewModel) => {
                 okCount: '#00b74a', // success
                 failedCount: '#ff3547', // danger
                 rps: '#1565c0', // blue darken-3
-                allDataMB: '#4e342e', // brown darken-3
+                allBytes: '#4e342e', // brown darken-3
                 min: '#2e7d32', // green darken-3
                 mean: '#9e9d24', // lime darken-3
                 max: '#ff3d00', // deep-orange  darken-3
@@ -763,7 +767,3 @@ const initApp = (appContainer, viewModel) => {
         }
     });
 };
-
-const toKb = bytes => (bytes / 1024.0).toFixed(3)
-
-const toMb = bytes => (bytes / 1024.0 / 1024.0).toFixed(4)

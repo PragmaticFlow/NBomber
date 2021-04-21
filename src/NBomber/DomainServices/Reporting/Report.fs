@@ -69,8 +69,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
             logger.Warning("Test finished with errors, please check logs in './logs' folder.")
 
         if reportFiles.Length > 0 then
-            logger.Information("Reports saved in folder: '{0}', {1}",
-                DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+            logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(reportsDir).FullName)
 
         reportFiles
     with
