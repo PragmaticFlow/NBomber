@@ -6,7 +6,6 @@ open System.Threading.Tasks
 
 open Serilog
 open Nessos.Streams
-open FSharp.UMX
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber.Contracts
@@ -27,7 +26,6 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
     let _stepDep = { ScenarioInfo = scenarioInfo
-                     ScenarioMaxDuration = % dep.Scenario.PlanedDuration.Ticks
                      Logger = dep.Logger
                      CancellationToken = dep.CancellationToken
                      GlobalTimer = dep.GlobalTimer

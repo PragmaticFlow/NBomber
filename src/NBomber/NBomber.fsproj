@@ -68,7 +68,6 @@
     <PackageReference Include="CsvHelper" Version="15.0.5" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
     <PackageReference Include="FSharp.Json" Version="0.4.0" />
-    <PackageReference Include="FSharp.UMX" Version="1.0.0" />
     <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.0.0" />
     <PackageReference Include="FuncyDown" Version="1.1.0" />
     <PackageReference Include="HdrHistogram" Version="2.5.0" />

@@ -6,7 +6,6 @@ open System.Data
 
 open HdrHistogram
 open Nessos.Streams
-open FSharp.UMX
 
 open NBomber
 open NBomber.Extensions.InternalExtensions
@@ -15,9 +14,9 @@ open NBomber.Domain.DomainTypes
 
 module Converter =
 
-    let inline fromMsToTicks (ms: float<ms>) = (ms * float TimeSpan.TicksPerMillisecond) |> int64 |> UMX.tag<ticks>
-    let inline fromTicksToMs (ticks: int64<ticks>) = (float ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
-    let inline fromFloatTicksToMs (ticks: float<ticks>) = (% ticks / float TimeSpan.TicksPerMillisecond) |> UMX.tag<ms>
+    let inline fromMicroSecToMs (microSec: float) = (microSec / 1000.0)
+    let inline fromMsToMicroSec (ms: float) = (ms * 1000.0) |> int
+
     let inline fromBytesToKb (bytes) = Math.Round(float bytes / 1024.0, 3)
     let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 4)
     let inline round (digits: int) (value: float) = Math.Round(value, digits)
@@ -53,21 +52,18 @@ module LatencyStats =
 
     let create (stats: RawStepStats) =
 
-        let inline ticksToMs (value: int64) = value |> UMX.tag<ticks> |> Converter.fromTicksToMs |> UMX.untag
-        let inline floatTicksToMs (value: float) = value |> UMX.tag<ticks> |> Converter.fromFloatTicksToMs |> UMX.untag
-
         let latencies =
             if stats.LatencyHistogramTicks.TotalCount > 0L then ValueSome(stats.LatencyHistogramTicks.Copy())
             else ValueNone
 
-        { MinMs  = if latencies.IsSome then latencies.Value |> Histogram.min |> ticksToMs else 0.0
-          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> floatTicksToMs else 0.0
-          MaxMs  = if latencies.IsSome then latencies.Value |> Histogram.max |> ticksToMs else 0.0
-          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> ticksToMs else 0.0
-          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> ticksToMs else 0.0
-          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> ticksToMs else 0.0
-          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> ticksToMs else 0.0
-          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> floatTicksToMs else 0.0
+        { MinMs  = if latencies.IsSome then latencies.Value |> Histogram.min |> float |> Converter.fromMicroSecToMs else 0.0
+          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> Converter.fromMicroSecToMs else 0.0
+          MaxMs  = if latencies.IsSome then latencies.Value |> Histogram.max |> float |> Converter.fromMicroSecToMs else 0.0
+          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> float |> Converter.fromMicroSecToMs else 0.0
+          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> float |> Converter.fromMicroSecToMs else 0.0
+          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> float |> Converter.fromMicroSecToMs else 0.0
+          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> float |> Converter.fromMicroSecToMs else 0.0
+          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> Converter.fromMicroSecToMs else 0.0
           LatencyCount = { LessOrEq800 = stats.LessOrEq800; More800Less1200 = stats.More800Less1200; MoreOrEq1200 = stats.MoreOrEq1200 } }
 
     let merge (stats: Stream<LatencyStats>) =
@@ -114,7 +110,7 @@ module DataTransferStats =
           Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> int else 0
           Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> int else 0
           StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev else 0.0
-          AllBytes     = % stats.AllBytes }
+          AllBytes  = stats.AllBytes }
 
     let merge (stats: Stream<DataTransferStats>) =
         { MinBytes = stats |> Stream.map(fun x -> x.MinBytes) |> Stream.minOrDefault 0

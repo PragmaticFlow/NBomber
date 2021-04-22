@@ -9,7 +9,6 @@ open System.Threading.Tasks
 
 open Serilog
 open HdrHistogram
-open FSharp.UMX
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
@@ -21,7 +20,6 @@ open NBomber.Domain.Statistics
 
 type StepDep = {
     ScenarioInfo: ScenarioInfo
-    ScenarioMaxDuration: int64<ticks>
     Logger: ILogger
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
@@ -83,11 +81,9 @@ module StepExecutionData =
         let clientRes = response.ClientResponse
 
         // calc latency
-        let latencyTicks =
-            if clientRes.LatencyMs > 0.0 then Converter.fromMsToTicks(% clientRes.LatencyMs)
-            else response.LatencyTicks
-
-        let latencyMs = Converter.fromTicksToMs latencyTicks
+        let latencyMs =
+            if clientRes.LatencyMs > 0.0 then clientRes.LatencyMs
+            else response.LatencyMs
 
         let stats =
             match clientRes.IsError with
@@ -106,14 +102,15 @@ module StepExecutionData =
         stats.RequestCount <- stats.RequestCount + 1
 
         // checks that the response is real (it was created after the request was sent)
-        if latencyTicks > 0L<ticks> then
+        if latencyMs > 0.0 then
 
-            // add data transfer
-            stats.LatencyHistogramTicks.RecordValue(int64 latencyTicks)
+            // add latency
+            let latencyMicroSec = Converter.fromMsToMicroSec(latencyMs)
+            stats.LatencyHistogramTicks.RecordValue(int64 latencyMicroSec)
 
-            if latencyMs <= 800.0<ms> then stats.LessOrEq800 <- stats.LessOrEq800 + 1
-            elif latencyMs > 800.0<ms> && latencyMs < 1200.0<ms> then stats.More800Less1200 <- stats.More800Less1200 + 1
-            elif latencyMs >= 1200.0<ms> then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
+            if latencyMs <= 800.0 then stats.LessOrEq800 <- stats.LessOrEq800 + 1
+            elif latencyMs > 800.0 && latencyMs < 1200.0 then stats.More800Less1200 <- stats.More800Less1200 + 1
+            elif latencyMs >= 1200.0 then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
             // add data transfer
             if clientRes.SizeBytes > 0 then
@@ -199,35 +196,35 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
         execute typedCtx
 
 let execStep (step: RunningStep) (globalTimer: Stopwatch) =
-    let startTime = globalTimer.Elapsed
+    let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let resp =
             match step.Value.Execute with
             | SyncExec exec  -> exec step.Context
             | AsyncExec exec -> (exec step.Context).Result
 
-        let endTime = globalTimer.Elapsed
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 
-        { ClientResponse = resp; EndTimeTicks = % endTime.Ticks; LatencyTicks = % latency.Ticks }
+        { ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        let endTime = globalTimer.Elapsed
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
         { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
-          EndTimeTicks = % endTime.Ticks
-          LatencyTicks = % latency.Ticks }
+          EndTimeMs = endTime
+          LatencyMs = latency }
     | ex ->
-        let endTime = globalTimer.Elapsed
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
         { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
                                          error = $"step unhandled exception: {ex.Message}")
-          EndTimeTicks = % endTime.Ticks
-          LatencyTicks = % latency.Ticks }
+          EndTimeMs = endTime
+          LatencyMs = latency }
 
 let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
-    let startTime = globalTimer.Elapsed
+    let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let responseTask =
             match step.Value.Execute with
@@ -236,35 +233,35 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
 
         if step.Value.StepName = Constants.StepPauseName then
             let! pause = responseTask
-            return { ClientResponse = pause; EndTimeTicks = 0L<ticks>; LatencyTicks = 0L<ticks> }
+            return { ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
         else
             let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationToken))
-            let endTime = globalTimer.Elapsed
+            let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = endTime - startTime
 
             if finishedTask.Id = responseTask.Id then
                 return { ClientResponse = responseTask.Result
-                         EndTimeTicks = % endTime.Ticks
-                         LatencyTicks = % latency.Ticks }
+                         EndTimeMs = endTime
+                         LatencyMs = latency }
             else
                 return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
-                         EndTimeTicks = % endTime.Ticks
-                         LatencyTicks = % latency.Ticks }
+                         EndTimeMs = endTime
+                         LatencyMs = latency }
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
-        let endTime = globalTimer.Elapsed
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
         return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
-                 EndTimeTicks = % endTime.Ticks
-                 LatencyTicks = % latency.Ticks }
+                 EndTimeMs = endTime
+                 LatencyMs = latency }
     | ex ->
-        let endTime = globalTimer.Elapsed
+        let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
         return { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
                                                 error = $"step unhandled exception: {ex.Message}")
-                 EndTimeTicks = % endTime.Ticks
-                 LatencyTicks = % latency.Ticks }
+                 EndTimeMs = endTime
+                 LatencyMs = latency }
 }
 
 let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
@@ -279,7 +276,7 @@ let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
                 let response = execStep step dep.GlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
-                    && dep.ScenarioMaxDuration >= response.EndTimeTicks then
+                    && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
                         step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
 
@@ -305,7 +302,7 @@ let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = t
                 let! response = execStepAsync step dep.GlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
-                    && dep.ScenarioMaxDuration >= response.EndTimeTicks then
+                    && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
                         step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
 

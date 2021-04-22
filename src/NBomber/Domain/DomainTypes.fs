@@ -13,9 +13,6 @@ open NBomber.Contracts
 open NBomber.Domain.ClientPool
 open NBomber.Extensions.InternalExtensions
 
-[<Measure>] type ticks
-[<Measure>] type ms
-
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
@@ -74,8 +71,8 @@ type RunningStep = {
 [<Struct>]
 type StepResponse = {
     ClientResponse: Response
-    EndTimeTicks: int64<ticks>
-    LatencyTicks: int64<ticks>
+    EndTimeMs: float
+    LatencyMs: float
 }
 
 type LoadTimeSegment = {

@@ -158,6 +158,7 @@ type ScenarioInfo = {
     ThreadId: string
     ThreadNumber: int
     ScenarioName: string
+    ScenarioDuration: TimeSpan
 }
 
 type IBaseContext =
