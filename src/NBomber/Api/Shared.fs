@@ -7,7 +7,7 @@ open System.Runtime.CompilerServices
 
 open CsvHelper
 
-open NBomber.Domain
+open NBomber.Domain.Stats
 open NBomber.Extensions.InternalExtensions
 
 [<Extension>]

@@ -1,6 +1,7 @@
 ﻿module Tests.Step
 
 open System
+open System.Collections.Generic
 open System.Threading.Tasks
 
 open FsCheck.Xunit
@@ -309,16 +310,17 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     |> NBomberRunner.run
     |> ignore
 
-    test <@ counter > 0 && counter <= 6 @>
+    test <@ counter > 7 && counter <= 10 @>
 
 [<Fact>]
 let ``NBomber should handle invocation number per step following shared-nothing approach`` () =
 
-    let mutable counter = 0
+    let data = Dictionary<int,int>()
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
-        counter <- context.InvocationCount
+        data.[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
+
         return Response.ok()
     })
 
@@ -330,7 +332,9 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     |> NBomberRunner.run
     |> ignore
 
-    test <@ counter > 0 && counter <= 6 @>
+    let maxNumber = data.Values |> Seq.maxBy(id)
+
+    test <@ maxNumber > 8 && maxNumber <= 10 @>
 
 [<Fact>]
 let ``NBomber should support synchronous step execution`` () =

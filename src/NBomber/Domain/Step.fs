@@ -8,15 +8,12 @@ open System.Threading
 open System.Threading.Tasks
 
 open Serilog
-open HdrHistogram
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
-open NBomber.Domain.Statistics
 
 type StepDep = {
     ScenarioInfo: ScenarioInfo
@@ -43,88 +40,17 @@ module StepContext =
           Client = getClient step.ClientPool
           Logger = dep.Logger
           FeedItem = Unchecked.defaultof<_>
-          Data = Dict.empty
+          Data = Dictionary<string,obj>()
           InvocationCount = 0
           StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ExecStopCommand
           StopCurrentTest = fun reason -> StopTest(reason) |> dep.ExecStopCommand }
 
-module StepExecutionData =
-
-    let createEmpty () =
-
-        let createStats () = {
-            RequestCount = 0
-            LessOrEq800 = 0
-            More800Less1200 = 0
-            MoreOrEq1200 = 0
-            AllBytes = 0L
-            LatencyHistogramTicks = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
-            DataTransferBytes = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
-            StatusCodes = Dictionary<int,StatusCodeStats>()
-        }
-
-        { OkStats = createStats()
-          FailStats = createStats() }
-
-    let addResponse (stData: StepExecutionData) (response: StepResponse) =
-
-        let updateStatusCodeStats (statuses: Dictionary<int,StatusCodeStats>, res: Response) =
-            let statusCode = res.StatusCode.Value
-            match statuses.TryGetValue statusCode with
-            | true, codeStats -> codeStats.Count <- codeStats.Count + 1
-            | false, _ ->
-                statuses.[statusCode] <- { StatusCode = statusCode
-                                           IsError = res.IsError
-                                           Message = res.ErrorMessage
-                                           Count = 1 }
-
-        let clientRes = response.ClientResponse
-
-        // calc latency
-        let latencyMs =
-            if clientRes.LatencyMs > 0.0 then clientRes.LatencyMs
-            else response.LatencyMs
-
-        let stats =
-            match clientRes.IsError with
-            | true when clientRes.StatusCode.HasValue ->
-                updateStatusCodeStats(stData.FailStats.StatusCodes, clientRes)
-                stData.FailStats
-
-            | true -> stData.FailStats
-
-            | false when clientRes.StatusCode.HasValue ->
-                updateStatusCodeStats(stData.OkStats.StatusCodes, clientRes)
-                stData.OkStats
-
-            | false -> stData.OkStats
-
-        stats.RequestCount <- stats.RequestCount + 1
-
-        // checks that the response is real (it was created after the request was sent)
-        if latencyMs > 0.0 then
-
-            // add latency
-            let latencyMicroSec = Converter.fromMsToMicroSec(latencyMs)
-            stats.LatencyHistogramTicks.RecordValue(int64 latencyMicroSec)
-
-            if latencyMs <= 800.0 then stats.LessOrEq800 <- stats.LessOrEq800 + 1
-            elif latencyMs > 800.0 && latencyMs < 1200.0 then stats.More800Less1200 <- stats.More800Less1200 + 1
-            elif latencyMs >= 1200.0 then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
-
-            // add data transfer
-            if clientRes.SizeBytes > 0 then
-                stats.AllBytes <- stats.AllBytes + int64 clientRes.SizeBytes
-                stats.DataTransferBytes.RecordValue(int64 clientRes.SizeBytes)
-
-        stData
-
 module RunningStep =
 
     let create (dep: StepDep) (step: Step) =
-        { Value = step; Context = StepContext.create dep step; ExecutionData = StepExecutionData.createEmpty()  }
+        { Value = step; Context = StepContext.create dep step }
 
-    let updateContext (step: RunningStep) (data: Dict<string,obj>) =
+    let updateContext (step: RunningStep) (data: Dictionary<string,obj>) =
         let context = step.Context
 
         let feedItem =
@@ -231,6 +157,7 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
             | SyncExec exec  -> Task.FromResult(exec step.Context)
             | AsyncExec exec -> exec step.Context
 
+        // for pause we skip timeout logic
         if step.Value.StepName = Constants.StepPauseName then
             let! pause = responseTask
             return { ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
@@ -264,21 +191,24 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
                  LatencyMs = latency }
 }
 
-let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
+let execSteps (dep: StepDep,
+               steps: RunningStep[],
+               stepsOrder: int[],
+               responseBuffer: ResizeArray<int * StepResponse>,
+               stepDataDict: Dictionary<string,obj>) =
 
-    let data = Dictionary<string,obj>()
     let mutable skipStep = false
 
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps.[stepIndex] data
+                let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
                 let response = execStep step dep.GlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
+                        responseBuffer.Add(stepIndex, response)
 
                         match response.ClientResponse.IsError with
                         | true ->
@@ -286,25 +216,28 @@ let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
                             skipStep <- true
 
                         | false ->
-                            data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            stepDataDict.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 
-let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = task {
+let execStepsAsync (dep: StepDep,
+                    steps: RunningStep[],
+                    stepsOrder: int[],
+                    responseBuffer: ResizeArray<int * StepResponse>,
+                    stepDataDict: Dictionary<string,obj>) = task {
 
-    let data = Dict.empty
     let mutable skipStep = false
 
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps.[stepIndex] data
+                let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
                 let! response = execStepAsync step dep.GlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        step.ExecutionData <- StepExecutionData.addResponse step.ExecutionData response
+                        responseBuffer.Add(stepIndex, response)
 
                         match response.ClientResponse.IsError with
                         | true ->
@@ -312,7 +245,7 @@ let execStepsAsync (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = t
                             skipStep <- true
 
                         | false ->
-                            data.[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            stepDataDict.[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 }

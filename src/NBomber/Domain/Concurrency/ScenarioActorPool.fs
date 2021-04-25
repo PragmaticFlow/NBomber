@@ -12,10 +12,13 @@ type ActorPoolResult = {
 let createActors (dep: ActorDep) count fromIndex =
     List.init count (fun i ->
         let actorIndex = fromIndex + i
-        let scenarioInfo = Scenario.createScenarioInfo(dep.Scenario, actorIndex)
+        let scenarioInfo = Scenario.createScenarioInfo(dep.Scenario.ScenarioName,
+                                                       dep.Scenario.PlanedDuration,
+                                                       actorIndex)
         ScenarioActor(dep, scenarioInfo)
     )
 
+// todo: add tests
 let rentActors (createActors: int -> int -> ScenarioActor list) // count -> fromIndex
                (actorPool: ScenarioActor list)
                (actorCount: int) =

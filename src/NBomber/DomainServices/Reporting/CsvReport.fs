@@ -3,7 +3,7 @@ module internal NBomber.DomainServices.Reporting.CsvReport
 open System
 
 open NBomber.Contracts
-open NBomber.Domain
+open NBomber.Domain.Stats
 
 let private separator = ","
 

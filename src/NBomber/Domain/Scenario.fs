@@ -154,11 +154,11 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createScenarioInfo (scenario: Scenario, threadNumber: int) =
-    { ThreadId = $"{scenario.ScenarioName}_{threadNumber}"
+let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int) =
+    { ThreadId = $"{scenarioName}_{threadNumber}"
       ThreadNumber = threadNumber
-      ScenarioName = scenario.ScenarioName
-      ScenarioDuration = scenario.PlanedDuration }
+      ScenarioName = scenarioName
+      ScenarioDuration = duration }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {
 

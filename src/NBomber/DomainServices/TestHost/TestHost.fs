@@ -6,7 +6,6 @@ open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
 
-open Nessos.Streams
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
@@ -14,6 +13,7 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
@@ -53,9 +53,10 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 GlobalTimer = Stopwatch()
                 Scenario = scn
+                ScenarioStatsActor = ScenarioStatsActor.create(dep.Logger, scn)
                 ExecStopCommand = execStopCommand
             }
-            ScenarioScheduler(actorDep)
+            new ScenarioScheduler(actorDep)
 
         _currentSchedulers |> List.iter(fun x -> x.Stop())
         _cancelToken.Dispose()
@@ -63,6 +64,12 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         targetScenarios
         |> List.map(createScheduler _cancelToken.Token)
+
+    let stopSchedulers (schedulers: ScenarioScheduler list) =
+        if not _cancelToken.IsCancellationRequested then
+            _cancelToken.Cancel()
+
+        schedulers |> List.iter(fun x -> x.Stop())
 
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
@@ -106,12 +113,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! TestHostPlugins.stopPlugins dep
     }
 
-    let stopSchedulers () =
-        if not _cancelToken.IsCancellationRequested then
-            _cancelToken.Cancel()
-
-        _currentSchedulers |> List.iter(fun x -> x.Stop())
-
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
         let defaultScnContext = Scenario.ScenarioContext.create(baseContext)
@@ -150,7 +151,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         dep.Logger.Information("Starting warm up...")
         do! startWarmUp(schedulers)
-        stopSchedulers()
+        stopSchedulers(schedulers)
 
         _currentOperation <- OperationType.None
     }
@@ -179,7 +180,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             else
                 dep.Logger.Information("Stopping scenarios...")
 
-            stopSchedulers()
+            stopSchedulers(_currentSchedulers)
             do! cleanScenarios()
 
             _stopped <- true
@@ -188,7 +189,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     member _.GetScenarioBombingStats(duration) =
         TestHostReporting.getScenarioStats _currentSchedulers (Some true) duration
-        |> Stream.toArray
 
     member _.GetFinalStats(duration) =
         TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo (getCurrentNodeInfo()) OperationType.Complete None duration

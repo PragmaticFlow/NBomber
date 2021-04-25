@@ -1,6 +1,7 @@
 namespace NBomber.Contracts
 
 open System
+open System.Collections.Generic
 open System.Data
 open System.Runtime.InteropServices
 open System.Threading
@@ -12,7 +13,6 @@ open Microsoft.Extensions.Configuration
 open NBomber.Configuration
 open NBomber.Extensions.InternalExtensions
 
-[<Struct>]
 type Response = {
     StatusCode: Nullable<int>
     IsError: bool
@@ -181,7 +181,7 @@ type IClientFactory<'TClient> =
 type IFeed<'TFeedItem> =
     abstract FeedName: string
     abstract Init: context:IBaseContext -> Task
-    abstract GetNextItem: scenarioInfo:ScenarioInfo * stepData:Dict<string,obj> -> 'TFeedItem
+    abstract GetNextItem: scenarioInfo:ScenarioInfo * stepData:Dictionary<string,obj> -> 'TFeedItem
 
 type IStepContext<'TClient,'TFeedItem> =
     /// Gets info about the currently running scenario.
@@ -193,7 +193,7 @@ type IStepContext<'TClient,'TFeedItem> =
     /// Client which is taken from the ClientPool.
     abstract Client: 'TClient
     /// Step's dictionary which you can use to share data between steps (within one scenario).
-    abstract Data: Dict<string,obj>
+    abstract Data: Dictionary<string,obj>
     /// Feed item taken from attached feed.
     abstract FeedItem: 'TFeedItem
     /// NBomber's logger.
