@@ -10,6 +10,7 @@ type SchedulerCommand =
     | StartActors of actors:ScenarioActor list
     | RentActors of actorCount:int
 
+// todo: add tests
 let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     let freeActors =
         actorPool
@@ -31,6 +32,7 @@ type OneTimeActorScheduler(dep: ActorDep) =
     let stop () =
         ScenarioActorPool.stopActors _actorPool
 
+    // todo: add tests
     let execScheduler (scheduledActorCount: int) =
 
         let exec (actors: ScenarioActor list) =

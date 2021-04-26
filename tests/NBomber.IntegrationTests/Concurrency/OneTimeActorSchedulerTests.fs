@@ -11,8 +11,9 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain
 open NBomber.FSharp
+open NBomber.Domain
+open NBomber.Domain.Stats
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -26,11 +27,14 @@ let internal baseScenario =
     |> Result.getOk
     |> List.head
 
+let internal logger = LoggerConfiguration().CreateLogger()
+
 let internal baseDep = {
-    Logger = LoggerConfiguration().CreateLogger()
+    Logger = logger
     CancellationToken = CancellationToken.None
     GlobalTimer = Stopwatch()
     Scenario = baseScenario
+    ScenarioStatsActor = ScenarioStatsActor.create(logger, baseScenario)
     ExecStopCommand = fun _ -> ()
 }
 

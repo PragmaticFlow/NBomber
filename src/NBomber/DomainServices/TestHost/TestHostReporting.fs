@@ -5,11 +5,10 @@ open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
-open Nessos.Streams
 
 open NBomber
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
+open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Errors
 open NBomber.Contracts
@@ -45,13 +44,13 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
 
 let getScenarioStats (schedulers: ScenarioScheduler list) (working: Option<bool>) (duration: TimeSpan) =
     schedulers
-    |> Stream.ofList
-    |> Stream.filter(fun x ->
+    |> List.filter(fun x ->
         match working with
         | Some value -> x.Working = value
         | None       -> true
     )
-    |> Stream.map(fun x -> x.GetScenarioStats duration)
+    |> List.map(fun x -> x.GetScenarioStats duration)
+    |> List.toArray
 
 let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo)
                  (nodeInfo: NodeInfo) (operation: OperationType)
@@ -60,7 +59,7 @@ let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (
     let! pluginStats = getPluginStats dep operation
     let scenarioStats = getScenarioStats schedulers working duration
 
-    return if Stream.isEmpty scenarioStats then None
+    return if Array.isEmpty scenarioStats then None
            else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
 }
 
@@ -74,7 +73,7 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
 
         let fetchAndSaveBombingStats (duration, history) = async {
             let pluginStatsTask = getPluginStats OperationType.Bombing
-            let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
+            let scnStats = getBombingScenarioStats(duration) |> Array.map(ScenarioStats.round)
             if Array.isEmpty scnStats then return history
             else
                 do! scnStats |> saveScenarioStats |> Async.AwaitTask

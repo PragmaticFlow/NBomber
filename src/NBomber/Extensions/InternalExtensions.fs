@@ -4,7 +4,6 @@ open System
 
 open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling
-open Nessos.Streams
 open Newtonsoft.Json
 
 module internal InternalExtensions =
@@ -75,27 +74,6 @@ module internal InternalExtensions =
         let inline appendNewLine (str: string) =
             str + Environment.NewLine
 
-    module Stream =
-
-        /// Safe variant of `Array.min`
-        let inline minOrDefault (defaultValue) (stream) =
-            if Stream.isEmpty stream then defaultValue
-            else stream |> Stream.minBy id
-
-        /// Safe variant of `Array.average`
-        //todo: add proper impl, don't use Seq
-        let inline averageOrDefault (defaultValue) (stream) =
-            if Stream.isEmpty stream then defaultValue
-            else stream |> Stream.toSeq |> Seq.average
-
-        /// Safe variant of `Array.max`
-        let inline maxOrDefault (defaultValue) (stream) =
-            if Stream.isEmpty stream then defaultValue
-            else stream |> Stream.maxBy id
-
-        let inline sumBy (projection) (source: Stream<'T>) =
-            source |> Stream.map(projection) |> Stream.sum
-
     module Array =
 
         /// shuffle an array (in-place)
@@ -120,15 +98,6 @@ module internal InternalExtensions =
             dictionary
             |> Seq.map (|KeyValue|)
             |> Map.ofSeq
-
-    type Dict<'k, 'v> = System.Collections.Generic.IDictionary<'k,'v>
-
-    module Dict =
-
-        //todo: remove
-        let inline empty<'K,'V when 'K: equality> =
-            System.Collections.Generic.Dictionary<'K,'V>()
-            :> Dict<'K,'V>
 
 namespace NBomber.Extensions.Operator
 

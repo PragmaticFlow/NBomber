@@ -3,14 +3,13 @@ module internal NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open System
 open System.Threading.Tasks
 
-open Nessos.Streams
 open FSharp.Control.Reactive
 
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
+open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -22,14 +21,12 @@ type SchedulerCommand =
     | InjectOneTimeActors  of scheduledCount:int
     | DoNothing
 
-[<Struct>]
 type ScenarioProgressInfo = {
     ConstantActorCount: int
     OneTimeActorCount: int
     CurrentSimulation: LoadSimulation
 }
 
-[<Struct>]
 type SchedulerEvent =
     | ScenarioStarted
     | ScenarioStopped of finalStats:ScenarioStats
@@ -98,8 +95,6 @@ type ScenarioScheduler(dep: ActorDep) =
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
-    let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
-
     let getScenarioStats (currentOperation, duration) =
         let scnDuration = _scenario.ExecutedDuration |> Option.defaultValue(_scenario.PlanedDuration)
         let executionTime = correctExecutionTime(duration, scnDuration)
@@ -111,10 +106,7 @@ type ScenarioScheduler(dep: ActorDep) =
                 _oneTimeScheduler.ScheduledActorCount
             )
 
-        getAllActors()
-        |> Stream.ofList
-        |> Stream.collect(fun x -> x.GetStepStats executionTime)
-        |> ScenarioStats.create dep.Scenario simulationStats executionTime currentOperation
+        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetScenarioStats(reply, simulationStats, currentOperation, executionTime))
 
     let start () =
         dep.GlobalTimer.Stop()
@@ -206,5 +198,10 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.AllActors = getAllActors()
     member _.GetScenarioStats(duration) = getScenarioStats(_currentOperation, duration)
+
+    interface IDisposable with
+        member _.Dispose() =
+            stop()
+            (dep.ScenarioStatsActor :> IDisposable).Dispose()
+

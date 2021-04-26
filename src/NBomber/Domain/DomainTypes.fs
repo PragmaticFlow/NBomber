@@ -13,9 +13,6 @@ open NBomber.Contracts
 open NBomber.Domain.ClientPool
 open NBomber.Extensions.InternalExtensions
 
-[<Measure>] type ticks
-[<Measure>] type ms
-
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
@@ -26,7 +23,7 @@ type UntypedStepContext = {
     Client: obj
     Logger: ILogger
     mutable FeedItem: obj
-    mutable Data: Dict<string,obj>
+    mutable Data: Dictionary<string,obj>
     mutable InvocationCount: int
     StopScenario: string * string -> unit // scenarioName * reason
     StopCurrentTest: string -> unit       // reason
@@ -50,17 +47,21 @@ type Step = {
         member this.DoNotTrack = this.DoNotTrack
 
 type RawStepStats = {
+    mutable MinMicroSec: int
+    mutable MaxMicroSec: int
+    mutable MinBytes: int
+    mutable MaxBytes: int
     mutable RequestCount: int
     mutable LessOrEq800: int
     mutable More800Less1200: int
     mutable MoreOrEq1200: int
     mutable AllBytes: int64
-    LatencyHistogramTicks: LongHistogram
-    DataTransferBytes: LongHistogram
+    LatencyHistogram: LongHistogram
+    DataTransferHistogram: LongHistogram
     StatusCodes: Dictionary<int,StatusCodeStats>
 }
 
-type StepExecutionData = {
+type StepStatsRawData = {
     OkStats: RawStepStats
     FailStats: RawStepStats
 }
@@ -68,14 +69,12 @@ type StepExecutionData = {
 type RunningStep = {
     Value: Step
     Context: UntypedStepContext
-    mutable ExecutionData: StepExecutionData
 }
 
-[<Struct>]
 type StepResponse = {
     ClientResponse: Response
-    EndTimeTicks: int64<ticks>
-    LatencyTicks: int64<ticks>
+    EndTimeMs: float
+    LatencyMs: float
 }
 
 type LoadTimeSegment = {
