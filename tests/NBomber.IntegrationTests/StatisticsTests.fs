@@ -218,7 +218,7 @@ let ``NodeStats should be calculated properly`` () =
         let st2 = scnStats.StepStats.[1]
 
         test <@ st1.Ok.Request.Count >= 4 && st1.Ok.Request.Count <= 6 @>
-        test <@ st1.Ok.Request.RPS >= 1.0 && st1.Ok.Request.RPS <= 1.5 @>
+        test <@ st1.Ok.Request.RPS >= 0.8 && st1.Ok.Request.RPS <= 1.5 @>
         test <@ st1.Ok.Latency.MinMs <= 503.0 @>
         test <@ st1.Ok.Latency.MaxMs <= 515.0 @>
         test <@ st1.Ok.Latency.Percent50 <= 505.0 @>
@@ -233,7 +233,7 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st2.Ok.Request.Count = 2 @>
         test <@ st2.Ok.Request.RPS = 0.4 @>
-        test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 50.0 @>
+        test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 45.0 @>
         test <@ st2.Ok.DataTransfer.MinBytes = 50 @>
 
         test <@ st2.Fail.Request.Count >= 3 && st2.Fail.Request.Count <= 4 @>
