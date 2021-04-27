@@ -303,23 +303,23 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     })
 
     Scenario.create "scenario" [step]
-    |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> Scenario.withWarmUpDuration(seconds 10)
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/11/"
     |> NBomberRunner.run
     |> ignore
 
-    test <@ counter >= 7 && counter <= 10 @>
+    test <@ counter >= 5 && counter <= 11 @>
 
 [<Fact>]
 let ``NBomber should handle invocation number per step following shared-nothing approach`` () =
 
     let data = Dictionary<int,int>()
 
-    let step = Step.create("step", fun context -> task {
+    let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
 
-        do! Task.Delay(seconds 1)
+        do! Task.Delay(seconds 1, context.CancellationToken)
         data.[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
 
         return Response.ok()
@@ -327,15 +327,15 @@ let ``NBomber should handle invocation number per step following shared-nothing 
 
     Scenario.create "scenario" [step]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 5)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/12/"
     |> NBomberRunner.run
     |> ignore
 
-    let maxNumber = data.Values |> Seq.maxBy(id)
+    let maxNumber = data.Values |> Seq.toArray |> Array.maxBy(id)
 
-    test <@ maxNumber >= 6 && maxNumber <= 10 @>
+    test <@ maxNumber >= 5 && maxNumber <= 11 @>
 
 [<Fact>]
 let ``NBomber should support synchronous step execution`` () =

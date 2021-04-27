@@ -319,7 +319,7 @@ let ``check that scenario should be ok if it has no steps but init function exis
     |> ignore
 
 [<Fact>]
-let ``withCustomStepsOrder should allow to run steps with custom order`` () =
+let ``withDynamicStepOrder should allow to run steps with custom order`` () =
 
     let step1 = Step.create("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
@@ -334,7 +334,7 @@ let ``withCustomStepsOrder should allow to run steps with custom order`` () =
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-    |> Scenario.withCustomStepsOrder(fun () -> [| 1 |])
+    |> Scenario.withDynamicStepOrder(fun () -> [| 1 |])
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.getOk

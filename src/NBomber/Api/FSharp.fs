@@ -177,10 +177,10 @@ module Scenario =
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
 
-    /// Sets custom steps order that will be used by NBomber Scenario executor.
+    /// Sets dynamic steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
-    let withCustomStepsOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
+    let withDynamicStepOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
         { scenario with GetStepsOrder = getStepsOrder }
 
 /// NBomberRunner is responsible for registering and running scenarios.

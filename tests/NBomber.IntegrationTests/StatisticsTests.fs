@@ -189,24 +189,20 @@ module StepStatsRawData =
 [<Fact>]
 let ``NodeStats should be calculated properly`` () =
 
-    let okStep = Step.create("ok step", fun context -> task {
+    let okStep = Step.create("ok step", timeout = seconds 2, execute = fun context -> task {
         do! Task.Delay(milliseconds 500)
         return Response.ok(sizeBytes = 100)
     })
 
-    let failStep = Step.create("fail step 1", fun context -> task {
-        if context.InvocationCount <= 2 then
-            do! Task.Delay(milliseconds 50)
-            return Response.ok(sizeBytes = 50)
-        else
-            do! Task.Delay(milliseconds 500)
-            return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
+    let failStep = Step.create("fail step 1", timeout = seconds 2, execute = fun context -> task {
+        do! Task.Delay(milliseconds 500)
+        return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
     })
 
     let scenario =
         Scenario.create "realtime stats scenario" [okStep; failStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withReportFolder "./stats-tests/1/"
@@ -217,35 +213,13 @@ let ``NodeStats should be calculated properly`` () =
         let st1 = scnStats.StepStats.[0]
         let st2 = scnStats.StepStats.[1]
 
-        test <@ st1.Ok.Request.Count >= 4 && st1.Ok.Request.Count <= 6 @>
-        test <@ st1.Ok.Request.RPS >= 0.8 && st1.Ok.Request.RPS <= 1.5 @>
-        test <@ st1.Ok.Latency.MinMs <= 503.0 @>
-        test <@ st1.Ok.Latency.MaxMs <= 515.0 @>
-        test <@ st1.Ok.Latency.Percent50 <= 505.0 @>
-        test <@ st1.Ok.Latency.LatencyCount.LessOrEq800 >= 4 && st1.Ok.Latency.LatencyCount.LessOrEq800 <= 6 @>
+        test <@ st1.Ok.Request.Count >= 5 && st1.Ok.Request.Count <= 10 @>
         test <@ st1.Ok.DataTransfer.MinBytes = 100 @>
-        test <@ st1.Ok.DataTransfer.Percent50 = 100 @>
-        test <@ st1.Ok.DataTransfer.StdDev = 0.0 @>
-
         test <@ st1.Fail.Request.Count = 0 @>
-        test <@ st1.Fail.Latency.MinMs = 0.0 @>
-        test <@ st1.Fail.DataTransfer.MinBytes = 0 @>
 
-        test <@ st2.Ok.Request.Count = 2 @>
-        test <@ st2.Ok.Request.RPS = 0.4 @>
-        test <@ st2.Ok.Latency.MinMs <= 63.0 && st2.Ok.Latency.MinMs >= 45.0 @>
-        test <@ st2.Ok.DataTransfer.MinBytes = 50 @>
-
-        test <@ st2.Fail.Request.Count >= 3 && st2.Fail.Request.Count <= 4 @>
-        test <@ st2.Fail.Request.RPS >= 0.6 && st1.Fail.Request.RPS <= 0.8 @>
+        test <@ st2.Fail.Request.Count >= 5 && st2.Fail.Request.Count <= 10 @>
         test <@ st2.Fail.DataTransfer.MinBytes = 10 @>
-        test <@ st2.Fail.DataTransfer.AllBytes = 30L @>
-
-        test <@ scnStats.Duration = seconds 5 @>
-        test <@ scnStats.RequestCount = scnStats.OkCount + scnStats.FailCount @>
-        test <@ scnStats.OkCount = st1.Ok.Request.Count + st2.Ok.Request.Count @>
-        test <@ scnStats.FailCount = st2.Fail.Request.Count @>
-        test <@ scnStats.LatencyCount.LessOrEq800 = scnStats.RequestCount @>
+        test <@ st2.Ok.Request.Count = 0 @>
 
 [<Fact>]
 let ``status codes should be calculated properly`` () =

@@ -19,7 +19,7 @@ type Response = {
     ErrorMessage: string
     SizeBytes: int
     LatencyMs: float
-    mutable Payload: obj
+    Payload: obj
 }
 
 type TestInfo = {
@@ -242,7 +242,7 @@ type LoadSimulation =
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a constant rate of requests without being affected by the performance of the system under test.
     | InjectPerSec of rate:int * during:TimeSpan
-    /// Injects a random number of scenario copies (threads) per 1 sec defined in scenarios per second during a given duration.
+    /// Injects a random number of scenario copies (threads) per 1 sec during a given duration.
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
     | InjectPerSecRandom of minRate:int * maxRate:int * during:TimeSpan

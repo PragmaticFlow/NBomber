@@ -178,12 +178,12 @@ type ScenarioBuilder =
     static member WithLoadSimulations(scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
-    /// Sets custom steps order that will be used by NBomber Scenario executor.
+    /// Sets dynamic steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     [<Extension>]
-    static member WithCustomStepsOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
-        scenario |> FSharp.Scenario.withCustomStepsOrder(getStepsOrder.Invoke)
+    static member WithDynamicStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
+        scenario |> FSharp.Scenario.withDynamicStepOrder(getStepsOrder.Invoke)
 
 [<Extension>]
 type NBomberRunner =
@@ -305,23 +305,32 @@ type NBomberRunner =
 
 type Simulation =
 
-    /// Injects a given number of scenario copies with a linear ramp over a given duration. Use it for ramp up and rump down.
+    /// Injects a given number of scenario copies (threads) with a linear ramp over a given duration.
+    /// Every single scenario copy will iterate while the specified duration.
+    /// Use it for ramp up and rump down.
     static member RampConstant(copies: int, during: TimeSpan) =
         LoadSimulation.RampConstant(copies, during)
 
-    /// Injects a given number of scenario copies at once and keep them running, during a given duration.
+    /// A fixed number of scenario copies (threads) executes as many iterations as possible for a specified amount of time.
+    /// Every single scenario copy will iterate while the specified duration.
+    /// Use it when you need to run a specific amount of scenario copies (threads) for a certain amount of time.
     static member KeepConstant(copies: int, during: TimeSpan) =
         LoadSimulation.KeepConstant(copies, during)
 
-    /// Injects a given number of scenario copies from the current rate to target rate, defined in scenarios per second, during a given duration.
+    /// Injects a given number of scenario copies (threads) per 1 sec from the current rate to target rate during a given duration.
+    /// Every single scenario copy will run only once.
     static member RampPerSec(rate: int, during: TimeSpan) =
         LoadSimulation.RampPerSec(rate, during)
 
-    /// Injects a given number of scenario copies at a constant rate, defined in scenarios per second, during a given duration.
+    /// Injects a given number of scenario copies (threads) per 1 sec during a given duration.
+    /// Every single scenario copy will run only once.
+    /// Use it when you want to maintain a constant rate of requests without being affected by the performance of the system under test.
     static member InjectPerSec(rate: int, during: TimeSpan) =
         LoadSimulation.InjectPerSec(rate, during)
 
-    /// Injects a given number of scenario copies at a random rate, defined in scenarios per second, during a given duration.
+    /// Injects a random number of scenario copies (threads) per 1 sec during a given duration.
+    /// Every single scenario copy will run only once.
+    /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
 
