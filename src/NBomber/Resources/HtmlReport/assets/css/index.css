@@ -87,3 +87,25 @@ table.table-scenario-stats tr td {
 [data-toggle="collapse"].collapsed .fa {
     transform: rotate(-90deg);
 }
+
+.tab-content>.tab-pane {
+    height: 0;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+}
+
+.tab-content>.active {
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+}
+
+.chart {
+    width: 100%;
+    height: 200px;
+}
+
+.chart.chart-timeline {
+    height: 400px;
+}

@@ -79,7 +79,7 @@
     <!-- Scenarios Stats Table Template -->
     <script type="text/x-template" id="scenario-stats-table-template">
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
-            <p>{{statsName}} stats</p>
+            <p>{{statsName.toLowerCase()}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
@@ -137,7 +137,7 @@
     <!-- Scenarios Stats Requests Number Table Template -->
     <script type="text/x-template" id="scenario-stats-requests-number-table-template">
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
-            <p>{{statsName}} stats</p>
+            <p>{{statsName.toLowerCase()}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
@@ -168,7 +168,7 @@
     <!-- Scenarios Stats Latency Table Template -->
     <script type="text/x-template" id="scenario-stats-latency-table-template">
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
-            <p>{{statsName}} stats</p>
+            <p>{{statsName.toLowerCase()}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm">
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
@@ -208,7 +208,7 @@
     <!-- Scenarios Stats Data Transfer Table Template -->
     <script type="text/x-template" id="scenario-stats-data-transfer-table-template">
         <div class="note scenario-stats" :class="{'note-success': !failStats, 'note-danger': failStats}">
-            <p>{{statsName}} stats</p>
+            <p>{{statsName.toLowerCase()}} stats</p>
             <table class="table table-hover table-striped table-bordered table-sm table-scenario-stats">
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
@@ -274,7 +274,7 @@
         <div class="row">
             <div class="col-xl-8 col-lg-8 col-md-12">
                 <div class="note">
-                    <p>Status Codes</p>
+                    <p>status codes</p>
                     <table class="table table-hover table-striped table-sm table-status-codes">
                         <thead class="mdb-color lighten-1 white-text">
                             <tr>
@@ -550,7 +550,7 @@
                                                 <div class="row">
                                                     <div class="col">
                                                         <!-- TestSuite View / Scenario Latency -->
-                                                        <chart-scenario-latency-distribution :timeline-stats="timeLineStats"
+                                                        <chart-scenario-latency-distribution :timeline-stats="viewModel.TimeLineStats"
                                                                                              :scenario-name="scenarioStats.ScenarioName">
                                                         </chart-scenario-latency-distribution>
                                                     </div>
@@ -685,7 +685,7 @@
                                                    data-placement="right"
                                                    :title="stepStats.StepName"
                                                    @click="selectView(`scenario-${scenarioIndex}-step-${stepIndex}`)">
-                                                    Step #{{stepIndex + 1}}
+                                                    step #{{stepIndex + 1}}
                                                 </a>
                                             </div>
                                         </div>
@@ -723,16 +723,22 @@
                                                 <lazy-load :loaded-views="loadedViews"
                                                            :load-for-view="stepIndex === 0 ? `scenario-${scenarioIndex}` : `scenario-${scenarioIndex}-step-${stepIndex}`">
                                                     <!-- Step View / Step Throughput -->
-                                                    <chart-timeline-step-throughput :timeline-stats="timeLineStats"
+                                                    <chart-timeline-step-throughput :timeline-stats="viewModel.TimeLineStats"
                                                                                     :scenario-name="scenarioStats.ScenarioName"
                                                                                     :step-name="stepStats.StepName">
                                                     </chart-timeline-step-throughput>
 
                                                     <!-- Step View / Step Latency -->
-                                                    <chart-timeline-step-latency :timeline-stats="timeLineStats"
+                                                    <chart-timeline-step-latency :timeline-stats="viewModel.TimeLineStats"
                                                                                  :scenario-name="scenarioStats.ScenarioName"
                                                                                  :step-name="stepStats.StepName">
                                                     </chart-timeline-step-latency>
+
+                                                    <!-- Step View / Step Data Transfer -->
+                                                    <chart-timeline-step-data-transfer :timeline-stats="viewModel.TimeLineStats"
+                                                                                 :scenario-name="scenarioStats.ScenarioName"
+                                                                                 :step-name="stepStats.StepName">
+                                                    </chart-timeline-step-data-transfer>
                                                 </lazy-load>
                                             </div>
                                         </div>
@@ -772,6 +778,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <script src="assets/js/index.js"></script> <!-- include asset -->
     <script src="assets/js/data.js"></script> <!-- remove-->
