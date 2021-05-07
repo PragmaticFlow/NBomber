@@ -71,8 +71,7 @@ const initApp = (appContainer, viewModel) => {
                 percentile75: '75%',
                 percentile95: '95%',
                 percentile99: '99%',
-                stdDev: 'stddev',
-                all: 'all data'
+                stdDev: 'stddev'
             }
 
         }
@@ -86,17 +85,6 @@ const initApp = (appContainer, viewModel) => {
             stats: {
                 okCount: '#00b74a', // success
                 failedCount: '#ff3547', // danger
-                rps: '#1565c0', // blue darken-3
-                allBytes: '#4e342e', // brown darken-3
-                min: '#2e7d32', // green darken-3
-                mean: '#9e9d24', // lime darken-3
-                max: '#ff3d00', // deep-orange  darken-3
-                stdDev: '#558b2f', // light-green darken-3
-                percentile50: '#00838f', // cyan darken-3
-                percentile75: '#0277bd', // light-blue darken-3
-                percentile95: '#283593', // indigo darken-3
-                percentile99: '#6a1b9a', // purple darken-3
-                loadSimulation: '#ff8f00', // amber darken-3
                 latency: {
                     low: '#00b74a', // success
                     medium: '#ffea00', // yellow accent-3
