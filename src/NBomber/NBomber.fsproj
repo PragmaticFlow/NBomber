@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Authors>PragmaticFlow</Authors>
-        <Company>PragmaticFlow</Company>
+        <Authors>NBomber</Authors>
+        <Company>NBomber</Company>
         <Version>2.0.0-rc4</Version>
-        <Copyright>PragmaticFlow@2021</Copyright>
+        <Copyright>NBomber@2021</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
         <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>

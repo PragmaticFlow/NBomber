@@ -253,7 +253,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
                  |> Seq.find(fun x -> x.StepName = "step")
 
         test <@ st.Ok.Request.Count > 5 @>
-        test <@ st.Ok.Request.RPS >= 9.0 @>
+        test <@ st.Ok.Request.RPS >= 7.0 @>
         test <@ st.Ok.Latency.MinMs <= 2_001.0 @>
 
 [<Fact>]
@@ -318,8 +318,8 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let data = Dictionary<int,int>()
 
     let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
-
         do! Task.Delay(seconds 1, context.CancellationToken)
+
         data.[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
 
         return Response.ok()
@@ -333,7 +333,11 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     |> NBomberRunner.run
     |> ignore
 
-    let maxNumber = data.Values |> Seq.toArray |> Array.maxBy(id)
+    // hack to fix the issue with iterating over mutable dictionary
+    // it show up on slow machine
+    Task.Delay(seconds 10).Wait()
+
+    let maxNumber = data.Values |> Seq.maxBy(id)
 
     test <@ maxNumber >= 5 && maxNumber <= 11 @>
 

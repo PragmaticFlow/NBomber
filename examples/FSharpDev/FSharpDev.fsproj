@@ -24,13 +24,13 @@
         <Compile Include="CustomReporting\CustomReporting.fs" />
         <Compile Include="InfluxDbSink\InfluxDbSink.fs" />
         <Compile Include="InfluxDbSink\InfluxDbReportingScenario.fs" />
+        <None Include="InfluxDbSink\docker-compose.yaml" />
         <Compile Include="HttpTests\SimpleHttpTest.fs" />
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="ClientFactory\HttpClientFactory.fs" />
-        <Compile Include="Program.fs" />
-        <None Include="InfluxDbSink\docker-compose.yaml" />        
+        <Compile Include="Program.fs" />        
     </ItemGroup>
 
     <ItemGroup>

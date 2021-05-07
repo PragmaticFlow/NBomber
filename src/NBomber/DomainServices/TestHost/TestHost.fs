@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
 
+open Serilog
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
@@ -13,7 +14,6 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
@@ -21,7 +21,10 @@ open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
 open NBomber.DomainServices.TestHost.TestHostReporting
 
-type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as this =
+type internal TestHost(dep: IGlobalDependency,
+                       registeredScenarios: Scenario list,
+                       sessionArgs: SessionArgs,
+                       createStatsActor: ILogger * Scenario -> MailboxProcessor<_>) as this =
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
@@ -53,7 +56,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 GlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = ScenarioStatsActor.create(dep.Logger, scn)
+                ScenarioStatsActor = createStatsActor(dep.Logger, scn)
                 ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)

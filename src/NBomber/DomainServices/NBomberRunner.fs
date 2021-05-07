@@ -9,6 +9,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.HintsAnalyzer
+open NBomber.Domain.Stats
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.TestHost
 open NBomber.Errors
@@ -67,7 +68,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
         let! scenarios    = context |> NBomberContext.createScenarios
-        use testHost      = new TestHost(dep, scenarios, sessionArgs)
+        use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
         let! result       = testHost.RunSession()
         let hints         = getHints context result.NodeStats
         let simulations   = context |> getLoadSimulations
