@@ -357,3 +357,49 @@ let ``NBomber should support synchronous step execution`` () =
     |> ignore
 
     test <@ counter > 0 && counter <= 6 @>
+
+[<Fact>]
+let ``StepContext Data should be cleared after each iteration`` () =
+
+    let step1 = Step.create("step 1", fun context -> task {
+        if context.Data.Count = 0 then return Response.ok()
+        else return Response.fail()
+    })
+
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(100)
+        context.Data.Add(nameof(context.InvocationCount), context.InvocationCount)
+        return Response.ok();
+    })
+
+    Scenario.create "test context.Data" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/13/"
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats -> test <@ stats.FailCount = 0 @>
+
+[<Fact>]
+let ``Response Payload should be cleared from StepContext Data after each iteration`` () =
+
+    let step1 = Step.create("step 1", fun context -> task {
+        let subject = context.GetPreviousStepResponse<int>()
+        if Unchecked.defaultof<int> = subject then return Response.ok()
+        else return Response.fail()
+    })
+
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(100)
+        return Response.ok(context.InvocationCount);
+    })
+
+    Scenario.create "test context.Data" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/14/"
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats -> test <@ stats.FailCount = 0 @>
