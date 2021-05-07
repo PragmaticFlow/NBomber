@@ -60,4 +60,4 @@ let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue
 let StatsRounding = 2
 
-let ScenarioResponseBufferLength = 50
+let ScenarioResponseBufferLength = 10

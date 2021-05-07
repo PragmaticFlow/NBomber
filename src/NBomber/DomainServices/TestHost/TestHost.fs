@@ -40,7 +40,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                dep.Logger.Warning("Stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
+                dep.Logger.Warning($"Stopping scenario early: '{sch.Scenario.ScenarioName}', reason: '{reason}'")
             )
 
         | StopTest reason -> this.StopScenarios(reason) |> ignore

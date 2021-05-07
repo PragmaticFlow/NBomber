@@ -22,16 +22,23 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="CustomReporting\CustomReporting.fs" />
+        <Compile Include="InfluxDbSink\InfluxDbSink.fs" />
+        <Compile Include="InfluxDbSink\InfluxDbReportingScenario.fs" />
         <Compile Include="HttpTests\SimpleHttpTest.fs" />
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="ClientFactory\HttpClientFactory.fs" />
         <Compile Include="Program.fs" />
+        <None Include="InfluxDbSink\docker-compose.yaml" />        
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.2.0" />
     </ItemGroup>
 
 </Project>

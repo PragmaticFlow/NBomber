@@ -66,7 +66,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
         if report.SessionFinishedWithErrors then
-            logger.Warning("Test finished with errors, please check logs in './logs' folder.")
+            logger.Warning("Test finished with errors, please check the log file.")
 
         if reportFiles.Length > 0 then
             logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(reportsDir).FullName)
