@@ -44,11 +44,11 @@ let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
     |> Array.map(fun stepStats -> getLine(scnStats.ScenarioName, scnStats.Duration, stepStats, testInfo))
     |> String.concat Environment.NewLine
 
-let print (nodeStats: NodeStats) =
+let print (sessionResult: NodeSessionResult) =
     let header = getHeader()
 
-    let body = nodeStats.ScenarioStats
-               |> Array.map(printSteps nodeStats.TestInfo)
+    let body = sessionResult.NodeStats.ScenarioStats
+               |> Array.map(printSteps sessionResult.NodeStats.TestInfo)
                |> String.concat String.Empty
 
     header + Environment.NewLine + body

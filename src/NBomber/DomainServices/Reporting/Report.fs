@@ -22,16 +22,16 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats: NodeStats) (timeLines: TimeLineHistoryRecord list)
-          (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+let build (sessionResult: NodeSessionResult)
+          (simulations: IDictionary<string, LoadSimulation list>) =
 
-    let errorsExist = nodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
+    let errorsExist = sessionResult.NodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
 
-    { TxtReport = TxtReport.print nodeStats hints simulations
-      HtmlReport = HtmlReport.print nodeStats timeLines hints
-      CsvReport = CsvReport.print nodeStats
-      MdReport = MdReport.print nodeStats hints simulations
-      ConsoleReport = ConsoleReport.print nodeStats hints simulations
+    { TxtReport = TxtReport.print sessionResult simulations
+      HtmlReport = HtmlReport.print sessionResult
+      CsvReport = CsvReport.print sessionResult
+      MdReport = MdReport.print sessionResult simulations
+      ConsoleReport = ConsoleReport.print sessionResult simulations
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,

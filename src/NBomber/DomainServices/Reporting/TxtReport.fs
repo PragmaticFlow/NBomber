@@ -279,7 +279,7 @@ module TxtHints =
     let private printHintsHeader () =
         "hints:"
 
-    let private printHintsTable (hints: HintResult list) =
+    let private printHintsTable (hints: HintResult[]) =
         let hintTable = ConsoleTable("source", "name", "hint")
 
         hints
@@ -287,7 +287,7 @@ module TxtHints =
 
         hintTable.ToStringAlternative()
 
-    let printHints (hints: HintResult list) =
+    let printHints (hints: HintResult[]) =
         if hints.Length > 0 then
             seq {
                 yield printHintsHeader()
@@ -297,9 +297,9 @@ module TxtHints =
         else
             String.Empty
 
-let print (stats) (hints) (simulations: IDictionary<string, LoadSimulation list>) =
-    [TxtTestInfo.printTestInfo stats.TestInfo
-     TxtNodeStats.printNodeStats stats simulations
-     TxtPluginStats.printPluginStats stats
-     TxtHints.printHints hints]
+let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
+    [TxtTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+     TxtNodeStats.printNodeStats sessionResult.NodeStats simulations
+     TxtPluginStats.printPluginStats sessionResult.NodeStats
+     TxtHints.printHints sessionResult.Hints]
     |> String.concatLines

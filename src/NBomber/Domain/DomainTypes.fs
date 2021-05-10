@@ -87,12 +87,6 @@ type LoadTimeSegment = {
 
 type LoadTimeLine = LoadTimeSegment list
 
-type TimeLineHistoryRecord = {
-    Duration: TimeSpan
-    ScenarioStats: ScenarioStats[]
-    PluginStats: DataSet[]
-}
-
 type Scenario = {
     ScenarioName: string
     Init: (IScenarioContext -> Task) option

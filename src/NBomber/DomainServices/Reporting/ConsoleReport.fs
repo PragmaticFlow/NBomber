@@ -308,7 +308,7 @@ module ConsolePluginStats =
 
 module ConsoleHints =
 
-    let private createHintsList (hints: HintResult list) =
+    let private createHintsList (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint ->
             seq {
@@ -318,7 +318,7 @@ module ConsoleHints =
         )
         |> Console.addList
 
-    let printHints (hints: HintResult list) =
+    let printHints (hints: HintResult[]) =
         if hints.Length > 0 then
             [ Console.addHeader("hints")
               Console.addLine(String.Empty)
@@ -326,10 +326,10 @@ module ConsoleHints =
         else
             List.Empty
 
-let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
     [ Console.addLine(String.Empty)
-      yield! ConsoleTestInfo.printTestInfo stats.TestInfo
-      yield! ConsoleNodeStats.printNodeStats stats simulations
-      yield! ConsolePluginStats.printPluginStats stats
-      yield! ConsoleHints.printHints hints
+      yield! ConsoleTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+      yield! ConsoleNodeStats.printNodeStats sessionResult.NodeStats simulations
+      yield! ConsolePluginStats.printPluginStats sessionResult.NodeStats
+      yield! ConsoleHints.printHints sessionResult.Hints
       Console.addLine(String.Empty) ]
