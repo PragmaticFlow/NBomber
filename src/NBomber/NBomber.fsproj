@@ -42,7 +42,6 @@
         <Compile Include="Infra\Console.fs" />
         <Compile Include="Infra\ProgressBar.fs" />
         <Compile Include="Infra\Dependency.fs" />
-        <Compile Include="DomainServices\Reporting\ViewModels.fs" />
         <Compile Include="DomainServices\Reporting\TxtReport.fs" />
         <Compile Include="DomainServices\Reporting\CsvReport.fs" />
         <Compile Include="DomainServices\Reporting\HtmlReport.fs" />

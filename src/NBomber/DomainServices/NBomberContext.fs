@@ -14,19 +14,26 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain
 
+// we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
+// since after init (for case when the same ClientFactory assigned to several Scenarios)
+// factoryName = factoryName + scenarioName
+// and it's more convenient to prepare it for usage
+
 type SessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
-    ClientFactorySettings: ClientFactorySetting list
+    UpdatedClientFactorySettings: ClientFactorySetting list
     SendStatsInterval: TimeSpan
+    UseHintsAnalyzer: bool
 } with
     static member Empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
-        ClientFactorySettings = List.empty
+        UpdatedClientFactorySettings = List.empty
         SendStatsInterval = Constants.DefaultSendStatsInterval
+        UseHintsAnalyzer = true
     }
 
 module Validation =
@@ -205,11 +212,12 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         let clientFactorySettings = context |> getClientFactorySettings
 
         return {
-          TestInfo = testInfo
-          ScenariosSettings = scenariosSettings
-          TargetScenarios = targetScenarios
-          ClientFactorySettings = clientFactorySettings
-          SendStatsInterval = sendStatsInterval
+            TestInfo = testInfo
+            ScenariosSettings = scenariosSettings
+            TargetScenarios = targetScenarios
+            UpdatedClientFactorySettings = clientFactorySettings
+            SendStatsInterval = sendStatsInterval
+            UseHintsAnalyzer = context.UseHintsAnalyzer
         }
     }
     |> Result.mapError(AppError.create)

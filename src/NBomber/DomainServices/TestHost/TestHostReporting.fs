@@ -7,7 +7,6 @@ open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Errors
@@ -42,32 +41,27 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
     |> List.map(fun plugin -> plugin.GetStats operation)
     |> Task.WhenAll
 
-let getScenarioStats (schedulers: ScenarioScheduler list) (working: Option<bool>) (duration: TimeSpan) =
+let getScenarioStats (schedulers: ScenarioScheduler list) (working: bool) (duration: TimeSpan) =
     schedulers
-    |> List.filter(fun x ->
-        match working with
-        | Some value -> x.Working = value
-        | None       -> true
-    )
+    |> List.filter(fun x  -> x.Working = working)
     |> List.map(fun x -> x.GetScenarioStats duration)
     |> List.toArray
 
 let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo)
-                 (nodeInfo: NodeInfo) (operation: OperationType)
-                 (working: Option<bool>) (duration: TimeSpan) = task {
+                 (args: {| NodeInfo: NodeInfo; WorkingScenarios: bool; Duration: TimeSpan |}) = task {
 
-    let! pluginStats = getPluginStats dep operation
-    let scenarioStats = getScenarioStats schedulers working duration
+    let! pluginStats = getPluginStats dep args.NodeInfo.CurrentOperation
+    let scenarioStats = getScenarioStats schedulers args.WorkingScenarios args.Duration
 
     return if Array.isEmpty scenarioStats then None
-           else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
+           else Some(NodeStats.create testInfo args.NodeInfo scenarioStats pluginStats)
 }
 
 let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
     MailboxProcessor.Start(fun inbox ->
 
         let getPluginStats = getPluginStats dep
-        let getBombingScenarioStats = getScenarioStats schedulers (Some true)
+        let getBombingScenarioStats = getScenarioStats schedulers true
         let getNodeStats = getNodeStats dep schedulers testInfo
         let saveScenarioStats = saveScenarioStats dep
 
@@ -118,7 +112,10 @@ let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler 
                     return! loop currentHistory
 
                 | GetFinalStats (nodeInfo, duration, reply) ->
-                    getNodeStats nodeInfo OperationType.Complete None duration
+                    {| NodeInfo = nodeInfo
+                       WorkingScenarios = false
+                       Duration = duration |}
+                    |> getNodeStats
                     |> TaskOption.map(NodeStats.round >> reply.Reply)
                     |> Task.WaitAll
                     return! loop currentHistory

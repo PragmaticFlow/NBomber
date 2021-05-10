@@ -1,6 +1,5 @@
 module internal NBomber.DomainServices.TestHost.TestHostScenario
 
-open System
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
@@ -62,7 +61,7 @@ let initScenarios (dep: IGlobalDependency)
         // client pools init
         let! pools =
             targetScenarios
-            |> Scenario.ClientPool.createPools sessionArgs.ClientFactorySettings
+            |> Scenario.ClientPool.createPools sessionArgs.UpdatedClientFactorySettings
             |> initClientPools dep baseContext
 
         // data feed init

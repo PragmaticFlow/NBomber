@@ -11,46 +11,48 @@ open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
 
-let validateSimulation (simulation: LoadSimulation) =
-    result {
-        let checkCopies (copies) =
-            if copies <= 0 then
-                simulation.ToString() |> CopiesCountIsZeroOrNegative |> AppError.createResult
-            else Ok copies
+module Validation =
 
-        let checkRate (rate) =
-            if rate <= 0 then
-                simulation.ToString() |> RateIsZeroOrNegative |> AppError.createResult
-            else Ok rate
+    let validate (simulation: LoadSimulation) =
+        result {
+            let checkCopies (copies) =
+                if copies <= 0 then
+                    simulation.ToString() |> CopiesCountIsZeroOrNegative |> AppError.createResult
+                else Ok copies
 
-        let checkDuration (duration) =
-            if duration < Constants.MinSimulationDuration then
-                simulation.ToString() |> SimulationIsSmallerThanMin |> AppError.createResult
+            let checkRate (rate) =
+                if rate <= 0 then
+                    simulation.ToString() |> RateIsZeroOrNegative |> AppError.createResult
+                else Ok rate
 
-            elif duration > Constants.MaxSimulationDuration then
-                simulation.ToString() |> SimulationIsBiggerThanMax |> AppError.createResult
+            let checkDuration (duration) =
+                if duration < Constants.MinSimulationDuration then
+                    simulation.ToString() |> SimulationIsSmallerThanMin |> AppError.createResult
 
-            else Ok duration
+                elif duration > Constants.MaxSimulationDuration then
+                    simulation.ToString() |> SimulationIsBiggerThanMax |> AppError.createResult
 
-        match simulation with
-        | RampConstant (copies, duration)
-        | KeepConstant (copies, duration) ->
-            let! _ = checkCopies copies
-            let! _ = checkDuration duration
-            return simulation
+                else Ok duration
 
-        | RampPerSec (rate, duration)
-        | InjectPerSec (rate, duration) ->
-            let! _ = checkRate rate
-            let! _ = checkDuration duration
-            return simulation
+            match simulation with
+            | RampConstant (copies, duration)
+            | KeepConstant (copies, duration) ->
+                let! _ = checkCopies copies
+                let! _ = checkDuration duration
+                return simulation
 
-        | InjectPerSecRandom (minRate, maxRate, duration) ->
-            let! _ = checkRate minRate
-            let! _ = checkRate maxRate
-            let! _ = checkDuration duration
-            return simulation
-    }
+            | RampPerSec (rate, duration)
+            | InjectPerSec (rate, duration) ->
+                let! _ = checkRate rate
+                let! _ = checkDuration duration
+                return simulation
+
+            | InjectPerSecRandom (minRate, maxRate, duration) ->
+                let! _ = checkRate minRate
+                let! _ = checkRate maxRate
+                let! _ = checkDuration duration
+                return simulation
+        }
 
 let createTimeLine (simulations: LoadSimulation list) =
 
@@ -59,7 +61,7 @@ let createTimeLine (simulations: LoadSimulation list) =
             match simulations with
             | [] -> return List.empty
             | simulation :: tail ->
-                match! validateSimulation simulation with
+                match! Validation.validate simulation with
                 | RampConstant (copiesCount, duration)
                 | KeepConstant (copiesCount, duration)
                 | RampPerSec (copiesCount, duration)

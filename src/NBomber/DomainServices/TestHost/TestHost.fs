@@ -31,6 +31,7 @@ type internal TestHost(dep: IGlobalDependency,
     let mutable _currentOperation = OperationType.None
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
+    let mutable _sessionResult = Unchecked.defaultof<NodeSessionResult>
     let _defaultNodeInfo = NodeInfo.init()
 
     let getCurrentNodeInfo () =
@@ -190,11 +191,13 @@ type internal TestHost(dep: IGlobalDependency,
             _currentOperation <- OperationType.None
     }
 
-    member _.GetScenarioBombingStats(duration) =
-        TestHostReporting.getScenarioStats _currentSchedulers (Some true) duration
+    member _.GetNodeStats(workingScenarios: bool, duration: TimeSpan) =
+        {| NodeInfo = getCurrentNodeInfo()
+           WorkingScenarios = workingScenarios
+           Duration = duration |}
+        |> TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo
 
-    member _.GetFinalStats(duration) =
-        TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo (getCurrentNodeInfo()) OperationType.Complete None duration
+    member _.GetSessionResult() = _sessionResult
 
     member _.CreateScenarioSchedulers() = createScenarioSchedulers(_targetScenarios)
 
@@ -231,8 +234,18 @@ type internal TestHost(dep: IGlobalDependency,
         // gets final stats
         dep.Logger.Information("Calculating final statistics...")
         let finalStats = actor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), currentOperationTimer.Elapsed, reply))
-        let timeLines = actor.PostAndReply(fun reply -> GetTimeLines reply)
-        return {| NodeStats = finalStats; TimeLines = timeLines |}
+
+        let timeLines =
+            actor.PostAndReply(fun reply -> GetTimeLines reply)
+            |> List.toArray
+
+        let hints =
+            dep.WorkerPlugins
+            |> TestHostPlugins.getHints sessionArgs.UseHintsAnalyzer finalStats
+            |> List.toArray
+
+        _sessionResult <- { NodeStats = finalStats; TimeLineStats = timeLines; Hints = hints }
+        return _sessionResult
     }
 
     interface IDisposable with

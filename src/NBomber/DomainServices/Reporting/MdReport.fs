@@ -320,12 +320,12 @@ module MdHints =
         document
         |> Md.printHeader "hints:"
 
-    let private createHintsTableRows (hints: HintResult list) =
+    let private createHintsTableRows (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint -> [hint.SourceType.ToString(); hint.SourceName; hint.Hint])
         |> List.ofSeq
 
-    let printHints (hints: HintResult list) (document: Document) =
+    let printHints (hints: HintResult[]) (document: Document) =
         if hints.Length > 0 then
             let headers = ["source"; "name"; "hint"]
             let rows = createHintsTableRows(hints)
@@ -336,10 +336,10 @@ module MdHints =
         else
             document
 
-let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
     emptyDocument
-    |> MdTestInfo.printTestInfo stats.TestInfo
-    |> MdNodeStats.printNodeStats stats simulations
-    |> MdPluginStats.printPluginStats stats
-    |> MdHints.printHints hints
+    |> MdTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+    |> MdNodeStats.printNodeStats sessionResult.NodeStats simulations
+    |> MdPluginStats.printPluginStats sessionResult.NodeStats
+    |> MdHints.printHints sessionResult.Hints
     |> asString

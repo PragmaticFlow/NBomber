@@ -7,6 +7,8 @@ open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 
+open Newtonsoft.Json
+open Newtonsoft.Json.Converters
 open Serilog
 open Microsoft.Extensions.Configuration
 
@@ -150,6 +152,29 @@ type NodeStats = {
     TestInfo: TestInfo
     ReportFiles: ReportFile[]
     Duration: TimeSpan
+}
+
+type TimeLineHistoryRecord = {
+    ScenarioStats: ScenarioStats[]
+    PluginStats: DataSet[]
+    Duration: TimeSpan
+}
+
+[<JsonConverter(typeof<StringEnumConverter>)>]
+type HintSourceType =
+    | Scenario = 0
+    | WorkerPlugin = 1
+
+type HintResult = {
+    SourceName: string
+    SourceType: HintSourceType
+    Hint: string
+}
+
+type NodeSessionResult = {
+    NodeStats: NodeStats
+    TimeLineStats: TimeLineHistoryRecord[]
+    Hints: HintResult[]
 }
 
 type ScenarioInfo = {
