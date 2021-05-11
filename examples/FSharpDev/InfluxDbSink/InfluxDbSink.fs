@@ -12,6 +12,7 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 
 [<CLIMutable>]
 type InfluxDbSinkConfig = {
