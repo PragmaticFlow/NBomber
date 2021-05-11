@@ -39,12 +39,14 @@ type OneTimeActorScheduler(dep: ActorDep) =
             actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
 
         match schedule _actorPool scheduledActorCount with
-        | StartActors actors -> exec actors
+        | StartActors actors ->
+            exec actors
+
         | RentActors actorCount ->
             let result = ScenarioActorPool.rentActors createActors _actorPool actorCount
             exec result.ActorsFromPool
             exec result.NewActors
-            _actorPool <- ScenarioActorPool.updatePool _actorPool result
+            _actorPool <- ScenarioActorPool.updatePool _actorPool result.NewActors
 
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool

@@ -39,14 +39,24 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                  |> List.map(RunningStep.create _stepDep)
                  |> List.toArray
 
-    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ScenarioResponseBufferLength) // stepIndex * StepResponse
+    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ResponseBufferLength) // stepIndex * StepResponse
+    let mutable _latestBufferFlushSec = 0
     let _stepDataDict = Dictionary<string,obj>()
     let mutable _working = false
 
-    let flushStats () =
-        let responses = _responseBuffer.ToArray()
+    let flushStats (buffer: ResizeArray<int * StepResponse>) =
+        let responses = buffer.ToArray()
         dep.ScenarioStatsActor.Post(AddResponses responses)
-        _responseBuffer.Clear()
+        buffer.Clear()
+        _latestBufferFlushSec <- int dep.GlobalTimer.Elapsed.TotalSeconds
+
+    let checkFlushBuffer (buffer: ResizeArray<int * StepResponse>) =
+        if buffer.Count >= Constants.ResponseBufferLength then
+            flushStats(buffer)
+        else
+            let delay = int dep.GlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
+            if delay >= Constants.ResponseBufferFlushDelaySec then
+                flushStats(buffer)
 
     let execSteps () = task {
         try
@@ -61,8 +71,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 else
                     do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
 
-                if _responseBuffer.Count >= Constants.ScenarioResponseBufferLength then
-                    flushStats()
+                checkFlushBuffer(_responseBuffer)
             else
                 _logger.Fatal($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
@@ -84,8 +93,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                     else
                         do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
 
-                    if _responseBuffer.Count >= Constants.ScenarioResponseBufferLength then
-                        flushStats()
+                    checkFlushBuffer(_responseBuffer)
             else
                 _logger.Fatal($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
@@ -100,4 +108,4 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     member _.Stop() =
         _working <- false
-        flushStats()
+        flushStats(_responseBuffer)

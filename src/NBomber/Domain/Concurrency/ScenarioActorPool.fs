@@ -42,5 +42,5 @@ let stopActors (actorPool: ScenarioActor list) =
 let getWorkingActors (actorPool: ScenarioActor list) =
     actorPool |> List.filter(fun x -> x.Working)
 
-let updatePool (currentPool: ScenarioActor list) (result: ActorPoolResult) =
-    currentPool |> List.append result.NewActors
+let updatePool (currentPool: ScenarioActor list) (newActors: ScenarioActor list) =
+    currentPool |> List.append newActors
