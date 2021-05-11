@@ -8,6 +8,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
 

@@ -7,8 +7,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Contracts.Stats
 open NBomber.Domain.Stats
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.TestHost

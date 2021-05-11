@@ -5,9 +5,9 @@ open System.Collections.Generic
 open System.Data
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
-open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra

@@ -1,6 +1,6 @@
 module internal NBomber.Domain.HintsAnalyzer
 
-open NBomber.Contracts
+open NBomber.Contracts.Stats
 
 let private analyzeDataTransfer (scnStats: ScenarioStats[]) =
 

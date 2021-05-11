@@ -12,9 +12,10 @@ open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
-open NBomber.FSharp
+open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 open NBomber.DomainServices
+open NBomber.FSharp
 open NBomber.Infra.Dependency
 open Tests.TestHelper
 

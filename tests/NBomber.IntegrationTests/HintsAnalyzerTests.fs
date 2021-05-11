@@ -9,6 +9,7 @@ open Swensen.Unquote
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Infra.Dependency

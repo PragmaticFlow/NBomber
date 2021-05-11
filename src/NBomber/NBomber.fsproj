@@ -22,7 +22,8 @@
         <Compile Include="Extensions\InternalExtensions.fs" />
         <Compile Include="Configuration\Configuration.fs" />
         <Compile Include="Configuration\Constants.fs" />
-        <Compile Include="Contracts.fs" />
+        <Compile Include="Contracts\Stats.fs" />
+        <Compile Include="Contracts\Contracts.fs" />
         <Compile Include="Domain\ClientPool.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
@@ -94,6 +95,6 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\js\data.js" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
-        <EmbeddedResource Include="Resources\HtmlReport\index.html" />
+        <EmbeddedResource Include="Resources\HtmlReport\index.html" />        
     </ItemGroup>
 </Project>

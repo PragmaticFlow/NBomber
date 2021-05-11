@@ -10,7 +10,7 @@ open Serilog
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
-open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes

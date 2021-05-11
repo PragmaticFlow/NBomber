@@ -4,7 +4,7 @@ open System
 
 open Serilog
 
-open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
