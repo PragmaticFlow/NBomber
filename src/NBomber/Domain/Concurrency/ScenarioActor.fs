@@ -39,7 +39,8 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                  |> List.map(RunningStep.create _stepDep)
                  |> List.toArray
 
-    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ScenarioResponseBufferLength) // stepIndex * StepResponse
+    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ResponseBufferLength) // stepIndex * StepResponse
+    let mutable _latestBufferFlushSec = 0
     let _stepDataDict = Dictionary<string,obj>()
     let mutable _working = false
 
@@ -47,6 +48,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
         let responses = _responseBuffer.ToArray()
         dep.ScenarioStatsActor.Post(AddResponses responses)
         _responseBuffer.Clear()
+        _latestBufferFlushSec <- int dep.GlobalTimer.Elapsed.TotalSeconds
 
     let execSteps () = task {
         try
@@ -61,8 +63,12 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 else
                     do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
 
-                if _responseBuffer.Count >= Constants.ScenarioResponseBufferLength then
+                if _responseBuffer.Count >= Constants.ResponseBufferLength then
                     flushStats()
+                else
+                    let delay = int dep.GlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
+                    if delay >= Constants.ResponseBufferFlushDelaySec then
+                        flushStats()
             else
                 _logger.Fatal($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
@@ -84,8 +90,12 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                     else
                         do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
 
-                    if _responseBuffer.Count >= Constants.ScenarioResponseBufferLength then
+                    if _responseBuffer.Count >= Constants.ResponseBufferLength then
                         flushStats()
+                    else
+                        let delay = int dep.GlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
+                        if delay >= Constants.ResponseBufferFlushDelaySec then
+                            flushStats()
             else
                 _logger.Fatal($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
