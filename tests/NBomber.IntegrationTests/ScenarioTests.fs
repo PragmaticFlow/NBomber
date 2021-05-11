@@ -4,14 +4,12 @@ open System
 open System.Threading.Tasks
 
 open Xunit
-open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 open Microsoft.Extensions.Configuration
 
 open NBomber
-open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
@@ -277,6 +275,35 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
     match Scenario.Validation.checkDuplicateScenarioName([scn1; scn2]) with
     | Error _ -> ()
     | _       -> failwith ""
+
+[<Fact>]
+let ``checkDuplicateStepName should fail if scenario has steps with the same name but different implementations`` () =
+    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    let scn = Scenario.create "1" [step1; step2]
+    match Scenario.Validation.checkDuplicateStepName(scn) with
+    | Error _ -> ()
+    | _       -> failwith "two steps with the same name should not be allowed"
+
+[<Fact>]
+let ``checkDuplicateStepName should not fail if scenario contains duplicated steps`` () =
+    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    let scn = Scenario.create "1" [step1; step1]
+    match Scenario.Validation.checkDuplicateStepName(scn) with
+    | Error _ -> failwith "duplicated steps should be allowed"
+    | _       -> ()
+
+[<Fact>]
+let ``scenario should fail when it has ambiguous step definition`` () =
+    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    Scenario.create "1" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.run
+    |> Result.getError
+    |> ignore
 
 [<Fact>]
 let ``checkEmptyStepName should return fail if scenario has empty step name`` () =
