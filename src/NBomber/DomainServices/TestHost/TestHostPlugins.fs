@@ -5,6 +5,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Errors
 open NBomber.Extensions.InternalExtensions

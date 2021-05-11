@@ -7,7 +7,7 @@ open System.Data
 open HdrHistogram
 
 open NBomber
-open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain.DomainTypes
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =

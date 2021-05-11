@@ -7,9 +7,9 @@ open System.Data
 open FuncyDown.Document
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
-open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 
 module Md =

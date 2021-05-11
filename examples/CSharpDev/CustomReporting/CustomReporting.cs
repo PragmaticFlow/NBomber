@@ -6,6 +6,7 @@ using Serilog;
 
 using NBomber.Configuration;
 using NBomber.Contracts;
+using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 using static NBomber.Time;
 

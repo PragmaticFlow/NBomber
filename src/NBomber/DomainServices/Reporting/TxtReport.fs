@@ -7,9 +7,9 @@ open System.Data
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
-open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 

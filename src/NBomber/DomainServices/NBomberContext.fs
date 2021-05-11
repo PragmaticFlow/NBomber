@@ -11,6 +11,7 @@ open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
 

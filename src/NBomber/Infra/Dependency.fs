@@ -12,6 +12,7 @@ open Serilog.Sinks.SpectreConsole
 
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 
 type IGlobalDependency =
     abstract ApplicationType: ApplicationType

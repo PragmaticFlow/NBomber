@@ -9,6 +9,7 @@ open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions

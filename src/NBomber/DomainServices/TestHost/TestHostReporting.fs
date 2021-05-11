@@ -11,6 +11,7 @@ open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Errors
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 

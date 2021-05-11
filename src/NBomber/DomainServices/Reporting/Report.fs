@@ -1,16 +1,14 @@
 module internal NBomber.DomainServices.Reporting.Report
 
-open System
 open System.Collections.Generic
 open System.IO
 
-open NBomber.Domain.DomainTypes
 open Serilog
 open Spectre.Console.Rendering
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 
 type ReportsContent = {

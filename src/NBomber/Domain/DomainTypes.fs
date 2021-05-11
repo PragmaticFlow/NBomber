@@ -2,7 +2,6 @@ module internal NBomber.Domain.DomainTypes
 
 open System
 open System.Collections.Generic
-open System.Data
 open System.Threading
 open System.Threading.Tasks
 
@@ -10,8 +9,8 @@ open HdrHistogram
 open Serilog
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain.ClientPool
-open NBomber.Extensions.InternalExtensions
 
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
