@@ -36,7 +36,7 @@ module Validation =
         |> Seq.toList
         |> function
             | [] -> Ok scenario
-            | steps -> AppError.createResult(DuplicateStepName (scenario.ScenarioName, steps))
+            | steps -> AppError.createResult(DuplicateStepName(scenario.ScenarioName, steps))
 
     let checkStepsOrInitOrCleanExist (scenario: Contracts.Scenario) =
         if List.isEmpty scenario.Steps then
