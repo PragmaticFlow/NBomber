@@ -125,6 +125,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         test <@ youtube2Steps.Duration = duration @>
 
 [<Fact>]
+[<Trait("CI", "disable")>]
 let ``Test execution should be stopped if all scenarios are stopped`` () =
     let mutable counter = 0
     let duration = seconds 30

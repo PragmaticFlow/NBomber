@@ -62,6 +62,7 @@ let ``Response Ok and Fail should be properly count`` () =
         test <@ failSt.Fail.Request.Count > 5 && failSt.Fail.Request.Count <= 10 @>
 
 [<Fact>]
+[<Trait("CI", "disable")>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
     let pullStep = Step.create("pull step", fun _ -> task {
@@ -313,6 +314,7 @@ let ``NBomber should reset step invocation number after warm-up`` () =
     test <@ counter >= 5 && counter <= 11 @>
 
 [<Fact>]
+[<Trait("CI", "disable")>]
 let ``NBomber should handle invocation number per step following shared-nothing approach`` () =
 
     let data = Dictionary<int,int>()
