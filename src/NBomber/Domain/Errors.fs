@@ -19,6 +19,7 @@ type ValidationError =
     | InvalidReportFolderPath
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string list
+    | DuplicateStepName     of scenarioName:string * stepNames:string list
     | EmptyStepName         of scenarioName:string
     | EmptySteps            of scenarioName:string
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
@@ -73,6 +74,9 @@ type AppError =
         | EmptyScenarioName -> "Scenario name cannot be empty."
         | DuplicateScenarioName scenarioNames ->
             scenarioNames |> String.concatWithCommaAndQuotes |> sprintf "Scenario names are not unique: %s."
+
+        | DuplicateStepName (scenarioName, stepNames) ->
+            stepNames |> String.concatWithCommaAndQuotes |> sprintf "Ambiguous step definition %s for scenario %s" scenarioName
 
         | EmptyStepName scenarioName -> sprintf "Step names are empty in scenario: %s." scenarioName
         | EmptySteps scenarioName -> sprintf "Scenario '%s' has no steps." scenarioName
