@@ -51,6 +51,7 @@ let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
 let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let SchedulerNotificationTickInterval = TimeSpan.FromSeconds 1.0
 let StepTimeout = TimeSpan.FromSeconds 1.0
+let GetPluginStatsTimeout = TimeSpan.FromSeconds 0.5
 let TimeoutStatusCode = -100
 let StepExceptionStatusCode = -101
 

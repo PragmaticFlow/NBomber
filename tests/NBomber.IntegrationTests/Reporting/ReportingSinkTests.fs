@@ -1,8 +1,10 @@
 module Tests.ReportingSink
 
-open System
+open System.Data
 open System.Threading.Tasks
 
+open Serilog
+open Serilog.Sinks.InMemory
 open Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
@@ -13,6 +15,7 @@ open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
+open Serilog.Sinks.InMemory.Assertions
 
 //todo: test that multiply sink will be invoked correctly
 //todo: test that stop timer stops sending metrics in case when stopping is still executing
@@ -117,3 +120,64 @@ let ``SaveFinalStats should receive correct stats`` () =
         test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.FailCount = 0) @>
         test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.Count = 0) @>
         test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.RPS = 0.0) @>
+
+[<Fact>]
+let ``PluginStats should return empty data set in case of execution timeout`` () =
+    let inMemorySink = InMemorySink()
+    let loggerConfig = fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink)
+
+    let timeoutPlugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = task {
+                        do! Task.Delay(seconds 5)
+                        return new DataSet()
+                    }
+            member _.GetHints() = Array.empty
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    Scenario.create "1" [step1]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withLoggerConfig loggerConfig
+    |> NBomberRunner.withWorkerPlugins [timeoutPlugin]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun nodeStats -> test <@ Array.isEmpty nodeStats.PluginStats @>
+    inMemorySink.Should().HaveMessage("Getting plugin stats failed with the timeout error","because timeout has been reached") |> ignore
+
+[<Fact>]
+let ``PluginStats should return empty data set in case of internal exception`` () =
+    let inMemorySink = InMemorySink()
+    let loggerConfig = fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink)
+
+    let exceptionPlugin = {
+        new IWorkerPlugin with
+            member _.PluginName = "TestPlugin"
+
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+            member _.GetStats(_) = failwith "test exception"
+            member _.GetHints() = Array.empty
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+    Scenario.create "1" [step1]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withLoggerConfig loggerConfig
+    |> NBomberRunner.withWorkerPlugins [exceptionPlugin]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun nodeStats -> test <@ Array.isEmpty nodeStats.PluginStats @>
+    inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error","because exception was thrown") |> ignore

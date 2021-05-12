@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
 
+open FsToolkit.ErrorHandling.Operator.Task
 open NBomber
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
@@ -37,10 +38,22 @@ let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats[]) = task {
         | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save final stats.", sink.SinkName)
 }
 
-let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
-    dep.WorkerPlugins
-    |> List.map(fun plugin -> plugin.GetStats operation)
-    |> Task.WhenAll
+let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
+        try
+            let pluginStatusesTask =
+                dep.WorkerPlugins
+                |> List.map(fun plugin -> plugin.GetStats operation)
+                |> Task.WhenAll
+            let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
+            if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
+            else
+                 dep.Logger.Error("Getting plugin stats failed with the timeout error")
+                 return Array.empty
+        with
+        | ex ->
+            dep.Logger.Error(ex, "Getting plugin stats failed with the following error")
+            return Array.empty
+    }
 
 let getScenarioStats (schedulers: ScenarioScheduler list) (working: bool) (duration: TimeSpan) =
     schedulers
