@@ -133,9 +133,9 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
             member _.GetStats(_) = task {
-                        do! Task.Delay(seconds 5)
-                        return new DataSet()
-                    }
+                do! Task.Delay(seconds 10) // we waiting more than default timeout = 5 sec
+                return new DataSet()
+            }
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -144,14 +144,15 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
     let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
     Scenario.create "1" [step1]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig loggerConfig
     |> NBomberRunner.withWorkerPlugins [timeoutPlugin]
     |> NBomberRunner.run
     |> Result.getOk
-    |> fun nodeStats -> test <@ Array.isEmpty nodeStats.PluginStats @>
-    inMemorySink.Should().HaveMessage("Getting plugin stats failed with the timeout error","because timeout has been reached") |> ignore
+    |> fun nodeStats ->
+        test <@ Array.isEmpty nodeStats.PluginStats @>
+        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the timeout error.", "because timeout has been reached") |> ignore
 
 [<Fact>]
 let ``PluginStats should return empty data set in case of internal exception`` () =
@@ -161,10 +162,9 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     let exceptionPlugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = failwith "test exception"
+            member _.GetStats(_) = failwith "test exception" // we throw exception
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -179,5 +179,6 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     |> NBomberRunner.withWorkerPlugins [exceptionPlugin]
     |> NBomberRunner.run
     |> Result.getOk
-    |> fun nodeStats -> test <@ Array.isEmpty nodeStats.PluginStats @>
-    inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error","because exception was thrown") |> ignore
+    |> fun nodeStats ->
+        test <@ Array.isEmpty nodeStats.PluginStats @>
+        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error.","because exception was thrown") |> ignore
