@@ -39,21 +39,22 @@ let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats[]) = task {
 }
 
 let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
-        try
-            let pluginStatusesTask =
-                dep.WorkerPlugins
-                |> List.map(fun plugin -> plugin.GetStats operation)
-                |> Task.WhenAll
-            let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
-            if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
-            else
-                 dep.Logger.Error("Getting plugin stats failed with the timeout error")
-                 return Array.empty
-        with
-        | ex ->
-            dep.Logger.Error(ex, "Getting plugin stats failed with the following error")
+    try
+        let pluginStatusesTask =
+            dep.WorkerPlugins
+            |> List.map(fun plugin -> plugin.GetStats operation)
+            |> Task.WhenAll
+            
+        let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
+        if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
+        else
+            dep.Logger.Error("Getting plugin stats failed with the timeout error.")
             return Array.empty
-    }
+    with
+    | ex ->
+        dep.Logger.Error(ex, "Getting plugin stats failed with the following error.")
+        return Array.empty
+}
 
 let getScenarioStats (schedulers: ScenarioScheduler list) (working: bool) (duration: TimeSpan) =
     schedulers
