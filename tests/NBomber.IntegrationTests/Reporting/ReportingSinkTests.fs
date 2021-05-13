@@ -5,8 +5,9 @@ open System.Threading.Tasks
 
 open Serilog
 open Serilog.Sinks.InMemory
-open Xunit
+open Serilog.Sinks.InMemory.Assertions
 open Swensen.Unquote
+open Xunit
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
@@ -15,7 +16,6 @@ open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
-open Serilog.Sinks.InMemory.Assertions
 
 //todo: test that multiply sink will be invoked correctly
 //todo: test that stop timer stops sending metrics in case when stopping is still executing
