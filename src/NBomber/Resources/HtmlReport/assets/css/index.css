@@ -101,6 +101,10 @@ table.table-scenario-stats tr td {
     visibility: visible;
 }
 
+.custom-switch>* {
+    cursor: pointer;
+}
+
 .chart {
     width: 100%;
     height: 200px;
