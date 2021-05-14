@@ -189,7 +189,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('status-codes', {
-        props: ['statusCodes', 'okCount', 'failCount'],
+        props: ['statusCodes', 'okCount', 'failCount', 'show-charts'],
         template: '#status-codes-template',
         data: function() {
             const okStatusCodes = this.statusCodes.filter(x => !x.IsError);

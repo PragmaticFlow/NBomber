@@ -294,7 +294,7 @@
                 </div>
             </div>
             <div class="col-xl-4 col-lg-4 col-md-12">
-                <chart-status-codes :status-codes="allStatusCodes"></chart-status-codes>
+                <chart-status-codes :status-codes="allStatusCodes" v-show="showCharts"></chart-status-codes>
             </div>
         </div>
 
@@ -335,10 +335,10 @@
                 <img src="https://raw.githubusercontent.com/PragmaticFlow/NBomber/master/assets/nbomber_logo.png"
                      height="50" class="d-inline-block align-top" alt="NBomber" />
             </a>
-<!--            <div class="custom-control custom-switch" v-show="showChartsSwitcher" v-cloak>-->
-<!--                <input type="checkbox" class="custom-control-input" id="charts-switcher" v-model="showCharts">-->
-<!--                <label class="custom-control-label white-text" for="charts-switcher">Toggle Charts</label>-->
-<!--            </div>-->
+            <div class="custom-control custom-switch" v-show="showChartsSwitcher" v-cloak>
+                <input type="checkbox" class="custom-control-input" id="charts-switcher" v-model="showCharts">
+                <label class="custom-control-label white-text" for="charts-switcher">Toggle Charts</label>
+            </div>
         </nav>
 
         <!-- Sidebar -->
@@ -531,7 +531,8 @@
                                                     <!-- TestSuite View / Status Codes Table -->
                                                     <status-codes :status-codes="scenarioStats.StatusCodes"
                                                                   :ok-count="scenarioStats.OkCount"
-                                                                  :fail-count="scenarioStats.FailCount">
+                                                                  :fail-count="scenarioStats.FailCount"
+                                                                  :show-charts="showCharts">
                                                     </status-codes>
                                                 </div>
                                             </div>
