@@ -22,7 +22,7 @@ type ClientFactorySetting = {
 type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: string option
-    LoadSimulationsSettings: LoadSimulationSettings list
+    LoadSimulationsSettings: LoadSimulationSettings list option
     ClientFactorySettings: ClientFactorySetting list option
     [<JsonField(AsJson = true)>] CustomSettings: string option
 }

@@ -21,6 +21,7 @@ module JsonConfig =
     [<Fact>]
     let ``unsafeParse() should read json file successfully`` () =
         "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
+        "Configuration/scenario_init_only_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
 
     [<Fact>]
     let ``unsafeParse() should throw ex if mandatory json fields are missing`` () =
