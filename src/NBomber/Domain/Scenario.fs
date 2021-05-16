@@ -210,10 +210,14 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
-            settings.LoadSimulationsSettings
-            |> List.map(LoadTimeLine.createSimulationFromSettings)
-            |> LoadTimeLine.createWithDuration
-            |> Result.getOk
+            match settings.LoadSimulationsSettings with
+            | Some simulation ->
+                simulation
+                |> List.map(LoadTimeLine.createSimulationFromSettings)
+                |> LoadTimeLine.createWithDuration
+                |> Result.getOk
+
+            | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = getWarmUpDuration(settings)

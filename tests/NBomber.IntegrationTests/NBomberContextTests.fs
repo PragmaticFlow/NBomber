@@ -28,7 +28,7 @@ let baseGlobalSettings = {
 let baseScenarioSetting = {
     ScenarioName = "test_scenario"
     WarmUpDuration = None
-    LoadSimulationsSettings = List.empty
+    LoadSimulationsSettings = None
     ClientFactorySettings = None
     CustomSettings = None
 }
@@ -276,14 +276,14 @@ let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
     | Error (LoadSimulationConfigValueHasInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return ok if duration time has correct format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()

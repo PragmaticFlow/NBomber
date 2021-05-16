@@ -82,6 +82,7 @@ module Validation =
         |> Seq.tryFind(fun scenarioSetting ->
             try
                 scenarioSetting.LoadSimulationsSettings
+                |> Option.defaultValue List.empty
                 |> Seq.iter(LoadTimeLine.createSimulationFromSettings >> ignore)
                 false
             with
