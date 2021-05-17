@@ -62,4 +62,4 @@ let MaxTrackableStepResponseSize = int64 Int32.MaxValue
 let StatsRounding = 2
 
 let ResponseBufferLength = 50
-let ResponseBufferFlushDelaySec = 3
+let ResponseBufferFlushDelaySec = 1
