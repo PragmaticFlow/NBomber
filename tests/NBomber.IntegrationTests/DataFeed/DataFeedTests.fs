@@ -160,7 +160,7 @@ let ``FeedData fromSeq should support lazy initialize``() =
 
     let mutable data = [-1; -2; -3]
 
-    let feed = Feed.createRandomLazy "my_feed" (fun () -> seq { yield! data })
+    let feed = Feed.createRandomLazy "my_feed" (fun context -> seq { yield! data })
 
     data <- [1; 2; 3]
 
