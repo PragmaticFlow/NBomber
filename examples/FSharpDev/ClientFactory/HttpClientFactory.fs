@@ -38,3 +38,4 @@ let run () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run
+    |> ignore
