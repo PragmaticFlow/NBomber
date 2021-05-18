@@ -89,12 +89,11 @@ module internal PingPluginHintsAnalyzer =
     /// (hostName * result)[]
     let analyze (pingResults: (string * PingReply)[]) =
 
-        let printHint (hostName) =
-            sprintf "Physical latency to host: '%s' is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency." hostName
+        let printHint (hostName, result: PingReply) =
+            $"Physical latency to host: '%s{hostName}' is '%d{result.RoundtripTime}'.  This is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency."
 
         pingResults
         |> Seq.filter(fun (_,result) -> result.RoundtripTime > 2L)
-        |> Seq.map fst
         |> Seq.map printHint
         |> Seq.toArray
 
