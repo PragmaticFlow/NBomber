@@ -1,4 +1,4 @@
-﻿module FSharpDev.XUnit.PluginStatsTest
+module FSharpDev.XUnit.PluginStatsTest
 
 open System
 open System.Data
@@ -68,7 +68,7 @@ let ``Plugin stats test`` () =
 
     let plugin = new Plugin1()
 
-    let step = Step.createAsync("step_1", fun context -> task {
+    let step = Step.create("step_1", fun context -> task {
         do! Task.Delay(seconds 1)
         return Response.ok()
     })

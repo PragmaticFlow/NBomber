@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.HelloWorld
 {
@@ -9,17 +10,17 @@ namespace CSharpDev.HelloWorld
     {
         public static void Run()
         {
-            var step1 = Step.CreateAsync("step_1", async context =>
+            var step1 = Step.Create("step_1", async context =>
             {
                 // you can do any logic here: go to http, websocket etc
 
-                await Task.Delay(TimeSpan.FromSeconds(0.1));
+                await Task.Delay(Seconds(0.1));
                 return Response.Ok(42); // this value will be passed as response for the next step
             });
 
-            var pause = Step.CreatePause(TimeSpan.FromMilliseconds(100));
+            var pause = Step.CreatePause(Milliseconds(100));
 
-            var step2 = Step.CreateAsync("step_2", async context =>
+            var step2 = Step.Create("step_2", async context =>
             {
                 var value = context.GetPreviousStepResponse<int>(); // 42
                 return Response.Ok();

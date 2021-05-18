@@ -23,10 +23,14 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="CustomReporting\CustomReporting.fs" />
+        <Compile Include="InfluxDbSink\InfluxDbSink.fs" />
+        <Compile Include="InfluxDbSink\InfluxDbReportingScenario.fs" />
+        <None Include="InfluxDbSink\docker-compose.yaml" />
         <Compile Include="HttpTests\SimpleHttpTest.fs" />
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <Compile Include="ClientFactory\HttpClientFactory.fs" />
         <Compile Include="XUnit\PluginStatsTest.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
@@ -36,6 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.2.0" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
       <PackageReference Include="Unquote" Version="5.0.0" />
       <PackageReference Include="xunit" Version="2.4.1" />

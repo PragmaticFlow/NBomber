@@ -15,8 +15,8 @@
               { "InjectPerSec": [2, "00:00:02"] }
           ],
 
-          "ConnectionPoolSettings": [
-              { "PoolName": "test_pool", "ConnectionCount": 100 }
+          "ClientFactorySettings": [
+              { "FactoryName": "test_pool", "ClientCount": 100 }
           ],
 
           "CustomSettings": {

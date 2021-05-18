@@ -1,17 +1,18 @@
-﻿using System;
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using NBomber.Contracts;
+using NBomber.Contracts.Stats;
+using NBomber.CSharp;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using NBomber.Contracts;
-using NBomber.CSharp;
 using Xunit;
 
 namespace CSharpDev.XUnit
 {
-     public class Plugin1 : IWorkerPlugin
+    public class Plugin1 : IWorkerPlugin
      {
          public string PluginName => "Plugin1";
 
@@ -89,7 +90,7 @@ namespace CSharpDev.XUnit
 
          Scenario BuildScenario()
          {
-             var step = Step.CreateAsync("simple step", async context =>
+             var step = Step.Create("simple step", async context =>
              {
                  await Task.Delay(TimeSpan.FromSeconds(0.1));
                  return Response.Ok(sizeBytes: 1024);

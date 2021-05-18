@@ -6,15 +6,15 @@ open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
-open Nessos.Streams
 
+open FsToolkit.ErrorHandling.Operator.Task
 open NBomber
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
+open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.DomainServices
 open NBomber.Errors
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 
@@ -40,78 +40,109 @@ let saveFinalStats (dep: IGlobalDependency) (stats: NodeStats[]) = task {
         | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save final stats.", sink.SinkName)
 }
 
-let getPluginStats (dep: IGlobalDependency) (operation: OperationType) =
-    dep.WorkerPlugins
-    |> List.map(fun plugin ->
-        let pluginStatsTask = plugin.GetStats operation
-        pluginStatsTask.ContinueWith(fun (pluginStatsTask: Task<DataSet>) ->
-            WorkerPlugin.enrichPluginStats(pluginStatsTask.Result, plugin) |> ignore) |> ignore
-        pluginStatsTask
-    )
-    |> Task.WhenAll
+let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
+    try
+        let pluginStatusesTask =
+            dep.WorkerPlugins
+            |> List.map(fun plugin ->
+                let pluginStatsTask = plugin.GetStats operation
+                pluginStatsTask.ContinueWith(fun (pluginStatsTask: Task<DataSet>) ->
+                    WorkerPlugin.enrichPluginStats(pluginStatsTask.Result, plugin) |> ignore) |> ignore
+                pluginStatsTask
+            )
+            |> Task.WhenAll
+            
+        let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
+        if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
+        else
+            dep.Logger.Error("Getting plugin stats failed with the timeout error.")
+            return Array.empty
+    with
+    | ex ->
+        dep.Logger.Error(ex, "Getting plugin stats failed with the following error.")
+        return Array.empty
+}
 
-let getScenarioStats (schedulers: ScenarioScheduler list) (working: Option<bool>) (duration: TimeSpan) =
+let getScenarioStats (schedulers: ScenarioScheduler list) (working: bool) (duration: TimeSpan) =
     schedulers
-    |> Stream.ofList
-    |> Stream.filter(fun x ->
-        match working with
-        | Some value -> x.Working = value
-        | None       -> true
-    )
-    |> Stream.map(fun x -> x.GetScenarioStats duration)
+    |> List.filter(fun x  -> x.Working = working)
+    |> List.map(fun x -> x.GetScenarioStats duration)
+    |> List.toArray
 
 let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo)
-                 (nodeInfo: NodeInfo) (operation: OperationType)
-                 (working: Option<bool>) (duration: TimeSpan) = task {
+                 (args: {| NodeInfo: NodeInfo; WorkingScenarios: bool; Duration: TimeSpan |}) = task {
 
-    let! pluginStats = getPluginStats dep operation
-    let scenarioStats = getScenarioStats schedulers working duration
+    let! pluginStats = getPluginStats dep args.NodeInfo.CurrentOperation
+    let scenarioStats = getScenarioStats schedulers args.WorkingScenarios args.Duration
 
-    return if Stream.isEmpty scenarioStats then None
-           else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
+    return if Array.isEmpty scenarioStats then None
+           else Some(NodeStats.create testInfo args.NodeInfo scenarioStats pluginStats)
 }
 
 let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
     MailboxProcessor.Start(fun inbox ->
 
-        let getBombingPluginStats = getPluginStats dep
-        let getBombingScenarioStats = getScenarioStats schedulers (Some true)
+        let getPluginStats = getPluginStats dep
+        let getBombingScenarioStats = getScenarioStats schedulers true
         let getNodeStats = getNodeStats dep schedulers testInfo
         let saveScenarioStats = saveScenarioStats dep
 
         let fetchAndSaveBombingStats (duration, history) = async {
-            let pluginStatsTask = getBombingPluginStats(OperationType.Bombing)
-            let scnStats = getBombingScenarioStats(duration) |> Stream.map(ScenarioStats.round) |> Stream.toArray
-            do! scnStats |> saveScenarioStats |> Async.AwaitTask
-            let! pluginStats = pluginStatsTask |> Async.AwaitTask
-            return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
+            let pluginStatsTask = getPluginStats OperationType.Bombing
+            let scnStats = getBombingScenarioStats(duration) |> Array.map(ScenarioStats.round)
+            if Array.isEmpty scnStats then return history
+            else
+                do! scnStats |> saveScenarioStats |> Async.AwaitTask
+                let! pluginStats = pluginStatsTask |> Async.AwaitTask
+                return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
+            let pluginStatsTask = getPluginStats OperationType.Bombing
             let stats = scnStats |> ScenarioStats.round |> Array.singleton
             do! stats |> saveScenarioStats |> Async.AwaitTask
-            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = Array.empty } :: history
+            let! pluginStats = pluginStatsTask |> Async.AwaitTask
+            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = pluginStats } :: history
         }
 
+        let removeDuplicates (currentHistory: TimeLineHistoryRecord list) =
+
+            let filterOnlyCompleted (history: TimeLineHistoryRecord list) =
+                history
+                |> List.filter(fun x -> x.ScenarioStats |> Array.exists(fun x -> x.CurrentOperation = OperationType.Complete))
+
+            currentHistory
+            |> List.groupBy(fun x -> x.Duration)
+            |> List.collect(fun (duration,history) ->
+                if history.Length > 1 then history |> filterOnlyCompleted
+                else history
+            )
+
         let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
-            match! inbox.Receive() with
-            | FetchAndSaveBombingStats duration ->
-                let! newHistory = fetchAndSaveBombingStats(duration, currentHistory)
-                return! loop newHistory
+            try
+                match! inbox.Receive() with
+                | FetchAndSaveBombingStats duration ->
+                    let! newHistory = fetchAndSaveBombingStats(duration, currentHistory)
+                    return! loop newHistory
 
-            | AddAndSaveScenarioStats scnStats ->
-                let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
-                return! loop newHistory
+                | AddAndSaveScenarioStats scnStats ->
+                    let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
+                    return! loop newHistory
 
-            | GetTimeLines reply ->
-                reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration))
-                return! loop currentHistory
+                | GetTimeLines reply ->
+                    reply.Reply(currentHistory |> List.sortBy(fun x -> x.Duration) |> removeDuplicates)
+                    return! loop currentHistory
 
-            | GetFinalStats (nodeInfo, duration, reply) ->
-                getNodeStats nodeInfo OperationType.Complete None duration
-                |> TaskOption.map(NodeStats.round >> reply.Reply)
-                |> Task.WaitAll
-                return! loop currentHistory
+                | GetFinalStats (nodeInfo, duration, reply) ->
+                    {| NodeInfo = nodeInfo
+                       WorkingScenarios = false
+                       Duration = duration |}
+                    |> getNodeStats
+                    |> TaskOption.map(NodeStats.round >> reply.Reply)
+                    |> Task.WaitAll
+                    return! loop currentHistory
+            with
+            | ex -> dep.Logger.Fatal(ex, "Reporting actor failed.")
         }
         loop List.empty
     )

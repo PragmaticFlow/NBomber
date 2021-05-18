@@ -1,469 +1,36 @@
+const toKb = bytes => +(bytes / 1024.0).toFixed(3);
+
+const toMb = bytes => +(bytes / 1024.0 / 1024.0).toFixed(4);
+
 const initApp = (appContainer, viewModel) => {
-    // Utilities
-    const createSeriesDataLatency = (scenarioStats, titles) => [
-        { name: titles.series.latencyLow, y: scenarioStats.LatencyCount.LessOrEq800, color: theme.colors.stats.latency.low },
-        { name: titles.series.latencyMedium, y: scenarioStats.LatencyCount.More800Less1200, color: theme.colors.stats.latency.medium },
-        { name: titles.series.latencyHigh, y: scenarioStats.LatencyCount.MoreOrEq1200, color: theme.colors.stats.latency.high },
-        { name: titles.series.failed, y: scenarioStats.FailCount, color: theme.colors.stats.failedCount }
-    ];
-
-    const createTimeLineStatsForScenario = (timelineStats, scenarioName) =>
+    // Chart data utilities
+    const createScenarioData = (timelineStats, scenarioName) =>
         timelineStats
-            .filter(x => x.scenarioName === scenarioName)
-            .flatMap(x => x.timeLineStats);
+            .filter(t => t.ScenarioStats.findIndex(x => x.ScenarioName === scenarioName) >= 0)
+            .map(t => ({
+                Duration: t.Duration,
+                ScenarioStats: t.ScenarioStats.find(x => x.ScenarioName === scenarioName)
+            }));
 
-    const createSeriesDataScenarioStats = (timelineStats, scenarioName, scenarioStatsMapper) =>
-        createTimeLineStatsForScenario(timelineStats, scenarioName)
-            .map(scenarioStats => scenarioStatsMapper(scenarioStats));
-
-    const createSeriesDataScenarioStatsLatency = (timelineStats, scenarioName, latencyName) => {
-        const timeLineStats = createTimeLineStatsForScenario(timelineStats, scenarioName);
-        return timeLineStats.map((scenarioStats, i) => {
-            const currentValue = scenarioStats.LatencyCount[latencyName];
-            if (i === 0) return currentValue;
-            const prevValue = timeLineStats[i - 1].LatencyCount[latencyName]
-            return currentValue - prevValue;
-        });
-    };
-
-    const createSeriesDataStepStats = (timelineStats, scenarioName, stepName, stepStatsMapper) =>
-        createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.StepStats)
-            .flatMap(x => x)
-            .filter(stepStats => stepStats.StepName === stepName)
-            .map(stepStats => stepStatsMapper(stepStats));
-
-    const createSeriesMarker = () => ({
-        symbol: 'circle'
-    });
-
-    const createAxisXLatency = (title, color, titles) => ({
-        title: {
-            text: title,
-            style: {
-                fontSize: '12px',
-                color
-            }
-        },
-        labels: {
-            style: {
-                fontSize: '10px',
-                color
-            }
-        },
-        categories: [
-            titles.series.latencyLow,
-            titles.series.latencyMedium,
-            titles.series.latencyHigh,
-            titles.series.failed
-        ],
-        crosshair: true
-    });
-
-    const createAxisXTimeline = (title, color, timelineStats, scenarioName) => ({
-        title: {
-            text: title,
-            style: {
-                fontSize: '12px',
-                color
-            }
-        },
-        labels: {
-            style: {
-                fontSize: '12px',
-                color
-            }
-        },
-        categories: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.Duration),
-        crosshair: true
-    });
-
-    const createAxisY = (title, color, opposite, hidden) => ({
-        title: {
-            text: title,
-            style: {
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color,
-            }
-        },
-        labels: {
-            style: {
-                fontSize: '12px',
-                fontWeight: 'bold',
-                color
-            }
-        },
-        opposite,
-        allowDecimals: false,
-        visible: !hidden
-    });
-
-    const createPlotOptions = () => ({
-        series: {
-            marker: {
-                enabled: false
-            },
-            cursor: 'pointer',
-        },
-        area: {
-            opacity: 1,
-            fillOpacity: 0.2
-        },
-        pie: {
-            cursor: 'pointer',
-            dataLabels: {
-                enabled: false
-            },
-            point: {
-                events: {
-                    legendItemClick: function () {
-                        return false;
-                    }
-                }
-            },
-            showInLegend: true
-        },
-        column: {
-            maxPointWidth: 25
-        }
-    });
-
-    const createPlotOptionsLatencyDistribution = () => {
-        const plotOptions = createPlotOptions();
-        plotOptions.groupPadding = 0;
-        plotOptions.series.stacking = 'normal';
-        return plotOptions;
-    };
-
-    const createTooltip = () => ({
-        shared: true
-    });
-
-    const createTooltipLoadSimulation = (timelineStats, scenarioName) => ({
-        pointFormatter: function (tooltip) {
-            const timeLineStats = createTimeLineStatsForScenario(timelineStats, scenarioName);
-            const loadSimulationName = timeLineStats[this.index].LoadSimulationStats.SimulationName;
-            return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${loadSimulationName} ${this.y}</b>`;
-        }
-    });
-
-    const createSettingsChartScenarioRequests = (theme, scenarioStats, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: titles.charts.scenarioRequests
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{point.color}">●</span> {series.name}: <b>{point.y}</b> ({point.percentage:.1f}%)'
-        },
-        plotOptions: createPlotOptions(),
-        legend: {
-            labelFormat: '{name}: {y}',
-            align: 'right',
-            verticalAlign:'middle',
-            padding: 0
-        },
-        series: [
-            {
-                type: 'pie',
-                name: 'requests',
-                colorByPoint: true,
-                size: '100%',
-                innerSize: '50%',
-                data: [
-                    {
-                        name: titles.series.ok,
-                        y: scenarioStats.OkCount,
-                        color: theme.colors.stats.okCount
-                    }, {
-                        name: titles.series.failed,
-                        y: scenarioStats.FailCount,
-                        color: theme.colors.stats.failedCount
-                    }
-                ]
-            }
-        ]
-    });
-
-    const errorColors = [
-        '#ff3547', '#ff1744', '#ff5252',
-        '#c51162', '#f50057', '#ff4081',
-        '#ff6d00', '#ff9100', '#ffab40',
-        '#aa00ff', '#d500f9', '#e040fb'
-    ];
-
-    const createSettingsChartScenarioErrors = (theme, errorStats, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: titles.charts.scenarioErrors
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{point.color}">●</span> {series.name}: <b>{point.y}</b> ({point.percentage:.1f}%)'
-        },
-        plotOptions: createPlotOptions(),
-        legend: {
-            labelFormat: '{name}: {y}',
-            align: 'right',
-            verticalAlign:'middle',
-            padding: 0
-        },
-        series: [
-            {
-                type: 'pie',
-                name: 'errors',
-                colorByPoint: true,
-                size: '100%',
-                innerSize: '50%',
-                data: errorStats.map((es, i) => ({
-                    name: es.ErrorCode,
-                    y: es.Count,
-                    color: errorColors[i % errorColors.length]
-                }))
-            }
-        ]
-    });
-
-    const createSettingsChartScenarioLatencyIndicators = (theme, scenarioStats, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: titles.charts.latencyIndicators
-        },
-        xAxis: createAxisXLatency(titles.axisX.latency, theme.colors.xAxis, titles),
-        yAxis: createAxisY(titles.axisY.requests, theme.colors.yAxis, false),
-        tooltip: {
-            pointFormatter: function () {
-                if (this.index === 3) // failed
-                    return `<span style="color:${this.color}">●</span> failed: <b>${this.y}</b> requests`;
-                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${this.y} requests</b>`
-            }
-        },
-        plotOptions: createPlotOptions(),
-        legend: {
-            enabled: false
-        },
-        series: [
-            {
-                type: 'column',
-                name: titles.series.latency,
-                data: createSeriesDataLatency(scenarioStats, titles)
-            }
-        ]
-    });
-
-    const createSettingsChartScenarioLatencyDistribution = (theme, timelineStats, scenarioName, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: 'latency distribution'
-        },
-        yAxis: [
-            createAxisY(titles.axisY.latency, theme.colors.xAxis, false),
-            createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true),
-        ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
-        tooltip: createTooltip(),
-        plotOptions: createPlotOptionsLatencyDistribution(),
-        series: [
-            {
-                type: 'column',
-                name: titles.series.latencyLow,
-                color: theme.colors.stats.latency.low,
-                tooltip: {
-                    valueSuffix: ' requests'
-                },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'LessOrEq800')
-            },
-            {
-                type: 'column',
-                name: titles.series.latencyMedium,
-                color: theme.colors.stats.latency.medium,
-                tooltip: {
-                    valueSuffix: ' requests'
-                },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'More800Less1200')
-            },
-            {
-                type: 'column',
-                name: titles.series.latencyHigh,
-                color: theme.colors.stats.latency.high,
-                tooltip: {
-                    valueSuffix: ' requests'
-                },
-                data: createSeriesDataScenarioStatsLatency(timelineStats, scenarioName, 'MoreOrEq1200')
-            },
-            {
-                type: 'column',
-                name: titles.series.failed,
-                color: theme.colors.stats.failedCount,
-                tooltip: {
-                    valueSuffix: ' requests'
-                },
-                data: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.FailCount)
-            },
-            {
-                name: titles.series.loadSimulation,
-                yAxis: 1,
-                zIndex: 1,
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
-                data: createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
-            }
-        ]
-    });
-
-    const createSettingsChartStepThroughput = (theme, timelineStats, scenarioName, stepName, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: titles.charts.throughput
-        },
-        yAxis: [
-            createAxisY(titles.axisY.rps, theme.colors.stats.rps, false),
-            createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true)
-        ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
-        tooltip: createTooltip(),
-        plotOptions: createPlotOptions(),
-        series: [
-            {
-                name: titles.series.rps,
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.rps,
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Request.RPS)
-            },
-            {
-                name: titles.series.loadSimulation,
-                yAxis: 1,
-                zIndex: 1,
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
-                data:  createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
-            }
-        ]
-    });
-
-    const createSettingsChartStepLatency = (theme, timelineStats, scenarioName, stepName, titles) => ({
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: titles.charts.latency
-        },
-        yAxis: [
-            createAxisY('response time, ms', theme.colors.yAxis, false),
-            createAxisY('data, MB', theme.colors.stats.allDataMB, true, true),
-            createAxisY(titles.axisY.loadSimulation, theme.colors.stats.loadSimulation, true)
-        ],
-        xAxis: createAxisXTimeline(titles.axisX.duration, theme.colors.xAxis, timelineStats, scenarioName),
-        tooltip: createTooltip(),
-        plotOptions: createPlotOptions(),
-        series: [
-            {
-                name: 'min',
-                type: 'area',
-                color: theme.colors.stats.min,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MinMs)
-            }, {
-                name: 'mean',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.mean,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MeanMs)
-            }, {
-                name: 'max',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.max,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.MaxMs)
-            }, {
-                name: 'stdDev',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.stdDev,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.StdDev)
-            }, {
-                name: '75%',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.percentile75,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent75)
-            }, {
-                name: '95%',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.percentile95,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent95)
-            }, {
-                name: '99%',
-                type: 'area',
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.percentile99,
-                tooltip: {
-                    valueSuffix: ' ms'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.Latency.Percent99)
-            },
-            {
-                name: 'data',
-                yAxis: 1,
-                zIndex: 1,
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.allDataMB,
-                tooltip: {
-                    valueSuffix: ' MB'
-                },
-                data: createSeriesDataStepStats(timelineStats, scenarioName, stepName, stepStats => stepStats.Ok.DataTransfer.AllMB)
-            },
-            {
-                name: titles.series.loadSimulation,
-                yAxis: 2,
-                zIndex: 2,
-                marker: createSeriesMarker(),
-                color: theme.colors.stats.loadSimulation,
-                tooltip: createTooltipLoadSimulation(timelineStats, scenarioName),
-                data:  createSeriesDataScenarioStats(timelineStats, scenarioName, scenarioStats => scenarioStats.LoadSimulationStats.Value)
-            }
-        ]
-    });
-
-    const renderChart = (container, settings) => setTimeout(() => Highcharts.chart(container, settings), 0);
+    const createStepData = (timelineStats, scenarioName, stepName) =>
+        createScenarioData(timelineStats, scenarioName)
+            .filter(t => t.ScenarioStats.StepStats.findIndex(x => x.StepName === stepName) >= 0)
+            .map(t => ({
+                Duration: t.Duration,
+                ScenarioStats: t.ScenarioStats,
+                StepStats: t.ScenarioStats.StepStats.find(x => x.StepName === stepName)
+            }));
 
     // Titles
     const titles = {
         charts: {
             scenarioRequests: 'requests number',
-            scenarioErrors: 'error codes',
+            scenarioStatusCodes: 'status codes',
             latencyIndicators: 'latency indicators',
             throughput: 'throughput',
-            latency: 'latency'
+            latency: 'latency',
+            latencyDistribution: 'latency distribution',
+            dataTransfer: 'data transfer'
         },
         axisX: {
             duration: 'duration',
@@ -473,17 +40,40 @@ const initApp = (appContainer, viewModel) => {
             requests: 'requests',
             latency: 'latency, requests',
             loadSimulation: 'load simulation',
-            rps: 'RPS'
+            rps: 'RPS',
+            responseTime: 'response time, ms',
+            dataKb: 'data, KB',
+            dataMb: 'data, MB'
         },
         series: {
-            latencyLow: 't < 800ms',
-            latencyMedium: '800ms < t < 1.2s',
-            latencyHigh: 't > 1.2s',
             ok: 'ok',
             failed: 'failed',
-            loadSimulation: 'load simulation',
-            latency: 'latency',
-            rps: 'RPS'
+            loadSimulation: 'load',
+            rps: 'RPS',
+            latency: {
+                low: 't < 800ms',
+                medium: '800ms < t < 1.2s',
+                high: 't > 1.2s',
+                min: 'min',
+                mean: 'mean',
+                max: 'max',
+                percentile50: '50%',
+                percentile75: '75%',
+                percentile95: '95%',
+                percentile99: '99%',
+                stdDev: 'stddev'
+            },
+            data: {
+                min: 'min',
+                mean: 'mean',
+                max: 'max',
+                percentile50: '50%',
+                percentile75: '75%',
+                percentile95: '95%',
+                percentile99: '99%',
+                stdDev: 'stddev'
+            }
+
         }
     };
 
@@ -495,21 +85,19 @@ const initApp = (appContainer, viewModel) => {
             stats: {
                 okCount: '#00b74a', // success
                 failedCount: '#ff3547', // danger
-                rps: '#1565c0', // blue darken-3
-                allDataMB: '#4e342e', // brown darken-3
-                min: '#2e7d32', // green darken-3
-                mean: '#9e9d24', // lime darken-3
-                max: '#ff3d00', // deep-orange  darken-3
-                stdDev: '#558b2f', // light-green darken-3
-                percentile75: '#0277bd', // light-blue darken-3
-                percentile95: '#283593', // indigo darken-3
-                percentile99: '#6a1b9a', // purple darken-3
-                loadSimulation: '#ff8f00', // amber darken-3
                 latency: {
                     low: '#00b74a', // success
                     medium: '#ffea00', // yellow accent-3
                     high: '#ffa900' // warning
                 }
+            }
+        },
+        chart: {
+            title: {
+                fontSize: 14
+            },
+            legend: {
+                fontSize: 12
             }
         }
     };
@@ -529,24 +117,49 @@ const initApp = (appContainer, viewModel) => {
         template: '#node-info-table-template'
     });
 
-    Vue.component('scenario-stats-table', {
+    Vue.component('scenario-stats', {
         props: ['scenarioStats'],
-        template: '#scenario-stats-table-template'
+        template: '#scenario-stats-template'
+    });
+
+    Vue.component('scenario-stats-table', {
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-requests-number-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-requests-number-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-requests-number-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-latency-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-latency-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-latency-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     Vue.component('scenario-stats-data-transfer-table', {
-        props: ['scenarioStats'],
-        template: '#scenario-stats-data-transfer-table-template'
+        props: ['scenarioStats', 'failStats'],
+        template: '#scenario-stats-data-transfer-table-template',
+        data: function () {
+            return {
+                statsName: this.failStats ? "Fail" : "Ok"
+            }
+        }
     });
 
     const convertPluginStats = pluginsStats =>
@@ -575,27 +188,43 @@ const initApp = (appContainer, viewModel) => {
         }
     });
 
-    Vue.component('error-stats-table', {
-        props: ['errorStats', 'maxErrorsNumber'],
-        template: '#error-stats-table-template',
+    Vue.component('status-codes', {
+        props: ['statusCodes', 'okCount', 'failCount', 'show-charts'],
+        template: '#status-codes-template',
         data: function() {
+            const okStatusCodes = this.statusCodes.filter(x => !x.IsError);
+            const failStatusCodes = this.statusCodes.filter(x => x.IsError);
+            const okStatusCodesCount = okStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const failStatusCodesCount = failStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const okNotAvailableStatusCodes = [];
+            const failNotAvailableStatusCodes = [];
+
+            if (okStatusCodesCount < this.okCount) {
+                okNotAvailableStatusCodes.push({
+                    StatusCode: 'ok (no status)',
+                    IsError: false,
+                    Message: '',
+                    Count: this.okCount - okStatusCodesCount
+                })
+            }
+
+            if (failStatusCodesCount < this.failCount) {
+                failNotAvailableStatusCodes.push({
+                    StatusCode: 'fail (no status)',
+                    IsError: true,
+                    Message: '',
+                    Count: this.failCount - failStatusCodesCount
+                })
+            }
+
+            const allStatusCodes =
+                okNotAvailableStatusCodes
+                    .concat(okStatusCodes)
+                    .concat(failNotAvailableStatusCodes)
+                    .concat(failStatusCodes);
+
             return {
-                showAll: false
-            }
-        },
-        computed: {
-            errors: function() {
-                return this.showAll || this.errorStats.length <= this.maxErrorsNumber
-                    ? this.errorStats
-                    : this.errorStats.slice(0, this.maxErrorsNumber);
-            },
-            shouldBeLimited: function() {
-                return this.errorStats.length > this.maxErrorsNumber;
-            }
-        },
-        methods: {
-            showAllErrors: function (showAll) {
-                this.showAll = showAll;
+                allStatusCodes
             }
         }
     });
@@ -610,79 +239,299 @@ const initApp = (appContainer, viewModel) => {
         template: '<div><slot v-if="loadedViews[loadForView]"></slot></div>'
     });
 
-    Vue.component('chart-scenario-requests', {
-        props: ['scenarioStats'],
-        template: '<div ref="container" class="chart chart-scenario-requests"></div>',
+    Vue.component('chart', {
+        props: ['type', 'data', 'options'],
+        template: '<div ref="container"></div>',
         mounted() {
-            const settings = createSettingsChartScenarioRequests(theme, this.scenarioStats, titles);
-            renderChart(this.$refs.container, settings);
+            google.charts.load('current', {'packages':['corechart', 'bar']});
+            google.charts.setOnLoadCallback(() => {
+                const chart = new google.visualization[this.type](this.$refs.container);
+                const dataTable = google.visualization.arrayToDataTable(this.data);
+                const draw = () => chart.draw(dataTable, this.options);
+                window.addEventListener('resize', () => setTimeout(draw, 0));
+                draw();
+            });
         }
     });
 
-    Vue.component('chart-scenario-errors', {
-        props: ['errorStats'],
-        template: '<div ref="container" class="chart chart-scenario-errors"></div>',
-        mounted() {
-            const settings = createSettingsChartScenarioErrors(theme, this.errorStats, titles);
-            renderChart(this.$refs.container, settings);
+    Vue.component('chart-scenario-requests', {
+        props: ['scenarioStats'],
+        template: '<chart class="chart chart-scenario-requests" :data="data" :options="options" type="PieChart"></chart>',
+        data: function() {
+            return {
+                data: [
+                    ['name', 'value'],
+                    [titles.series.ok,  this.scenarioStats.OkCount],
+                    [titles.series.failed, this.scenarioStats.FailCount]
+                ],
+                options: {
+                    title : titles.charts.scenarioRequests,
+                    titleTextStyle: theme.chart.title,
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend },
+                    colors: [theme.colors.stats.okCount, theme.colors.stats.failedCount]
+                }
+            }
+        }
+    });
+
+    Vue.component('chart-status-codes', {
+        props: ['status-codes'],
+        template: '<chart class="chart chart-scenario-status-codes" :data="data" :options="options" type="PieChart"></chart>',
+        data: function() {
+            const header =  [['name', 'value']];
+            const rows = this.statusCodes.map(statusCode => [statusCode.StatusCode.toString(), statusCode.Count]);
+            const data = header.concat(rows);
+
+            return {
+                data,
+                options: {
+                    title : titles.charts.scenarioStatusCodes,
+                    titleTextStyle: theme.chart.title,
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend }
+                }
+            }
         }
     });
 
     Vue.component('chart-scenario-latency-indicators', {
         props: ['scenarioStats'],
-        template: '<div ref="container" class="chart chart-scenario-latency-col"></div>',
-        mounted() {
-            const settings = createSettingsChartScenarioLatencyIndicators(theme, this.scenarioStats, titles);
-            renderChart(this.$refs.container, settings);
+        template: '<chart class="chart chart-scenario-latency-indicators" :data="data" :options="options" type="ColumnChart"></chart>',
+        data: function() {
+            return {
+                data: [
+                    ['name', 'value', { role: 'style' }],
+                    [titles.series.latency.low, this.scenarioStats.LatencyCount.LessOrEq800, theme.colors.stats.latency.low],
+                    [titles.series.latency.medium, this.scenarioStats.LatencyCount.More800Less1200, theme.colors.stats.latency.medium],
+                    [titles.series.latency.high, this.scenarioStats.LatencyCount.MoreOrEq1200, theme.colors.stats.latency.high],
+                    [titles.series.failed, this.scenarioStats.FailCount, theme.colors.stats.failedCount]
+                ],
+                options: {
+                    title : titles.charts.latencyIndicators,
+                    titleTextStyle: theme.chart.title,
+                    hAxis: {title: titles.axisX.latency},
+                    vAxis: {title: titles.axisY.requests},
+                    legend: { position: 'none' },
+                    bar: {groupWidth: '25%'},
+                    animation: {
+                        startup: true,
+                        duration: 500,
+                        easing: 'out'
+                    }
+                }
+            }
         }
     });
 
     Vue.component('chart-scenario-latency-distribution', {
         props: ['timelineStats', 'scenarioName'],
-        template: '<div ref="container" class="chart chart-timeline chart-timeline-scenario-load"></div>',
-        mounted() {
-            const settings = createSettingsChartScenarioLatencyDistribution(theme, this.timelineStats, this.scenarioName, titles);
-            renderChart(this.$refs.container, settings);
+        template: '<chart class="chart chart-timeline chart-timeline-scenario-load" :data="data" :options="options" type="ComboChart"></chart>',
+        data: function() {
+            const header = [[titles.axisX.duration, titles.series.loadSimulation, titles.series.latency.low, titles.series.latency.medium, titles.series.latency.high]];
+            const timelineStats = createScenarioData(this.timelineStats, this.scenarioName);
+            const rows = timelineStats
+                .map((t, i) => {
+                    let latencyCount = t.ScenarioStats.LatencyCount;
+
+                    if (i > 0) {
+                        latencyCount = {};
+                        const currentValue = t.ScenarioStats.LatencyCount;
+                        const prevValue = timelineStats[i - 1].ScenarioStats.LatencyCount;
+
+                        Object.entries(currentValue).forEach(([key, value]) => {
+                            latencyCount[key] = value - prevValue[key];
+                        });
+                    }
+
+                    const result = [
+                        t.Duration,
+                        t.ScenarioStats.LoadSimulationStats.Value,
+                        latencyCount.LessOrEq800,
+                        latencyCount.More800Less1200,
+                        latencyCount.MoreOrEq1200
+                    ];
+
+                    return result;
+                });
+
+            const data = header.concat(rows);
+
+            return {
+                data,
+                options: {
+                    title : titles.charts.latencyDistribution,
+                    titleTextStyle: theme.chart.title,
+                    hAxis: {title: titles.axisX.duration},
+                    vAxes: {
+                        0: {title: titles.axisY.latency},
+                        1: {title: titles.axisY.loadSimulation}
+                    },
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend },
+                    seriesType: 'bars',
+                    isStacked: true,
+                    series: {
+                        0: {type: 'line', targetAxisIndex: 1},
+                        1: {color: theme.colors.stats.latency.low},
+                        2: {color: theme.colors.stats.latency.medium},
+                        3: {color: theme.colors.stats.latency.high},
+                    },
+                    animation: {
+                        startup: true,
+                        duration: 500,
+                        easing: 'out'
+                    }
+                }
+            }
         }
     });
 
     Vue.component('chart-timeline-step-throughput', {
         props: ['timelineStats', 'scenarioName', 'stepName'],
-        template: '<div ref="container" class="chart chart-timeline chart-timeline-step-throughput"></div>',
-        mounted() {
-            const settings = createSettingsChartStepThroughput(theme, this.timelineStats, this.scenarioName, this.stepName, titles);
-            renderChart(this.$refs.container, settings);
+        template: '<chart class="chart chart-timeline chart-timeline-step-throughput" :data="data" :options="options" type="LineChart"></chart>',
+        data: function() {
+            const header = [[titles.axisX.duration, titles.series.loadSimulation, titles.series.rps]];
+
+            const rows =
+                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                    .map(x => [
+                        x.Duration,
+                        x.ScenarioStats.LoadSimulationStats.Value,
+                        x.StepStats.Ok.Request.RPS
+                    ]);
+
+            const data = header.concat(rows);
+
+            return {
+                data,
+                options: {
+                    title : titles.charts.throughput,
+                    hAxis: {title: titles.axisX.duration},
+                    vAxes: {
+                        0: {title: titles.axisY.rps},
+                        1: {title: titles.axisY.loadSimulation}
+                    },
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend },
+                    series: {
+                        0: {type: 'line', targetAxisIndex: 1},
+                    },
+                    animation: {
+                        startup: true,
+                        duration: 500,
+                        easing: 'out'
+                    }
+                }
+            }
         }
     });
 
     Vue.component('chart-timeline-step-latency', {
         props: ['timelineStats', 'scenarioName', 'stepName'],
-        template: '<div ref="container" class="chart chart-timeline chart-timeline-step-latency"></div>',
-        mounted() {
-            const settings = createSettingsChartStepLatency(theme, this.timelineStats, this.scenarioName, this.stepName, titles);
-            renderChart(this.$refs.container, settings);
+        template: '<chart class="chart chart-timeline chart-timeline-step-latency" :data="data" :options="options" type="ComboChart"></chart>',
+        data: function() {
+            const header = [[
+                titles.axisX.duration,
+                titles.series.loadSimulation,
+                titles.series.latency.min,
+                titles.series.latency.max,
+                titles.series.latency.percentile50,
+                titles.series.latency.percentile75,
+                titles.series.latency.percentile99
+            ]];
+
+            const rows =
+                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                    .map(x => [
+                        x.Duration,
+                        x.ScenarioStats.LoadSimulationStats.Value,
+                        x.StepStats.Ok.Latency.MinMs,
+                        x.StepStats.Ok.Latency.MaxMs,
+                        x.StepStats.Ok.Latency.Percent50,
+                        x.StepStats.Ok.Latency.Percent75,
+                        x.StepStats.Ok.Latency.Percent99
+                    ]);
+
+            const data = header.concat(rows);
+
+            return {
+                data,
+                options: {
+                    title : titles.charts.latency,
+                    titleTextStyle: theme.chart.title,
+                    hAxis: {title: titles.axisX.duration},
+                    vAxes: {
+                        0: {title: titles.axisY.latency},
+                        1: {title: titles.axisY.loadSimulation}
+                    },
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend },
+                    series: {
+                        0: {type: 'line', targetAxisIndex: 1},
+                    },
+                    animation: {
+                        startup: true,
+                        duration: 500,
+                        easing: 'out'
+                    }
+                }
+            }
         }
     });
 
-    const createTimeLinesStatsForScenario = (timeLineStats, scenarioName) =>
-        timeLineStats
-            .flatMap(x => x.ScenarioStats)
-            .filter(x => x.ScenarioName === scenarioName);
+    Vue.component('chart-timeline-step-data-transfer', {
+        props: ['timelineStats', 'scenarioName', 'stepName'],
+        template: '<chart class="chart chart-timeline chart-timeline-step-data-transfer" :data="data" :options="options" type="ComboChart"></chart>',
+        data: function() {
+            const header = [[
+                titles.axisX.duration,
+                titles.series.loadSimulation,
+                titles.series.data.min,
+                titles.series.data.max,
+                titles.series.data.percentile50,
+                titles.series.data.percentile75,
+                titles.series.data.percentile99
+            ]];
 
-    const timeLineStats =
-      viewModel.NodeStats.ScenarioStats
-          .map(x => x.ScenarioName)
-          .map(x => ({
-              scenarioName: x,
-              timeLineStats: createTimeLinesStatsForScenario(viewModel.TimeLineStats, x)
-          }));
+            const rows =
+                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                    .map(x => [
+                        x.Duration,
+                        x.ScenarioStats.LoadSimulationStats.Value,
+                        toKb(x.StepStats.Ok.DataTransfer.MinBytes),
+                        toKb(x.StepStats.Ok.DataTransfer.MaxBytes),
+                        toKb(x.StepStats.Ok.DataTransfer.Percent50),
+                        toKb(x.StepStats.Ok.DataTransfer.Percent75),
+                        toKb(x.StepStats.Ok.DataTransfer.Percent99)
+                    ]);
+
+            const data = header.concat(rows);
+
+            return {
+                data,
+                options: {
+                    title : titles.charts.dataTransfer,
+                    titleTextStyle: theme.chart.title,
+                    hAxis: {title: titles.axisX.duration},
+                    vAxes: {
+                        0: {title: titles.axisY.dataKb},
+                        1: {title: titles.axisY.loadSimulation}
+                    },
+                    legend: { position: 'bottom', alignment: 'center', textStyle: theme.chart.legend },
+                    series: {
+                        0: {type: 'line', targetAxisIndex: 1},
+                    },
+                    animation: {
+                        startup: true,
+                        duration: 500,
+                        easing: 'out'
+                    }
+                }
+            }
+        }
+    });
 
     // Vue Application
     const app = new Vue({
         el: appContainer,
         data: {
             viewModel,
-            timeLineStats,
             sideBarActive: true,
             currentView: 'test-suite',
             loadedViews: {},

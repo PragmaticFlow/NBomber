@@ -15,7 +15,7 @@ open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 
 module Validation =
 
@@ -28,6 +28,16 @@ module Validation =
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
+    let checkDuplicateStepName (scenario: Contracts.Scenario) =
+        scenario.Steps
+        |> Seq.distinct
+        |> Seq.groupBy(fun x -> x.StepName)
+        |> Seq.choose(fun (name, steps) -> if Seq.length(steps) > 1 then Some name else None)
+        |> Seq.toList
+        |> function
+            | [] -> Ok scenario
+            | steps -> AppError.createResult(DuplicateStepName(scenario.ScenarioName, steps))
+
     let checkStepsOrInitOrCleanExist (scenario: Contracts.Scenario) =
         if List.isEmpty scenario.Steps then
             if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
@@ -39,76 +49,78 @@ module Validation =
         if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
         else Ok scenario
 
-    let checkDuplicateConnectionPoolArgs (scenario: Contracts.Scenario) =
+    let checkDuplicateClientFactories (scenario: Contracts.Scenario) =
         scenario.Steps
         |> Seq.cast<Step>
-        |> Seq.choose(fun x -> x.ConnectionPoolArgs)
+        |> Seq.choose(fun x -> x.ClientFactory)
         |> Seq.distinct // checking on different instances with the same name
-        |> Seq.groupBy(fun x -> x.PoolName)
-        |> Seq.choose(fun (name,pools) -> if Seq.length(pools) > 1 then Some name else None)
+        |> Seq.groupBy(fun x -> x.FactoryName)
+        |> Seq.choose(fun (name,factories) -> if Seq.length(factories) > 1 then Some name else None)
         |> Seq.toList
         |> function
             | [] -> Ok scenario
-            | poolName::tail -> AppError.createResult(DuplicateConnectionPoolName(scenario.ScenarioName, poolName))
+            | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName(scenario.ScenarioName, factoryName))
 
     let validate =
-        checkEmptyScenarioName >=> checkStepsOrInitOrCleanExist >=> checkEmptyStepName >=> checkDuplicateConnectionPoolArgs
+        checkEmptyScenarioName >=> checkStepsOrInitOrCleanExist >=> checkEmptyStepName >=> checkDuplicateClientFactories >=> checkDuplicateStepName
 
-module ConnectionPool =
+module ClientFactory =
 
-    let createPoolName (poolName: string) (scenarioName: string) =
-        sprintf "%s.%s" scenarioName poolName
+    let createName (factoryName: string) (scenarioName: string) =
+        $"{factoryName}.{scenarioName}"
 
-    let updatePoolArgsName (scenarioName: string) (steps: IStep list) =
+    let updateName (scenarioName: string) (steps: IStep list) =
         steps
         |> Seq.cast<Step>
         |> Seq.map(fun step ->
-            match step.ConnectionPoolArgs with
-            | Some pool ->
-                let poolName = createPoolName pool.PoolName scenarioName
-                { step with ConnectionPoolArgs = Some(pool.Clone poolName) }
+            match step.ClientFactory with
+            | Some factory ->
+                let factoryName = createName factory.FactoryName scenarioName
+                { step with ClientFactory = Some(factory.Clone factoryName) }
 
             | None -> step
         )
         |> Seq.toList
 
-    let filterDistinctConnectionPoolsArgs (scenarios: Scenario list) =
+    let filterDistinct (scenarios: Scenario list) =
         scenarios
         |> List.collect(fun x -> x.Steps)
-        |> List.choose(fun x -> x.ConnectionPoolArgs)
-        |> List.distinctBy(fun x -> x.PoolName)
+        |> List.choose(fun x -> x.ClientFactory)
+        |> List.distinctBy(fun x -> x.FactoryName)
 
-    let filterDistinctConnectionPools (scenarios: Scenario list) =
-        scenarios
-        |> List.collect(fun x -> x.Steps)
-        |> List.choose(fun x -> x.ConnectionPool)
-        |> List.distinctBy(fun x -> x.PoolName)
-
-    let applyConnectionPoolSettings (settings: ConnectionPoolSetting list) (poolArgs: ConnectionPoolArgs<obj> list) =
-        poolArgs
-        |> List.map(fun poolArg ->
-            let setting = settings |> List.tryFind(fun setng -> setng.PoolName = poolArg.PoolName)
+    let applySettings (settings: ClientFactorySetting list) (factories: ClientFactory<obj> list) =
+        factories
+        |> List.map(fun factory ->
+            let setting = settings |> List.tryFind(fun setng -> setng.FactoryName = factory.FactoryName)
             match setting with
-            | Some v -> poolArg.Clone(v.ConnectionCount)
-            | None   -> poolArg
+            | Some v -> factory.Clone(v.ClientCount)
+            | None   -> factory
         )
 
-    let createConnectionPools (settings: ConnectionPoolSetting list) (targetScenarios: Scenario list) =
-        targetScenarios
-        |> filterDistinctConnectionPoolsArgs
-        |> applyConnectionPoolSettings settings
-        |> List.map(fun poolArgs -> new ConnectionPool(poolArgs))
+module ClientPool =
 
-    let setConnectionPools (pools: ConnectionPool list) (scenarios: Scenario list) =
+    let filterDistinct (scenarios: Scenario list) =
+        scenarios
+        |> List.collect(fun x -> x.Steps)
+        |> List.choose(fun x -> x.ClientPool)
+        |> List.distinctBy(fun x -> x.PoolName)
+
+    let createPools (settings: ClientFactorySetting list) (targetScenarios: Scenario list) =
+        targetScenarios
+        |> ClientFactory.filterDistinct
+        |> ClientFactory.applySettings settings
+        |> List.map(fun factory -> new ClientPool(factory))
+
+    let setPools (pools: ClientPool list) (scenarios: Scenario list) =
 
         let setPool (scenario: Scenario) =
             seq {
                 for step in scenario.Steps do
-                match step.ConnectionPoolArgs with
-                | Some poolArgs ->
-                    let pool = pools |> Seq.tryFind(fun x -> x.PoolName = poolArgs.PoolName)
+                match step.ClientFactory with
+                | Some factory ->
+                    let pool = pools |> Seq.tryFind(fun x -> x.PoolName = factory.FactoryName)
                     match pool with
-                    | Some v -> { step with ConnectionPool = Some v }
+                    | Some v -> { step with ClientPool = Some v }
                     | None   -> step
 
                 | None -> step
@@ -119,7 +131,7 @@ module ConnectionPool =
 
 module Feed =
 
-    let filterDistinctAndEmptyFeeds (scenarios: Scenario list) =
+    let filterDistinctFeeds (scenarios: Scenario list) =
         scenarios
         |> List.collect(fun x -> x.Steps)
         |> List.choose(fun x -> x.Feed)
@@ -152,10 +164,11 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createCorrelationId (scnName: string, copyNumber): CorrelationId =
-    { Id = $"{scnName}_{copyNumber}"
-      ScenarioName = scnName
-      CopyNumber = copyNumber }
+let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int) =
+    { ThreadId = $"{scenarioName}_{threadNumber}"
+      ThreadNumber = threadNumber
+      ScenarioName = scenarioName
+      ScenarioDuration = duration }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {
 
@@ -166,7 +179,7 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
         return { ScenarioName = scenario.ScenarioName
                  Init = scenario.Init
                  Clean = scenario.Clean
-                 Steps = scenario.Steps |> ConnectionPool.updatePoolArgsName(scenario.ScenarioName)
+                 Steps = scenario.Steps |> ClientFactory.updateName(scenario.ScenarioName)
                  LoadTimeLine = timeline.LoadTimeLine
                  WarmUpDuration = scenario.WarmUpDuration
                  PlanedDuration = timeline.ScenarioDuration
@@ -176,6 +189,7 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
     }
 
     let! vScns = scenarios |> Validation.checkDuplicateScenarioName
+
     return! vScns
             |> List.map(create)
             |> Result.sequence
@@ -196,10 +210,14 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
-            settings.LoadSimulationsSettings
-            |> List.map(LoadTimeLine.createSimulationFromSettings)
-            |> LoadTimeLine.createWithDuration
-            |> Result.getOk
+            match settings.LoadSimulationsSettings with
+            | Some simulation ->
+                simulation
+                |> List.map(LoadTimeLine.createSimulationFromSettings)
+                |> LoadTimeLine.createWithDuration
+                |> Result.getOk
+
+            | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = getWarmUpDuration(settings)
@@ -211,7 +229,8 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         settings
         |> List.tryPick(fun x ->
             if x.ScenarioName = scn.ScenarioName then Some(scn, x)
-            else None)
+            else None
+        )
         |> Option.map updateScenario
         |> Option.defaultValue scn)
 

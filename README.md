@@ -15,10 +15,10 @@ PM> Install-Package NBomber
 ```
 
 ### Documentation
-Documentation is located [here](https://nbomber.com/docs/).
+Documentation is located [here](https://nbomber.com/docs/overview/).
 
 ### Run test scenario
-![how to run a scenario gif](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_run.gif)
+![how to run a scenario gif](https://nbomber.com/assets/images/nbomber_v2_console-6a596abc247223cefefa397c62e620f4.gif)
 
 ### View report
 ![view report](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_report.jpg)

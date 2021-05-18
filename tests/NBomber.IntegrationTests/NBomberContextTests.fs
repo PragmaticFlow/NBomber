@@ -28,12 +28,12 @@ let baseGlobalSettings = {
 let baseScenarioSetting = {
     ScenarioName = "test_scenario"
     WarmUpDuration = None
-    LoadSimulationsSettings = List.empty
-    ConnectionPoolSettings = None
+    LoadSimulationsSettings = None
+    ClientFactorySettings = None
     CustomSettings = None
 }
 
-let failStep = Step.createAsync("fail step", fun _ -> Response.fail() |> Task.singleton)
+let failStep = Step.create("fail step", fun _ -> Response.fail() |> Task.singleton)
 let baseScenario = Scenario.create "1" [failStep] |> Scenario.withoutWarmUp
 
 let config = {
@@ -160,24 +160,24 @@ let ``getTestName should return from Config, if empty then from TestContext``
         test <@ testSuite = context.TestName @>
 
 [<Property>]
-let ``getConnectionPoolSettings should return from Config with updated poolName, if empty then empty result``
+let ``getClientFactorySettings should return from Config with updated poolName, if empty then empty result``
     (poolNameGenerated: string, configValue: int option) =
 
     match configValue with
     | Some value ->
-        let poolSettings = {PoolName = poolNameGenerated; ConnectionCount = value}
-        let scnSettings = { baseScenarioSetting with ConnectionPoolSettings = Some [poolSettings] }
+        let poolSettings = { FactoryName = poolNameGenerated; ClientCount = value }
+        let scnSettings = { baseScenarioSetting with ClientFactorySettings = Some [poolSettings] }
         let glSettings = { baseGlobalSettings with ScenariosSettings = Some [scnSettings] }
         let config = { config with GlobalSettings = Some glSettings }
         let ctx = { context with NBomberConfig = Some config }
-        let result = NBomberContext.getConnectionPoolSettings(ctx)
+        let result = NBomberContext.getClientFactorySettings(ctx)
 
-        test <@ result.Head.ConnectionCount = poolSettings.ConnectionCount @>
-        test <@ result.Head.PoolName = Domain.Scenario.ConnectionPool.createPoolName poolSettings.PoolName scnSettings.ScenarioName @>
-        test <@ result.Head.PoolName <> poolSettings.PoolName @>
+        test <@ result.Head.ClientCount = poolSettings.ClientCount @>
+        test <@ result.Head.FactoryName = Domain.Scenario.ClientFactory.createName poolSettings.FactoryName scnSettings.ScenarioName @>
+        test <@ result.Head.FactoryName <> poolSettings.FactoryName @>
 
     | None ->
-        let result = NBomberContext.getConnectionPoolSettings(context)
+        let result = NBomberContext.getClientFactorySettings(context)
         test <@ result = List.empty @>
 
 [<Fact>]
@@ -276,14 +276,14 @@ let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
     | Error (LoadSimulationConfigValueHasInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return ok if duration time has correct format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
+    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()

@@ -5,6 +5,7 @@ open System.Threading.Tasks
 open Microsoft.Extensions.Configuration
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -27,7 +28,7 @@ let run () =
         )
     }
 
-    let step = Step.createAsync("step", fun context -> task {
+    let step = Step.create("step", fun context -> task {
 
         do! Task.Delay(seconds 1)
 

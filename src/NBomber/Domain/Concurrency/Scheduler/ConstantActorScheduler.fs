@@ -31,7 +31,6 @@ type ConstantActorScheduler(dep: ActorDep) =
 
     let stop () =
         ScenarioActorPool.stopActors _actorPool
-        _scheduledActorCount <- 0
 
     let execScheduler (scheduledActorCount) =
         let workingActors = ScenarioActorPool.getWorkingActors _actorPool
@@ -39,7 +38,7 @@ type ConstantActorScheduler(dep: ActorDep) =
         | KeepWorking -> ()
         | AddActors count ->
             let result = ScenarioActorPool.rentActors createActors _actorPool count
-            _actorPool <- ScenarioActorPool.updatePool _actorPool result
+            _actorPool <- ScenarioActorPool.updatePool _actorPool result.NewActors
             result.ActorsFromPool |> List.iter(fun x -> x.RunInfinite() |> ignore)
             result.NewActors|> List.iter(fun x -> x.RunInfinite() |> ignore)
 

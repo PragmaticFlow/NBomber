@@ -1,7 +1,10 @@
 using System;
 using System.Net.Http;
+using HdrHistogram;
+using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.HttpTests
 {
@@ -11,18 +14,18 @@ namespace CSharpDev.HttpTests
         {
             using var httpClient = new HttpClient();
 
-            var step = Step.CreateAsync("fetch_html_page", async context =>
+            var step = Step.Create("fetch_html_page", async context =>
             {
-                var response = await httpClient.GetAsync("https://nbomber.com");
+                var response = await httpClient.GetAsync("https://nbomber.com", context.CancellationToken);
 
                 return response.IsSuccessStatusCode
-                    ? Response.Ok()
-                    : Response.Fail();
+                    ? Response.Ok(statusCode: (int) response.StatusCode)
+                    : Response.Fail(statusCode: (int) response.StatusCode);
             });
 
             var scenario = ScenarioBuilder
                 .CreateScenario("simple_http", step)
-                .WithWarmUpDuration(TimeSpan.FromSeconds(5))
+                .WithWarmUpDuration(Seconds(5))
                 .WithLoadSimulations(
                     Simulation.InjectPerSec(rate: 1, during: TimeSpan.FromSeconds(30))
                 );

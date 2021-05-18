@@ -1,6 +1,5 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
-open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
@@ -12,7 +11,7 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -47,12 +46,12 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         match simulation with
         | RampConstant _
         | KeepConstant _        ->
-            $"{simulationName}, copies: {simulationValue |> Console.highlightSecondary}"
+            $"load: {simulationName |> Console.highlightSecondary}, copies: {simulationValue |> Console.highlightSecondary}"
 
         | RampPerSec _
         | InjectPerSec _
         | InjectPerSecRandom _  ->
-            $"{simulationName}, rate: {simulationValue |> Console.highlightSecondary}"
+            $"load: {simulationName |> Console.highlightSecondary}, rate: {simulationValue |> Console.highlightSecondary}"
 
     let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
         let simulationDescription = createSimulationDescription simulation simulationValue
@@ -65,21 +64,19 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         let ticks = scheduler.Scenario |> calcTickCount |> float
         { Description = description; Ticks = ticks }
 
-    let getProgressTickInterval () =
-        Constants.SchedulerNotificationTickInterval.TotalMilliseconds / 1000.0
+    let tickProgressTask (pbTask: ProgressTask) (scenarioName: string) (progressInfo: ScenarioProgressInfo) =
 
-    let tickProgressTask (task: ProgressTask) (scenarioName: string) (progressInfo: ScenarioProgressInfo) =
-        progressInfo
-        |> getSimulationValue
-        |> createScenarioDescription scenarioName progressInfo.CurrentSimulation
-        |> ProgressBar.setDescription task
-        |> ignore
+        let description =
+            progressInfo
+            |> getSimulationValue
+            |> createScenarioDescription scenarioName progressInfo.CurrentSimulation
 
-        getProgressTickInterval() |> ProgressBar.tick task |> ignore
+        pbTask
+        |> ProgressBar.setDescription description
+        |> ProgressBar.defaultTick
 
-    let createDescriptionForStoppedTask (task: ProgressTask) (scenarioName) =
-        let percentage = $"{task.Percentage:F1}%%"
-        $"{scenarioName |> Console.highlightDanger}{MultilineColumn.NewLine}stopped: {percentage |> Console.highlightSecondary}"
+    let createDescriptionForStoppedTask (scenarioName) =
+        $"{scenarioName |> Console.highlightDanger}"
 
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
@@ -89,35 +86,32 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
         ]
         |> ProgressBar.create
            (fun tasks ->
-                let totalTask = tasks.Head
+                let pbTotalTask = tasks.Head
 
                 tasks
-                |> List.iteri(fun i task ->
+                |> List.iteri(fun i pbTask ->
                     if i > 0 then
                         schedulers.[i - 1].EventStream
                         |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                         |> Observable.subscribeWithCompletion
                             (fun progressInfo ->
                                 let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
-                                tickProgressTask task scenarioName progressInfo
-                                let numberOfTicks = Constants.SchedulerNotificationTickInterval.TotalMilliseconds / 1000.0
-                                numberOfTicks |> ProgressBar.tick totalTask |> ignore
+                                tickProgressTask pbTask scenarioName progressInfo
+                                pbTotalTask |> ProgressBar.defaultTick
                             )
                             (fun () ->
-                                let leftNumberOfTicks = getProgressTickInterval() |> ProgressBar.getLeftNumberOfTicks task
+                                let remainCount = ProgressBar.getRemainTicks(pbTask)
 
-                                if leftNumberOfTicks > 0.0 then
-                                    task.StopTask()
+                                if remainCount > 0.0 then
+                                    let desc =
+                                        schedulers.[i - 1].Scenario.ScenarioName
+                                        |> createDescriptionForStoppedTask
 
-                                    schedulers.[i - 1].Scenario.ScenarioName
-                                    |> createDescriptionForStoppedTask task
-                                    |> ProgressBar.setDescription task
-                                    |> ignore
+                                    pbTask
+                                    |> ProgressBar.setDescription desc
+                                    |> ProgressBar.stop
 
-                                    // set 100% for progress task since .StopTask() method doesn't stop progress task completely
-                                    leftNumberOfTicks |> ProgressBar.tick task |> ignore
-                                    // add left number of ticks to total task
-                                    leftNumberOfTicks |> ProgressBar.tick totalTask |> ignore
+                                    pbTotalTask |> ProgressBar.tick remainCount
                             )
                         |> ignore
                 )
@@ -137,19 +131,17 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                         tickProgressTask tasks.Head scenarioName progressInfo
                     )
                     (fun () ->
-                        let task = tasks.Head
-                        let leftNumberOfTicks = getProgressTickInterval() |> ProgressBar.getLeftNumberOfTicks task
+                        let pbTask = tasks.Head
+                        let remainTicks = ProgressBar.getRemainTicks(pbTask)
 
-                        if leftNumberOfTicks > 0.0 then
-                            task.StopTask() |> ignore
+                        if remainTicks > 0.0 then
+                            let desc =
+                                scheduler.Scenario.ScenarioName
+                                |> createDescriptionForStoppedTask
 
-                            scheduler.Scenario.ScenarioName
-                            |> createDescriptionForStoppedTask task
-                            |> ProgressBar.setDescription task
-                            |> ignore
-
-                            // set 100% for progress task since .StopTask() method doesn't stop progress task completely
-                            leftNumberOfTicks |> ProgressBar.tick task |> ignore
+                            pbTask
+                            |> ProgressBar.setDescription desc
+                            |> ProgressBar.stop
                     )
                 |> ignore
            )
@@ -162,40 +154,46 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
             displayProgressForOneScenario(scnSchedulers.Head) |> ignore
     | _ -> ()
 
-let displayConnectionPoolsProgress (dep: IGlobalDependency, pools: ConnectionPool list) =
+let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
+
+    let pbHandler (pbTasks: ProgressTask list) =
+        pbTasks
+        |> List.iteri(fun i pbTask ->
+            pool.EventStream
+            |> Observable.takeWhile(function
+                | InitFinished -> false
+                | InitFailed   -> false
+                | _            -> true
+            )
+            |> Observable.subscribe(function
+                | StartedInit poolName ->
+                    dep.Logger.Information($"Start init client pool: '{poolName}'.")
+
+                | StartedDispose poolName ->
+                    dep.Logger.Information($"Start disposing client pool: '{poolName}'.")
+
+                | ClientInitialized (poolName,number) ->
+                    pbTask
+                    |> ProgressBar.setDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}initialized client: {number |> Console.highlightSecondary}"
+                    |> ProgressBar.defaultTick
+
+                | ClientDisposed (poolName,number,error) ->
+                    pbTask
+                    |> ProgressBar.setDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}disposed client: {number |> Console.highlightSecondary}"
+                    |> ProgressBar.defaultTick
+
+                    error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred."))
+
+                | InitFinished
+                | InitFailed -> ()
+            )
+            |> ignore
+        )
+
     match dep.ApplicationType with
     | ApplicationType.Console ->
-        pools
-        |> List.map(fun pool -> { Description = pool.PoolName; Ticks = pool.ConnectionCount |> float })
-        |> ProgressBar.create
-           (fun tasks ->
-                tasks
-                |> List.iteri(fun i task ->
-                    pools.[i].EventStream
-                    |> Observable.subscribe(fun event ->
-                        let setPbDescription = ProgressBar.setDescription task >> ignore
-
-                        match event with
-                        | StartedInit poolName ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opening connection"
-
-                        | StartedStop poolName ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}closing connection"
-
-                        | ConnectionOpened (poolName, number) ->
-                            setPbDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}opened connection: {number |> Console.highlightSecondary}"
-                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
-
-                        | ConnectionClosed error ->
-                            Constants.SchedulerNotificationTickInterval.TotalMilliseconds |> ProgressBar.tick task |> ignore
-                            error |> Option.map(fun ex -> dep.Logger.Error(ex, "Close connection exception occurred.")) |> ignore
-
-                        | InitFinished
-                        | InitFailed -> ()
-                    )
-                    |> ignore
-                )
-           )
+        let pbConfig = { Description = pool.PoolName; Ticks = pool.ClientCount |> float }
+        ProgressBar.create pbHandler [pbConfig]
 
     | _ -> Task.FromResult()
 

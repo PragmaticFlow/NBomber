@@ -6,11 +6,11 @@ open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
 
-open Nessos.Streams
+open Serilog
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
-open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -21,13 +21,17 @@ open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
 open NBomber.DomainServices.TestHost.TestHostReporting
 
-type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list, sessionArgs: SessionArgs) as this =
+type internal TestHost(dep: IGlobalDependency,
+                       registeredScenarios: Scenario list,
+                       sessionArgs: SessionArgs,
+                       createStatsActor: ILogger * Scenario -> MailboxProcessor<_>) as this =
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _currentOperation = OperationType.None
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
+    let mutable _sessionResult = Unchecked.defaultof<NodeSessionResult>
     let _defaultNodeInfo = NodeInfo.init()
 
     let getCurrentNodeInfo () =
@@ -40,7 +44,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                dep.Logger.Warning("Stopping scenario early: '{0}', reason: '{1}'", sch.Scenario.ScenarioName, reason)
+                dep.Logger.Warning($"Stopping scenario early: '{sch.Scenario.ScenarioName}', reason: '{reason}'")
             )
 
         | StopTest reason -> this.StopScenarios(reason) |> ignore
@@ -53,9 +57,10 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 GlobalTimer = Stopwatch()
                 Scenario = scn
+                ScenarioStatsActor = createStatsActor(dep.Logger, scn)
                 ExecStopCommand = execStopCommand
             }
-            ScenarioScheduler(actorDep)
+            new ScenarioScheduler(actorDep)
 
         _currentSchedulers |> List.iter(fun x -> x.Stop())
         _cancelToken.Dispose()
@@ -63,6 +68,12 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         targetScenarios
         |> List.map(createScheduler _cancelToken.Token)
+
+    let stopSchedulers (schedulers: ScenarioScheduler list) =
+        if not _cancelToken.IsCancellationRequested then
+            _cancelToken.Cancel()
+
+        schedulers |> List.iter(fun x -> x.Stop())
 
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
@@ -106,15 +117,9 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! TestHostPlugins.stopPlugins dep
     }
 
-    let stopSchedulers () =
-        if not _cancelToken.IsCancellationRequested then
-            _cancelToken.Cancel()
-
-        _currentSchedulers |> List.iter(fun x -> x.Stop())
-
     let cleanScenarios () =
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
-        let defaultScnContext = Scenario.ScenarioContext.create baseContext
+        let defaultScnContext = Scenario.ScenarioContext.create(baseContext)
         TestHostScenario.cleanScenarios dep baseContext defaultScnContext _targetScenarios
 
     member _.TestInfo = sessionArgs.TestInfo
@@ -150,7 +155,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         dep.Logger.Information("Starting warm up...")
         do! startWarmUp(schedulers)
-        stopSchedulers()
+        stopSchedulers(schedulers)
 
         _currentOperation <- OperationType.None
     }
@@ -179,19 +184,20 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             else
                 dep.Logger.Information("Stopping scenarios...")
 
-            stopSchedulers()
+            stopSchedulers(_currentSchedulers)
             do! cleanScenarios()
 
             _stopped <- true
             _currentOperation <- OperationType.None
     }
 
-    member _.GetScenarioBombingStats(duration) =
-        TestHostReporting.getScenarioStats _currentSchedulers (Some true) duration
-        |> Stream.toArray
+    member _.GetNodeStats(workingScenarios: bool, duration: TimeSpan) =
+        {| NodeInfo = getCurrentNodeInfo()
+           WorkingScenarios = workingScenarios
+           Duration = duration |}
+        |> TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo
 
-    member _.GetFinalStats(duration) =
-        TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo (getCurrentNodeInfo()) OperationType.Complete None duration
+    member _.GetSessionResult() = _sessionResult
 
     member _.CreateScenarioSchedulers() = createScenarioSchedulers(_targetScenarios)
 
@@ -214,7 +220,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         |> List.iter(fun x ->
             x.EventStream
             |> Observable.choose(function
-                | ScenarioStarted stats -> Some stats
                 | ScenarioStopped stats -> Some stats
                 | _ -> None
             )
@@ -229,8 +234,18 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         // gets final stats
         dep.Logger.Information("Calculating final statistics...")
         let finalStats = actor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), currentOperationTimer.Elapsed, reply))
-        let timeLines = actor.PostAndReply(fun reply -> GetTimeLines reply)
-        return {| NodeStats = finalStats; TimeLines = timeLines |}
+
+        let timeLines =
+            actor.PostAndReply(fun reply -> GetTimeLines reply)
+            |> List.toArray
+
+        let hints =
+            dep.WorkerPlugins
+            |> TestHostPlugins.getHints sessionArgs.UseHintsAnalyzer finalStats
+            |> List.toArray
+
+        _sessionResult <- { NodeStats = finalStats; TimeLineStats = timeLines; Hints = hints }
+        return _sessionResult
     }
 
     interface IDisposable with

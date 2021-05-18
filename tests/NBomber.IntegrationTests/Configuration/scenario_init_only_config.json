@@ -1,0 +1,15 @@
+{
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "init_only_scenario",
+
+                "CustomSettings": {
+                    "TargetHost": "localhost",
+                    "MsgSizeInBytes": 1000,
+                    "PauseMs": 100
+                }
+            }
+        ]
+    }
+}

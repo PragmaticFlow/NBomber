@@ -2,6 +2,8 @@ module FSharpDev.HttpTests.SimpleHttpTest
 
 open System.Net.Http
 open FSharp.Control.Tasks.NonAffine
+
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -9,12 +11,12 @@ let run () =
 
     use httpClient = new HttpClient()
 
-    let step = Step.createAsync("fetch_html_page", fun context -> task {
+    let step = Step.create("fetch_html_page", fun context -> task {
 
-        let! response = httpClient.GetAsync("https://nbomber.com")
+        let! response = httpClient.GetAsync("https://nbomber.com", context.CancellationToken)
 
-        return if response.IsSuccessStatusCode then Response.ok()
-               else Response.fail()
+        return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
+               else Response.fail(statusCode = int response.StatusCode)
     })
 
     Scenario.create "simple_http" [step]

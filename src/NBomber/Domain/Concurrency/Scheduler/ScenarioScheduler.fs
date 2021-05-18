@@ -3,14 +3,14 @@ module internal NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open System
 open System.Threading.Tasks
 
-open Nessos.Streams
 open FSharp.Control.Reactive
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Statistics
+open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -22,16 +22,14 @@ type SchedulerCommand =
     | InjectOneTimeActors  of scheduledCount:int
     | DoNothing
 
-[<Struct>]
 type ScenarioProgressInfo = {
     ConstantActorCount: int
     OneTimeActorCount: int
     CurrentSimulation: LoadSimulation
 }
 
-[<Struct>]
 type SchedulerEvent =
-    | ScenarioStarted of initialStats:ScenarioStats
+    | ScenarioStarted
     | ScenarioStopped of finalStats:ScenarioStats
     | ProgressUpdated of ScenarioProgressInfo
 
@@ -87,7 +85,7 @@ type ScenarioScheduler(dep: ActorDep) =
     let mutable _disposed = false
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
-    let mutable _currentSimulation = LoadSimulation.KeepConstant(0, TimeSpan.MinValue)
+    let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
     let mutable _currentOperation = OperationType.None
 
     let _constantScheduler = new ConstantActorScheduler(dep)
@@ -97,8 +95,6 @@ type ScenarioScheduler(dep: ActorDep) =
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
-
-    let getAllActors () = _constantScheduler.AvailableActors @ _oneTimeScheduler.AvailableActors
 
     let getScenarioStats (currentOperation, duration) =
         let scnDuration = _scenario.ExecutedDuration |> Option.defaultValue(_scenario.PlanedDuration)
@@ -111,10 +107,7 @@ type ScenarioScheduler(dep: ActorDep) =
                 _oneTimeScheduler.ScheduledActorCount
             )
 
-        getAllActors()
-        |> Stream.ofList
-        |> Stream.collect(fun x -> x.GetStepStats executionTime)
-        |> ScenarioStats.create dep.Scenario simulationStats executionTime currentOperation
+        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetScenarioStats(reply, simulationStats, currentOperation, executionTime))
 
     let start () =
         dep.GlobalTimer.Stop()
@@ -144,15 +137,11 @@ type ScenarioScheduler(dep: ActorDep) =
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)
 
-    let getInitialStats () =
-        let currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
-        let simulationStats = LoadTimeLine.createSimulationStats(currentSimulation, 0, 0)
-        ScenarioStats.empty dep.Scenario simulationStats OperationType.Bombing
     do
         _schedulerTimer.Elapsed.Add(fun _ ->
 
             if not dep.GlobalTimer.IsRunning then
-                _eventStream.OnNext(ScenarioStarted(getInitialStats()))
+                _eventStream.OnNext(ScenarioStarted)
                 dep.GlobalTimer.Restart()
 
             let currentTime = dep.GlobalTimer.Elapsed
@@ -210,5 +199,10 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.AllActors = getAllActors()
     member _.GetScenarioStats(duration) = getScenarioStats(_currentOperation, duration)
+
+    interface IDisposable with
+        member _.Dispose() =
+            stop()
+            (dep.ScenarioStatsActor :> IDisposable).Dispose()
+

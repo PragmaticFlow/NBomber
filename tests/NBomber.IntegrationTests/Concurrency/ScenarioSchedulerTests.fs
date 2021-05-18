@@ -1,14 +1,15 @@
-module Tests.ScenarioScheduler
+module Tests.Concurrency.ScenarioScheduler
 
 open System
 
+open Swensen.Unquote
 open Xunit
 open FsCheck
 open FsCheck.Xunit
-open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
+open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
@@ -208,7 +209,7 @@ let ``schedule should correctly handle RampScenariosPerSec``
 [<Fact>]
 let ``should run InjectOneTimeActors correctly`` () =
 
-    let step = Step.createAsync("step_1", fun context -> task {
+    let step = Step.create("step_1", fun context -> task {
         return Response.ok(42)
     })
 

@@ -10,6 +10,7 @@ type SchedulerCommand =
     | StartActors of actors:ScenarioActor list
     | RentActors of actorCount:int
 
+// todo: add tests
 let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     let freeActors =
         actorPool
@@ -30,20 +31,22 @@ type OneTimeActorScheduler(dep: ActorDep) =
 
     let stop () =
         ScenarioActorPool.stopActors _actorPool
-        _scheduledActorCount <- 0
 
+    // todo: add tests
     let execScheduler (scheduledActorCount: int) =
 
         let exec (actors: ScenarioActor list) =
             actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
 
         match schedule _actorPool scheduledActorCount with
-        | StartActors actors -> exec actors
+        | StartActors actors ->
+            exec actors
+
         | RentActors actorCount ->
             let result = ScenarioActorPool.rentActors createActors _actorPool actorCount
             exec result.ActorsFromPool
             exec result.NewActors
-            _actorPool <- ScenarioActorPool.updatePool _actorPool result
+            _actorPool <- ScenarioActorPool.updatePool _actorPool result.NewActors
 
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool

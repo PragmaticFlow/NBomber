@@ -1,106 +1,111 @@
 const viewModel = {
     "NodeStats": {
-        "RequestCount": 502,
-        "OkCount": 431,
-        "FailCount": 71,
-        "AllDataMB": 0.121,
+        "RequestCount": 594,
+        "OkCount": 379,
+        "FailCount": 215,
+        "AllBytes": 120497,
         "ScenarioStats": [
             {
                 "ScenarioName": "scenario_1",
-                "RequestCount": 195,
-                "OkCount": 169,
-                "FailCount": 26,
-                "AllDataMB": 0.0,
+                "RequestCount": 209,
+                "OkCount": 151,
+                "FailCount": 58,
+                "AllBytes": 0,
                 "StepStats": [
                     {
                         "StepName": "pull_html_1",
                         "Ok": {
                             "Request": {
-                                "Count": 169,
-                                "RPS": 5.6
+                                "Count": 151,
+                                "RPS": 5.0
                             },
                             "Latency": {
-                                "MinMs": 9.83,
-                                "MeanMs": 792.981,
-                                "MaxMs": 1520.435,
-                                "Percent50": 757.536,
-                                "Percent75": 1110.537,
-                                "Percent95": 1365.532,
-                                "Percent99": 1379.831,
-                                "StdDev": 392.519,
+                                "MinMs": 25.6,
+                                "MeanMs": 532.6,
+                                "MaxMs": 1016.6,
+                                "Percent50": 532.5,
+                                "Percent75": 673.6,
+                                "Percent95": 830.6,
+                                "Percent99": 837.9,
+                                "StdDev": 221.3,
                                 "LatencyCount": {
-                                    "LessOrEq800": 87,
-                                    "More800Less1200": 45,
-                                    "MoreOrEq1200": 37
+                                    "LessOrEq800": 117,
+                                    "More800Less1200": 34,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
+                                "MinBytes": 0,
+                                "MeanBytes": 0,
+                                "MaxBytes": 0,
+                                "Percent50": 0,
+                                "Percent75": 0,
+                                "Percent95": 0,
+                                "Percent99": 0,
                                 "StdDev": 0.0,
-                                "AllMB": 0.0
-                            }
+                                "AllBytes": 0
+                            },
+                            "StatusCodes": []
                         },
                         "Fail": {
                             "Request": {
-                                "Count": 26,
-                                "RPS": 0.9
+                                "Count": 58,
+                                "RPS": 1.9
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 531.71,
-                                "MaxMs": 1415.578,
-                                "Percent50": 461.731,
-                                "Percent75": 640.763,
-                                "Percent95": 645.53,
-                                "Percent99": 645.53,
-                                "StdDev": 100.399,
+                                "MeanMs": 960.5,
+                                "MaxMs": 1019.1,
+                                "Percent50": 960.1,
+                                "Percent75": 962.5,
+                                "Percent95": 963.9,
+                                "Percent99": 963.9,
+                                "StdDev": 2.6,
                                 "LatencyCount": {
-                                    "LessOrEq800": 14,
-                                    "More800Less1200": 8,
-                                    "MoreOrEq1200": 4
+                                    "LessOrEq800": 0,
+                                    "More800Less1200": 58,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
+                                "MinBytes": 0,
+                                "MeanBytes": 0,
+                                "MaxBytes": 0,
+                                "Percent50": 0,
+                                "Percent75": 0,
+                                "Percent95": 0,
+                                "Percent99": 0,
                                 "StdDev": 0.0,
-                                "AllMB": 0.0
+                                "AllBytes": 0
                             },
-                            "ErrorStats": [
+                            "StatusCodes": [
                                 {
-                                    "ErrorCode": 0,
-                                    "Message": "unknown client's error",
-                                    "Count": 26
+                                    "Count@": 58,
+                                    "StatusCode": -100,
+                                    "IsError": true,
+                                    "Message": "step timeout",
+                                    "Count": 58
                                 }
                             ]
                         }
                     }
                 ],
                 "LatencyCount": {
-                    "LessOrEq800": 101,
-                    "More800Less1200": 53,
-                    "MoreOrEq1200": 41
+                    "LessOrEq800": 117,
+                    "More800Less1200": 92,
+                    "MoreOrEq1200": 0
                 },
                 "LoadSimulationStats": {
                     "SimulationName": "inject_per_sec",
-                    "Value": 0
+                    "Value": 10
                 },
-                "ErrorStats": [
+                "StatusCodes": [
                     {
-                        "ErrorCode": 0,
-                        "Message": "unknown client's error",
-                        "Count": 26
+                        "Count@": 58,
+                        "StatusCode": -100,
+                        "IsError": true,
+                        "Message": "step timeout",
+                        "Count": 58
                     }
                 ],
                 "CurrentOperation": 5,
@@ -108,100 +113,134 @@ const viewModel = {
             },
             {
                 "ScenarioName": "scenario_2",
-                "RequestCount": 193,
-                "OkCount": 162,
-                "FailCount": 31,
-                "AllDataMB": 0.075,
+                "RequestCount": 206,
+                "OkCount": 136,
+                "FailCount": 70,
+                "AllBytes": 68286,
                 "StepStats": [
                     {
                         "StepName": "pull_html_2",
                         "Ok": {
                             "Request": {
-                                "Count": 162,
-                                "RPS": 5.4
+                                "Count": 136,
+                                "RPS": 4.5
                             },
                             "Latency": {
-                                "MinMs": 0.0,
-                                "MeanMs": 690.412,
-                                "MaxMs": 1520.435,
-                                "Percent50": 620.771,
-                                "Percent75": 979.399,
-                                "Percent95": 1264.117,
-                                "Percent99": 1278.68,
-                                "StdDev": 358.069,
+                                "MinMs": 10.2,
+                                "MeanMs": 565.9,
+                                "MaxMs": 984.7,
+                                "Percent50": 509.0,
+                                "Percent75": 706.1,
+                                "Percent95": 887.6,
+                                "Percent99": 907.6,
+                                "StdDev": 232.1,
                                 "LatencyCount": {
-                                    "LessOrEq800": 89,
-                                    "More800Less1200": 42,
-                                    "MoreOrEq1200": 31
+                                    "LessOrEq800": 105,
+                                    "More800Less1200": 31,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.46,
-                                "MaxKb": 0.999,
-                                "Percent50": 0.416,
-                                "Percent75": 0.657,
-                                "Percent95": 0.841,
-                                "Percent99": 0.878,
-                                "StdDev": 0.265,
-                                "AllMB": 0.075
-                            }
+                                "MinBytes": 32,
+                                "MeanBytes": 493,
+                                "MaxBytes": 998,
+                                "Percent50": 447,
+                                "Percent75": 647,
+                                "Percent95": 829,
+                                "Percent99": 845,
+                                "StdDev": 233.9,
+                                "AllBytes": 67501
+                            },
+                            "StatusCodes": [
+                                {
+                                    "Count@": 136,
+                                    "StatusCode": 200,
+                                    "IsError": false,
+                                    "Message": "",
+                                    "Count": 136
+                                }
+                            ]
                         },
                         "Fail": {
                             "Request": {
-                                "Count": 31,
-                                "RPS": 1.0
+                                "Count": 70,
+                                "RPS": 2.3
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 647.638,
-                                "MaxMs": 1520.435,
-                                "Percent50": 626.233,
-                                "Percent75": 683.031,
-                                "Percent95": 847.599,
-                                "Percent99": 847.599,
-                                "StdDev": 149.411,
+                                "MeanMs": 947.0,
+                                "MaxMs": 1019.9,
+                                "Percent50": 953.5,
+                                "Percent75": 954.8,
+                                "Percent95": 957.3,
+                                "Percent99": 957.3,
+                                "StdDev": 19.9,
                                 "LatencyCount": {
-                                    "LessOrEq800": 14,
-                                    "More800Less1200": 10,
-                                    "MoreOrEq1200": 7
+                                    "LessOrEq800": 1,
+                                    "More800Less1200": 69,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
+                                "MinBytes": 0,
+                                "MeanBytes": 43,
+                                "MaxBytes": 785,
+                                "Percent50": 43,
+                                "Percent75": 43,
+                                "Percent95": 43,
+                                "Percent99": 43,
                                 "StdDev": 0.0,
-                                "AllMB": 0.0
+                                "AllBytes": 785
                             },
-                            "ErrorStats": [
+                            "StatusCodes": [
                                 {
-                                    "ErrorCode": 0,
-                                    "Message": "unknown client's error",
-                                    "Count": 31
+                                    "Count@": 69,
+                                    "StatusCode": -100,
+                                    "IsError": true,
+                                    "Message": "step timeout",
+                                    "Count": 69
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 500,
+                                    "IsError": true,
+                                    "Message": "Internal Server Error",
+                                    "Count": 1
                                 }
                             ]
                         }
                     }
                 ],
                 "LatencyCount": {
-                    "LessOrEq800": 103,
-                    "More800Less1200": 52,
-                    "MoreOrEq1200": 38
+                    "LessOrEq800": 106,
+                    "More800Less1200": 100,
+                    "MoreOrEq1200": 0
                 },
                 "LoadSimulationStats": {
                     "SimulationName": "inject_per_sec",
-                    "Value": 0
+                    "Value": 5
                 },
-                "ErrorStats": [
+                "StatusCodes": [
                     {
-                        "ErrorCode": 0,
-                        "Message": "unknown client's error",
-                        "Count": 31
+                        "Count@": 69,
+                        "StatusCode": -100,
+                        "IsError": true,
+                        "Message": "step timeout",
+                        "Count": 69
+                    },
+                    {
+                        "Count@": 136,
+                        "StatusCode": 200,
+                        "IsError": false,
+                        "Message": "",
+                        "Count": 136
+                    },
+                    {
+                        "Count@": 1,
+                        "StatusCode": 500,
+                        "IsError": true,
+                        "Message": "Internal Server Error",
+                        "Count": 1
                     }
                 ],
                 "CurrentOperation": 5,
@@ -209,86 +248,127 @@ const viewModel = {
             },
             {
                 "ScenarioName": "scenario_3",
-                "RequestCount": 114,
-                "OkCount": 100,
-                "FailCount": 14,
-                "AllDataMB": 0.046,
+                "RequestCount": 179,
+                "OkCount": 92,
+                "FailCount": 87,
+                "AllBytes": 52211,
                 "StepStats": [
                     {
                         "StepName": "pull_html_3",
                         "Ok": {
                             "Request": {
-                                "Count": 37,
-                                "RPS": 2.6
-                            },
-                            "Latency": {
-                                "MinMs": 47.514,
-                                "MeanMs": 686.105,
-                                "MaxMs": 1468.006,
-                                "Percent50": 591.135,
-                                "Percent75": 830.996,
-                                "Percent95": 1038.09,
-                                "Percent99": 1038.09,
-                                "StdDev": 240.373,
-                                "LatencyCount": {
-                                    "LessOrEq800": 23,
-                                    "More800Less1200": 11,
-                                    "MoreOrEq1200": 3
-                                }
-                            },
-                            "DataTransfer": {
-                                "MinKb": 0.046,
-                                "MeanKb": 0.536,
-                                "MaxKb": 0.968,
-                                "Percent50": 0.481,
-                                "Percent75": 0.669,
-                                "Percent95": 0.824,
-                                "Percent99": 0.824,
-                                "StdDev": 0.209,
-                                "AllMB": 0.019
-                            }
-                        },
-                        "Fail": {
-                            "Request": {
-                                "Count": 6,
-                                "RPS": 0.4
+                                "Count": 49,
+                                "RPS": 2.7
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 318.177,
-                                "MaxMs": 1520.435,
-                                "Percent50": 280.494,
-                                "Percent75": 368.312,
-                                "Percent95": 368.312,
-                                "Percent99": 368.312,
-                                "StdDev": 42.926,
+                                "MeanMs": 224.7,
+                                "MaxMs": 1012.5,
+                                "Percent50": 182.8,
+                                "Percent75": 285.8,
+                                "Percent95": 323.8,
+                                "Percent99": 323.8,
+                                "StdDev": 72.7,
                                 "LatencyCount": {
-                                    "LessOrEq800": 3,
-                                    "More800Less1200": 1,
-                                    "MoreOrEq1200": 2
+                                    "LessOrEq800": 44,
+                                    "More800Less1200": 5,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
-                                "StdDev": 0.0,
-                                "AllMB": 0.0
+                                "MinBytes": 0,
+                                "MeanBytes": 246,
+                                "MaxBytes": 993,
+                                "Percent50": 203,
+                                "Percent75": 305,
+                                "Percent95": 348,
+                                "Percent99": 348,
+                                "StdDev": 76.0,
+                                "AllBytes": 21359
                             },
-                            "ErrorStats": [
+                            "StatusCodes": [
                                 {
-                                    "ErrorCode": 401,
-                                    "Message": "Unauthorized",
-                                    "Count": 4
+                                    "Count@": 29,
+                                    "StatusCode": 200,
+                                    "IsError": false,
+                                    "Message": "",
+                                    "Count": 29
+                                }
+                            ]
+                        },
+                        "Fail": {
+                            "Request": {
+                                "Count": 53,
+                                "RPS": 2.9
+                            },
+                            "Latency": {
+                                "MinMs": 0.0,
+                                "MeanMs": 631.3,
+                                "MaxMs": 1017.4,
+                                "Percent50": 656.7,
+                                "Percent75": 657.7,
+                                "Percent95": 658.7,
+                                "Percent99": 658.7,
+                                "StdDev": 46.3,
+                                "LatencyCount": {
+                                    "LessOrEq800": 7,
+                                    "More800Less1200": 46,
+                                    "MoreOrEq1200": 0
+                                }
+                            },
+                            "DataTransfer": {
+                                "MinBytes": 0,
+                                "MeanBytes": 144,
+                                "MaxBytes": 818,
+                                "Percent50": 142,
+                                "Percent75": 146,
+                                "Percent95": 146,
+                                "Percent99": 146,
+                                "StdDev": 2.1,
+                                "AllBytes": 4757
+                            },
+                            "StatusCodes": [
+                                {
+                                    "Count@": 45,
+                                    "StatusCode": -100,
+                                    "IsError": true,
+                                    "Message": "step timeout",
+                                    "Count": 45
                                 },
                                 {
-                                    "ErrorCode": 400,
+                                    "Count@": 1,
+                                    "StatusCode": 400,
+                                    "IsError": true,
                                     "Message": "Bad Request",
-                                    "Count": 2
+                                    "Count": 1
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 401,
+                                    "IsError": true,
+                                    "Message": "Unauthorized",
+                                    "Count": 1
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 403,
+                                    "IsError": true,
+                                    "Message": "Forbidden",
+                                    "Count": 1
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 502,
+                                    "IsError": true,
+                                    "Message": "Bad Gateway",
+                                    "Count": 1
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 503,
+                                    "IsError": true,
+                                    "Message": "Service Unavailable",
+                                    "Count": 1
                                 }
                             ]
                         }
@@ -297,76 +377,103 @@ const viewModel = {
                         "StepName": "pull_html_4",
                         "Ok": {
                             "Request": {
-                                "Count": 34,
-                                "RPS": 2.4
+                                "Count": 28,
+                                "RPS": 1.6
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 580.228,
-                                "MaxMs": 1520.435,
-                                "Percent50": 524.288,
-                                "Percent75": 752.353,
-                                "Percent95": 888.668,
-                                "Percent99": 888.668,
-                                "StdDev": 214.051,
+                                "MeanMs": 305.8,
+                                "MaxMs": 999.4,
+                                "Percent50": 291.2,
+                                "Percent75": 331.3,
+                                "Percent95": 345.2,
+                                "Percent99": 345.2,
+                                "StdDev": 37.4,
                                 "LatencyCount": {
-                                    "LessOrEq800": 17,
+                                    "LessOrEq800": 19,
                                     "More800Less1200": 9,
-                                    "MoreOrEq1200": 4
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.439,
-                                "MaxKb": 0.968,
-                                "Percent50": 0.45,
-                                "Percent75": 0.527,
-                                "Percent95": 0.552,
-                                "Percent99": 0.552,
-                                "StdDev": 0.094,
-                                "AllMB": 0.015
-                            }
+                                "MinBytes": 0,
+                                "MeanBytes": 283,
+                                "MaxBytes": 988,
+                                "Percent50": 244,
+                                "Percent75": 314,
+                                "Percent95": 356,
+                                "Percent99": 356,
+                                "StdDev": 59.7,
+                                "AllBytes": 14550
+                            },
+                            "StatusCodes": [
+                                {
+                                    "Count@": 21,
+                                    "StatusCode": 200,
+                                    "IsError": false,
+                                    "Message": "",
+                                    "Count": 21
+                                }
+                            ]
                         },
                         "Fail": {
                             "Request": {
-                                "Count": 3,
-                                "RPS": 0.2
+                                "Count": 21,
+                                "RPS": 1.2
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 249.692,
-                                "MaxMs": 1363.149,
-                                "Percent50": 254.28,
-                                "Percent75": 254.28,
-                                "Percent95": 254.28,
-                                "Percent99": 254.28,
-                                "StdDev": 0.0,
+                                "MeanMs": 299.8,
+                                "MaxMs": 1015.8,
+                                "Percent50": 279.8,
+                                "Percent75": 324.3,
+                                "Percent95": 325.1,
+                                "Percent99": 325.1,
+                                "StdDev": 25.3,
                                 "LatencyCount": {
-                                    "LessOrEq800": 1,
-                                    "More800Less1200": 1,
-                                    "MoreOrEq1200": 1
+                                    "LessOrEq800": 6,
+                                    "More800Less1200": 15,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
-                                "StdDev": 0.0,
-                                "AllMB": 0.0
+                                "MinBytes": 0,
+                                "MeanBytes": 27,
+                                "MaxBytes": 614,
+                                "Percent50": 20,
+                                "Percent75": 34,
+                                "Percent95": 34,
+                                "Percent99": 34,
+                                "StdDev": 7.0,
+                                "AllBytes": 1504
                             },
-                            "ErrorStats": [
+                            "StatusCodes": [
                                 {
-                                    "ErrorCode": 401,
-                                    "Message": "Unauthorized",
+                                    "Count@": 16,
+                                    "StatusCode": -100,
+                                    "IsError": true,
+                                    "Message": "step timeout",
+                                    "Count": 16
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 500,
+                                    "IsError": true,
+                                    "Message": "Internal Server Error",
+                                    "Count": 1
+                                },
+                                {
+                                    "Count@": 2,
+                                    "StatusCode": 502,
+                                    "IsError": true,
+                                    "Message": "Bad Gateway",
                                     "Count": 2
                                 },
                                 {
-                                    "ErrorCode": 400,
-                                    "Message": "Bad Request",
+                                    "Count@": 1,
+                                    "StatusCode": 503,
+                                    "IsError": true,
+                                    "Message": "Service Unavailable",
                                     "Count": 1
                                 }
                             ]
@@ -376,105 +483,164 @@ const viewModel = {
                         "StepName": "pull_html_5",
                         "Ok": {
                             "Request": {
-                                "Count": 29,
-                                "RPS": 2.0
+                                "Count": 15,
+                                "RPS": 0.8
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 616.328,
-                                "MaxMs": 1310.72,
-                                "Percent50": 574.095,
-                                "Percent75": 718.274,
-                                "Percent95": 849.346,
-                                "Percent99": 849.346,
-                                "StdDev": 176.634,
+                                "MeanMs": 216.0,
+                                "MaxMs": 996.1,
+                                "Percent50": 202.1,
+                                "Percent75": 220.8,
+                                "Percent95": 234.8,
+                                "Percent99": 234.8,
+                                "StdDev": 16.0,
                                 "LatencyCount": {
                                     "LessOrEq800": 13,
-                                    "More800Less1200": 9,
-                                    "MoreOrEq1200": 2
+                                    "More800Less1200": 2,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.358,
-                                "MaxKb": 0.937,
-                                "Percent50": 0.326,
-                                "Percent75": 0.452,
-                                "Percent95": 0.546,
-                                "Percent99": 0.546,
-                                "StdDev": 0.151,
-                                "AllMB": 0.012
-                            }
+                                "MinBytes": 0,
+                                "MeanBytes": 237,
+                                "MaxBytes": 991,
+                                "Percent50": 214,
+                                "Percent75": 263,
+                                "Percent95": 270,
+                                "Percent99": 270,
+                                "StdDev": 31.2,
+                                "AllBytes": 9242
+                            },
+                            "StatusCodes": [
+                                {
+                                    "Count@": 8,
+                                    "StatusCode": 200,
+                                    "IsError": false,
+                                    "Message": "",
+                                    "Count": 8
+                                }
+                            ]
                         },
                         "Fail": {
                             "Request": {
-                                "Count": 5,
-                                "RPS": 0.3
+                                "Count": 13,
+                                "RPS": 0.7
                             },
                             "Latency": {
                                 "MinMs": 0.0,
-                                "MeanMs": 327.107,
-                                "MaxMs": 1363.149,
-                                "Percent50": 333.742,
-                                "Percent75": 333.742,
-                                "Percent95": 333.742,
-                                "Percent99": 333.742,
-                                "StdDev": 0.0,
+                                "MeanMs": 277.7,
+                                "MaxMs": 1014.2,
+                                "Percent50": 266.7,
+                                "Percent75": 288.9,
+                                "Percent95": 288.9,
+                                "Percent99": 288.9,
+                                "StdDev": 11.1,
                                 "LatencyCount": {
-                                    "LessOrEq800": 2,
-                                    "More800Less1200": 1,
-                                    "MoreOrEq1200": 1
+                                    "LessOrEq800": 3,
+                                    "More800Less1200": 9,
+                                    "MoreOrEq1200": 0
                                 }
                             },
                             "DataTransfer": {
-                                "MinKb": 0.0,
-                                "MeanKb": 0.0,
-                                "MaxKb": 0.0,
-                                "Percent50": 0.0,
-                                "Percent75": 0.0,
-                                "Percent95": 0.0,
-                                "Percent99": 0.0,
+                                "MinBytes": 0,
+                                "MeanBytes": 27,
+                                "MaxBytes": 799,
+                                "Percent50": 27,
+                                "Percent75": 27,
+                                "Percent95": 27,
+                                "Percent99": 27,
                                 "StdDev": 0.0,
-                                "AllMB": 0.0
+                                "AllBytes": 799
                             },
-                            "ErrorStats": [
+                            "StatusCodes": [
                                 {
-                                    "ErrorCode": 0,
-                                    "Message": "unknown client's error",
-                                    "Count": 5
+                                    "Count@": 11,
+                                    "StatusCode": -100,
+                                    "IsError": true,
+                                    "Message": "step timeout",
+                                    "Count": 11
+                                },
+                                {
+                                    "Count@": 1,
+                                    "StatusCode": 500,
+                                    "IsError": true,
+                                    "Message": "Internal Server Error",
+                                    "Count": 1
                                 }
                             ]
                         }
                     }
                 ],
                 "LatencyCount": {
-                    "LessOrEq800": 59,
-                    "More800Less1200": 32,
-                    "MoreOrEq1200": 13
+                    "LessOrEq800": 92,
+                    "More800Less1200": 86,
+                    "MoreOrEq1200": 0
                 },
                 "LoadSimulationStats": {
-                    "SimulationName": "ramp_constant",
-                    "Value": 0
+                    "SimulationName": "inject_per_sec",
+                    "Value": 10
                 },
-                "ErrorStats": [
+                "StatusCodes": [
                     {
-                        "ErrorCode": 401,
-                        "Message": "Unauthorized",
-                        "Count": 6
+                        "Count@": 72,
+                        "StatusCode": -100,
+                        "IsError": true,
+                        "Message": "step timeout",
+                        "Count": 72
                     },
                     {
-                        "ErrorCode": 400,
+                        "Count@": 58,
+                        "StatusCode": 200,
+                        "IsError": false,
+                        "Message": "",
+                        "Count": 58
+                    },
+                    {
+                        "Count@": 1,
+                        "StatusCode": 400,
+                        "IsError": true,
                         "Message": "Bad Request",
+                        "Count": 1
+                    },
+                    {
+                        "Count@": 1,
+                        "StatusCode": 401,
+                        "IsError": true,
+                        "Message": "Unauthorized",
+                        "Count": 1
+                    },
+                    {
+                        "Count@": 1,
+                        "StatusCode": 403,
+                        "IsError": true,
+                        "Message": "Forbidden",
+                        "Count": 1
+                    },
+                    {
+                        "Count@": 2,
+                        "StatusCode": 500,
+                        "IsError": true,
+                        "Message": "Internal Server Error",
+                        "Count": 2
+                    },
+                    {
+                        "Count@": 3,
+                        "StatusCode": 502,
+                        "IsError": true,
+                        "Message": "Bad Gateway",
                         "Count": 3
                     },
                     {
-                        "ErrorCode": 0,
-                        "Message": "unknown client's error",
-                        "Count": 5
+                        "Count@": 2,
+                        "StatusCode": 503,
+                        "IsError": true,
+                        "Message": "Service Unavailable",
+                        "Count": 2
                     }
                 ],
                 "CurrentOperation": 5,
-                "Duration": "00:00:14"
+                "Duration": "00:00:17"
             }
         ],
         "PluginStats": [
@@ -541,19 +707,19 @@ const viewModel = {
                             {
                                 "OriginalRow": null,
                                 "Key": "Property1",
-                                "Value": "389785274",
+                                "Value": "1958891016",
                                 "RowState": 4
                             },
                             {
                                 "OriginalRow": null,
                                 "Key": "Property2",
-                                "Value": "1826083514",
+                                "Value": "441860245",
                                 "RowState": 4
                             },
                             {
                                 "OriginalRow": null,
                                 "Key": "Property3",
-                                "Value": "143613083",
+                                "Value": "2106844768",
                                 "RowState": 4
                             }
                         ]
@@ -624,19 +790,19 @@ const viewModel = {
                             {
                                 "OriginalRow": null,
                                 "Property": "Property 1",
-                                "Value": "2004633901",
+                                "Value": "733347866",
                                 "RowState": 4
                             },
                             {
                                 "OriginalRow": null,
                                 "Property": "Property 2",
-                                "Value": "422304489",
+                                "Value": "2029391232",
                                 "RowState": 4
                             },
                             {
                                 "OriginalRow": null,
                                 "Property": "Property 3",
-                                "Value": "548269377",
+                                "Value": "1426080878",
                                 "RowState": 4
                             }
                         ]
@@ -646,7 +812,7 @@ const viewModel = {
             }
         ],
         "NodeInfo": {
-            "MachineName": "DESKTOP-DMNJHK6",
+            "MachineName": "DESKTOP",
             "NodeType": {
                 "Case": "SingleNode"
             },
@@ -660,10 +826,10 @@ const viewModel = {
             "DotNetVersion": ".NETCoreApp,Version=v3.1",
             "Processor": "Intel64 Family 6 Model 94 Stepping 3, GenuineIntel",
             "CoresCount": 8,
-            "NBomberVersion": "1.1.0"
+            "NBomberVersion": "2.0.0"
         },
         "TestInfo": {
-            "SessionId": "2021-03-01_09.15.28_session_a2230441",
+            "SessionId": "2021-04-17_09.54.94_session_5faa29ab",
             "TestSuite": "nbomber_default_test_suite_name",
             "TestName": "nbomber_default_test_name"
         },
@@ -672,126 +838,49 @@ const viewModel = {
     },
     "TimeLineStats": [
         {
-            "Duration": "00:00:00",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_3",
-                    "RequestCount": 0,
-                    "OkCount": 0,
-                    "FailCount": 0,
-                    "AllDataMB": 0.0,
-                    "StepStats": [],
-                    "LatencyCount": {
-                        "LessOrEq800": 0,
-                        "More800Less1200": 0,
-                        "MoreOrEq1200": 0
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "ramp_constant",
-                        "Value": 0
-                    },
-                    "ErrorStats": [],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:00"
-                }
-            ],
-            "PluginStats": []
-        },
-        {
-            "Duration": "00:00:00",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_2",
-                    "RequestCount": 0,
-                    "OkCount": 0,
-                    "FailCount": 0,
-                    "AllDataMB": 0.0,
-                    "StepStats": [],
-                    "LatencyCount": {
-                        "LessOrEq800": 0,
-                        "More800Less1200": 0,
-                        "MoreOrEq1200": 0
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "ramp_constant",
-                        "Value": 0
-                    },
-                    "ErrorStats": [],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:00"
-                }
-            ],
-            "PluginStats": []
-        },
-        {
-            "Duration": "00:00:00",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_1",
-                    "RequestCount": 0,
-                    "OkCount": 0,
-                    "FailCount": 0,
-                    "AllDataMB": 0.0,
-                    "StepStats": [],
-                    "LatencyCount": {
-                        "LessOrEq800": 0,
-                        "More800Less1200": 0,
-                        "MoreOrEq1200": 0
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "ramp_constant",
-                        "Value": 0
-                    },
-                    "ErrorStats": [],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:00"
-                }
-            ],
-            "PluginStats": []
-        },
-        {
             "Duration": "00:00:05",
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_1",
-                    "RequestCount": 4,
-                    "OkCount": 3,
+                    "RequestCount": 3,
+                    "OkCount": 2,
                     "FailCount": 1,
-                    "AllDataMB": 0.0,
+                    "AllBytes": 0,
                     "StepStats": [
                         {
                             "StepName": "pull_html_1",
                             "Ok": {
                                 "Request": {
-                                    "Count": 3,
-                                    "RPS": 0.6
+                                    "Count": 2,
+                                    "RPS": 0.4
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 281.941,
-                                    "MaxMs": 891.29,
-                                    "Percent50": 406.323,
-                                    "Percent75": 406.323,
-                                    "Percent95": 445.645,
-                                    "Percent99": 445.645,
-                                    "StdDev": 190.276,
+                                    "MeanMs": 406.2,
+                                    "MaxMs": 877.4,
+                                    "Percent50": 374.0,
+                                    "Percent75": 438.7,
+                                    "Percent95": 438.7,
+                                    "Percent99": 438.7,
+                                    "StdDev": 32.3,
                                     "LatencyCount": {
                                         "LessOrEq800": 1,
-                                        "More800Less1200": 2,
+                                        "More800Less1200": 1,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": []
                             },
                             "Fail": {
                                 "Request": {
@@ -800,12 +889,12 @@ const viewModel = {
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 432.538,
-                                    "MaxMs": 891.29,
-                                    "Percent50": 445.645,
-                                    "Percent75": 445.645,
-                                    "Percent95": 445.645,
-                                    "Percent99": 445.645,
+                                    "MeanMs": 500.7,
+                                    "MaxMs": 1001.9,
+                                    "Percent50": 500.9,
+                                    "Percent75": 500.9,
+                                    "Percent95": 500.9,
+                                    "Percent99": 500.9,
                                     "StdDev": 0.0,
                                     "LatencyCount": {
                                         "LessOrEq800": 0,
@@ -814,20 +903,22 @@ const viewModel = {
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
+                                        "Count@": 1,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
                                         "Count": 1
                                     }
                                 ]
@@ -836,17 +927,19 @@ const viewModel = {
                     ],
                     "LatencyCount": {
                         "LessOrEq800": 1,
-                        "More800Less1200": 3,
+                        "More800Less1200": 2,
                         "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 2
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
+                            "Count@": 1,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
                             "Count": 1
                         }
                     ],
@@ -855,99 +948,145 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_2",
-                    "RequestCount": 7,
-                    "OkCount": 7,
-                    "FailCount": 0,
-                    "AllDataMB": 0.003,
+                    "RequestCount": 8,
+                    "OkCount": 3,
+                    "FailCount": 5,
+                    "AllBytes": 2610,
                     "StepStats": [
                         {
                             "StepName": "pull_html_2",
                             "Ok": {
                                 "Request": {
-                                    "Count": 7,
-                                    "RPS": 1.4
+                                    "Count": 3,
+                                    "RPS": 0.6
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 526.29,
-                                    "MaxMs": 1153.434,
-                                    "Percent50": 567.979,
-                                    "Percent75": 585.455,
-                                    "Percent95": 751.479,
-                                    "Percent99": 751.479,
-                                    "StdDev": 180.672,
+                                    "MeanMs": 418.3,
+                                    "MaxMs": 813.5,
+                                    "Percent50": 340.6,
+                                    "Percent75": 496.3,
+                                    "Percent95": 496.3,
+                                    "Percent99": 496.3,
+                                    "StdDev": 77.8,
                                     "LatencyCount": {
-                                        "LessOrEq800": 3,
+                                        "LessOrEq800": 2,
+                                        "More800Less1200": 1,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 469,
+                                    "MaxBytes": 990,
+                                    "Percent50": 404,
+                                    "Percent75": 533,
+                                    "Percent95": 533,
+                                    "Percent99": 533,
+                                    "StdDev": 64.5,
+                                    "AllBytes": 1825
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 3,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 3
+                                    }
+                                ]
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 5,
+                                    "RPS": 1.0
+                                },
+                                "Latency": {
+                                    "MinMs": 41.6,
+                                    "MeanMs": 898.0,
+                                    "MaxMs": 1012.5,
+                                    "Percent50": 1004.9,
+                                    "Percent75": 1004.9,
+                                    "Percent95": 1005.2,
+                                    "Percent99": 1005.2,
+                                    "StdDev": 150.8,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 1,
                                         "More800Less1200": 4,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.332,
-                                    "MaxKb": 0.937,
-                                    "Percent50": 0.234,
-                                    "Percent75": 0.395,
-                                    "Percent95": 0.604,
-                                    "Percent99": 0.604,
-                                    "StdDev": 0.226,
-                                    "AllMB": 0.003
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 0,
-                                    "RPS": 0.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 0.0,
-                                    "MaxMs": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 261,
+                                    "MaxBytes": 785,
+                                    "Percent50": 261,
+                                    "Percent75": 261,
+                                    "Percent95": 261,
+                                    "Percent99": 261,
                                     "StdDev": 0.0,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 0,
-                                        "More800Less1200": 0,
-                                        "MoreOrEq1200": 0
+                                    "AllBytes": 785
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 4,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 4
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
                                     }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": []
+                                ]
                             }
                         }
                     ],
                     "LatencyCount": {
                         "LessOrEq800": 3,
-                        "More800Less1200": 4,
+                        "More800Less1200": 5,
                         "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 3
                     },
-                    "ErrorStats": [],
+                    "StatusCodes": [
+                        {
+                            "Count@": 4,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 4
+                        },
+                        {
+                            "Count@": 3,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 3
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
+                        }
+                    ],
                     "CurrentOperation": 3,
                     "Duration": "00:00:05"
                 },
                 {
                     "ScenarioName": "scenario_3",
-                    "RequestCount": 10,
-                    "OkCount": 10,
-                    "FailCount": 0,
-                    "AllDataMB": 0.006,
+                    "RequestCount": 9,
+                    "OkCount": 5,
+                    "FailCount": 4,
+                    "AllBytes": 3585,
                     "StepStats": [
                         {
                             "StepName": "pull_html_3",
@@ -957,167 +1096,194 @@ const viewModel = {
                                     "RPS": 0.8
                                 },
                                 "Latency": {
-                                    "MinMs": 111.411,
-                                    "MeanMs": 420.523,
-                                    "MaxMs": 943.718,
-                                    "Percent50": 408.508,
-                                    "Percent75": 452.198,
-                                    "Percent95": 452.198,
-                                    "Percent99": 452.198,
-                                    "StdDev": 19.661,
+                                    "MinMs": 30.1,
+                                    "MeanMs": 443.8,
+                                    "MaxMs": 745.9,
+                                    "Percent50": 324.6,
+                                    "Percent75": 563.2,
+                                    "Percent95": 563.2,
+                                    "Percent99": 563.2,
+                                    "StdDev": 119.3,
                                     "LatencyCount": {
-                                        "LessOrEq800": 3,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 0
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.132,
-                                    "MeanKb": 0.424,
-                                    "MaxKb": 0.624,
-                                    "Percent50": 0.429,
-                                    "Percent75": 0.442,
-                                    "Percent95": 0.442,
-                                    "Percent99": 0.442,
-                                    "StdDev": 0.007,
-                                    "AllMB": 0.001
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 0,
-                                    "RPS": 0.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 0.0,
-                                    "MaxMs": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 0,
+                                        "LessOrEq800": 4,
                                         "More800Less1200": 0,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 411,
+                                    "MeanBytes": 689,
+                                    "MaxBytes": 991,
+                                    "Percent50": 634,
+                                    "Percent75": 745,
+                                    "Percent95": 745,
+                                    "Percent99": 745,
+                                    "StdDev": 55.5,
+                                    "AllBytes": 2735
                                 },
-                                "ErrorStats": []
-                            }
-                        },
-                        {
-                            "StepName": "pull_html_4",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 4,
-                                    "RPS": 0.8
-                                },
-                                "Latency": {
-                                    "MinMs": 203.162,
-                                    "MeanMs": 669.013,
-                                    "MaxMs": 1101.005,
-                                    "Percent50": 535.211,
-                                    "Percent75": 834.492,
-                                    "Percent95": 834.492,
-                                    "Percent99": 834.492,
-                                    "StdDev": 145.818,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 2,
-                                        "MoreOrEq1200": 0
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 2,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 2
                                     }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.437,
-                                    "MeanKb": 0.658,
-                                    "MaxKb": 0.843,
-                                    "Percent50": 0.603,
-                                    "Percent75": 0.739,
-                                    "Percent95": 0.739,
-                                    "Percent99": 0.739,
-                                    "StdDev": 0.066,
-                                    "AllMB": 0.003
-                                }
+                                ]
                             },
                             "Fail": {
-                                "Request": {
-                                    "Count": 0,
-                                    "RPS": 0.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 0.0,
-                                    "MaxMs": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 0,
-                                        "More800Less1200": 0,
-                                        "MoreOrEq1200": 0
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": []
-                            }
-                        },
-                        {
-                            "StepName": "pull_html_5",
-                            "Ok": {
                                 "Request": {
                                     "Count": 2,
                                     "RPS": 0.4
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 367.002,
-                                    "MaxMs": 602.931,
-                                    "Percent50": 375.74,
-                                    "Percent75": 375.74,
-                                    "Percent95": 375.74,
-                                    "Percent99": 375.74,
+                                    "MeanMs": 335.7,
+                                    "MaxMs": 1013.4,
+                                    "Percent50": 334.0,
+                                    "Percent75": 337.8,
+                                    "Percent95": 337.8,
+                                    "Percent99": 337.8,
+                                    "StdDev": 1.9,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 2,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 2,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 2
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "StepName": "pull_html_4",
+                            "Ok": {
+                                "Request": {
+                                    "Count": 1,
+                                    "RPS": 0.2
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 20.2,
+                                    "MaxMs": 60.5,
+                                    "Percent50": 20.2,
+                                    "Percent75": 20.2,
+                                    "Percent95": 20.2,
+                                    "Percent99": 20.2,
                                     "StdDev": 0.0,
                                     "LatencyCount": {
-                                        "LessOrEq800": 2,
+                                        "LessOrEq800": 1,
                                         "More800Less1200": 0,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.604,
-                                    "MaxKb": 0.937,
-                                    "Percent50": 0.614,
-                                    "Percent75": 0.614,
-                                    "Percent95": 0.614,
-                                    "Percent99": 0.614,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 283,
+                                    "MaxBytes": 850,
+                                    "Percent50": 283,
+                                    "Percent75": 283,
+                                    "Percent95": 283,
+                                    "Percent99": 283,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.002
-                                }
+                                    "AllBytes": 850
+                                },
+                                "StatusCodes": []
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 2,
+                                    "RPS": 0.4
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 670.7,
+                                    "MaxMs": 1010.9,
+                                    "Percent50": 670.9,
+                                    "Percent75": 670.9,
+                                    "Percent95": 670.9,
+                                    "Percent99": 670.9,
+                                    "StdDev": 0.0,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 2,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 2,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 2
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "StepName": "pull_html_5",
+                            "Ok": {
+                                "Request": {
+                                    "Count": 0,
+                                    "RPS": 0.0
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 0.0,
+                                    "MaxMs": 0.0,
+                                    "Percent50": 0.0,
+                                    "Percent75": 0.0,
+                                    "Percent95": 0.0,
+                                    "Percent99": 0.0,
+                                    "StdDev": 0.0,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 0,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": []
                             },
                             "Fail": {
                                 "Request": {
@@ -1140,30 +1306,45 @@ const viewModel = {
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": []
+                                "StatusCodes": []
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 7,
-                        "More800Less1200": 3,
+                        "LessOrEq800": 5,
+                        "More800Less1200": 4,
                         "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 3
                     },
-                    "ErrorStats": [],
+                    "StatusCodes": [
+                        {
+                            "Count@": 4,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 4
+                        },
+                        {
+                            "Count@": 2,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 2
+                        }
+                    ],
                     "CurrentOperation": 3,
                     "Duration": "00:00:05"
                 }
@@ -1232,19 +1413,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "692914140",
+                                    "Value": "1638580369",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "1746958777",
+                                    "Value": "508760032",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "974047668",
+                                    "Value": "24064058",
                                     "RowState": 4
                                 }
                             ]
@@ -1315,19 +1496,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "1298566609",
+                                    "Value": "60367864",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "1018346965",
+                                    "Value": "861828910",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "722013790",
+                                    "Value": "427398048",
                                     "RowState": 4
                                 }
                             ]
@@ -1342,100 +1523,105 @@ const viewModel = {
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_1",
-                    "RequestCount": 20,
-                    "OkCount": 17,
-                    "FailCount": 3,
-                    "AllDataMB": 0.0,
+                    "RequestCount": 22,
+                    "OkCount": 18,
+                    "FailCount": 4,
+                    "AllBytes": 0,
                     "StepStats": [
                         {
                             "StepName": "pull_html_1",
                             "Ok": {
                                 "Request": {
-                                    "Count": 17,
-                                    "RPS": 1.7
+                                    "Count": 18,
+                                    "RPS": 1.8
                                 },
                                 "Latency": {
-                                    "MinMs": 27.853,
-                                    "MeanMs": 590.404,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 554.871,
-                                    "Percent75": 707.789,
-                                    "Percent95": 996.147,
-                                    "Percent99": 996.147,
-                                    "StdDev": 226.245,
+                                    "MinMs": 33.9,
+                                    "MeanMs": 534.9,
+                                    "MaxMs": 984.7,
+                                    "Percent50": 493.4,
+                                    "Percent75": 695.8,
+                                    "Percent95": 879.8,
+                                    "Percent99": 879.8,
+                                    "StdDev": 241.8,
                                     "LatencyCount": {
-                                        "LessOrEq800": 11,
-                                        "More800Less1200": 5,
-                                        "MoreOrEq1200": 1
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 3,
-                                    "RPS": 0.3
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 243.94,
-                                    "MaxMs": 943.718,
-                                    "Percent50": 297.096,
-                                    "Percent75": 297.096,
-                                    "Percent95": 314.573,
-                                    "Percent99": 314.573,
-                                    "StdDev": 75.513,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 1,
-                                        "More800Less1200": 2,
+                                        "LessOrEq800": 15,
+                                        "More800Less1200": 3,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": []
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 4,
+                                    "RPS": 0.4
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 670.3,
+                                    "MaxMs": 1015.0,
+                                    "Percent50": 671.5,
+                                    "Percent75": 671.5,
+                                    "Percent95": 672.3,
+                                    "Percent99": 672.3,
+                                    "StdDev": 1.9,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 4,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 3
+                                        "Count@": 4,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 4
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 12,
+                        "LessOrEq800": 15,
                         "More800Less1200": 7,
-                        "MoreOrEq1200": 1
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 3
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 3
+                            "Count@": 4,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 4
                         }
                     ],
                     "CurrentOperation": 3,
@@ -1443,100 +1629,134 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_2",
-                    "RequestCount": 35,
-                    "OkCount": 30,
-                    "FailCount": 5,
-                    "AllDataMB": 0.013,
+                    "RequestCount": 38,
+                    "OkCount": 25,
+                    "FailCount": 13,
+                    "AllBytes": 16078,
                     "StepStats": [
                         {
                             "StepName": "pull_html_2",
                             "Ok": {
                                 "Request": {
-                                    "Count": 30,
-                                    "RPS": 3.0
+                                    "Count": 25,
+                                    "RPS": 2.5
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 545.588,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 444.708,
-                                    "Percent75": 766.771,
-                                    "Percent95": 1028.915,
-                                    "Percent99": 1028.915,
-                                    "StdDev": 321.129,
+                                    "MeanMs": 460.0,
+                                    "MaxMs": 954.4,
+                                    "Percent50": 416.3,
+                                    "Percent75": 552.6,
+                                    "Percent95": 662.6,
+                                    "Percent99": 662.6,
+                                    "StdDev": 154.6,
                                     "LatencyCount": {
-                                        "LessOrEq800": 17,
-                                        "More800Less1200": 8,
-                                        "MoreOrEq1200": 5
+                                        "LessOrEq800": 15,
+                                        "More800Less1200": 10,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.348,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.233,
-                                    "Percent75": 0.52,
-                                    "Percent95": 0.64,
-                                    "Percent99": 0.64,
-                                    "StdDev": 0.203,
-                                    "AllMB": 0.013
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 426,
+                                    "MaxBytes": 990,
+                                    "Percent50": 414,
+                                    "Percent75": 522,
+                                    "Percent95": 645,
+                                    "Percent99": 645,
+                                    "StdDev": 174.0,
+                                    "AllBytes": 15293
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 25,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 25
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 5,
-                                    "RPS": 0.5
+                                    "Count": 13,
+                                    "RPS": 1.3
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 516.798,
-                                    "MaxMs": 1310.72,
-                                    "Percent50": 477.477,
-                                    "Percent75": 578.589,
-                                    "Percent95": 578.589,
-                                    "Percent99": 578.589,
-                                    "StdDev": 49.62,
+                                    "MeanMs": 692.0,
+                                    "MaxMs": 1014.2,
+                                    "Percent50": 719.4,
+                                    "Percent75": 720.8,
+                                    "Percent95": 722.1,
+                                    "Percent99": 722.1,
+                                    "StdDev": 56.4,
                                     "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 0,
-                                        "MoreOrEq1200": 3
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 12,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 112,
+                                    "MaxBytes": 785,
+                                    "Percent50": 112,
+                                    "Percent75": 112,
+                                    "Percent95": 112,
+                                    "Percent99": 112,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 785
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 5
+                                        "Count@": 12,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 12
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 19,
-                        "More800Less1200": 8,
-                        "MoreOrEq1200": 8
+                        "LessOrEq800": 16,
+                        "More800Less1200": 22,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 7
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 5
+                            "Count@": 12,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 12
+                        },
+                        {
+                            "Count@": 25,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 25
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
                         }
                     ],
                     "CurrentOperation": 3,
@@ -1544,86 +1764,92 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_3",
-                    "RequestCount": 39,
-                    "OkCount": 36,
-                    "FailCount": 3,
-                    "AllDataMB": 0.017,
+                    "RequestCount": 42,
+                    "OkCount": 25,
+                    "FailCount": 17,
+                    "AllBytes": 11682,
                     "StepStats": [
                         {
                             "StepName": "pull_html_3",
                             "Ok": {
                                 "Request": {
-                                    "Count": 14,
-                                    "RPS": 1.4
+                                    "Count": 15,
+                                    "RPS": 1.5
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 479.895,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 399.77,
-                                    "Percent75": 585.143,
-                                    "Percent95": 778.006,
-                                    "Percent99": 778.006,
-                                    "StdDev": 259.902,
+                                    "MeanMs": 252.8,
+                                    "MaxMs": 1012.5,
+                                    "Percent50": 107.5,
+                                    "Percent75": 338.8,
+                                    "Percent95": 500.1,
+                                    "Percent99": 500.1,
+                                    "StdDev": 182.0,
                                     "LatencyCount": {
-                                        "LessOrEq800": 9,
-                                        "More800Less1200": 3,
-                                        "MoreOrEq1200": 2
+                                        "LessOrEq800": 13,
+                                        "More800Less1200": 2,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.426,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.388,
-                                    "Percent75": 0.452,
-                                    "Percent95": 0.564,
-                                    "Percent99": 0.564,
-                                    "StdDev": 0.095,
-                                    "AllMB": 0.006
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 313,
+                                    "MaxBytes": 991,
+                                    "Percent50": 283,
+                                    "Percent75": 349,
+                                    "Percent95": 449,
+                                    "Percent99": 449,
+                                    "StdDev": 103.0,
+                                    "AllBytes": 6651
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 9,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 9
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 2,
-                                    "RPS": 0.2
+                                    "Count": 9,
+                                    "RPS": 0.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 259.335,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 264.016,
-                                    "Percent75": 264.016,
-                                    "Percent95": 264.016,
-                                    "Percent99": 264.016,
-                                    "StdDev": 0.0,
+                                    "MeanMs": 705.3,
+                                    "MaxMs": 1014.2,
+                                    "Percent50": 705.7,
+                                    "Percent75": 706.0,
+                                    "Percent95": 706.5,
+                                    "Percent99": 706.5,
+                                    "StdDev": 0.9,
                                     "LatencyCount": {
-                                        "LessOrEq800": 1,
-                                        "More800Less1200": 0,
-                                        "MoreOrEq1200": 1
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 9,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 72,
+                                    "MaxBytes": 508,
+                                    "Percent50": 72,
+                                    "Percent75": 72,
+                                    "Percent95": 72,
+                                    "Percent99": 72,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 508
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 401,
-                                        "Message": "Unauthorized",
-                                        "Count": 1
-                                    },
-                                    {
-                                        "ErrorCode": 400,
-                                        "Message": "Bad Request",
-                                        "Count": 1
+                                        "Count@": 8,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 8
                                     }
                                 ]
                             }
@@ -1632,169 +1858,196 @@ const viewModel = {
                             "StepName": "pull_html_4",
                             "Ok": {
                                 "Request": {
-                                    "Count": 12,
-                                    "RPS": 1.2
+                                    "Count": 7,
+                                    "RPS": 0.7
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 524.59,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 460.975,
-                                    "Percent75": 529.905,
-                                    "Percent95": 752.728,
-                                    "Percent99": 752.728,
-                                    "StdDev": 170.916,
+                                    "MeanMs": 265.2,
+                                    "MaxMs": 765.5,
+                                    "Percent50": 273.2,
+                                    "Percent75": 282.3,
+                                    "Percent95": 284.0,
+                                    "Percent99": 284.0,
+                                    "StdDev": 23.4,
                                     "LatencyCount": {
                                         "LessOrEq800": 7,
-                                        "More800Less1200": 4,
-                                        "MoreOrEq1200": 1
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.328,
-                                    "MaxKb": 0.843,
-                                    "Percent50": 0.34,
-                                    "Percent75": 0.353,
-                                    "Percent95": 0.438,
-                                    "Percent99": 0.438,
-                                    "StdDev": 0.09,
-                                    "AllMB": 0.006
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 0,
-                                    "RPS": 0.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 0.0,
-                                    "MaxMs": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 0,
                                         "More800Less1200": 0,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 212,
+                                    "MaxBytes": 988,
+                                    "Percent50": 147,
+                                    "Percent75": 275,
+                                    "Percent95": 322,
+                                    "Percent99": 322,
+                                    "StdDev": 101.1,
+                                    "AllBytes": 3084
                                 },
-                                "ErrorStats": []
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 4,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 4
+                                    }
+                                ]
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 5,
+                                    "RPS": 0.5
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 433.1,
+                                    "MaxMs": 1015.8,
+                                    "Percent50": 432.7,
+                                    "Percent75": 433.9,
+                                    "Percent95": 433.9,
+                                    "Percent99": 433.9,
+                                    "StdDev": 0.6,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 5,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 5,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 5
+                                    }
+                                ]
                             }
                         },
                         {
                             "StepName": "pull_html_5",
                             "Ok": {
                                 "Request": {
-                                    "Count": 10,
-                                    "RPS": 1.0
+                                    "Count": 3,
+                                    "RPS": 0.3
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 535.991,
-                                    "MaxMs": 1153.434,
-                                    "Percent50": 428.793,
-                                    "Percent75": 681.574,
-                                    "Percent95": 685.319,
-                                    "Percent99": 685.319,
-                                    "StdDev": 136.442,
+                                    "MeanMs": 190.2,
+                                    "MaxMs": 893.7,
+                                    "Percent50": 190.3,
+                                    "Percent75": 190.3,
+                                    "Percent95": 190.3,
+                                    "Percent99": 190.3,
+                                    "StdDev": 0.0,
                                     "LatencyCount": {
-                                        "LessOrEq800": 6,
-                                        "More800Less1200": 4,
+                                        "LessOrEq800": 2,
+                                        "More800Less1200": 1,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.375,
-                                    "MaxKb": 0.937,
-                                    "Percent50": 0.302,
-                                    "Percent75": 0.44,
-                                    "Percent95": 0.512,
-                                    "Percent99": 0.512,
-                                    "StdDev": 0.114,
-                                    "AllMB": 0.005
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 205,
+                                    "MaxBytes": 940,
+                                    "Percent50": 205,
+                                    "Percent75": 205,
+                                    "Percent95": 205,
+                                    "Percent99": 205,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 1439
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 1
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 1,
-                                    "RPS": 0.1
+                                    "Count": 3,
+                                    "RPS": 0.3
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 4.798,
-                                    "MaxMs": 34.406,
-                                    "Percent50": 4.915,
-                                    "Percent75": 4.915,
-                                    "Percent95": 4.915,
-                                    "Percent99": 4.915,
-                                    "StdDev": 0.0,
+                                    "MeanMs": 289.1,
+                                    "MaxMs": 1014.2,
+                                    "Percent50": 288.9,
+                                    "Percent75": 289.4,
+                                    "Percent95": 289.4,
+                                    "Percent99": 289.4,
+                                    "StdDev": 0.2,
                                     "LatencyCount": {
-                                        "LessOrEq800": 1,
-                                        "More800Less1200": 0,
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 3,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 1
+                                        "Count@": 3,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 3
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 24,
-                        "More800Less1200": 11,
-                        "MoreOrEq1200": 4
+                        "LessOrEq800": 22,
+                        "More800Less1200": 20,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 7
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 401,
-                            "Message": "Unauthorized",
-                            "Count": 1
+                            "Count@": 16,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 16
                         },
                         {
-                            "ErrorCode": 400,
-                            "Message": "Bad Request",
-                            "Count": 1
-                        },
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 1
+                            "Count@": 14,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 14
                         }
                     ],
                     "CurrentOperation": 3,
@@ -1865,19 +2118,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "1296856745",
+                                    "Value": "1824427894",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "1561822799",
+                                    "Value": "1485055958",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "355418103",
+                                    "Value": "882574567",
                                     "RowState": 4
                                 }
                             ]
@@ -1948,19 +2201,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "1593063984",
+                                    "Value": "567906406",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "495645920",
+                                    "Value": "1691513742",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "1224184581",
+                                    "Value": "1219022426",
                                     "RowState": 4
                                 }
                             ]
@@ -1975,10 +2228,10 @@ const viewModel = {
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_1",
-                    "RequestCount": 44,
+                    "RequestCount": 49,
                     "OkCount": 38,
-                    "FailCount": 6,
-                    "AllDataMB": 0.0,
+                    "FailCount": 11,
+                    "AllBytes": 0,
                     "StepStats": [
                         {
                             "StepName": "pull_html_1",
@@ -1989,86 +2242,91 @@ const viewModel = {
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 568.167,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 576.717,
-                                    "Percent75": 807.403,
-                                    "Percent95": 964.69,
-                                    "Percent99": 1027.604,
-                                    "StdDev": 301.621,
+                                    "MeanMs": 481.8,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 529.6,
+                                    "Percent75": 602.5,
+                                    "Percent95": 747.1,
+                                    "Percent99": 778.1,
+                                    "StdDev": 206.7,
                                     "LatencyCount": {
-                                        "LessOrEq800": 20,
-                                        "More800Less1200": 14,
-                                        "MoreOrEq1200": 4
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 6,
-                                    "RPS": 0.4
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 532.371,
-                                    "MaxMs": 1205.862,
-                                    "Percent50": 484.966,
-                                    "Percent75": 660.603,
-                                    "Percent95": 671.089,
-                                    "Percent99": 671.089,
-                                    "StdDev": 131.16,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 4,
+                                        "LessOrEq800": 29,
+                                        "More800Less1200": 9,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": []
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 11,
+                                    "RPS": 0.7
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 804.4,
+                                    "MaxMs": 1015.0,
+                                    "Percent50": 803.5,
+                                    "Percent75": 806.4,
+                                    "Percent95": 807.4,
+                                    "Percent99": 807.4,
+                                    "StdDev": 2.4,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 11,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 6
+                                        "Count@": 11,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 11
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 22,
-                        "More800Less1200": 18,
-                        "MoreOrEq1200": 4
+                        "LessOrEq800": 29,
+                        "More800Less1200": 20,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 5
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 6
+                            "Count@": 11,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 11
                         }
                     ],
                     "CurrentOperation": 3,
@@ -2076,100 +2334,134 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_2",
-                    "RequestCount": 85,
-                    "OkCount": 72,
-                    "FailCount": 13,
-                    "AllDataMB": 0.032,
+                    "RequestCount": 95,
+                    "OkCount": 58,
+                    "FailCount": 37,
+                    "AllBytes": 32877,
                     "StepStats": [
                         {
                             "StepName": "pull_html_2",
                             "Ok": {
                                 "Request": {
-                                    "Count": 72,
-                                    "RPS": 4.8
+                                    "Count": 58,
+                                    "RPS": 3.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 683.762,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 632.422,
-                                    "Percent75": 946.995,
-                                    "Percent95": 1211.105,
-                                    "Percent99": 1226.834,
-                                    "StdDev": 395.285,
+                                    "MeanMs": 462.8,
+                                    "MaxMs": 954.4,
+                                    "Percent50": 414.6,
+                                    "Percent75": 581.8,
+                                    "Percent95": 682.4,
+                                    "Percent99": 708.6,
+                                    "StdDev": 179.7,
                                     "LatencyCount": {
-                                        "LessOrEq800": 34,
-                                        "More800Less1200": 20,
-                                        "MoreOrEq1200": 18
+                                        "LessOrEq800": 45,
+                                        "More800Less1200": 13,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.453,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.389,
-                                    "Percent75": 0.632,
-                                    "Percent95": 0.768,
-                                    "Percent99": 0.799,
-                                    "StdDev": 0.227,
-                                    "AllMB": 0.032
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 462,
+                                    "MaxBytes": 990,
+                                    "Percent50": 459,
+                                    "Percent75": 580,
+                                    "Percent95": 738,
+                                    "Percent99": 741,
+                                    "StdDev": 201.2,
+                                    "AllBytes": 32092
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 58,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 58
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 13,
-                                    "RPS": 0.9
+                                    "Count": 37,
+                                    "RPS": 2.5
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 641.106,
-                                    "MaxMs": 1310.72,
-                                    "Percent50": 639.631,
-                                    "Percent75": 669.778,
-                                    "Percent95": 706.478,
-                                    "Percent99": 706.478,
-                                    "StdDev": 43.285,
+                                    "MeanMs": 794.8,
+                                    "MaxMs": 1015.0,
+                                    "Percent50": 806.8,
+                                    "Percent75": 809.0,
+                                    "Percent95": 810.8,
+                                    "Percent99": 810.8,
+                                    "StdDev": 34.5,
                                     "LatencyCount": {
-                                        "LessOrEq800": 5,
-                                        "More800Less1200": 5,
-                                        "MoreOrEq1200": 3
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 36,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 78,
+                                    "MaxBytes": 785,
+                                    "Percent50": 78,
+                                    "Percent75": 78,
+                                    "Percent95": 78,
+                                    "Percent99": 78,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 785
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 13
+                                        "Count@": 36,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 36
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 39,
-                        "More800Less1200": 25,
-                        "MoreOrEq1200": 21
+                        "LessOrEq800": 46,
+                        "More800Less1200": 49,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 10
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 13
+                            "Count@": 36,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 36
+                        },
+                        {
+                            "Count@": 58,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 58
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
                         }
                     ],
                     "CurrentOperation": 3,
@@ -2177,86 +2469,106 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_3",
-                    "RequestCount": 89,
-                    "OkCount": 77,
-                    "FailCount": 12,
-                    "AllDataMB": 0.04,
+                    "RequestCount": 106,
+                    "OkCount": 57,
+                    "FailCount": 49,
+                    "AllBytes": 34322,
                     "StepStats": [
                         {
                             "StepName": "pull_html_3",
                             "Ok": {
                                 "Request": {
-                                    "Count": 31,
-                                    "RPS": 2.1
+                                    "Count": 33,
+                                    "RPS": 2.2
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 659.401,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 672.399,
-                                    "Percent75": 754.975,
-                                    "Percent95": 996.147,
-                                    "Percent99": 996.147,
-                                    "StdDev": 245.704,
+                                    "MeanMs": 360.3,
+                                    "MaxMs": 1012.5,
+                                    "Percent50": 271.4,
+                                    "Percent75": 460.3,
+                                    "Percent95": 596.3,
+                                    "Percent99": 596.3,
+                                    "StdDev": 157.4,
                                     "LatencyCount": {
-                                        "LessOrEq800": 18,
-                                        "More800Less1200": 10,
-                                        "MoreOrEq1200": 3
+                                        "LessOrEq800": 29,
+                                        "More800Less1200": 4,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.463,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.448,
-                                    "Percent75": 0.537,
-                                    "Percent95": 0.701,
-                                    "Percent99": 0.701,
-                                    "StdDev": 0.173,
-                                    "AllMB": 0.016
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 489,
+                                    "MaxBytes": 993,
+                                    "Percent50": 425,
+                                    "Percent75": 563,
+                                    "Percent95": 707,
+                                    "Percent99": 707,
+                                    "StdDev": 151.3,
+                                    "AllBytes": 16414
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 18,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 18
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 5,
-                                    "RPS": 0.3
+                                    "Count": 29,
+                                    "RPS": 1.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 243.466,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 204.472,
-                                    "Percent75": 292.291,
-                                    "Percent95": 292.291,
-                                    "Percent99": 292.291,
-                                    "StdDev": 42.926,
+                                    "MeanMs": 708.6,
+                                    "MaxMs": 1015.8,
+                                    "Percent50": 722.5,
+                                    "Percent75": 735.9,
+                                    "Percent95": 737.6,
+                                    "Percent99": 737.6,
+                                    "StdDev": 47.9,
                                     "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 2
+                                        "LessOrEq800": 4,
+                                        "More800Less1200": 25,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 242,
+                                    "MaxBytes": 637,
+                                    "Percent50": 236,
+                                    "Percent75": 249,
+                                    "Percent95": 249,
+                                    "Percent99": 249,
+                                    "StdDev": 6.0,
+                                    "AllBytes": 2998
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 401,
-                                        "Message": "Unauthorized",
-                                        "Count": 3
+                                        "Count@": 24,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 24
                                     },
                                     {
-                                        "ErrorCode": 400,
+                                        "Count@": 1,
+                                        "StatusCode": 400,
+                                        "IsError": true,
                                         "Message": "Bad Request",
-                                        "Count": 2
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 502,
+                                        "IsError": true,
+                                        "Message": "Bad Gateway",
+                                        "Count": 1
                                     }
                                 ]
                             }
@@ -2265,76 +2577,96 @@ const viewModel = {
                             "StepName": "pull_html_4",
                             "Ok": {
                                 "Request": {
-                                    "Count": 27,
-                                    "RPS": 1.8
+                                    "Count": 16,
+                                    "RPS": 1.1
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 604.009,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 526.909,
-                                    "Percent75": 752.353,
-                                    "Percent95": 888.668,
-                                    "Percent99": 888.668,
-                                    "StdDev": 203.712,
+                                    "MeanMs": 426.4,
+                                    "MaxMs": 999.4,
+                                    "Percent50": 353.6,
+                                    "Percent75": 469.8,
+                                    "Percent95": 548.8,
+                                    "Percent99": 548.8,
+                                    "StdDev": 109.7,
                                     "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 9,
-                                        "MoreOrEq1200": 4
+                                        "LessOrEq800": 12,
+                                        "More800Less1200": 4,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.444,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.465,
-                                    "Percent75": 0.527,
-                                    "Percent95": 0.552,
-                                    "Percent99": 0.552,
-                                    "StdDev": 0.089,
-                                    "AllMB": 0.014
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 487,
+                                    "MaxBytes": 988,
+                                    "Percent50": 360,
+                                    "Percent75": 575,
+                                    "Percent95": 672,
+                                    "Percent99": 672,
+                                    "StdDev": 166.0,
+                                    "AllBytes": 9272
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 12,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 12
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 3,
-                                    "RPS": 0.2
+                                    "Count": 13,
+                                    "RPS": 0.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 249.692,
-                                    "MaxMs": 1363.149,
-                                    "Percent50": 254.28,
-                                    "Percent75": 254.28,
-                                    "Percent95": 254.28,
-                                    "Percent99": 254.28,
-                                    "StdDev": 0.0,
+                                    "MeanMs": 573.4,
+                                    "MaxMs": 1015.8,
+                                    "Percent50": 534.2,
+                                    "Percent75": 613.2,
+                                    "Percent95": 613.7,
+                                    "Percent99": 613.7,
+                                    "StdDev": 40.0,
                                     "LatencyCount": {
-                                        "LessOrEq800": 1,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 1
+                                        "LessOrEq800": 3,
+                                        "More800Less1200": 10,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 65,
+                                    "MaxBytes": 614,
+                                    "Percent50": 58,
+                                    "Percent75": 72,
+                                    "Percent95": 72,
+                                    "Percent99": 72,
+                                    "StdDev": 7.0,
+                                    "AllBytes": 1195
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 401,
-                                        "Message": "Unauthorized",
-                                        "Count": 2
+                                        "Count@": 10,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 10
                                     },
                                     {
-                                        "ErrorCode": 400,
-                                        "Message": "Bad Request",
+                                        "Count@": 1,
+                                        "StatusCode": 502,
+                                        "IsError": true,
+                                        "Message": "Bad Gateway",
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 503,
+                                        "IsError": true,
+                                        "Message": "Service Unavailable",
                                         "Count": 1
                                     }
                                 ]
@@ -2344,101 +2676,132 @@ const viewModel = {
                             "StepName": "pull_html_5",
                             "Ok": {
                                 "Request": {
-                                    "Count": 19,
-                                    "RPS": 1.3
+                                    "Count": 8,
+                                    "RPS": 0.5
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 557.029,
-                                    "MaxMs": 1310.72,
-                                    "Percent50": 546.57,
-                                    "Percent75": 587.202,
-                                    "Percent95": 718.274,
-                                    "Percent99": 718.274,
-                                    "StdDev": 121.994,
+                                    "MeanMs": 380.2,
+                                    "MaxMs": 893.7,
+                                    "Percent50": 359.8,
+                                    "Percent75": 400.9,
+                                    "Percent95": 400.9,
+                                    "Percent99": 400.9,
+                                    "StdDev": 20.5,
                                     "LatencyCount": {
-                                        "LessOrEq800": 11,
-                                        "More800Less1200": 7,
-                                        "MoreOrEq1200": 1
+                                        "LessOrEq800": 7,
+                                        "More800Less1200": 1,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.365,
-                                    "MaxKb": 0.937,
-                                    "Percent50": 0.355,
-                                    "Percent75": 0.404,
-                                    "Percent95": 0.523,
-                                    "Percent99": 0.523,
-                                    "StdDev": 0.12,
-                                    "AllMB": 0.01
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 375,
+                                    "MaxBytes": 954,
+                                    "Percent50": 351,
+                                    "Percent75": 399,
+                                    "Percent95": 399,
+                                    "Percent99": 399,
+                                    "StdDev": 24.0,
+                                    "AllBytes": 4443
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 4,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 4
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 4,
-                                    "RPS": 0.3
+                                    "Count": 7,
+                                    "RPS": 0.5
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 327.107,
-                                    "MaxMs": 1363.149,
-                                    "Percent50": 333.742,
-                                    "Percent75": 333.742,
-                                    "Percent95": 333.742,
-                                    "Percent99": 333.742,
-                                    "StdDev": 0.0,
+                                    "MeanMs": 504.8,
+                                    "MaxMs": 1014.2,
+                                    "Percent50": 504.7,
+                                    "Percent75": 505.2,
+                                    "Percent95": 505.2,
+                                    "Percent99": 505.2,
+                                    "StdDev": 0.2,
                                     "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 1
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 7,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 4
+                                        "Count@": 7,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 7
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 48,
-                        "More800Less1200": 29,
-                        "MoreOrEq1200": 12
+                        "LessOrEq800": 55,
+                        "More800Less1200": 51,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "ramp_constant",
                         "Value": 10
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 401,
-                            "Message": "Unauthorized",
-                            "Count": 5
+                            "Count@": 41,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 41
                         },
                         {
-                            "ErrorCode": 400,
+                            "Count@": 34,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 34
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 400,
+                            "IsError": true,
                             "Message": "Bad Request",
-                            "Count": 3
+                            "Count": 1
                         },
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 4
+                            "Count@": 2,
+                            "StatusCode": 502,
+                            "IsError": true,
+                            "Message": "Bad Gateway",
+                            "Count": 2
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 503,
+                            "IsError": true,
+                            "Message": "Service Unavailable",
+                            "Count": 1
                         }
                     ],
                     "CurrentOperation": 3,
@@ -2509,19 +2872,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "1086879855",
+                                    "Value": "2031614404",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "1620139795",
+                                    "Value": "522799890",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "1502224672",
+                                    "Value": "2053055039",
                                     "RowState": 4
                                 }
                             ]
@@ -2592,19 +2955,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "1631799005",
+                                    "Value": "1977413755",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "1393480528",
+                                    "Value": "139201604",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "2100408111",
+                                    "Value": "767070351",
                                     "RowState": 4
                                 }
                             ]
@@ -2615,90 +2978,131 @@ const viewModel = {
             ]
         },
         {
-            "Duration": "00:00:14",
+            "Duration": "00:00:17",
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_3",
-                    "RequestCount": 94,
-                    "OkCount": 82,
-                    "FailCount": 12,
-                    "AllDataMB": 0.042,
+                    "RequestCount": 174,
+                    "OkCount": 91,
+                    "FailCount": 83,
+                    "AllBytes": 51844,
                     "StepStats": [
                         {
                             "StepName": "pull_html_3",
                             "Ok": {
                                 "Request": {
-                                    "Count": 33,
-                                    "RPS": 2.3
+                                    "Count": 49,
+                                    "RPS": 2.7
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 651.507,
-                                    "MaxMs": 1468.006,
-                                    "Percent50": 601.62,
-                                    "Percent75": 789.053,
-                                    "Percent95": 996.147,
-                                    "Percent99": 996.147,
-                                    "StdDev": 244.478,
+                                    "MeanMs": 224.7,
+                                    "MaxMs": 1012.5,
+                                    "Percent50": 182.8,
+                                    "Percent75": 285.8,
+                                    "Percent95": 323.8,
+                                    "Percent99": 323.8,
+                                    "StdDev": 72.7,
                                     "LatencyCount": {
-                                        "LessOrEq800": 19,
-                                        "More800Less1200": 11,
-                                        "MoreOrEq1200": 3
+                                        "LessOrEq800": 44,
+                                        "More800Less1200": 5,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.466,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.459,
-                                    "Percent75": 0.547,
-                                    "Percent95": 0.701,
-                                    "Percent99": 0.701,
-                                    "StdDev": 0.17,
-                                    "AllMB": 0.017
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 246,
+                                    "MaxBytes": 993,
+                                    "Percent50": 203,
+                                    "Percent75": 305,
+                                    "Percent95": 348,
+                                    "Percent99": 348,
+                                    "StdDev": 76.0,
+                                    "AllBytes": 21359
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 29,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 29
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 5,
-                                    "RPS": 0.3
+                                    "Count": 53,
+                                    "RPS": 2.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 243.466,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 204.472,
-                                    "Percent75": 292.291,
-                                    "Percent95": 292.291,
-                                    "Percent99": 292.291,
-                                    "StdDev": 42.926,
+                                    "MeanMs": 631.3,
+                                    "MaxMs": 1017.4,
+                                    "Percent50": 656.7,
+                                    "Percent75": 657.7,
+                                    "Percent95": 658.7,
+                                    "Percent99": 658.7,
+                                    "StdDev": 46.3,
                                     "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 2
+                                        "LessOrEq800": 7,
+                                        "More800Less1200": 46,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 144,
+                                    "MaxBytes": 818,
+                                    "Percent50": 142,
+                                    "Percent75": 146,
+                                    "Percent95": 146,
+                                    "Percent99": 146,
+                                    "StdDev": 2.1,
+                                    "AllBytes": 4757
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 401,
-                                        "Message": "Unauthorized",
-                                        "Count": 3
+                                        "Count@": 45,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 45
                                     },
                                     {
-                                        "ErrorCode": 400,
+                                        "Count@": 1,
+                                        "StatusCode": 400,
+                                        "IsError": true,
                                         "Message": "Bad Request",
-                                        "Count": 2
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 401,
+                                        "IsError": true,
+                                        "Message": "Unauthorized",
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 403,
+                                        "IsError": true,
+                                        "Message": "Forbidden",
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 502,
+                                        "IsError": true,
+                                        "Message": "Bad Gateway",
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 503,
+                                        "IsError": true,
+                                        "Message": "Service Unavailable",
+                                        "Count": 1
                                     }
                                 ]
                             }
@@ -2708,75 +3112,102 @@ const viewModel = {
                             "Ok": {
                                 "Request": {
                                     "Count": 28,
-                                    "RPS": 1.9
+                                    "RPS": 1.6
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 597.183,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 526.909,
-                                    "Percent75": 752.353,
-                                    "Percent95": 888.668,
-                                    "Percent99": 888.668,
-                                    "StdDev": 202.631,
+                                    "MeanMs": 305.8,
+                                    "MaxMs": 999.4,
+                                    "Percent50": 291.2,
+                                    "Percent75": 331.3,
+                                    "Percent95": 345.2,
+                                    "Percent99": 345.2,
+                                    "StdDev": 37.4,
                                     "LatencyCount": {
-                                        "LessOrEq800": 15,
+                                        "LessOrEq800": 19,
                                         "More800Less1200": 9,
-                                        "MoreOrEq1200": 4
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.443,
-                                    "MaxKb": 0.968,
-                                    "Percent50": 0.465,
-                                    "Percent75": 0.527,
-                                    "Percent95": 0.552,
-                                    "Percent99": 0.552,
-                                    "StdDev": 0.09,
-                                    "AllMB": 0.014
-                                }
+                                    "MinBytes": 0,
+                                    "MeanBytes": 283,
+                                    "MaxBytes": 988,
+                                    "Percent50": 244,
+                                    "Percent75": 314,
+                                    "Percent95": 356,
+                                    "Percent99": 356,
+                                    "StdDev": 59.7,
+                                    "AllBytes": 14550
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 21,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 21
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 3,
-                                    "RPS": 0.2
+                                    "Count": 20,
+                                    "RPS": 1.1
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 249.692,
-                                    "MaxMs": 1363.149,
-                                    "Percent50": 254.28,
-                                    "Percent75": 254.28,
-                                    "Percent95": 254.28,
-                                    "Percent99": 254.28,
-                                    "StdDev": 0.0,
+                                    "MeanMs": 290.2,
+                                    "MaxMs": 1015.8,
+                                    "Percent50": 270.1,
+                                    "Percent75": 314.7,
+                                    "Percent95": 315.5,
+                                    "Percent99": 315.5,
+                                    "StdDev": 25.3,
                                     "LatencyCount": {
-                                        "LessOrEq800": 1,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 1
+                                        "LessOrEq800": 5,
+                                        "More800Less1200": 15,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 27,
+                                    "MaxBytes": 614,
+                                    "Percent50": 20,
+                                    "Percent75": 34,
+                                    "Percent95": 34,
+                                    "Percent99": 34,
+                                    "StdDev": 7.0,
+                                    "AllBytes": 1504
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 401,
-                                        "Message": "Unauthorized",
+                                        "Count@": 15,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 15
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
+                                    },
+                                    {
+                                        "Count@": 2,
+                                        "StatusCode": 502,
+                                        "IsError": true,
+                                        "Message": "Bad Gateway",
                                         "Count": 2
                                     },
                                     {
-                                        "ErrorCode": 400,
-                                        "Message": "Bad Request",
+                                        "Count@": 1,
+                                        "StatusCode": 503,
+                                        "IsError": true,
+                                        "Message": "Service Unavailable",
                                         "Count": 1
                                     }
                                 ]
@@ -2786,313 +3217,164 @@ const viewModel = {
                             "StepName": "pull_html_5",
                             "Ok": {
                                 "Request": {
-                                    "Count": 21,
-                                    "RPS": 1.5
+                                    "Count": 14,
+                                    "RPS": 0.8
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 533.763,
-                                    "MaxMs": 1310.72,
-                                    "Percent50": 474.481,
-                                    "Percent75": 610.795,
-                                    "Percent95": 744.489,
-                                    "Percent99": 744.489,
-                                    "StdDev": 165.432,
+                                    "MeanMs": 215.9,
+                                    "MaxMs": 996.1,
+                                    "Percent50": 202.0,
+                                    "Percent75": 220.7,
+                                    "Percent95": 234.8,
+                                    "Percent99": 234.8,
+                                    "StdDev": 16.0,
                                     "LatencyCount": {
                                         "LessOrEq800": 12,
-                                        "More800Less1200": 7,
-                                        "MoreOrEq1200": 2
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.335,
-                                    "MaxKb": 0.937,
-                                    "Percent50": 0.284,
-                                    "Percent75": 0.404,
-                                    "Percent95": 0.523,
-                                    "Percent99": 0.523,
-                                    "StdDev": 0.144,
-                                    "AllMB": 0.011
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 4,
-                                    "RPS": 0.3
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 327.107,
-                                    "MaxMs": 1363.149,
-                                    "Percent50": 333.742,
-                                    "Percent75": 333.742,
-                                    "Percent95": 333.742,
-                                    "Percent99": 333.742,
-                                    "StdDev": 0.0,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 2,
-                                        "More800Less1200": 1,
-                                        "MoreOrEq1200": 1
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": [
-                                    {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 4
-                                    }
-                                ]
-                            }
-                        }
-                    ],
-                    "LatencyCount": {
-                        "LessOrEq800": 51,
-                        "More800Less1200": 30,
-                        "MoreOrEq1200": 13
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "ramp_constant",
-                        "Value": 0
-                    },
-                    "ErrorStats": [
-                        {
-                            "ErrorCode": 401,
-                            "Message": "Unauthorized",
-                            "Count": 5
-                        },
-                        {
-                            "ErrorCode": 400,
-                            "Message": "Bad Request",
-                            "Count": 3
-                        },
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 4
-                        }
-                    ],
-                    "CurrentOperation": 5,
-                    "Duration": "00:00:14"
-                }
-            ],
-            "PluginStats": []
-        },
-        {
-            "Duration": "00:00:20",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_1",
-                    "RequestCount": 88,
-                    "OkCount": 78,
-                    "FailCount": 10,
-                    "AllDataMB": 0.0,
-                    "StepStats": [
-                        {
-                            "StepName": "pull_html_1",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 78,
-                                    "RPS": 3.9
-                                },
-                                "Latency": {
-                                    "MinMs": 17.203,
-                                    "MeanMs": 810.081,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 634.295,
-                                    "Percent75": 1079.784,
-                                    "Percent95": 1132.212,
-                                    "Percent99": 1147.192,
-                                    "StdDev": 282.443,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 39,
-                                        "More800Less1200": 21,
-                                        "MoreOrEq1200": 18
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 10,
-                                    "RPS": 0.5
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 165.218,
-                                    "MaxMs": 1205.862,
-                                    "Percent50": 149.172,
-                                    "Percent75": 204.722,
-                                    "Percent95": 209.715,
-                                    "Percent99": 209.715,
-                                    "StdDev": 40.58,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 4,
-                                        "More800Less1200": 6,
+                                        "More800Less1200": 2,
                                         "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "MinBytes": 0,
+                                    "MeanBytes": 225,
+                                    "MaxBytes": 991,
+                                    "Percent50": 201,
+                                    "Percent75": 250,
+                                    "Percent95": 257,
+                                    "Percent99": 257,
+                                    "StdDev": 31.2,
+                                    "AllBytes": 8875
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 10
+                                        "Count@": 7,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 7
+                                    }
+                                ]
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 10,
+                                    "RPS": 0.6
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 232.1,
+                                    "MaxMs": 1014.2,
+                                    "Percent50": 221.1,
+                                    "Percent75": 243.2,
+                                    "Percent95": 243.2,
+                                    "Percent99": 243.2,
+                                    "StdDev": 11.1,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 9,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 27,
+                                    "MaxBytes": 799,
+                                    "Percent50": 27,
+                                    "Percent75": 27,
+                                    "Percent95": 27,
+                                    "Percent99": 27,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 799
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 9,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 9
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 43,
-                        "More800Less1200": 27,
-                        "MoreOrEq1200": 18
+                        "LessOrEq800": 88,
+                        "More800Less1200": 86,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "inject_per_sec",
                         "Value": 10
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 10
+                            "Count@": 69,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 69
+                        },
+                        {
+                            "Count@": 57,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 57
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 400,
+                            "IsError": true,
+                            "Message": "Bad Request",
+                            "Count": 1
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 401,
+                            "IsError": true,
+                            "Message": "Unauthorized",
+                            "Count": 1
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 403,
+                            "IsError": true,
+                            "Message": "Forbidden",
+                            "Count": 1
+                        },
+                        {
+                            "Count@": 2,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 2
+                        },
+                        {
+                            "Count@": 3,
+                            "StatusCode": 502,
+                            "IsError": true,
+                            "Message": "Bad Gateway",
+                            "Count": 3
+                        },
+                        {
+                            "Count@": 2,
+                            "StatusCode": 503,
+                            "IsError": true,
+                            "Message": "Service Unavailable",
+                            "Count": 2
                         }
                     ],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:20"
-                },
-                {
-                    "ScenarioName": "scenario_2",
-                    "RequestCount": 139,
-                    "OkCount": 115,
-                    "FailCount": 24,
-                    "AllDataMB": 0.053,
-                    "StepStats": [
-                        {
-                            "StepName": "pull_html_2",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 115,
-                                    "RPS": 5.7
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 682.615,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 608.714,
-                                    "Percent75": 943.718,
-                                    "Percent95": 1082.5,
-                                    "Percent99": 1097.921,
-                                    "StdDev": 283.82,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 59,
-                                        "More800Less1200": 32,
-                                        "MoreOrEq1200": 24
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.413,
-                                    "MaxKb": 0.999,
-                                    "Percent50": 0.367,
-                                    "Percent75": 0.595,
-                                    "Percent95": 0.667,
-                                    "Percent99": 0.706,
-                                    "StdDev": 0.2,
-                                    "AllMB": 0.053
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 24,
-                                    "RPS": 1.2
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 462.398,
-                                    "MaxMs": 1310.72,
-                                    "Percent50": 435.622,
-                                    "Percent75": 486.508,
-                                    "Percent95": 629.917,
-                                    "Percent99": 629.917,
-                                    "StdDev": 122.72,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 11,
-                                        "More800Less1200": 10,
-                                        "MoreOrEq1200": 3
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": [
-                                    {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 24
-                                    }
-                                ]
-                            }
-                        }
-                    ],
-                    "LatencyCount": {
-                        "LessOrEq800": 70,
-                        "More800Less1200": 42,
-                        "MoreOrEq1200": 27
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 5
-                    },
-                    "ErrorStats": [
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 24
-                        }
-                    ],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:20"
+                    "CurrentOperation": 5,
+                    "Duration": "00:00:17"
                 }
             ],
             "PluginStats": [
@@ -3159,19 +3441,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "2141043792",
+                                    "Value": "74127588",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "827307595",
+                                    "Value": "1518660903",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "759955783",
+                                    "Value": "293432812",
                                     "RowState": 4
                                 }
                             ]
@@ -3242,19 +3524,433 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "2088582166",
+                                    "Value": "812571500",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "195828337",
+                                    "Value": "832208558",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "1490946380",
+                                    "Value": "672504236",
+                                    "RowState": 4
+                                }
+                            ]
+                        }
+                    },
+                    "Relations": {}
+                }
+            ]
+        },
+        {
+            "Duration": "00:00:20",
+            "ScenarioStats": [
+                {
+                    "ScenarioName": "scenario_1",
+                    "RequestCount": 101,
+                    "OkCount": 70,
+                    "FailCount": 31,
+                    "AllBytes": 0,
+                    "StepStats": [
+                        {
+                            "StepName": "pull_html_1",
+                            "Ok": {
+                                "Request": {
+                                    "Count": 70,
+                                    "RPS": 3.5
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 405.5,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 380.7,
+                                    "Percent75": 437.4,
+                                    "Percent95": 538.1,
+                                    "Percent99": 545.9,
+                                    "StdDev": 98.6,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 57,
+                                        "More800Less1200": 14,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": []
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 31,
+                                    "RPS": 1.5
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 706.3,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 706.4,
+                                    "Percent75": 707.2,
+                                    "Percent95": 707.7,
+                                    "Percent99": 707.7,
+                                    "StdDev": 1.0,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 31,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 31,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 31
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "LatencyCount": {
+                        "LessOrEq800": 57,
+                        "More800Less1200": 45,
+                        "MoreOrEq1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "inject_per_sec",
+                        "Value": 10
+                    },
+                    "StatusCodes": [
+                        {
+                            "Count@": 31,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 31
+                        }
+                    ],
+                    "CurrentOperation": 3,
+                    "Duration": "00:00:20"
+                },
+                {
+                    "ScenarioName": "scenario_2",
+                    "RequestCount": 151,
+                    "OkCount": 98,
+                    "FailCount": 53,
+                    "AllBytes": 51213,
+                    "StepStats": [
+                        {
+                            "StepName": "pull_html_2",
+                            "Ok": {
+                                "Request": {
+                                    "Count": 98,
+                                    "RPS": 4.9
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 470.9,
+                                    "MaxMs": 983.0,
+                                    "Percent50": 434.4,
+                                    "Percent75": 553.6,
+                                    "Percent95": 677.2,
+                                    "Percent99": 691.2,
+                                    "StdDev": 147.7,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 78,
+                                        "More800Less1200": 20,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 418,
+                                    "MaxBytes": 990,
+                                    "Percent50": 388,
+                                    "Percent75": 518,
+                                    "Percent95": 642,
+                                    "Percent99": 651,
+                                    "StdDev": 158.9,
+                                    "AllBytes": 50428
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 99,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 99
+                                    }
+                                ]
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 53,
+                                    "RPS": 2.6
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 834.2,
+                                    "MaxMs": 1015.0,
+                                    "Percent50": 840.7,
+                                    "Percent75": 841.6,
+                                    "Percent95": 843.1,
+                                    "Percent99": 843.1,
+                                    "StdDev": 18.6,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 52,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 43,
+                                    "MaxBytes": 785,
+                                    "Percent50": 43,
+                                    "Percent75": 43,
+                                    "Percent95": 43,
+                                    "Percent99": 43,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 785
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 52,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 52
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "LatencyCount": {
+                        "LessOrEq800": 79,
+                        "More800Less1200": 72,
+                        "MoreOrEq1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "inject_per_sec",
+                        "Value": 5
+                    },
+                    "StatusCodes": [
+                        {
+                            "Count@": 52,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 52
+                        },
+                        {
+                            "Count@": 99,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 99
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
+                        }
+                    ],
+                    "CurrentOperation": 3,
+                    "Duration": "00:00:20"
+                }
+            ],
+            "PluginStats": [
+                {
+                    "CaseSensitive": false,
+                    "DataSetName": "NewDataSet",
+                    "EnforceConstraints": true,
+                    "ExtendedProperties": [],
+                    "Locale": "en-US",
+                    "Namespace": "",
+                    "Prefix": "",
+                    "RemotingFormat": 0,
+                    "SchemaSerializationMode": 1,
+                    "Tables": {
+                        "CustomPlugin1": {
+                            "CaseSensitive": false,
+                            "DisplayExpression": "",
+                            "Locale": "en-US",
+                            "MinimumCapacity": 50,
+                            "Namespace": "",
+                            "Prefix": "",
+                            "RemotingFormat": 0,
+                            "TableName": "CustomPlugin1",
+                            "Columns": [
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Property",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Key",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                },
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Value",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Value",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                }
+                            ],
+                            "Constraints": [],
+                            "Rows": [
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property1",
+                                    "Value": "1226725719",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property2",
+                                    "Value": "603295306",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property3",
+                                    "Value": "1321360285",
+                                    "RowState": 4
+                                }
+                            ]
+                        }
+                    },
+                    "Relations": {}
+                },
+                {
+                    "CaseSensitive": false,
+                    "DataSetName": "NewDataSet",
+                    "EnforceConstraints": true,
+                    "ExtendedProperties": [],
+                    "Locale": "en-US",
+                    "Namespace": "",
+                    "Prefix": "",
+                    "RemotingFormat": 0,
+                    "SchemaSerializationMode": 1,
+                    "Tables": {
+                        "CustomPlugin2": {
+                            "CaseSensitive": false,
+                            "DisplayExpression": "",
+                            "Locale": "en-US",
+                            "MinimumCapacity": 50,
+                            "Namespace": "",
+                            "Prefix": "",
+                            "RemotingFormat": 0,
+                            "TableName": "CustomPlugin2",
+                            "Columns": [
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Property",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Property",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                },
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Value",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Value",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                }
+                            ],
+                            "Constraints": [],
+                            "Rows": [
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 1",
+                                    "Value": "1448908700",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 2",
+                                    "Value": "1507536807",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 3",
+                                    "Value": "733038756",
                                     "RowState": 4
                                 }
                             ]
@@ -3269,100 +3965,105 @@ const viewModel = {
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_1",
-                    "RequestCount": 135,
-                    "OkCount": 116,
-                    "FailCount": 19,
-                    "AllDataMB": 0.0,
+                    "RequestCount": 151,
+                    "OkCount": 107,
+                    "FailCount": 44,
+                    "AllBytes": 0,
                     "StepStats": [
                         {
                             "StepName": "pull_html_1",
                             "Ok": {
                                 "Request": {
-                                    "Count": 116,
-                                    "RPS": 4.6
+                                    "Count": 107,
+                                    "RPS": 4.3
                                 },
                                 "Latency": {
-                                    "MinMs": 13.107,
-                                    "MeanMs": 800.288,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 766.473,
-                                    "Percent75": 1014.021,
-                                    "Percent95": 1289.272,
-                                    "Percent99": 1303.571,
-                                    "StdDev": 368.508,
+                                    "MinMs": 25.6,
+                                    "MeanMs": 517.7,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 500.7,
+                                    "Percent75": 572.9,
+                                    "Percent95": 764.1,
+                                    "Percent99": 771.4,
+                                    "StdDev": 180.8,
                                     "LatencyCount": {
-                                        "LessOrEq800": 59,
-                                        "More800Less1200": 31,
-                                        "MoreOrEq1200": 26
+                                        "LessOrEq800": 86,
+                                        "More800Less1200": 21,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": []
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 19,
-                                    "RPS": 0.8
+                                    "Count": 44,
+                                    "RPS": 1.8
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 473.771,
-                                    "MaxMs": 1415.578,
-                                    "Percent50": 465.901,
-                                    "Percent75": 518.926,
-                                    "Percent95": 523.692,
-                                    "Percent99": 523.692,
-                                    "StdDev": 38.735,
+                                    "MeanMs": 911.6,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 911.7,
+                                    "Percent75": 912.7,
+                                    "Percent95": 913.9,
+                                    "Percent99": 913.9,
+                                    "StdDev": 1.7,
                                     "LatencyCount": {
-                                        "LessOrEq800": 8,
-                                        "More800Less1200": 8,
-                                        "MoreOrEq1200": 3
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 44,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 19
+                                        "Count@": 44,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 44
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 67,
-                        "More800Less1200": 39,
-                        "MoreOrEq1200": 29
+                        "LessOrEq800": 86,
+                        "More800Less1200": 65,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "inject_per_sec",
                         "Value": 10
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 19
+                            "Count@": 44,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 44
                         }
                     ],
                     "CurrentOperation": 3,
@@ -3370,104 +4071,446 @@ const viewModel = {
                 },
                 {
                     "ScenarioName": "scenario_2",
-                    "RequestCount": 164,
+                    "RequestCount": 176,
+                    "OkCount": 118,
+                    "FailCount": 58,
+                    "AllBytes": 61928,
+                    "StepStats": [
+                        {
+                            "StepName": "pull_html_2",
+                            "Ok": {
+                                "Request": {
+                                    "Count": 118,
+                                    "RPS": 4.7
+                                },
+                                "Latency": {
+                                    "MinMs": 10.2,
+                                    "MeanMs": 560.8,
+                                    "MaxMs": 984.7,
+                                    "Percent50": 488.3,
+                                    "Percent75": 690.5,
+                                    "Percent95": 885.1,
+                                    "Percent99": 899.2,
+                                    "StdDev": 235.6,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 91,
+                                        "More800Less1200": 27,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 32,
+                                    "MeanBytes": 504,
+                                    "MaxBytes": 998,
+                                    "Percent50": 439,
+                                    "Percent75": 671,
+                                    "Percent95": 829,
+                                    "Percent99": 837,
+                                    "StdDev": 241.2,
+                                    "AllBytes": 61143
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 118,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 118
+                                    }
+                                ]
+                            },
+                            "Fail": {
+                                "Request": {
+                                    "Count": 58,
+                                    "RPS": 2.3
+                                },
+                                "Latency": {
+                                    "MinMs": 0.0,
+                                    "MeanMs": 945.9,
+                                    "MaxMs": 1015.0,
+                                    "Percent50": 952.4,
+                                    "Percent75": 953.5,
+                                    "Percent95": 955.0,
+                                    "Percent99": 955.0,
+                                    "StdDev": 18.8,
+                                    "LatencyCount": {
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 57,
+                                        "MoreOrEq1200": 0
+                                    }
+                                },
+                                "DataTransfer": {
+                                    "MinBytes": 0,
+                                    "MeanBytes": 43,
+                                    "MaxBytes": 785,
+                                    "Percent50": 43,
+                                    "Percent75": 43,
+                                    "Percent95": 43,
+                                    "Percent99": 43,
+                                    "StdDev": 0.0,
+                                    "AllBytes": 785
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 57,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 57
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "LatencyCount": {
+                        "LessOrEq800": 92,
+                        "More800Less1200": 84,
+                        "MoreOrEq1200": 0
+                    },
+                    "LoadSimulationStats": {
+                        "SimulationName": "inject_per_sec",
+                        "Value": 5
+                    },
+                    "StatusCodes": [
+                        {
+                            "Count@": 57,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 57
+                        },
+                        {
+                            "Count@": 118,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 118
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
+                        }
+                    ],
+                    "CurrentOperation": 3,
+                    "Duration": "00:00:25"
+                }
+            ],
+            "PluginStats": [
+                {
+                    "CaseSensitive": false,
+                    "DataSetName": "NewDataSet",
+                    "EnforceConstraints": true,
+                    "ExtendedProperties": [],
+                    "Locale": "en-US",
+                    "Namespace": "",
+                    "Prefix": "",
+                    "RemotingFormat": 0,
+                    "SchemaSerializationMode": 1,
+                    "Tables": {
+                        "CustomPlugin1": {
+                            "CaseSensitive": false,
+                            "DisplayExpression": "",
+                            "Locale": "en-US",
+                            "MinimumCapacity": 50,
+                            "Namespace": "",
+                            "Prefix": "",
+                            "RemotingFormat": 0,
+                            "TableName": "CustomPlugin1",
+                            "Columns": [
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Property",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Key",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                },
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Value",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Value",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                }
+                            ],
+                            "Constraints": [],
+                            "Rows": [
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property1",
+                                    "Value": "876403835",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property2",
+                                    "Value": "1417225218",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Key": "Property3",
+                                    "Value": "931000930",
+                                    "RowState": 4
+                                }
+                            ]
+                        }
+                    },
+                    "Relations": {}
+                },
+                {
+                    "CaseSensitive": false,
+                    "DataSetName": "NewDataSet",
+                    "EnforceConstraints": true,
+                    "ExtendedProperties": [],
+                    "Locale": "en-US",
+                    "Namespace": "",
+                    "Prefix": "",
+                    "RemotingFormat": 0,
+                    "SchemaSerializationMode": 1,
+                    "Tables": {
+                        "CustomPlugin2": {
+                            "CaseSensitive": false,
+                            "DisplayExpression": "",
+                            "Locale": "en-US",
+                            "MinimumCapacity": 50,
+                            "Namespace": "",
+                            "Prefix": "",
+                            "RemotingFormat": 0,
+                            "TableName": "CustomPlugin2",
+                            "Columns": [
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Property",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Property",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                },
+                                {
+                                    "AllowDBNull": true,
+                                    "AutoIncrement": false,
+                                    "AutoIncrementSeed": 0,
+                                    "AutoIncrementStep": 1,
+                                    "Caption": "Value",
+                                    "ColumnMapping": 1,
+                                    "ColumnName": "Value",
+                                    "DataType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+                                    "DateTimeMode": 3,
+                                    "DefaultValue": null,
+                                    "Expression": "",
+                                    "ExtendedProperties": [],
+                                    "MaxLength": -1,
+                                    "Namespace": "",
+                                    "Prefix": "",
+                                    "ReadOnly": false
+                                }
+                            ],
+                            "Constraints": [],
+                            "Rows": [
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 1",
+                                    "Value": "389755462",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 2",
+                                    "Value": "1382697089",
+                                    "RowState": 4
+                                },
+                                {
+                                    "OriginalRow": null,
+                                    "Property": "Property 3",
+                                    "Value": "256218052",
+                                    "RowState": 4
+                                }
+                            ]
+                        }
+                    },
+                    "Relations": {}
+                }
+            ]
+        },
+        {
+            "Duration": "00:00:30",
+            "ScenarioStats": [
+                {
+                    "ScenarioName": "scenario_2",
+                    "RequestCount": 206,
                     "OkCount": 136,
-                    "FailCount": 28,
-                    "AllDataMB": 0.064,
+                    "FailCount": 70,
+                    "AllBytes": 68286,
                     "StepStats": [
                         {
                             "StepName": "pull_html_2",
                             "Ok": {
                                 "Request": {
                                     "Count": 136,
-                                    "RPS": 5.4
+                                    "RPS": 4.5
                                 },
                                 "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 652.889,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 615.46,
-                                    "Percent75": 876.64,
-                                    "Percent95": 1179.648,
-                                    "Percent99": 1195.068,
-                                    "StdDev": 341.961,
+                                    "MinMs": 10.2,
+                                    "MeanMs": 565.9,
+                                    "MaxMs": 984.7,
+                                    "Percent50": 509.0,
+                                    "Percent75": 706.1,
+                                    "Percent95": 887.6,
+                                    "Percent99": 907.6,
+                                    "StdDev": 232.1,
                                     "LatencyCount": {
-                                        "LessOrEq800": 75,
-                                        "More800Less1200": 35,
-                                        "MoreOrEq1200": 26
+                                        "LessOrEq800": 105,
+                                        "More800Less1200": 31,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.458,
-                                    "MaxKb": 0.999,
-                                    "Percent50": 0.398,
-                                    "Percent75": 0.689,
-                                    "Percent95": 0.796,
-                                    "Percent99": 0.835,
-                                    "StdDev": 0.259,
-                                    "AllMB": 0.064
-                                }
+                                    "MinBytes": 32,
+                                    "MeanBytes": 493,
+                                    "MaxBytes": 998,
+                                    "Percent50": 447,
+                                    "Percent75": 647,
+                                    "Percent95": 829,
+                                    "Percent99": 845,
+                                    "StdDev": 233.9,
+                                    "AllBytes": 67501
+                                },
+                                "StatusCodes": [
+                                    {
+                                        "Count@": 136,
+                                        "StatusCode": 200,
+                                        "IsError": false,
+                                        "Message": "",
+                                        "Count": 136
+                                    }
+                                ]
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 28,
-                                    "RPS": 1.1
+                                    "Count": 70,
+                                    "RPS": 2.3
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 517.654,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 496.532,
-                                    "Percent75": 547.418,
-                                    "Percent95": 721.667,
-                                    "Percent99": 721.667,
-                                    "StdDev": 153.574,
+                                    "MeanMs": 947.0,
+                                    "MaxMs": 1019.9,
+                                    "Percent50": 953.5,
+                                    "Percent75": 954.8,
+                                    "Percent95": 957.3,
+                                    "Percent99": 957.3,
+                                    "StdDev": 19.9,
                                     "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 10,
-                                        "MoreOrEq1200": 4
+                                        "LessOrEq800": 1,
+                                        "More800Less1200": 69,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 43,
+                                    "MaxBytes": 785,
+                                    "Percent50": 43,
+                                    "Percent75": 43,
+                                    "Percent95": 43,
+                                    "Percent99": 43,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 785
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 28
+                                        "Count@": 69,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 69
+                                    },
+                                    {
+                                        "Count@": 1,
+                                        "StatusCode": 500,
+                                        "IsError": true,
+                                        "Message": "Internal Server Error",
+                                        "Count": 1
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 89,
-                        "More800Less1200": 45,
-                        "MoreOrEq1200": 30
+                        "LessOrEq800": 106,
+                        "More800Less1200": 100,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "inject_per_sec",
                         "Value": 5
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 28
+                            "Count@": 69,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 69
+                        },
+                        {
+                            "Count@": 136,
+                            "StatusCode": 200,
+                            "IsError": false,
+                            "Message": "",
+                            "Count": 136
+                        },
+                        {
+                            "Count@": 1,
+                            "StatusCode": 500,
+                            "IsError": true,
+                            "Message": "Internal Server Error",
+                            "Count": 1
                         }
                     ],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:25"
+                    "CurrentOperation": 5,
+                    "Duration": "00:00:30"
                 }
             ],
             "PluginStats": [
@@ -3534,19 +4577,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "579310590",
+                                    "Value": "1750584273",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "1779710904",
+                                    "Value": "2029284104",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "638909594",
+                                    "Value": "1432116165",
                                     "RowState": 4
                                 }
                             ]
@@ -3617,19 +4660,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "261897730",
+                                    "Value": "1197284196",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "578489934",
+                                    "Value": "1080681202",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "962496084",
+                                    "Value": "969060989",
                                     "RowState": 4
                                 }
                             ]
@@ -3644,204 +4687,108 @@ const viewModel = {
             "ScenarioStats": [
                 {
                     "ScenarioName": "scenario_1",
-                    "RequestCount": 188,
-                    "OkCount": 162,
-                    "FailCount": 26,
-                    "AllDataMB": 0.0,
+                    "RequestCount": 209,
+                    "OkCount": 151,
+                    "FailCount": 58,
+                    "AllBytes": 0,
                     "StepStats": [
                         {
                             "StepName": "pull_html_1",
                             "Ok": {
                                 "Request": {
-                                    "Count": 162,
-                                    "RPS": 5.4
+                                    "Count": 151,
+                                    "RPS": 5.0
                                 },
                                 "Latency": {
-                                    "MinMs": 13.107,
-                                    "MeanMs": 806.687,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 769.154,
-                                    "Percent75": 1105.771,
-                                    "Percent95": 1365.532,
-                                    "Percent99": 1379.831,
-                                    "StdDev": 388.911,
+                                    "MinMs": 25.6,
+                                    "MeanMs": 532.6,
+                                    "MaxMs": 1016.6,
+                                    "Percent50": 532.5,
+                                    "Percent75": 673.6,
+                                    "Percent95": 830.6,
+                                    "Percent99": 837.9,
+                                    "StdDev": 221.3,
                                     "LatencyCount": {
-                                        "LessOrEq800": 81,
-                                        "More800Less1200": 44,
-                                        "MoreOrEq1200": 37
+                                        "LessOrEq800": 117,
+                                        "More800Less1200": 34,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
+                                    "AllBytes": 0
+                                },
+                                "StatusCodes": []
                             },
                             "Fail": {
                                 "Request": {
-                                    "Count": 26,
-                                    "RPS": 0.9
+                                    "Count": 58,
+                                    "RPS": 1.9
                                 },
                                 "Latency": {
                                     "MinMs": 0.0,
-                                    "MeanMs": 531.71,
-                                    "MaxMs": 1415.578,
-                                    "Percent50": 461.731,
-                                    "Percent75": 640.763,
-                                    "Percent95": 645.53,
-                                    "Percent99": 645.53,
-                                    "StdDev": 100.399,
+                                    "MeanMs": 960.5,
+                                    "MaxMs": 1019.1,
+                                    "Percent50": 960.1,
+                                    "Percent75": 962.5,
+                                    "Percent95": 963.9,
+                                    "Percent99": 963.9,
+                                    "StdDev": 2.6,
                                     "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 8,
-                                        "MoreOrEq1200": 4
+                                        "LessOrEq800": 0,
+                                        "More800Less1200": 58,
+                                        "MoreOrEq1200": 0
                                     }
                                 },
                                 "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
+                                    "MinBytes": 0,
+                                    "MeanBytes": 0,
+                                    "MaxBytes": 0,
+                                    "Percent50": 0,
+                                    "Percent75": 0,
+                                    "Percent95": 0,
+                                    "Percent99": 0,
                                     "StdDev": 0.0,
-                                    "AllMB": 0.0
+                                    "AllBytes": 0
                                 },
-                                "ErrorStats": [
+                                "StatusCodes": [
                                     {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 26
+                                        "Count@": 58,
+                                        "StatusCode": -100,
+                                        "IsError": true,
+                                        "Message": "step timeout",
+                                        "Count": 58
                                     }
                                 ]
                             }
                         }
                     ],
                     "LatencyCount": {
-                        "LessOrEq800": 95,
-                        "More800Less1200": 52,
-                        "MoreOrEq1200": 41
+                        "LessOrEq800": 117,
+                        "More800Less1200": 92,
+                        "MoreOrEq1200": 0
                     },
                     "LoadSimulationStats": {
                         "SimulationName": "inject_per_sec",
                         "Value": 10
                     },
-                    "ErrorStats": [
+                    "StatusCodes": [
                         {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 26
+                            "Count@": 58,
+                            "StatusCode": -100,
+                            "IsError": true,
+                            "Message": "step timeout",
+                            "Count": 58
                         }
                     ],
-                    "CurrentOperation": 3,
-                    "Duration": "00:00:30"
-                },
-                {
-                    "ScenarioName": "scenario_2",
-                    "RequestCount": 191,
-                    "OkCount": 160,
-                    "FailCount": 31,
-                    "AllDataMB": 0.074,
-                    "StepStats": [
-                        {
-                            "StepName": "pull_html_2",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 160,
-                                    "RPS": 5.3
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 695.524,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 617.131,
-                                    "Percent75": 988.137,
-                                    "Percent95": 1264.117,
-                                    "Percent99": 1278.68,
-                                    "StdDev": 358.882,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 87,
-                                        "More800Less1200": 42,
-                                        "MoreOrEq1200": 31
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.462,
-                                    "MaxKb": 0.999,
-                                    "Percent50": 0.416,
-                                    "Percent75": 0.669,
-                                    "Percent95": 0.841,
-                                    "Percent99": 0.878,
-                                    "StdDev": 0.265,
-                                    "AllMB": 0.074
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 31,
-                                    "RPS": 1.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 647.638,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 626.233,
-                                    "Percent75": 683.031,
-                                    "Percent95": 847.599,
-                                    "Percent99": 847.599,
-                                    "StdDev": 149.411,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 10,
-                                        "MoreOrEq1200": 7
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": [
-                                    {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 31
-                                    }
-                                ]
-                            }
-                        }
-                    ],
-                    "LatencyCount": {
-                        "LessOrEq800": 101,
-                        "More800Less1200": 52,
-                        "MoreOrEq1200": 38
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 5
-                    },
-                    "ErrorStats": [
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 31
-                        }
-                    ],
-                    "CurrentOperation": 3,
+                    "CurrentOperation": 5,
                     "Duration": "00:00:30"
                 }
             ],
@@ -3909,19 +4856,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property1",
-                                    "Value": "2014709941",
+                                    "Value": "1175682952",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property2",
-                                    "Value": "1814928256",
+                                    "Value": "1971978941",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Key": "Property3",
-                                    "Value": "1061936148",
+                                    "Value": "1648410948",
                                     "RowState": 4
                                 }
                             ]
@@ -3992,19 +4939,19 @@ const viewModel = {
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 1",
-                                    "Value": "1373539628",
+                                    "Value": "123373102",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 2",
-                                    "Value": "1776990643",
+                                    "Value": "1563601686",
                                     "RowState": 4
                                 },
                                 {
                                     "OriginalRow": null,
                                     "Property": "Property 3",
-                                    "Value": "614835844",
+                                    "Value": "913982101",
                                     "RowState": 4
                                 }
                             ]
@@ -4013,220 +4960,6 @@ const viewModel = {
                     "Relations": {}
                 }
             ]
-        },
-        {
-            "Duration": "00:00:30",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_1",
-                    "RequestCount": 195,
-                    "OkCount": 169,
-                    "FailCount": 26,
-                    "AllDataMB": 0.0,
-                    "StepStats": [
-                        {
-                            "StepName": "pull_html_1",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 169,
-                                    "RPS": 5.6
-                                },
-                                "Latency": {
-                                    "MinMs": 9.83,
-                                    "MeanMs": 792.981,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 757.536,
-                                    "Percent75": 1110.537,
-                                    "Percent95": 1365.532,
-                                    "Percent99": 1379.831,
-                                    "StdDev": 392.519,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 87,
-                                        "More800Less1200": 45,
-                                        "MoreOrEq1200": 37
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 26,
-                                    "RPS": 0.9
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 531.71,
-                                    "MaxMs": 1415.578,
-                                    "Percent50": 461.731,
-                                    "Percent75": 640.763,
-                                    "Percent95": 645.53,
-                                    "Percent99": 645.53,
-                                    "StdDev": 100.399,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 8,
-                                        "MoreOrEq1200": 4
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": [
-                                    {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 26
-                                    }
-                                ]
-                            }
-                        }
-                    ],
-                    "LatencyCount": {
-                        "LessOrEq800": 101,
-                        "More800Less1200": 53,
-                        "MoreOrEq1200": 41
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 0
-                    },
-                    "ErrorStats": [
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 26
-                        }
-                    ],
-                    "CurrentOperation": 5,
-                    "Duration": "00:00:30"
-                }
-            ],
-            "PluginStats": []
-        },
-        {
-            "Duration": "00:00:30",
-            "ScenarioStats": [
-                {
-                    "ScenarioName": "scenario_2",
-                    "RequestCount": 193,
-                    "OkCount": 162,
-                    "FailCount": 31,
-                    "AllDataMB": 0.075,
-                    "StepStats": [
-                        {
-                            "StepName": "pull_html_2",
-                            "Ok": {
-                                "Request": {
-                                    "Count": 162,
-                                    "RPS": 5.4
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 690.412,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 620.771,
-                                    "Percent75": 979.399,
-                                    "Percent95": 1264.117,
-                                    "Percent99": 1278.68,
-                                    "StdDev": 358.069,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 89,
-                                        "More800Less1200": 42,
-                                        "MoreOrEq1200": 31
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.46,
-                                    "MaxKb": 0.999,
-                                    "Percent50": 0.416,
-                                    "Percent75": 0.657,
-                                    "Percent95": 0.841,
-                                    "Percent99": 0.878,
-                                    "StdDev": 0.265,
-                                    "AllMB": 0.075
-                                }
-                            },
-                            "Fail": {
-                                "Request": {
-                                    "Count": 31,
-                                    "RPS": 1.0
-                                },
-                                "Latency": {
-                                    "MinMs": 0.0,
-                                    "MeanMs": 647.638,
-                                    "MaxMs": 1520.435,
-                                    "Percent50": 626.233,
-                                    "Percent75": 683.031,
-                                    "Percent95": 847.599,
-                                    "Percent99": 847.599,
-                                    "StdDev": 149.411,
-                                    "LatencyCount": {
-                                        "LessOrEq800": 14,
-                                        "More800Less1200": 10,
-                                        "MoreOrEq1200": 7
-                                    }
-                                },
-                                "DataTransfer": {
-                                    "MinKb": 0.0,
-                                    "MeanKb": 0.0,
-                                    "MaxKb": 0.0,
-                                    "Percent50": 0.0,
-                                    "Percent75": 0.0,
-                                    "Percent95": 0.0,
-                                    "Percent99": 0.0,
-                                    "StdDev": 0.0,
-                                    "AllMB": 0.0
-                                },
-                                "ErrorStats": [
-                                    {
-                                        "ErrorCode": 0,
-                                        "Message": "unknown client's error",
-                                        "Count": 31
-                                    }
-                                ]
-                            }
-                        }
-                    ],
-                    "LatencyCount": {
-                        "LessOrEq800": 103,
-                        "More800Less1200": 52,
-                        "MoreOrEq1200": 38
-                    },
-                    "LoadSimulationStats": {
-                        "SimulationName": "inject_per_sec",
-                        "Value": 0
-                    },
-                    "ErrorStats": [
-                        {
-                            "ErrorCode": 0,
-                            "Message": "unknown client's error",
-                            "Count": 31
-                        }
-                    ],
-                    "CurrentOperation": 5,
-                    "Duration": "00:00:30"
-                }
-            ],
-            "PluginStats": []
         }
     ],
     "Hints": [
@@ -4236,9 +4969,9 @@ const viewModel = {
             "Hint": "Step 'pull_html_1' in scenario 'scenario_1' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
         },
         {
-            "SourceName": "scenario_2",
+            "SourceName": "scenario_3",
             "SourceType": "Scenario",
-            "Hint": "Step 'pull_html_2' in scenario 'scenario_2' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
+            "Hint": "Step 'pull_html_3' in scenario 'scenario_3' didn't track data transfer. In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
         },
         {
             "SourceName": "scenario_3",

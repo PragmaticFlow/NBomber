@@ -2,7 +2,6 @@ module internal NBomber.Domain.DomainTypes
 
 open System
 open System.Collections.Generic
-open System.Data
 open System.Threading
 open System.Threading.Tasks
 
@@ -10,26 +9,20 @@ open HdrHistogram
 open Serilog
 
 open NBomber.Contracts
-open NBomber.Domain.ConnectionPool
-open NBomber.Extensions.InternalExtensions
-
-[<Measure>] type ticks
-[<Measure>] type ms
-[<Measure>] type bytes
-[<Measure>] type kb
-[<Measure>] type mb
+open NBomber.Contracts.Stats
+open NBomber.Domain.ClientPool
 
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
 
 type UntypedStepContext = {
-    CorrelationId: CorrelationId
+    ScenarioInfo: ScenarioInfo
     CancellationToken: CancellationToken
-    Connection: obj
+    Client: obj
     Logger: ILogger
     mutable FeedItem: obj
-    mutable Data: Dict<string,obj>
+    mutable Data: Dictionary<string,obj>
     mutable InvocationCount: int
     StopScenario: string * string -> unit // scenarioName * reason
     StopCurrentTest: string -> unit       // reason
@@ -41,10 +34,11 @@ type StepExecution =
 
 type Step = {
     StepName: string
-    ConnectionPoolArgs: ConnectionPoolArgs<obj> option
-    ConnectionPool: ConnectionPool option
+    ClientFactory: ClientFactory<obj> option
+    ClientPool: ClientPool option
     Execute: StepExecution
     Feed: IFeed<obj> option
+    Timeout: TimeSpan
     DoNotTrack: bool
 } with
     interface IStep with
@@ -52,32 +46,34 @@ type Step = {
         member this.DoNotTrack = this.DoNotTrack
 
 type RawStepStats = {
+    mutable MinMicroSec: int
+    mutable MaxMicroSec: int
+    mutable MinBytes: int
+    mutable MaxBytes: int
     mutable RequestCount: int
     mutable LessOrEq800: int
     mutable More800Less1200: int
     mutable MoreOrEq1200: int
-    mutable AllMB: float<mb>
-    LatencyHistogramTicks: LongHistogram
-    DataTransferBytes: LongHistogram
+    mutable AllBytes: int64
+    LatencyHistogram: LongHistogram
+    DataTransferHistogram: LongHistogram
+    StatusCodes: Dictionary<int,StatusCodeStats>
 }
 
-type StepExecutionData = {
+type StepStatsRawData = {
     OkStats: RawStepStats
     FailStats: RawStepStats
-    ErrorStats: Dictionary<ErrorCode,ErrorStats>
 }
 
 type RunningStep = {
     Value: Step
     Context: UntypedStepContext
-    mutable ExecutionData: StepExecutionData
 }
 
-[<Struct>]
 type StepResponse = {
     ClientResponse: Response
-    EndTimeTicks: int64<ticks>
-    LatencyTicks: int64<ticks>
+    EndTimeMs: float
+    LatencyMs: float
 }
 
 type LoadTimeSegment = {
@@ -89,12 +85,6 @@ type LoadTimeSegment = {
 }
 
 type LoadTimeLine = LoadTimeSegment list
-
-type TimeLineHistoryRecord = {
-    Duration: TimeSpan
-    ScenarioStats: ScenarioStats[]
-    PluginStats: DataSet[]
-}
 
 type Scenario = {
     ScenarioName: string

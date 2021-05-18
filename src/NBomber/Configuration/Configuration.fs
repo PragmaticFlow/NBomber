@@ -14,16 +14,16 @@ type LoadSimulationSettings =
     | RampPerSec   of rate:int   * during:string
     | InjectPerSec of rate:int   * during:string
 
-type ConnectionPoolSetting = {
-    PoolName: string
-    ConnectionCount: int
+type ClientFactorySetting = {
+    FactoryName: string
+    ClientCount: int
 }
 
 type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: string option
-    LoadSimulationsSettings: LoadSimulationSettings list
-    ConnectionPoolSettings: ConnectionPoolSetting list option
+    LoadSimulationsSettings: LoadSimulationSettings list option
+    ClientFactorySettings: ClientFactorySetting list option
     [<JsonField(AsJson = true)>] CustomSettings: string option
 }
 

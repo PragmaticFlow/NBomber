@@ -2,13 +2,9 @@
   "GlobalSettings": {
     "ScenariosSettings": [
       {
-        "ScenarioName": "test_youtube",
-        "WarmUpDuration": "00:00:05",
-        "Duration": "00:00:20",
-        "ConcurrentCopies": 100
+        "ScenarioName": "test_youtube"
       },
       {
-        "ScenarioName": "test_mongo",
         "WarmUpDuration": "00:00:05",
         "Duration": "00:00:20",
         "ConcurrentCopies": 100

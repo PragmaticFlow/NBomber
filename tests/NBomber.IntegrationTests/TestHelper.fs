@@ -5,6 +5,7 @@ open Serilog.Sinks.InMemory
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices

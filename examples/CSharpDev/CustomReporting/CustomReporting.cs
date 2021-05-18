@@ -6,7 +6,9 @@ using Serilog;
 
 using NBomber.Configuration;
 using NBomber.Contracts;
+using NBomber.Contracts.Stats;
 using NBomber.CSharp;
+using static NBomber.Time;
 
 namespace CSharpDev.CustomReporting
 {
@@ -34,9 +36,9 @@ namespace CSharpDev.CustomReporting
     {
         public static void Run()
         {
-            var step = Step.CreateAsync("step", async context =>
+            var step = Step.Create("step", async context =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(0.1));
+                await Task.Delay(Seconds(0.1));
                 return Response.Ok(sizeBytes: 100);
             });
 
@@ -49,8 +51,8 @@ namespace CSharpDev.CustomReporting
                 .RegisterScenarios(scenario)
                 .WithTestSuite("reporting")
                 .WithTestName("custom_reporting_test")
-                .WithReportingSinks(reportingSinks: new[] {new CustomReportingSync()})
-                .WithReportingInterval(interval: TimeSpan.FromSeconds(10))
+                .WithReportingSinks(new CustomReportingSync())
+                .WithReportingInterval(Seconds(10))
                 .WithReportFolder("./custom_reports")
                 .WithReportFormats(ReportFormat.Html, ReportFormat.Md, ReportFormat.Txt, ReportFormat.Csv)
                 .Run();

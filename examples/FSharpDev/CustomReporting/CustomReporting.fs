@@ -3,6 +3,7 @@ module FSharpDev.CustomReportingExample
 open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.FSharp
@@ -20,9 +21,9 @@ let reportingSink = {
 
 let run () =
 
-    let step = Step.createAsync("step", fun context -> task {
+    let step = Step.create("step", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.ok(sizeBytes = 100L)
+        return Response.ok(sizeBytes = 100)
     })
 
     Scenario.create "simple_scenario" [step]

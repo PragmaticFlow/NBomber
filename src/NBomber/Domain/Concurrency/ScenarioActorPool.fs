@@ -12,10 +12,13 @@ type ActorPoolResult = {
 let createActors (dep: ActorDep) count fromIndex =
     List.init count (fun i ->
         let actorIndex = fromIndex + i
-        let correlationId = Scenario.createCorrelationId(dep.Scenario.ScenarioName, actorIndex)
-        ScenarioActor(dep, correlationId)
+        let scenarioInfo = Scenario.createScenarioInfo(dep.Scenario.ScenarioName,
+                                                       dep.Scenario.PlanedDuration,
+                                                       actorIndex)
+        ScenarioActor(dep, scenarioInfo)
     )
 
+// todo: add tests
 let rentActors (createActors: int -> int -> ScenarioActor list) // count -> fromIndex
                (actorPool: ScenarioActor list)
                (actorCount: int) =
@@ -39,5 +42,5 @@ let stopActors (actorPool: ScenarioActor list) =
 let getWorkingActors (actorPool: ScenarioActor list) =
     actorPool |> List.filter(fun x -> x.Working)
 
-let updatePool (currentPool: ScenarioActor list) (result: ActorPoolResult) =
-    currentPool |> List.append result.NewActors
+let updatePool (currentPool: ScenarioActor list) (newActors: ScenarioActor list) =
+    currentPool |> List.append newActors

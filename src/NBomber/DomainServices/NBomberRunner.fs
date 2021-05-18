@@ -7,8 +7,8 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Domain
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Contracts.Stats
+open NBomber.Domain.Stats
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.TestHost
 open NBomber.Errors
@@ -41,18 +41,6 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
     else
         stats
 
-let getHints (context: NBomberContext) (stats: NodeStats) =
-    if context.UseHintsAnalyzer then
-        context.WorkerPlugins
-        |> Seq.collect(fun plugin ->
-            plugin.GetHints()
-            |> Seq.map(fun x -> { SourceName = plugin.PluginName; SourceType = SourceType.WorkerPlugin; Hint = x })
-        )
-        |> Seq.append(HintsAnalyzer.analyze stats)
-        |> Seq.toList
-
-    else List.empty
-
 let getLoadSimulations (context: NBomberContext) =
     context.RegisteredScenarios
     |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadSimulations)
@@ -67,11 +55,10 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
         let! scenarios    = context |> NBomberContext.createScenarios
-        use testHost      = new TestHost(dep, scenarios, sessionArgs)
+        use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
         let! result       = testHost.RunSession()
-        let hints         = getHints context result.NodeStats
         let simulations   = context |> getLoadSimulations
-        let reports       = Report.build result.NodeStats result.TimeLines hints simulations
+        let reports       = Report.build result simulations
 
         if dep.ApplicationType = ApplicationType.Console then
             reports.ConsoleReport |> Seq.iter Console.render
@@ -94,7 +81,7 @@ let run (context: NBomberContext) =
         | Some appType -> appType
         | None         -> getApplicationType()
 
-    let reportFolder = NBomberContext.getReportFolder context
+    let reportFolder = NBomberContext.getReportFolder(context)
 
     Dependency.create reportFolder testInfo appType NodeType.SingleNode context
     |> runSession testInfo nodeInfo context

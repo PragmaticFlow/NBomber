@@ -3,12 +3,9 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.HintsAnalyzer
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
-open NBomber.Contracts
-open NBomber.DomainServices.Reporting.ViewModels
+open NBomber.Contracts.Stats
 open NBomber.Infra.Dependency
 
 module AssetsUtils =
@@ -31,7 +28,7 @@ module AssetsUtils =
     let tryIncludeScript (line: string) =
         line |> tryIncludeAsset "script" scriptRegex
 
-let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
+let private applyHtmlReplace (sessionResult: NodeSessionResult) (line: string) =
     let removeLineCommand = "<!-- remove-->"
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
@@ -39,7 +36,7 @@ let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
     if line.Contains(removeLineCommand) then
         String.Empty
     else if line.Contains(includeViewModelCommand) then
-        $"const viewModel = {viewModel |> Json.toJson};"
+        $"const viewModel = {sessionResult |> Json.toJson};"
     else if line.Contains(includeAssetCommand) then
         AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
         |> Option.defaultValue line
@@ -49,9 +46,8 @@ let private applyHtmlReplace (viewModel: HtmlReportViewModel) (line: string) =
 let private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (stats: NodeStats) (timeLines: TimeLineHistoryRecord list) (hints: HintResult list) =
-    let viewModel = HtmlReportViewModel.create(stats, timeLines, hints)
-    let applyHtmlReplace = applyHtmlReplace viewModel
+let print (sessionResult: NodeSessionResult) =
+    let applyHtmlReplace = applyHtmlReplace sessionResult
 
     ResourceManager.readResource("index.html")
     |> Option.map removeDescription

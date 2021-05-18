@@ -7,8 +7,9 @@ open System.Data
 open ConsoleTables
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Domain.Stats
 open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
@@ -20,21 +21,79 @@ module TxtTestInfo =
         |> String.concatLines
         |> String.appendNewLine
 
-module TxtErrorStats =
+module TxtStatusCodeStats =
 
-    let printScenarioErrorStatsHeader (scnStats: ScenarioStats) =
-        $"errors for scenario: '{scnStats.ScenarioName}'"
+    let printScenarioHeader (scenarioName: string) =
+        $"status codes for scenario: '{scenarioName}'"
 
-    let printErrorStatsTable (errorStats: ErrorStats[]) =
-        let errorTable = ConsoleTable("error code", "count", "message")
-        errorStats |> Seq.iter(fun error -> errorTable.AddRow(error.ErrorCode, error.Count, error.Message) |> ignore)
-        errorTable.ToStringAlternative()
+    let printStatusCodeTable (scnStats: ScenarioStats) =
+        let okStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
+
+        let failStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
+
+        let okStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let failStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let okNotAvailableStatusCodes =
+            if okStatusCodesCount < scnStats.OkCount then
+                List.singleton [
+                  "ok (no status)"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let failNotAvailableStatusCodes =
+            if failStatusCodesCount < scnStats.FailCount then
+                List.singleton [
+                  "fail (no status)"
+                  (scnStats.FailCount - failStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+
+        let table = ConsoleTable("status code", "count", "message")
+        allStatusCodes |> Seq.iter(fun x -> table.AddRow(x.[0], x.[1], x.[2]) |> ignore)
+        table.ToStringAlternative()
 
 module TxtNodeStats =
 
+    let private printDataKb (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb} KB"
+
+    let private printAllData (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb} MB"
+
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
-        $", ok count: '{scnStats.OkCount}', fail count: '{scnStats.FailCount}', all data: '{scnStats.AllDataMB}' MB"
+        $", ok count: {scnStats.OkCount}, fail count: {scnStats.FailCount}, all data: {scnStats.AllBytes |> printAllData} MB"
 
     let private printLoadSimulation (simulation: LoadSimulation) =
         let simulationName = LoadTimeLine.getSimulationName(simulation)
@@ -42,28 +101,28 @@ module TxtNodeStats =
         match simulation with
         | RampConstant (copies, during)     ->
             $"load simulation: '{simulationName}'" +
-            $", copies: '{copies}'" +
+            $", copies: {copies}" +
             $", during: '{during}'"
 
         | KeepConstant (copies, during)     ->
             $"load simulation: '{simulationName}'" +
-            $", copies: '{copies}'" +
+            $", copies: {copies}" +
             $", during: '{during}'"
 
         | RampPerSec (rate, during)         ->
             $"load simulation: '{simulationName}'" +
-            $", rate: '{rate}'" +
+            $", rate: {rate}" +
             $", during: '{during}'"
 
         | InjectPerSec (rate, during)       ->
             $"load simulation: '{simulationName}'" +
-            $", rate: '{rate}'" +
+            $", rate: {rate}" +
             $", during: '{during}'"
 
         | InjectPerSecRandom (minRate, maxRate, during) ->
             $"load simulation: '{simulationName}'" +
-            $", min rate: '{minRate}'" +
-            $", max rate: '{maxRate}'" +
+            $", min rate: {minRate}" +
+            $", max rate: {maxRate}" +
             $", during: '{during}'"
 
     let private printLoadSimulations (simulations: LoadSimulation list) =
@@ -77,10 +136,6 @@ module TxtNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"%.3f{okDataTransfer.MinKb}"
-        let okDtMean = $"%.3f{okDataTransfer.MeanKb}"
-        let okDtMax = $"%.3f{okDataTransfer.MaxKb}"
-        let okDtAll = $"%.3f{okDataTransfer.AllMB}"
 
         let reqCount =
             $"all = {allReqCount}" +
@@ -100,17 +155,17 @@ module TxtNodeStats =
             $", 99%% = {okLatency.Percent99}"
 
         let okDt =
-            $"min = {okDtMin} KB" +
-            $", mean = {okDtMean} KB" +
-            $", max = {okDtMax} KB" +
-            $", all = {okDtAll} MB"
+            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {okDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name]
           ["request count"; reqCount]
           ["latency"; okLatencies]
           ["latency percentile"; okPercentile]
-          if okDataTransfer.AllMB > 0.0 then ["data transfer"; okDt] ]
+          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
 
     let private createFailStepStatsRow (i) (s: StepStats) =
         let name = s.StepName
@@ -120,10 +175,6 @@ module TxtNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"%.3f{failDataTransfer.MinKb}"
-        let failDtMean = $"%.3f{failDataTransfer.MeanKb}"
-        let failDtMax = $"%.3f{failDataTransfer.MaxKb}"
-        let failDtAll = $"%.3f{failDataTransfer.AllMB}"
 
         let reqCount =
             $"all = {allReqCount}" +
@@ -143,17 +194,17 @@ module TxtNodeStats =
             $", 99%% = {failLatency.Percent99}"
 
         let failDt =
-            $"min = {failDtMin} KB" +
-            $", mean = {failDtMean} KB" +
-            $", max = {failDtMax} KB" +
-            $", all = {failDtAll} MB"
+            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {failDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name]
           ["request count"; reqCount]
           ["latency"; failLatencies]
           ["latency percentile"; failPercentile]
-          if failDataTransfer.AllMB > 0.0 then ["data transfer"; failDt] ]
+          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
 
     let private printOkStepStatsTable (stepStats: StepStats[]) =
         let table = ConsoleTable("step", "ok stats")
@@ -176,17 +227,20 @@ module TxtNodeStats =
 
         table.ToStringAlternative()
 
-    let private errorStepStatsExist (stepStats: StepStats[]) =
+    let private failStepStatsExist (stepStats: StepStats[]) =
         stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
         [ printScenarioHeader(scnStats)
           printLoadSimulations(simulations)
           printOkStepStatsTable(scnStats.StepStats)
-          if errorStepStatsExist(scnStats.StepStats) then printFailStepStatsTable(scnStats.StepStats)
-          if scnStats.ErrorStats.Length > 0 then
-             TxtErrorStats.printScenarioErrorStatsHeader(scnStats)
-             TxtErrorStats.printErrorStatsTable(scnStats.ErrorStats) ]
+
+          if failStepStatsExist(scnStats.StepStats) then
+              printFailStepStatsTable(scnStats.StepStats)
+
+          if scnStats.StatusCodes.Length > 0 then
+             TxtStatusCodeStats.printScenarioHeader(scnStats.ScenarioName)
+             TxtStatusCodeStats.printStatusCodeTable(scnStats) ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats
@@ -226,7 +280,7 @@ module TxtHints =
     let private printHintsHeader () =
         "hints:"
 
-    let private printHintsTable (hints: HintResult list) =
+    let private printHintsTable (hints: HintResult[]) =
         let hintTable = ConsoleTable("source", "name", "hint")
 
         hints
@@ -234,7 +288,7 @@ module TxtHints =
 
         hintTable.ToStringAlternative()
 
-    let printHints (hints: HintResult list) =
+    let printHints (hints: HintResult[]) =
         if hints.Length > 0 then
             seq {
                 yield printHintsHeader()
@@ -244,9 +298,9 @@ module TxtHints =
         else
             String.Empty
 
-let print (stats) (hints) (simulations: IDictionary<string, LoadSimulation list>) =
-    [TxtTestInfo.printTestInfo stats.TestInfo
-     TxtNodeStats.printNodeStats stats simulations
-     TxtPluginStats.printPluginStats stats
-     TxtHints.printHints hints]
+let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
+    [TxtTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+     TxtNodeStats.printNodeStats sessionResult.NodeStats simulations
+     TxtPluginStats.printPluginStats sessionResult.NodeStats
+     TxtHints.printHints sessionResult.Hints]
     |> String.concatLines

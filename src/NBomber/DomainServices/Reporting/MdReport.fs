@@ -7,8 +7,9 @@ open System.Data
 open FuncyDown.Document
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Domain.Stats
 open NBomber.DomainServices
 open NBomber.Extensions
 
@@ -37,24 +38,78 @@ module MdTestInfo =
         |> Md.printHeader $"test suite: {testInfo.TestSuite |> Md.printInlineCode}"
         |> Md.printHeader $"test name: {testInfo.TestName |> Md.printInlineCode}"
 
-module MdErrorStats =
+module MdStatusCodeStats =
 
-    let printErrorStatsHeader (scenarioName: string) (document: Document) =
+    let printScenarioHeader (scenarioName: string) (document: Document) =
         document
-        |> Md.printHeader $"errors for scenario: {scenarioName |> Md.printInlineCode}"
+        |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
 
-    let private createErrorStatsTableRows (errorStats: ErrorStats[])=
-        errorStats
-        |> Seq.map(fun error -> [error.ErrorCode.ToString(); error.Count.ToString(); error.Message])
-        |> List.ofSeq
+    let private createTableRows (scnStats: ScenarioStats) =
+        let okStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
 
-    let printErrorStats (errorStats: ErrorStats[]) (document: Document) =
-        let headers = ["error code"; "count"; "message"]
-        let rows = createErrorStatsTableRows(errorStats)
+        let failStatusCodes =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.map(fun x ->
+                [ x.StatusCode.ToString()
+                  x.Count.ToString()
+                  x.Message ]
+            )
+            |> List.ofSeq
 
+        let okStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> not x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let failStatusCodesCount =
+            scnStats.StatusCodes
+            |> Seq.filter(fun x -> x.IsError)
+            |> Seq.sumBy(fun x -> x.Count)
+
+        let okNotAvailableStatusCodes =
+            if okStatusCodesCount < scnStats.OkCount then
+                List.singleton [
+                  "ok (no status)"
+                  (scnStats.OkCount - okStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let failNotAvailableStatusCodes =
+            if failStatusCodesCount < scnStats.FailCount then
+                List.singleton [
+                  "fail (no status)"
+                  (scnStats.FailCount - failStatusCodesCount).ToString()
+                  String.Empty
+                ]
+            else
+                List.Empty
+
+        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+        allStatusCodes
+
+    let printStatusCodeTable (scnStats: ScenarioStats) (document: Document) =
+        let headers = ["status code"; "count"; "message"]
+        let rows = createTableRows(scnStats)
         document |> addTable headers rows
 
 module MdNodeStats =
+
+    let private printDataKb (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb |> Md.printInlineCode} KB"
+
+    let private printAllData (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb |> Md.printInlineCode} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) (document: Document) =
         let header =
@@ -62,7 +117,7 @@ module MdNodeStats =
             $", duration: {scnStats.Duration |> Md.printInlineCode}" +
             $", ok count: {scnStats.OkCount |> Md.printInlineCode}" +
             $", fail count: {scnStats.FailCount |> Md.printInlineCode}" +
-            $", all data: {scnStats.AllDataMB |> Md.printInlineCode} MB"
+            $", all data: {scnStats.AllBytes |> printAllData} MB"
 
         document |> Md.printHeader header
 
@@ -112,10 +167,6 @@ module MdNodeStats =
         let okRPS = s.Ok.Request.RPS
         let okLatency = s.Ok.Latency
         let okDataTransfer = s.Ok.DataTransfer
-        let okDtMin = $"%.3f{okDataTransfer.MinKb}"
-        let okDtMean = $"%.3f{okDataTransfer.MeanKb}"
-        let okDtMax = $"%.3f{okDataTransfer.MaxKb}"
-        let okDtAll = $"%.3f{okDataTransfer.AllMB}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -135,17 +186,17 @@ module MdNodeStats =
             $", 99%% = {okLatency.Percent99 |> Md.printInlineCode}"
 
         let okDt =
-            $"min = {okDtMin |> Md.printInlineCode} KB" +
-            $", mean = {okDtMean |> Md.printInlineCode} KB" +
-            $", max = {okDtMax |> Md.printInlineCode} KB" +
-            $", all = {okDtAll |> Md.printInlineCode} MB"
+            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {okDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Md.printInlineCode]
           ["request count"; reqCount]
           ["latency"; okLatencies]
           ["latency percentile"; okPercentile]
-          if okDataTransfer.AllMB > 0.0 then ["data transfer"; okDt] ]
+          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
 
     let private createFailStepStatsRow (i) (s: StepStats) =
         let name = s.StepName
@@ -155,10 +206,6 @@ module MdNodeStats =
         let failRPS = s.Fail.Request.RPS
         let failLatency = s.Fail.Latency
         let failDataTransfer = s.Fail.DataTransfer
-        let failDtMin = $"%.3f{failDataTransfer.MinKb}"
-        let failDtMean = $"%.3f{failDataTransfer.MeanKb}"
-        let failDtMax = $"%.3f{failDataTransfer.MaxKb}"
-        let failDtAll = $"%.3f{failDataTransfer.AllMB}"
 
         let reqCount =
             $"all = {allReqCount |> Md.printInlineCode}" +
@@ -178,17 +225,17 @@ module MdNodeStats =
             $", 99%% = {failLatency.Percent99 |> Md.printInlineCode}"
 
         let failDt =
-            $"min = {failDtMin |> Md.printInlineCode} KB" +
-            $", mean = {failDtMean |> Md.printInlineCode} KB" +
-            $", max = {failDtMax |> Md.printInlineCode} KB" +
-            $", all = {failDtAll |> Md.printInlineCode} MB"
+            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
+            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
+            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
+            $", all = {failDataTransfer.AllBytes |> printAllData}"
 
         [ if i > 0 then [String.Empty; String.Empty]
           ["name"; name |> Md.printInlineCode]
           ["request count"; reqCount]
           ["latency"; failLatencies]
           ["latency percentile"; failPercentile]
-          if failDataTransfer.AllMB > 0.0 then ["data transfer"; failDt] ]
+          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
 
     let private printOkStepStatsTable (stepStats: StepStats[]) (document: Document) =
         stepStats
@@ -197,11 +244,11 @@ module MdNodeStats =
         |> List.ofSeq
         |> fun rows -> document |> addTable ["step"; "ok stats"] rows
 
-    let private errorStepStatsExist (stepStats: StepStats[]) =
+    let private failStepStatsExist (stepStats: StepStats[]) =
         stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let private printFailStepStatsTable (stepStats: StepStats[]) (document: Document) =
-        if errorStepStatsExist(stepStats) then
+        if failStepStatsExist(stepStats) then
             stepStats
             |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
             |> Seq.mapi createFailStepStatsRow
@@ -214,11 +261,11 @@ module MdNodeStats =
         else
             document
 
-    let private printScenarioErrorStats (scnStats: ScenarioStats) (document: Document) =
-        if scnStats.ErrorStats.Length > 0 then
+    let private printScenarioStatusCodeStats (scnStats: ScenarioStats) (document: Document) =
+        if scnStats.StatusCodes.Length > 0 then
             document
-            |> MdErrorStats.printErrorStatsHeader scnStats.ScenarioName
-            |> MdErrorStats.printErrorStats scnStats.ErrorStats
+            |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
+            |> MdStatusCodeStats.printStatusCodeTable scnStats
         else document
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =
@@ -227,7 +274,7 @@ module MdNodeStats =
         |> printLoadSimulations simulations
         |> printOkStepStatsTable scnStats.StepStats
         |> printFailStepStatsTable scnStats.StepStats
-        |> printScenarioErrorStats scnStats
+        |> printScenarioStatusCodeStats scnStats
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) (document: Document) =
         stats.ScenarioStats
@@ -274,12 +321,12 @@ module MdHints =
         document
         |> Md.printHeader "hints:"
 
-    let private createHintsTableRows (hints: HintResult list) =
+    let private createHintsTableRows (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint -> [hint.SourceType.ToString(); hint.SourceName; hint.Hint])
         |> List.ofSeq
 
-    let printHints (hints: HintResult list) (document: Document) =
+    let printHints (hints: HintResult[]) (document: Document) =
         if hints.Length > 0 then
             let headers = ["source"; "name"; "hint"]
             let rows = createHintsTableRows(hints)
@@ -290,10 +337,10 @@ module MdHints =
         else
             document
 
-let print (stats: NodeStats) (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
     emptyDocument
-    |> MdTestInfo.printTestInfo stats.TestInfo
-    |> MdNodeStats.printNodeStats stats simulations
-    |> MdPluginStats.printPluginStats stats
-    |> MdHints.printHints hints
+    |> MdTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+    |> MdNodeStats.printNodeStats sessionResult.NodeStats simulations
+    |> MdPluginStats.printPluginStats sessionResult.NodeStats
+    |> MdHints.printHints sessionResult.Hints
     |> asString

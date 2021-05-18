@@ -1,16 +1,14 @@
 module internal NBomber.DomainServices.Reporting.Report
 
-open System
 open System.Collections.Generic
 open System.IO
 
-open NBomber.Domain.DomainTypes
 open Serilog
 open Spectre.Console.Rendering
 
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Domain.HintsAnalyzer
+open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 
 type ReportsContent = {
@@ -22,16 +20,16 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
-let build (nodeStats: NodeStats) (timeLines: TimeLineHistoryRecord list)
-          (hints: HintResult list) (simulations: IDictionary<string, LoadSimulation list>) =
+let build (sessionResult: NodeSessionResult)
+          (simulations: IDictionary<string, LoadSimulation list>) =
 
-    let errorsExist = nodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
+    let errorsExist = sessionResult.NodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
 
-    { TxtReport = TxtReport.print nodeStats hints simulations
-      HtmlReport = HtmlReport.print nodeStats timeLines hints
-      CsvReport = CsvReport.print nodeStats
-      MdReport = MdReport.print nodeStats hints simulations
-      ConsoleReport = ConsoleReport.print nodeStats hints simulations
+    { TxtReport = TxtReport.print sessionResult simulations
+      HtmlReport = HtmlReport.print sessionResult
+      CsvReport = CsvReport.print sessionResult
+      MdReport = MdReport.print sessionResult simulations
+      ConsoleReport = ConsoleReport.print sessionResult simulations
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,
@@ -66,11 +64,10 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
 
         if report.SessionFinishedWithErrors then
-            logger.Warning("Test finished with errors, please check logs in './logs' folder.")
+            logger.Warning("Test finished with errors, please check the log file.")
 
         if reportFiles.Length > 0 then
-            logger.Information("Reports saved in folder: '{0}', {1}",
-                DirectoryInfo(reportsDir).FullName, Environment.NewLine)
+            logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(reportsDir).FullName)
 
         reportFiles
     with

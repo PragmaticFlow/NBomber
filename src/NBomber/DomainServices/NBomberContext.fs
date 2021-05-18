@@ -11,22 +11,30 @@ open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
+
+// we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
+// since after init (for case when the same ClientFactory assigned to several Scenarios)
+// factoryName = factoryName + scenarioName
+// and it's more convenient to prepare it for usage
 
 type SessionArgs = {
     TestInfo: TestInfo
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
-    ConnectionPoolSettings: ConnectionPoolSetting list
+    UpdatedClientFactorySettings: ClientFactorySetting list
     SendStatsInterval: TimeSpan
+    UseHintsAnalyzer: bool
 } with
     static member Empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
-        ConnectionPoolSettings = List.empty
+        UpdatedClientFactorySettings = List.empty
         SendStatsInterval = Constants.DefaultSendStatsInterval
+        UseHintsAnalyzer = true
     }
 
 module Validation =
@@ -74,6 +82,7 @@ module Validation =
         |> Seq.tryFind(fun scenarioSetting ->
             try
                 scenarioSetting.LoadSimulationsSettings
+                |> Option.defaultValue List.empty
                 |> Seq.iter(LoadTimeLine.createSimulationFromSettings >> ignore)
                 false
             with
@@ -184,7 +193,7 @@ let getSendStatsInterval (context: NBomberContext) =
     |> Option.map(Validation.checkSendStatsSettings)
     |> Option.defaultValue(context.Reporting.SendStatsInterval |> Validation.checkSendStatsInterval)
 
-let getConnectionPoolSettings (context: NBomberContext) =
+let getClientFactorySettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -192,10 +201,10 @@ let getConnectionPoolSettings (context: NBomberContext) =
 
         return scnSettings |> List.collect(fun scn ->
             option {
-                let! poolSettings = scn.ConnectionPoolSettings
-                return poolSettings |> List.map(fun pool ->
-                    let newName = Scenario.ConnectionPool.createPoolName pool.PoolName scn.ScenarioName
-                    { pool with PoolName = newName }
+                let! factorySettings = scn.ClientFactorySettings
+                return factorySettings |> List.map(fun pool ->
+                    let newName = Scenario.ClientFactory.createName pool.FactoryName scn.ScenarioName
+                    { pool with FactoryName = newName }
                 )
             }
             |> Option.defaultValue List.empty
@@ -213,14 +222,15 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         let! workerPlugins = context.WorkerPlugins |> Validation.checkWorkerPlugins
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
-        let connectionPoolSettings = context |> getConnectionPoolSettings
+        let clientFactorySettings = context |> getClientFactorySettings
 
         return {
-          TestInfo = testInfo
-          ScenariosSettings = scenariosSettings
-          TargetScenarios = targetScenarios
-          ConnectionPoolSettings = connectionPoolSettings
-          SendStatsInterval = sendStatsInterval
+            TestInfo = testInfo
+            ScenariosSettings = scenariosSettings
+            TargetScenarios = targetScenarios
+            UpdatedClientFactorySettings = clientFactorySettings
+            SendStatsInterval = sendStatsInterval
+            UseHintsAnalyzer = context.UseHintsAnalyzer
         }
     }
     |> Result.mapError(AppError.create)

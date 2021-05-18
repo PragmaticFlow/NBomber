@@ -56,9 +56,17 @@ h6 {
     margin-bottom: 20px;
 }
 
-    .card.custom .card-header h6 {
-        margin: 0
-    }
+.card.custom .card-header h6 {
+    margin: 0
+}
+
+div.scenario-stats {
+    margin: 10px 0;
+}
+
+table.table-status-codes {
+    margin-bottom: 0;
+}
 
 table.table-scenario-stats tr th {
     text-align: center;
@@ -68,21 +76,9 @@ table.table-scenario-stats tr td {
     text-align: right;
 }
 
-    .scenario table tr td:first-child {
-        text-align: left;
-    }
-
-.chart {
-    height: 200px;
+.scenario table tr td:first-child {
+    text-align: left;
 }
-
-    .chart.chart-timeline {
-        height: 400px;
-    }
-
-    .chart.chart-timelinechart-timeline-scenario-load {
-        height: 100px;
-    }
 
 [data-toggle="collapse"] .fa {
     transition: .3s transform ease-in-out;
@@ -90,4 +86,30 @@ table.table-scenario-stats tr td {
 
 [data-toggle="collapse"].collapsed .fa {
     transform: rotate(-90deg);
+}
+
+.tab-content>.tab-pane {
+    height: 0;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+}
+
+.tab-content>.active {
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+}
+
+.custom-switch>* {
+    cursor: pointer;
+}
+
+.chart {
+    width: 100%;
+    height: 200px;
+}
+
+.chart.chart-timeline {
+    height: 400px;
 }

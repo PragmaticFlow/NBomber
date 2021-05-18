@@ -1,8 +1,9 @@
-﻿namespace NBomber.FSharp
+namespace NBomber.FSharp
 
 open System
 open System.IO
 open System.Runtime
+open System.Runtime.InteropServices
 open System.Threading.Tasks
 
 open Serilog
@@ -17,7 +18,8 @@ open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
+open NBomber.Contracts.Stats
 open NBomber.DomainServices
 
 type CommandLineArgs = {
@@ -25,34 +27,34 @@ type CommandLineArgs = {
     [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
 }
 
-[<AutoOpen>]
-module TimeSpanApi =
+/// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
+[<RequireQualifiedAccess>]
+type ClientFactory =
 
-    let inline milliseconds (value: int) = value |> float |> TimeSpan.FromMilliseconds
-    let inline seconds (value: int) = value |> float |> TimeSpan.FromSeconds
-    let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
-
-type ConnectionPoolArgs =
-
-    static member internal create (name: string,
-                                   openConnection: int * IBaseContext -> Task<'TConnection>,
-                                   closeConnection: 'TConnection * IBaseContext -> Task,
-                                   ?connectionCount: int) =
-
-        let count = defaultArg connectionCount Constants.DefaultConnectionCount
-        ConnectionPoolArgs(name, count, openConnection, closeConnection)
-        :> IConnectionPoolArgs<'TConnection>
-
+    /// Creates ClientFactory.
+    /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
     static member create (name: string,
-                          openConnection: int * IBaseContext -> Task<'TConnection>,
-                          closeConnection: 'TConnection * IBaseContext -> Task<unit>,
-                          ?connectionCount: int) =
+                          initClient: int * IBaseContext -> Task<'TClient>,
+                          ?disposeClient: 'TClient * IBaseContext -> Task<unit>,
+                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] ?clientCount: int) =
 
-        let close = fun (connection,token) -> closeConnection(connection,token) :> Task
-        let count = defaultArg connectionCount Constants.DefaultConnectionCount
-        ConnectionPoolArgs.create(name, openConnection, close, count)
+        let defaultDispose = (fun (client,context) ->
+            match client :> obj with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
+            Task.CompletedTask
+        )
 
-/// Data feed helps you to inject dynamic data into your test.
+        let dispose =
+            disposeClient
+            |> Option.map(fun dispose -> fun (c,ctx) -> dispose(c,ctx) :> Task)
+            |> Option.defaultValue defaultDispose
+
+        let count = defaultArg clientCount Constants.DefaultClientCount
+        ClientFactory(name, count, initClient, dispose) :> IClientFactory<'TClient>
+
+/// DataFeed helps inject test data into your load test. It represents a data source.
+[<RequireQualifiedAccess>]
 module Feed =
 
     /// Creates Feed that picks constant value per Step copy.
@@ -81,99 +83,42 @@ module Feed =
     let createRandomLazy (name) (getData: unit -> 'T seq) =
         NBomber.Domain.Feed.random(name, getData())
 
+/// Step represents a single user action like login, logout, etc.
+[<RequireQualifiedAccess>]
 type Step =
 
-    static member internal create (name: string,
-                                   execute: IStepContext<'TConnection,'TFeedItem> -> Response,
-                                   connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
-                                   feed: IFeed<'TFeedItem> option,
-                                   doNotTrack: bool option) =
-        let poolArgs =
-            connectionPoolArgs
-            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-            |> Option.map(fun x -> x.GetUntyped().Value)
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
+    static member create (name: string,
+                          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
+                          ?clientFactory: IClientFactory<'TClient>,
+                          ?feed: IFeed<'TFeedItem>,
+                          ?timeout: TimeSpan,
+                          ?doNotTrack: bool) =
+
+        let factory =
+            clientFactory
+            |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
+            |> Option.map(fun x -> x.GetUntyped())
+
+        let timeout = timeout |> Option.defaultValue(Constants.StepTimeout)
 
         { StepName = name
-          ConnectionPoolArgs = poolArgs
-          ConnectionPool = None
-          Execute = execute |> Step.toUntypedExecute |> SyncExec
-          Feed = feed |> Option.map Feed.toUntypedFeed
-          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
-          :> IStep
-
-    static member internal createAsync (name: string,
-                                        execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                                        connectionPoolArgs: IConnectionPoolArgs<'TConnection> option,
-                                        feed: IFeed<'TFeedItem> option,
-                                        doNotTrack: bool option) =
-        let poolArgs =
-            connectionPoolArgs
-            |> Option.map(fun x -> x :?> ConnectionPoolArgs<'TConnection>)
-            |> Option.map(fun x -> x.GetUntyped().Value)
-
-        { StepName = name
-          ConnectionPoolArgs = poolArgs
-          ConnectionPool = None
+          ClientFactory = factory
+          ClientPool = None
           Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
+          Timeout = timeout
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
           :> IStep
-
-    static member create (name: string,
-                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                          feed: IFeed<'TFeedItem>,
-                          execute: IStepContext<'TConnection,'TFeedItem> -> Response,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
-
-    static member createAsync (name: string,
-                               connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                               feed: IFeed<'TFeedItem>,
-                               execute: IStepContext<'TConnection,'TFeedItem> -> Task<Response>,
-                               ?doNotTrack: bool) =
-        Step.createAsync(name, execute, Some connectionPoolArgs, Some feed, doNotTrack)
-
-    static member create (name: string,
-                          connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                          execute: IStepContext<'TConnection,unit> -> Response,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, Some connectionPoolArgs, None, doNotTrack)
-
-    static member createAsync (name: string,
-                               connectionPoolArgs: IConnectionPoolArgs<'TConnection>,
-                               execute: IStepContext<'TConnection,unit> -> Task<Response>,
-                               ?doNotTrack: bool) =
-        Step.createAsync(name, execute, Some connectionPoolArgs, None, doNotTrack)
-
-    static member create (name: string,
-                          feed: IFeed<'TFeedItem>,
-                          execute: IStepContext<unit,'TFeedItem> -> Response,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, None, Some feed, doNotTrack)
-
-    static member createAsync (name: string,
-                               feed: IFeed<'TFeedItem>,
-                               execute: IStepContext<unit,'TFeedItem> -> Task<Response>,
-                               ?doNotTrack: bool) =
-        Step.createAsync(name, execute, None, Some feed, doNotTrack)
-
-    static member create (name: string,
-                          execute: IStepContext<unit,unit> -> Response,
-                          ?doNotTrack: bool) =
-        Step.create(name, execute, None, None, doNotTrack)
-
-    static member createAsync (name: string,
-                               execute: IStepContext<unit,unit> -> Task<Response>,
-                               ?doNotTrack: bool) =
-        Step.createAsync(name, execute, None, None, doNotTrack)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.createAsync(name = "pause",
-                         execute = (fun _ -> task { do! Task.Delay(getDuration())
-                                                    return Response.ok() }),
-                         doNotTrack = true)
+        Step.create(name = Constants.StepPauseName,
+                    execute = (fun _ -> task { do! Task.Delay(getDuration())
+                                               return Response.ok() }),
+                    doNotTrack = true)
 
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
@@ -189,10 +134,16 @@ type Step =
     static member createPause (milliseconds: int) =
         Step.createPause(fun () -> milliseconds)
 
-/// Scenario helps to organize steps into sequential flow with different load simulations (concurrency control).
+/// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+/// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+/// You should think about Scenario as a system thread.
+[<RequireQualifiedAccess>]
 module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
+    /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
+    /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
+    /// You should think about Scenario as a system thread.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
         let stepsOrder = [|0..steps.Length-1|]
         { ScenarioName = name
@@ -200,7 +151,7 @@ module Scenario =
           Clean = None
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
-          LoadSimulations = [LoadSimulation.InjectPerSec(rate = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
+          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           GetStepsOrder = fun () -> stepsOrder }
 
     /// Initializes scenario.
@@ -221,18 +172,21 @@ module Scenario =
         { scenario with WarmUpDuration = TimeSpan.Zero }
 
     /// Sets load simulations.
-    /// Default value is: InjectPerSec(rate = 50, during = minutes 1)
+    /// Default value is: KeepConstant(copies = 1, during = minutes 1)
+    /// NBomber is always running simulations in sequential order that you defined them.
+    /// All defined simulations are represent the whole Scenario duration.
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
         { scenario with LoadSimulations = loadSimulations }
 
-    /// Sets custom steps order that will be used by NBomber Scenario executor.
+    /// Sets dynamic steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
-    let withCustomStepsOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
+    let withDynamicStepOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
         { scenario with GetStepsOrder = getStepsOrder }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
+[<RequireQualifiedAccess>]
 module NBomberRunner =
 
     /// Registers scenario in NBomber environment.
@@ -391,3 +345,34 @@ module WorkerPluginStats =
     let tryFindPluginStats (plugin: IWorkerPlugin) (nodeStats: NodeStats) =
         let pluginFullName = WorkerPlugin.getFullName(plugin)
         nodeStats.PluginStats |> WorkerPlugin.tryFindPluginStats pluginFullName
+
+namespace NBomber.FSharp.SyncApi
+
+    open NBomber
+    open NBomber.Contracts
+    open NBomber.Domain
+    open NBomber.Domain.DomainTypes
+    open NBomber.Domain.ClientPool
+
+    [<RequireQualifiedAccess>]
+    type SyncStep =
+
+        static member create (name: string,
+                              exec: IStepContext<'TClient,'TFeedItem> -> Response,
+                              ?clientFactory: IClientFactory<'TClient>,
+                              ?feed: IFeed<'TFeedItem>,
+                              ?doNotTrack: bool) =
+
+            let factory =
+                clientFactory
+                |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
+                |> Option.map(fun x -> x.GetUntyped())
+
+            { StepName = name
+              ClientFactory = factory
+              ClientPool = None
+              Execute = exec |> Step.toUntypedExecute |> SyncExec
+              Feed = feed |> Option.map Feed.toUntypedFeed
+              Timeout = Constants.StepTimeout
+              DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+              :> IStep

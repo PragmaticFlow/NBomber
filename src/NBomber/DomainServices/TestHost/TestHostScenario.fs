@@ -6,7 +6,7 @@ open FsToolkit.ErrorHandling
 open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ConnectionPool
+open NBomber.Domain.ClientPool
 open NBomber.DomainServices.NBomberContext
 open NBomber.Errors
 open NBomber.Infra.Dependency
@@ -16,11 +16,10 @@ let getTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario
     |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
     |> Scenario.applySettings sessionArgs.ScenariosSettings
 
-let initConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) = taskResult {
+let initClientPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try
         for pool in pools do
-            dep.Logger.Information("Start opening {ConnectionCount} connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
-            let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, [pool])
+            let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
             do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
             progressTask.Wait()
 
@@ -59,39 +58,38 @@ let initScenarios (dep: IGlobalDependency)
 
             | None -> ()
 
-        // connection pools init
+        // client pools init
         let! pools =
             targetScenarios
-            |> Scenario.ConnectionPool.createConnectionPools sessionArgs.ConnectionPoolSettings
-            |> initConnectionPools dep baseContext
+            |> Scenario.ClientPool.createPools sessionArgs.UpdatedClientFactorySettings
+            |> initClientPools dep baseContext
 
         // data feed init
         do! targetScenarios
-            |> Scenario.Feed.filterDistinctAndEmptyFeeds
+            |> Scenario.Feed.filterDistinctFeeds
             |> initDataFeeds dep baseContext
             |> TaskResult.ignore
 
         return targetScenarios
-               |> Scenario.ConnectionPool.setConnectionPools pools
+               |> Scenario.ClientPool.setPools pools
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
+
+let disposeClientPools (dep: IGlobalDependency) (baseContext: IBaseContext) (pools: ClientPool list) =
+    for pool in pools do
+        let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
+        pool.DisposePool(baseContext)
+        progressTask.Wait()
 
 let cleanScenarios (dep: IGlobalDependency)
                    (baseContext: IBaseContext)
                    (defaultScnContext: IScenarioContext)
                    (scenarios: Scenario list) = task {
 
-    let destroyConnectionPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ConnectionPool list) =
-        for pool in pools do
-            dep.Logger.Information("Start closing {ConnectionCount} connections for connection pool: '{PoolName}'.", pool.ConnectionCount, pool.PoolName)
-            let progressTask = TestHostConsole.displayConnectionPoolsProgress(dep, List.singleton(pool))
-            pool.Destroy(context).Wait()
-            progressTask.Wait()
-
     scenarios
-    |> Scenario.ConnectionPool.filterDistinctConnectionPools
-    |> destroyConnectionPools dep baseContext
+    |> Scenario.ClientPool.filterDistinct
+    |> disposeClientPools dep baseContext
 
     for scn in scenarios do
         match scn.Clean with
