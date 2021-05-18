@@ -32,12 +32,9 @@ let run () =
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
-    let stats =
-        Scenario.create "simple_http" [step]
-        |> Scenario.withWarmUpDuration(seconds 5)
-        |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
-        |> NBomberRunner.registerScenario
-        |> NBomberRunner.withWorkerPlugins [pingPlugin]
-        |> NBomberRunner.run
-
-    ()
+    Scenario.create "simple_http" [step]
+    |> Scenario.withWarmUpDuration(seconds 5)
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withWorkerPlugins [pingPlugin]
+    |> NBomberRunner.run
