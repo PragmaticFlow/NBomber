@@ -59,28 +59,28 @@ module Feed =
     /// Creates Feed that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
     let createConstant (name) (data: 'T seq) =
-        NBomber.Domain.Feed.constant(name, data)
+        NBomber.Domain.Feed.constant(name, fun _ -> data)
 
     /// Creates Feed that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
-    let createConstantLazy (name) (getData: unit -> 'T seq) =
-        NBomber.Domain.Feed.constant(name, getData())
+    let createConstantLazy (name) (getData: IBaseContext -> 'T seq) =
+        NBomber.Domain.Feed.constant(name, getData)
 
     /// Creates Feed that randomly picks an item per Step invocation.
     let createCircular (name) (data: 'T seq) =
-        NBomber.Domain.Feed.circular(name, data)
+        NBomber.Domain.Feed.circular(name, fun _ -> data)
 
     /// Creates Feed that randomly picks an item per Step invocation.
-    let createCircularLazy (name) (getData: unit -> 'T seq) =
-        NBomber.Domain.Feed.circular(name, getData())
+    let createCircularLazy (name) (getData: IBaseContext -> 'T seq) =
+        NBomber.Domain.Feed.circular(name, getData)
 
     /// Creates Feed that returns values from value on every Step invocation.
     let createRandom (name) (data: 'T seq) =
-        NBomber.Domain.Feed.random(name, data)
+        NBomber.Domain.Feed.random(name, fun _ -> data)
 
     /// Creates Feed that returns values from value on every Step invocation.
-    let createRandomLazy (name) (getData: unit -> 'T seq) =
-        NBomber.Domain.Feed.random(name, getData())
+    let createRandomLazy (name) (getData: IBaseContext -> 'T seq) =
+        NBomber.Domain.Feed.random(name, getData)
 
 /// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]

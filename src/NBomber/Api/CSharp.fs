@@ -44,28 +44,28 @@ type Feed =
     /// Creates Feed that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
     static member CreateConstant (name, data: 'T seq) =
-        NBomber.Domain.Feed.constant(name, data)
+        FSharp.Feed.createConstant name data
 
     /// Creates Feed that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
-    static member CreateConstant (name, getData: Func<'T seq>) =
-        NBomber.Domain.Feed.constant(name, getData.Invoke())
+    static member CreateConstant (name, getData: Func<IBaseContext,'T seq>) =
+        FSharp.Feed.createConstantLazy name getData.Invoke
 
     /// Creates Feed that randomly picks an item per Step invocation.
     static member CreateCircular (name, data: 'T seq) =
-        NBomber.Domain.Feed.circular(name, data)
+        FSharp.Feed.createCircular name data
 
     /// Creates Feed that randomly picks an item per Step invocation.
-    static member CreateCircular (name, getData: Func<'T seq>) =
-        NBomber.Domain.Feed.circular(name, getData.Invoke())
+    static member CreateCircular (name, getData: Func<IBaseContext,'T seq>) =
+        FSharp.Feed.createCircularLazy name getData.Invoke
 
     /// Creates Feed that returns values from  value on every Step invocation.
     static member CreateRandom (name, data: 'T seq) =
-        NBomber.Domain.Feed.random(name, data)
+        FSharp.Feed.createRandom name data
 
     /// Creates Feed that returns values from  value on every Step invocation.
-    static member CreateRandom (name, getData: Func<'T seq>) =
-        NBomber.Domain.Feed.random(name, getData.Invoke())
+    static member CreateRandom (name, getData: Func<IBaseContext,'T seq>) =
+        FSharp.Feed.createRandomLazy name getData.Invoke
 
 /// Step represents a single user action like login, logout, etc.
 type Step =

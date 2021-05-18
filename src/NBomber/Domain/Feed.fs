@@ -14,21 +14,21 @@ let toUntypedFeed (feed: IFeed<'TFeedItem>) = {
         member _.GetNextItem(scenarioInfo, stepData) = feed.GetNextItem(scenarioInfo, stepData) :> obj
 }
 
-let constant (name, data: 'T seq) =
+let constant (name, getData: IBaseContext -> 'T seq) =
     let mutable _allItems = Array.empty
 
     { new IFeed<'T> with
         member _.FeedName = name
 
         member _.Init(context) =
-            _allItems <- data |> Seq.toArray
+            _allItems <- getData(context) |> Seq.toArray
             Task.CompletedTask
 
         member _.GetNextItem(scenarioInfo, stepData) =
             let index = scenarioInfo.ThreadNumber % _allItems.Length
             _allItems.[index] }
 
-let circular (name, data: 'T seq) =
+let circular (name, getData: IBaseContext -> 'T seq) =
     let mutable _enumerator = Unchecked.defaultof<_>
 
     let createInfiniteStream (items: 'T seq) = seq {
@@ -40,7 +40,7 @@ let circular (name, data: 'T seq) =
         member _.FeedName = name
 
         member _.Init(context) =
-            let infiniteItems = data |> createInfiniteStream
+            let infiniteItems = getData(context) |> createInfiniteStream
             _enumerator <- infiniteItems.GetEnumerator()
             Task.CompletedTask
 
@@ -48,7 +48,7 @@ let circular (name, data: 'T seq) =
             _enumerator.MoveNext() |> ignore
             _enumerator.Current }
 
-let random (name, data: 'T seq) =
+let random (name, getData: IBaseContext -> 'T seq) =
     let _random = Random()
     let mutable _allItems = Array.empty
 
@@ -60,7 +60,7 @@ let random (name, data: 'T seq) =
         member _.FeedName = name
 
         member _.Init(context) =
-            _allItems <- data |> Seq.toArray
+            _allItems <- getData(context) |> Seq.toArray
             Task.CompletedTask
 
         member _.GetNextItem(scenarioInfo, stepData) = getRandomItem() }

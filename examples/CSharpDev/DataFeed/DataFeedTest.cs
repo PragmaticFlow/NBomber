@@ -21,7 +21,7 @@ namespace CSharpDev.DataFeed
             //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
-            var feed = Feed.CreateCircular("numbers", data);
+            var feed = Feed.CreateCircular("numbers", () => data);
 
             // lazy
             //var feed = Feed.CreateCircular("numbers", getData: () => data);
