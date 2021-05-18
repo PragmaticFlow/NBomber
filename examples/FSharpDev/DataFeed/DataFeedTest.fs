@@ -21,7 +21,7 @@ let run () =
     //let data = FeedData.fromCsv<User>("./DataFeed/users-feed-data.csv")
 
     let feed = data |> Feed.createCircular "numbers"
-    //let feed = Feed.createCircularLazy "numbers" (fun () -> seq { yield! data })
+    //let feed = Feed.createCircularLazy "numbers" (fun context -> seq { yield! data })
     //let feed = data |> Feed.createConstant "numbers"
     //let feed = data |> Feed.createRandom "numbers"
 

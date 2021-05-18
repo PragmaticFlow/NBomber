@@ -21,10 +21,10 @@ namespace CSharpDev.DataFeed
             //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
-            var feed = Feed.CreateCircular("numbers", () => data);
+            var feed = Feed.CreateCircular("numbers", data);
 
             // lazy
-            //var feed = Feed.CreateCircular("numbers", getData: () => data);
+            //var feed = Feed.CreateCircular("numbers", getData: context => data);
 
             //var feed = Feed.CreateConstant("numbers", data);
             //var feed = Feed.CreateRandom("numbers", data);
