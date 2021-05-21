@@ -409,3 +409,21 @@ let ``Response Payload should be cleared from StepContext Data after each iterat
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats -> test <@ stats.FailCount = 0 @>
+
+[<Fact>]
+let ``create should check feed on null and throw NRE`` () =
+    Assert.Throws(
+        typeof<NullReferenceException>,
+        fun _ -> let nullFeed = Unchecked.defaultof<_>()
+                 Step.create("null_feed", feed = nullFeed, execute = fun context -> task { return Response.ok() })
+                 |> ignore
+    )
+
+[<Fact>]
+let ``create should check clientFactory on null and throw NRE`` () =
+    Assert.Throws(
+        typeof<NullReferenceException>,
+        fun _ -> let nullFactory = Unchecked.defaultof<_>()
+                 Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
+                 |> ignore
+    )

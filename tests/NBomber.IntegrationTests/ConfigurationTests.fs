@@ -58,7 +58,9 @@ module NBomberRunner =
 
     [<Fact>]
     let ``loadInfraConfig should throw ex if json file is not found`` () =
-        Assert.Throws(typeof<FileNotFoundException>,
-                      fun _ -> NBomberRunner.registerScenarios []
-                               |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
-                               |> ignore)
+        Assert.Throws(
+            typeof<FileNotFoundException>,
+            fun _ -> NBomberRunner.registerScenarios []
+                     |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
+                     |> ignore
+        )
