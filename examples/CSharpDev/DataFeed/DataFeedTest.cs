@@ -24,7 +24,7 @@ namespace CSharpDev.DataFeed
             var feed = Feed.CreateCircular("numbers", data);
 
             // lazy
-            //var feed = Feed.CreateCircular("numbers", getData: context => data);
+            //var feed = Feed.CreateCircularLazy("numbers", getData: context => data);
 
             //var feed = Feed.CreateConstant("numbers", data);
             //var feed = Feed.CreateRandom("numbers", data);

@@ -427,3 +427,21 @@ let ``create should check clientFactory on null and throw NRE`` () =
                  Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
                  |> ignore
     )
+
+[<Fact>]
+let ``SyncStep create should check feed on null and throw NRE`` () =
+    Assert.Throws(
+        typeof<NullReferenceException>,
+        fun _ -> let nullFeed = Unchecked.defaultof<_>()
+                 SyncApi.SyncStep.create("null_feed", feed = nullFeed, execute = fun context -> Response.ok())
+                 |> ignore
+    )
+
+[<Fact>]
+let ``SyncStep create should check clientFactory on null and throw NRE`` () =
+    Assert.Throws(
+        typeof<NullReferenceException>,
+        fun _ -> let nullFactory = Unchecked.defaultof<_>()
+                 SyncApi.SyncStep.create("null_feed", clientFactory = nullFactory, execute = fun context -> Response.ok())
+                 |> ignore
+    )

@@ -61,7 +61,7 @@ module Feed =
     let createConstant (name) (data: 'T seq) =
         NBomber.Domain.Feed.constant(name, fun _ -> data)
 
-    /// Creates Feed that picks constant value per Step copy.
+    /// Creates Feed (in lazy mode) that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
     let createConstantLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.constant(name, getData)
@@ -70,7 +70,7 @@ module Feed =
     let createCircular (name) (data: 'T seq) =
         NBomber.Domain.Feed.circular(name, fun _ -> data)
 
-    /// Creates Feed that randomly picks an item per Step invocation.
+    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
     let createCircularLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.circular(name, getData)
 
@@ -78,7 +78,7 @@ module Feed =
     let createRandom (name) (data: 'T seq) =
         NBomber.Domain.Feed.random(name, fun _ -> data)
 
-    /// Creates Feed that returns values from value on every Step invocation.
+    /// Creates Feed (in lazy mode) that returns values from value on every Step invocation.
     let createRandomLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.random(name, getData)
 
@@ -347,6 +347,7 @@ module NBomberRunner =
 
 namespace NBomber.FSharp.SyncApi
 
+    open System
     open NBomber
     open NBomber.Contracts
     open NBomber.Domain
@@ -357,10 +358,18 @@ namespace NBomber.FSharp.SyncApi
     type SyncStep =
 
         static member create (name: string,
-                              exec: IStepContext<'TClient,'TFeedItem> -> Response,
+                              execute: IStepContext<'TClient,'TFeedItem> -> Response,
                               ?clientFactory: IClientFactory<'TClient>,
                               ?feed: IFeed<'TFeedItem>,
                               ?doNotTrack: bool) =
+
+            match clientFactory with
+            | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
+            | None   -> ()
+
+            match feed with
+            | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "feed")
+            | None   -> ()
 
             let factory =
                 clientFactory
@@ -370,7 +379,7 @@ namespace NBomber.FSharp.SyncApi
             { StepName = name
               ClientFactory = factory
               ClientPool = None
-              Execute = exec |> Step.toUntypedExecute |> SyncExec
+              Execute = execute |> Step.toUntypedExecute |> SyncExec
               Feed = feed |> Option.map Feed.toUntypedFeed
               Timeout = Constants.StepTimeout
               DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }

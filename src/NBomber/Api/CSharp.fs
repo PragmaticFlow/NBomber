@@ -46,25 +46,25 @@ type Feed =
     static member CreateConstant (name, data: 'T seq) =
         FSharp.Feed.createConstant name data
 
-    /// Creates Feed that picks constant value per Step copy.
+    /// Creates Feed (in lazy mode) that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
-    static member CreateConstant (name, getData: Func<IBaseContext,'T seq>) =
+    static member CreateConstantLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createConstantLazy name getData.Invoke
 
     /// Creates Feed that randomly picks an item per Step invocation.
     static member CreateCircular (name, data: 'T seq) =
         FSharp.Feed.createCircular name data
 
-    /// Creates Feed that randomly picks an item per Step invocation.
-    static member CreateCircular (name, getData: Func<IBaseContext,'T seq>) =
+    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
+    static member CreateCircularLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createCircularLazy name getData.Invoke
 
     /// Creates Feed that returns values from  value on every Step invocation.
     static member CreateRandom (name, data: 'T seq) =
         FSharp.Feed.createRandom name data
 
-    /// Creates Feed that returns values from  value on every Step invocation.
-    static member CreateRandom (name, getData: Func<IBaseContext,'T seq>) =
+    /// Creates Feed (in lazy mode) that returns values from  value on every Step invocation.
+    static member CreateRandomLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createRandomLazy name getData.Invoke
 
 /// Step represents a single user action like login, logout, etc.
