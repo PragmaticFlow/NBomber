@@ -95,6 +95,14 @@ type Step =
                           ?timeout: TimeSpan,
                           ?doNotTrack: bool) =
 
+        match clientFactory with
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
+        | None   -> ()
+
+        match feed with
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "feed")
+        | None   -> ()
+
         let factory =
             clientFactory
             |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
