@@ -23,6 +23,7 @@ let baseGlobalSettings = {
     ReportFolder = None
     ReportFormats = None
     SendStatsInterval = None
+    DisableHintsAnalyzer = None
 }
 
 let baseScenarioSetting = {
@@ -128,6 +129,24 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
         test <@ formats = List.empty @>
 
     | None, v -> test <@ formats = contextValue @>
+
+[<Property>]
+let ``getUseHintAnalyzer should be based on DisableHintsAnalyzer from GlobalSettings, if empty then from TestContext``
+    (configValue: bool option, contextValue: bool) =
+
+    let glSettings = { baseGlobalSettings with DisableHintsAnalyzer = configValue }
+    let config = { config with GlobalSettings = Some glSettings }
+
+    let ctx = {
+        context with
+            NBomberConfig = Some config
+            UseHintsAnalyzer = contextValue
+    }
+
+    let useHintAnalyzer = NBomberContext.getUseHintAnalyzer(ctx)
+    match configValue with
+    | Some v -> Assert.Equal(not v, useHintAnalyzer)
+    | None -> Assert.Equal(contextValue, useHintAnalyzer)
 
 [<Property>]
 let ``getTestSuite should return from Config, if empty then from TestContext``
