@@ -8,6 +8,7 @@ open FsToolkit.ErrorHandling
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Domain
 open NBomber.Domain.Stats
 open NBomber.DomainServices.Reporting
 open NBomber.DomainServices.TestHost
@@ -41,9 +42,9 @@ let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeS
     else
         stats
 
-let getLoadSimulations (context: NBomberContext) =
-    context.RegisteredScenarios
-    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadSimulations)
+let getLoadSimulations (targetScenarios: DomainTypes.Scenario list) =
+    targetScenarios
+    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadTimeLine |> List.map(fun x -> x.LoadSimulation))
     |> dict
 
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
@@ -57,7 +58,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! scenarios    = context |> NBomberContext.createScenarios
         use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
         let! result       = testHost.RunSession()
-        let simulations   = context |> getLoadSimulations
+        let simulations   = testHost.TargetScenarios |> getLoadSimulations
         let reports       = Report.build result simulations
 
         if dep.ApplicationType = ApplicationType.Console then
