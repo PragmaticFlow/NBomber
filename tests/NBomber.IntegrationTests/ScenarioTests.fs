@@ -278,37 +278,20 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
     | _       -> failwith ""
 
 [<Fact>]
-let ``checkDuplicateStepName should fail if scenario has steps with the same name but different implementations`` () =
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let scn = Scenario.create "1" [step1; step2]
-    match Scenario.Validation.checkDuplicateStepName(scn) with
-    | Error _ -> ()
-    | _       -> failwith "two steps with the same name should not be allowed"
-
-[<Fact>]
-let ``checkDuplicateStepName should not fail if scenario contains duplicated steps`` () =
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let scn = Scenario.create "1" [step1; step1]
-    match Scenario.Validation.checkDuplicateStepName(scn) with
-    | Error _ -> failwith "duplicated steps should be allowed"
-    | _       -> ()
-
-[<Fact>]
-let ``scenario should fail when it has ambiguous step definition`` () =
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
+let ``scenario should not fail when it has ambiguous step definition`` () =
+    let step1 = Step.create("step 1", fun _ -> task { return Response.ok() })
+    let step2 = Step.create("step 1", fun _ -> task { return Response.ok() })
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
-    |> Result.getError
+    |> Result.getOk
     |> ignore
 
 [<Fact>]
 let ``checkEmptyStepName should return fail if scenario has empty step name`` () =
-    let step = NBomber.FSharp.Step.create(" ", fun _ -> Task.FromResult(Response.ok()))
+    let step = NBomber.FSharp.Step.create(" ", fun _ -> task { return Response.ok() })
     let scn = Scenario.create "1" [step]
     match Scenario.Validation.checkEmptyStepName(scn) with
     | Error _ -> ()

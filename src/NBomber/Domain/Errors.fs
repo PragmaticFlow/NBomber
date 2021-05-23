@@ -19,7 +19,6 @@ type ValidationError =
     | InvalidReportFolderPath
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string list
-    | DuplicateStepName     of scenarioName:string * stepNames:string list
     | EmptyStepName         of scenarioName:string
     | EmptySteps            of scenarioName:string
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
@@ -73,9 +72,6 @@ type AppError =
 
         | DuplicateScenarioName scenarioNames ->
             $"Scenario names are not unique: '{scenarioNames |> String.concatWithCommaAndQuotes}'."
-
-        | DuplicateStepName (scenarioName, stepNames) ->
-            $"Scenario: '{scenarioName}' contains duplicated step names: '{stepNames |> String.concatWithCommaAndQuotes}'."
 
         | EmptyStepName scenarioName -> $"Step names are empty in scenario: {scenarioName}."
         | EmptySteps scenarioName -> $"Scenario '{scenarioName}' has no steps."

@@ -240,9 +240,14 @@ type internal TestHost(dep: IGlobalDependency,
             |> List.toArray
 
         let hints =
-            dep.WorkerPlugins
-            |> TestHostPlugins.getHints sessionArgs.UseHintsAnalyzer finalStats
-            |> List.toArray
+            if sessionArgs.UseHintsAnalyzer then
+                dep.WorkerPlugins
+                |> TestHostPlugins.getHints
+                |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
+                |> List.append(HintsAnalyzer.analyzeScenarios _targetScenarios)
+                |> List.toArray
+            else
+                Array.empty
 
         _sessionResult <- { NodeStats = finalStats; TimeLineStats = timeLines; Hints = hints }
         return _sessionResult
