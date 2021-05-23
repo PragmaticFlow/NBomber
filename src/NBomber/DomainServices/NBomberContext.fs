@@ -150,6 +150,16 @@ let getReportFileName (context: NBomberContext) =
     |> Option.orElse(context.Reporting.FileName)
     |> Option.defaultValue(Constants.DefaultReportName)
 
+let getUseHintAnalyzer (context: NBomberContext) =
+    let tryGetFromConfig (ctx) = option {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.UseHintsAnalyzer
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue(context.UseHintsAnalyzer)
+
 let getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
@@ -212,6 +222,7 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
         let clientFactorySettings = context |> getClientFactorySettings
+        let useHintsAnalyzer = context |> getUseHintAnalyzer
 
         return {
             TestInfo = testInfo
@@ -219,7 +230,7 @@ let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
             TargetScenarios = targetScenarios
             UpdatedClientFactorySettings = clientFactorySettings
             SendStatsInterval = sendStatsInterval
-            UseHintsAnalyzer = context.UseHintsAnalyzer
+            UseHintsAnalyzer = useHintsAnalyzer
         }
     }
     |> Result.mapError(AppError.create)

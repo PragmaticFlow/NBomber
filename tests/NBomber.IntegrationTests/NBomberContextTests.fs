@@ -23,6 +23,7 @@ let baseGlobalSettings = {
     ReportFolder = None
     ReportFormats = None
     SendStatsInterval = None
+    UseHintsAnalyzer = None
 }
 
 let baseScenarioSetting = {
@@ -130,6 +131,24 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
     | None, v -> test <@ formats = contextValue @>
 
 [<Property>]
+let ``getUseHintAnalyzer should be based on UseHintsAnalyzer from GlobalSettings, if empty then from TestContext``
+    (configValue: bool option, contextValue: bool) =
+
+    let glSettings = { baseGlobalSettings with UseHintsAnalyzer = configValue }
+    let config = { config with GlobalSettings = Some glSettings }
+
+    let ctx = {
+        context with
+            NBomberConfig = Some config
+            UseHintsAnalyzer = contextValue
+    }
+
+    let useHintAnalyzer = NBomberContext.getUseHintAnalyzer(ctx)
+    match configValue with
+    | Some value -> test <@ value = useHintAnalyzer @>
+    | None       -> test <@ contextValue = useHintAnalyzer @>
+
+[<Property>]
 let ``getTestSuite should return from Config, if empty then from TestContext``
     (configValue: string option) =
 
@@ -220,7 +239,7 @@ let ``checkReportName should return fail if ReportFileName contains invalid char
         match NBomberContext.Validation.checkReportName(x) with
         | Error (InvalidReportName _) -> ()
         | Error EmptyReportName -> ()
-        | Ok value -> failwithf "received OK for char: %s" value
+        | Ok value -> failwithf $"received OK for char: %s{value}"
         | error -> error |> Result.getError |> AppError.toString |> failwith
     )
 
@@ -238,7 +257,7 @@ let ``checkReportFolder should return fail if ReportFolderPath contains invalid 
         match NBomberContext.Validation.checkReportFolder(x) with
         | Error (InvalidReportFolderPath _) -> ()
         | Error EmptyReportFolderPath -> ()
-        | Ok value -> failwithf "received OK for char: %s" value
+        | Ok value -> failwithf $"received OK for char: %s{value}"
         | error -> error |> Result.getError |> AppError.toString |> failwith
     )
 
