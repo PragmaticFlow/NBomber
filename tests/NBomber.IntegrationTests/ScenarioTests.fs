@@ -278,23 +278,6 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
     | _       -> failwith ""
 
 [<Fact>]
-let ``checkDuplicateStepName should fail if scenario has steps with the same name but different implementations`` () =
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let scn = Scenario.create "1" [step1; step2]
-    match Scenario.Validation.checkDuplicateStepName(scn) with
-    | Error _ -> ()
-    | _       -> failwith "two steps with the same name should not be allowed"
-
-[<Fact>]
-let ``checkDuplicateStepName should not fail if scenario contains duplicated steps`` () =
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    let scn = Scenario.create "1" [step1; step1]
-    match Scenario.Validation.checkDuplicateStepName(scn) with
-    | Error _ -> failwith "duplicated steps should be allowed"
-    | _       -> ()
-
-[<Fact>]
 let ``scenario should fail when it has ambiguous step definition`` () =
     let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
     let step2 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))

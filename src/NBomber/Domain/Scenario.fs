@@ -28,16 +28,6 @@ module Validation =
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
-    let checkDuplicateStepName (scenario: Contracts.Scenario) =
-        scenario.Steps
-        |> Seq.distinct
-        |> Seq.groupBy(fun x -> x.StepName)
-        |> Seq.choose(fun (name, steps) -> if Seq.length(steps) > 1 then Some name else None)
-        |> Seq.toList
-        |> function
-            | [] -> Ok scenario
-            | steps -> AppError.createResult(DuplicateStepName(scenario.ScenarioName, steps))
-
     let checkStepsOrInitOrCleanExist (scenario: Contracts.Scenario) =
         if List.isEmpty scenario.Steps then
             if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
@@ -62,7 +52,10 @@ module Validation =
             | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName(scenario.ScenarioName, factoryName))
 
     let validate =
-        checkEmptyScenarioName >=> checkStepsOrInitOrCleanExist >=> checkEmptyStepName >=> checkDuplicateClientFactories >=> checkDuplicateStepName
+        checkEmptyScenarioName
+        >=> checkStepsOrInitOrCleanExist
+        >=> checkEmptyStepName
+        >=> checkDuplicateClientFactories
 
 module ClientFactory =
 

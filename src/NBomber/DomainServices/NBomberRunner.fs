@@ -64,7 +64,8 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         if dep.ApplicationType = ApplicationType.Console then
             reports.ConsoleReport |> Seq.iter Console.render
 
-        return reports |> saveReports dep context result.NodeStats
+        let finalStats = reports |> saveReports dep context result.NodeStats
+        return { result with NodeStats = finalStats }
     }
 
 let run (context: NBomberContext) =
