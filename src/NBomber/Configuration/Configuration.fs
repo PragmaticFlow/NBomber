@@ -33,7 +33,7 @@ type GlobalSettings = {
     ReportFolder: string option
     ReportFormats: ReportFormat list option
     SendStatsInterval: string option
-    DisableHintsAnalyzer: bool option
+    UseHintsAnalyzer: bool option
 }
 
 type NBomberConfig = {

@@ -154,11 +154,10 @@ let getUseHintAnalyzer (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.DisableHintsAnalyzer
+        return! settings.UseHintsAnalyzer
     }
     context
     |> tryGetFromConfig
-    |> Option.map(not) // DisableHintsAnalyzer from config means NOT UseHintsAnalyzer
     |> Option.defaultValue(context.UseHintsAnalyzer)
 
 let getReportFolder (context: NBomberContext) =
