@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/PragmaticFlow/NBomber/blob/master/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
+  <img src="https://github.com/PragmaticFlow/NBomber/blob/dev/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
 ![Build status](https://github.com/PragmaticFlow/NBomber/actions/workflows/dotnet.yml/badge.svg?branch=dev)
