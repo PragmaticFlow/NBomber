@@ -1,5 +1,4 @@
-﻿open System
-open FSharpProd
+﻿open FSharpProd
 
 [<EntryPoint>]
 let main argv =
@@ -12,7 +11,7 @@ let main argv =
     //HttpTests.SimpleHttpTest.run()
     //HttpTests.AdvancedHttpTest.run()
     //HttpTests.AdvancedHttpWithConfig.run()
-    //HttpTests.TracingHttp.run()
+    HttpTests.TracingHttp.run()
 
     //Logging.ElasticSearchLogging.run()
 

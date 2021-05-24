@@ -1,4 +1,6 @@
 using System;
+using System.Net.Http;
+using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Plugins.Http.CSharp;
 using NBomber.Plugins.Network.Ping;
@@ -12,10 +14,15 @@ namespace CSharpProd.HttpTests
     {
         public static void Run()
         {
-            var step = HttpStep.Create("fetch_html_page", context =>
-                Http.CreateRequest("GET", "https://nbomber.com")
-                    .WithHeader("Accept", "text/html")
-            );
+            using var httpClient = new HttpClient();
+            var step = Step.Create("fetch_html_page", async context =>
+            {
+                var response = await httpClient.GetAsync("https://nbomber.com", context.CancellationToken);
+
+                return response.IsSuccessStatusCode
+                    ? Response.Ok(statusCode: (int) response.StatusCode)
+                    : Response.Fail(statusCode: (int) response.StatusCode);
+            });
 
             var scenario = ScenarioBuilder
                 .CreateScenario("simple_http", step)

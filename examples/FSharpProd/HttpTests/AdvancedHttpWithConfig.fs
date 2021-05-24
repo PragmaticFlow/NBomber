@@ -1,8 +1,6 @@
 module FSharpProd.HttpTests.AdvancedHttpWithConfig
-
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open Newtonsoft.Json
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -14,15 +12,21 @@ open FSharpProd.HttpTests.AdvancedHttpTest
 // in this example we use:
 // - NBomber.Http (https://nbomber.com/docs/plugins-http)
 
+[<CLIMutable>]
+type User = {
+    Id: int
+    Name: string
+}
+
 let run () =
 
-    let userFeed = FeedData.fromJson "./HttpTests/Configs/user-feed.json"
+    let userFeed = FeedData.fromJson<User> "./HttpTests/Configs/user-feed.json"
                    |> Feed.createRandom "userFeed"
 
-    let getUser = HttpStep.create("get_user", userFeed, fun context ->
+    let getUser = Step.create("get_user", feed = userFeed, execute = fun context ->
 
         let userId = context.FeedItem
-        let url = "https://jsonplaceholder.typicode.com/users?id=" + userId
+        let url = "https://jsonplaceholder.typicode.com/users?id=" + userId.Id.ToString()
 
         Http.createRequest "GET" url
         |> Http.withCheck(fun response -> task {
@@ -35,14 +39,15 @@ let run () =
 
             match users with
             | ValueSome usr when usr.Length = 1 ->
-                return Response.Ok(usr.[0]) // we pass user object response to the next step
+                return Response.ok(usr.[0]) // we pass user object response to the next step
 
-            | _ -> return Response.Fail("not found user: " + userId)
+            | _ -> return Response.fail("not found user: " + userId.Id.ToString())
         })
+        |> Http.send context
     )
 
     // this 'getPosts' will be executed only if 'getUser' finished OK.
-    let getPosts = HttpStep.create("get_posts", fun context ->
+    let getPosts = Step.create("get_posts", execute = fun context ->
 
         let user = context.GetPreviousStepResponse<UserResponse>()
         let url = "https://jsonplaceholder.typicode.com/posts?userId=" + user.Id
@@ -58,10 +63,11 @@ let run () =
 
             match posts with
             | ValueSome ps when ps.Length > 0 ->
-                return Response.Ok()
+                return Response.ok()
 
-            | _ -> return Response.Fail()
+            | _ -> return Response.fail()
         })
+        |> Http.send context
     )
 
     Scenario.create "rest_api" [getUser; getPosts]

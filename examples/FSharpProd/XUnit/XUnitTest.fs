@@ -1,11 +1,9 @@
 module FSharpProd.DataFeed.XUnitTest
 
 open System.Threading.Tasks
-
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open Xunit
 open Swensen.Unquote
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -20,7 +18,7 @@ let ``XUnit test`` () =
 
     let step = Step.create("simple step", fun _ -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.Ok(sizeBytes = 1024)
+        return Response.ok(sizeBytes = 1024)
     })
 
     let scenario =
@@ -34,10 +32,13 @@ let ``XUnit test`` () =
     match result with
     | Ok nodeStats ->
         let stepStats = nodeStats.ScenarioStats.[0].StepStats.[0]
-        test <@ stepStats.OkCount > 2 @>
-        test <@ stepStats.RPS > 8 @>
-        test <@ stepStats.Percent75 >= 100 @>
-        test <@ stepStats.MinDataKb = 1.0 @>
-        test <@ stepStats.AllDataMB >= 0.01 @>
+        //test <@ stepStats.OkCount > 2 @>
+        // todo are all of these ok?
+        // TODO - how do you get this?
+        //test <@ stepStats.Ok.StatusCodes.Length > 2 @>
+        test <@ stepStats.Ok.Request.RPS > 8. @>
+        test <@ stepStats.Ok.DataTransfer.Percent75 >= 100 @>
+        test <@ stepStats.Ok.DataTransfer.MinBytes = 1024 @>
+        test <@ stepStats.Ok.DataTransfer.AllBytes >= 17408L @>
 
     | Error msg -> failwith msg

@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net.Http;
+using Elasticsearch.Net.Specification.NodesApi;
 using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
@@ -34,15 +36,17 @@ namespace CSharpProd.HttpTests
         {
             var userFeed = Feed.CreateRandom(
                 name: "userFeed",
-                provider: FeedData.FromSeq(new[] {"1", "2", "3", "4", "5"})
+                new[] {"1", "2", "3", "4", "5"}
             );
 
-            var getUser = HttpStep.Create("get_user", userFeed, context =>
+            var httpFactory = HttpClientFactory.Create();
+
+            var getUser = Step.Create("get_user", clientFactory: httpFactory, userFeed, async context =>
             {
                 var userId = context.FeedItem;
                 var url = $"https://jsonplaceholder.typicode.com/users?id={userId}";
 
-                return Http.CreateRequest("GET", url)
+                var request = Http.CreateRequest("GET", url)
                     .WithCheck(async response =>
                     {
                         var json = await response.Content.ReadAsStringAsync();
@@ -50,19 +54,24 @@ namespace CSharpProd.HttpTests
                         // parse JSON
                         var users = JsonConvert.DeserializeObject<UserResponse[]>(json);
 
+
                         return users?.Length == 1
                             ? Response.Ok(users.First()) // we pass user object response to the next step
                             : Response.Fail($"not found user: {userId}");
                     });
+                var response = await Http.Send(request, context);
+                return response;
+
+
             });
 
             // this 'getPosts' will be executed only if 'getUser' finished OK.
-            var getPosts = HttpStep.Create("get_posts", context =>
+            var getPosts = Step.Create("get_posts", clientFactory: httpFactory, async context =>
             {
                 var user = context.GetPreviousStepResponse<UserResponse>();
                 var url = $"https://jsonplaceholder.typicode.com/posts?userId={user.Id}";
 
-                return Http.CreateRequest("GET", url)
+                var request = Http.CreateRequest("GET", url)
                     .WithCheck(async response =>
                     {
                         var json = await response.Content.ReadAsStringAsync();
@@ -74,6 +83,8 @@ namespace CSharpProd.HttpTests
                             ? Response.Ok()
                             : Response.Fail($"not found posts for user: {user.Id}");
                     });
+                var response = await Http.Send(request, context);
+                return response;
             });
 
             var scenario = ScenarioBuilder

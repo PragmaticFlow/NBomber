@@ -21,7 +21,7 @@ namespace CSharpProd.RealtimeReporting
                 .WithoutWarmUp()
                 .WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromMinutes(1)));
 
-            var influxConfig = InfluxDbSinkConfig.Create("http://localhost:8086", dbName: "default");
+            var influxConfig = InfluxDbSinkConfig.Create("http://localhost:8086", database: "default");
             var influxDb = new InfluxDBSink(influxConfig);
 
             NBomberRunner
@@ -29,8 +29,8 @@ namespace CSharpProd.RealtimeReporting
                 .WithTestSuite("reporting")
                 .WithTestName("influx_test")
                 .WithReportingSinks(
-                    reportingSinks: new[] {influxDb},
-                    sendStatsInterval: TimeSpan.FromSeconds(10)
+                    reportingSinks: new[] {influxDb}
+                    // TODO: sendStatsInterval: TimeSpan.FromSeconds(10)
                 )
                 .Run();
         }

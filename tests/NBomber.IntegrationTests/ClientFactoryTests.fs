@@ -4,8 +4,6 @@ open System
 open System.Threading.Tasks
 
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 

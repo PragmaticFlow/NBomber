@@ -38,11 +38,11 @@ namespace CSharpProd.XUnit
             var nodeStats = NBomberRunner.RegisterScenarios(scenario).Run();
             var stepStats = nodeStats.ScenarioStats[0].StepStats[0];
 
-            stepStats.OkCount.Should().BeGreaterThan(2);
-            stepStats.RPS.Should().BeGreaterThan(8);
-            stepStats.Percent75.Should().BeGreaterOrEqualTo(100);
-            stepStats.MinDataKb.Should().Be(1.0);
-            stepStats.AllDataMB.Should().BeGreaterOrEqualTo(0.01);
+            // todo stepStats.OkCount.Should().BeGreaterThan(2);
+            stepStats.Ok.Request.RPS.Should().BeGreaterThan(8);
+            stepStats.Ok.Latency.Percent75.Should().BeGreaterOrEqualTo(100);
+            stepStats.Ok.DataTransfer.MinBytes.Should().Be(1024);
+            stepStats.Ok.DataTransfer.AllBytes.Should().BeGreaterOrEqualTo(17408L);
         }
     }
 }
