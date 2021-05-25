@@ -17,7 +17,7 @@ namespace CSharpProd.DataFeed
     {
         public static void Run()
         {
-            var data = FeedData.FromSeq(new[] {1, 2, 3, 4, 5}).ShuffleData();
+            var data = new[] {1, 2, 3, 4, 5}.ShuffleData();
             //var data = FeedData.FromSeq(getItems: () => new[] {1, 2, 3, 4, 5}).ShuffleData();
             //var data = FeedData.FromJson<User>("./DataFeed/users-feed-data.json");
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");

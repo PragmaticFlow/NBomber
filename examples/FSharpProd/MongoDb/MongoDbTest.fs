@@ -1,14 +1,11 @@
 module FSharpProd.MongoDb.MongoDbTest
 
 open System
-open System.Threading
-open System.Threading.Tasks
-
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open MongoDB.Bson
 open MongoDB.Bson.Serialization.Attributes
-
 open MongoDB.Driver
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -49,7 +46,7 @@ let run () =
                            .Limit(Nullable<int> 500)
                            .ToListAsync()
 
-        return Response.Ok();
+        return Response.ok();
     })
 
     Scenario.create "mongo_scenario" [step]

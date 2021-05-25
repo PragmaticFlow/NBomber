@@ -1,5 +1,6 @@
 module FSharpProd.HttpTests.SimpleHttpTest
 
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Plugins.Http.FSharp
@@ -10,9 +11,10 @@ open NBomber.Plugins.Network.Ping
 
 let run () =
 
-    let step = HttpStep.create("fetch_html_page", fun context ->
+    let step = Step.create("fetch_html_page", fun context ->
         Http.createRequest "GET" "https://nbomber.com"
         |> Http.withHeader "Accept" "text/html"
+        |> Http.send context
     )
 
     // it's optional Ping plugin that brings additional reporting data

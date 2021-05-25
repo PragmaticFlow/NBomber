@@ -10,9 +10,10 @@ open NBomber.Plugins.Network.Ping
 
 let run () =
 
-    let step = HttpStep.create("fetch_html_page", fun context ->
+    let step = Step.create("fetch_html_page", fun context ->
         Http.createRequest "GET" "https://nbomber.com"
         |> Http.withHeader "Accept" "text/html"
+        |> Http.send context
     )
 
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]

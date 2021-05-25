@@ -1,8 +1,8 @@
 module FSharpProd.Logging.ElasticSearchLogging
 
 open System.Threading.Tasks
-open FSharp.Control.Tasks.V2.ContextInsensitive
-
+open FSharp.Control.Tasks.NonAffine
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
@@ -19,7 +19,7 @@ let run () =
         // this message will be saved to elastic search
         context.Logger.Debug("hello from NBomber")
 
-        return Response.Ok()
+        return Response.ok()
     })
 
     Scenario.create "hello_world_scenario" [step]

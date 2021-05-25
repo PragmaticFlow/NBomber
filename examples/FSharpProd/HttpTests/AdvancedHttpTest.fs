@@ -1,6 +1,6 @@
 module FSharpProd.HttpTests.AdvancedHttpTest
 
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks.NonAffine
 open Newtonsoft.Json
 
 open NBomber
@@ -31,10 +31,9 @@ type PostResponse = {
 let run () =
 
     let userFeed = ["1"; "2"; "3"; "4"; "5"]
-                   |> FeedData.fromSeq
                    |> Feed.createRandom "userFeed"
 
-    let getUser = HttpStep.create("get_user", userFeed, fun context ->
+    let getUser = Step.create("get_user", feed = userFeed, execute = fun context ->
 
         let userId = context.FeedItem
         let url = "https://jsonplaceholder.typicode.com/users?id=" + userId
@@ -50,14 +49,15 @@ let run () =
 
             match users with
             | ValueSome usr when usr.Length = 1 ->
-                return Response.Ok(usr.[0]) // we pass user object response to the next step
+                return Response.ok(usr.[0]) // we pass user object response to the next step
 
-            | _ -> return Response.Fail("not found user: " + userId)
+            | _ -> return Response.fail("not found user: " + userId)
         })
+        |> Http.send context
     )
 
     // this 'getPosts' will be executed only if 'getUser' finished OK.
-    let getPosts = HttpStep.create("get_posts", fun context ->
+    let getPosts = Step.create("get_posts", fun context ->
 
         let user = context.GetPreviousStepResponse<UserResponse>()
         let url = "https://jsonplaceholder.typicode.com/posts?userId=" + user.Id
@@ -73,10 +73,11 @@ let run () =
 
             match posts with
             | ValueSome ps when ps.Length > 0 ->
-                return Response.Ok()
+                return Response.ok()
 
-            | _ -> return Response.Fail()
+            | _ -> return Response.fail()
         })
+        |> Http.send context
     )
 
     let pingPluginConfig = PingPluginConfig.CreateDefault ["jsonplaceholder.typicode.com"]
