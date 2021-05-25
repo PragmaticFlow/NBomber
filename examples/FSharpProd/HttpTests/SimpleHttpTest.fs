@@ -19,7 +19,7 @@ let run () =
 
     // it's optional Ping plugin that brings additional reporting data
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
-    let pingPlugin = new PingPlugin(pingPluginConfig)
+    use pingPlugin = new PingPlugin(pingPluginConfig)
 
     Scenario.create "simple_http" [step]
     |> Scenario.withWarmUpDuration(seconds 5)

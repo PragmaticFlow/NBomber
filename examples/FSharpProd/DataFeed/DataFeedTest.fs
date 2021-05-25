@@ -22,8 +22,11 @@ let run () =
     //let data = FeedData.fromCsv<User>("./DataFeed/users-feed-data.csv")
 
     let feed = data |> Feed.createCircular "numbers"
+    //let feed = Feed.createCircularLazy "numbers" (fun context -> seq { 1;2;3;4;5 })
     //let feed = data |> Feed.createConstant "numbers"
+    //let feed = Feed.createConstantLazy "numbers" (fun context -> seq { 1;2;3;4;5 })
     //let feed = data |> Feed.createRandom "numbers"
+    //let feed = Feed.createRandomLazy "numbers" (fun context -> seq { 1;2;3;4;5 })
 
     let step = Step.create("step", feed = feed, execute = fun context -> task {
 

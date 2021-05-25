@@ -22,7 +22,7 @@ let reportingSink = {
 let run () =
 
     let step = Step.create("step", fun context -> task {
-        do! Task.Delay(seconds 100)
+        do! Task.Delay(milliseconds 100)
         return Response.ok(sizeBytes = 100)
     })
 

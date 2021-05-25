@@ -1,9 +1,11 @@
 module FSharpProd.DataFeed.XUnitTest
 
 open System.Threading.Tasks
+
+open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 open Xunit
-open Swensen.Unquote
+
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp

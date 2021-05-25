@@ -26,7 +26,7 @@ let run () =
     let getUser = Step.create("get_user", feed = userFeed, execute = fun context ->
 
         let userId = context.FeedItem
-        let url = "https://jsonplaceholder.typicode.com/users?id=" + userId.Id.ToString()
+        let url = $"https://jsonplaceholder.typicode.com/users?id={userId.Id}"
 
         Http.createRequest "GET" url
         |> Http.withCheck(fun response -> task {
@@ -41,7 +41,7 @@ let run () =
             | ValueSome usr when usr.Length = 1 ->
                 return Response.ok(usr.[0]) // we pass user object response to the next step
 
-            | _ -> return Response.fail("not found user: " + userId.Id.ToString())
+            | _ -> return Response.fail($"not found user: {userId.Id}")
         })
         |> Http.send context
     )
@@ -50,7 +50,7 @@ let run () =
     let getPosts = Step.create("get_posts", execute = fun context ->
 
         let user = context.GetPreviousStepResponse<UserResponse>()
-        let url = "https://jsonplaceholder.typicode.com/posts?userId=" + user.Id
+        let url = $"https://jsonplaceholder.typicode.com/posts?userId={user.Id}"
 
         Http.createRequest "GET" url
         |> Http.withCheck(fun response -> task {

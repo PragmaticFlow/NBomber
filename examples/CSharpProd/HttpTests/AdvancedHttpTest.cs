@@ -1,13 +1,14 @@
 using System;
 using System.Linq;
 using System.Net.Http;
-using Elasticsearch.Net.Specification.NodesApi;
+
+using Newtonsoft.Json;
+
 using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Plugins.Http.CSharp;
 using NBomber.Plugins.Network.Ping;
-using Newtonsoft.Json;
 
 namespace CSharpProd.HttpTests
 {

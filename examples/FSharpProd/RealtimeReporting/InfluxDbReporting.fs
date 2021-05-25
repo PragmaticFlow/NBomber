@@ -2,6 +2,7 @@ module FSharpProd.RealtimeReporting.InfluxDbReporting
 
 open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
+
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -28,6 +29,7 @@ let run () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withTestSuite "reporting"
     |> NBomberRunner.withTestName "influx_test"
-    |> NBomberRunner.withReportingSinks [influxDb] //TODO???:  (seconds 10)
+    |> NBomberRunner.withReportingSinks [influxDb]
+    |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.run
     |> ignore

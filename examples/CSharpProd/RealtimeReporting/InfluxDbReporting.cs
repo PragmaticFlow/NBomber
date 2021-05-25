@@ -28,10 +28,8 @@ namespace CSharpProd.RealtimeReporting
                 .RegisterScenarios(scenario)
                 .WithTestSuite("reporting")
                 .WithTestName("influx_test")
-                .WithReportingSinks(
-                    reportingSinks: new[] {influxDb}
-                    // TODO: sendStatsInterval: TimeSpan.FromSeconds(10)
-                )
+                .WithReportingSinks(new[] {influxDb})
+                .WithReportingInterval(TimeSpan.FromSeconds(10))
                 .Run();
         }
     }
