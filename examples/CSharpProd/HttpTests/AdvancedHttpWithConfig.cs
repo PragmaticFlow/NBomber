@@ -21,6 +21,7 @@ namespace CSharpProd.HttpTests
                 "userFeed",
                 FeedData.FromJson<UserId>("./HttpTests/Configs/user-feed.json")
             );
+
             var httpFactory = HttpClientFactory.Create();
 
             var getUser = Step.Create("get_user", httpFactory, userFeed, async context =>
@@ -40,6 +41,7 @@ namespace CSharpProd.HttpTests
                             ? Response.Ok(users.First()) // we pass user object response to the next step
                             : Response.Fail("not found user");
                     });
+
                 var response = await Http.Send(request, context);
                 return response;
             });

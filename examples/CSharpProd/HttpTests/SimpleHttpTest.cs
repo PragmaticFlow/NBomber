@@ -14,10 +14,13 @@ namespace CSharpProd.HttpTests
     {
         public static void Run()
         {
-            using var httpClient = new HttpClient();
-            var step = Step.Create("fetch_html_page", async context =>
+            var httpFactory = HttpClientFactory.Create();
+
+            var step = Step.Create("fetch_html_page",
+                                   clientFactory: httpFactory,
+                                   execute: async context =>
             {
-                var response = await httpClient.GetAsync("https://nbomber.com", context.CancellationToken);
+                var response = await context.Client.GetAsync("https://nbomber.com", context.CancellationToken);
 
                 return response.IsSuccessStatusCode
                     ? Response.Ok(statusCode: (int) response.StatusCode)

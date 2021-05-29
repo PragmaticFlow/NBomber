@@ -11,7 +11,12 @@ open NBomber.Plugins.Network.Ping
 
 let run () =
 
-    let step = Step.create("fetch_html_page", fun context ->
+    let httpFactory = HttpClientFactory.create()
+
+    let step = Step.create("fetch_html_page",
+                           clientFactory = httpFactory,
+                           execute = fun context ->
+
         Http.createRequest "GET" "https://nbomber.com"
         |> Http.withHeader "Accept" "text/html"
         |> Http.send context

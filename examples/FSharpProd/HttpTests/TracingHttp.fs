@@ -10,7 +10,11 @@ open NBomber.Plugins.Network.Ping
 
 let run () =
 
-    let step = Step.create("fetch_html_page", fun context ->
+    let httpFactory = HttpClientFactory.create()
+
+    let step = Step.create("fetch_html_page",
+                           clientFactory = httpFactory,
+                           execute = fun context ->
         Http.createRequest "GET" "https://nbomber.com"
         |> Http.withHeader "Accept" "text/html"
         |> Http.send context
@@ -21,7 +25,7 @@ let run () =
 
     Scenario.create "nbomber_web_site" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.withTestSuite "http"

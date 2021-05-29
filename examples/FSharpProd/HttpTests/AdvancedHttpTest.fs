@@ -33,7 +33,12 @@ let run () =
     let userFeed = ["1"; "2"; "3"; "4"; "5"]
                    |> Feed.createRandom "userFeed"
 
-    let getUser = Step.create("get_user", feed = userFeed, execute = fun context ->
+    let httpFactory = HttpClientFactory.create()
+
+    let getUser = Step.create("get_user",
+                              clientFactory = httpFactory,
+                              feed = userFeed,
+                              execute = fun context ->
 
         let userId = context.FeedItem
         let url = $"https://jsonplaceholder.typicode.com/users?id={userId}"
@@ -51,13 +56,16 @@ let run () =
             | ValueSome usr when usr.Length = 1 ->
                 return Response.ok(usr.[0]) // we pass user object response to the next step
 
-            | _ -> return Response.fail($"not found user: {userId}")
+            | _ ->
+                return Response.fail($"not found user: {userId}")
         })
         |> Http.send context
     )
 
     // this 'getPosts' will be executed only if 'getUser' finished OK.
-    let getPosts = Step.create("get_posts", fun context ->
+    let getPosts = Step.create("get_posts",
+                               clientFactory = httpFactory,
+                               execute = fun context ->
 
         let user = context.GetPreviousStepResponse<UserResponse>()
         let url = $"https://jsonplaceholder.typicode.com/posts?userId={user.Id}"

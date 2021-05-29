@@ -42,7 +42,10 @@ namespace CSharpProd.HttpTests
 
             var httpFactory = HttpClientFactory.Create();
 
-            var getUser = Step.Create("get_user", clientFactory: httpFactory, userFeed, async context =>
+            var getUser = Step.Create("get_user",
+                                      clientFactory: httpFactory,
+                                      feed: userFeed,
+                                      execute: async context =>
             {
                 var userId = context.FeedItem;
                 var url = $"https://jsonplaceholder.typicode.com/users?id={userId}";
@@ -67,7 +70,9 @@ namespace CSharpProd.HttpTests
             });
 
             // this 'getPosts' will be executed only if 'getUser' finished OK.
-            var getPosts = Step.Create("get_posts", clientFactory: httpFactory, async context =>
+            var getPosts = Step.Create("get_posts",
+                                       clientFactory: httpFactory,
+                                       execute: async context =>
             {
                 var user = context.GetPreviousStepResponse<UserResponse>();
                 var url = $"https://jsonplaceholder.typicode.com/posts?userId={user.Id}";

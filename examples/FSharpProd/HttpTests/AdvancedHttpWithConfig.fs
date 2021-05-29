@@ -23,7 +23,12 @@ let run () =
     let userFeed = FeedData.fromJson<User> "./HttpTests/Configs/user-feed.json"
                    |> Feed.createRandom "userFeed"
 
-    let getUser = Step.create("get_user", feed = userFeed, execute = fun context ->
+    let httpFactory = HttpClientFactory.create()
+
+    let getUser = Step.create("get_user",
+                              clientFactory = httpFactory,
+                              feed = userFeed,
+                              execute = fun context ->
 
         let userId = context.FeedItem
         let url = $"https://jsonplaceholder.typicode.com/users?id={userId.Id}"
@@ -47,7 +52,9 @@ let run () =
     )
 
     // this 'getPosts' will be executed only if 'getUser' finished OK.
-    let getPosts = Step.create("get_posts", execute = fun context ->
+    let getPosts = Step.create("get_posts",
+                               clientFactory = httpFactory,
+                               execute = fun context ->
 
         let user = context.GetPreviousStepResponse<UserResponse>()
         let url = $"https://jsonplaceholder.typicode.com/posts?userId={user.Id}"
