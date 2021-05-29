@@ -30,6 +30,7 @@ let constant (name, getData: IBaseContext -> 'T seq) =
 
 let circular (name, getData: IBaseContext -> 'T seq) =
     let mutable _enumerator = Unchecked.defaultof<_>
+    let _lockObj = obj()
 
     let createInfiniteStream (items: 'T seq) = seq {
         while true do
@@ -45,8 +46,10 @@ let circular (name, getData: IBaseContext -> 'T seq) =
             Task.CompletedTask
 
         member _.GetNextItem(scenarioInfo, stepData) =
-            _enumerator.MoveNext() |> ignore
-            _enumerator.Current }
+            lock _lockObj (fun _ ->
+                _enumerator.MoveNext() |> ignore
+                _enumerator.Current
+            ) }
 
 let random (name, getData: IBaseContext -> 'T seq) =
     let _random = Random()
