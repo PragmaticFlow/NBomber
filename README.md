@@ -81,8 +81,8 @@ NBomberRunner
 ### Examples
 |Language|Example|
 |--|--|
-| F# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/FSharpDev) |
-| C# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpDev) |
+| F# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/FSharpProd) |
+| C# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpProd) |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
