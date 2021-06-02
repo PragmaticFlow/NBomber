@@ -1,17 +1,20 @@
 module Tests.ReportingConfiguration
 
-open System
 open System.IO
 open System.Threading.Tasks
 
-open NBomber.Configuration
-open Xunit
-open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
+open Serilog
+open Serilog.Events
+open Serilog.Sinks.InMemory
+open Swensen.Unquote
+open Xunit
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
+open NBomber.Extensions.InternalExtensions
 open NBomber.FSharp
 
 [<Fact>]
@@ -91,3 +94,77 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
         test <@ [".html"; ".csv"; ".txt"; ".md"] |> Seq.contains file.Extension  @>
         test <@ file.Length > 0L  @>
     )
+
+[<Fact>]
+let ``withoutReports should not print report files`` () =
+
+    let inMemorySink = InMemorySink()
+
+    let createLoggerConfig = fun () ->
+        LoggerConfiguration()
+            .MinimumLevel.Is(LogEventLevel.Verbose)
+            .WriteTo.Sink(inMemorySink)
+
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(seconds 1)
+        return Response.ok()
+    })
+
+    let scenario =
+        Scenario.create "test" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.withLoggerConfig createLoggerConfig
+    |> NBomberRunner.run
+    |> ignore
+
+    let logEvents = inMemorySink.LogEvents |> Seq.toList
+    let reportsBuilt = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "Report.build")
+    let txtReportPrinted = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "TxtReport.print")
+    let csvReportPrinted = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "CsvReport.print")
+    let htmlReportPrinted = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "HtmlReport.print")
+    let mdReportPrinted = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "MdReport.print")
+    let consoleReportPrinted = logEvents |> List.exists(fun x -> x.MessageTemplate.Text = "ConsoleReport.print")
+
+    test <@ reportsBuilt = true @>
+    test <@ txtReportPrinted = false @>
+    test <@ csvReportPrinted = false @>
+    test <@ htmlReportPrinted = false @>
+    test <@ mdReportPrinted = false @>
+    test <@ consoleReportPrinted = false @>
+
+[<Fact>]
+let ``withoutReports should not save report files`` () =
+
+    // delete all directories with all files
+    if Directory.Exists "./no-reports" then
+        Directory.Delete("./no-reports", recursive = true)
+
+    let okStep = Step.create("ok step", fun _ -> task {
+        do! Task.Delay(seconds 1)
+        return Response.ok()
+    })
+
+    let scenario =
+        Scenario.create "test" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.withReportFolder "./no-reports"
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ stats.ReportFiles.Length = 0 @>
+
+    let dirExist = Directory.Exists "./no-reports"
+    let files = Directory.GetFiles("./no-reports", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
+
+    test <@ dirExist @>
+    test <@ files.Length = 1 @> // here we check that all report formats were generated
+    test <@ FileInfo(files.[0]).Name.Contains "nbomber-log" @>
+

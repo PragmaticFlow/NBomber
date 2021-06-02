@@ -1,6 +1,8 @@
 namespace NBomber.Extensions
 
 open System
+open System.IO
+open System.Text
 
 open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling
@@ -13,8 +15,16 @@ module internal InternalExtensions =
 
     module Json =
 
-        let inline toJson (object) =
-            JsonConvert.SerializeObject(object, Formatting.Indented, DataSetConverter())
+        let toJson (object) =
+            let sb = StringBuilder()
+            use sw = new StringWriter(sb)
+            use writer = new JsonTextWriter(sw)
+
+            let serializer = JsonSerializer()
+            serializer.Converters.Add(DataSetConverter())
+            serializer.Serialize(writer, object)
+
+            sb.ToString()
 
     module Result =
 

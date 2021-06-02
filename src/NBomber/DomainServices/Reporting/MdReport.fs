@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Data
 
 open FuncyDown.Document
+open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -336,10 +337,17 @@ module MdHints =
         else
             document
 
-let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
-    emptyDocument
-    |> MdTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-    |> MdNodeStats.printNodeStats sessionResult.NodeStats simulations
-    |> MdPluginStats.printPluginStats sessionResult.NodeStats
-    |> MdHints.printHints sessionResult.Hints
-    |> asString
+let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
+    try
+        logger.Verbose("MdReport.print")
+
+        emptyDocument
+        |> MdTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+        |> MdNodeStats.printNodeStats sessionResult.NodeStats simulations
+        |> MdPluginStats.printPluginStats sessionResult.NodeStats
+        |> MdHints.printHints sessionResult.Hints
+        |> asString
+    with
+    | ex ->
+        logger.Error(ex, "MdReport.print failed")
+        "Could not generate report"
