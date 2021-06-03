@@ -54,15 +54,15 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node.")
 
-        let! sessionArgs  = context |> NBomberContext.createSessionArgs(testInfo)
+        let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo
         let! scenarios    = context |> NBomberContext.createScenarios
         use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
         let! result       = testHost.RunSession()
         let simulations   = testHost.TargetScenarios |> getLoadSimulations
-        let reports       = Report.build result simulations
+        let reports       = Report.build dep.Logger result simulations
 
         if dep.ApplicationType = ApplicationType.Console then
-            reports.ConsoleReport |> Seq.iter Console.render
+            reports.ConsoleReport.Value |> List.iter Console.render
 
         let finalStats = reports |> saveReports dep context result.NodeStats
         return { result with NodeStats = finalStats }

@@ -3,6 +3,8 @@ module internal NBomber.DomainServices.Reporting.HtmlReport
 open System
 open System.Text.RegularExpressions
 
+open Serilog
+
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts.Stats
@@ -46,13 +48,20 @@ let private applyHtmlReplace (sessionResult: NodeSessionResult) (line: string) =
 let private removeDescription (html: string) =
     html.Substring(html.IndexOf("<!DOCTYPE"))
 
-let print (sessionResult: NodeSessionResult) =
-    let applyHtmlReplace = applyHtmlReplace sessionResult
+let print (logger: ILogger) (sessionResult: NodeSessionResult) =
+    try
+        logger.Verbose("HtmlReport.print")
 
-    ResourceManager.readResource("index.html")
-    |> Option.map removeDescription
-    |> Option.map(fun html -> html.Replace("\r", ""))
-    |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
-    |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
-    |> Option.map String.concatLines
-    |> Option.defaultValue String.Empty
+        let applyHtmlReplace = applyHtmlReplace sessionResult
+
+        ResourceManager.readResource("index.html")
+        |> Option.map removeDescription
+        |> Option.map(fun html -> html.Replace("\r", ""))
+        |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
+        |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
+        |> Option.map String.concatLines
+        |> Option.defaultValue String.Empty
+    with
+    | ex ->
+        logger.Error(ex, "HtmlReport.print failed")
+        "Could not generate report"

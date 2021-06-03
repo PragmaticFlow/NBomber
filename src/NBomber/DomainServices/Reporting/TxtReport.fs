@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Data
 
 open ConsoleTables
+open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -297,9 +298,16 @@ module TxtHints =
         else
             String.Empty
 
-let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
-    [TxtTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-     TxtNodeStats.printNodeStats sessionResult.NodeStats simulations
-     TxtPluginStats.printPluginStats sessionResult.NodeStats
-     TxtHints.printHints sessionResult.Hints]
-    |> String.concatLines
+let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
+    try
+        logger.Verbose("TxtReport.print")
+
+        [ TxtTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+          TxtNodeStats.printNodeStats sessionResult.NodeStats simulations
+          TxtPluginStats.printPluginStats sessionResult.NodeStats
+          TxtHints.printHints sessionResult.Hints ]
+        |> String.concatLines
+    with
+    | ex ->
+        logger.Error(ex, "TxtReport.print failed")
+        "Could not generate report"

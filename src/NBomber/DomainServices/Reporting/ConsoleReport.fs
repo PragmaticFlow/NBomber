@@ -4,6 +4,8 @@ open System
 open System.Collections.Generic
 open System.Data
 
+open Serilog
+
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
@@ -326,10 +328,17 @@ module ConsoleHints =
         else
             List.Empty
 
-let print (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
-    [ Console.addLine(String.Empty)
-      yield! ConsoleTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-      yield! ConsoleNodeStats.printNodeStats sessionResult.NodeStats simulations
-      yield! ConsolePluginStats.printPluginStats sessionResult.NodeStats
-      yield! ConsoleHints.printHints sessionResult.Hints
-      Console.addLine(String.Empty) ]
+let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
+    try
+        logger.Verbose("ConsoleReport.print")
+
+        [ Console.addLine(String.Empty)
+          yield! ConsoleTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
+          yield! ConsoleNodeStats.printNodeStats sessionResult.NodeStats simulations
+          yield! ConsolePluginStats.printPluginStats sessionResult.NodeStats
+          yield! ConsoleHints.printHints sessionResult.Hints
+          Console.addLine(String.Empty) ]
+    with
+    | ex ->
+        logger.Error(ex, "ConsoleReport.print failed")
+        [ "Could not generate report" |> Console.addLine ]

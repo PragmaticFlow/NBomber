@@ -12,24 +12,27 @@ open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 
 type ReportsContent = {
-    TxtReport: string
-    HtmlReport: string
-    CsvReport: string
-    MdReport: string
-    ConsoleReport: IRenderable seq
+    TxtReport: Lazy<string>
+    HtmlReport: Lazy<string>
+    CsvReport: Lazy<string>
+    MdReport: Lazy<string>
+    ConsoleReport: Lazy<IRenderable list>
     SessionFinishedWithErrors: bool
 }
 
-let build (sessionResult: NodeSessionResult)
+let build (logger: ILogger)
+          (sessionResult: NodeSessionResult)
           (simulations: IDictionary<string, LoadSimulation list>) =
+
+    logger.Verbose("Report.build")
 
     let errorsExist = sessionResult.NodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
 
-    { TxtReport = TxtReport.print sessionResult simulations
-      HtmlReport = HtmlReport.print sessionResult
-      CsvReport = CsvReport.print sessionResult
-      MdReport = MdReport.print sessionResult simulations
-      ConsoleReport = ConsoleReport.print sessionResult simulations
+    { TxtReport = lazy (TxtReport.print logger sessionResult simulations)
+      HtmlReport = lazy (HtmlReport.print logger sessionResult)
+      CsvReport = lazy (CsvReport.print logger sessionResult)
+      MdReport = lazy (MdReport.print logger sessionResult simulations)
+      ConsoleReport = lazy (ConsoleReport.print logger sessionResult simulations)
       SessionFinishedWithErrors = errorsExist }
 
 let save (folder: string, fileName: string, reportFormats: ReportFormat list,
@@ -61,7 +64,7 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
             | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
             | _                 -> failwith "invalid report format."
         )
-        |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content))
+        |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content.Value))
 
         if report.SessionFinishedWithErrors then
             logger.Warning("Test finished with errors, please check the log file.")
