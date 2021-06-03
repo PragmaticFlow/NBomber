@@ -25,7 +25,7 @@ let private toMb (bytes: int64) =
     bytes |> Statistics.Converter.fromBytesToMb
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats, testInfo: TestInfo) =
-    let format = seq {0 .. 20} |> Seq.map(fun x -> $"{{{x}}}") |> String.concat(separator) // {0},{1},{2},...
+    let format = [0 .. 20] |> List.map(fun x -> $"{{{x}}}") |> String.concat separator // {0},{1},{2},...
     let okCount = stats.Ok.Request.Count
     let failCount = stats.Fail.Request.Count
     let reqCount = okCount + failCount
