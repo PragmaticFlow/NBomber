@@ -140,8 +140,8 @@ let ``withoutReports should not print report files`` () =
 let ``withoutReports should not save report files`` () =
 
     // delete all directories with all files
-    if Directory.Exists "./no-reports" then
-        Directory.Delete("./no-reports", recursive = true)
+    if Directory.Exists "./no-reports/1" then
+        Directory.Delete("./no-reports/1", recursive = true)
 
     let okStep = Step.create("ok step", fun _ -> task {
         do! Task.Delay(seconds 1)
@@ -155,14 +155,14 @@ let ``withoutReports should not save report files`` () =
 
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withoutReports
-    |> NBomberRunner.withReportFolder "./no-reports"
+    |> NBomberRunner.withReportFolder "./no-reports/1"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
         test <@ stats.ReportFiles.Length = 0 @>
 
-    let dirExist = Directory.Exists "./no-reports"
-    let files = Directory.GetFiles("./no-reports", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
+    let dirExist = Directory.Exists "./no-reports/1"
+    let files = Directory.GetFiles("./no-reports/1", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
 
     test <@ dirExist @>
     test <@ files.Length = 1 @> // here we check that all report formats were generated
