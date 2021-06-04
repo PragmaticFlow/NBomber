@@ -6,7 +6,7 @@
         <GenerateProgramFile>false</GenerateProgramFile>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <RootNamespace>FSharp</RootNamespace>
+        <RootNamespace>FSharpProd</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

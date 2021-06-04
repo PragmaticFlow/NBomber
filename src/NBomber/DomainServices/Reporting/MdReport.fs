@@ -11,6 +11,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
+open NBomber.DomainServices
 open NBomber.Extensions
 
 module Md =
@@ -310,7 +311,7 @@ module MdPluginStats =
 
     let printPluginStats (stats: NodeStats) (document: Document) =
         stats.PluginStats
-        |> Seq.collect(fun dataSet -> dataSet.GetTables())
+        |> WorkerPlugin.getStatsTables
         |> Seq.fold(fun document table ->
             document |> printPluginStatsTable table |> addNewline
         ) document

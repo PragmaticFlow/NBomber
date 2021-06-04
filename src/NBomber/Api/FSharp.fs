@@ -1,4 +1,4 @@
-﻿namespace NBomber.FSharp
+namespace NBomber.FSharp
 
 open System
 open System.IO
@@ -19,6 +19,7 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
+open NBomber.Contracts.Stats
 open NBomber.DomainServices
 
 type CommandLineArgs = {
@@ -346,6 +347,14 @@ module NBomberRunner =
         |> runWithResult args
         |> Result.map(fun x -> x.NodeStats)
         |> Result.mapError(AppError.toString)
+
+/// WorkerPluginStats helps to find worker plugin stats.
+module WorkerPluginStats =
+
+     /// Tries to find stats for given worker plugin. Returns Some DataSet if plugin exists or None otherwise.
+    let tryFindPluginStats (plugin: IWorkerPlugin) (nodeStats: NodeStats) =
+        let pluginFullName = WorkerPlugin.getFullName(plugin)
+        nodeStats.PluginStats |> WorkerPlugin.tryFindPluginStats pluginFullName
 
 namespace NBomber.FSharp.SyncApi
 

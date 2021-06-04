@@ -1,4 +1,4 @@
-﻿namespace NBomber.CSharp
+namespace NBomber.CSharp
 
 #nowarn "3211"
 
@@ -12,6 +12,7 @@ open Serilog
 open NBomber
 open NBomber.Contracts
 open NBomber.Configuration
+open NBomber.Contracts.Stats
 
 /// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 type ClientFactory =
@@ -333,6 +334,19 @@ type Simulation =
     /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
+
+/// WorkerPluginStats helps to find worker plugin stats.
+[<Extension>]
+type WorkerPluginStats =
+
+    /// Tries to find stats for given worker plugin. Returns Tuple<bool, DataSet>.
+    [<Extension>]
+    static member TryFindPluginStats(nodeStats: NodeStats, plugin: IWorkerPlugin) =
+        nodeStats
+        |> FSharp.WorkerPluginStats.tryFindPluginStats plugin
+        |> function
+            | Some pluginStats -> (true, pluginStats)
+            | None             -> (false, null)
 
 namespace NBomber.CSharp.SyncApi
 

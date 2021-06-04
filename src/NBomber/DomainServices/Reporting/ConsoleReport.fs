@@ -10,6 +10,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra
@@ -292,7 +293,7 @@ module ConsolePluginStats =
         if stats.PluginStats.Length > 0 then
             let pluginStats =
                 stats.PluginStats
-                |> Seq.collect(fun dataSet -> dataSet.GetTables())
+                |> WorkerPlugin.getStatsTables
                 |> Seq.map(fun table ->
                     [ printPluginStatsHeader(table)
                       Console.addLine(String.Empty)

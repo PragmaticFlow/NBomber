@@ -1,6 +1,7 @@
 module internal NBomber.DomainServices.TestHost.TestHostReporting
 
 open System
+open System.Data
 open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
@@ -10,6 +11,7 @@ open FsToolkit.ErrorHandling.Operator.Task
 open NBomber
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.DomainServices
 open NBomber.Errors
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -42,7 +44,12 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
     try
         let pluginStatusesTask =
             dep.WorkerPlugins
-            |> List.map(fun plugin -> plugin.GetStats operation)
+            |> List.map(fun plugin ->
+                let pluginStatsTask = plugin.GetStats operation
+                pluginStatsTask.ContinueWith(fun (pluginStatsTask: Task<DataSet>) ->
+                    WorkerPlugin.enrichPluginStats(pluginStatsTask.Result, plugin) |> ignore) |> ignore
+                pluginStatsTask
+            )
             |> Task.WhenAll
             
         let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))

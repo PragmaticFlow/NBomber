@@ -11,6 +11,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
+open NBomber.DomainServices
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 
@@ -268,7 +269,7 @@ module TxtPluginStats =
 
     let printPluginStats (stats: NodeStats) =
         stats.PluginStats
-        |> Seq.collect(fun dataSet -> dataSet.GetTables())
+        |> WorkerPlugin.getStatsTables
         |> Seq.collect(fun table ->
             seq {
                 printPluginStatsHeader(table)

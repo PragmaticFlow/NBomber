@@ -51,7 +51,7 @@
         <Compile Include="HintsAnalyzerTests.fs" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
         <PackageReference Include="Serilog.Sinks.InMemory" Version="0.2.0" />
         <PackageReference Include="Serilog.Sinks.InMemory.Assertions" Version="0.8.0" />
         <PackageReference Include="Unquote" Version="5.0.0" />
