@@ -10,8 +10,8 @@ open Xunit
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Extensions
 open NBomber.FSharp
 
 module internal PluginTestHelper =
@@ -183,7 +183,7 @@ let ``StartTest should be invoked with infra config`` () =
     test <@ isNull serilogConfig = false @>
 
 [<Fact>]
-let ``GetStats should be invoked many times even if no IReporingSinks were registered`` () =
+let ``GetStats should be invoked only one time when final stats fetching`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginGetStatsInvokedCounter = 0
@@ -194,8 +194,9 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.GetStats(_) =
-                pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
+            member _.GetStats(operation) =
+                if operation = OperationType.Complete then
+                    pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 Task.FromResult(new DataSet())
 
             member _.GetHints() = Array.empty
@@ -209,7 +210,7 @@ let ``GetStats should be invoked many times even if no IReporingSinks were regis
     |> Result.mapError(fun x -> failwith x)
     |> ignore
 
-    test <@ pluginGetStatsInvokedCounter >= 2 @>
+    test <@ pluginGetStatsInvokedCounter = 1 @>
 
 [<Fact>]
 let ``StopTest should be invoked once`` () =

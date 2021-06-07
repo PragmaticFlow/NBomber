@@ -44,7 +44,7 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
             dep.WorkerPlugins
             |> List.map(fun plugin -> plugin.GetStats operation)
             |> Task.WhenAll
-            
+
         let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
         if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
         else
@@ -75,27 +75,24 @@ let getNodeStats (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (
 let createReportingActor (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
     MailboxProcessor.Start(fun inbox ->
 
-        let getPluginStats = getPluginStats dep
-        let getBombingScenarioStats = getScenarioStats schedulers true
+        let getRealtimeStats = getScenarioStats schedulers true
         let getNodeStats = getNodeStats dep schedulers testInfo
         let saveScenarioStats = saveScenarioStats dep
 
         let fetchAndSaveBombingStats (duration, history) = async {
-            let pluginStatsTask = getPluginStats OperationType.Bombing
-            let scnStats = getBombingScenarioStats(duration) |> Array.map(ScenarioStats.round)
+            let scnStats = getRealtimeStats(duration) |> Array.map(ScenarioStats.round)
             if Array.isEmpty scnStats then return history
             else
                 do! scnStats |> saveScenarioStats |> Async.AwaitTask
-                let! pluginStats = pluginStatsTask |> Async.AwaitTask
-                return { Duration = scnStats.[0].Duration; ScenarioStats = scnStats; PluginStats = pluginStats } :: history
+                let historyRecord = { Duration = scnStats.[0].Duration; ScenarioStats = scnStats }
+                return historyRecord :: history
         }
 
         let addAndSaveScenarioStats (scnStats, history) = async {
-            let pluginStatsTask = getPluginStats OperationType.Bombing
             let stats = scnStats |> ScenarioStats.round |> Array.singleton
             do! stats |> saveScenarioStats |> Async.AwaitTask
-            let! pluginStats = pluginStatsTask |> Async.AwaitTask
-            return { Duration = stats.[0].Duration; ScenarioStats = stats; PluginStats = pluginStats } :: history
+            let historyRecord = { Duration = stats.[0].Duration; ScenarioStats = stats }
+            return historyRecord :: history
         }
 
         let removeDuplicates (currentHistory: TimeLineHistoryRecord list) =

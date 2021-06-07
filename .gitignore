@@ -338,3 +338,5 @@ ASALocalRun/
 
 .fake
 .ionide
+
+!/src/NBomber/DomainServices/Reports

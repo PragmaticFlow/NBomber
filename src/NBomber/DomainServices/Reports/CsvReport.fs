@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.CsvReport
+module internal NBomber.DomainServices.Reports.CsvReport
 
 open System
 

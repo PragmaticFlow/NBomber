@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.HtmlReport
+module internal NBomber.DomainServices.Reports.HtmlReport
 
 open System
 open System.Text.RegularExpressions

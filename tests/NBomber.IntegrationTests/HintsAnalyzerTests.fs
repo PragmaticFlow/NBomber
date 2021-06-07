@@ -3,7 +3,6 @@ module Tests.HintsAnalyzer
 open System
 
 open Xunit
-open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
 open FsToolkit.ErrorHandling
@@ -13,9 +12,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.Reporting
 open NBomber.Extensions.InternalExtensions
 open NBomber.FSharp
 
