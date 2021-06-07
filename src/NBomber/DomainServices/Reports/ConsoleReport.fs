@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.ConsoleReport
+module internal NBomber.DomainServices.Reports.ConsoleReport
 
 open System
 open System.Collections.Generic

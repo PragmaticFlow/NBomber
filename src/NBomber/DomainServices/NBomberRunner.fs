@@ -10,7 +10,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.Stats
-open NBomber.DomainServices.Reporting
+open NBomber.DomainServices.Reports
 open NBomber.DomainServices.TestHost
 open NBomber.Errors
 open NBomber.Infra

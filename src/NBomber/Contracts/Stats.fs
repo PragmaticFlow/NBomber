@@ -140,7 +140,6 @@ type NodeStats = {
 
 type TimeLineHistoryRecord = {
     ScenarioStats: ScenarioStats[]
-    PluginStats: DataSet[]
     Duration: TimeSpan
 }
 

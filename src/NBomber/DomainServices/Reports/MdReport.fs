@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.MdReport
+module internal NBomber.DomainServices.Reports.MdReport
 
 open System
 open System.Collections.Generic

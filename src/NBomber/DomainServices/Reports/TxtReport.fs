@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.Reporting.TxtReport
+module internal NBomber.DomainServices.Reports.TxtReport
 
 open System
 open System.Collections.Generic
