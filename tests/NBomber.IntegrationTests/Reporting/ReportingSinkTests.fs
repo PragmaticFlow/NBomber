@@ -25,6 +25,7 @@ open NBomber.Extensions.InternalExtensions
 let ``SaveRealtimeStats should receive correct stats`` () =
 
     let _realtimeStats = ResizeArray<ScenarioStats>()
+    let mutable _finalStats = Unchecked.defaultof<NodeStats>
 
     let reportingSink = {
         new IReportingSink with
@@ -36,7 +37,10 @@ let ``SaveRealtimeStats should receive correct stats`` () =
                 _realtimeStats.AddRange(stats)
                 Task.CompletedTask
 
-            member _.SaveFinalStats(stats) = Task.CompletedTask
+            member _.SaveFinalStats(stats) =
+                 _finalStats <- stats.[0]
+                 Task.CompletedTask
+
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
     }
@@ -59,17 +63,21 @@ let ``SaveRealtimeStats should receive correct stats`` () =
     |> Result.getOk
     |> fun nodeStats ->
         let realtime = _realtimeStats.ToArray()
-        test <@ realtime.Length > 0 @>
-        test <@ realtime |> Array.filter(fun x -> x.CurrentOperation = OperationType.Complete) |> Array.length = 1 @>
-        test <@ realtime |> Array.filter(fun x -> x.CurrentOperation = OperationType.Bombing) |> Array.length > 0 @>
 
+        test <@ realtime.Length > 0 @>
+        test <@ realtime |> Array.forall(fun x -> x.CurrentOperation = OperationType.Bombing) @>
         test <@ realtime |> Array.forall(fun x -> x.OkCount > 0) @>
         test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.Count > 0) @>
         test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.RPS > 0.0) @>
-
         test <@ realtime |> Array.forall(fun x -> x.FailCount = 0) @>
         test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.Count = 0) @>
         test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.RPS = 0.0) @>
+
+        test <@ nodeStats.NodeInfo.CurrentOperation = OperationType.Complete @>
+        test <@ nodeStats.ScenarioStats.[0].StepStats.[0].Ok.Request.Count > 0 @>
+        test <@ nodeStats.ScenarioStats.[0].StepStats.[0].Ok.Request.RPS > 0.0 @>
+        test <@ nodeStats.ScenarioStats.[0].StepStats.[0].Fail.Request.Count = 0 @>
+        test <@ nodeStats.ScenarioStats.[0].StepStats.[0].Fail.Request.RPS = 0.0 @>
 
 [<Fact>]
 let ``SaveFinalStats should receive correct stats`` () =

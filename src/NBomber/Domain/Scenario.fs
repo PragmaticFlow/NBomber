@@ -232,3 +232,6 @@ let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
         { scenario with ExecutedDuration = Some executedDuration }
     else
         { scenario with ExecutedDuration = Some scenario.PlanedDuration }
+
+let getDuration (scenario: Scenario) =
+    scenario.ExecutedDuration |> Option.defaultValue(scenario.PlanedDuration)

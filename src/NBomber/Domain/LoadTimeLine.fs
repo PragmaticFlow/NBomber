@@ -55,6 +55,29 @@ module Validation =
                 return simulation
         }
 
+module TimeLineHistory =
+
+    let filterRealtime (history: TimeLineHistoryRecord list) =
+
+        let filterBombing (history: TimeLineHistoryRecord list) =
+            history
+            |> List.filter(fun x -> x.ScenarioStats |> Array.exists(fun x -> x.CurrentOperation = OperationType.Bombing))
+
+        history
+        |> List.sortBy(fun x -> x.Duration)
+        |> List.groupBy(fun x -> x.Duration)
+        |> List.collect(fun (duration,history) ->
+            if history.Length > 1 then history |> filterBombing
+            else history
+        )
+
+module TimeLineHistoryRecord =
+
+    let create (scnStats: ScenarioStats[]) = {
+        Duration = scnStats.[0].Duration
+        ScenarioStats = scnStats
+    }
+
 let createTimeLine (simulations: LoadSimulation list) =
 
     let rec create (startTime: TimeSpan, prevSegmentCopiesCount: int, simulations: LoadSimulation list) =
