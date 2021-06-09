@@ -50,7 +50,7 @@ let ``SaveRealtimeStats should receive correct stats`` () =
     let scenario1 =
         Scenario.create "scenario_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
@@ -165,7 +165,7 @@ let ``SaveFinalStats should receive correct stats`` () =
     let scenario1 =
         Scenario.create "scenario_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
