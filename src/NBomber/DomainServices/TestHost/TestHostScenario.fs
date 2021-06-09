@@ -39,11 +39,11 @@ let initDataFeeds (dep: IGlobalDependency) (context: IBaseContext) (feeds: IFeed
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let initScenarios (dep: IGlobalDependency)
-                  (baseContext: IBaseContext)
-                  (defaultScnContext: IScenarioContext)
-                  (sessionArgs: SessionArgs)
-                  (targetScenarios: Scenario list) = taskResult {
+let initScenarios (dep: IGlobalDependency,
+                   baseContext: IBaseContext,
+                   defaultScnContext: IScenarioContext,
+                   sessionArgs: SessionArgs,
+                   targetScenarios: Scenario list) = taskResult {
     try
         TestHostConsole.printTargetScenarios dep targetScenarios
 

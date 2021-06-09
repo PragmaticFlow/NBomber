@@ -78,11 +78,11 @@ type internal TestHost(dep: IGlobalDependency,
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let targetScenarios = TestHostScenario.getTargetScenarios sessionArgs registeredScenarios
+        let targetScenarios = registeredScenarios |> TestHostScenario.getTargetScenarios sessionArgs
 
         do! TestHostReportingSinks.init dep baseContext
         do! TestHostPlugins.init dep baseContext
-        let! initializedScenarios = TestHostScenario.initScenarios dep baseContext defaultScnContext sessionArgs targetScenarios
+        let! initializedScenarios = TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, targetScenarios)
 
         _targetScenarios <- initializedScenarios
     }
