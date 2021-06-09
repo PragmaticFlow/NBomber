@@ -332,15 +332,9 @@ const initApp = (appContainer, viewModel) => {
                 .map((t, i) => {
                     let latencyCount = t.ScenarioStats.LatencyCount;
 
-                    if (i > 0) {
-                        latencyCount = {};
-                        const currentValue = t.ScenarioStats.LatencyCount;
-                        const prevValue = timelineStats[i - 1].ScenarioStats.LatencyCount;
-
-                        Object.entries(currentValue).forEach(([key, value]) => {
-                            latencyCount[key] = value - prevValue[key];
-                        });
-                    }
+                    Object.entries(latencyCount).forEach(([key, value]) => {
+                        latencyCount[key] = value;
+                    });
 
                     const result = [
                         t.Duration,
