@@ -73,8 +73,8 @@ let schedule (getRandomValue: int -> int -> int) // min -> max -> result
         if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount); command]
         else [command]
 
-let correctExecutionTime (executionTime: TimeSpan, scnDuration: TimeSpan) =
-    if executionTime = TimeSpan.Zero || executionTime > scnDuration then scnDuration
+let correctExecutedDuration (executionTime: TimeSpan) (scnDuration: TimeSpan) =
+    if executionTime > scnDuration then scnDuration
     else executionTime
 
 type ScenarioScheduler(dep: ActorDep) =
@@ -96,18 +96,22 @@ type ScenarioScheduler(dep: ActorDep) =
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
-    let getScenarioStats (currentOperation, duration) =
-        let scnDuration = _scenario.ExecutedDuration |> Option.defaultValue(_scenario.PlanedDuration)
-        let executionTime = correctExecutionTime(duration, scnDuration)
+    let getCurrentSimulationStats () =
+        LoadTimeLine.createSimulationStats(
+            _currentSimulation,
+            _constantScheduler.ScheduledActorCount,
+            _oneTimeScheduler.ScheduledActorCount
+        )
 
-        let simulationStats =
-            LoadTimeLine.createSimulationStats(
-                _currentSimulation,
-                _constantScheduler.ScheduledActorCount,
-                _oneTimeScheduler.ScheduledActorCount
-            )
+    let getRealtimeStats (duration) =
+        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration duration
+        let simulationStats = getCurrentSimulationStats()
+        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetRealtimeStats(reply, simulationStats, executedDuration))
 
-        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetScenarioStats(reply, simulationStats, currentOperation, executionTime))
+    let getFinalStats () =
+        let scnDuration = _scenario |> Scenario.getDuration
+        let simulationStats = getCurrentSimulationStats()
+        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetFinalStats(reply, simulationStats, scnDuration))
 
     let start () =
         dep.GlobalTimer.Stop()
@@ -119,6 +123,7 @@ type ScenarioScheduler(dep: ActorDep) =
         if not _disposed then
             _disposed <- true
             _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
+            _currentOperation <- OperationType.Complete
 
             dep.GlobalTimer.Stop()
             _schedulerTimer.Stop()
@@ -126,8 +131,7 @@ type ScenarioScheduler(dep: ActorDep) =
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
 
-            _currentOperation <- OperationType.Complete
-            let scnStats = getScenarioStats(_currentOperation, TimeSpan.Zero)
+            let scnStats = _scenario |> Scenario.getDuration |> getRealtimeStats
             _eventStream.OnNext(ScenarioStopped scnStats)
             _eventStream.OnCompleted()
             _eventStream.Dispose()
@@ -199,7 +203,8 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.GetScenarioStats(duration) = getScenarioStats(_currentOperation, duration)
+    member _.GetRealtimeStats(duration) = getRealtimeStats(duration)
+    member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with
         member _.Dispose() =

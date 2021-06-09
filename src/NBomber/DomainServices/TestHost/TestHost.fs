@@ -19,7 +19,7 @@ open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
-open NBomber.DomainServices.TestHost.TestHostReporting
+open NBomber.DomainServices.TestHost.TestHostReportingActor
 
 type internal TestHost(dep: IGlobalDependency,
                        registeredScenarios: Scenario list,
@@ -78,11 +78,11 @@ type internal TestHost(dep: IGlobalDependency,
     let initScenarios () = taskResult {
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), _cancelToken.Token, dep.Logger)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let targetScenarios = TestHostScenario.getTargetScenarios sessionArgs registeredScenarios
+        let targetScenarios = registeredScenarios |> TestHostScenario.getTargetScenarios sessionArgs
 
-        do! TestHostReporting.initReportingSinks dep baseContext
-        do! TestHostPlugins.initPlugins dep baseContext
-        let! initializedScenarios = TestHostScenario.initScenarios dep baseContext defaultScnContext sessionArgs targetScenarios
+        do! TestHostReportingSinks.init dep baseContext
+        do! TestHostPlugins.init dep baseContext
+        let! initializedScenarios = TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, targetScenarios)
 
         _targetScenarios <- initializedScenarios
     }
@@ -102,8 +102,8 @@ type internal TestHost(dep: IGlobalDependency,
         _currentSchedulers <- schedulers
 
         TestHostConsole.displayBombingProgress(dep, schedulers, isWarmUp)
-        do! TestHostReporting.startReportingSinks dep
-        do! TestHostPlugins.startPlugins dep
+        do! TestHostReportingSinks.start dep.Logger dep.ReportingSinks
+        do! TestHostPlugins.start dep.Logger dep.WorkerPlugins
 
         reportingTimer.Start()
         currentOperationTimer.Start()
@@ -113,8 +113,8 @@ type internal TestHost(dep: IGlobalDependency,
         reportingTimer.Stop()
         currentOperationTimer.Stop()
 
-        do! TestHostReporting.stopReportingSinks dep
-        do! TestHostPlugins.stopPlugins dep
+        do! TestHostReportingSinks.stop dep.Logger dep.ReportingSinks
+        do! TestHostPlugins.stop dep.Logger dep.WorkerPlugins
     }
 
     let cleanScenarios () =
@@ -191,12 +191,6 @@ type internal TestHost(dep: IGlobalDependency,
             _currentOperation <- OperationType.None
     }
 
-    member _.GetNodeStats(workingScenarios: bool, duration: TimeSpan) =
-        {| NodeInfo = getCurrentNodeInfo()
-           WorkingScenarios = workingScenarios
-           Duration = duration |}
-        |> TestHostReporting.getNodeStats dep _currentSchedulers sessionArgs.TestInfo
-
     member _.GetSessionResult() = _sessionResult
 
     member _.CreateScenarioSchedulers() = createScenarioSchedulers(_targetScenarios)
@@ -206,13 +200,13 @@ type internal TestHost(dep: IGlobalDependency,
         do! this.StartWarmUp(this.CreateScenarioSchedulers())
 
         let schedulers = this.CreateScenarioSchedulers()
-        use actor = TestHostReporting.createReportingActor(dep, schedulers, sessionArgs.TestInfo)
+        use actor = TestHostReportingActor.create(dep, schedulers, sessionArgs.TestInfo)
         actor.Error.Subscribe(fun ex -> dep.Logger.Fatal("Reporting actor error", ex)) |> ignore
 
         let currentOperationTimer = Stopwatch()
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
-            actor.Post(FetchAndSaveBombingStats currentOperationTimer.Elapsed)
+            actor.Post(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
         )
 
         // subscribes on stop scenario event
@@ -233,10 +227,10 @@ type internal TestHost(dep: IGlobalDependency,
 
         // gets final stats
         dep.Logger.Information("Calculating final statistics...")
-        let finalStats = actor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), currentOperationTimer.Elapsed, reply))
+        let finalStats = actor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), reply))
 
-        let timeLines =
-            actor.PostAndReply(fun reply -> GetTimeLines reply)
+        let timeLineHistory =
+            actor.PostAndReply(fun reply -> GetTimeLineHistory reply)
             |> List.toArray
 
         let hints =
@@ -249,7 +243,7 @@ type internal TestHost(dep: IGlobalDependency,
             else
                 Array.empty
 
-        _sessionResult <- { FinalStats = finalStats; TimeLineHistory = timeLines; Hints = hints }
+        _sessionResult <- { FinalStats = finalStats; TimeLineHistory = timeLineHistory; Hints = hints }
         return _sessionResult
     }
 

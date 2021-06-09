@@ -10,19 +10,26 @@ open NBomber.Domain.Stats.Statistics
 
 type ActorMessage =
     | AddResponses     of responses:(int * StepResponse)[] // stepIndex * StepResponse
-    | GetScenarioStats of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * OperationType * duration:TimeSpan
+    | GetRealtimeStats of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+    | GetFinalStats    of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
 let create (logger: ILogger, scenario: Scenario) =
 
-    let allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
+    let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
+    let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
-    let addResponses (responses: (int * StepResponse)[]) =
+    let addResponses (allData: StepStatsRawData[],
+                      intervalData: StepStatsRawData[],
+                      responses: (int * StepResponse)[]) =
+
         for (stepIndex, res) in responses do
-            let stData = allStepsData.[stepIndex]
-            allStepsData.[stepIndex] <- StepStatsRawData.addResponse stData res
+            let allStData = allData.[stepIndex]
+            let intervalStData = intervalData.[stepIndex]
+            allData.[stepIndex] <- StepStatsRawData.addResponse allStData res
+            intervalData.[stepIndex] <- StepStatsRawData.addResponse intervalStData res
 
-    let getScenarioStats (simulationStats, currentOperation, duration) =
-        ScenarioStats.create scenario allStepsData simulationStats currentOperation duration
+    let createScenarioStats (stepsData, simulationStats, operation, duration) =
+        ScenarioStats.create scenario stepsData simulationStats operation duration
 
     MailboxProcessor.Start(fun inbox ->
 
@@ -30,11 +37,18 @@ let create (logger: ILogger, scenario: Scenario) =
             try
                 match! inbox.Receive() with
                 | AddResponses responses ->
-                    addResponses responses
+                    addResponses(_allStepsData, _intervalStepsData, responses)
                     return! loop()
 
-                | GetScenarioStats (reply, simulationStats, currentOperation, duration) ->
-                    let scnStats = getScenarioStats(simulationStats, currentOperation, duration)
+                | GetRealtimeStats (reply, simulationStats, duration) ->
+                    let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration)
+                    // reset interval steps data
+                    _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
+                    reply.Reply(scnStats)
+                    return! loop()
+
+                | GetFinalStats (reply, simulationStats, duration) ->
+                    let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration)
                     reply.Reply(scnStats)
                     return! loop()
             with

@@ -1,5 +1,8 @@
 module internal NBomber.DomainServices.TestHost.TestHostPlugins
 
+open System.Threading.Tasks
+
+open Serilog
 open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
@@ -10,7 +13,7 @@ open NBomber.Errors
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 
-let initPlugins (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
+let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     try
         for plugin in dep.WorkerPlugins do
             dep.Logger.Information("Start init plugin: '{PluginName}'.", plugin.PluginName)
@@ -19,30 +22,48 @@ let initPlugins (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let startPlugins (dep: IGlobalDependency) = task {
-    for plugin in dep.WorkerPlugins do
+let start (logger: ILogger) (plugins: IWorkerPlugin list) = task {
+    for plugin in plugins do
         try
             plugin.Start() |> ignore
         with
-        | ex -> dep.Logger.Warning(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
+        | ex -> logger.Warning(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
 }
 
-let stopPlugins (dep: IGlobalDependency) = task {
-    for plugin in dep.WorkerPlugins do
+let stop (logger: ILogger) (plugins: IWorkerPlugin list) = task {
+    for plugin in plugins do
         try
-            dep.Logger.Information("Stop plugin: '{PluginName}'.", plugin.PluginName)
+            logger.Information("Stop plugin: '{PluginName}'.", plugin.PluginName)
             do! plugin.Stop()
         with
-        | ex -> dep.Logger.Warning(ex, "Stop plugin '{PluginName}' failed.", plugin.PluginName)
+        | ex -> logger.Warning(ex, "Stop plugin '{PluginName}' failed.", plugin.PluginName)
 }
 
-let getHints (workerPlugins: IWorkerPlugin list) =
-    workerPlugins
+let getHints (plugins: IWorkerPlugin list) =
+    plugins
     |> Seq.collect(fun plugin ->
         plugin.GetHints()
         |> Seq.map(fun x -> { SourceName = plugin.PluginName; SourceType = HintSourceType.WorkerPlugin; Hint = x })
     )
     |> Seq.toList
+
+let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (operation: OperationType) = task {
+    try
+        let pluginStatusesTask =
+            plugins
+            |> List.map(fun plugin -> plugin.GetStats operation)
+            |> Task.WhenAll
+
+        let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
+        if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
+        else
+            logger.Error("Getting plugin stats failed with the timeout error.")
+            return Array.empty
+    with
+    | ex ->
+        logger.Error(ex, "Getting plugin stats failed with the following error.")
+        return Array.empty
+}
 
 
 

@@ -25,6 +25,7 @@ open NBomber.Extensions.InternalExtensions
 let ``SaveRealtimeStats should receive correct stats`` () =
 
     let _realtimeStats = ResizeArray<ScenarioStats>()
+    let mutable _finalStats = Unchecked.defaultof<NodeStats>
 
     let reportingSink = {
         new IReportingSink with
@@ -49,7 +50,73 @@ let ``SaveRealtimeStats should receive correct stats`` () =
     let scenario1 =
         Scenario.create "scenario_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
+
+    NBomberRunner.registerScenarios [scenario1]
+    |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 5)
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun finalStats ->
+        let realtime = _realtimeStats.ToArray()
+
+        test <@ realtime.Length > 0 @>
+        test <@ realtime |> Array.forall(fun x -> x.CurrentOperation = OperationType.Bombing) @>
+        test <@ realtime |> Array.forall(fun x -> x.OkCount > 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.Count > 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.RPS > 0.0) @>
+        test <@ realtime |> Array.forall(fun x -> x.FailCount = 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.Count = 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.RPS = 0.0) @>
+
+        test <@ finalStats.NodeInfo.CurrentOperation = OperationType.Complete @>
+        test <@ finalStats.ScenarioStats.[0].StepStats.[0].Ok.Request.Count > 0 @>
+        test <@ finalStats.ScenarioStats.[0].StepStats.[0].Ok.Request.RPS > 0.0 @>
+        test <@ finalStats.ScenarioStats.[0].StepStats.[0].Fail.Request.Count = 0 @>
+        test <@ finalStats.ScenarioStats.[0].StepStats.[0].Fail.Request.RPS = 0.0 @>
+
+[<Fact>]
+let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
+
+    let _realtimeStats = ResizeArray<ScenarioStats[]>()
+
+    let reportingSink = {
+        new IReportingSink with
+            member _.SinkName = "TestSink"
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+
+            member _.SaveRealtimeStats(stats) =
+                _realtimeStats.Add(stats)
+                Task.CompletedTask
+
+            member _.SaveFinalStats(stats) = Task.CompletedTask
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let mutable interval = seconds 1
+    let mutable size = 1000
+
+    let okStep = Step.create("ok step", timeout = seconds 5, execute = fun context -> task {
+        do! Task.Delay interval
+
+        if context.InvocationCount = 5 then
+            interval <- milliseconds 500
+            size <- 500
+
+        if context.InvocationCount = 15 then
+            interval <- milliseconds 100
+            size <- 100
+
+        return Response.ok(sizeBytes = size)
+    })
+
+    let scenario1 =
+        Scenario.create "scenario_1" [okStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
@@ -58,18 +125,17 @@ let ``SaveRealtimeStats should receive correct stats`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let realtime = _realtimeStats.ToArray()
-        test <@ realtime.Length > 0 @>
-        test <@ realtime |> Array.filter(fun x -> x.CurrentOperation = OperationType.Complete) |> Array.length = 1 @>
-        test <@ realtime |> Array.filter(fun x -> x.CurrentOperation = OperationType.Bombing) |> Array.length > 0 @>
 
-        test <@ realtime |> Array.forall(fun x -> x.OkCount > 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.Count > 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Ok.Request.RPS > 0.0) @>
+        let first = _realtimeStats.[0]
+        let last = _realtimeStats.[_realtimeStats.Count - 1]
 
-        test <@ realtime |> Array.forall(fun x -> x.FailCount = 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.Count = 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats.[0].Fail.Request.RPS = 0.0) @>
+        test <@ first.[0].StepStats.[0].Ok.Latency.MaxMs > last.[0].StepStats.[0].Ok.Latency.MaxMs @>
+        test <@ first.[0].StepStats.[0].Ok.Latency.MaxMs >= 1000.0  @>
+        test <@ last.[0].StepStats.[0].Ok.Latency.MaxMs <= 1000.0  @>
+
+        test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes > last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes @>
+        test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes >= 1000  @>
+        test <@ last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes <= 1000  @>
 
 [<Fact>]
 let ``SaveFinalStats should receive correct stats`` () =
@@ -99,7 +165,7 @@ let ``SaveFinalStats should receive correct stats`` () =
     let scenario1 =
         Scenario.create "scenario_1" [okStep]
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 30)]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
