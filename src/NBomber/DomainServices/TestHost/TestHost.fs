@@ -243,7 +243,7 @@ type internal TestHost(dep: IGlobalDependency,
             else
                 Array.empty
 
-        _sessionResult <- { NodeStats = finalStats; TimeLineStats = timeLineHistory; Hints = hints }
+        _sessionResult <- { FinalStats = finalStats; TimeLineHistory = timeLines; Hints = hints }
         return _sessionResult
     }
 

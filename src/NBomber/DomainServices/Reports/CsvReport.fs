@@ -52,8 +52,8 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) =
 
         let header = getHeader()
 
-        let body = sessionResult.NodeStats.ScenarioStats
-                   |> Array.map(printSteps sessionResult.NodeStats.TestInfo)
+        let body = sessionResult.FinalStats.ScenarioStats
+                   |> Array.map(printSteps sessionResult.FinalStats.TestInfo)
                    |> String.concat String.Empty
 
         header + Environment.NewLine + body

@@ -333,9 +333,9 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDi
         logger.Verbose("ConsoleReport.print")
 
         [ Console.addLine(String.Empty)
-          yield! ConsoleTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-          yield! ConsoleNodeStats.printNodeStats sessionResult.NodeStats simulations
-          yield! ConsolePluginStats.printPluginStats sessionResult.NodeStats
+          yield! ConsoleTestInfo.printTestInfo sessionResult.FinalStats.TestInfo
+          yield! ConsoleNodeStats.printNodeStats sessionResult.FinalStats simulations
+          yield! ConsolePluginStats.printPluginStats sessionResult.FinalStats
           yield! ConsoleHints.printHints sessionResult.Hints
           Console.addLine(String.Empty) ]
     with

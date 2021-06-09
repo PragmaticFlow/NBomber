@@ -96,7 +96,14 @@ module NodeInfo =
           DotNetVersion = dotNetVersion
           Processor = if isNull processor then String.Empty else processor
           CoresCount = Environment.ProcessorCount
-          NBomberVersion = sprintf "%i.%i.%i" version.Major version.Minor version.Build }
+          NBomberVersion = $"{version.Major}.{version.Minor}.{version.Build}" }
+
+    let getApplicationType () =
+        try
+            if Console.WindowHeight <= 0 then ApplicationType.Process
+            else ApplicationType.Console
+        with
+        | _ -> ApplicationType.Process
 
 let createSessionId () =
     let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
