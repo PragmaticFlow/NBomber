@@ -331,7 +331,7 @@ module NBomberRunner =
     let run (context: NBomberContext) =
         context
         |> runWithResult List.empty
-        |> Result.map(fun x -> x.NodeStats)
+        |> Result.map(fun x -> x.FinalStats)
         |> Result.mapError(AppError.toString)
 
     /// Runs scenarios with arguments.
@@ -344,7 +344,7 @@ module NBomberRunner =
     let runWithArgs (args) (context: NBomberContext) =
         context
         |> runWithResult args
-        |> Result.map(fun x -> x.NodeStats)
+        |> Result.map(fun x -> x.FinalStats)
         |> Result.mapError(AppError.toString)
 
 namespace NBomber.FSharp.SyncApi

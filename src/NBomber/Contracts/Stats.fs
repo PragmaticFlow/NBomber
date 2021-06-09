@@ -155,7 +155,7 @@ type HintResult = {
 }
 
 type NodeSessionResult = {
-    NodeStats: NodeStats
-    TimeLineStats: TimeLineHistoryRecord[]
+    FinalStats: NodeStats
+    TimeLineHistory: TimeLineHistoryRecord[]
     Hints: HintResult[]
 }

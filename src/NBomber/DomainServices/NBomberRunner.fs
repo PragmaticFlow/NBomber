@@ -1,51 +1,16 @@
 module internal NBomber.DomainServices.NBomberRunner
 
-open System
-
-open System.Threading.Tasks
 open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain
 open NBomber.Domain.Stats
-open NBomber.DomainServices.Reports
-open NBomber.DomainServices.TestHost
 open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
-
-let getApplicationType () =
-    try
-        if Console.WindowHeight <= 0 then ApplicationType.Process
-        else ApplicationType.Console
-    with
-    | _ -> ApplicationType.Process
-
-let saveReports (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: Report.ReportsContent) =
-    let fileName     = NBomberContext.getReportFileName context
-    let currentTime  = DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss"
-    let fileNameDate = $"{fileName}_{currentTime}"
-    let folder       = NBomberContext.getReportFolder context
-    let formats      = NBomberContext.getReportFormats context
-
-    if formats.Length > 0 then
-        let reportFiles = Report.save(folder, fileNameDate, formats, report, dep.Logger, stats.TestInfo)
-        let finalStats = { stats with ReportFiles = reportFiles }
-        dep.ReportingSinks
-        |> List.map(fun x -> x.SaveFinalStats [| finalStats |])
-        |> Task.WhenAll
-        |> fun t -> t.Wait()
-
-        finalStats
-    else
-        stats
-
-let getLoadSimulations (targetScenarios: DomainTypes.Scenario list) =
-    targetScenarios
-    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadTimeLine |> List.map(fun x -> x.LoadSimulation))
-    |> dict
+open NBomber.DomainServices.Reports
+open NBomber.DomainServices.TestHost
 
 let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContext) (dep: IGlobalDependency) =
     taskResult {
@@ -58,14 +23,12 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! scenarios    = context |> NBomberContext.createScenarios
         use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
         let! result       = testHost.RunSession()
-        let simulations   = testHost.TargetScenarios |> getLoadSimulations
-        let reports       = Report.build dep.Logger result simulations
 
-        if dep.ApplicationType = ApplicationType.Console then
-            reports.ConsoleReport.Value |> List.iter Console.render
+        let finalStats =
+            Report.build dep.Logger result testHost.TargetScenarios
+            |> Report.save dep context result.FinalStats
 
-        let finalStats = reports |> saveReports dep context result.NodeStats
-        return { result with NodeStats = finalStats }
+        return { result with FinalStats = finalStats }
     }
 
 let run (context: NBomberContext) =
@@ -77,12 +40,7 @@ let run (context: NBomberContext) =
     }
 
     let nodeInfo = NodeInfo.init()
-
-    let appType =
-        match context.ApplicationType with
-        | Some appType -> appType
-        | None         -> getApplicationType()
-
+    let appType = context.ApplicationType |> Option.defaultValue(NodeInfo.getApplicationType())
     let reportFolder = NBomberContext.getReportFolder(context)
 
     Dependency.create reportFolder testInfo appType NodeType.SingleNode context
