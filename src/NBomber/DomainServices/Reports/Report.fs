@@ -1,15 +1,20 @@
 module internal NBomber.DomainServices.Reports.Report
 
-open System.Collections.Generic
+open System
 open System.IO
+open System.Threading.Tasks
 
+open NBomber.Contracts
+open NBomber.Infra.Dependency
 open Serilog
 open Spectre.Console.Rendering
 
 open NBomber.Configuration
-open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
+open NBomber.Domain.DomainTypes
+open NBomber.Infra
+open NBomber.DomainServices
 
 type ReportsContent = {
     TxtReport: Lazy<string>
@@ -20,12 +25,18 @@ type ReportsContent = {
     SessionFinishedWithErrors: bool
 }
 
+let getLoadSimulations (scenarios: Scenario list) =
+    scenarios
+    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadTimeLine |> List.map(fun x -> x.LoadSimulation))
+    |> dict
+
 let build (logger: ILogger)
           (sessionResult: NodeSessionResult)
-          (simulations: IDictionary<string, LoadSimulation list>) =
+          (targetScenarios: Scenario list) =
 
     logger.Verbose("Report.build")
 
+    let simulations = targetScenarios |> getLoadSimulations
     let errorsExist = sessionResult.NodeStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
 
     { TxtReport = lazy (TxtReport.print logger sessionResult simulations)
@@ -35,8 +46,9 @@ let build (logger: ILogger)
       ConsoleReport = lazy (ConsoleReport.print logger sessionResult simulations)
       SessionFinishedWithErrors = errorsExist }
 
-let save (folder: string, fileName: string, reportFormats: ReportFormat list,
-          report: ReportsContent, logger: ILogger, testInfo: TestInfo) =
+let saveToFolder (logger: ILogger, folder: string, fileName: string,
+                  testInfo: TestInfo,
+                  reportFormats: ReportFormat list, report: ReportsContent) =
     try
         let reportsDir = Path.Combine(folder, testInfo.SessionId)
         Directory.CreateDirectory(reportsDir) |> ignore
@@ -76,3 +88,25 @@ let save (folder: string, fileName: string, reportFormats: ReportFormat list,
     with
     | ex -> logger.Error(ex, "Report.save failed")
             Array.empty
+
+let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
+    let fileName     = NBomberContext.getReportFileName context
+    let currentTime  = DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss"
+    let fileNameDate = $"{fileName}_{currentTime}"
+    let folder       = NBomberContext.getReportFolder context
+    let formats      = NBomberContext.getReportFormats context
+
+    if dep.ApplicationType = ApplicationType.Console then
+        report.ConsoleReport.Value |> List.iter Console.render
+
+    if formats.Length > 0 then
+        let reportFiles = saveToFolder(dep.Logger, folder, fileNameDate, stats.TestInfo, formats, report)
+        let finalStats = { stats with ReportFiles = reportFiles }
+        dep.ReportingSinks
+        |> List.map(fun x -> x.SaveFinalStats [| finalStats |])
+        |> Task.WhenAll
+        |> fun t -> t.Wait()
+
+        finalStats
+    else
+        stats
