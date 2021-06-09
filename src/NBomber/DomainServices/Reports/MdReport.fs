@@ -342,9 +342,9 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDi
         logger.Verbose("MdReport.print")
 
         emptyDocument
-        |> MdTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-        |> MdNodeStats.printNodeStats sessionResult.NodeStats simulations
-        |> MdPluginStats.printPluginStats sessionResult.NodeStats
+        |> MdTestInfo.printTestInfo sessionResult.FinalStats.TestInfo
+        |> MdNodeStats.printNodeStats sessionResult.FinalStats simulations
+        |> MdPluginStats.printPluginStats sessionResult.FinalStats
         |> MdHints.printHints sessionResult.Hints
         |> asString
     with

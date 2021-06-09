@@ -302,9 +302,9 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDi
     try
         logger.Verbose("TxtReport.print")
 
-        [ TxtTestInfo.printTestInfo sessionResult.NodeStats.TestInfo
-          TxtNodeStats.printNodeStats sessionResult.NodeStats simulations
-          TxtPluginStats.printPluginStats sessionResult.NodeStats
+        [ TxtTestInfo.printTestInfo sessionResult.FinalStats.TestInfo
+          TxtNodeStats.printNodeStats sessionResult.FinalStats simulations
+          TxtPluginStats.printPluginStats sessionResult.FinalStats
           TxtHints.printHints sessionResult.Hints ]
         |> String.concatLines
     with

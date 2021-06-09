@@ -26,9 +26,9 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let finalStats =
             Report.build dep.Logger result testHost.TargetScenarios
-            |> Report.save dep context result.NodeStats
+            |> Report.save dep context result.FinalStats
 
-        return { result with NodeStats = finalStats }
+        return { result with FinalStats = finalStats }
     }
 
 let run (context: NBomberContext) =

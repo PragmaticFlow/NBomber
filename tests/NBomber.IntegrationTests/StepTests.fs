@@ -158,8 +158,8 @@ let ``Step with DoNotTrack = true should has empty stats and not be printed`` ()
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.NodeStats.ScenarioStats.Length = 1 @>
-        test <@ result.NodeStats.ScenarioStats
+        test <@ result.FinalStats.ScenarioStats.Length = 1 @>
+        test <@ result.FinalStats.ScenarioStats
                 |> Seq.collect(fun x -> x.StepStats)
                 |> Seq.tryFind(fun x -> x.StepName = "step 2")
                 |> Option.isNone @>
@@ -182,7 +182,7 @@ let ``createPause should work correctly and not printed in statistics`` () =
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.NodeStats.ScenarioStats.Length = 1 @>
+        test <@ result.FinalStats.ScenarioStats.Length = 1 @>
 
 [<Fact>]
 let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
@@ -213,8 +213,8 @@ let ``NBomber should support to run and share the same step within one scenario 
         |> NBomberRunner.runWithResult Seq.empty
         |> Result.getOk
 
-    test <@ result.NodeStats.ScenarioStats.[0].StepStats.Length = 2 @>
-    test <@ result.NodeStats.ScenarioStats.[1].StepStats.Length = 2 @>
+    test <@ result.FinalStats.ScenarioStats.[0].StepStats.Length = 2 @>
+    test <@ result.FinalStats.ScenarioStats.[1].StepStats.Length = 2 @>
 
 [<Fact>]
 let ``NBomber shouldn't stop execution scenario if too many failed results on a warm-up`` () =

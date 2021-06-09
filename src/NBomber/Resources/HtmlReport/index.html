@@ -368,7 +368,7 @@
                         </a>
                     </li>
 
-                    <li v-for="(scenarioStats, index) in viewModel.NodeStats.ScenarioStats"
+                    <li v-for="(scenarioStats, index) in viewModel.FinalStats.ScenarioStats"
                         :key="`nav-scenario-stats-${index}`"
                         data-toggle="tooltip"
                         data-placement="right"
@@ -390,7 +390,7 @@
                     <li class="nav-item">
                         <a data-toggle="pill" href="#plugins-stats-view" role="tab" aria-controls="plugins-stats-view"
                            @click="selectView('plugins')"
-                           :class="{disabled: !viewModel.NodeStats.PluginStats || !viewModel.NodeStats.PluginStats.length}">
+                           :class="{disabled: !viewModel.FinalStats.PluginStats || !viewModel.FinalStats.PluginStats.length}">
                             Plugins <span class="sub-icon sub-icon-plugin fas fa-puzzle-piece"></span>
                         </a>
                     </li>
@@ -405,7 +405,7 @@
                 </ul>
                 <footer>
                     <p class="blue-grey-text" v-cloak>
-                        <span>v{{viewModel.NodeStats.NodeInfo.NBomberVersion}}</span>
+                        <span>v{{viewModel.FinalStats.NodeInfo.NBomberVersion}}</span>
                     </p>
                 </footer>
             </div>
@@ -426,13 +426,13 @@
                     <div class="tab-pane fade show" id="env-view" role="tabpanel">
                         <div class="row">
                             <div class="col">
-                                <node-info-table :node-info="viewModel.NodeStats.NodeInfo"></node-info-table>
+                                <node-info-table :node-info="viewModel.FinalStats.NodeInfo"></node-info-table>
                             </div>
                         </div>
                     </div>
                     <!-- Test Suite View -->
                     <div class="tab-pane fade show active" id="test-suite-view" role="tabpanel"
-                         v-if="viewModel.NodeStats.ScenarioStats && viewModel.NodeStats.PluginStats">
+                         v-if="viewModel.FinalStats.ScenarioStats && viewModel.FinalStats.PluginStats">
 
                         <div class="row">
                             <div class="col">
@@ -451,9 +451,9 @@
                                             </thead>
                                             <tbody>
                                             <tr>
-                                                <td>{{viewModel.NodeStats.TestInfo.SessionId}}</td>
-                                                <td>{{viewModel.NodeStats.TestInfo.TestSuite}}</td>
-                                                <td>{{viewModel.NodeStats.TestInfo.TestName}}</td>
+                                                <td>{{viewModel.FinalStats.TestInfo.SessionId}}</td>
+                                                <td>{{viewModel.FinalStats.TestInfo.TestSuite}}</td>
+                                                <td>{{viewModel.FinalStats.TestInfo.TestName}}</td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -462,9 +462,9 @@
                             </div>
                         </div>
 
-                        <div v-for="(scenarioStats, scenarioIndex) in viewModel.NodeStats.ScenarioStats"
+                        <div v-for="(scenarioStats, scenarioIndex) in viewModel.FinalStats.ScenarioStats"
                              :key="`test-suite-scenario-stats-${scenarioIndex}`"
-                             v-if="viewModel.NodeStats.ScenarioStats"
+                             v-if="viewModel.FinalStats.ScenarioStats"
                              class="row">
                             <div class="col">
                                 <div class="card custom scenario">
@@ -540,7 +540,7 @@
                                                 <div class="row">
                                                     <div class="col-xl-8 col-lg-8 col-md-12">
                                                         <!-- TestSuite View / Scenario Latency (Columns) -->
-                                                        <chart-scenario-latency-indicators :scenario-stats="scenarioStats" ></chart-scenario-latency-indicators>
+                                                        <chart-scenario-latency-indicators :scenario-stats="scenarioStats"></chart-scenario-latency-indicators>
                                                     </div>
                                                     <div class="col-xl-4 col-lg-4 col-md-12">
                                                         <!-- TestSuite View / Scenario Requests -->
@@ -551,7 +551,7 @@
                                                 <div class="row">
                                                     <div class="col">
                                                         <!-- TestSuite View / Scenario Latency -->
-                                                        <chart-scenario-latency-distribution :timeline-stats="viewModel.TimeLineStats"
+                                                        <chart-scenario-latency-distribution :time-line-history="viewModel.TimeLineHistory"
                                                                                              :scenario-name="scenarioStats.ScenarioName">
                                                         </chart-scenario-latency-distribution>
                                                     </div>
@@ -565,7 +565,7 @@
 
                         <div class="row">
                             <div class="col">
-                                <plugins-stats-table :plugins-stats="viewModel.NodeStats.PluginStats"></plugins-stats-table>
+                                <plugins-stats-table :plugins-stats="viewModel.FinalStats.PluginStats"></plugins-stats-table>
                             </div>
                         </div>
 
@@ -578,7 +578,7 @@
                     </div>
                     <no-data v-else></no-data>
                     <!-- Scenarios Views -->
-                    <div v-for="(scenarioStats, scenarioIndex) in viewModel.NodeStats.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
+                    <div v-for="(scenarioStats, scenarioIndex) in viewModel.FinalStats.ScenarioStats" :key="`scenario-stats-${scenarioIndex}`"
                          class="tab-pane fade show"
                          :id="`scenario-${scenarioIndex}-view`"
                          role="tabpanel">
@@ -724,21 +724,21 @@
                                                 <lazy-load :loaded-views="loadedViews"
                                                            :load-for-view="stepIndex === 0 ? `scenario-${scenarioIndex}` : `scenario-${scenarioIndex}-step-${stepIndex}`">
                                                     <!-- Step View / Step Throughput -->
-                                                    <chart-timeline-step-throughput :timeline-stats="viewModel.TimeLineStats"
+                                                    <chart-timeline-step-throughput :time-line-history="viewModel.TimeLineHistory"
                                                                                     :scenario-name="scenarioStats.ScenarioName"
                                                                                     :step-name="stepStats.StepName">
                                                     </chart-timeline-step-throughput>
 
                                                     <!-- Step View / Step Latency -->
-                                                    <chart-timeline-step-latency :timeline-stats="viewModel.TimeLineStats"
+                                                    <chart-timeline-step-latency :time-line-history="viewModel.TimeLineHistory"
                                                                                  :scenario-name="scenarioStats.ScenarioName"
                                                                                  :step-name="stepStats.StepName">
                                                     </chart-timeline-step-latency>
 
                                                     <!-- Step View / Step Data Transfer -->
-                                                    <chart-timeline-step-data-transfer :timeline-stats="viewModel.TimeLineStats"
-                                                                                 :scenario-name="scenarioStats.ScenarioName"
-                                                                                 :step-name="stepStats.StepName">
+                                                    <chart-timeline-step-data-transfer :time-line-history="viewModel.TimeLineHistory"
+                                                                                       :scenario-name="scenarioStats.ScenarioName"
+                                                                                       :step-name="stepStats.StepName">
                                                     </chart-timeline-step-data-transfer>
                                                 </lazy-load>
                                             </div>
@@ -751,10 +751,10 @@
 
                     <!-- Plugins Stats Views -->
                     <div class="tab-pane fade show" id="plugins-stats-view" role="tabpanel"
-                         v-if="viewModel.NodeStats.PluginStats && viewModel.NodeStats.PluginStats.length > 0">
+                         v-if="viewModel.FinalStats.PluginStats && viewModel.FinalStats.PluginStats.length > 0">
                         <div class="row">
                             <div class="col">
-                                <plugins-stats-table :plugins-stats="viewModel.NodeStats.PluginStats"></plugins-stats-table>
+                                <plugins-stats-table :plugins-stats="viewModel.FinalStats.PluginStats"></plugins-stats-table>
                             </div>
                         </div>
                     </div>

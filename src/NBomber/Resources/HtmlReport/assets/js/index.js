@@ -4,16 +4,16 @@ const toMb = bytes => +(bytes / 1024.0 / 1024.0).toFixed(4);
 
 const initApp = (appContainer, viewModel) => {
     // Chart data utilities
-    const createScenarioData = (timelineStats, scenarioName) =>
-        timelineStats
+    const createScenarioData = (timeLineHistory, scenarioName) =>
+        timeLineHistory
             .filter(t => t.ScenarioStats.findIndex(x => x.ScenarioName === scenarioName) >= 0)
             .map(t => ({
                 Duration: t.Duration,
                 ScenarioStats: t.ScenarioStats.find(x => x.ScenarioName === scenarioName)
             }));
 
-    const createStepData = (timelineStats, scenarioName, stepName) =>
-        createScenarioData(timelineStats, scenarioName)
+    const createStepData = (timeLineHistory, scenarioName, stepName) =>
+        createScenarioData(timeLineHistory, scenarioName)
             .filter(t => t.ScenarioStats.StepStats.findIndex(x => x.StepName === stepName) >= 0)
             .map(t => ({
                 Duration: t.Duration,
@@ -323,19 +323,19 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('chart-scenario-latency-distribution', {
-        props: ['timelineStats', 'scenarioName'],
+        props: ['timeLineHistory', 'scenarioName'],
         template: '<chart class="chart chart-timeline chart-timeline-scenario-load" :data="data" :options="options" type="ComboChart"></chart>',
         data: function() {
             const header = [[titles.axisX.duration, titles.series.loadSimulation, titles.series.latency.low, titles.series.latency.medium, titles.series.latency.high]];
-            const timelineStats = createScenarioData(this.timelineStats, this.scenarioName);
-            const rows = timelineStats
+            const timeLineHistory = createScenarioData(this.timeLineHistory, this.scenarioName);
+            const rows = timeLineHistory
                 .map((t, i) => {
                     let latencyCount = t.ScenarioStats.LatencyCount;
 
                     if (i > 0) {
                         latencyCount = {};
                         const currentValue = t.ScenarioStats.LatencyCount;
-                        const prevValue = timelineStats[i - 1].ScenarioStats.LatencyCount;
+                        const prevValue = timeLineHistory[i - 1].ScenarioStats.LatencyCount;
 
                         Object.entries(currentValue).forEach(([key, value]) => {
                             latencyCount[key] = value - prevValue[key];
@@ -385,13 +385,13 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('chart-timeline-step-throughput', {
-        props: ['timelineStats', 'scenarioName', 'stepName'],
+        props: ['timeLineHistory', 'scenarioName', 'stepName'],
         template: '<chart class="chart chart-timeline chart-timeline-step-throughput" :data="data" :options="options" type="LineChart"></chart>',
         data: function() {
             const header = [[titles.axisX.duration, titles.series.loadSimulation, titles.series.rps]];
 
             const rows =
-                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                createStepData(this.timeLineHistory, this.scenarioName, this.stepName)
                     .map(x => [
                         x.Duration,
                         x.ScenarioStats.LoadSimulationStats.Value,
@@ -424,7 +424,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('chart-timeline-step-latency', {
-        props: ['timelineStats', 'scenarioName', 'stepName'],
+        props: ['timeLineHistory', 'scenarioName', 'stepName'],
         template: '<chart class="chart chart-timeline chart-timeline-step-latency" :data="data" :options="options" type="ComboChart"></chart>',
         data: function() {
             const header = [[
@@ -438,7 +438,7 @@ const initApp = (appContainer, viewModel) => {
             ]];
 
             const rows =
-                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                createStepData(this.timeLineHistory, this.scenarioName, this.stepName)
                     .map(x => [
                         x.Duration,
                         x.ScenarioStats.LoadSimulationStats.Value,
@@ -476,7 +476,7 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('chart-timeline-step-data-transfer', {
-        props: ['timelineStats', 'scenarioName', 'stepName'],
+        props: ['timeLineHistory', 'scenarioName', 'stepName'],
         template: '<chart class="chart chart-timeline chart-timeline-step-data-transfer" :data="data" :options="options" type="ComboChart"></chart>',
         data: function() {
             const header = [[
@@ -490,7 +490,7 @@ const initApp = (appContainer, viewModel) => {
             ]];
 
             const rows =
-                createStepData(this.timelineStats, this.scenarioName, this.stepName)
+                createStepData(this.timeLineHistory, this.scenarioName, this.stepName)
                     .map(x => [
                         x.Duration,
                         x.ScenarioStats.LoadSimulationStats.Value,
