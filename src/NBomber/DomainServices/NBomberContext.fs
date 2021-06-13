@@ -148,7 +148,14 @@ let getReportFileName (context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.orElse(context.Reporting.FileName)
-    |> Option.defaultValue(Constants.DefaultReportName)
+
+let getReportFileNameOrDefault (currentTime: DateTime) (context: NBomberContext) =
+    context
+    |> getReportFileName
+    |> Option.defaultValue(
+        let currentTime = currentTime.ToString("yyyy-MM-dd--HH-mm-ss")
+        $"{Constants.DefaultReportName}_{currentTime}"
+    )
 
 let getUseHintAnalyzer (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
@@ -169,7 +176,11 @@ let getReportFolder (context: NBomberContext) =
     context
     |> tryGetFromConfig
     |> Option.orElse(context.Reporting.FolderName)
-    |> Option.defaultValue(Constants.DefaultReportFolder)
+
+let getReportFolderOrDefault (sessionId: string) (context: NBomberContext) =
+    context
+    |> getReportFolder
+    |> Option.defaultValue(Path.Combine(Constants.DefaultReportFolder, sessionId))
 
 let getReportFormats (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
@@ -217,8 +228,8 @@ let getClientFactorySettings (context: NBomberContext) =
 let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
-        let! reportName        = context |> getReportFileName  |> Validation.checkReportName
-        let! reportFolder      = context |> getReportFolder    |> Validation.checkReportFolder
+        let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName
+        let! reportFolder      = context |> getReportFolderOrDefault("SessionId") |> Validation.checkReportFolder
         let! sendStatsInterval = context |> getSendStatsInterval
         let! scenariosSettings  = context |> getScenariosSettings
         let clientFactorySettings = context |> getClientFactorySettings

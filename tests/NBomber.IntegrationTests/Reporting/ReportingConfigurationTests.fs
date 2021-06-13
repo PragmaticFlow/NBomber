@@ -18,7 +18,7 @@ open NBomber.Extensions.InternalExtensions
 open NBomber.FSharp
 
 [<Fact>]
-let ``settings for ReportFileName and ReportFolder should be properly handled`` () =
+let ``JSON config settings for ReportFileName and ReportFolder should be properly handled`` () =
 
     // test_config_2.json contains
     // "ReportFileName": "custom_report_name",
@@ -45,7 +45,7 @@ let ``settings for ReportFileName and ReportFolder should be properly handled`` 
     |> ignore
 
     let dirExist = Directory.Exists "./my_custom_reports"
-    let files = Directory.GetFiles("./my_custom_reports", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
+    let files = Directory.GetFiles("./my_custom_reports", searchPattern = "*.*", searchOption = SearchOption.TopDirectoryOnly)
 
     test <@ dirExist @>
     test <@ files.Length = 3 @> // here we check that only 2 report formats were generated + txt 1 log file
@@ -82,7 +82,7 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     |> ignore
 
     let dirExist = Directory.Exists "./my_reports_2"
-    let files = Directory.GetFiles("./my_reports_2", searchPattern = "*.*", searchOption = SearchOption.AllDirectories)
+    let files = Directory.GetFiles("./my_reports_2", searchPattern = "*.*", searchOption = SearchOption.TopDirectoryOnly)
 
     test <@ dirExist @>
     test <@ files.Length = 5 @> // here we check that all report formats were generated
