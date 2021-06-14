@@ -85,7 +85,7 @@ let ``getTargetScenarios should return only target scenarios if TargetScenarios 
     | _ -> failwith ""
 
 [<Property>]
-let ``getReportFileName should return from GlobalSettings, if empty then from TestContext, if empty then default name``
+let ``getReportFileNameOrDefault should return from GlobalSettings, if empty then from TestContext, if empty then default name``
     (configValue: string option, contextValue: string option) =
 
     (configValue.IsNone || configValue.IsSome && not (isNull configValue.Value)) ==> lazy
@@ -100,13 +100,15 @@ let ``getReportFileName should return from GlobalSettings, if empty then from Te
                                                           FileName = contextValue }
     }
 
-    let fileName = NBomberContext.getReportFileName(ctx)
+    let currentTime = DateTime.UtcNow
+    let currentTimeStr = currentTime.ToString("yyyy-MM-dd--HH-mm-ss")
+    let fileName = ctx |> NBomberContext.getReportFileNameOrDefault(currentTime)
 
     match configValue, contextValue with
     | Some v1, Some v2 -> test <@ fileName = v1 @>
     | Some v1, None    -> test <@ fileName = v1 @>
     | None, Some v2    -> test <@ fileName = v2 @>
-    | None, None       -> test <@ fileName = Constants.DefaultReportName @>
+    | None, None       -> test <@ fileName = $"{Constants.DefaultReportName}_{currentTimeStr}" @>
 
 [<Property>]
 let ``getReportFormats should return from GlobalSettings, if empty then from TestContext``

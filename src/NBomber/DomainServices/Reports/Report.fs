@@ -47,11 +47,9 @@ let build (logger: ILogger)
       SessionFinishedWithErrors = errorsExist }
 
 let saveToFolder (logger: ILogger, folder: string, fileName: string,
-                  testInfo: TestInfo,
                   reportFormats: ReportFormat list, report: ReportsContent) =
     try
-        let reportsDir = Path.Combine(folder, testInfo.SessionId)
-        Directory.CreateDirectory(reportsDir) |> ignore
+        Directory.CreateDirectory(folder) |> ignore
 
         let buildReportFile (format: ReportFormat) =
             let fileExt =
@@ -62,7 +60,7 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
                 | ReportFormat.Md   -> ".md"
                 | _                 -> failwith "invalid report format."
 
-            let filePath = Path.Combine(reportsDir, fileName) + fileExt
+            let filePath = Path.Combine(folder, fileName) + fileExt
             { FilePath = filePath; ReportFormat = format }
 
         let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray
@@ -82,7 +80,7 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             logger.Warning("Test finished with errors, please check the log file.")
 
         if reportFiles.Length > 0 then
-            logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(reportsDir).FullName)
+            logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(folder).FullName)
 
         reportFiles
     with
@@ -90,17 +88,16 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             Array.empty
 
 let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
-    let fileName     = NBomberContext.getReportFileName context
-    let currentTime  = DateTime.UtcNow.ToString "yyyy-MM-dd--HH-mm-ss"
-    let fileNameDate = $"{fileName}_{currentTime}"
-    let folder       = NBomberContext.getReportFolder context
-    let formats      = NBomberContext.getReportFormats context
+
+    let fileName = context |> NBomberContext.getReportFileNameOrDefault(DateTime.UtcNow)
+    let folder = context |> NBomberContext.getReportFolderOrDefault(stats.TestInfo.SessionId)
+    let formats = context |> NBomberContext.getReportFormats
 
     if dep.ApplicationType = ApplicationType.Console then
         report.ConsoleReport.Value |> List.iter Console.render
 
     if formats.Length > 0 then
-        let reportFiles = saveToFolder(dep.Logger, folder, fileNameDate, stats.TestInfo, formats, report)
+        let reportFiles = saveToFolder(dep.Logger, folder, fileName, formats, report)
         let finalStats = { stats with ReportFiles = reportFiles }
         dep.ReportingSinks
         |> List.map(fun x -> x.SaveFinalStats [| finalStats |])

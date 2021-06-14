@@ -31,9 +31,19 @@ module Logger =
                (createConfig: (unit -> LoggerConfiguration) option)
                (configPath: IConfiguration option) =
 
+        let cleanFolder (folder) =
+            try
+                if Directory.Exists folder then
+                    Directory.Delete(folder, recursive = true)
+            with
+            | ex -> ()
+
         let attachFileLogger (config: LoggerConfiguration) =
+
+            cleanFolder folder
+
             config.WriteTo.File(
-                path = $"{folder}/{testInfo.SessionId}/nbomber-log-.txt",
+                path = $"{folder}/nbomber-log-.txt",
                 outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
