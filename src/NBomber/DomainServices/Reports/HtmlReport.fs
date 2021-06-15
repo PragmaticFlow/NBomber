@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 
 open Serilog
+open FsToolkit.ErrorHandling
 
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
@@ -54,12 +55,17 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) =
 
         let applyHtmlReplace = applyHtmlReplace sessionResult
 
-        ResourceManager.readResource("index.html")
-        |> Option.map removeDescription
-        |> Option.map(fun html -> html.Replace("\r", ""))
-        |> Option.map(fun html -> html.Split([| "\n" |], StringSplitOptions.None))
-        |> Option.map(fun lines -> lines |> Seq.map applyHtmlReplace)
-        |> Option.map String.concatLines
+        option {
+            let! indexHtml = ResourceManager.readResource("index.html")
+
+            return
+                indexHtml
+                |> removeDescription
+                |> String.replace("\r", "")
+                |> String.split [| "\n" |]
+                |> Seq.map applyHtmlReplace
+                |> String.concatLines
+        }
         |> Option.defaultValue String.Empty
     with
     | ex ->

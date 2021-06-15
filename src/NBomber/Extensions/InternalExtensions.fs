@@ -63,6 +63,9 @@ module internal InternalExtensions =
         let replace (oldValue: string, newValue: string) (str: string) =
             str.Replace(oldValue, newValue)
 
+        let split (separators: string[]) (str: string) =
+            str.Split(separators, StringSplitOptions.None)
+
         let concatLines (strings: string seq) =
             String.Join(Environment.NewLine, strings)
 
