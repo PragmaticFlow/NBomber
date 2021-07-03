@@ -21,6 +21,11 @@
         "Message": "Plugin is configured via infra config"
     },
 
+    "InfluxDBSink": {
+        "Url": "http://localhost:8086",
+        "Database": "default"
+    },
+
     "CustomReportingSink": {
         "Message": "Reporting sink is configured via infra config"
     }

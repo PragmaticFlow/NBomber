@@ -13,7 +13,7 @@ using NBomber.Contracts;
 using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 using NBomber.Plugins.Network.Ping;
-
+using NBomber.Sinks.InfluxDB;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CSharpProd.JsonConfig
@@ -196,11 +196,13 @@ namespace CSharpProd.JsonConfig
             var scenario2 = ScenarioBuilder
                 .CreateScenario("ignored", getUser, getPosts);
 
-            // settings for plugins and reporting sinks are overriden in infra-config.json
+            // settings for worker plugins and reporting sinks are overriden in infra-config.json
             var pingPlugin = new PingPlugin();
 
             var customPlugin = new CustomPlugin(new CustomPluginSettings
                 {Message = "Plugin is configured via constructor"});
+
+            var influxDbReportingSink = new InfluxDBSink();
 
             var customReportingSink = new CustomReportingSink(new CustomReportingSinkSettings
                 {Message = "Reporting sink is configured via constructor"});
@@ -208,7 +210,7 @@ namespace CSharpProd.JsonConfig
             NBomberRunner
                 .RegisterScenarios(scenario1, scenario2)
                 .WithWorkerPlugins(pingPlugin, customPlugin)
-                .WithReportingSinks(customReportingSink)
+                .WithReportingSinks(influxDbReportingSink, customReportingSink)
                 .LoadConfig("./JsonConfig/Configs/config.json")
                 .LoadInfraConfig("./JsonConfig/Configs/infra-config.json")
                 .Run();

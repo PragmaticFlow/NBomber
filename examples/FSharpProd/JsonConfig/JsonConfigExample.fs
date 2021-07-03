@@ -13,6 +13,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Plugins.Network.Ping
+open NBomber.Sinks.InfluxDB
 
 // in this example we use JSON configuration files:
 // - 'config.json' to configure load test settings
@@ -182,11 +183,12 @@ let run () =
     // settings for plugins and reporting sinks are overriden in infra-config.json
     let pingPlugin = new PingPlugin()
     let customPlugin = new CustomPlugin({ Message = "Plugin is configured via constructor" })
+    let influxDbReportingSink = new InfluxDBSink();
     let customReportingSink = new CustomReportingSink({ Message = "Reporting sink is configured via constructor" })
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
     |> NBomberRunner.withWorkerPlugins [pingPlugin; customPlugin]
-    |> NBomberRunner.withReportingSinks [customReportingSink]
+    |> NBomberRunner.withReportingSinks [influxDbReportingSink; customReportingSink]
     |> NBomberRunner.loadConfig "./JsonConfig/Configs/config.json"
     |> NBomberRunner.loadInfraConfig "./JsonConfig/Configs/infra-config.json"
     |> NBomberRunner.run
