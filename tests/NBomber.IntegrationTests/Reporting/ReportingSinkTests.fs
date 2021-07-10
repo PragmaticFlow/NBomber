@@ -133,6 +133,9 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         test <@ first.[0].StepStats.[0].Ok.Latency.MaxMs >= 1000.0  @>
         test <@ last.[0].StepStats.[0].Ok.Latency.MaxMs <= 1000.0  @>
 
+        test <@ first.[0].StepStats.[0].Ok.Request.RPS <= 1.0 @>
+        test <@ last.[0].StepStats.[0].Ok.Request.RPS <= 20.0 && last.[0].StepStats.[0].Ok.Request.RPS >= 5.0 @>
+
         test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes > last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes @>
         test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes >= 1000  @>
         test <@ last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes <= 1000  @>
