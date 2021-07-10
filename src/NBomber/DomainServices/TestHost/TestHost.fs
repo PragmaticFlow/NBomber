@@ -24,7 +24,7 @@ open NBomber.DomainServices.TestHost.TestHostReportingActor
 type internal TestHost(dep: IGlobalDependency,
                        registeredScenarios: Scenario list,
                        sessionArgs: SessionArgs,
-                       createStatsActor: ILogger * Scenario -> MailboxProcessor<_>) as this =
+                       createStatsActor: ILogger * Scenario * TimeSpan -> MailboxProcessor<_>) as this =
 
     let mutable _stopped = false
     let mutable _targetScenarios = List.empty<Scenario>
@@ -57,7 +57,7 @@ type internal TestHost(dep: IGlobalDependency,
                 CancellationToken = cancelToken
                 GlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor(dep.Logger, scn)
+                ScenarioStatsActor = createStatsActor(dep.Logger, scn, sessionArgs.SendStatsInterval)
                 ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)
@@ -207,20 +207,6 @@ type internal TestHost(dep: IGlobalDependency,
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
             actor.Post(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
-        )
-
-        // subscribes on stop scenario event
-        schedulers
-        |> List.iter(fun x ->
-            x.EventStream
-            |> Observable.choose(function
-                | ScenarioStopped stats -> Some stats
-                | _ -> None
-            )
-            |> Observable.subscribe(fun stats ->
-                actor.Post(AddAndSaveScenarioStats stats)
-            )
-            |> ignore
         )
 
         do! this.StartBombing(schedulers, reportingTimer, currentOperationTimer)

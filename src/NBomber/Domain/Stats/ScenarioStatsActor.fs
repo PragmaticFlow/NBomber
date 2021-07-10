@@ -13,7 +13,7 @@ type ActorMessage =
     | GetRealtimeStats of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats    of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
-let create (logger: ILogger, scenario: Scenario) =
+let create (logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
@@ -28,8 +28,8 @@ let create (logger: ILogger, scenario: Scenario) =
             allData.[stepIndex] <- StepStatsRawData.addResponse allStData res
             intervalData.[stepIndex] <- StepStatsRawData.addResponse intervalStData res
 
-    let createScenarioStats (stepsData, simulationStats, operation, duration) =
-        ScenarioStats.create scenario stepsData simulationStats operation duration
+    let createScenarioStats (stepsData, simulationStats, operation, duration, interval) =
+        ScenarioStats.create scenario stepsData simulationStats operation duration interval
 
     MailboxProcessor.Start(fun inbox ->
 
@@ -41,14 +41,14 @@ let create (logger: ILogger, scenario: Scenario) =
                     return! loop()
 
                 | GetRealtimeStats (reply, simulationStats, duration) ->
-                    let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration)
+                    let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
                     // reset interval steps data
                     _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
                     reply.Reply(scnStats)
                     return! loop()
 
                 | GetFinalStats (reply, simulationStats, duration) ->
-                    let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration)
+                    let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration, duration)
                     reply.Reply(scnStats)
                     return! loop()
             with
