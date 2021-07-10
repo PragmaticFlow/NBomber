@@ -142,7 +142,8 @@ module ScenarioStats =
                (allStepsData: StepStatsRawData[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
-               (duration: TimeSpan) =
+               (duration: TimeSpan)
+               (reportingInterval: TimeSpan) =
 
         let okCount = allStepsData |> Array.sumBy(fun x -> x.OkStats.RequestCount)
         let failCount = allStepsData |> Array.sumBy(fun x -> x.FailStats.RequestCount)
@@ -154,7 +155,7 @@ module ScenarioStats =
 
         let stepStats =
             scenario.Steps
-            |> Seq.mapi(fun i x -> if x.DoNotTrack then None else Some(StepStats.create x.StepName allStepsData.[i] duration))
+            |> Seq.mapi(fun i x -> if x.DoNotTrack then None else Some(StepStats.create x.StepName allStepsData.[i] reportingInterval))
             |> Seq.choose(id)
             |> Seq.toArray
 

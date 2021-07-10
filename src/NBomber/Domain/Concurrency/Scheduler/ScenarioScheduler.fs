@@ -30,7 +30,6 @@ type ScenarioProgressInfo = {
 
 type SchedulerEvent =
     | ScenarioStarted
-    | ScenarioStopped of finalStats:ScenarioStats
     | ProgressUpdated of ScenarioProgressInfo
 
 let calcScheduleByTime (copiesCount: int, prevSegmentCopiesCount: int, timeSegmentProgress: int) =
@@ -131,8 +130,6 @@ type ScenarioScheduler(dep: ActorDep) =
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
 
-            let scnStats = _scenario |> Scenario.getDuration |> getRealtimeStats
-            _eventStream.OnNext(ScenarioStopped scnStats)
             _eventStream.OnCompleted()
             _eventStream.Dispose()
 

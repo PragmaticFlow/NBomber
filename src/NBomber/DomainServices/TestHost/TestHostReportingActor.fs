@@ -17,7 +17,6 @@ open NBomber.Infra.Dependency
 
 type ActorMessage =
     | FetchAndSaveRealtimeStats of duration:TimeSpan
-    | AddAndSaveScenarioStats   of ScenarioStats
     | GetTimeLineHistory        of AsyncReplyChannel<TimeLineHistoryRecord list>
     | GetFinalStats             of NodeInfo * AsyncReplyChannel<NodeStats>
 
@@ -86,22 +85,11 @@ let create (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo
                 return historyRecord :: history
         }
 
-        let addAndSaveScenarioStats (scnStats, history) = async {
-            let stats = scnStats |> ScenarioStats.round |> Array.singleton
-            do! stats |> saveRealtimeStats |> Async.AwaitTask
-            let historyRecord = TimeLineHistoryRecord.create stats
-            return historyRecord :: history
-        }
-
         let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
             try
                 match! inbox.Receive() with
                 | FetchAndSaveRealtimeStats duration ->
                     let! newHistory = fetchAndSaveRealtimeStats(duration, currentHistory)
-                    return! loop newHistory
-
-                | AddAndSaveScenarioStats scnStats ->
-                    let! newHistory = addAndSaveScenarioStats(scnStats, currentHistory)
                     return! loop newHistory
 
                 | GetTimeLineHistory reply ->

@@ -1,5 +1,6 @@
 module Tests.Concurrency.ConstantActorScheduler
 
+open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -34,7 +35,7 @@ let internal baseDep = {
     CancellationToken = CancellationToken.None
     GlobalTimer = Stopwatch()
     Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor.create(logger, baseScenario)
+    ScenarioStatsActor = ScenarioStatsActor.create(logger, baseScenario, Constants.DefaultSendStatsInterval)
     ExecStopCommand = fun _ -> ()
 }
 

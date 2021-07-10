@@ -5,13 +5,13 @@ let main argv =
 
     //DataFeed.DataFeedTest.run()
 
-    HelloWorld.HelloWorldExample.run()
+    //HelloWorld.HelloWorldExample.run()
     //HelloWorld.CustomSettingsExample.run()
 
-    //HttpTests.SimpleHttpTest.run()
+    HttpTests.SimpleHttpTest.run()
     //HttpTests.AdvancedHttpTest.run()
     //HttpTests.AdvancedHttpWithConfig.run()
-    HttpTests.TracingHttp.run()
+    //HttpTests.TracingHttp.run()
 
     //Logging.ElasticSearchLogging.run()
 
