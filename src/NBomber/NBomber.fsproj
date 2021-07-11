@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>NBomber</Authors>
         <Company>NBomber</Company>
-        <Version>2.0.3</Version>
+        <Version>2.0.4</Version>
         <Copyright>NBomber@2021</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
@@ -14,14 +14,8 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>v2.0.2
-- fixed bug with thread safety for circular data feed
-
-v2.0.3
-- fixed OutOfMemoryException while HTML report generation
-- removed fetching PluginStats for real-time statistics
-- fixed gathering real-time stats by intervals
-- fixed bug with set custom report folder and file names</PackageReleaseNotes>
+        <PackageReleaseNotes>v2.0.4
+- fixed bug related to calc RPS for real-time stats</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
