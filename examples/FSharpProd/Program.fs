@@ -19,5 +19,7 @@ let main argv =
 
     //MongoDb.MongoDbTest.run()
 
+    //JsonConfig.JsonConfigExample.run()
+
     0 // return an integer exit code
 

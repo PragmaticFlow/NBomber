@@ -1,0 +1,35 @@
+{
+    "TestSuite": "json_config",
+    "TestName": "json_config_example",
+
+    "TargetScenarios": ["rest_api"],
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "rest_api",
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "InjectPerSec": [100, "00:00:15"] },
+                    { "InjectPerSec": [200, "00:00:15"] }
+                ],
+
+                "ClientFactorySettings": [
+                    { "FactoryName": "http_factory", "ClientCount": 2 }
+                ],
+
+                "CustomSettings": {
+                    "BaseUri": "https://jsonplaceholder.typicode.com"
+                }
+            }
+        ],
+
+        "ReportFileName": "my_report_name",
+        "ReportFolder": "./my_reports",
+        "ReportFormats": [ "Html", "Md", "Txt", "Csv" ],
+        "SendStatsInterval": "00:00:05",
+
+        "UseHintsAnalyzer": true
+    }
+}

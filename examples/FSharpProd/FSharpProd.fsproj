@@ -6,7 +6,7 @@
         <GenerateProgramFile>false</GenerateProgramFile>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <RootNamespace>FSharp</RootNamespace>
+        <RootNamespace>FSharpProd</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -46,6 +46,16 @@
         <Compile Include="RealtimeReporting\InfluxDbReporting.fs" />
         <None Include="RealtimeReporting\docker-compose.yaml" />
         <Compile Include="XUnit\XUnitTest.fs" />
+        <Compile Include="JsonConfig\JsonConfigExample.fs" />
+        <None Include="JsonConfig\Configs\user-feed.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="JsonConfig\Configs\infra-config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="JsonConfig\Configs\config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <Compile Include="Program.fs" />
     </ItemGroup>
 

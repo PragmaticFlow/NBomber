@@ -21,6 +21,8 @@ namespace CSharpProd
             //MongoDb.MongoDbTest.Run();
 
             //RealtimeReporting.InfluxDbReporting.Run();
+
+            //JsonConfig.JsonConfigExample.Run();
         }
     }
 }

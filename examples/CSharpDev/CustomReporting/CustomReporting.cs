@@ -12,10 +12,10 @@ using static NBomber.Time;
 
 namespace CSharpDev.CustomReporting
 {
-    class CustomReportingSync : IReportingSink
+    class CustomReportingSink : IReportingSink
     {
         private ILogger _logger;
-        public string SinkName => nameof(CustomReportingSync);
+        public string SinkName => nameof(CustomReportingSink);
 
         public Task Init(IBaseContext context, IConfiguration infraConfig)
         {
@@ -51,7 +51,7 @@ namespace CSharpDev.CustomReporting
                 .RegisterScenarios(scenario)
                 .WithTestSuite("reporting")
                 .WithTestName("custom_reporting_test")
-                .WithReportingSinks(new CustomReportingSync())
+                .WithReportingSinks(new CustomReportingSink())
                 .WithReportingInterval(Seconds(10))
                 .WithReportFolder("./custom_reports")
                 .WithReportFormats(ReportFormat.Html, ReportFormat.Md, ReportFormat.Txt, ReportFormat.Csv)
