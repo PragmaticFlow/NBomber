@@ -134,7 +134,7 @@ let ``disableHintsAnalyzer should disable hints`` () =
 
 [<Fact>]
 let ``analyzeNodeStats should return hints for case when StatusCodes are not provided`` () =
-    let req = { baseStepStats.Ok.Request with RPS = 1.0 }
+    let req = { baseStepStats.Ok.Request with RPS = 1.0; Count = 1 }
     let dt = { baseStepStats.Ok.DataTransfer with MinBytes = 100 }
     let stepStats = { baseStepStats with Ok = { StatusCodes = Array.empty; Request = req; Latency = baseStepStats.Ok.Latency; DataTransfer = dt} }
     let scnStats = { baseScnStats with StepStats = [| stepStats |] }
