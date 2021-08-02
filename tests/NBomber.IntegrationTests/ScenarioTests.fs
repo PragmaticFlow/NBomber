@@ -3,6 +3,7 @@
 open System
 open System.Threading.Tasks
 
+open NBomber.Contracts
 open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
@@ -194,7 +195,7 @@ let ``Warmup should have no effect on stats`` () =
         test <@ failSt.Fail.Request.Count <= 10 @>
 
 [<Fact>]
-let ``applyScenariosSettings() should override initial settings if the name is matched`` () =
+let ``applyScenariosSettings() should override initial settings if the scenario name is matched`` () =
 
     let scnName1 = "scenario_1"
     let warmUp1 = seconds 30
@@ -208,6 +209,7 @@ let ``applyScenariosSettings() should override initial settings if the name is m
         WarmUpDuration = Some(warmUp1.ToString("hh\:mm\:ss"))
         LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(10, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
+        StepOrder = None
         CustomSettings = Some "some data"
     }
 
@@ -222,6 +224,42 @@ let ``applyScenariosSettings() should override initial settings if the name is m
     test <@ updatedScenarios.[0].PlanedDuration = duration1 @>
     test <@ updatedScenarios.[0].WarmUpDuration = warmUp1 @>
     test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
+
+
+let data : obj[] seq =
+    seq {
+        yield [| Some [|1;0|]; [|1;0|] |]
+        yield [| Some [|1;1|]; [|1;1|] |]
+        yield [| None;         [|0;1|] |]
+    }
+
+[<Theory>]
+[<MemberData("data")>]
+let ``applyScenariosSettings() should reorder steps based on scenario settings``
+    (stepOrder: int [] option, orderedSteps: int []) =
+
+    let scnName = "scenario_1"
+    let step1 = Step.create("step 1", fun _ -> task { return Response.ok() })
+    let step2 = Step.create("step 2", fun _ -> task { return Response.ok() })
+
+    let settings = {
+        ScenarioName = scnName
+        WarmUpDuration = None
+        LoadSimulationsSettings = None
+        ClientFactorySettings = None
+        StepOrder = stepOrder
+        CustomSettings = None
+    }
+
+    let originalScenarios =
+        [Scenario.create scnName [step1; step2]]
+        |> Scenario.createScenarios
+        |> Result.getOk
+
+    let updatedScenarios = Scenario.applySettings [settings] originalScenarios
+
+    test <@ updatedScenarios.[0].GetStepsOrder() = orderedSteps @>
+
 
 [<Property>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
@@ -239,6 +277,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         LoadSimulationsSettings = Some [LoadSimulationSettings.RampConstant(5, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
         CustomSettings = None
+        StepOrder = None
     }
 
     let scenario =

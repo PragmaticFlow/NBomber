@@ -24,6 +24,7 @@ type ScenarioSetting = {
     WarmUpDuration: string option
     LoadSimulationsSettings: LoadSimulationSettings list option
     ClientFactorySettings: ClientFactorySetting list option
+    StepOrder: int [] option
     [<JsonField(AsJson = true)>] CustomSettings: string option
 }
 
