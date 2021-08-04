@@ -207,6 +207,7 @@ let ``schedule should correctly handle RampScenariosPerSec``
     test <@ commands.Length = commandCount.Value @>
 
 [<Fact>]
+[<Trait("CI", "disable")>]
 let ``should run InjectOneTimeActors correctly`` () =
 
     let step = Step.create("step_1", fun context -> task {
