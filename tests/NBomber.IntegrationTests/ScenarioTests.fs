@@ -394,6 +394,32 @@ let ``withDynamicStepOrder should allow to run steps with custom order`` () =
         test <@ stepsStats.[1].Ok.Request.Count > 0 @>
 
 [<Fact>]
+let ``with s should allow to run steps with custom order`` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step_2", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    Scenario.create "1" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> Scenario.withDynamicStepOrder(fun () -> [| 1 |])
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.loadConfig "Configuration/step_order_config.json" // "StepOrder": [0]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun f ->
+        let stepsStats = f.ScenarioStats.[0].StepStats
+                         |> Seq.filter(fun s -> s.Ok.Request.Count > 0 || s.Fail.Request.Count > 0)
+        test <@ stepsStats |> Seq.forall(fun s -> s.StepName = "step_1") @>
+
+[<Fact>]
 let ``withStepTimeout should set step timeout`` () =
 
     let step1 = Step.create("step_1", timeout = seconds 2, execute = fun context -> task {

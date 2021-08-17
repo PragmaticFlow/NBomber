@@ -200,11 +200,6 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         | Some v -> TimeSpan.Parse v
         | None   -> TimeSpan.Zero
 
-    let getStepsOrder (scenario: Scenario, settings: ScenarioSetting) =
-        match settings.StepOrder with
-        | Some v -> v
-        | None -> scenario.GetStepsOrder()
-
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
@@ -221,7 +216,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
                         WarmUpDuration = getWarmUpDuration(settings)
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
-                        GetStepsOrder = fun () -> getStepsOrder(scenario, settings) }
+                        GetStepsOrder = fun () -> settings.StepOrder |> Option.defaultValue(scenario.GetStepsOrder()) }
 
     scenarios
     |> List.map(fun scn ->
