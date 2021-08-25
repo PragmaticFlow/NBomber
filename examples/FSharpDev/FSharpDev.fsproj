@@ -29,8 +29,12 @@
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <Compile Include="MqttTests\PublisherScenario.fs" />
+        <Compile Include="MqttTests\SubscriberScenario.fs" />
+        <Compile Include="MqttTests\MqttScenario.fs" />
+        <None Include="MqttTests\docker-compose.yaml" />
         <Compile Include="ClientFactory\HttpClientFactory.fs" />
-        <Compile Include="Program.fs" />        
+        <Compile Include="Program.fs" />                
     </ItemGroup>
 
     <ItemGroup>
@@ -39,6 +43,7 @@
 
     <ItemGroup>
       <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.2.0" />
+      <PackageReference Include="MQTTnet" Version="3.0.16" />
     </ItemGroup>
 
 </Project>

@@ -1,0 +1,11 @@
+version: '3.4'
+services:
+
+    emqx:
+        container_name: emqx
+        image: "emqx/emqx:latest"
+        ports:
+            - 1883:1883
+            - 18083:18083
+            - 8083:8083
+            - 8084:8084

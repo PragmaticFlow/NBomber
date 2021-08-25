@@ -31,7 +31,7 @@ type PushResponseBuffer() =
 
     member _.InitBufferForClient(clientId: string) = initBufferForClient(clientId)
 
-    member _.WaitResponse(clientId: string) =
+    member _.ReceiveResponse(clientId: string) =
         lock _lockObj (fun () ->
             let awaiterTsc = TaskCompletionSource<PushResponse>(TaskCreationOptions.RunContinuationsAsynchronously)
             let missedResponses = _awaitersBuffer.[clientId]
