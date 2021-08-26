@@ -51,7 +51,7 @@ module Logger =
         let attachAnsiConsoleLogger (config: LoggerConfiguration) =
             config.WriteTo.Logger(fun lc ->
                 let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
-                lc.WriteTo.spectreConsole(outputTemplate,  minLevel = LogEventLevel.Information)
+                lc.WriteTo.spectreConsole(outputTemplate, minLevel = LogEventLevel.Information)
                     .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
                                                         || event.Level = LogEventLevel.Warning
                                                         || event.Level = LogEventLevel.Fatal)
