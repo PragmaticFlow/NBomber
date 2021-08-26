@@ -143,7 +143,7 @@ type internal TestHost(dep: IGlobalDependency,
             return Ok()
 
         | Error appError ->
-            dep.Logger.Fatal("Init failed.")
+            dep.Logger.Error("Init failed.")
             _currentOperation <- OperationType.Stop
             return AppError.createResult(appError)
     }
@@ -201,7 +201,7 @@ type internal TestHost(dep: IGlobalDependency,
 
         let schedulers = this.CreateScenarioSchedulers()
         use actor = TestHostReportingActor.create(dep, schedulers, sessionArgs.TestInfo)
-        actor.Error.Subscribe(fun ex -> dep.Logger.Fatal("Reporting actor error", ex)) |> ignore
+        actor.Error.Subscribe(fun ex -> dep.Logger.Error("Reporting actor error", ex)) |> ignore
 
         let currentOperationTimer = Stopwatch()
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)

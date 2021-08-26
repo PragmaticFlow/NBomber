@@ -73,7 +73,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
                 checkFlushBuffer(_responseBuffer)
             else
-                _logger.Fatal($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
+                _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
             _working <- false
     }
@@ -95,7 +95,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
                     checkFlushBuffer(_responseBuffer)
             else
-                _logger.Fatal($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
+                _logger.Error($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
             _working <- false
     }
