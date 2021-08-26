@@ -152,14 +152,13 @@ module Scenario =
     /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
     let create (name: string) (steps: IStep list): Contracts.Scenario =
-        let stepsOrder = [|0..steps.Length-1|]
         { ScenarioName = name
           Init = None
           Clean = None
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          GetStepsOrder = fun () -> stepsOrder }
+          GetStepsOrder = fun () -> [|0..steps.Length-1|] }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.

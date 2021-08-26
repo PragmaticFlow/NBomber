@@ -21,6 +21,7 @@
         <Compile Include="AssemblyInfo.fs" />
         <Compile Include="Extensions\Extensions.fs" />
         <Compile Include="Extensions\InternalExtensions.fs" />
+        <Compile Include="Extensions\PushExtensions.fs" />
         <Compile Include="Configuration\Configuration.fs" />
         <Compile Include="Configuration\Constants.fs" />
         <Compile Include="Contracts\Stats.fs" />
