@@ -52,7 +52,7 @@ let create (logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
                     reply.Reply(scnStats)
                     return! loop()
             with
-            | ex -> logger.Fatal(ex, "ScenarioStatsActor failed.")
+            | ex -> logger.Error(ex, "ScenarioStatsActor failed.")
         }
 
         loop()

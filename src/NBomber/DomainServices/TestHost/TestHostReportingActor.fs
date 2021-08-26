@@ -103,7 +103,7 @@ let create (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo
                     |> Task.WaitAll
                     return! loop currentHistory
             with
-            | ex -> dep.Logger.Fatal(ex, "Reporting actor failed.")
+            | ex -> dep.Logger.Error(ex, "Reporting actor failed.")
         }
         loop List.empty
     )
