@@ -215,7 +215,8 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = getWarmUpDuration(settings)
                         PlanedDuration = timeLine.ScenarioDuration
-                        CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
+                        CustomSettings = settings.CustomSettings |> Option.defaultValue ""
+                        GetStepsOrder = fun () -> settings.CustomStepOrder |> Option.defaultValue(scenario.GetStepsOrder()) }
 
     scenarios
     |> List.map(fun scn ->
