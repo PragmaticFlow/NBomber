@@ -93,8 +93,7 @@ let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (
     let folder = context |> NBomberContext.getReportFolderOrDefault(stats.TestInfo.SessionId)
     let formats = context |> NBomberContext.getReportFormats
 
-    if dep.ApplicationType = ApplicationType.Console then
-        report.ConsoleReport.Value |> List.iter Console.render
+    report.ConsoleReport.Value |> List.iter Console.render
 
     if formats.Length > 0 then
         let reportFiles = saveToFolder(dep.Logger, folder, fileName, formats, report)

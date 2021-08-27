@@ -275,8 +275,9 @@ type NBomberRunner =
     /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
     /// By default NBomber will automatically identify your environment: Process or Console.
     [<Extension>]
+    [<Obsolete("This method will be removed in the next release.")>]
     static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
-        context |> FSharp.NBomberRunner.withApplicationType(applicationType)
+        context
 
     /// Disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.

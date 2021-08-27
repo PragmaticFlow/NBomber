@@ -167,7 +167,6 @@ type NBomberContext = {
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
     Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
-    ApplicationType: ApplicationType option
     UseHintsAnalyzer: bool
 }
 

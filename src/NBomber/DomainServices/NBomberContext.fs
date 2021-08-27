@@ -106,7 +106,6 @@ let empty = {
         SendStatsInterval = Constants.DefaultSendStatsInterval
     }
     WorkerPlugins = List.empty
-    ApplicationType = None
     UseHintsAnalyzer = true
 }
 
