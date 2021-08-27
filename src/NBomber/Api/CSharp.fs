@@ -178,12 +178,20 @@ type ScenarioBuilder =
     static member WithLoadSimulations(scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
+    /// Sets custom steps order that will be used by NBomber Scenario executor.
+    /// By default, all steps are executing sequentially but you can inject your custom order.
+    /// getStepsOrder function will be invoked on every turn before steps list execution.
+    [<Extension>]
+    static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
+        scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
+
+    [<Obsolete("StepsOrder should now be specified via withCustomStepOrder method. This method will be removed in a future release.")>]
     /// Sets dynamic steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     [<Extension>]
     static member WithDynamicStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
-        scenario |> FSharp.Scenario.withDynamicStepOrder(getStepsOrder.Invoke)
+        scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
 [<Extension>]
 type NBomberRunner =

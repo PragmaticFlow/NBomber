@@ -209,7 +209,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
         WarmUpDuration = Some(warmUp1.ToString("hh\:mm\:ss"))
         LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(10, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
-        StepOrder = None
+        CustomStepOrder = None
         CustomSettings = Some "some data"
     }
 
@@ -247,7 +247,7 @@ let ``applyScenariosSettings() should reorder steps based on scenario settings``
         WarmUpDuration = None
         LoadSimulationsSettings = None
         ClientFactorySettings = None
-        StepOrder = stepOrder
+        CustomStepOrder = stepOrder
         CustomSettings = None
     }
 
@@ -277,7 +277,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         LoadSimulationsSettings = Some [LoadSimulationSettings.RampConstant(5, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
         CustomSettings = None
-        StepOrder = None
+        CustomStepOrder = None
     }
 
     let scenario =
@@ -369,7 +369,7 @@ let ``check that scenario should be ok if it has no steps but init function exis
     |> ignore
 
 [<Fact>]
-let ``withDynamicStepOrder should allow to run steps with custom order`` () =
+let ``withCustomStepOrder should allow to run steps with custom order`` () =
 
     let step1 = Step.create("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
@@ -384,7 +384,7 @@ let ``withDynamicStepOrder should allow to run steps with custom order`` () =
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-    |> Scenario.withDynamicStepOrder(fun () -> [| 1 |])
+    |> Scenario.withCustomStepOrder(fun () -> [| 1 |])
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.getOk
@@ -394,7 +394,7 @@ let ``withDynamicStepOrder should allow to run steps with custom order`` () =
         test <@ stepsStats.[1].Ok.Request.Count > 0 @>
 
 [<Fact>]
-let ``with s should allow to run steps with custom order`` () =
+let ``CustomStepOrder should allow to run steps with custom order`` () =
 
     let step1 = Step.create("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
@@ -409,7 +409,7 @@ let ``with s should allow to run steps with custom order`` () =
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-    |> Scenario.withDynamicStepOrder(fun () -> [| 1 |])
+    |> Scenario.withCustomStepOrder(fun () -> [| 1 |])
     |> NBomberRunner.registerScenario
     |> NBomberRunner.loadConfig "Configuration/step_order_config.json" // "StepOrder": [0]
     |> NBomberRunner.run

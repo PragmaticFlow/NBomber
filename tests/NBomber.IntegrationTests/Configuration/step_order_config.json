@@ -3,7 +3,7 @@
     "ScenariosSettings": [
       {
           "ScenarioName": "1",
-          "StepOrder": [0]
+          "CustomStepOrder": [0]
       }
     ]
   }

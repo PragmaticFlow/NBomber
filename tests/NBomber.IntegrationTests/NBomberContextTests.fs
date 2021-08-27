@@ -32,7 +32,7 @@ let baseScenarioSetting = {
     LoadSimulationsSettings = None
     ClientFactorySettings = None
     CustomSettings = None
-    StepOrder = None
+    CustomStepOrder = None
 }
 
 let failStep = Step.create("fail step", fun _ -> Response.fail() |> Task.singleton)
