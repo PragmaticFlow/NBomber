@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>NBomber</Authors>
         <Company>NBomber</Company>
-        <Version>2.0.4</Version>
+        <Version>2.1.0-beta</Version>
         <Copyright>NBomber@2021</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
