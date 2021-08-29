@@ -134,7 +134,7 @@ let ``withoutReports should not print report files`` () =
     test <@ csvReportPrinted = false @>
     test <@ htmlReportPrinted = false @>
     test <@ mdReportPrinted = false @>
-    test <@ consoleReportPrinted = false @>
+    test <@ consoleReportPrinted = true @>
 
 [<Fact>]
 let ``withoutReports should not save report files`` () =

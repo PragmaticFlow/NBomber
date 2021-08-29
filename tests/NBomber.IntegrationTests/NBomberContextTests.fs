@@ -60,7 +60,6 @@ let context = {
         SendStatsInterval = Constants.DefaultSendStatsInterval
     }
     WorkerPlugins = List.empty
-    ApplicationType = Some ApplicationType.Process
     UseHintsAnalyzer = false
 }
 

@@ -303,8 +303,9 @@ module NBomberRunner =
     /// - Console: is suitable for interactive session (will display progress bar)
     /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
     /// By default NBomber will automatically identify your environment: Process or Console.
+    [<Obsolete("This function will be removed in the next release.")>]
     let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
-        { context with ApplicationType = Some applicationType }
+        context
 
     /// Disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
