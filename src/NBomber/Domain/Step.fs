@@ -212,7 +212,7 @@ let execSteps (dep: StepDep,
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
+                            dep.Logger.Fatal($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
                         | false ->
@@ -241,7 +241,7 @@ let execStepsAsync (dep: StepDep,
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Error($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
+                            dep.Logger.Fatal($"Step '{step.Value.StepName}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.ErrorMessage}")
                             skipStep <- true
 
                         | false ->
