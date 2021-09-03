@@ -3,7 +3,6 @@ namespace NBomber.Extensions.PushExtensions
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
-open NBomber.Extensions
 
 type PushResponse = {
     ClientId: string
@@ -18,7 +17,6 @@ type PushResponseBuffer() =
     let _lockObj = obj()
     let _awaiters = Dictionary<ClientId, TaskCompletionSource<PushResponse>>()
     let _awaitersBuffer = Dictionary<ClientId, Queue<PushResponse>>()
-    let _currentTime = CurrentTime()
 
     let initBufferForClient (clientId) =
         _awaiters.[clientId] <- TaskCompletionSource<PushResponse>()
@@ -49,7 +47,7 @@ type PushResponseBuffer() =
             let pushResponse = {
                 ClientId = clientId
                 Payload = payload
-                ReceivedTime = _currentTime.UtcNow
+                ReceivedTime = DateTime.UtcNow
             }
 
             let missedResponses = _awaitersBuffer.[pushResponse.ClientId]

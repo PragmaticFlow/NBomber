@@ -13,7 +13,6 @@ open Newtonsoft.Json
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Extensions
 open NBomber.FSharp
 
 [<CLIMutable>]
@@ -49,13 +48,12 @@ let private createMqttFactory () =
 let create () =
 
     let mqttClientFactory = createMqttFactory()
-    let currentTime = CurrentTime()
 
     let step = Step.create("publish_step",
                            clientFactory = mqttClientFactory,
                            execute = fun context -> task {
 
-        let msg = { Number = context.InvocationCount; PublishTime = currentTime.UtcNow }
+        let msg = { Number = context.InvocationCount; PublishTime = DateTime.UtcNow }
         let payload = msg |> JsonConvert.SerializeObject |> Encoding.ASCII.GetBytes
         let mqttMsg = MqttApplicationMessage(Topic = "test_topic", Payload = payload)
         let! result = context.Client.PublishAsync(mqttMsg, context.CancellationToken)
