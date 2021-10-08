@@ -5,15 +5,16 @@ open System
 open Serilog
 
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
-type ActorMessage =
+type StatsActorMessage =
     | AddResponses     of responses:(int * StepResponse)[] // stepIndex * StepResponse
     | GetRealtimeStats of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats    of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
-let create (logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
+let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())

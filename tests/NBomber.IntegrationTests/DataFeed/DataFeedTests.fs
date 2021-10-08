@@ -11,12 +11,12 @@ open Swensen.Unquote
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
+open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Infra
 open NBomber.DomainServices
 open NBomber.FSharp
-open NBomber.Infra.Dependency
 open Tests.TestHelper
 
 [<CLIMutable>]

@@ -34,7 +34,7 @@ let build (logger: ILogger)
           (sessionResult: NodeSessionResult)
           (targetScenarios: Scenario list) =
 
-    logger.Verbose("Report.build")
+    logger.Verbose "Report.build"
 
     let simulations = targetScenarios |> getLoadSimulations
     let errorsExist = sessionResult.FinalStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)

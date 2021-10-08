@@ -10,6 +10,7 @@ open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
@@ -20,7 +21,7 @@ type ActorDep = {
     CancellationToken: CancellationToken
     GlobalTimer: Stopwatch
     Scenario: Scenario
-    ScenarioStatsActor: MailboxProcessor<ActorMessage>
+    ScenarioStatsActor: MailboxProcessor<StatsActorMessage>
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -100,6 +101,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
             _working <- false
     }
 
+    member _.ScenarioStatsActor = dep.ScenarioStatsActor
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
 

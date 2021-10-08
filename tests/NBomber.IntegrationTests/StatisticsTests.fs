@@ -11,6 +11,7 @@ open Swensen.Unquote
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats

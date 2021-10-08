@@ -222,3 +222,13 @@ type Response with
           ErrorMessage = if isNull error then String.Empty else error.Message
           LatencyMs = latencyMs
           Payload = null }
+
+namespace NBomber.Contracts.Internal
+
+open NBomber.Contracts
+
+type StepResponse = {
+    ClientResponse: Response
+    EndTimeMs: float
+    LatencyMs: float
+}

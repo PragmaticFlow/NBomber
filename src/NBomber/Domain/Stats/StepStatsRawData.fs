@@ -8,6 +8,7 @@ open HdrHistogram
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 

@@ -15,7 +15,7 @@ open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 
-type ActorMessage =
+type ReportingActorMessage =
     | FetchAndSaveRealtimeStats of duration:TimeSpan
     | GetTimeLineHistory        of AsyncReplyChannel<TimeLineHistoryRecord list>
     | GetFinalStats             of NodeInfo * AsyncReplyChannel<NodeStats>
@@ -69,7 +69,7 @@ let getFinalStats (dep: IGlobalDependency)
            else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
 }
 
-let create (dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
+let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo) =
     MailboxProcessor.Start(fun inbox ->
 
         let saveRealtimeStats = saveRealtimeScenarioStats dep

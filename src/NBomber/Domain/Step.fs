@@ -12,6 +12,7 @@ open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
 

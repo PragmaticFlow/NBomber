@@ -5,7 +5,6 @@ open FsToolkit.ErrorHandling
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
 open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -21,8 +20,8 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo
         let! scenarios    = context |> NBomberContext.createScenarios
-        use testHost      = new TestHost(dep, scenarios, sessionArgs, ScenarioStatsActor.create)
-        let! result       = testHost.RunSession()
+        use testHost      = new TestHost(dep, scenarios)
+        let! result       = testHost.RunSession(sessionArgs)
 
         let finalStats =
             Report.build dep.Logger result testHost.TargetScenarios

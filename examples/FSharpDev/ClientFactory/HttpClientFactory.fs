@@ -25,8 +25,10 @@ let run () =
         let! response = context.Client.GetAsync("https://nbomber.com",
                                                 context.CancellationToken)
 
-        return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
-               else Response.fail(statusCode = int response.StatusCode)
+        match response.IsSuccessStatusCode with
+        | true  -> let size = int response.Content.Headers.ContentLength.Value
+                   return Response.ok(statusCode = int response.StatusCode, sizeBytes = size)
+        | false -> return Response.fail(statusCode = int response.StatusCode)
     })
 
     let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]

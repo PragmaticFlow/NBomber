@@ -9,7 +9,7 @@ open FsToolkit.ErrorHandling
 open NBomber.Extensions.InternalExtensions
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts.Stats
-open NBomber.Infra.Dependency
+open NBomber.Infra
 
 module AssetsUtils =
 

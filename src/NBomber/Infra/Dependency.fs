@@ -1,4 +1,4 @@
-module internal NBomber.Infra.Dependency
+namespace NBomber.Infra
 
 open System
 open System.IO
@@ -14,17 +14,7 @@ open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
-type IGlobalDependency =
-    abstract ApplicationType: ApplicationType
-    abstract NodeType: NodeType
-    abstract NBomberConfig: NBomberConfig option
-    abstract InfraConfig: IConfiguration option
-    abstract CreateLoggerConfig: (unit -> LoggerConfiguration) option
-    abstract Logger: ILogger
-    abstract ReportingSinks: IReportingSink list
-    abstract WorkerPlugins: IWorkerPlugin list
-
-module Logger =
+module internal Logger =
 
     let create (folder: string)
                (testInfo: TestInfo)
@@ -73,10 +63,10 @@ module Logger =
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger
         | None      -> loggerConfig.CreateLogger() :> ILogger
 
-module ResourceManager =
+module internal ResourceManager =
 
     let readResource (name) =
-        let assembly = typedefof<IGlobalDependency>.Assembly
+        let assembly = typedefof<TestInfo>.Assembly
         assembly.GetManifestResourceNames()
         |> Array.tryFind(fun x -> x.Contains name)
         |> Option.map(fun resourceName ->
@@ -85,7 +75,7 @@ module ResourceManager =
             reader.ReadToEnd()
         )
 
-module NodeInfo =
+module internal NodeInfo =
 
     let init () =
 
@@ -115,24 +105,36 @@ module NodeInfo =
         with
         | _ -> ApplicationType.Process
 
-let createSessionId () =
-    let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
-    let guid = Guid.NewGuid().GetHashCode().ToString("x")
-    $"{date}_session_{guid}"
+module internal Dependency =
 
-let create (reportFolder: string) (testInfo: TestInfo)
-           (appType: ApplicationType) (nodeType: NodeType)
-           (context: NBomberContext) =
+    type IGlobalDependency =
+        abstract ApplicationType: ApplicationType
+        abstract NodeType: NodeType
+        abstract NBomberConfig: NBomberConfig option
+        abstract InfraConfig: IConfiguration option
+        abstract CreateLoggerConfig: (unit -> LoggerConfiguration) option
+        abstract Logger: ILogger
+        abstract ReportingSinks: IReportingSink list
+        abstract WorkerPlugins: IWorkerPlugin list
 
-    let logger = Logger.create reportFolder testInfo context.CreateLoggerConfig context.InfraConfig
-    Log.Logger <- logger
+    let createSessionId () =
+        let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
+        let guid = Guid.NewGuid().GetHashCode().ToString("x")
+        $"{date}_session_{guid}"
 
-    { new IGlobalDependency with
-        member _.ApplicationType = appType
-        member _.NodeType = nodeType
-        member _.NBomberConfig = context.NBomberConfig
-        member _.InfraConfig = context.InfraConfig
-        member _.CreateLoggerConfig = context.CreateLoggerConfig
-        member _.Logger = logger
-        member _.ReportingSinks = context.Reporting.Sinks
-        member _.WorkerPlugins = context.WorkerPlugins }
+    let create (reportFolder: string) (testInfo: TestInfo)
+               (appType: ApplicationType) (nodeType: NodeType)
+               (context: NBomberContext) =
+
+        let logger = Logger.create reportFolder testInfo context.CreateLoggerConfig context.InfraConfig
+        Log.Logger <- logger
+
+        { new IGlobalDependency with
+            member _.ApplicationType = appType
+            member _.NodeType = nodeType
+            member _.NBomberConfig = context.NBomberConfig
+            member _.InfraConfig = context.InfraConfig
+            member _.CreateLoggerConfig = context.CreateLoggerConfig
+            member _.Logger = logger
+            member _.ReportingSinks = context.Reporting.Sinks
+            member _.WorkerPlugins = context.WorkerPlugins }

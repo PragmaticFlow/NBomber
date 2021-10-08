@@ -70,12 +70,6 @@ type RunningStep = {
     Context: UntypedStepContext
 }
 
-type StepResponse = {
-    ClientResponse: Response
-    EndTimeMs: float
-    LatencyMs: float
-}
-
 type LoadTimeSegment = {
     StartTime: TimeSpan
     EndTime: TimeSpan

@@ -78,9 +78,7 @@ let correctExecutedDuration (executionTime: TimeSpan) (scnDuration: TimeSpan) =
 
 type ScenarioScheduler(dep: ActorDep) =
 
-    [<Literal>]
-    let SchedulerTickIntervalMs = 1_000.0
-
+    let _logger = dep.Logger.ForContext<ScenarioScheduler>()
     let mutable _disposed = false
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
@@ -89,8 +87,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
     let _constantScheduler = new ConstantActorScheduler(dep)
     let _oneTimeScheduler = new OneTimeActorScheduler(dep)
-    let _schedulerTimer = new System.Timers.Timer(SchedulerTickIntervalMs)
-    let _progressInfoTimer = new System.Timers.Timer(Constants.SchedulerNotificationTickInterval.TotalMilliseconds)
+    let _schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
@@ -115,7 +112,6 @@ type ScenarioScheduler(dep: ActorDep) =
     let start () =
         dep.GlobalTimer.Stop()
         _schedulerTimer.Start()
-        _progressInfoTimer.Start()
         _tcs.Task :> Task
 
     let stop () =
@@ -126,7 +122,6 @@ type ScenarioScheduler(dep: ActorDep) =
 
             dep.GlobalTimer.Stop()
             _schedulerTimer.Stop()
-            _progressInfoTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
 
@@ -173,9 +168,7 @@ type ScenarioScheduler(dep: ActorDep) =
                     )
 
                 | None -> stop()
-        )
 
-        _progressInfoTimer.Elapsed.Add(fun _ ->
             let progressInfo = {
                 ConstantActorCount = _constantScheduler.ScheduledActorCount
                 OneTimeActorCount = _oneTimeScheduler.ScheduledActorCount
@@ -207,4 +200,5 @@ type ScenarioScheduler(dep: ActorDep) =
         member _.Dispose() =
             stop()
             (dep.ScenarioStatsActor :> IDisposable).Dispose()
+            _logger.Verbose $"{nameof ScenarioScheduler} disposed."
 

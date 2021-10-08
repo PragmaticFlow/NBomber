@@ -166,7 +166,7 @@ let getUseHintAnalyzer (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue(context.UseHintsAnalyzer)
 
-let getReportFolder (context: NBomberContext) =
+let private getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -202,6 +202,16 @@ let getSendStatsInterval (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.map(Validation.checkSendStatsSettings)
     |> Option.defaultValue(context.Reporting.SendStatsInterval |> Validation.checkSendStatsInterval)
+
+let getUseHintsAnalyzer (context: NBomberContext) =
+    let tryGetFromConfig (ctx) = option {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.UseHintsAnalyzer
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue(context.UseHintsAnalyzer)
 
 let getClientFactorySettings (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
