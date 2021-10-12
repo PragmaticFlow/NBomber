@@ -225,7 +225,13 @@ type Response with
 
 namespace NBomber.Contracts.Internal
 
+open CommandLine
 open NBomber.Contracts
+
+type CommandLineArgs = {
+    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
+    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
+}
 
 type StepResponse = {
     ClientResponse: Response

@@ -14,17 +14,13 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
 open NBomber.DomainServices
-
-type CommandLineArgs = {
-    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
-    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
-}
 
 /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 [<RequireQualifiedAccess>]
@@ -314,8 +310,8 @@ module NBomberRunner =
 
     let internal executeCliArgs (args) (context: NBomberContext) =
         let invokeConfigLoader (configName) (configLoader) (config) (context) =
-            if config = String.Empty then sprintf "%s is empty" configName |> failwith
-            elif String.IsNullOrEmpty(config) then context
+            if config = String.Empty then $"{configName} is empty" |> failwith
+            elif String.IsNullOrEmpty config then context
             else configLoader config context
 
         match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
