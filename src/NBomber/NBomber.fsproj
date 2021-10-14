@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>NBomber</Authors>
         <Company>NBomber</Company>
-        <Version>2.1.0</Version>
+        <Version>2.1.1</Version>
         <Copyright>NBomber@2021</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
@@ -14,12 +14,8 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>v2.1.0
-- added StatusCode hint analyzer by @yuri-hunter
-- added Push Extensions
-- fixed bug with printing errors to console
-- added CustomStepOrder property in JSON configuration by @yuri-hunter
-- fixed issue with printing TABLE when AppType.Process</PackageReleaseNotes>
+        <PackageReleaseNotes>v2.1.1
+- small refactoring regarding contracts</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
