@@ -35,13 +35,16 @@ type PingPluginConfig = {
     /// The default is 1000 ms.
     Timeout: int
 } with
-    static member CreateDefault([<ParamArray>]hosts: string seq) = {
-        Hosts = hosts |> Seq.toArray
+    static member CreateDefault([<ParamArray>]hosts: string[]) = {
+        Hosts = hosts
         BufferSizeBytes = 32
         Ttl = 128
         DontFragment = false
         Timeout = 1_000
     }
+
+    static member CreateDefault(hosts: string seq) =
+        hosts |> Seq.toArray |> PingPluginConfig.CreateDefault
 
 module internal PingPluginStatistics =
 
@@ -133,7 +136,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
         return pingResult, stats
     }
 
-    new() = new PingPlugin(PingPluginConfig.CreateDefault Seq.empty)
+    new() = new PingPlugin(PingPluginConfig.CreateDefault())
 
     interface IWorkerPlugin with
         member _.PluginName = _pluginName
