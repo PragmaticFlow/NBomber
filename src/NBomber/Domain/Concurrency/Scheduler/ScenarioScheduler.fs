@@ -81,7 +81,6 @@ let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCou
 type ScenarioScheduler(dep: ActorDep) =
 
     let _logger = dep.Logger.ForContext<ScenarioScheduler>()
-    let mutable _disposed = false
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
     let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
@@ -118,23 +117,20 @@ type ScenarioScheduler(dep: ActorDep) =
         dep.ScenarioStatsActor.PostAndReply(fun reply -> GetFinalStats(reply, simulationStats, scnDuration))
 
     let start () =
-        dep.GlobalTimer.Stop()
+        dep.ScenarioGlobalTimer.Stop()
         _schedulerTimer.Start()
         _tcs.Task :> Task
 
     let stop () =
-        if not _disposed then
-            _disposed <- true
-            _scenario <- Scenario.setExecutedDuration(_scenario, dep.GlobalTimer.Elapsed)
+        if _schedulerTimer.Enabled then
+            _scenario <- Scenario.setExecutedDuration(_scenario, dep.ScenarioGlobalTimer.Elapsed)
             _currentOperation <- OperationType.Complete
 
-            dep.GlobalTimer.Stop()
+            dep.ScenarioGlobalTimer.Stop()
             _schedulerTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
-
             _eventStream.OnCompleted()
-            _eventStream.Dispose()
 
             _tcs.TrySetResult() |> ignore
 
@@ -144,11 +140,11 @@ type ScenarioScheduler(dep: ActorDep) =
     do
         _schedulerTimer.Elapsed.Add(fun _ ->
 
-            if not dep.GlobalTimer.IsRunning then
+            if not dep.ScenarioGlobalTimer.IsRunning then
                 _eventStream.OnNext(ScenarioStarted)
-                dep.GlobalTimer.Restart()
+                dep.ScenarioGlobalTimer.Restart()
 
-            let currentTime = dep.GlobalTimer.Elapsed
+            let currentTime = dep.ScenarioGlobalTimer.Elapsed
 
             if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
                 stop()
@@ -208,5 +204,6 @@ type ScenarioScheduler(dep: ActorDep) =
         member _.Dispose() =
             stop()
             (dep.ScenarioStatsActor :> IDisposable).Dispose()
+            _eventStream.Dispose()
             _logger.Verbose $"{nameof ScenarioScheduler} disposed."
 

@@ -19,7 +19,7 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 type ActorDep = {
     Logger: ILogger
     CancellationToken: CancellationToken
-    GlobalTimer: Stopwatch
+    ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
     ScenarioStatsActor: MailboxProcessor<StatsActorMessage>
     ExecStopCommand: StopCommand -> unit
@@ -33,7 +33,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
     let _stepDep = { ScenarioInfo = scenarioInfo
                      Logger = dep.Logger
                      CancellationToken = dep.CancellationToken
-                     GlobalTimer = dep.GlobalTimer
+                     ScenarioGlobalTimer = dep.ScenarioGlobalTimer
                      ExecStopCommand = dep.ExecStopCommand }
 
     let _steps = dep.Scenario.Steps
@@ -49,13 +49,13 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
         let responses = buffer.ToArray()
         dep.ScenarioStatsActor.Post(AddResponses responses)
         buffer.Clear()
-        _latestBufferFlushSec <- int dep.GlobalTimer.Elapsed.TotalSeconds
+        _latestBufferFlushSec <- int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds
 
     let checkFlushBuffer (buffer: ResizeArray<int * StepResponse>) =
         if buffer.Count >= Constants.ResponseBufferLength then
             flushStats(buffer)
         else
-            let delay = int dep.GlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
+            let delay = int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
             if delay >= Constants.ResponseBufferFlushDelaySec then
                 flushStats(buffer)
 

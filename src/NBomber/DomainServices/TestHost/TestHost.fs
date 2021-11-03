@@ -57,7 +57,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             let actorDep = {
                 Logger = _logger
                 CancellationToken = cancelToken
-                GlobalTimer = Stopwatch()
+                ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
                 ScenarioStatsActor = createStatsActor _logger scn _sessionArgs.SendStatsInterval
                 ExecStopCommand = execStopCommand

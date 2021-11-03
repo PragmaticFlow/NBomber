@@ -20,7 +20,7 @@ type StepDep = {
     ScenarioInfo: ScenarioInfo
     Logger: ILogger
     CancellationToken: CancellationToken
-    GlobalTimer: Stopwatch
+    ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -204,7 +204,7 @@ let execSteps (dep: StepDep,
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
                 let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
-                let response = execStep step dep.GlobalTimer
+                let response = execStep step dep.ScenarioGlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
@@ -233,7 +233,7 @@ let execStepsAsync (dep: StepDep,
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
                 let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
-                let! response = execStepAsync step dep.GlobalTimer
+                let! response = execStepAsync step dep.ScenarioGlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
