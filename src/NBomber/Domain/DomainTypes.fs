@@ -91,4 +91,5 @@ type Scenario = {
     ExecutedDuration: TimeSpan option
     CustomSettings: string
     GetStepsOrder: unit -> int[]
+    IsEnabled: bool
 }

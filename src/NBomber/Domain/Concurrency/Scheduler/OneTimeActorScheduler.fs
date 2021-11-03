@@ -10,6 +10,8 @@ type SchedulerCommand =
     | StartActors of actors:ScenarioActor list
     | RentActors of actorCount:int
 
+type SchedulerExec = ActorDep -> ScenarioActor list -> int -> ScenarioActor list
+
 // todo: add tests
 let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     let freeActors =
@@ -22,31 +24,29 @@ let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     else
         StartActors freeActors
 
-type OneTimeActorScheduler(dep: ActorDep) =
+let exec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+
+    let execSteps (actors: ScenarioActor list) =
+        actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
+
+    match schedule actorPool scheduledActorCount with
+    | StartActors actors ->
+        execSteps actors
+        actorPool
+
+    | RentActors actorCount ->
+        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors dep) actorPool actorCount
+        execSteps result.ActorsFromPool
+        execSteps result.NewActors
+        ScenarioActorPool.updatePool actorPool result.NewActors
+
+type OneTimeActorScheduler(dep: ActorDep, exec: SchedulerExec) =
 
     let _lockObj = obj()
     let mutable _actorPool = List.empty<ScenarioActor>
     let mutable _scheduledActorCount = 0
-    let createActors = ScenarioActorPool.createActors dep
 
-    let stop () =
-        ScenarioActorPool.stopActors _actorPool
-
-    // todo: add tests
-    let execScheduler (scheduledActorCount: int) =
-
-        let exec (actors: ScenarioActor list) =
-            actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
-
-        match schedule _actorPool scheduledActorCount with
-        | StartActors actors ->
-            exec actors
-
-        | RentActors actorCount ->
-            let result = ScenarioActorPool.rentActors createActors _actorPool actorCount
-            exec result.ActorsFromPool
-            exec result.NewActors
-            _actorPool <- ScenarioActorPool.updatePool _actorPool result.NewActors
+    let stop () = ScenarioActorPool.stopActors _actorPool
 
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool
@@ -54,7 +54,7 @@ type OneTimeActorScheduler(dep: ActorDep) =
     member _.InjectActors(count) =
         lock _lockObj (fun _ ->
             _scheduledActorCount <- count
-            execScheduler _scheduledActorCount
+            _actorPool <- exec dep _actorPool _scheduledActorCount
         )
 
     member _.Stop() = stop()

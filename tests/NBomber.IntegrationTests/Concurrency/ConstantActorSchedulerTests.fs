@@ -41,7 +41,7 @@ let internal baseDep = {
 
 [<Fact>]
 let ``AddActors should start actors if there is no actors`` () =
-    use scheduler = new ConstantActorScheduler(baseDep)
+    use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.AddActors(20)
@@ -53,7 +53,7 @@ let ``AddActors should start actors if there is no actors`` () =
 
 [<Fact>]
 let ``AddActors should start actors to run forever until the finish of scenario duration`` () =
-    use scheduler = new ConstantActorScheduler(baseDep)
+    use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     scheduler.AddActors(10)
     Task.Delay(seconds 5).Wait()
@@ -65,7 +65,7 @@ let ``AddActors should start actors to run forever until the finish of scenario 
 
 [<Fact>]
 let ``RemoveActors should stop some actors and keep them in actor pool`` () =
-    use scheduler = new ConstantActorScheduler(baseDep)
+    use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     scheduler.AddActors(10)
     scheduler.RemoveActors(5)
@@ -77,7 +77,7 @@ let ``RemoveActors should stop some actors and keep them in actor pool`` () =
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new ConstantActorScheduler(baseDep)
+    use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     scheduler.AddActors(10)
     scheduler.Stop()

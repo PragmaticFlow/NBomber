@@ -178,7 +178,8 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
                  PlanedDuration = timeline.ScenarioDuration
                  ExecutedDuration = None
                  CustomSettings = ""
-                 GetStepsOrder = scenario.GetStepsOrder }
+                 GetStepsOrder = scenario.GetStepsOrder
+                 IsEnabled = true }
     }
 
     let! vScns = scenarios |> Validation.checkDuplicateScenarioName

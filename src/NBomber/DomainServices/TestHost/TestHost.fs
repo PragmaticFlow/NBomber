@@ -50,7 +50,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         | StopTest reason -> this.StopScenarios(reason) |> ignore
 
-    let createScenarioSchedulers (targetScenarios: Scenario list) (createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
+    let createScenarioSchedulers (targetScenarios: Scenario list)
+                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
 
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
@@ -67,8 +68,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         _cancelToken.Dispose()
         _cancelToken <- new CancellationTokenSource()
 
-        targetScenarios
-        |> List.map(createScheduler _cancelToken.Token)
+        targetScenarios |> List.map(createScheduler _cancelToken.Token)
 
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         if not _cancelToken.IsCancellationRequested then
@@ -209,6 +209,9 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     member _.CreateScenarioSchedulers(createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
         createScenarioSchedulers _targetScenarios createStatsActor
+
+    member _.CreateScenarioSchedulers(targetScenarios: Scenario list, createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
+        createScenarioSchedulers targetScenarios createStatsActor
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         do! this.StartInit(sessionArgs)

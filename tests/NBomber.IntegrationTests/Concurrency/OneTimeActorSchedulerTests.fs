@@ -41,7 +41,7 @@ let internal baseDep = {
 
 [<Fact>]
 let ``InjectActors should start actors if there is no actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep)
+    use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.InjectActors(20)
@@ -53,7 +53,7 @@ let ``InjectActors should start actors if there is no actors`` () =
 
 [<Fact>]
 let ``InjectActors should execute actors once until next turn`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep)
+    use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
     scheduler.InjectActors(20)
     Task.Delay(seconds 5).Wait()
@@ -64,7 +64,7 @@ let ``InjectActors should execute actors once until next turn`` () =
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep)
+    use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
     scheduler.InjectActors(20)
     scheduler.Stop()

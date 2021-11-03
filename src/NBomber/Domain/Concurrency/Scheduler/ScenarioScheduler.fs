@@ -76,6 +76,8 @@ let correctExecutedDuration (executionTime: TimeSpan) (scnDuration: TimeSpan) =
     if executionTime > scnDuration then scnDuration
     else executionTime
 
+let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
+
 type ScenarioScheduler(dep: ActorDep) =
 
     let _logger = dep.Logger.ForContext<ScenarioScheduler>()
@@ -85,8 +87,14 @@ type ScenarioScheduler(dep: ActorDep) =
     let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
     let mutable _currentOperation = OperationType.None
 
-    let _constantScheduler = new ConstantActorScheduler(dep)
-    let _oneTimeScheduler = new OneTimeActorScheduler(dep)
+    let _constantScheduler =
+        if dep.Scenario.IsEnabled then new ConstantActorScheduler(dep, ConstantActorScheduler.exec)
+        else new ConstantActorScheduler(dep, emptyExec)
+
+    let _oneTimeScheduler =
+        if dep.Scenario.IsEnabled then new OneTimeActorScheduler(dep, OneTimeActorScheduler.exec)
+        else new OneTimeActorScheduler(dep, emptyExec)
+
     let _schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
