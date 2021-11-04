@@ -161,18 +161,20 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             return AppError.createResult(appError)
     }
 
-    member _.StartWarmUp() = task {
+    member _.StartWarmUp(targetScenarios: Scenario list) = task {
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
         do! Task.Yield()
 
         _logger.Information "Starting warm up..."
-        let schedulers = this.CreateScenarioSchedulers(ScenarioStatsActor.create)
-        do! startWarmUp(schedulers)
-        stopSchedulers(schedulers)
+        let schedulers = this.CreateScenarioSchedulers(targetScenarios, ScenarioStatsActor.create)
+        do! startWarmUp schedulers
+        stopSchedulers schedulers
 
         _currentOperation <- OperationType.None
     }
+
+    member _.StartWarmUp() = this.StartWarmUp(_targetScenarios)
 
     member _.StartBombing(schedulers: ScenarioScheduler list,
                           reportingTimer: Timers.Timer,
@@ -198,7 +200,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             else
                 _logger.Information "Stopping scenarios..."
 
-            stopSchedulers(_currentSchedulers)
+            stopSchedulers _currentSchedulers
             do! cleanScenarios()
 
             _stopped <- true
@@ -237,7 +239,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             reportingActor.PostAndReply(fun reply -> GetTimeLineHistory reply)
             |> List.toArray
 
-        let hints = getHints(finalStats)
+        let hints = getHints finalStats
 
         return { FinalStats = finalStats; TimeLineHistory = timeLineHistory; Hints = hints }
     }

@@ -20,7 +20,7 @@ open NBomber.Infra.ProgressBar
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
     |> List.map(fun x -> x.ScenarioName)
-    |> fun targets -> dep.Logger.Information("Target scenarios: {0}.", String.concatWithCommaAndQuotes targets)
+    |> fun targets -> dep.Logger.Information $"Target scenarios: {String.concatWithCommaAndQuotes targets}."
 
 let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
@@ -167,10 +167,10 @@ let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
             )
             |> Observable.subscribe(function
                 | StartedInit poolName ->
-                    dep.Logger.Information($"Start init client pool: '{poolName}'.")
+                    dep.Logger.Information $"Start init client pool: '{poolName}'."
 
                 | StartedDispose poolName ->
-                    dep.Logger.Information($"Start disposing client pool: '{poolName}'.")
+                    dep.Logger.Information $"Start disposing client pool: '{poolName}'."
 
                 | ClientInitialized (poolName,number) ->
                     pbTask
@@ -198,16 +198,16 @@ let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
     | _ -> Task.FromResult()
 
 let printContextInfo (dep: IGlobalDependency) =
-    dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", sprintf "%A" dep.NBomberConfig)
+    dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
 
     if dep.WorkerPlugins.IsEmpty then
-        dep.Logger.Information("Plugins: no plugins were loaded.")
+        dep.Logger.Information "Plugins: no plugins were loaded."
     else
         dep.WorkerPlugins
         |> List.iter(fun plugin -> dep.Logger.Information("Plugins: '{PluginName}' loaded.", plugin.PluginName))
 
     if dep.ReportingSinks.IsEmpty then
-        dep.Logger.Information("Reporting sinks: no reporting sinks were loaded.")
+        dep.Logger.Information "Reporting sinks: no reporting sinks were loaded."
     else
         dep.ReportingSinks
         |> List.iter(fun sink -> dep.Logger.Information("Reporting sinks: '{SinkName}' loaded.", sink.SinkName))
