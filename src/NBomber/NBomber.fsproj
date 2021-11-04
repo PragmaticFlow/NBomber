@@ -14,8 +14,11 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>v2.1.1
-- small refactoring regarding contracts</PackageReleaseNotes>
+        <PackageReleaseNotes>v2.1.2
+- updated PingPlugin API to have CreateDefault(ParamArray hosts: string[])
+- extended ScenarioScheduler to provide fake execution
+- fixed issue with disposed ScenarioScheduler.EventStream
+- refactored TestInit, TestClean, and Warmup functionality related to scenario.IsEnabled</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
