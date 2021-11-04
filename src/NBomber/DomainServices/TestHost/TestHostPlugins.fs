@@ -13,6 +13,7 @@ open NBomber.Errors
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 
+//todo: add Polly for timout and retry logic, using cancel token
 let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     try
         for plugin in dep.WorkerPlugins do
@@ -30,6 +31,7 @@ let start (logger: ILogger) (plugins: IWorkerPlugin list) = task {
         | ex -> logger.Warning(ex, "Failed to start plugin '{PluginName}'.", plugin.PluginName)
 }
 
+//todo: add Polly for timout and retry logic, using cancel token
 let stop (logger: ILogger) (plugins: IWorkerPlugin list) = task {
     for plugin in plugins do
         try

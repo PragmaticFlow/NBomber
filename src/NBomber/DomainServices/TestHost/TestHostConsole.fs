@@ -22,7 +22,7 @@ let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     |> List.map(fun x -> x.ScenarioName)
     |> fun targets -> dep.Logger.Information $"Target scenarios: {String.concatWithCommaAndQuotes targets}."
 
-let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
+let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
     let calcTickCount (scn: Scenario) =
         if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
@@ -146,7 +146,7 @@ let displayBombingProgress (dep: IGlobalDependency, scnSchedulers: ScenarioSched
                 |> ignore
            )
 
-    match dep.ApplicationType with
+    match applicationType with
     | ApplicationType.Console ->
         if scnSchedulers.Length > 1 then
             displayProgressForConcurrentScenarios(scnSchedulers) |> ignore

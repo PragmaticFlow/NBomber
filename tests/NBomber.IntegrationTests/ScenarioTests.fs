@@ -25,6 +25,8 @@ type TestCustomSettings = {
     PauseMs: int
 }
 
+//todo: add test on TestInit and TestClean should be executed only for scenario.Enabled
+
 [<Fact>]
 let ``TestClean should be invoked only once and not fail runner`` () =
 

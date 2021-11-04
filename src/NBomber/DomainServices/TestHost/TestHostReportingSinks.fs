@@ -10,6 +10,7 @@ open NBomber.Errors
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra.Dependency
 
+//todo: add Polly for timout and retry logic, using cancel token
 let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     try
         for sink in dep.ReportingSinks do
@@ -27,6 +28,7 @@ let start (logger: ILogger) (sinks: IReportingSink list) = task {
         | ex -> logger.Warning(ex, "Failed to start reporting sink '{SinkName}'.", sink.SinkName)
 }
 
+//todo: add Polly for timout and retry logic, using cancel token
 let stop (logger: ILogger) (sinks: IReportingSink list) = task {
     for sink in sinks do
         try
