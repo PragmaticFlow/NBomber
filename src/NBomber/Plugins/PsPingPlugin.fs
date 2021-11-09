@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open System.Net.Sockets
 open System.Diagnostics
 
+open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
@@ -15,10 +16,13 @@ open NBomber.Extensions.InternalExtensions
 [<CLIMutable>]
 type PsPingPluginConfig = {
     Hosts: Uri[]
+    /// The default is 1000 ms.
+    Timeout: int
 } with
     static member CreateDefault([<ParamArray>]hosts: string[]) =
         {
             Hosts = hosts |> Array.map Uri
+            Timeout = 1_000
         }
 
     static member CreateDefault(hosts: string seq) =
@@ -87,35 +91,40 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
     let mutable _pingResults = Array.empty
     let mutable _pluginStats = new DataSet()
 
-    let execPing (config: PsPingPluginConfig) =
+    let execPing (config: PsPingPluginConfig) = task {
         try
             // from https://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
             use sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             sock.Blocking <- true
 
-            let replies =
+            let! replies =
                 config.Hosts
-                |> Array.map(fun uri ->
+                |> Array.map(fun uri -> task {
                     let stopwatch = Stopwatch()
 
                     // Measure the Connect call only
                     stopwatch.Start()
-                    sock.Connect(uri.Host, uri.Port)
+                    let connectTask = sock.ConnectAsync(uri.Host, uri.Port)
+                    let timeoutTask = Task.Delay(config.Timeout)
+                    do! Task.WhenAny(connectTask, timeoutTask) |> Task.map ignore
                     stopwatch.Stop()
 
                     let psPingReply = {
-                        Status = if sock.Connected then "Connected" else "Unknown"
+                        Status = if sock.Connected then "Connected" else "NotConnected/TimedOut"
                         Address = uri
                         RoundtripTime = stopwatch.Elapsed.TotalMilliseconds |> int64
                     }
 
-                    uri.Host, uri.Port, psPingReply)
+                    return uri.Host, uri.Port, psPingReply
+                })
+                |> Task.WhenAll
 
             sock.Close()
 
-            Ok replies
+            return Ok replies
         with
-        | ex -> Error ex
+        | ex -> return Error ex
+    }
 
     let createStats (config: PsPingPluginConfig) (pingReplyResult: Result<(string * int * PsPingReply)[], exn>) = result {
         let! pingResult = pingReplyResult
@@ -145,15 +154,14 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
 
             config
             |> execPing
-            |> createStats config
-            |> Result.map(fun (pingResults,stats) ->
+            |> Task.map (createStats config)
+            |> Task.map (Result.map(fun (pingResults,stats) ->
                 _pingResults <- pingResults
                 _pluginStats <- stats
-            )
-            |> Result.mapError(fun ex -> _logger.Error(ex.ToString()))
-            |> ignore
-
-            Task.CompletedTask
+            ))
+            |> Task.map (Result.mapError(fun ex -> _logger.Error(ex.ToString())))
+            |> Task.map ignore
+            :> Task
 
         member _.Start() = Task.CompletedTask
         member _.GetStats(currentOperation) = Task.singleton _pluginStats
