@@ -62,19 +62,19 @@ module Feed =
     let createConstantLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.constant(name, getData)
 
-    /// Creates Feed that randomly picks an item per Step invocation.
+    /// Creates Feed that goes back to the top of the sequence once the end is reached.
     let createCircular (name) (data: 'T seq) =
         NBomber.Domain.Feed.circular(name, fun _ -> data)
 
-    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
+    /// Creates Feed (in lazy mode) that goes back to the top of the sequence once the end is reached.
     let createCircularLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.circular(name, getData)
 
-    /// Creates Feed that returns values from value on every Step invocation.
+    /// Creates Feed that randomly picks an item per Step invocation.
     let createRandom (name) (data: 'T seq) =
         NBomber.Domain.Feed.random(name, fun _ -> data)
 
-    /// Creates Feed (in lazy mode) that returns values from value on every Step invocation.
+    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
     let createRandomLazy (name) (getData: IBaseContext -> 'T seq) =
         NBomber.Domain.Feed.random(name, getData)
 

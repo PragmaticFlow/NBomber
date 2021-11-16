@@ -22,12 +22,13 @@ namespace CSharpDev.DataFeed
             //var data = FeedData.FromCsv<User>("./DataFeed/users-feed-data.csv");
 
             var feed = Feed.CreateCircular("numbers", data);
-
-            // lazy
             //var feed = Feed.CreateCircularLazy("numbers", getData: context => data);
 
             //var feed = Feed.CreateConstant("numbers", data);
+            //var feed = Feed.CreateConstantLazy("numbers", data);
+
             //var feed = Feed.CreateRandom("numbers", data);
+            //var feed = Feed.CreateRandomLazy("numbers", data);
 
             var step = Step.Create("step", feed, async context =>
             {

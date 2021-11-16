@@ -23,7 +23,9 @@ let run () =
     let feed = data |> Feed.createCircular "numbers"
     //let feed = Feed.createCircularLazy "numbers" (fun context -> seq { yield! data })
     //let feed = data |> Feed.createConstant "numbers"
+    //let feed = Feed.createConstantLazy "numbers" (fun context -> seq { yield! data })
     //let feed = data |> Feed.createRandom "numbers"
+    //let feed = Feed.createRandomLazy "numbers" (fun context -> seq { yield! data })
 
     let step = Step.create("step", feed = feed, execute = fun context -> task {
 

@@ -51,19 +51,19 @@ type Feed =
     static member CreateConstantLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createConstantLazy name getData.Invoke
 
-    /// Creates Feed that randomly picks an item per Step invocation.
+    /// Creates Feed that goes back to the top of the sequence once the end is reached.
     static member CreateCircular (name, data: 'T seq) =
         FSharp.Feed.createCircular name data
 
-    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
+    /// Creates Feed (in lazy mode) that goes back to the top of the sequence once the end is reached.
     static member CreateCircularLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createCircularLazy name getData.Invoke
 
-    /// Creates Feed that returns values from  value on every Step invocation.
+    /// Creates Feed that randomly picks an item per Step invocation.
     static member CreateRandom (name, data: 'T seq) =
         FSharp.Feed.createRandom name data
 
-    /// Creates Feed (in lazy mode) that returns values from  value on every Step invocation.
+    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
     static member CreateRandomLazy (name, getData: Func<IBaseContext,'T seq>) =
         FSharp.Feed.createRandomLazy name getData.Invoke
 
