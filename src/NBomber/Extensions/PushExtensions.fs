@@ -2,6 +2,7 @@ namespace NBomber.Extensions.PushExtensions
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.Threading.Tasks
 
 type PushResponse = {
@@ -12,11 +13,21 @@ type PushResponse = {
 
 type ClientId = string
 
+type internal CurrentTime() =
+
+    let _timer = Stopwatch()
+    let _initTime = DateTime.UtcNow
+
+    do _timer.Start()
+
+    member _.UtcNow = _initTime + _timer.Elapsed
+
 type PushResponseBuffer() =
 
     let _lockObj = obj()
     let _awaiters = Dictionary<ClientId, TaskCompletionSource<PushResponse>>()
     let _awaitersBuffer = Dictionary<ClientId, Queue<PushResponse>>()
+    let _currentTime = CurrentTime()
 
     let initBufferForClient (clientId) =
         _awaiters.[clientId] <- TaskCompletionSource<PushResponse>()
@@ -31,11 +42,11 @@ type PushResponseBuffer() =
 
     member _.ReceiveResponse(clientId: string) =
         lock _lockObj (fun () ->
-            let awaiterTsc = TaskCompletionSource<PushResponse>(TaskCreationOptions.RunContinuationsAsynchronously)
+            let awaiterTsc = TaskCompletionSource<PushResponse>()
             let missedResponses = _awaitersBuffer.[clientId]
             if missedResponses.Count > 0 then
                 let response = missedResponses.Dequeue()
-                awaiterTsc.SetResult(response)
+                awaiterTsc.TrySetResult(response) |> ignore
             else
                 _awaiters.[clientId] <- awaiterTsc
 
@@ -47,7 +58,7 @@ type PushResponseBuffer() =
             let pushResponse = {
                 ClientId = clientId
                 Payload = payload
-                ReceivedTime = DateTime.UtcNow
+                ReceivedTime = _currentTime.UtcNow
             }
 
             let missedResponses = _awaitersBuffer.[pushResponse.ClientId]
@@ -57,7 +68,7 @@ type PushResponseBuffer() =
                 let awaiterTsc = _awaiters.[pushResponse.ClientId]
                 _awaiters.Remove(pushResponse.ClientId) |> ignore
                 let latestResponse = missedResponses.Dequeue()
-                awaiterTsc.SetResult(latestResponse)
+                awaiterTsc.TrySetResult(latestResponse) |> ignore
         )
 
     member _.Destroy() = destroyBuffer()
