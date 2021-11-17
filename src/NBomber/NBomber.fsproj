@@ -66,10 +66,10 @@
         <Compile Include="Api\FSharp.fs" />
         <Compile Include="Api\CSharp.fs" />
         <Compile Include="Plugins\PingPlugin.fs" />
+        <Compile Include="Plugins\PsPingPlugin.fs" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="Plugins\PsPingPlugin.fs" />
         <None Include="../../LICENSE" Pack="true" Visible="false" PackagePath="" />
         <None Include="../../assets/nbomber_icon.png" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
