@@ -69,10 +69,10 @@ module internal PingPluginStatistics =
         row.["Host"] <- host
         row.["Status"] <- pingReply.Status.ToString()
         row.["Address"] <- pingReply.Address.ToString()
-        row.["RoundTripTime"] <- sprintf "%i ms" pingReply.RoundtripTime
+        row.["RoundTripTime"] <- $"%i{pingReply.RoundtripTime} ms"
         row.["Ttl"] <- config.Ttl.ToString()
         row.["DontFragment"] <- config.DontFragment.ToString()
-        row.["BufferSize"] <- sprintf "%i bytes" config.BufferSizeBytes
+        row.["BufferSize"] <- $"%i{config.BufferSizeBytes} bytes"
 
         row
 
@@ -93,7 +93,7 @@ module internal PingPluginHintsAnalyzer =
     let analyze (pingResults: (string * PingReply)[]) =
 
         let printHint (hostName, result: PingReply) =
-            $"Physical latency to host: '%s{hostName}' is '%d{result.RoundtripTime}'.  This is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency."
+            $"Physical latency to host: '%s{hostName}' is '%d{result.RoundtripTime}'. This is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency."
 
         pingResults
         |> Seq.filter(fun (_,result) -> result.RoundtripTime > 2L)
@@ -114,8 +114,10 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
             pingOptions.DontFragment <- config.DontFragment
 
             let ping = new Ping()
-            let buffer = Array.create config.BufferSizeBytes '-'
-                         |> Encoding.ASCII.GetBytes
+
+            let buffer =
+                Array.create config.BufferSizeBytes '-'
+                |> Encoding.ASCII.GetBytes
 
             let replies =
                 config.Hosts
