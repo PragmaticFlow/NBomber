@@ -146,11 +146,11 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
             _logger <- context.Logger.ForContext<PsPingPlugin>()
 
             let config =
-                infraConfig.GetSection("PingPlugin").Get<PsPingPluginConfig>()
+                infraConfig.GetSection("PsPingPlugin").Get<PsPingPluginConfig>()
                 |> Option.ofRecord
                 |> Option.defaultValue pluginConfig
 
-            _logger.Verbose("PingPlugin config: @{PingPluginConfig}", config)
+            _logger.Verbose("PsPingPlugin config: @{PingPluginConfig}", config)
 
             config
             |> execPing
