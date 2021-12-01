@@ -20,13 +20,16 @@ type PsPingPluginConfig = {
     Hosts: Uri[]
     /// The default is 1000 ms.
     Timeout: int
-    /// Number of ping executions. The default is 4.
+    /// Number of warm up ping executions. The default is 1.
+    WarmUpExecutions: int
+    /// Number of aggregated ping executions. The default is 4.
     Executions: int
 } with
     static member CreateDefault([<ParamArray>]hosts: string[]) =
         {
             Hosts = hosts |> Array.map Uri
             Timeout = 1_000
+            WarmUpExecutions = 1
             Executions = 4
         }
 
@@ -106,12 +109,12 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
 
     let execPing (config: PsPingPluginConfig) = task {
         try
-            let! replies =
+            let replies =
                 config.Hosts
-                |> Array.map(fun uri -> task {
-                    let! results =
-                        [1..config.Executions]
-                        |> Seq.map(fun _ -> task {
+                |> Array.map(fun uri ->
+                    let results =
+                        [1..config.WarmUpExecutions + config.Executions]
+                        |> List.map(fun _ ->
                             // from https://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
                             use sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                             sock.Blocking <- true
@@ -121,8 +124,7 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
                             // Measure the Connect call only
                             stopwatch.Start()
                             let connectTask = sock.ConnectAsync(uri.Host, uri.Port)
-                            let timeoutTask = Task.Delay(config.Timeout)
-                            do! Task.WhenAny(connectTask, timeoutTask) |> Task.map ignore
+                            let _ = connectTask.Wait(config.Timeout)    // we do not care if it completed OK or not, as the result will get anyway sock.Connected property ...
                             stopwatch.Stop()
 
                             let result =
@@ -131,10 +133,12 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
 
                             sock.Close()
 
-                            return result
-                        })
-                        |> Task.WhenAll
+                            System.Threading.Thread.Sleep(500) // to have some interval between running the tasks
 
+                            result
+                        )
+
+                    let results = results |> Seq.skip config.WarmUpExecutions
                     let totalMsResults = results |> Seq.map (fun (_, totalMs) -> totalMs |> float)
                     let avg = totalMsResults |> Seq.average
                     let psPingReply = {
@@ -149,11 +153,8 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
                             Math.Sqrt(sumOfSquaresOfDifferences / (totalMsResults |> Seq.length |> float))
                     }
 
-                    return uri.Host, uri.Port, psPingReply
-                })
-                |> Task.WhenAll
-
-
+                    uri.Host, uri.Port, psPingReply
+                )
 
             return Ok replies
         with
