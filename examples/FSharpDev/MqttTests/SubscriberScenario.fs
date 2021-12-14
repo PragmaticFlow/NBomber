@@ -23,7 +23,7 @@ type Message = {
     PublishTime: DateTime
 }
 
-let private _responseBuffer = new PushResponseBuffer()
+let private _responseBuffer = new PushResponseQueue()
 
 let private createMqttFactory (clientCount) =
     ClientFactory.create(
@@ -51,7 +51,7 @@ let private createMqttFactory (clientCount) =
             let! subscribeResult = client.SubscribeAsync("test_topic")
 
             if result.ResultCode = MqttClientConnectResultCode.Success then
-                _responseBuffer.InitBufferForClient(clientId)
+                _responseBuffer.InitQueueForClient(clientId)
             else
                 failwith $"MQTT connection code is: {result.ResultCode}, reason: {result.ReasonString}"
 
