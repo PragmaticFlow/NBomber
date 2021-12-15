@@ -23,7 +23,7 @@ type Message = {
     PublishTime: DateTime
 }
 
-let private _responseBuffer = new PushResponseQueue()
+let private _responseQueue = new PushResponseQueue()
 
 let private createMqttFactory (clientCount) =
     ClientFactory.create(
@@ -42,7 +42,7 @@ let private createMqttFactory (clientCount) =
             let client = mqttFactory.CreateMqttClient()
 
             client.UseApplicationMessageReceivedHandler(fun msg ->
-                _responseBuffer.AddResponse(clientId, msg.ApplicationMessage.Payload)
+                _responseQueue.AddResponse(clientId, msg.ApplicationMessage.Payload)
                 Task.CompletedTask
             )
             |> ignore
@@ -51,7 +51,7 @@ let private createMqttFactory (clientCount) =
             let! subscribeResult = client.SubscribeAsync("test_topic")
 
             if result.ResultCode = MqttClientConnectResultCode.Success then
-                _responseBuffer.InitQueueForClient(clientId)
+                _responseQueue.InitQueueForClient(clientId)
             else
                 failwith $"MQTT connection code is: {result.ResultCode}, reason: {result.ReasonString}"
 
@@ -70,7 +70,7 @@ let create () =
                            execute = fun context -> task {
 
         let clientId = context.Client.Options.ClientId
-        let! response = _responseBuffer.ReceiveResponse(clientId)
+        let! response = _responseQueue.ReceiveResponse(clientId)
 
         let msg =
             response.Payload :?> byte[]

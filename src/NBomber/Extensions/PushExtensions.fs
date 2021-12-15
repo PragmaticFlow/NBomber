@@ -4,6 +4,8 @@ open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.Threading.Tasks
+open System.Threading.Tasks.Dataflow
+
 open NBomber.Extensions.InternalExtensions
 
 type PushResponse = {
@@ -37,7 +39,7 @@ type internal ActorState =
         { Clients = Dictionary<ClientId, TaskCompletionSource<PushResponse> option>()
           ClientResponses = Dictionary<ClientId, Queue<PushResponse>>() }
 
-    static member handler (state: ActorState) (msg: ActorMessage) =
+    static member receive (state: ActorState) (msg: ActorMessage) =
         match msg with
         | InitQueueForClient (awaiterTsc, clientId) ->
             state.Clients[clientId] <- None
@@ -76,25 +78,26 @@ type internal ActorState =
 
 type PushResponseQueue() =
 
-    let _actor = Actor.FastActor(initialState = ActorState.init(), handler = ActorState.handler)
+    let mutable _state = ActorState.init()
+    let _actor = ActionBlock(fun msg -> _state <- ActorState.receive _state msg)
     let _currentTime = CurrentTime()
 
     member _.InitQueueForClient(clientId: string) =
         let awaiterTsc = TaskCompletionSource<unit>()
-        _actor.Publish(InitQueueForClient(awaiterTsc, clientId))
+        _actor.Post(InitQueueForClient(awaiterTsc, clientId)) |> ignore
         awaiterTsc.Task.Wait()
 
     member _.ReceiveResponse(clientId: string) =
         let awaiterTsc = TaskCompletionSource<PushResponse>()
-        _actor.Publish(SubscribeOnResponse(awaiterTsc, clientId))
+        _actor.Post(SubscribeOnResponse(awaiterTsc, clientId)) |> ignore
         awaiterTsc.Task
 
     member _.AddResponse(clientId: string, payload: obj) =
         let pushResponse = { ClientId = clientId; Payload = payload; ReceivedTime = _currentTime.UtcNow }
-        _actor.Publish(ReceivedPushResponse pushResponse)
+        _actor.Post(ReceivedPushResponse pushResponse) |> ignore
 
     interface IDisposable with
         member _.Dispose() =
             let awaiterTsc = TaskCompletionSource<unit>()
-            _actor.Publish(ClearQueue awaiterTsc)
+            _actor.Post(ClearQueue awaiterTsc) |> ignore
             awaiterTsc.Task.Wait()

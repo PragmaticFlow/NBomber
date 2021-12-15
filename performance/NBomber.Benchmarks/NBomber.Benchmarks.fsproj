@@ -6,6 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Actors\FastActor.fs" />
+        <Compile Include="Actors\ChannelActor.fs" />
+        <Compile Include="Actors\Benchmark.fs" />
         <Compile Include="CollectionsBenchmark.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
