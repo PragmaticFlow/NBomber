@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Authors>NBomber</Authors>
+        <Company>NBomber</Company>
+        <Copyright>NBomber@2021</Copyright>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageIcon>nbomber_icon.png</PackageIcon>
+        <PackageProjectUrl>https://github.com/PragmaticFlow/NBomber</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
+        <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Description>Contracts for NBomber</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Stats.fs" />
+        <Compile Include="Contracts.fs" />
+    </ItemGroup>
+
+    <ItemGroup>        
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="Serilog" Version="2.10.0" />
+        <PackageReference Update="FSharp.Core" Version="6.0.1" />
+    </ItemGroup>
+
+</Project>
