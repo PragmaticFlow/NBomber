@@ -7,13 +7,13 @@ open System.Globalization
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
-open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
+open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Operator.Result
 
 // we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
 // since after init (for case when the same ClientFactory assigned to several Scenarios)

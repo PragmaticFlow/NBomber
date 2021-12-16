@@ -11,7 +11,7 @@ open Serilog
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Configuration
+open NBomber.Contracts.Stats
 
 /// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 type ClientFactory =

@@ -11,8 +11,6 @@ open Serilog
 open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts.Stats
-open NBomber.Configuration
-open NBomber.Extensions.InternalExtensions
 
 type Response = {
     StatusCode: Nullable<int>
@@ -150,26 +148,6 @@ type ApplicationType =
     | Process = 0
     | Console = 1
 
-type ReportingContext = {
-    FolderName: string option
-    FileName: string option
-    Sinks: IReportingSink list
-    Formats: ReportFormat list
-    SendStatsInterval: TimeSpan
-}
-
-type NBomberContext = {
-    TestSuite: string
-    TestName: string
-    RegisteredScenarios: Scenario list
-    NBomberConfig: NBomberConfig option
-    InfraConfig: IConfiguration option
-    CreateLoggerConfig: (unit -> LoggerConfiguration) option
-    Reporting: ReportingContext
-    WorkerPlugins: IWorkerPlugin list
-    UseHintsAnalyzer: bool
-}
-
 type Response with
 
     [<CompiledName("Ok")>]
@@ -222,19 +200,3 @@ type Response with
           ErrorMessage = if isNull error then String.Empty else error.Message
           LatencyMs = latencyMs
           Payload = null }
-
-namespace NBomber.Contracts.Internal
-
-open CommandLine
-open NBomber.Contracts
-
-type CommandLineArgs = {
-    [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
-    [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
-}
-
-type StepResponse = {
-    ClientResponse: Response
-    EndTimeMs: float
-    LatencyMs: float
-}

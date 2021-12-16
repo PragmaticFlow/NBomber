@@ -10,12 +10,13 @@ open FsCheck.Xunit
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
+open NBomber.Extensions.InternalExtensions
 open NBomber.Errors
-open NBomber.FSharp
 open NBomber.DomainServices
+open NBomber.FSharp
 
 let baseGlobalSettings = {
     ScenariosSettings = None

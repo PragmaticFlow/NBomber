@@ -1,4 +1,4 @@
-namespace NBomber.Contracts.Stats
+﻿namespace NBomber.Contracts.Stats
 
 open System
 open System.Data
@@ -6,7 +6,11 @@ open System.Data
 open Newtonsoft.Json
 open Newtonsoft.Json.Converters
 
-open NBomber.Configuration
+type ReportFormat =
+    | Txt = 0
+    | Html = 1
+    | Csv = 2
+    | Md = 3
 
 type TestInfo = {
     SessionId: string

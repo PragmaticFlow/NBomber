@@ -1,10 +1,8 @@
 namespace NBomber.Extensions
 
 open System
-open System.Collections.Concurrent
 open System.IO
 open System.Text
-open System.Threading
 
 open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling

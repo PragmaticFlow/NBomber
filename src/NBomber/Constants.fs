@@ -2,7 +2,7 @@ module internal NBomber.Constants
 
 open System
 open Microsoft.Extensions.Configuration
-open NBomber.Configuration
+open NBomber.Contracts.Stats
 
 [<Literal>]
 let Logo = "NBomber"
@@ -51,15 +51,26 @@ let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
 let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
 let StepTimeout = TimeSpan.FromSeconds 1.0
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5.0
+
+[<Literal>]
 let SchedulerTickIntervalMs = 1_000.0
+
+[<Literal>]
 let TimeoutStatusCode = -100
+
+[<Literal>]
 let StepExceptionStatusCode = -101
 
 let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue
+
+[<Literal>]
 let StatsRounding = 2
 
+[<Literal>]
 let ResponseBufferLength = 50
+
+[<Literal>]
 let ResponseBufferFlushDelaySec = 1

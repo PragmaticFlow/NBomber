@@ -4,8 +4,8 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks.NonAffine
 
 open NBomber
-open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.FSharp
 
 let reportingSink = {

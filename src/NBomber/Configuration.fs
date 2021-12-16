@@ -1,12 +1,7 @@
 namespace NBomber.Configuration
 
 open FSharp.Json
-
-type ReportFormat =
-    | Txt = 0
-    | Html = 1
-    | Csv = 2
-    | Md = 3
+open NBomber.Contracts.Stats
 
 type LoadSimulationSettings =
     | RampConstant of copies:int * during:string

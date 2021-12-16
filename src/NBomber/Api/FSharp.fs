@@ -14,6 +14,7 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Errors
