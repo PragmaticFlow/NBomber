@@ -185,14 +185,6 @@ type ScenarioBuilder =
     static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
         scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
-    /// Sets dynamic steps order that will be used by NBomber Scenario executor.
-    /// By default, all steps are executing sequentially but you can inject your custom order.
-    /// getStepsOrder function will be invoked on every turn before steps list execution.
-    [<Extension>]
-    [<Obsolete("StepsOrder should now be specified via WithCustomStepOrder method. This method will be removed in a future release.")>]
-    static member WithDynamicStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
-        scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
-
 [<Extension>]
 type NBomberRunner =
 
@@ -276,16 +268,6 @@ type NBomberRunner =
     [<Extension>]
     static member WithLoggerConfig(context: NBomberContext, buildLoggerConfig: Func<LoggerConfiguration>) =
         context |> FSharp.NBomberRunner.withLoggerConfig(buildLoggerConfig.Invoke)
-
-    /// Sets application type.
-    /// The following application types are supported:
-    /// - Console: is suitable for interactive session (will display progress bar)
-    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
-    /// By default NBomber will automatically identify your environment: Process or Console.
-    [<Extension>]
-    [<Obsolete("This method will be removed in the next release.")>]
-    static member WithApplicationType(context: NBomberContext, applicationType: ApplicationType) =
-        context
 
     /// Disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.

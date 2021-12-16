@@ -187,13 +187,6 @@ module Scenario =
     let withCustomStepOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
         { scenario with GetStepsOrder = getStepsOrder }
 
-    /// Sets dynamic steps order that will be used by NBomber Scenario executor.
-    /// By default, all steps are executing sequentially but you can inject your custom order.
-    /// getStepsOrder function will be invoked on every turn before steps list execution.
-    [<Obsolete("StepsOrder should now be specified via withCustomStepOrder function. This function will be removed in a future release.")>]
-    let withDynamicStepOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
-        withCustomStepOrder getStepsOrder scenario
-
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
 [<RequireQualifiedAccess>]
@@ -294,15 +287,6 @@ module NBomberRunner =
             failwith "createLoggerConfig should always return a new instance of LoggerConfiguration"
 
         { context with CreateLoggerConfig = Some createLoggerConfig }
-
-    /// Sets application type.
-    /// The following application types are supported:
-    /// - Console: is suitable for interactive session (will display progress bar)
-    /// - Process: is suitable for running tests under test runners (progress bar will not be shown)
-    /// By default NBomber will automatically identify your environment: Process or Console.
-    [<Obsolete("This function will be removed in the next release.")>]
-    let withApplicationType (applicationType: ApplicationType) (context: NBomberContext) =
-        context
 
     /// Disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
