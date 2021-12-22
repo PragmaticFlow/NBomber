@@ -54,11 +54,11 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let checkFlushBuffer (buffer: ResizeArray<int * StepResponse>) =
         if buffer.Count >= Constants.ResponseBufferLength then
-            flushStats(buffer)
+            flushStats buffer
         else
             let delay = int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
             if delay >= Constants.ResponseBufferFlushDelaySec then
-                flushStats(buffer)
+                flushStats buffer
 
     let execSteps (runInfinite: bool) = task {
         try
@@ -70,15 +70,18 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 while shouldRun && _working && not dep.CancellationToken.IsCancellationRequested do
 
                     _stepDataDict.Clear()
-                    let stepsOrder = Scenario.getStepOrder dep.Scenario
 
-                    if _isAllExecSync then
-                        Step.execSteps(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
-                    else
-                        do! Step.execStepsAsync(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
+                    try
+                        let stepsOrder = Scenario.getStepOrder dep.Scenario
 
-                    checkFlushBuffer(_responseBuffer)
+                        if _isAllExecSync then
+                            Step.execSteps(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
+                        else
+                            do! Step.execStepsAsync(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
+                    with
+                    | ex -> _logger.Error(ex, $"Invalid step order for Scenario: '{dep.Scenario.ScenarioName}'")
 
+                    checkFlushBuffer _responseBuffer
                     shouldRun <- runInfinite
             else
                 _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
