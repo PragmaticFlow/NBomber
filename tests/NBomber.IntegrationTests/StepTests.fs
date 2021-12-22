@@ -213,8 +213,8 @@ let ``NBomber should support to run and share the same step within one scenario 
         |> NBomberRunner.runWithResult Seq.empty
         |> Result.getOk
 
-    test <@ result.FinalStats.ScenarioStats.[0].StepStats.Length = 2 @>
-    test <@ result.FinalStats.ScenarioStats.[1].StepStats.Length = 2 @>
+    test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
+    test <@ result.FinalStats.ScenarioStats[1].StepStats.Length = 2 @>
 
 [<Fact>]
 let ``NBomber shouldn't stop execution scenario if too many failed results on a warm-up`` () =
@@ -322,7 +322,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
         do! Task.Delay(seconds 1, context.CancellationToken)
 
-        data.[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
+        data[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
 
         return Response.ok()
     })

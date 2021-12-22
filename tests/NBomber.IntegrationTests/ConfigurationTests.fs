@@ -38,7 +38,7 @@ module JsonConfig =
         let testCustomSettings =
             config.GlobalSettings
             |> Option.bind(fun x -> x.ScenariosSettings)
-            |> Option.bind(fun x -> Some x.[0])
+            |> Option.bind(fun x -> Some x[0])
             |> Option.bind(fun x -> x.CustomSettings)
             |> Option.map(Newtonsoft.Json.JsonConvert.DeserializeObject<TestCustomSettings>)
 

@@ -252,7 +252,7 @@ module ConsoleNodeStats =
         let scenarioStats =
             stats.ScenarioStats
             |> Seq.map(fun scnStats ->
-                [ yield! printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
+                [ yield! printScenarioStats scnStats loadSimulations[scnStats.ScenarioName]
                   Console.addLine(String.Empty) ]
             )
             |> Seq.concat
@@ -271,7 +271,7 @@ module ConsolePluginStats =
         columns
         |> Seq.map(fun col ->
             [ col.GetColumnCaptionOrName() |> Console.escapeMarkup
-              row.[col].ToString() |> Console.escapeMarkup ]
+              row[col].ToString() |> Console.escapeMarkup ]
         )
 
     let private createPluginStatsTable (table: DataTable)=

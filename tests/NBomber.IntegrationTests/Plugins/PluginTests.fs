@@ -65,9 +65,9 @@ module internal PluginStatisticsHelper =
     let private getPluginStatisticsRows (count: int) (prefix: string) (table: DataTable) = [|
         for i in 1 .. count do
             let row = table.NewRow()
-            row.["Key"] <- sprintf "%sRowKey%i" prefix i
-            row.["Value"] <- sprintf "%sRowValue%i" prefix i
-            row.["Type"] <- sprintf "%sRowType%i" prefix i
+            row["Key"] <- sprintf "%sRowKey%i" prefix i
+            row["Value"] <- sprintf "%sRowValue%i" prefix i
+            row["Type"] <- sprintf "%sRowType%i" prefix i
             yield row
     |]
 
@@ -280,9 +280,9 @@ let ``stats should be passed to IReportingSink`` () =
     |> Result.mapError failwith
     |> ignore
 
-    let pluginStats = _nodeStats.[0].PluginStats.[0]
-    let table1 = pluginStats.Tables.["PluginStatistics1Table"]
-    let table2 = pluginStats.Tables.["PluginStatistics2Table"]
+    let pluginStats = _nodeStats[0].PluginStats[0]
+    let table1 = pluginStats.Tables["PluginStatistics1Table"]
+    let table2 = pluginStats.Tables["PluginStatistics2Table"]
 
     // assert on IReportingSink
     test <@ table1.Columns.Count > 0 @>

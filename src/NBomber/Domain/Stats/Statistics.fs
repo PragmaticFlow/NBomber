@@ -155,7 +155,7 @@ module ScenarioStats =
 
         let stepStats =
             scenario.Steps
-            |> Seq.mapi(fun i x -> if x.DoNotTrack then None else Some(StepStats.create x.StepName allStepsData.[i] reportingInterval))
+            |> Seq.mapi(fun i x -> if x.DoNotTrack then None else Some(StepStats.create x.StepName allStepsData[i] reportingInterval))
             |> Seq.choose(id)
             |> Seq.toArray
 

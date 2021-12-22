@@ -39,10 +39,10 @@ let addResponse (stData: StepStatsRawData) (response: StepResponse) =
         match statuses.TryGetValue statusCode with
         | true, codeStats -> codeStats.Count <- codeStats.Count + 1
         | false, _ ->
-            statuses.[statusCode] <- { StatusCode = statusCode
-                                       IsError = res.IsError
-                                       Message = res.ErrorMessage
-                                       Count = 1 }
+            statuses[statusCode] <- { StatusCode = statusCode
+                                      IsError = res.IsError
+                                      Message = res.ErrorMessage
+                                      Count = 1 }
 
     let clientRes = response.ClientResponse
 

@@ -41,7 +41,7 @@ let ``should distribute client with one to one mapping if clientCount = loadSimu
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let stepStats = nodeStats.ScenarioStats.[0]
+        let stepStats = nodeStats.ScenarioStats[0]
         test <@ stepStats.OkCount > 0 @>
         test <@ stepStats.FailCount = 0 @>
 
@@ -77,7 +77,7 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let stepStats = nodeStats.ScenarioStats.[0]
+        let stepStats = nodeStats.ScenarioStats[0]
         test <@ stepStats.OkCount > 0 @>
         test <@ stepStats.FailCount = 0 @>
 
@@ -117,7 +117,7 @@ let ``should be shared btw steps as singlton instance``() =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let step_2_stats = nodeStats.ScenarioStats.[0].StepStats |> Seq.find(fun x -> x.StepName = "step_2")
+        let step_2_stats = nodeStats.ScenarioStats[0].StepStats |> Seq.find(fun x -> x.StepName = "step_2")
         test <@ step_2_stats.Ok.Request.Count > 0 @>
         test <@ step_2_stats.Fail.Request.Count = 0 @>
 

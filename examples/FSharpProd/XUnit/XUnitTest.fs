@@ -33,7 +33,7 @@ let ``XUnit test`` () =
 
     match result with
     | Ok nodeStats ->
-        let stepStats = nodeStats.ScenarioStats.[0].StepStats.[0]
+        let stepStats = nodeStats.ScenarioStats[0].StepStats[0]
         //test <@ stepStats.OkCount > 2 @>
         // todo are all of these ok?
         // TODO - how do you get this?

@@ -17,7 +17,7 @@ module AssetsUtils =
         let m = line |> regex.Match
 
         if m.Success then
-            m.Groups.[1].Value.Replace("/", ".")
+            m.Groups[1].Value.Replace("/", ".")
             |> ResourceManager.readResource
             |> Option.map(fun resource -> $"<{tagName}>{resource}</{tagName}>")
         else None

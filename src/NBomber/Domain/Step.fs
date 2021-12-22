@@ -32,7 +32,7 @@ module StepContext =
             match pool with
             | Some v ->
                 let index = dep.ScenarioInfo.ThreadNumber % v.InitializedClients.Length
-                v.InitializedClients.[index]
+                v.InitializedClients[index]
 
             | None -> Unchecked.defaultof<_>
 
@@ -82,7 +82,7 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
 
                 member _.GetPreviousStepResponse() =
                     try
-                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
+                        let prevStepResponse = untypedCtx.Data[Constants.StepResponseKey]
                         if isNull prevStepResponse then
                             Unchecked.defaultof<'T>
                         else
@@ -111,7 +111,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
 
                 member _.GetPreviousStepResponse() =
                     try
-                        let prevStepResponse = untypedCtx.Data.[Constants.StepResponseKey]
+                        let prevStepResponse = untypedCtx.Data[Constants.StepResponseKey]
                         if isNull prevStepResponse then
                             Unchecked.defaultof<'T>
                         else
@@ -203,7 +203,7 @@ let execSteps (dep: StepDep,
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
+                let step = RunningStep.updateContext steps[stepIndex] stepDataDict
                 let response = execStep step dep.ScenarioGlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
@@ -217,7 +217,7 @@ let execSteps (dep: StepDep,
                             skipStep <- true
 
                         | false ->
-                            stepDataDict.[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 
@@ -232,7 +232,7 @@ let execStepsAsync (dep: StepDep,
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps.[stepIndex] stepDataDict
+                let step = RunningStep.updateContext steps[stepIndex] stepDataDict
                 let! response = execStepAsync step dep.ScenarioGlobalTimer
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
@@ -246,7 +246,7 @@ let execStepsAsync (dep: StepDep,
                             skipStep <- true
 
                         | false ->
-                            stepDataDict.[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
             | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
 }

@@ -44,7 +44,7 @@ let run () =
 
             match users with
             | ValueSome usr when usr.Length = 1 ->
-                return Response.ok(usr.[0]) // we pass user object response to the next step
+                return Response.ok(usr[0]) // we pass user object response to the next step
 
             | _ -> return Response.fail($"not found user: {userId.Id}")
         })
