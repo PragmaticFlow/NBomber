@@ -13,7 +13,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
@@ -30,15 +29,17 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
     let _logger = dep.Logger.ForContext<ScenarioActor>()
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
-    let _stepDep = { ScenarioInfo = scenarioInfo
-                     Logger = dep.Logger
-                     CancellationToken = dep.CancellationToken
-                     ScenarioGlobalTimer = dep.ScenarioGlobalTimer
-                     ExecStopCommand = dep.ExecStopCommand }
+    let _stepDep: Step.StepDep =
+        { ScenarioInfo = scenarioInfo
+          Logger = dep.Logger
+          CancellationToken = dep.CancellationToken
+          ScenarioGlobalTimer = dep.ScenarioGlobalTimer
+          ExecStopCommand = dep.ExecStopCommand }
 
-    let _steps = dep.Scenario.Steps
-                 |> List.map(RunningStep.create _stepDep)
-                 |> List.toArray
+    let _steps =
+        dep.Scenario.Steps
+        |> List.map(Step.RunningStep.create _stepDep)
+        |> List.toArray
 
     let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ResponseBufferLength) // stepIndex * StepResponse
     let mutable _latestBufferFlushSec = 0
@@ -59,44 +60,28 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
             if delay >= Constants.ResponseBufferFlushDelaySec then
                 flushStats(buffer)
 
-    let execSteps () = task {
+    let execSteps (runInfinite: bool) = task {
         try
             if not _working then
+                let mutable shouldRun = true
                 _working <- true
                 do! Task.Yield()
 
-                _stepDataDict.Clear()
-
-                if _isAllExecSync then
-                    Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
-                else
-                    do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
-
-                checkFlushBuffer(_responseBuffer)
-            else
-                _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
-        finally
-            _working <- false
-    }
-
-    let runInfinite () = task {
-        try
-            if not _working then
-                _working <- true
-
-                do! Task.Yield()
-                while _working && not dep.CancellationToken.IsCancellationRequested do
+                while shouldRun && _working && not dep.CancellationToken.IsCancellationRequested do
 
                     _stepDataDict.Clear()
+                    let stepsOrder = Scenario.getStepOrder dep.Scenario
 
                     if _isAllExecSync then
-                        Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
+                        Step.execSteps(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
                     else
-                        do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
+                        do! Step.execStepsAsync(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
 
                     checkFlushBuffer(_responseBuffer)
+
+                    shouldRun <- runInfinite
             else
-                _logger.Error($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
+                _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
             _working <- false
     }
@@ -105,8 +90,8 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
 
-    member _.ExecSteps() = execSteps()
-    member _.RunInfinite() = runInfinite()
+    member _.ExecSteps() = execSteps false
+    member _.RunInfinite() = execSteps true
 
     member _.Stop() =
         _working <- false

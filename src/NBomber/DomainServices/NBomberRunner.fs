@@ -18,8 +18,8 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information("NBomber started as single node.")
 
-        let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo
         let! scenarios    = context |> NBomberContext.createScenarios
+        let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo scenarios
         use testHost      = new TestHost(dep, scenarios)
         let! result       = testHost.RunSession(sessionArgs)
 

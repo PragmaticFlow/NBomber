@@ -182,7 +182,7 @@ type ScenarioBuilder =
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     [<Extension>]
-    static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<int[]>) =
+    static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<string[]>) =
         scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
 [<Extension>]

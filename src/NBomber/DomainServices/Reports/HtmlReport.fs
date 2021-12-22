@@ -53,17 +53,15 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) =
     try
         logger.Verbose("HtmlReport.print")
 
-        let applyHtmlReplace = applyHtmlReplace sessionResult
-
         option {
-            let! indexHtml = ResourceManager.readResource("index.html")
+            let! indexHtml = ResourceManager.readResource "index.html"
 
             return
                 indexHtml
                 |> removeDescription
                 |> String.replace("\r", "")
                 |> String.split [| "\n" |]
-                |> Seq.map applyHtmlReplace
+                |> Seq.map(applyHtmlReplace sessionResult)
                 |> String.concatLines
         }
         |> Option.defaultValue String.Empty

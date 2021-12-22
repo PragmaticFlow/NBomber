@@ -1,10 +1,10 @@
 ﻿{
-  "GlobalSettings": {
-    "ScenariosSettings": [
-      {
-          "ScenarioName": "1",
-          "CustomStepOrder": [0]
-      }
-    ]
-  }
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "1",
+                "CustomStepOrder": ["step_1"]
+            }
+        ]
+    }
 }

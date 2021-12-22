@@ -285,27 +285,27 @@ let ``checkSendStatsSetting should return ok if SendStatsInterval has valid form
 [<Fact>]
 let ``checkWarmUpSettings should return fail if WarmUp has invalid format`` () =
     let setting = { baseScenarioSetting with WarmUpDuration = Some "::"}
-    match NBomberContext.Validation.checkWarmUpSettings [setting] with
+    match NBomberContext.Validation.checkWarmUpInSettings [setting] with
     | Error (WarmUpConfigValueHasInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
     let setting = { baseScenarioSetting with WarmUpDuration = Some "00:00:10"}
-    match NBomberContext.Validation.checkWarmUpSettings [setting] with
+    match NBomberContext.Validation.checkWarmUpInSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
     let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
-    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
+    match NBomberContext.Validation.checkLoadSimulationsInSettings [setting] with
     | Error (LoadSimulationConfigValueHasInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
 let ``checkLoadSimulationsSettings should return ok if duration time has correct format`` () =
     let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
-    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
+    match NBomberContext.Validation.checkLoadSimulationsInSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()

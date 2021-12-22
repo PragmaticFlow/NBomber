@@ -2,6 +2,7 @@
 module internal NBomber.Domain.Scenario
 
 open System
+open System.Collections.Generic
 open System.IO
 open System.Text
 
@@ -28,8 +29,9 @@ module Validation =
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
-    let checkStepsOrInitOrCleanExist (scenario: Contracts.Scenario) =
+    let checkInitOnlyScenario (scenario: Contracts.Scenario) =
         if List.isEmpty scenario.Steps then
+            // for init only scenario we can have scenario with 0 steps
             if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
             else AppError.createResult(EmptySteps scenario.ScenarioName)
         else Ok scenario
@@ -38,6 +40,15 @@ module Validation =
         let emptyStepExist = scenario.Steps |> List.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
         if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
         else Ok scenario
+
+    let checkDuplicateStepNameButDiffImpl (scenario: Contracts.Scenario) =
+        scenario.Steps
+        |> List.distinct
+        |> List.groupBy(fun x -> x.StepName)
+        |> List.choose(fun (stName,steps) -> if List.length steps > 1 then Some stName else None)
+        |> function
+            | [] -> Ok scenario
+            | stName::tail -> AppError.createResult(DuplicateStepNameButDiffImpl(scenario.ScenarioName, stName))
 
     let checkDuplicateClientFactories (scenario: Contracts.Scenario) =
         scenario.Steps
@@ -53,8 +64,9 @@ module Validation =
 
     let validate =
         checkEmptyScenarioName
-        >=> checkStepsOrInitOrCleanExist
+        >=> checkInitOnlyScenario
         >=> checkEmptyStepName
+        >=> checkDuplicateStepNameButDiffImpl
         >=> checkDuplicateClientFactories
 
 module ClientFactory =
@@ -102,7 +114,7 @@ module ClientPool =
         targetScenarios
         |> ClientFactory.filterDistinct
         |> ClientFactory.applySettings settings
-        |> List.map(fun factory -> new ClientPool(factory))
+        |> List.map(fun factory -> ClientPool factory)
 
     let setPools (pools: ClientPool list) (scenarios: Scenario list) =
 
@@ -163,22 +175,44 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioName = scenarioName
       ScenarioDuration = duration }
 
+let createStepOrderIndex (scenario: Contracts.Scenario) =
+    if List.isEmpty scenario.Steps then Dictionary<_,_>()
+    else scenario.Steps |> Seq.distinct |> Seq.mapi(fun i x -> x.StepName, i) |> Dict.ofSeq
+
+let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: Contracts.Scenario) =
+    seq {
+        for s in scenario.Steps do
+            yield stepOrderIndex[s.StepName] }
+    |> Seq.toArray
+
+let getStepOrder (scenario: Scenario) =
+    match scenario.GetCustomStepOrder with
+    | Some getStepOrder ->
+        getStepOrder()
+        |> Array.map(fun stName -> scenario.StepOrderIndex[stName])
+
+    | None -> scenario.DefaultStepOrder
+
 let createScenarios (scenarios: Contracts.Scenario list) = result {
 
     let create (scn: Contracts.Scenario) = result {
         let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
-        let! scenario = Validation.validate(scn)
+        let! scenario = Validation.validate scn
+        let stepOrderIndex = createStepOrderIndex scenario
+        let defaultStepOrder = scenario |> createDefaultStepOrder stepOrderIndex
 
         return { ScenarioName = scenario.ScenarioName
                  Init = scenario.Init
                  Clean = scenario.Clean
-                 Steps = scenario.Steps |> ClientFactory.updateName(scenario.ScenarioName)
+                 Steps = scenario.Steps |> ClientFactory.updateName scenario.ScenarioName
                  LoadTimeLine = timeline.LoadTimeLine
                  WarmUpDuration = scenario.WarmUpDuration
                  PlanedDuration = timeline.ScenarioDuration
                  ExecutedDuration = None
-                 CustomSettings = ""
-                 GetStepsOrder = scenario.GetStepsOrder
+                 CustomSettings = String.Empty
+                 DefaultStepOrder = defaultStepOrder
+                 StepOrderIndex = stepOrderIndex
+                 GetCustomStepOrder = scenario.GetCustomStepOrder
                  IsEnabled = true }
     }
 
@@ -217,7 +251,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
                         WarmUpDuration = getWarmUpDuration(settings)
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
-                        GetStepsOrder = fun () -> settings.CustomStepOrder |> Option.defaultValue(scenario.GetStepsOrder()) }
+                        GetCustomStepOrder = settings.CustomStepOrder |> Option.map (fun x -> fun () -> x) }
 
     scenarios
     |> List.map(fun scn ->

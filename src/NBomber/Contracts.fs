@@ -5,6 +5,7 @@ open System
 open Microsoft.Extensions.Configuration
 open Serilog
 
+open NBomber
 open NBomber.Configuration
 open NBomber.Contracts.Stats
 
@@ -26,7 +27,26 @@ type NBomberContext = {
     Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
     UseHintsAnalyzer: bool
-}
+} with
+
+    [<CompiledName("Empty")>]
+    static member empty = {
+        TestSuite = Constants.DefaultTestSuite
+        TestName = Constants.DefaultTestName
+        RegisteredScenarios = List.empty
+        NBomberConfig = None
+        InfraConfig = None
+        CreateLoggerConfig = None
+        Reporting = {
+            FolderName = None
+            FileName = None
+            Formats = Constants.AllReportFormats
+            Sinks = List.empty
+            SendStatsInterval = Constants.DefaultSendStatsInterval
+        }
+        WorkerPlugins = List.empty
+        UseHintsAnalyzer = true
+    }
 
 namespace NBomber.Contracts.Internal
 
