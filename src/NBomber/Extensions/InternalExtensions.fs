@@ -1,6 +1,7 @@
 namespace NBomber.Extensions
 
 open System
+open System.Collections.Generic
 open System.IO
 open System.Text
 
@@ -111,6 +112,14 @@ module internal InternalExtensions =
             dictionary
             |> Seq.map (|KeyValue|)
             |> Map.ofSeq
+
+    module Dict =
+
+        let ofSeq (src: seq<'a*'b>) =
+            let d = new Dictionary<'a, 'b>()
+            for (k,v) in src do
+                d.Add(k,v)
+            d
 
 namespace NBomber.Extensions.Operator
 

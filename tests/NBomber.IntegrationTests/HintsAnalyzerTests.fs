@@ -1,6 +1,7 @@
 module Tests.HintsAnalyzer
 
 open System
+open System.Threading.Tasks
 
 open Xunit
 open FsCheck.Xunit
@@ -77,54 +78,31 @@ let ``analyzeNodeStats should return hint for case when DataTransfer.MinBytes = 
     | e -> failwith "analyzer finished with error"
 
 [<Fact>]
-let ``analyzeScenarios should return hint for case when Scenario has steps with the same name but different implementations`` () =
-
-    let step1 = Step.create("same_name", fun ctx -> task { return Response.ok() })
-    let step2 = Step.create("same_name", fun ctx -> task { return Response.ok() })
-
-    let hints =
-        [Scenario.create "test" [step1; step2]]
-        |> Domain.Scenario.createScenarios
-        |> Result.getOk
-        |> HintsAnalyzer.analyzeScenarios
-
-    test <@ hints |> Seq.exists(fun x -> x.Hint.Contains("Scenario: 'test' contains duplicate step names: 'same_name'")) @>
-
-[<Fact>]
-let ``analyzeScenarios should return no hint if Scenario contains duplicated steps`` () =
-
-    let step1 = Step.create("same_name", fun ctx -> task { return Response.ok() })
-
-    let hints =
-        [Scenario.create "test" [step1; step1; step1]]
-        |> Domain.Scenario.createScenarios
-        |> Result.getOk
-        |> HintsAnalyzer.analyzeScenarios
-
-    test <@ hints.Length = 0 @>
-
-[<Fact>]
 let ``HintsAnalyzer should be enable by default`` () =
 
-    let step1 = Step.create("same_name", fun ctx -> task { return Response.ok() })
-    let step2 = Step.create("same_name", fun ctx -> task { return Response.ok() })
+    let step1 = Step.create("same_name", fun ctx -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
 
-    Scenario.create "test" [step1; step2]
-    |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 2)]
+    Scenario.create "test" [step1]
+    |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Scenario: 'test' contains duplicate step names: 'same_name'")) @>
+        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step 'same_name' in scenario 'test' didn't track data transfer.")) @>
 
 [<Fact>]
 let ``disableHintsAnalyzer should disable hints`` () =
 
-    let step1 = Step.create("same_name", fun ctx -> task { return Response.ok() })
-    let step2 = Step.create("same_name", fun ctx -> task { return Response.ok() })
+    let step1 = Step.create("same_name", fun ctx -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
 
-    Scenario.create "test" [step1; step2]
-    |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 2)]
+    Scenario.create "test" [step1]
+    |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.disableHintsAnalyzer
     |> NBomberRunner.runWithResult Seq.empty

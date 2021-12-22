@@ -29,7 +29,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let mutable _stopped = false
     let mutable _disposed = false
     let mutable _targetScenarios = List.empty<Scenario>
-    let mutable _sessionArgs = SessionArgs.Empty
+    let mutable _sessionArgs = SessionArgs.empty
     let mutable _currentOperation = OperationType.None
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
@@ -135,7 +135,6 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             dep.WorkerPlugins
             |> TestHostPlugins.getHints
             |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
-            |> List.append(HintsAnalyzer.analyzeScenarios targetScenarios)
             |> List.toArray
         else
             Array.empty

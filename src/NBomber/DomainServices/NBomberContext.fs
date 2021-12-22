@@ -28,7 +28,8 @@ type SessionArgs = {
     SendStatsInterval: TimeSpan
     UseHintsAnalyzer: bool
 } with
-    static member Empty = {
+
+    static member empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
@@ -39,7 +40,7 @@ type SessionArgs = {
 
 module Validation =
 
-    let checkAvailableTargets (scenarios: Contracts.Scenario list) (targetScenarios: string list) =
+    let checkAvailableTargets (scenarios: Scenario list) (targetScenarios: string list) =
         let allScenarios = scenarios |> List.map(fun x -> x.ScenarioName)
         let notFoundScenarios = targetScenarios |> List.except(allScenarios)
 
@@ -79,7 +80,7 @@ module Validation =
 
     let checkLoadSimulationsSettings (settings: ScenarioSetting list) =
         settings
-        |> Seq.tryFind(fun scenarioSetting ->
+        |> List.tryFind(fun scenarioSetting ->
             try
                 scenarioSetting.LoadSimulationsSettings
                 |> Option.defaultValue List.empty
@@ -88,26 +89,33 @@ module Validation =
             with
             | ex -> true
         )
-        |> Option.map(fun invalidScenario -> Error <| LoadSimulationConfigValueHasInvalidFormat(invalidScenario.ScenarioName))
+        |> Option.map(fun invalidScenario -> Error(LoadSimulationConfigValueHasInvalidFormat invalidScenario.ScenarioName))
         |> Option.defaultValue(Ok settings)
 
-let empty = {
-    TestSuite = Constants.DefaultTestSuite
-    TestName = Constants.DefaultTestName
-    RegisteredScenarios = List.empty
-    NBomberConfig = None
-    InfraConfig = None
-    CreateLoggerConfig = None
-    Reporting = {
-        FolderName = None
-        FileName = None
-        Formats = Constants.AllReportFormats
-        Sinks = List.empty
-        SendStatsInterval = Constants.DefaultSendStatsInterval
-    }
-    WorkerPlugins = List.empty
-    UseHintsAnalyzer = true
-}
+    let checkDuplicateScenarioSettings (settings: ScenarioSetting list) =
+        let duplicates = settings |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
+        if duplicates.Length > 0 then Error(DuplicateScenarioNamesInConfig duplicates)
+        else Ok settings
+
+    let checkCustomStepOrderSettings (scenarios: DomainTypes.Scenario list) (settings: ScenarioSetting list) =
+        settings
+        |> List.collect(fun set ->
+            option {
+                let! stepOrderNames = set.CustomStepOrder
+                let! scn = scenarios |> List.tryFind(fun x -> x.ScenarioName = set.ScenarioName)
+                let stepNames = scn.Steps |> List.map(fun x -> x.StepName)
+                return
+                    stepOrderNames
+                    |> Seq.choose(fun name ->
+                        if not(stepNames |> String.contains name) then Some(set.ScenarioName, name)
+                        else None
+                    )
+                    |> Seq.map(fun (scnName, stName) -> CustomStepOrderContainsNotFoundStepName(scnName, stName))
+                    |> Seq.toList
+            }
+            |> Option.defaultValue List.empty
+        )
+        |> List.fold(fun st error -> if Result.isError st then st else Error error) (Ok settings)
 
 let getTestSuite (context: NBomberContext) =
     context.NBomberConfig
@@ -119,7 +127,7 @@ let getTestName (context: NBomberContext) =
     |> Option.bind(fun x -> x.TestName)
     |> Option.defaultValue context.TestName
 
-let getScenariosSettings (context: NBomberContext) =
+let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
@@ -127,7 +135,12 @@ let getScenariosSettings (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.map(Validation.checkWarmUpSettings >=> Validation.checkLoadSimulationsSettings)
+    |> Option.map(
+        Validation.checkWarmUpSettings
+        >=> Validation.checkLoadSimulationsSettings
+        >=> Validation.checkDuplicateScenarioSettings
+        >=> Validation.checkCustomStepOrderSettings scenarios
+    )
     |> Option.defaultValue(Ok List.empty)
 
 let getTargetScenarios (context: NBomberContext) =
@@ -234,13 +247,13 @@ let getClientFactorySettings (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue List.empty
 
-let createSessionArgs (testInfo: TestInfo) (context: NBomberContext) =
+let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName
         let! reportFolder      = context |> getReportFolderOrDefault("SessionId") |> Validation.checkReportFolder
         let! sendStatsInterval = context |> getSendStatsInterval
-        let! scenariosSettings  = context |> getScenariosSettings
+        let! scenariosSettings  = context |> getScenariosSettings scenarios
         let clientFactorySettings = context |> getClientFactorySettings
         let useHintsAnalyzer = context |> getUseHintAnalyzer
 

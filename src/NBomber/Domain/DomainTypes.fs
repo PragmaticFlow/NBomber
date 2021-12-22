@@ -41,6 +41,7 @@ type Step = {
     Timeout: TimeSpan
     DoNotTrack: bool
 } with
+
     interface IStep with
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack
@@ -90,6 +91,8 @@ type Scenario = {
     PlanedDuration: TimeSpan
     ExecutedDuration: TimeSpan option
     CustomSettings: string
-    GetStepsOrder: unit -> int[]
-    IsEnabled: bool
+    DefaultStepOrder: int[]
+    StepOrderIndex: Dictionary<string,int> // stepName * orderNumber
+    GetCustomStepOrder: (unit -> string[]) option
+    IsEnabled: bool // used for stats in the cluster mode
 }

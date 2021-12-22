@@ -35,22 +35,6 @@ let private analyzeStatusCodes (scnStats: ScenarioStats) =
         Hint = printHint(scnStats.ScenarioName, step.StepName)
     })
 
-let private checkDuplicateStepName (scenario: Scenario) =
-
-    let printHint (scnName, stepName) =
-        $"Scenario: '{scnName}' contains duplicate step names: '{stepName}'. You registered several steps with the same name but different implementations. Statistics results show it as one single step."
-
-    scenario.Steps
-    |> Seq.cast<IStep>
-    |> Seq.distinct
-    |> Seq.groupBy(fun x -> x.StepName)
-    |> Seq.choose(fun (name, steps) -> if Seq.length(steps) > 1 then Some name else None)
-    |> Seq.map(fun stepName -> {
-        SourceName = scenario.ScenarioName
-        SourceType = HintSourceType.Scenario
-        Hint = printHint(scenario.ScenarioName, stepName)
-    })
-
 let analyzeNodeStats (stats: NodeStats) =
     stats.ScenarioStats
     |> Seq.collect(fun scnStats ->
@@ -58,9 +42,4 @@ let analyzeNodeStats (stats: NodeStats) =
         |> analyzeDataTransfer
         |> Seq.append(analyzeStatusCodes scnStats)
     )
-    |> Seq.toList
-
-let analyzeScenarios (scenarios: Scenario list) =
-    scenarios
-    |> Seq.collect(checkDuplicateStepName)
     |> Seq.toList

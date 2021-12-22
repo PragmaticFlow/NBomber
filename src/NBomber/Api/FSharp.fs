@@ -155,7 +155,7 @@ module Scenario =
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          GetStepsOrder = fun () -> [|0..steps.Length-1|] }
+          GetCustomStepOrder = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -184,8 +184,8 @@ module Scenario =
     /// Sets custom steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
-    let withCustomStepOrder (getStepsOrder: unit -> int[]) (scenario: Contracts.Scenario) =
-        { scenario with GetStepsOrder = getStepsOrder }
+    let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: Contracts.Scenario) =
+        { scenario with GetCustomStepOrder = Some getStepsOrder }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.

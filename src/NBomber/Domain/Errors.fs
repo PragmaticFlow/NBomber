@@ -27,6 +27,11 @@ type ValidationError =
     | SendStatsValueSmallerThanMin
     | SendStatsConfigValueHasInvalidFormat of value:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
+    | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
+
+    // ScenarioSettings
+    | CustomStepOrderContainsNotFoundStepName of scenarioName:string * stepName:string
+    | DuplicateScenarioNamesInConfig of scenarioNames:string list
 
     // ConcurrencyScheduler
     | SimulationIsSmallerThanMin of simulation:string
@@ -95,6 +100,9 @@ type AppError =
         | DuplicateClientFactoryName (scenarioName, factoryName) ->
             $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'."
 
+        | DuplicateStepNameButDiffImpl (scenarioName, stepName) ->
+            $"Scenario: '{scenarioName}' contains steps that has duplicate name and different implementations: '{stepName}'. You registered several steps with the same name but different implementations."
+
         | SimulationIsSmallerThanMin simulation ->
             sprintf "Simulation duration: '%A' is smaller than min value: '%s'." simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))
 
@@ -106,6 +114,12 @@ type AppError =
 
         | RateIsZeroOrNegative simulation ->
             $"Simulation: '{simulation}' has invalid rate value. The value should be bigger than 0."
+
+        | CustomStepOrderContainsNotFoundStepName (scenarioName, stepName) ->
+            $"Scenario: '{scenarioName}' contains not found step: '{stepName}' in CustomStepOrder."
+
+        | DuplicateScenarioNamesInConfig scenarioNames ->
+            $"Scenario names are not unique in JSON config: '{scenarioNames |> String.concatWithCommaAndQuotes}'."
 
 
     static member toString (error: AppError) =

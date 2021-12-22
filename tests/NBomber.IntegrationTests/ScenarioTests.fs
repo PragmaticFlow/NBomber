@@ -227,41 +227,39 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
     test <@ updatedScenarios.[0].WarmUpDuration = warmUp1 @>
     test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
 
-
-let data : obj[] seq =
-    seq {
-        yield [| Some [|1;0|]; [|1;0|] |]
-        yield [| Some [|1;1|]; [|1;1|] |]
-        yield [| None;         [|0;1|] |]
-    }
-
-[<Theory>]
-[<MemberData("data")>]
-let ``applyScenariosSettings() should reorder steps based on scenario settings``
-    (stepOrder: int [] option, orderedSteps: int []) =
-
-    let scnName = "scenario_1"
-    let step1 = Step.create("step 1", fun _ -> task { return Response.ok() })
-    let step2 = Step.create("step 2", fun _ -> task { return Response.ok() })
-
-    let settings = {
-        ScenarioName = scnName
-        WarmUpDuration = None
-        LoadSimulationsSettings = None
-        ClientFactorySettings = None
-        CustomStepOrder = stepOrder
-        CustomSettings = None
-    }
-
-    let originalScenarios =
-        [Scenario.create scnName [step1; step2]]
-        |> Scenario.createScenarios
-        |> Result.getOk
-
-    let updatedScenarios = Scenario.applySettings [settings] originalScenarios
-
-    test <@ updatedScenarios.[0].GetStepsOrder() = orderedSteps @>
-
+//let data: obj[] seq =
+//    seq {
+//        yield [| Some [|"step_2";"step_1"|] |]
+//        yield [| Some [|"step_1";"step_1";"step_2"|] |]
+//        yield [| None |]
+//    }
+//
+//[<Theory>]
+//[<MemberData("data")>]
+//let ``applyScenariosSettings() should reorder steps based on scenario settings`` (stepOrder: string[] option) =
+//
+//    let scnName = "scenario_1"
+//    let step1 = Step.create("step_1", fun _ -> task { return Response.ok() })
+//    let step2 = Step.create("step_2", fun _ -> task { return Response.ok() })
+//
+//    let settings = {
+//        ScenarioName = scnName
+//        WarmUpDuration = None
+//        LoadSimulationsSettings = None
+//        ClientFactorySettings = None
+//        CustomStepOrder = stepOrder
+//        CustomSettings = None
+//    }
+//
+//    let originalScenarios =
+//        [Scenario.create scnName [step1; step2]]
+//        |> Scenario.createScenarios
+//        |> Result.getOk
+//
+//    let updatedScenarios = Scenario.applySettings [settings] originalScenarios
+//    let stepsOrder = updatedScenarios[0].GetCustomStepOrder.Value()
+//
+//    test <@ updatedScenarios[0].DefaultStepOrder = [|0; 1|] @>
 
 [<Property>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
@@ -319,7 +317,7 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
     | _       -> failwith ""
 
 [<Fact>]
-let ``scenario should not fail when it has ambiguous step definition`` () =
+let ``scenario should fail when it has duplicate step names that has different implementations`` () =
     let step1 = Step.create("step 1", fun _ -> task { return Response.ok() })
     let step2 = Step.create("step 1", fun _ -> task { return Response.ok() })
     Scenario.create "1" [step1; step2]
@@ -327,7 +325,7 @@ let ``scenario should not fail when it has ambiguous step definition`` () =
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
-    |> Result.getOk
+    |> Result.getError
     |> ignore
 
 [<Fact>]
@@ -386,7 +384,7 @@ let ``withCustomStepOrder should allow to run steps with custom order`` () =
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-    |> Scenario.withCustomStepOrder(fun () -> [| 1 |])
+    |> Scenario.withCustomStepOrder(fun () -> [| "step_2" |])
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.getOk
@@ -396,7 +394,7 @@ let ``withCustomStepOrder should allow to run steps with custom order`` () =
         test <@ stepsStats.[1].Ok.Request.Count > 0 @>
 
 [<Fact>]
-let ``CustomStepOrder should allow to run steps with custom order`` () =
+let ``CustomStepOrder should be supported via config.json `` () =
 
     let step1 = Step.create("step_1", fun context -> task {
         do! Task.Delay(milliseconds 10)
@@ -411,15 +409,57 @@ let ``CustomStepOrder should allow to run steps with custom order`` () =
     Scenario.create "1" [step1; step2]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-    |> Scenario.withCustomStepOrder(fun () -> [| 1 |])
+    |> Scenario.withCustomStepOrder(fun () -> [| "step_2" |])
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.loadConfig "Configuration/step_order_config.json" // "StepOrder": [0]
+    |> NBomberRunner.loadConfig "Configuration/step_order_config.json" // "StepOrder": [step_1]
     |> NBomberRunner.run
     |> Result.getOk
-    |> fun f ->
-        let stepsStats = f.ScenarioStats.[0].StepStats
-                         |> Seq.filter(fun s -> s.Ok.Request.Count > 0 || s.Fail.Request.Count > 0)
+    |> fun nodeStats ->
+
+        let stepsStats =
+            nodeStats.ScenarioStats.[0].StepStats
+            |> Seq.filter(fun s -> s.Ok.Request.Count > 0 || s.Fail.Request.Count > 0)
+
         test <@ stepsStats |> Seq.forall(fun s -> s.StepName = "step_1") @>
+
+[<Fact>]
+let ``CustomStepOrderSettings should be validated `` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step_2", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    Scenario.create "1" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.loadConfig "Configuration/step_order_invalid_config.json" // "StepOrder": [step_not_found]
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error -> test <@ error.Contains("Scenario: '1' contains not found step: 'step_not_found'") @>
+
+[<Fact>]
+let ``ScenarioSettings should be validated on duplicates `` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    Scenario.create "1" [step1]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.loadConfig "Configuration/duplicate_scenarios_config.json" // duplicated scenario 1
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error -> test <@ error.Contains("Scenario names are not unique in JSON config") @>
 
 [<Fact>]
 let ``withStepTimeout should set step timeout`` () =

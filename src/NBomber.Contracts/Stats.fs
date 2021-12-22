@@ -141,11 +141,13 @@ type NodeStats = {
     ReportFiles: ReportFile[]
     Duration: TimeSpan
 } with
-    static member internal Empty =
-        { RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0L
-          ScenarioStats = Array.empty; PluginStats = Array.empty
-          NodeInfo = Unchecked.defaultof<_>; TestInfo = Unchecked.defaultof<_>
-          ReportFiles = Array.empty; Duration = TimeSpan.MinValue }
+
+    static member internal empty = {
+        RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0L
+        ScenarioStats = Array.empty; PluginStats = Array.empty
+        NodeInfo = Unchecked.defaultof<_>; TestInfo = Unchecked.defaultof<_>
+        ReportFiles = Array.empty; Duration = TimeSpan.MinValue
+    }
 
 type TimeLineHistoryRecord = {
     ScenarioStats: ScenarioStats[]
@@ -168,5 +170,10 @@ type NodeSessionResult = {
     TimeLineHistory: TimeLineHistoryRecord[]
     Hints: HintResult[]
 } with
-    static member internal Empty =
-        { FinalStats = NodeStats.Empty; TimeLineHistory = Array.empty; Hints = Array.empty }
+
+    [<CompiledName("Empty")>]
+    static member empty = {
+        FinalStats = NodeStats.empty
+        TimeLineHistory = Array.empty
+        Hints = Array.empty
+    }
