@@ -51,11 +51,11 @@ module internal PsPingPluginStatistics =
     let private createRow (table: DataTable, host: string, port: int, pingReply: PsPingReply, config: PsPingPluginConfig) =
         let row = table.NewRow()
 
-        row.["Host"] <- host
-        row.["Port"] <- port
-        row.["Status"] <- pingReply.Status.ToString()
-        row.["Address"] <- pingReply.Address.ToString()
-        row.["RoundTripTime"] <- $"%i{pingReply.RoundtripTime} ms"
+        row["Host"] <- host
+        row["Port"] <- port
+        row["Status"] <- pingReply.Status.ToString()
+        row["Address"] <- pingReply.Address.ToString()
+        row["RoundTripTime"] <- $"%i{pingReply.RoundtripTime} ms"
 
         row
 

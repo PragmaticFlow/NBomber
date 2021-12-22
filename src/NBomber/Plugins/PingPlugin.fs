@@ -66,13 +66,13 @@ module internal PingPluginStatistics =
     let private createRow (table: DataTable, host: string, pingReply: PingReply, config: PingPluginConfig) =
         let row = table.NewRow()
 
-        row.["Host"] <- host
-        row.["Status"] <- pingReply.Status.ToString()
-        row.["Address"] <- pingReply.Address.ToString()
-        row.["RoundTripTime"] <- $"%i{pingReply.RoundtripTime} ms"
-        row.["Ttl"] <- config.Ttl.ToString()
-        row.["DontFragment"] <- config.DontFragment.ToString()
-        row.["BufferSize"] <- $"%i{config.BufferSizeBytes} bytes"
+        row["Host"] <- host
+        row["Status"] <- pingReply.Status.ToString()
+        row["Address"] <- pingReply.Address.ToString()
+        row["RoundTripTime"] <- $"%i{pingReply.RoundtripTime} ms"
+        row["Ttl"] <- config.Ttl.ToString()
+        row["DontFragment"] <- config.DontFragment.ToString()
+        row["BufferSize"] <- $"%i{config.BufferSizeBytes} bytes"
 
         row
 

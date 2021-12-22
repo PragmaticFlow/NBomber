@@ -91,11 +91,11 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
                 tasks
                 |> List.iteri(fun i pbTask ->
                     if i > 0 then
-                        schedulers.[i - 1].EventStream
+                        schedulers[i - 1].EventStream
                         |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                         |> Observable.subscribeWithCompletion
                             (fun progressInfo ->
-                                let scenarioName = schedulers.[i - 1].Scenario.ScenarioName
+                                let scenarioName = schedulers[i - 1].Scenario.ScenarioName
                                 tickProgressTask pbTask scenarioName progressInfo
                                 pbTotalTask |> ProgressBar.defaultTick
                             )
@@ -104,7 +104,7 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
 
                                 if remainCount > 0.0 then
                                     let desc =
-                                        schedulers.[i - 1].Scenario.ScenarioName
+                                        schedulers[i - 1].Scenario.ScenarioName
                                         |> createDescriptionForStoppedTask
 
                                     pbTask

@@ -279,7 +279,7 @@ module MdNodeStats =
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) (document: Document) =
         stats.ScenarioStats
         |> Seq.fold(fun document scnStats ->
-            document |> printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName] |> addNewline
+            document |> printScenarioStats scnStats loadSimulations[scnStats.ScenarioName] |> addNewline
         ) document
 
 module MdPluginStats =
@@ -297,7 +297,7 @@ module MdPluginStats =
         let columns = table.GetColumns()
 
         table.GetRows()
-        |> Seq.map(fun row -> columns |> Seq.map(fun col -> row.[col] |> string) |> List.ofSeq)
+        |> Seq.map(fun row -> columns |> Seq.map(fun col -> row[col] |> string) |> List.ofSeq)
         |> List.ofSeq
 
     let private printPluginStatsTable (table: DataTable) (document: Document) =

@@ -74,7 +74,7 @@ module TimeLineHistory =
 module TimeLineHistoryRecord =
 
     let create (scnStats: ScenarioStats[]) = {
-        Duration = scnStats.[0].Duration
+        Duration = scnStats[0].Duration
         ScenarioStats = scnStats
     }
 

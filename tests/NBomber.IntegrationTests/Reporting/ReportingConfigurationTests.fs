@@ -166,5 +166,5 @@ let ``withoutReports should not save report files`` () =
 
     test <@ dirExist @>
     test <@ files.Length = 1 @> // here we check that all report formats were generated
-    test <@ FileInfo(files.[0]).Name.Contains "nbomber-log" @>
+    test <@ FileInfo(files[0]).Name.Contains "nbomber-log" @>
 

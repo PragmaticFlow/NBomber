@@ -24,10 +24,10 @@ let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) 
                       responses: (int * StepResponse)[]) =
 
         for (stepIndex, res) in responses do
-            let allStData = allData.[stepIndex]
-            let intervalStData = intervalData.[stepIndex]
-            allData.[stepIndex] <- StepStatsRawData.addResponse allStData res
-            intervalData.[stepIndex] <- StepStatsRawData.addResponse intervalStData res
+            let allStData = allData[stepIndex]
+            let intervalStData = intervalData[stepIndex]
+            allData[stepIndex] <- StepStatsRawData.addResponse allStData res
+            intervalData[stepIndex] <- StepStatsRawData.addResponse intervalStData res
 
     let createScenarioStats (stepsData, simulationStats, operation, duration, interval) =
         ScenarioStats.create scenario stepsData simulationStats operation duration interval

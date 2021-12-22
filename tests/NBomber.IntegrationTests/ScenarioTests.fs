@@ -223,9 +223,9 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
 
     let updatedScenarios = Scenario.applySettings [settings] originalScenarios
 
-    test <@ updatedScenarios.[0].PlanedDuration = duration1 @>
-    test <@ updatedScenarios.[0].WarmUpDuration = warmUp1 @>
-    test <@ updatedScenarios.[0].CustomSettings = settings.CustomSettings.Value @>
+    test <@ updatedScenarios[0].PlanedDuration = duration1 @>
+    test <@ updatedScenarios[0].WarmUpDuration = warmUp1 @>
+    test <@ updatedScenarios[0].CustomSettings = settings.CustomSettings.Value @>
 
 //let data: obj[] seq =
 //    seq {
@@ -389,9 +389,9 @@ let ``withCustomStepOrder should allow to run steps with custom order`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let stepsStats = stats.ScenarioStats.[0].StepStats
-        test <@ stepsStats.[0].Ok.Request.Count = 0 @>
-        test <@ stepsStats.[1].Ok.Request.Count > 0 @>
+        let stepsStats = stats.ScenarioStats[0].StepStats
+        test <@ stepsStats[0].Ok.Request.Count = 0 @>
+        test <@ stepsStats[1].Ok.Request.Count > 0 @>
 
 [<Fact>]
 let ``CustomStepOrder should be supported via config.json `` () =
@@ -417,7 +417,7 @@ let ``CustomStepOrder should be supported via config.json `` () =
     |> fun nodeStats ->
 
         let stepsStats =
-            nodeStats.ScenarioStats.[0].StepStats
+            nodeStats.ScenarioStats[0].StepStats
             |> Seq.filter(fun s -> s.Ok.Request.Count > 0 || s.Fail.Request.Count > 0)
 
         test <@ stepsStats |> Seq.forall(fun s -> s.StepName = "step_1") @>
@@ -476,8 +476,8 @@ let ``withStepTimeout should set step timeout`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let stepsStats = stats.ScenarioStats.[0].StepStats
-        test <@ stepsStats.[0].Ok.Request.Count = 0 @>
-        test <@ stepsStats.[0].Fail.Request.Count > 0 @>
-        test <@ stepsStats.[0].Fail.StatusCodes.[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
-        test <@ stepsStats.[0].Fail.StatusCodes.[0].Count = stepsStats.[0].Fail.Request.Count @>
+        let stepsStats = stats.ScenarioStats[0].StepStats
+        test <@ stepsStats[0].Ok.Request.Count = 0 @>
+        test <@ stepsStats[0].Fail.Request.Count > 0 @>
+        test <@ stepsStats[0].Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
+        test <@ stepsStats[0].Fail.StatusCodes[0].Count = stepsStats[0].Fail.Request.Count @>

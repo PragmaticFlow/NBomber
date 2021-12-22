@@ -26,7 +26,7 @@ let constant (name, getData: IBaseContext -> 'T seq) =
 
         member _.GetNextItem(scenarioInfo, stepData) =
             let index = scenarioInfo.ThreadNumber % _allItems.Length
-            _allItems.[index] }
+            _allItems[index] }
 
 let circular (name, getData: IBaseContext -> 'T seq) =
     let mutable _enumerator = Unchecked.defaultof<_>
@@ -57,7 +57,7 @@ let random (name, getData: IBaseContext -> 'T seq) =
 
     let getRandomItem () =
         let index = _random.Next(_allItems.Length)
-        _allItems.[index]
+        _allItems[index]
 
     { new IFeed<'T> with
         member _.FeedName = name

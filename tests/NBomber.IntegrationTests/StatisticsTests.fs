@@ -211,9 +211,9 @@ let ``NodeStats should be calculated properly`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let scnStats = stats.ScenarioStats.[0]
-        let st1 = scnStats.StepStats.[0]
-        let st2 = scnStats.StepStats.[1]
+        let scnStats = stats.ScenarioStats[0]
+        let st1 = scnStats.StepStats[0]
+        let st2 = scnStats.StepStats[1]
 
         test <@ st1.Ok.Request.Count >= 5 && st1.Ok.Request.Count <= 10 @>
         test <@ st1.Ok.DataTransfer.MinBytes = 100 @>
@@ -253,10 +253,10 @@ let ``status codes should be calculated properly`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let allCodes = stats.ScenarioStats.[0].StatusCodes
-        let okStCodes = stats.ScenarioStats.[0].StepStats.[0].Ok.StatusCodes
-        let okNoStatusStCodes = stats.ScenarioStats.[0].StepStats.[1].Ok.StatusCodes
-        let failStCodes = stats.ScenarioStats.[0].StepStats.[2].Fail.StatusCodes
+        let allCodes = stats.ScenarioStats[0].StatusCodes
+        let okStCodes = stats.ScenarioStats[0].StepStats[0].Ok.StatusCodes
+        let okNoStatusStCodes = stats.ScenarioStats[0].StepStats[1].Ok.StatusCodes
+        let failStCodes = stats.ScenarioStats[0].StepStats[2].Fail.StatusCodes
 
         test <@ allCodes
                 |> Seq.find(fun x -> x.StatusCode = 10 || x.StatusCode = -10)

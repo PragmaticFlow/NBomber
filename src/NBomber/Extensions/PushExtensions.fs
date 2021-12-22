@@ -59,7 +59,7 @@ type internal ActorState =
             | _ -> ()
 
         | SubscribeOnResponse (awaiterTsc, clientId) ->
-            let clientResponses = state.ClientResponses.[clientId]
+            let clientResponses = state.ClientResponses[clientId]
             if clientResponses.Count > 0 then
                 let response = clientResponses.Dequeue()
                 awaiterTsc.TrySetResult(response) |> ignore

@@ -80,7 +80,7 @@ module TxtStatusCodeStats =
         let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
 
         let table = ConsoleTable("status code", "count", "message")
-        allStatusCodes |> Seq.iter(fun x -> table.AddRow(x.[0], x.[1], x.[2]) |> ignore)
+        allStatusCodes |> Seq.iter(fun x -> table.AddRow(x[0], x[1], x[2]) |> ignore)
         table.ToStringAlternative()
 
 module TxtNodeStats =
@@ -212,7 +212,7 @@ module TxtNodeStats =
         stepStats
         |> Array.mapi createOkStepStatsRow
         |> Seq.concat
-        |> Seq.iter(fun row -> table.AddRow(row.[0], row.[1]) |> ignore)
+        |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
 
         table.ToStringAlternative()
 
@@ -223,7 +223,7 @@ module TxtNodeStats =
         |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
         |> Seq.mapi createFailStepStatsRow
         |> Seq.concat
-        |> Seq.iter(fun row -> table.AddRow(row.[0], row.[1]) |> ignore)
+        |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
 
         table.ToStringAlternative()
 
@@ -245,7 +245,7 @@ module TxtNodeStats =
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats
         |> Array.map(fun scnStats ->
-            printScenarioStats scnStats loadSimulations.[scnStats.ScenarioName]
+            printScenarioStats scnStats loadSimulations[scnStats.ScenarioName]
         )
         |> Seq.concat
         |> String.concatLines
@@ -261,7 +261,7 @@ module TxtPluginStats =
         let consoleTable = ConsoleTable(columnCaptions)
 
         table.GetRows()
-        |> Array.map(fun x -> columnNames |> Array.map(fun columnName -> x.[columnName]))
+        |> Array.map(fun x -> columnNames |> Array.map(fun columnName -> x[columnName]))
         |> Array.iter(fun x -> consoleTable.AddRow(x) |> ignore)
 
         consoleTable.ToStringAlternative()
