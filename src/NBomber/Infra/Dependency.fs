@@ -77,7 +77,9 @@ module internal ResourceManager =
 
 module internal NodeInfo =
 
-    let init () =
+    let init (nbVersion: Version option) =
+
+        let version = nbVersion |> Option.defaultValue(typeof<ReportingContext>.Assembly.GetName().Version)
 
         let dotNetVersion =
             let assembly =
@@ -87,7 +89,6 @@ module internal NodeInfo =
             assembly.GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName
 
         let processor = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
-        let version = typeof<ApplicationType>.Assembly.GetName().Version
 
         { MachineName = Environment.MachineName
           NodeType = NodeType.SingleNode
