@@ -15,8 +15,11 @@ let run () =
 
         let! response = httpClient.GetAsync("https://nbomber.com", context.CancellationToken)
 
-        return if response.IsSuccessStatusCode then Response.ok(statusCode = int response.StatusCode)
-               else Response.fail(statusCode = int response.StatusCode)
+        return
+            if response.IsSuccessStatusCode then
+                Response.ok(statusCode = int response.StatusCode, message = "test ok message")
+            else
+                Response.fail(statusCode = int response.StatusCode, error = "test error message")
     })
 
     Scenario.create "simple_http" [step]

@@ -15,7 +15,7 @@ open NBomber.Contracts.Stats
 type Response = {
     StatusCode: Nullable<int>
     IsError: bool
-    ErrorMessage: string
+    Message: string
     SizeBytes: int
     LatencyMs: float
     Payload: obj
@@ -154,24 +154,26 @@ type Response with
     static member ok([<Optional;DefaultParameterValue(null)>] payload: obj,
                      [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
                      [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
-                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
+                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float,
+                     [<Optional;DefaultParameterValue("")>] message: string) =
 
         { StatusCode = statusCode
           IsError = false
           SizeBytes = sizeBytes
-          ErrorMessage = String.Empty
+          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
           Payload = payload }
 
     [<CompiledName("Ok")>]
     static member ok(payload: byte[],
                      [<Optional;DefaultParameterValue(Nullable<int>())>] statusCode: Nullable<int>,
-                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) =
+                     [<Optional;DefaultParameterValue(0.0)>] latencyMs: float,
+                     [<Optional;DefaultParameterValue("")>] message: string) =
 
         { StatusCode = statusCode
           IsError = false
           SizeBytes = if isNull payload then 0 else payload.Length
-          ErrorMessage = String.Empty
+          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
           Payload = payload }
 
@@ -184,7 +186,7 @@ type Response with
         { StatusCode = statusCode
           IsError = true
           SizeBytes = sizeBytes
-          ErrorMessage = if isNull error then String.Empty else error
+          Message = if isNull error then String.Empty else error
           LatencyMs = latencyMs
           Payload = null }
 
@@ -197,6 +199,6 @@ type Response with
         { StatusCode = statusCode
           IsError = true
           SizeBytes = sizeBytes
-          ErrorMessage = if isNull error then String.Empty else error.Message
+          Message = if isNull error then String.Empty else error.Message
           LatencyMs = latencyMs
           Payload = null }
