@@ -30,7 +30,7 @@ module StepStatsRawData =
         let stepResMs = 42.0
 
         let clientResponse = { StatusCode = Nullable(); IsError = false
-                               ErrorMessage = ""; SizeBytes = 10
+                               Message = ""; SizeBytes = 10
                                LatencyMs = clientResMs; Payload = null }
         let stepResponse = {
             ClientResponse = clientResponse
@@ -59,7 +59,7 @@ module StepStatsRawData =
         |> List.iter(fun latency ->
             let clientResponse = {
                 StatusCode = Nullable(); IsError = false
-                ErrorMessage = ""; SizeBytes = 10
+                Message = ""; SizeBytes = 10
                 LatencyMs = float latency; Payload = null
             }
             let stepResponse = {
@@ -92,7 +92,7 @@ module StepStatsRawData =
         |> Seq.iter(fun (isOk,latency) ->
             let clientResponse = {
                 StatusCode = Nullable(); IsError = not isOk
-                ErrorMessage = ""; SizeBytes = 10
+                Message = ""; SizeBytes = 10
                 LatencyMs = 0.0; Payload = null
             }
             let stepResponse = { // only stepResponse latency will be included
@@ -146,7 +146,7 @@ module StepStatsRawData =
         |> Seq.iter(fun (isOk,resSize) ->
             let clientResponse = {
                 StatusCode = Nullable(); IsError = not isOk
-                ErrorMessage = ""; SizeBytes = resSize
+                Message = ""; SizeBytes = resSize
                 LatencyMs = 1.0; Payload = null
             }
             let stepResponse = {

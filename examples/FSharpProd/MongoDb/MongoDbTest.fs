@@ -1,10 +1,10 @@
 module FSharpProd.MongoDb.MongoDbTest
 
-open System
 open FSharp.Control.Tasks.NonAffine
 open MongoDB.Bson
 open MongoDB.Bson.Serialization.Attributes
 open MongoDB.Driver
+
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -25,7 +25,7 @@ let run () =
         let testData =
             [0..2000]
             |> Seq.map(fun i -> { Id = ObjectId.GenerateNewId()
-                                  Name = sprintf "test user %i" i
+                                  Name = $"test user {i}"
                                   Age = i
                                   IsActive = true })
             |> Seq.toList
@@ -43,7 +43,7 @@ let run () =
 
         let! response =
             usersCollection.Find(fun u -> u.IsActive)
-                           .Limit(Nullable<int> 500)
+                           .Limit(500)
                            .ToListAsync()
 
         return Response.ok();

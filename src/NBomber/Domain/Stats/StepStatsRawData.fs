@@ -41,7 +41,7 @@ let addResponse (stData: StepStatsRawData) (response: StepResponse) =
         | false, _ ->
             statuses[statusCode] <- { StatusCode = statusCode
                                       IsError = res.IsError
-                                      Message = res.ErrorMessage
+                                      Message = res.Message
                                       Count = 1 }
 
     let clientRes = response.ClientResponse
