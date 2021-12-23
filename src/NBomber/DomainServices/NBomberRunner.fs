@@ -38,7 +38,7 @@ let run (context: NBomberContext) =
         TestName = NBomberContext.getTestName(context)
     }
 
-    let nodeInfo = NodeInfo.init()
+    let nodeInfo = NodeInfo.init None
     let appType = NodeInfo.getApplicationType()
     let reportFolder = context |> NBomberContext.getReportFolderOrDefault(testInfo.SessionId)
 

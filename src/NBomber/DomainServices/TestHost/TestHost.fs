@@ -33,7 +33,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     let mutable _currentOperation = OperationType.None
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _cancelToken = new CancellationTokenSource()
-    let _defaultNodeInfo = NodeInfo.init()
+    let _defaultNodeInfo = NodeInfo.init None
 
     let getCurrentNodeInfo () =
         { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }

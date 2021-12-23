@@ -26,7 +26,7 @@ type User = {
 }
 
 let createBaseContext () =
-    let nodeInfo = NodeInfo.init()
+    let nodeInfo = NodeInfo.init None
     let token = CancellationToken.None
     let dep = Dependency.createFor NodeType.SingleNode
     NBomberContext.createBaseContext(dep.TestInfo, nodeInfo, token, dep.Dep.Logger)

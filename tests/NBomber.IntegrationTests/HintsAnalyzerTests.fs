@@ -24,7 +24,7 @@ let baseNodeStats = {
     AllBytes = 0L
     ScenarioStats = Array.empty
     PluginStats = Array.empty
-    NodeInfo = NodeInfo.init()
+    NodeInfo = NodeInfo.init None
     TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
     ReportFiles = Array.empty
     Duration = TimeSpan.MinValue
