@@ -122,7 +122,13 @@ type ScenarioStats = {
     StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
-}
+} with
+
+    member this.GetStepStats(stepName: string) = ScenarioStats.getStepStats stepName this
+
+    [<CompiledName("GetStepStats")>]
+    static member getStepStats (stepName: string) (scenarioStats: ScenarioStats) =
+        scenarioStats.StepStats |> Array.find(fun x -> x.StepName = stepName)
 
 type ReportFile = {
     FilePath: string
@@ -142,12 +148,19 @@ type NodeStats = {
     Duration: TimeSpan
 } with
 
-    static member internal empty = {
+    member this.GetScenarioStats(scenarioName: string) = NodeStats.getScenarioStats scenarioName this
+
+    [<CompiledName("Empty")>]
+    static member empty = {
         RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0L
         ScenarioStats = Array.empty; PluginStats = Array.empty
         NodeInfo = Unchecked.defaultof<_>; TestInfo = Unchecked.defaultof<_>
         ReportFiles = Array.empty; Duration = TimeSpan.MinValue
     }
+
+    [<CompiledName("GetScenarioStats")>]
+    static member getScenarioStats (scenarioName: string) (nodeStats: NodeStats) =
+        nodeStats.ScenarioStats |> Array.find(fun x -> x.ScenarioName = scenarioName)
 
 type TimeLineHistoryRecord = {
     ScenarioStats: ScenarioStats[]

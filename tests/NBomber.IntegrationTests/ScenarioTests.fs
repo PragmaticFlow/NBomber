@@ -3,7 +3,6 @@
 open System
 open System.Threading.Tasks
 
-open NBomber.Contracts
 open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
@@ -14,6 +13,7 @@ open NBomber
 open NBomber.Extensions.InternalExtensions
 open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.FSharp
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -227,40 +227,6 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
     test <@ updatedScenarios[0].WarmUpDuration = warmUp1 @>
     test <@ updatedScenarios[0].CustomSettings = settings.CustomSettings.Value @>
 
-//let data: obj[] seq =
-//    seq {
-//        yield [| Some [|"step_2";"step_1"|] |]
-//        yield [| Some [|"step_1";"step_1";"step_2"|] |]
-//        yield [| None |]
-//    }
-//
-//[<Theory>]
-//[<MemberData("data")>]
-//let ``applyScenariosSettings() should reorder steps based on scenario settings`` (stepOrder: string[] option) =
-//
-//    let scnName = "scenario_1"
-//    let step1 = Step.create("step_1", fun _ -> task { return Response.ok() })
-//    let step2 = Step.create("step_2", fun _ -> task { return Response.ok() })
-//
-//    let settings = {
-//        ScenarioName = scnName
-//        WarmUpDuration = None
-//        LoadSimulationsSettings = None
-//        ClientFactorySettings = None
-//        CustomStepOrder = stepOrder
-//        CustomSettings = None
-//    }
-//
-//    let originalScenarios =
-//        [Scenario.create scnName [step1; step2]]
-//        |> Scenario.createScenarios
-//        |> Result.getOk
-//
-//    let updatedScenarios = Scenario.applySettings [settings] originalScenarios
-//    let stepsOrder = updatedScenarios[0].GetCustomStepOrder.Value()
-//
-//    test <@ updatedScenarios[0].DefaultStepOrder = [|0; 1|] @>
-
 [<Property>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
 
@@ -389,7 +355,7 @@ let ``withCustomStepOrder should allow to run steps with custom order`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let stepsStats = stats.ScenarioStats[0].StepStats
+        let stepsStats = stats.GetScenarioStats("1").StepStats
         test <@ stepsStats[0].Ok.Request.Count = 0 @>
         test <@ stepsStats[1].Ok.Request.Count > 0 @>
 
@@ -475,9 +441,10 @@ let ``withStepTimeout should set step timeout`` () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.getOk
-    |> fun stats ->
-        let stepsStats = stats.ScenarioStats[0].StepStats
-        test <@ stepsStats[0].Ok.Request.Count = 0 @>
-        test <@ stepsStats[0].Fail.Request.Count > 0 @>
-        test <@ stepsStats[0].Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
-        test <@ stepsStats[0].Fail.StatusCodes[0].Count = stepsStats[0].Fail.Request.Count @>
+    |> NodeStats.getScenarioStats "1"
+    |> ScenarioStats.getStepStats "step_1"
+    |> fun stepsStats ->
+        test <@ stepsStats.Ok.Request.Count = 0 @>
+        test <@ stepsStats.Fail.Request.Count > 0 @>
+        test <@ stepsStats.Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
+        test <@ stepsStats.Fail.StatusCodes[0].Count = stepsStats.Fail.Request.Count @>
