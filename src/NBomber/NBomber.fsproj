@@ -48,6 +48,7 @@
         <Compile Include="Infra\ProgressBar.fs" />
         <Compile Include="Infra\Dependency.fs" />
         <Compile Include="DomainServices\NBomberContext.fs" />
+        <Compile Include="DomainServices\Reports\ReportHelper.fs" />
         <Compile Include="DomainServices\Reports\TxtReport.fs" />
         <Compile Include="DomainServices\Reports\CsvReport.fs" />
         <Compile Include="DomainServices\Reports\HtmlReport.fs" />

@@ -12,13 +12,15 @@ open NBomber.Extensions.InternalExtensions
 open NBomber.Contracts
 
 type ClientFactory<'TClient>(name: string,
+                             originalName: string, // used for correct printout "scenarioName.clientFactoryName"
                              clientCount: int,
                              initClient: int * IBaseContext -> Task<'TClient>, // number * context
                              disposeClient: 'TClient * IBaseContext -> Task) =
 
-    // we use lazy to have the ability to check on duplicates (that has the same name but different instances) within one scenario
+    // we use lazy to prevent multiply initialization in one scenario
+    // also, we do check on duplicates (that has the same name but different implementation) within one scenario
     let untypedFactory = lazy (
-        ClientFactory<obj>(name, clientCount,
+        ClientFactory<obj>(name, originalName, clientCount,
             initClient = (fun (number,token) -> task {
                 let! client = initClient(number, token)
                 return client :> obj
@@ -28,9 +30,11 @@ type ClientFactory<'TClient>(name: string,
     )
 
     member _.FactoryName = name
+    member _.OriginalFactoryName = originalName
+    member _.ClientCount = clientCount
     member _.GetUntyped() = untypedFactory.Value
-    member _.Clone(newName: string) = ClientFactory<'TClient>(newName, clientCount, initClient, disposeClient)
-    member _.Clone(newClientCount: int) = ClientFactory<'TClient>(name, newClientCount, initClient, disposeClient)
+    member _.Clone(newName: string) = ClientFactory<'TClient>(newName, originalName, clientCount, initClient, disposeClient)
+    member _.Clone(newClientCount: int) = ClientFactory<'TClient>(name, originalName, newClientCount, initClient, disposeClient)
 
     interface IClientFactory<'TClient> with
         member _.FactoryName = name
@@ -104,7 +108,7 @@ type ClientPool(factory: IClientFactory<obj>) =
     let disposePool (context: IBaseContext) =
         if not _disposed then
             _disposed <- true
-            disposeAllClients(context)
+            disposeAllClients context
             _eventStream.OnCompleted()
             _eventStream.Dispose()
 
@@ -112,5 +116,5 @@ type ClientPool(factory: IClientFactory<obj>) =
     member _.ClientCount = factory.ClientCount
     member _.InitializedClients = _initializedClients
     member _.EventStream = _eventStream :> IObservable<_>
-    member _.Init(context) = initPool(context)
-    member _.DisposePool(context) = disposePool(context)
+    member _.Init(context) = initPool context
+    member _.DisposePool(context) = disposePool context

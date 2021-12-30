@@ -9,79 +9,42 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain
-open NBomber.Domain.Stats
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
+open NBomber.Domain.Stats
 
 module TxtTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
-        [$"test suite: '{testInfo.TestSuite}'"; $"test name: '{testInfo.TestName}'"]
+        ["test info"
+         $"test suite: {testInfo.TestSuite}"
+         $"test name: {testInfo.TestName}"
+         $"session id: {testInfo.SessionId}"]
         |> String.concatLines
         |> String.appendNewLine
 
 module TxtStatusCodeStats =
 
+    let private createTableRows = ReportHelper.StatusCodesStats.createTableRows None None
+
     let printScenarioHeader (scenarioName: string) =
-        $"status codes for scenario: '{scenarioName}'"
+        $"status codes for scenario: {scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats) =
-        let okStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let failStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let okStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let failStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let okNotAvailableStatusCodes =
-            if okStatusCodesCount < scnStats.OkCount then
-                List.singleton [
-                  "ok (no status)"
-                  (scnStats.OkCount - okStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let failNotAvailableStatusCodes =
-            if failStatusCodesCount < scnStats.FailCount then
-                List.singleton [
-                  "fail (no status)"
-                  (scnStats.FailCount - failStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
-
+        let rows = createTableRows scnStats
         let table = ConsoleTable("status code", "count", "message")
-        allStatusCodes |> Seq.iter(fun x -> table.AddRow(x[0], x[1], x[2]) |> ignore)
+        rows |> Seq.iter(fun x -> table.AddRow(x[0], x[1], x[2]) |> ignore)
         table.ToStringAlternative()
+
+module TxtLoadSimulations =
+
+    let private printLoadSimulation =
+        let okColor = None
+        ReportHelper.LoadSimulation.print okColor
+
+    let print (simulations: LoadSimulation list) =
+        let simulationsList = simulations |> List.map(printLoadSimulation) |> String.concatLines
+        $"load simulations: {Environment.NewLine}{simulationsList}"
 
 module TxtNodeStats =
 
@@ -92,161 +55,85 @@ module TxtNodeStats =
         $"{bytes |> Statistics.Converter.fromBytesToMb} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        $"scenario: '{scnStats.ScenarioName}', duration: '{scnStats.Duration}'" +
-        $", ok count: {scnStats.OkCount}, fail count: {scnStats.FailCount}, all data: {scnStats.AllBytes |> printAllData} MB"
+        $"scenario: {scnStats.ScenarioName}{Environment.NewLine}"
+        + $"  - ok count: {scnStats.OkCount}{Environment.NewLine}"
+        + $"  - fail count: {scnStats.FailCount}{Environment.NewLine}"
+        + $"  - all data: {printAllData scnStats.AllBytes}{Environment.NewLine}"
+        + $"  - duration: {scnStats.Duration}"
 
-    let private printLoadSimulation (simulation: LoadSimulation) =
-        let simulationName = LoadTimeLine.getSimulationName(simulation)
+    let private printStepStatsHeader (stepStats: StepStats[]) =
+        let print (stats) =
+            $"step: {stats.StepName}{Environment.NewLine}"
+            + $"  - timeout: {stats.StepInfo.Timeout.Milliseconds} ms{Environment.NewLine}"
+            + $"  - client factory: {stats.StepInfo.ClientFactoryName}, clients: {stats.StepInfo.ClientFactoryClientCount}{Environment.NewLine}"
 
-        match simulation with
-        | RampConstant (copies, during)     ->
-            $"load simulation: '{simulationName}'" +
-            $", copies: {copies}" +
-            $", during: '{during}'"
+        stepStats |> Seq.map print |> String.concatLines
 
-        | KeepConstant (copies, during)     ->
-            $"load simulation: '{simulationName}'" +
-            $", copies: {copies}" +
-            $", during: '{during}'"
-
-        | RampPerSec (rate, during)         ->
-            $"load simulation: '{simulationName}'" +
-            $", rate: {rate}" +
-            $", during: '{during}'"
-
-        | InjectPerSec (rate, during)       ->
-            $"load simulation: '{simulationName}'" +
-            $", rate: {rate}" +
-            $", during: '{during}'"
-
-        | InjectPerSecRandom (minRate, maxRate, during) ->
-            $"load simulation: '{simulationName}'" +
-            $", min rate: {minRate}" +
-            $", max rate: {maxRate}" +
-            $", during: '{during}'"
-
-    let private printLoadSimulations (simulations: LoadSimulation list) =
-        simulations |> Seq.map printLoadSimulation |> String.concatLines
-
-    let private createOkStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let okRPS = s.Ok.Request.RPS
-        let okLatency = s.Ok.Latency
-        let okDataTransfer = s.Ok.DataTransfer
+    let private printStepStatsRow (isOkStats: bool) (stepIndex: int) (stats: StepStats) =
+        let allReqCount = Statistics.StepStats.getAllRequestCount stats
+        let data = if isOkStats then stats.Ok else stats.Fail
 
         let reqCount =
-            $"all = {allReqCount}" +
-            $", ok = {okReqCount}" +
-            $", RPS = {okRPS}"
+            if isOkStats then $"all = {allReqCount}, ok = {data.Request.Count}, RPS = {data.Request.RPS}"
+            else $"all = {allReqCount}, fail = {data.Request.Count}, RPS = {data.Request.RPS}"
 
-        let okLatencies =
-            $"min = {okLatency.MinMs}" +
-            $", mean = {okLatency.MeanMs}" +
-            $", max = {okLatency.MaxMs}" +
-            $", StdDev = {okLatency.StdDev}"
+        let latencies =
+            $"min = {data.Latency.MinMs}" +
+            $", mean = {data.Latency.MeanMs}" +
+            $", max = {data.Latency.MaxMs}" +
+            $", StdDev = {data.Latency.StdDev}"
 
-        let okPercentile =
-            $"50%% = {okLatency.Percent50}" +
-            $", 75%% = {okLatency.Percent75}" +
-            $", 95%% = {okLatency.Percent95}" +
-            $", 99%% = {okLatency.Percent99}"
+        let percentiles =
+            $"50%% = {data.Latency.Percent50}" +
+            $", 75%% = {data.Latency.Percent75}" +
+            $", 95%% = {data.Latency.Percent95}" +
+            $", 99%% = {data.Latency.Percent99}"
 
-        let okDt =
-            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {okDataTransfer.AllBytes |> printAllData}"
+        let dataTransfer =
+            $"min = {printDataKb data.DataTransfer.MinBytes}" +
+            $", mean = {printDataKb data.DataTransfer.MeanBytes}" +
+            $", max = {printDataKb data.DataTransfer.MaxBytes}" +
+            $", all = {printAllData data.DataTransfer.AllBytes}"
 
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name]
+        [ if stepIndex > 0 then [String.Empty; String.Empty]
+          ["name"; stats.StepName]
           ["request count"; reqCount]
-          ["latency"; okLatencies]
-          ["latency percentile"; okPercentile]
-          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
+          ["latency"; latencies]
+          ["latency percentile"; percentiles]
+          if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
 
-    let private createFailStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let failRPS = s.Fail.Request.RPS
-        let failLatency = s.Fail.Latency
-        let failDataTransfer = s.Fail.DataTransfer
-
-        let reqCount =
-            $"all = {allReqCount}" +
-            $", fail = {failReqCount}" +
-            $", RPS = {failRPS}"
-
-        let failLatencies =
-            $"min = {failLatency.MinMs}" +
-            $", mean = {failLatency.MeanMs}" +
-            $", max = {failLatency.MaxMs}" +
-            $", StdDev = {failLatency.StdDev}"
-
-        let failPercentile =
-            $"50%% = {failLatency.Percent50}" +
-            $", 75%% = {failLatency.Percent75}" +
-            $", 95%% = {failLatency.Percent95}" +
-            $", 99%% = {failLatency.Percent99}"
-
-        let failDt =
-            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {failDataTransfer.AllBytes |> printAllData}"
-
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name]
-          ["request count"; reqCount]
-          ["latency"; failLatencies]
-          ["latency percentile"; failPercentile]
-          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
-
-    let private printOkStepStatsTable (stepStats: StepStats[]) =
-        let table = ConsoleTable("step", "ok stats")
+    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+        let table =
+            if isOkStats then ConsoleTable("step", "ok stats")
+            else ConsoleTable("step", "fail stats")
 
         stepStats
-        |> Array.mapi createOkStepStatsRow
+        |> Seq.mapi(printStepStatsRow isOkStats)
         |> Seq.concat
         |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
 
         table.ToStringAlternative()
 
-    let private printFailStepStatsTable (stepStats: StepStats[]) =
-        let table = ConsoleTable("step", "fail stats")
-
-        stepStats
-        |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
-        |> Seq.mapi createFailStepStatsRow
-        |> Seq.concat
-        |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
-
-        table.ToStringAlternative()
-
-    let private failStepStatsExist (stepStats: StepStats[]) =
-        stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
+    let private printScenarioStatusCodes (scnStats: ScenarioStats) =
+        [ TxtStatusCodeStats.printScenarioHeader scnStats.ScenarioName
+          TxtStatusCodeStats.printStatusCodeTable scnStats ]
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
-        [ printScenarioHeader(scnStats)
-          printLoadSimulations(simulations)
-          printOkStepStatsTable(scnStats.StepStats)
+        [ scnStats           |> printScenarioHeader      |> String.appendNewLine
+          simulations        |> TxtLoadSimulations.print |> String.appendNewLine
+          scnStats.StepStats |> printStepStatsHeader
 
-          if failStepStatsExist(scnStats.StepStats) then
-              printFailStepStatsTable(scnStats.StepStats)
+          printStepStatsTable true scnStats.StepStats
+
+          if Statistics.ScenarioStats.failStepStatsExist scnStats then
+              printStepStatsTable false scnStats.StepStats
 
           if scnStats.StatusCodes.Length > 0 then
-             TxtStatusCodeStats.printScenarioHeader(scnStats.ScenarioName)
-             TxtStatusCodeStats.printStatusCodeTable(scnStats) ]
+              yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats
-        |> Array.map(fun scnStats ->
-            printScenarioStats scnStats loadSimulations[scnStats.ScenarioName]
-        )
+        |> Seq.map(fun scnStats -> printScenarioStats scnStats loadSimulations[scnStats.ScenarioName])
         |> Seq.concat
         |> String.concatLines
 
@@ -261,19 +148,18 @@ module TxtPluginStats =
         let consoleTable = ConsoleTable(columnCaptions)
 
         table.GetRows()
-        |> Array.map(fun x -> columnNames |> Array.map(fun columnName -> x[columnName]))
-        |> Array.iter(fun x -> consoleTable.AddRow(x) |> ignore)
+        |> Seq.map(fun x -> columnNames |> Array.map(fun columnName -> x[columnName]))
+        |> Seq.iter(fun x -> consoleTable.AddRow(x) |> ignore)
 
         consoleTable.ToStringAlternative()
 
     let printPluginStats (stats: NodeStats) =
         stats.PluginStats
         |> Seq.collect(fun dataSet -> dataSet.GetTables())
-        |> Seq.collect(fun table ->
-            seq {
-                printPluginStatsHeader(table)
-                printPluginStatsTable(table)
-            })
+        |> Seq.collect(fun table -> seq {
+            printPluginStatsHeader table
+            printPluginStatsTable table
+        })
         |> String.concatLines
 
 module TxtHints =
@@ -292,7 +178,7 @@ module TxtHints =
         if hints.Length > 0 then
             seq {
                 yield printHintsHeader()
-                yield printHintsTable(hints)
+                yield printHintsTable hints
             }
             |> String.concatLines
         else

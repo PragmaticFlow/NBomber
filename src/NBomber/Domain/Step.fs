@@ -172,7 +172,7 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
                          EndTimeMs = endTime
                          LatencyMs = latency }
             else
-                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.Milliseconds} ms")
                          EndTimeMs = endTime
                          LatencyMs = latency }
     with
@@ -219,7 +219,7 @@ let execSteps (dep: StepDep,
                         | false ->
                             stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed")
 
 let execStepsAsync (dep: StepDep,
                     steps: RunningStep[],
@@ -248,7 +248,7 @@ let execStepsAsync (dep: StepDep,
                         | false ->
                             stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from scenario '{dep.ScenarioInfo.ScenarioName}' has failed")
 }
 
 let isAllExecSync (steps: Step list) =

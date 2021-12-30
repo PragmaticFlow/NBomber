@@ -35,7 +35,7 @@ type ClientFactory =
             if isNull(disposeClient :> obj) then defaultDispose
             else disposeClient.Invoke
 
-        NBomber.Domain.ClientPool.ClientFactory(name, clientCount, initClient.Invoke, dispose)
+        NBomber.Domain.ClientPool.ClientFactory(name, name, clientCount, initClient.Invoke, dispose)
         :> IClientFactory<'TClient>
 
 /// DataFeed helps inject test data into your load test. It represents a data source.

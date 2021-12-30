@@ -11,12 +11,11 @@ open NBomber.Plugins.Network.Ping
 
 let run () =
 
-    let httpFactory =
-        ClientFactory.create(name = "http_factory",
-                             clientCount = 1,
-                             initClient = fun (number,context) -> task {
-                                 return new HttpClient()
-                             })
+    let httpFactory = ClientFactory.create(
+        name = "http_factory",
+        clientCount = 1,
+        initClient = fun (number,context) -> task { return new HttpClient() }
+    )
 
     let step = Step.create("fetch_html_page",
                            clientFactory = httpFactory,
@@ -31,7 +30,7 @@ let run () =
         | false -> return Response.fail(statusCode = int response.StatusCode)
     })
 
-    let pingPluginConfig = PingPluginConfig.CreateDefault ["nbomber.com"]
+    let pingPluginConfig = PingPluginConfig.createDefault ["nbomber.com"]
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     Scenario.create "simple_http" [step]

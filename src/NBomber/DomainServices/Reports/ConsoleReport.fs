@@ -17,255 +17,141 @@ open NBomber.Infra
 module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
-        [ Console.addHeader("test info")
-          Console.addLine(String.Empty)
-          Console.addLine($"test suite: '{testInfo.TestSuite |> Console.escapeMarkup |> Console.highlightPrimary}'")
-          Console.addLine($"test name: '{testInfo.TestName |> Console.escapeMarkup |> Console.highlightPrimary}'")
-          Console.addLine(String.Empty) ]
+        [ Console.addHeader "test info"
+          Console.addLine String.Empty
+          Console.addLine $"test suite: {testInfo.TestSuite |> Console.escapeMarkup |> Console.okColor}"
+          Console.addLine $"test name: {testInfo.TestName   |> Console.escapeMarkup |> Console.okColor}"
+          Console.addLine $"session id: {testInfo.SessionId |> Console.escapeMarkup |> Console.okColor}"
+          Console.addLine String.Empty ]
 
 module ConsoleStatusCodesStats =
 
+    let private createTableRows =
+        let okColor = Console.escapeMarkup >> Console.okColor
+        let errorColor = Console.escapeMarkup >> Console.errorColor
+        ReportHelper.StatusCodesStats.createTableRows (Some okColor) (Some errorColor)
+
     let printScenarioHeader (scenarioName: string)  =
-        Console.addLine($"status codes for scenario: {scenarioName |> Console.highlightPrimary}")
-
-    let private createTableRows (scnStats: ScenarioStats)=
-        let okStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString() |> Console.escapeMarkup |> Console.highlightSuccess
-                  x.Count.ToString()
-                  x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
-            )
-            |> List.ofSeq
-
-        let failStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString() |> Console.escapeMarkup |> Console.highlightDanger
-                  x.Count.ToString()
-                  x.Message |> Console.escapeMarkup |> Console.highlightDanger ]
-            )
-            |> List.ofSeq
-
-        let okStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let failStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let okNotAvailableStatusCodes =
-            if okStatusCodesCount < scnStats.OkCount then
-                List.singleton [
-                  "ok (no status)" |> Console.highlightSuccess
-                  (scnStats.OkCount - okStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let failNotAvailableStatusCodes =
-            if failStatusCodesCount < scnStats.FailCount then
-                List.singleton [
-                  "fail (no status)" |> Console.highlightDanger
-                  (scnStats.FailCount - failStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
-        allStatusCodes
+        Console.addLine $"status codes for scenario: {Console.okColor scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats)  =
         let headers = ["status code"; "count"; "message"]
-        let rows = scnStats |> createTableRows |> Seq.toList
+        let rows = createTableRows scnStats
         Console.addTable headers rows
+
+module ConsoleLoadSimulations =
+
+    let private printLoadSimulation =
+        let okColor = Some Console.okColor
+        ReportHelper.LoadSimulation.print okColor
+
+    let print (simulations: LoadSimulation list) =
+        let simulationsList = simulations |> List.map(printLoadSimulation >> Console.addLine)
+        Console.addLine "load simulations: " :: simulationsList
 
 module ConsoleNodeStats =
 
-    let private printDataKb (bytes: int) =
-        $"{bytes |> Statistics.Converter.fromBytesToKb |> Console.highlightPrimary} KB"
+    let private printDataKb (consoleColorize: float -> string) (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb |> consoleColorize} KB"
 
     let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb |> Console.highlightPrimary} MB"
+        $"{bytes |> Statistics.Converter.fromBytesToMb |> Console.okColor} MB"
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        [ Console.addLine($"scenario: '{scnStats.ScenarioName |> Console.escapeMarkup |> Console.highlightPrimary}'")
-          Console.addLine($"duration: '{scnStats.Duration |> Console.highlightPrimary}'" +
-                          $", ok count: {scnStats.OkCount |> Console.highlightPrimary}" +
-                          $", fail count: {scnStats.FailCount |> Console.highlightDanger}" +
-                          $", all data: {scnStats.AllBytes |> printAllData}") ]
+        [ Console.addLine $"scenario: {scnStats.ScenarioName |> Console.escapeMarkup |> Console.okColor}"
+          Console.addLine $"  - ok count: {Console.okColor scnStats.OkCount}"
+          Console.addLine $"  - fail count: {Console.errorColor scnStats.FailCount}"
+          Console.addLine $"  - all data: {printAllData scnStats.AllBytes}"
+          Console.addLine $"  - duration: {Console.okColor scnStats.Duration}" ]
 
-    let private printLoadSimulation (simulation: LoadSimulation) =
-        let simulationName = LoadTimeLine.getSimulationName(simulation)
+    let private printStepStatsHeader (stepStats: StepStats[]) =
+        let print (stats) = seq {
+            $"step: {stats.StepName |> Console.escapeMarkup |> Console.blueColor}"
+            $"  - timeout: {stats.StepInfo.Timeout.Milliseconds |> Console.okColor} ms"
+            $"  - client factory: {stats.StepInfo.ClientFactoryName |> Console.escapeMarkup |> Console.okColor}, clients: {Console.okColor stats.StepInfo.ClientFactoryClientCount}"
+        }
 
-        match simulation with
-        | RampConstant (copies, during)     ->
-            $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", copies: {copies |> Console.highlightPrimary}" +
-            $", during: '{during |> Console.highlightPrimary}'"
+        stepStats |> Seq.map print |> Console.addList
 
-        | KeepConstant (copies, during)     ->
-            $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", copies: {copies |> Console.highlightPrimary}" +
-            $", during: '{during |> Console.highlightPrimary}'"
-
-        | RampPerSec (rate, during)         ->
-            $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", rate: {rate |> Console.highlightPrimary}" +
-            $", during: '{during |> Console.highlightPrimary}'"
-
-        | InjectPerSec (rate, during)       ->
-            $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", rate: {rate |> Console.highlightPrimary}" +
-            $", during: '{during |> Console.highlightPrimary}'"
-
-        | InjectPerSecRandom (minRate, maxRate, during) ->
-            $"load simulation: '{simulationName |> Console.highlightPrimary}'" +
-            $", min rate: {minRate |> Console.highlightPrimary}" +
-            $", max rate: {maxRate |> Console.highlightPrimary}" +
-            $", during: '{during |> Console.highlightPrimary}'"
-
-        |> Console.addLine
-
-    let private printLoadSimulations (simulations: LoadSimulation list) =
-        simulations |> Seq.map printLoadSimulation
-
-    let private createOkStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let okRPS = s.Ok.Request.RPS
-        let okLatency = s.Ok.Latency
-        let okDataTransfer = s.Ok.DataTransfer
+    let private printStepStatsRow (isOkStats: bool) (stepIndex: int) (stats: StepStats) =
+        let allReqCount = Statistics.StepStats.getAllRequestCount stats
+        let data = if isOkStats then stats.Ok else stats.Fail
+        let highlightText = if isOkStats then Console.okColor else Console.errorColor
 
         let reqCount =
-            $"all = {allReqCount |> Console.highlightSuccess}" +
-            $", ok = {okReqCount |> Console.highlightSuccess}" +
-            $", RPS = {okRPS |> Console.highlightSuccess}"
+            if isOkStats then $"all = {Console.okColor allReqCount}, ok = {Console.okColor data.Request.Count}, RPS = {Console.okColor data.Request.RPS}"
+            else $"all = {Console.okColor allReqCount}, fail = {Console.errorColor data.Request.Count}, RPS = {Console.errorColor data.Request.RPS}"
 
-        let okLatencies =
-            $"min = {okLatency.MinMs |> Console.highlightSuccess}" +
-            $", mean = {okLatency.MeanMs |> Console.highlightSuccess}" +
-            $", max = {okLatency.MaxMs |> Console.highlightSuccess}" +
-            $", StdDev = {okLatency.StdDev |> Console.highlightSuccess}"
+        let latencies =
+            $"min = {highlightText data.Latency.MinMs}" +
+            $", mean = {highlightText data.Latency.MeanMs}" +
+            $", max = {highlightText data.Latency.MaxMs}" +
+            $", StdDev = {highlightText data.Latency.StdDev}"
 
-        let okPercentile =
-            $"50%% = {okLatency.Percent50 |> Console.highlightSuccess}" +
-            $", 75%% = {okLatency.Percent75 |> Console.highlightSuccess}" +
-            $", 95%% = {okLatency.Percent95 |> Console.highlightSuccess}" +
-            $", 99%% = {okLatency.Percent99 |> Console.highlightSuccess}"
+        let percentiles =
+            $"50%% = {highlightText data.Latency.Percent50}" +
+            $", 75%% = {highlightText data.Latency.Percent75}" +
+            $", 95%% = {highlightText data.Latency.Percent95}" +
+            $", 99%% = {highlightText data.Latency.Percent99}"
 
-        let okDt =
-            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {okDataTransfer.AllBytes |> printAllData}"
+        let dataTransfer =
+            $"min = {data.DataTransfer.MinBytes     |> printDataKb highlightText}" +
+            $", mean = {data.DataTransfer.MeanBytes |> printDataKb highlightText}" +
+            $", max = {data.DataTransfer.MaxBytes   |> printDataKb highlightText}" +
+            $", all = {printAllData data.DataTransfer.AllBytes}"
 
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name |> Console.highlightSecondary]
+        [ if stepIndex > 0 then [String.Empty; String.Empty]
+          ["name"; Console.blueColor stats.StepName]
           ["request count"; reqCount]
-          ["latency"; okLatencies]
-          ["latency percentile"; okPercentile]
-          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
+          ["latency"; latencies]
+          ["latency percentile"; percentiles]
+          if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
 
-    let private createFailStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let failRPS = s.Fail.Request.RPS
-        let failLatency = s.Fail.Latency
-        let failDataTransfer = s.Fail.DataTransfer
-
-        let reqCount =
-            $"all = {allReqCount |> Console.highlightSuccess}" +
-            $", fail = {failReqCount |> Console.highlightDanger}" +
-            $", RPS = {failRPS |> Console.highlightDanger}"
-
-        let failLatencies =
-            $"min = {failLatency.MinMs |> Console.highlightDanger}" +
-            $", mean = {failLatency.MeanMs |> Console.highlightDanger}" +
-            $", max = {failLatency.MaxMs |> Console.highlightDanger}" +
-            $", StdDev = {failLatency.StdDev |> Console.highlightDanger}"
-
-        let failPercentile =
-            $"50%% = {failLatency.Percent50 |> Console.highlightDanger}" +
-            $", 75%% = {failLatency.Percent75 |> Console.highlightDanger}" +
-            $", 95%% = {failLatency.Percent95 |> Console.highlightDanger}" +
-            $", 99%% = {failLatency.Percent99 |> Console.highlightDanger}"
-
-        let failDt =
-            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {failDataTransfer.AllBytes |> printAllData}"
-
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name |> Console.highlightSecondary]
-          ["request count"; reqCount]
-          ["latency"; failLatencies]
-          ["latency percentile"; failPercentile]
-          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
-
-    let private printOkStepStatsTable (stepStats: StepStats[]) =
-        stepStats
-        |> Seq.mapi createOkStepStatsRow
-        |> Seq.concat
-        |> List.ofSeq
-        |> Console.addTable ["step"; "ok stats"]
-
-    let private printFailStepStatsTable (stepStats: StepStats[]) =
-        stepStats
-        |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
-        |> Seq.mapi createFailStepStatsRow
-        |> Seq.concat
-        |> List.ofSeq
-        |> Console.addTable ["step"; "fail stats"]
+    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+        let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
+        let rows = stepStats |> Seq.mapi(printStepStatsRow isOkStats) |> List.concat
+        Console.addTable headers rows
 
     let private printScenarioStatusCodes (scnStats: ScenarioStats) =
-        if scnStats.StatusCodes.Length > 0 then
-            [ Console.addLine(String.Empty)
-              ConsoleStatusCodesStats.printScenarioHeader(scnStats.ScenarioName)
-              ConsoleStatusCodesStats.printStatusCodeTable(scnStats) ]
-        else List.Empty
-
-    let private errorStepStatsExist (stepStats: StepStats[]) =
-        stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
+        [ ConsoleStatusCodesStats.printScenarioHeader scnStats.ScenarioName
+          ConsoleStatusCodesStats.printStatusCodeTable scnStats ]
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
-        [ yield! printScenarioHeader(scnStats)
-          yield! printLoadSimulations(simulations)
-          printOkStepStatsTable(scnStats.StepStats)
-          if errorStepStatsExist(scnStats.StepStats) then
-              printFailStepStatsTable(scnStats.StepStats)
-          yield! printScenarioStatusCodes(scnStats) ]
+        [ yield! printScenarioHeader scnStats
+          Console.addLine String.Empty
+
+          yield! ConsoleLoadSimulations.print simulations
+          Console.addLine String.Empty
+
+          yield! printStepStatsHeader scnStats.StepStats
+          Console.addLine String.Empty
+
+          printStepStatsTable true scnStats.StepStats
+
+          if Statistics.ScenarioStats.failStepStatsExist scnStats then
+              printStepStatsTable false scnStats.StepStats
+
+          if scnStats.StatusCodes.Length > 0 then
+              Console.addLine String.Empty
+              yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         let scenarioStats =
             stats.ScenarioStats
             |> Seq.map(fun scnStats ->
                 [ yield! printScenarioStats scnStats loadSimulations[scnStats.ScenarioName]
-                  Console.addLine(String.Empty) ]
+                  Console.addLine String.Empty ]
             )
-            |> Seq.concat
-            |> List.ofSeq
+            |> List.concat
 
-        [ Console.addHeader("scenario stats")
-          Console.addLine(String.Empty)
+        [ Console.addHeader "scenario stats"
+          Console.addLine String.Empty
           yield! scenarioStats ]
 
 module ConsolePluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        Console.addLine $"plugin stats: {table.TableName |> Console.highlightPrimary}"
+        Console.addLine $"plugin stats: {Console.okColor table.TableName}"
 
     let private createPluginStatsRow (columns: DataColumn[]) (row: DataRow) =
         columns
@@ -283,8 +169,7 @@ module ConsolePluginStats =
                 [ if i > 0 then [String.Empty; String.Empty]
                   yield! createPluginStatsRow row ]
             )
-            |> Seq.concat
-            |> Seq.toList
+            |> List.concat
 
         Console.addTable headers rows
 
@@ -294,51 +179,48 @@ module ConsolePluginStats =
                 stats.PluginStats
                 |> Seq.collect(fun dataSet -> dataSet.GetTables())
                 |> Seq.map(fun table ->
-                    [ printPluginStatsHeader(table)
-                      Console.addLine(String.Empty)
-                      createPluginStatsTable(table)
-                      Console.addLine(String.Empty) ]
+                    [ printPluginStatsHeader table
+                      Console.addLine String.Empty
+                      createPluginStatsTable table
+                      Console.addLine String.Empty ]
                 )
                 |> Seq.concat
-                |> List.ofSeq
 
-            [ Console.addHeader("plugin stats")
-              Console.addLine(String.Empty)
+            [ Console.addHeader "plugin stats"
+              Console.addLine String.Empty
               yield! pluginStats ]
         else
             List.empty
 
 module ConsoleHints =
 
-    let private createHintsList (hints: HintResult[]) =
+    let private printHintsList (hints: HintResult[]) =
         hints
-        |> Seq.map(fun hint ->
-            seq {
-                $"hint for {hint.SourceType} '{hint.SourceName |> Console.escapeMarkup |> Console.highlightPrimary}':"
-                $"{hint.Hint |> Console.escapeMarkup |> Console.highlightWarning}"
-            }
-        )
+        |> Seq.map(fun hint -> seq {
+            $"hint for {hint.SourceType} {hint.SourceName |> Console.escapeMarkup |> Console.okColor}:"
+            $"{hint.Hint |> Console.escapeMarkup |> Console.warningColor}"
+        })
         |> Console.addList
 
     let printHints (hints: HintResult[]) =
         if hints.Length > 0 then
-            [ Console.addHeader("hints")
-              Console.addLine(String.Empty)
-              yield! createHintsList(hints) ]
+            [ Console.addHeader "hints"
+              Console.addLine String.Empty
+              yield! printHintsList hints ]
         else
-            List.Empty
+            List.empty
 
 let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDictionary<string, LoadSimulation list>) =
     try
         logger.Verbose("ConsoleReport.print")
 
-        [ Console.addLine(String.Empty)
+        [ Console.addLine String.Empty
           yield! ConsoleTestInfo.printTestInfo sessionResult.FinalStats.TestInfo
           yield! ConsoleNodeStats.printNodeStats sessionResult.FinalStats simulations
           yield! ConsolePluginStats.printPluginStats sessionResult.FinalStats
           yield! ConsoleHints.printHints sessionResult.Hints
-          Console.addLine(String.Empty) ]
+          Console.addLine String.Empty ]
     with
     | ex ->
         logger.Error(ex, "ConsoleReport.print failed")
-        [ "Could not generate report" |> Console.addLine ]
+        ["Could not generate report" |> Console.addLine]

@@ -70,8 +70,8 @@ module internal InternalExtensions =
         let concatLines (strings: string seq) =
             String.Join(Environment.NewLine, strings)
 
-        let concatWithCommaAndQuotes (strings: string seq) =
-            strings |> Seq.map(sprintf "'%s'") |> String.concat(", ")
+        let concatWithComma (strings: string seq) =
+            strings |> String.concat(", ")
 
         let filterDuplicates (data: string seq) =
             data

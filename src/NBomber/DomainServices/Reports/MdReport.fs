@@ -44,63 +44,9 @@ module MdStatusCodeStats =
         document
         |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
 
-    let private createTableRows (scnStats: ScenarioStats) =
-        let okStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let failStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let okStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let failStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let okNotAvailableStatusCodes =
-            if okStatusCodesCount < scnStats.OkCount then
-                List.singleton [
-                  "ok (no status)"
-                  (scnStats.OkCount - okStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let failNotAvailableStatusCodes =
-            if failStatusCodesCount < scnStats.FailCount then
-                List.singleton [
-                  "fail (no status)"
-                  (scnStats.FailCount - failStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
-        allStatusCodes
-
     let printStatusCodeTable (scnStats: ScenarioStats) (document: Document) =
         let headers = ["status code"; "count"; "message"]
-        let rows = createTableRows(scnStats)
+        let rows = ReportHelper.StatusCodesStats.createTableRows None None scnStats
         document |> addTable headers rows
 
 module MdNodeStats =

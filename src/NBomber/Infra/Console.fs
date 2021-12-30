@@ -5,37 +5,34 @@ open System
 open Spectre.Console
 open Spectre.Console.Rendering
 
+let escapeMarkup (text: string) =
+    Markup.Escape(text)
+
 let render (renderable: IRenderable) =
     AnsiConsole.Render(renderable)
 
-let highlightPrimary (text) =
+let okColor (text: 'T) =
     $"[lime]{text}[/]"
 
-let highlightSecondary (text) =
-    $"[deepskyblue1]{text}[/]"
-
-let highlightSuccess (text) =
-    $"[lime]{text}[/]"
-
-let highlightWarning (text) =
+let warningColor (text: 'T) =
     $"[yellow]{text}[/]"
 
-let highlightDanger (text) =
+let errorColor (text: 'T) =
     $"[red]{text}[/]"
 
-let bold (text) =
+let blueColor (text: 'T) =
+    $"[deepskyblue1]{text}[/]"
+
+let bold (text: 'T) =
     $"[bold]{text}[/]"
 
-let escapeMarkup (text) =
-    Markup.Escape(text)
-
-let addLine (text) =
+let addLine (text: string) =
     Markup($"{text}{Environment.NewLine}") :> IRenderable
 
-let addLogo (logo) =
+let addLogo (logo: string) =
     FigletText(logo) :> IRenderable
 
-let addHeader (header) =
+let addHeader (header: string) =
     let rule = Rule(header)
     rule.Centered() |> ignore
     rule :> IRenderable
@@ -45,14 +42,13 @@ let addList (items: string seq seq) =
     |> Seq.mapi(fun i renderables ->
         let listItems =
             renderables
-            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addLine(String.Empty)])
+            |> Seq.map(fun renderable -> [Markup(renderable) :> IRenderable; addLine String.Empty])
             |> Seq.concat
 
-        [ if i > 0 then addLine(String.Empty)
+        [ if i > 0 then addLine String.Empty
           yield! listItems ]
     )
-    |> Seq.concat
-    |> List.ofSeq
+    |> List.concat
 
 let addTable (headers: string list) (rows: string list list) =
     let table = Table()

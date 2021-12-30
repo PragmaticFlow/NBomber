@@ -53,73 +53,73 @@ type AppError =
 
     static member toString (error: DomainError) =
         match error with
-        | InitScenarioError ex  -> $"Init scenario error:'{ex.ToString()}'."
-        | CleanScenarioError ex -> $"Clean scenario error:'{ex.ToString()}'."
+        | InitScenarioError ex  -> $"Init scenario error: {ex.ToString()}"
+        | CleanScenarioError ex -> $"Clean scenario error: {ex.ToString()}"
 
     static member toString (error: ValidationError) =
         match error with
         | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) ->
-            $"Target scenarios '{registeredScenarios |> String.concatWithCommaAndQuotes}' is not found. Available scenarios are {notFoundScenarios |> String.concatWithCommaAndQuotes}."
+            $"Target scenarios: {registeredScenarios |> String.concatWithComma} is not found. Available scenarios are {notFoundScenarios |> String.concatWithComma}"
 
         | WarmUpConfigValueHasInvalidFormat (scnName, warmUpValue) ->
-            $"""ScenariosSettings for scenario '{scnName}' contains invalid WarmUpDuration '{warmUpValue}'. The value should be in this format: "00:00:00"."""
+            $"""ScenariosSettings for Scenario: '{scnName}' contains invalid WarmUpDuration: '{warmUpValue}'. The value should be in this format: "00:00:00" """
 
         | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
-            $"""ScenariosSettings for scenario '{scenarioName}' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00"."""
+            $"""ScenariosSettings for Scenario: '{scenarioName}' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00" """
 
-        | EmptyReportName -> "Report file name cannot be empty string."
+        | EmptyReportName -> "Report file name cannot be empty string"
         | InvalidReportName -> $"Report file name contains invalid chars %A{Path.GetInvalidFileNameChars()}"
 
-        | EmptyReportFolderPath -> "Report folder path cannot be empty string."
+        | EmptyReportFolderPath -> "Report folder path cannot be empty string"
         | InvalidReportFolderPath -> $"Report folder path contains invalid chars %A{Path.GetInvalidFileNameChars()}"
 
-        | EmptyScenarioName -> "Scenario name cannot be empty."
+        | EmptyScenarioName -> "Scenario name cannot be empty"
 
         | DuplicateScenarioName scenarioNames ->
-            $"Scenario names are not unique: '{scenarioNames |> String.concatWithCommaAndQuotes}'."
+            $"Scenario names are not unique: '{scenarioNames |> String.concatWithComma}'"
 
-        | EmptyStepName scenarioName -> $"Step names are empty in scenario: {scenarioName}."
-        | EmptySteps scenarioName -> $"Scenario '{scenarioName}' has no steps."
+        | EmptyStepName scenarioName -> $"Step names are empty in Scenario: {scenarioName}"
+        | EmptySteps scenarioName -> $"Scenario: '{scenarioName}' has no steps"
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
-            $"The current target group not matched, current target group is '{currentTargetGroup}'."
+            $"The current target group not matched, current target group is '{currentTargetGroup}'"
 
         | TargetGroupsAreNotFound notFoundGroups ->
             notFoundGroups
-            |> String.concatWithCommaAndQuotes
+            |> String.concatWithComma
             |> sprintf "Target groups are not found: %s"
 
         | SessionIsWrong -> "Session is wrong"
 
         | SendStatsValueSmallerThanMin ->
-            $"SendStatsInterval should be bigger than min value: '{int Constants.MinSendStatsInterval.TotalSeconds}'."
+            $"SendStatsInterval should be bigger than min value: '{int Constants.MinSendStatsInterval.TotalSeconds}'"
 
         | SendStatsConfigValueHasInvalidFormat value ->
-            $"""SendStatsInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00"."""
+            $"""SendStatsInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
 
         | DuplicateClientFactoryName (scenarioName, factoryName) ->
-            $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'."
+            $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'"
 
         | DuplicateStepNameButDiffImpl (scenarioName, stepName) ->
-            $"Scenario: '{scenarioName}' contains steps that has duplicate name and different implementations: '{stepName}'. You registered several steps with the same name but different implementations."
+            $"Scenario: '{scenarioName}' contains steps that has duplicate name and different implementations: '{stepName}'. You registered several steps with the same name but different implementations"
 
         | SimulationIsSmallerThanMin simulation ->
-            sprintf "Simulation duration: '%A' is smaller than min value: '%s'." simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))
+            sprintf "Simulation duration: '%A' is smaller than min value: '%s'" simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))
 
         | SimulationIsBiggerThanMax simulation ->
-            sprintf "Simulation duration: '%A' is bigger than max value: '%s'." simulation (Constants.MaxSimulationDuration.ToString("hh\:mm\:ss"))
+            sprintf "Simulation duration: '%A' is bigger than max value: '%s'" simulation (Constants.MaxSimulationDuration.ToString("hh\:mm\:ss"))
 
         | CopiesCountIsZeroOrNegative simulation ->
-            $"Simulation: '{simulation}' has invalid copiesCount value. The value should be bigger than 0."
+            $"Simulation: '{simulation}' has invalid copiesCount value. The value should be bigger than 0"
 
         | RateIsZeroOrNegative simulation ->
-            $"Simulation: '{simulation}' has invalid rate value. The value should be bigger than 0."
+            $"Simulation: '{simulation}' has invalid rate value. The value should be bigger than 0"
 
         | CustomStepOrderContainsNotFoundStepName (scenarioName, stepName) ->
-            $"Scenario: '{scenarioName}' contains not found step: '{stepName}' in CustomStepOrder."
+            $"Scenario: '{scenarioName}' contains not found step: '{stepName}' in CustomStepOrder"
 
         | DuplicateScenarioNamesInConfig scenarioNames ->
-            $"Scenario names are not unique in JSON config: '{scenarioNames |> String.concatWithCommaAndQuotes}'."
+            $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"
 
 
     static member toString (error: AppError) =

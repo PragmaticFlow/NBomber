@@ -7,7 +7,7 @@ open NBomber.Domain.DomainTypes
 let private analyzeDataTransfer (scnStats: ScenarioStats) =
 
     let printHint (scnName, stepName) =
-        $"Step '{stepName}' in scenario '{scnName}' didn't track data transfer." +
+        $"Step: '{stepName}' in Scenario: '{scnName}' didn't track data transfer." +
         " In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
 
     scnStats.StepStats
@@ -21,7 +21,7 @@ let private analyzeDataTransfer (scnStats: ScenarioStats) =
 let private analyzeStatusCodes (scnStats: ScenarioStats) =
 
     let printHint (scnName, stepName) =
-        $"Step '{stepName}' in scenario '{scnName}' didn't track status code." +
+        $"Step: '{stepName}' in Scenario: '{scnName}' didn't track status code." +
         " In order to track status code, you should use Response.Ok(statusCode: value)"
 
     scnStats.StepStats

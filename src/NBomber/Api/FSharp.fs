@@ -47,7 +47,7 @@ type ClientFactory =
             |> Option.defaultValue defaultDispose
 
         let count = defaultArg clientCount Constants.DefaultClientCount
-        ClientFactory(name, count, initClient, dispose) :> IClientFactory<'TClient>
+        ClientFactory(name, name, count, initClient, dispose) :> IClientFactory<'TClient>
 
 /// DataFeed helps inject test data into your load test. It represents a data source.
 [<RequireQualifiedAccess>]
