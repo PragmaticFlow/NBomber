@@ -34,7 +34,7 @@ let run () =
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     Scenario.create "simple_http" [step]
-    |> Scenario.withWarmUpDuration(seconds 5)
+    |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]

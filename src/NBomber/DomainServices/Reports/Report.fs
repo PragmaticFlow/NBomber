@@ -20,7 +20,6 @@ type ReportsContent = {
     TxtReport: Lazy<string>
     HtmlReport: Lazy<string>
     CsvReport: Lazy<string>
-    MdReport: Lazy<string>
     ConsoleReport: Lazy<IRenderable list>
     SessionFinishedWithErrors: bool
 }
@@ -42,7 +41,6 @@ let build (logger: ILogger)
     { TxtReport = lazy (TxtReport.print logger sessionResult simulations)
       HtmlReport = lazy (HtmlReport.print logger sessionResult)
       CsvReport = lazy (CsvReport.print logger sessionResult)
-      MdReport = lazy (MdReport.print logger sessionResult simulations)
       ConsoleReport = lazy (ConsoleReport.print logger sessionResult simulations)
       SessionFinishedWithErrors = errorsExist }
 
@@ -57,7 +55,6 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
                 | ReportFormat.Txt  -> ".txt"
                 | ReportFormat.Html -> ".html"
                 | ReportFormat.Csv  -> ".csv"
-                | ReportFormat.Md   -> ".md"
                 | _                 -> failwith "invalid report format"
 
             let filePath = Path.Combine(folder, fileName) + fileExt
@@ -71,7 +68,6 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             | ReportFormat.Txt  -> {| Content = report.TxtReport; FilePath = x.FilePath |}
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
-            | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
             | _                 -> failwith "invalid report format"
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content.Value))
