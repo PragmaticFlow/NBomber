@@ -52,6 +52,7 @@
         <Compile Include="DomainServices\Reports\TxtReport.fs" />
         <Compile Include="DomainServices\Reports\CsvReport.fs" />
         <Compile Include="DomainServices\Reports\HtmlReport.fs" />
+        <Compile Include="DomainServices\Reports\MdReport.fs" />
         <Compile Include="DomainServices\Reports\ConsoleReport.fs" />
         <Compile Include="DomainServices\Reports\Report.fs" />
         <Compile Include="DomainServices\TestHost\TestHostConsole.fs" />
@@ -75,10 +76,11 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="CsvHelper" Version="15.0.5" />
+        <PackageReference Include="CsvHelper" Version="15.0.5" />        
         <PackageReference Include="FSharp.Control.Reactive" Version="5.0.2" />
         <PackageReference Include="FSharp.Json" Version="0.4.1" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.10.0" />
+        <PackageReference Include="FuncyDown" Version="1.1.0" />
         <PackageReference Include="HdrHistogram" Version="2.5.0" />
         <PackageReference Include="Json.Net.DataSetConverters" Version="1.0.1" />
         <PackageReference Include="Serilog" Version="2.10.0" />

@@ -96,7 +96,7 @@ let ``HintsAnalyzer should be enable by default`` () =
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step: 'same_name' in Scenario: 'test' didn't track data transfer.")) @>
+        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step 'same_name' in scenario 'test' didn't track data transfer.")) @>
 
 [<Fact>]
 let ``disableHintsAnalyzer should disable hints`` () =

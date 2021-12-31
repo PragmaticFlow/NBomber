@@ -11,6 +11,6 @@ open NBomber.Extensions.InternalExtensions
 
 [<Fact>]
 let ``String concatWithComma should concat strings with comma`` () =
-    Assert.Equal("foo, bar, baz", ["foo"; "bar"; "baz"] |> String.concatWithComma)
-    Assert.Equal("foo", ["foo"] |> String.concatWithComma)
+    Assert.Equal("'foo', 'bar', 'baz'", ["foo"; "bar"; "baz"] |> String.concatWithComma)
+    Assert.Equal("'foo'", ["foo"] |> String.concatWithComma)
     Assert.Equal("", [] |> String.concatWithComma)

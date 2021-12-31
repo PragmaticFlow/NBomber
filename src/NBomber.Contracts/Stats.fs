@@ -10,6 +10,7 @@ type ReportFormat =
     | Txt = 0
     | Html = 1
     | Csv = 2
+    | Md = 3
 
 type TestInfo = {
     SessionId: string

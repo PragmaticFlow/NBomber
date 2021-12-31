@@ -35,6 +35,6 @@ let run () =
     |> NBomberRunner.withReportingSinks [reportingSink]
     |> NBomberRunner.withReportingInterval(seconds 10)
     |> NBomberRunner.withReportFolder "./custom_reports"
-    |> NBomberRunner.withReportFormats [ReportFormat.Html]
+    |> NBomberRunner.withReportFormats [ReportFormat.Html; ReportFormat.Md]
     |> NBomberRunner.run
     |> ignore

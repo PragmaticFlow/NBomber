@@ -85,7 +85,7 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     let files = Directory.GetFiles("./my_reports_2", searchPattern = "*.*", searchOption = SearchOption.TopDirectoryOnly)
 
     test <@ dirExist @>
-    test <@ files.Length = 4 @> // here we check that all report formats were generated
+    test <@ files.Length = 5 @> // here we check that all report formats were generated
 
     files
     |> Seq.map(FileInfo)

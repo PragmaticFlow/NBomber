@@ -54,7 +54,7 @@ namespace CSharpDev.CustomReporting
                 .WithReportingSinks(new CustomReportingSink())
                 .WithReportingInterval(Seconds(10))
                 .WithReportFolder("./custom_reports")
-                .WithReportFormats(ReportFormat.Html, ReportFormat.Txt, ReportFormat.Csv)
+                .WithReportFormats(ReportFormat.Html, ReportFormat.Md, ReportFormat.Txt, ReportFormat.Csv)
                 .Run();
         }
     }
