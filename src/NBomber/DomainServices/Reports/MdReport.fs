@@ -35,18 +35,19 @@ module MdTestInfo =
 
     let printTestInfo (testInfo: TestInfo) (document: Document) =
         document
-        |> Md.printHeader $"test suite: {testInfo.TestSuite |> Md.printInlineCode}"
-        |> Md.printHeader $"test name: {testInfo.TestName |> Md.printInlineCode}"
+        |> Md.printHeader $"test suite: {Md.printInlineCode testInfo.TestSuite}"
+        |> Md.printHeader $"test name: {Md.printInlineCode testInfo.TestName}"
 
 module MdStatusCodeStats =
 
     let printScenarioHeader (scenarioName: string) (document: Document) =
         document
-        |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
+        |> Md.printHeader $"status codes for scenario: {Md.printInlineCode scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats) (document: Document) =
+        let createTableRows = ReportHelper.StatusCodesStats.createTableRows string string
         let headers = ["status code"; "count"; "message"]
-        let rows = ReportHelper.StatusCodesStats.createTableRows None None scnStats
+        let rows = createTableRows scnStats
         document |> addTable headers rows
 
 module MdNodeStats =

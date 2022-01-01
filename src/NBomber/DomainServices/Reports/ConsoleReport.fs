@@ -8,44 +8,40 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain
 open NBomber.Domain.Stats
 open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra
+
+let okColor: (obj -> string)    = string >> Console.escapeMarkup >> Console.okColor
+let errorColor: (obj -> string) = string >> Console.escapeMarkup >> Console.errorColor
+let blueColor: (obj -> string)  = string >> Console.escapeMarkup >> Console.blueColor
 
 module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
         [ Console.addHeader "test info"
           Console.addLine String.Empty
-          Console.addLine $"test suite: {testInfo.TestSuite |> Console.escapeMarkup |> Console.okColor}"
-          Console.addLine $"test name: {testInfo.TestName   |> Console.escapeMarkup |> Console.okColor}"
-          Console.addLine $"session id: {testInfo.SessionId |> Console.escapeMarkup |> Console.okColor}"
+          Console.addLine $"test suite: {okColor testInfo.TestSuite}"
+          Console.addLine $"test name: {okColor testInfo.TestName}"
+          Console.addLine $"session id: {okColor testInfo.SessionId}"
           Console.addLine String.Empty ]
 
 module ConsoleStatusCodesStats =
-
-    let private createTableRows =
-        let okColor = Console.escapeMarkup >> Console.okColor
-        let errorColor = Console.escapeMarkup >> Console.errorColor
-        ReportHelper.StatusCodesStats.createTableRows (Some okColor) (Some errorColor)
 
     let printScenarioHeader (scenarioName: string)  =
         Console.addLine $"status codes for scenario: {Console.okColor scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats)  =
+        let createTableRows = ReportHelper.StatusCodesStats.createTableRows okColor errorColor
         let headers = ["status code"; "count"; "message"]
         let rows = createTableRows scnStats
         Console.addTable headers rows
 
 module ConsoleLoadSimulations =
 
-    let private printLoadSimulation =
-        let okColor = Some Console.okColor
-        ReportHelper.LoadSimulation.print okColor
-
     let print (simulations: LoadSimulation list) =
+        let printLoadSimulation = ReportHelper.LoadSimulation.print okColor
         let simulationsList = simulations |> List.map(printLoadSimulation >> Console.addLine)
         Console.addLine "load simulations: " :: simulationsList
 
@@ -73,43 +69,10 @@ module ConsoleNodeStats =
 
         stepStats |> Seq.map print |> Console.addList
 
-    let private printStepStatsRow (isOkStats: bool) (stepIndex: int) (stats: StepStats) =
-        let allReqCount = Statistics.StepStats.getAllRequestCount stats
-        let data = if isOkStats then stats.Ok else stats.Fail
-        let highlightText = if isOkStats then Console.okColor else Console.errorColor
-
-        let reqCount =
-            if isOkStats then $"all = {Console.okColor allReqCount}, ok = {Console.okColor data.Request.Count}, RPS = {Console.okColor data.Request.RPS}"
-            else $"all = {Console.okColor allReqCount}, fail = {Console.errorColor data.Request.Count}, RPS = {Console.errorColor data.Request.RPS}"
-
-        let latencies =
-            $"min = {highlightText data.Latency.MinMs}" +
-            $", mean = {highlightText data.Latency.MeanMs}" +
-            $", max = {highlightText data.Latency.MaxMs}" +
-            $", StdDev = {highlightText data.Latency.StdDev}"
-
-        let percentiles =
-            $"50%% = {highlightText data.Latency.Percent50}" +
-            $", 75%% = {highlightText data.Latency.Percent75}" +
-            $", 95%% = {highlightText data.Latency.Percent95}" +
-            $", 99%% = {highlightText data.Latency.Percent99}"
-
-        let dataTransfer =
-            $"min = {data.DataTransfer.MinBytes     |> printDataKb highlightText}" +
-            $", mean = {data.DataTransfer.MeanBytes |> printDataKb highlightText}" +
-            $", max = {data.DataTransfer.MaxBytes   |> printDataKb highlightText}" +
-            $", all = {printAllData data.DataTransfer.AllBytes}"
-
-        [ if stepIndex > 0 then [String.Empty; String.Empty]
-          ["name"; Console.blueColor stats.StepName]
-          ["request count"; reqCount]
-          ["latency"; latencies]
-          ["latency percentile"; percentiles]
-          if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
-
     let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+        let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats okColor errorColor blueColor
         let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
-        let rows = stepStats |> Seq.mapi(printStepStatsRow isOkStats) |> List.concat
+        let rows = stepStats |> Seq.mapi(printStepStatsRow) |> List.concat
         Console.addTable headers rows
 
     let private printScenarioStatusCodes (scnStats: ScenarioStats) =

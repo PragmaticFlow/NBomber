@@ -4,21 +4,65 @@ open System
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Domain.Stats
 open NBomber.Domain
+open NBomber.Extensions.InternalExtensions
 
-let tryApplyColor (colorize: (string -> string) option) (value: string) =
-    colorize |> Option.map(fun color -> color value) |> Option.defaultValue value
+module StepStats =
+
+    let private printDataKb (highlightTxt: obj -> string) (bytes: int) =
+        $"{bytes |> Statistics.Converter.fromBytesToKb |> highlightTxt} KB"
+
+    let private printAllData (highlightTxt: obj -> string) (bytes: int64) =
+        $"{bytes |> Statistics.Converter.fromBytesToMb |> highlightTxt} MB"
+
+    let printStepStatsRow (isOkStats: bool)
+                          (okColor: obj -> string)
+                          (errorColor: obj -> string)
+                          (blueColor: obj -> string)
+                          (stepIndex: int)
+                          (stats: StepStats) =
+
+        let highlightTxt = if isOkStats then okColor else errorColor
+        let printDataKb = printDataKb highlightTxt
+        let printAllData = printAllData highlightTxt
+
+        let data = if isOkStats then stats.Ok else stats.Fail
+
+        let rq = data.Request
+        let lt = data.Latency
+        let dt = data.DataTransfer
+        let allReqCount = Statistics.StepStats.getAllRequestCount stats
+
+        let reqCount =
+            if isOkStats then $"all = {okColor allReqCount}, ok = {okColor rq.Count}, RPS = {okColor rq.RPS}"
+            else $"all = {okColor allReqCount}, fail = {errorColor rq.Count}, RPS = {errorColor rq.RPS}"
+
+        let latencies =
+            $"min = {highlightTxt lt.MinMs}, mean = {highlightTxt lt.MeanMs}, max = {highlightTxt lt.MaxMs}, StdDev = {highlightTxt lt.StdDev}"
+
+        let percentiles =
+            $"50%% = {highlightTxt lt.Percent50}, 75%% = {highlightTxt lt.Percent75}, 95%% = {highlightTxt lt.Percent95}, 99%% = {highlightTxt lt.Percent99}"
+
+        let dataTransfer =
+            $"min = {printDataKb dt.MinBytes}, mean = {printDataKb dt.MeanBytes}, max = {printDataKb dt.MaxBytes}, all = {printAllData dt.AllBytes}"
+
+        [ if stepIndex > 0 then [String.Empty; String.Empty]
+          ["name"; blueColor stats.StepName]
+          ["request count"; reqCount]
+          ["latency"; latencies]
+          ["latency percentile"; percentiles]
+          if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
 
 module LoadSimulation =
 
-    let private printLine (okColor: (string -> string) option) (name: string) (values: (string * obj) list) =
+    let private printLine (okColor: obj -> string) (name: string) (values: (string * obj) list) =
         values
-        |> List.map(fun (key,value) -> $"{key}: {value |> string |> tryApplyColor(okColor)}")
+        |> List.map(fun (key, value) -> $"{key}: {okColor value}")
         |> String.concatWithComma
         |> fun argsStr -> $"  - {name}, {argsStr}"
 
-    let print (okColor: (string -> string) option) (simulation: LoadSimulation) =
+    let print (okColor: obj -> string) (simulation: LoadSimulation) =
 
         let name = LoadTimeLine.getSimulationName simulation
 
@@ -36,16 +80,15 @@ module LoadSimulation =
 
 module StatusCodesStats =
 
-    let createTableRows (okColor: (string -> string) option)
-                        (errorColor: (string -> string) option)
+    let createTableRows (okColor: obj -> string)
+                        (errorColor: obj -> string)
                         (scnStats: ScenarioStats) =
 
         let okStatusCodes =
             scnStats.StatusCodes
             |> Seq.choose(fun x ->
                 if not x.IsError then
-                    let code = x.StatusCode |> string |> tryApplyColor okColor
-                    Some [code; x.Count.ToString(); x.Message]
+                    Some [okColor x.StatusCode; string x.Count; x.Message]
                 else
                     None
             )
@@ -55,9 +98,7 @@ module StatusCodesStats =
             scnStats.StatusCodes
             |> Seq.choose(fun x ->
                 if x.IsError then
-                    let code = x.StatusCode |> string |> tryApplyColor errorColor
-                    let msg = x.Message |> tryApplyColor errorColor
-                    Some [code; x.Count.ToString(); msg]
+                    Some [okColor x.StatusCode; string x.Count; errorColor x.Message]
                 else
                     None
             )
@@ -68,14 +109,14 @@ module StatusCodesStats =
 
         let okNotAvailableStatusCodes =
             if okCodesCount < scnStats.OkCount then
-                ["ok (no status)" |> tryApplyColor(okColor); string(scnStats.OkCount - okCodesCount); String.Empty]
+                [okColor "ok (no status)"; string(scnStats.OkCount - okCodesCount); String.Empty]
                 |> List.singleton
             else
                 List.Empty
 
         let failNotAvailableStatusCodes =
             if failCodesCount < scnStats.FailCount then
-                ["fail (no status)" |> tryApplyColor(errorColor); string(scnStats.FailCount - failCodesCount); String.Empty]
+                [errorColor "fail (no status)"; string(scnStats.FailCount - failCodesCount); String.Empty]
                 |> List.singleton
             else
                 List.Empty

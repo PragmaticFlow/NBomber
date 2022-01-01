@@ -221,7 +221,7 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
     |> Result.getOk
     |> fun nodeStats ->
         test <@ Array.isEmpty nodeStats.PluginStats @>
-        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the timeout error.", "because timeout has been reached") |> ignore
+        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the timeout error", "because timeout has been reached") |> ignore
 
 [<Fact>]
 let ``PluginStats should return empty data set in case of internal exception`` () =
@@ -250,4 +250,4 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     |> Result.getOk
     |> fun nodeStats ->
         test <@ Array.isEmpty nodeStats.PluginStats @>
-        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error.","because exception was thrown") |> ignore
+        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error", "because exception was thrown") |> ignore

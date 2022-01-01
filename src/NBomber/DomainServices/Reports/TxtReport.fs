@@ -25,12 +25,11 @@ module TxtTestInfo =
 
 module TxtStatusCodeStats =
 
-    let private createTableRows = ReportHelper.StatusCodesStats.createTableRows None None
-
     let printScenarioHeader (scenarioName: string) =
         $"status codes for scenario: {scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats) =
+        let createTableRows = ReportHelper.StatusCodesStats.createTableRows string string
         let rows = createTableRows scnStats
         let table = ConsoleTable("status code", "count", "message")
         rows |> Seq.iter(fun x -> table.AddRow(x[0], x[1], x[2]) |> ignore)
@@ -38,11 +37,8 @@ module TxtStatusCodeStats =
 
 module TxtLoadSimulations =
 
-    let private printLoadSimulation =
-        let okColor = None
-        ReportHelper.LoadSimulation.print okColor
-
     let print (simulations: LoadSimulation list) =
+        let printLoadSimulation = ReportHelper.LoadSimulation.print string
         let simulationsList = simulations |> List.map(printLoadSimulation) |> String.concatLines
         $"load simulations: {Environment.NewLine}{simulationsList}"
 
@@ -69,46 +65,15 @@ module TxtNodeStats =
 
         stepStats |> Seq.map print |> String.concatLines
 
-    let private printStepStatsRow (isOkStats: bool) (stepIndex: int) (stats: StepStats) =
-        let allReqCount = Statistics.StepStats.getAllRequestCount stats
-        let data = if isOkStats then stats.Ok else stats.Fail
-
-        let reqCount =
-            if isOkStats then $"all = {allReqCount}, ok = {data.Request.Count}, RPS = {data.Request.RPS}"
-            else $"all = {allReqCount}, fail = {data.Request.Count}, RPS = {data.Request.RPS}"
-
-        let latencies =
-            $"min = {data.Latency.MinMs}" +
-            $", mean = {data.Latency.MeanMs}" +
-            $", max = {data.Latency.MaxMs}" +
-            $", StdDev = {data.Latency.StdDev}"
-
-        let percentiles =
-            $"50%% = {data.Latency.Percent50}" +
-            $", 75%% = {data.Latency.Percent75}" +
-            $", 95%% = {data.Latency.Percent95}" +
-            $", 99%% = {data.Latency.Percent99}"
-
-        let dataTransfer =
-            $"min = {printDataKb data.DataTransfer.MinBytes}" +
-            $", mean = {printDataKb data.DataTransfer.MeanBytes}" +
-            $", max = {printDataKb data.DataTransfer.MaxBytes}" +
-            $", all = {printAllData data.DataTransfer.AllBytes}"
-
-        [ if stepIndex > 0 then [String.Empty; String.Empty]
-          ["name"; stats.StepName]
-          ["request count"; reqCount]
-          ["latency"; latencies]
-          ["latency percentile"; percentiles]
-          if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
-
     let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+        let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats string string string
+
         let table =
             if isOkStats then ConsoleTable("step", "ok stats")
             else ConsoleTable("step", "fail stats")
 
         stepStats
-        |> Seq.mapi(printStepStatsRow isOkStats)
+        |> Seq.mapi printStepStatsRow
         |> Seq.concat
         |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
 
