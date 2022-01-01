@@ -28,6 +28,7 @@
         <Compile Include="Extensions\Extensions.fs" />
         <Compile Include="Extensions\InternalExtensions.fs" />
         <Compile Include="Extensions\PushExtensions.fs" />
+        <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />

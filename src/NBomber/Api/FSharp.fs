@@ -19,8 +19,8 @@ open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
+open NBomber.Domain.ClientFactory
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ClientPool
 open NBomber.DomainServices
 
 /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
@@ -342,7 +342,7 @@ namespace NBomber.FSharp.SyncApi
     open NBomber.Contracts
     open NBomber.Domain
     open NBomber.Domain.DomainTypes
-    open NBomber.Domain.ClientPool
+    open NBomber.Domain.ClientFactory
 
     [<RequireQualifiedAccess>]
     type SyncStep =

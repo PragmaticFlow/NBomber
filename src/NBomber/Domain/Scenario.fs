@@ -15,8 +15,9 @@ open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Errors
-open NBomber.Domain.DomainTypes
+open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
+open NBomber.Domain.DomainTypes
 
 module Validation =
 
