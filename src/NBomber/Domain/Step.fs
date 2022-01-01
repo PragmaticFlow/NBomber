@@ -172,7 +172,7 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
                          EndTimeMs = endTime
                          LatencyMs = latency }
             else
-                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.Milliseconds} ms")
+                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.TotalMilliseconds} ms")
                          EndTimeMs = endTime
                          LatencyMs = latency }
     with

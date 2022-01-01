@@ -57,7 +57,7 @@ module ConsoleNodeStats =
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) = seq {
             $"step: {blueColor stats.StepName}"
-            $"  - timeout: {okColor stats.StepInfo.Timeout.Milliseconds} ms"
+            $"  - timeout: {okColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
             $"  - client factory: {okColor stats.StepInfo.ClientFactoryName}, clients: {okColor stats.StepInfo.ClientFactoryClientCount}"
         }
 
