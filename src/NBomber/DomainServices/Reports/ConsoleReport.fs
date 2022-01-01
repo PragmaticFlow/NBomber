@@ -47,24 +47,18 @@ module ConsoleLoadSimulations =
 
 module ConsoleNodeStats =
 
-    let private printDataKb (consoleColorize: float -> string) (bytes: int) =
-        $"{bytes |> Statistics.Converter.fromBytesToKb |> consoleColorize} KB"
-
-    let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb |> Console.okColor} MB"
-
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        [ Console.addLine $"scenario: {scnStats.ScenarioName |> Console.escapeMarkup |> Console.okColor}"
-          Console.addLine $"  - ok count: {Console.okColor scnStats.OkCount}"
-          Console.addLine $"  - fail count: {Console.errorColor scnStats.FailCount}"
-          Console.addLine $"  - all data: {printAllData scnStats.AllBytes}"
-          Console.addLine $"  - duration: {Console.okColor scnStats.Duration}" ]
+        [ Console.addLine $"scenario: {okColor scnStats.ScenarioName}"
+          Console.addLine $"  - ok count: {okColor scnStats.OkCount}"
+          Console.addLine $"  - fail count: {errorColor scnStats.FailCount}"
+          Console.addLine $"  - all data: {ReportHelper.printAllData okColor scnStats.AllBytes}"
+          Console.addLine $"  - duration: {okColor scnStats.Duration}" ]
 
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) = seq {
-            $"step: {stats.StepName |> Console.escapeMarkup |> Console.blueColor}"
-            $"  - timeout: {stats.StepInfo.Timeout.Milliseconds |> Console.okColor} ms"
-            $"  - client factory: {stats.StepInfo.ClientFactoryName |> Console.escapeMarkup |> Console.okColor}, clients: {Console.okColor stats.StepInfo.ClientFactoryClientCount}"
+            $"step: {blueColor stats.StepName}"
+            $"  - timeout: {okColor stats.StepInfo.Timeout.Milliseconds} ms"
+            $"  - client factory: {okColor stats.StepInfo.ClientFactoryName}, clients: {okColor stats.StepInfo.ClientFactoryClientCount}"
         }
 
         stepStats |> Seq.map print |> Console.addList
@@ -114,7 +108,7 @@ module ConsoleNodeStats =
 module ConsolePluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        Console.addLine $"plugin stats: {Console.okColor table.TableName}"
+        Console.addLine $"plugin stats: {okColor table.TableName}"
 
     let private createPluginStatsRow (columns: DataColumn[]) (row: DataRow) =
         columns
@@ -160,7 +154,7 @@ module ConsoleHints =
     let private printHintsList (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint -> seq {
-            $"hint for {hint.SourceType} {hint.SourceName |> Console.escapeMarkup |> Console.okColor}:"
+            $"hint for {hint.SourceType} {okColor hint.SourceName}:"
             $"{hint.Hint |> Console.escapeMarkup |> Console.warningColor}"
         })
         |> Console.addList

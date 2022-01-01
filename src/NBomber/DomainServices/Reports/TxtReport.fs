@@ -44,17 +44,11 @@ module TxtLoadSimulations =
 
 module TxtNodeStats =
 
-    let private printDataKb (bytes: int) =
-        $"{bytes |> Statistics.Converter.fromBytesToKb} KB"
-
-    let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb} MB"
-
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: {scnStats.ScenarioName}{Environment.NewLine}"
         + $"  - ok count: {scnStats.OkCount}{Environment.NewLine}"
         + $"  - fail count: {scnStats.FailCount}{Environment.NewLine}"
-        + $"  - all data: {printAllData scnStats.AllBytes}{Environment.NewLine}"
+        + $"  - all data: {ReportHelper.printAllData string scnStats.AllBytes}{Environment.NewLine}"
         + $"  - duration: {scnStats.Duration}"
 
     let private printStepStatsHeader (stepStats: StepStats[]) =

@@ -8,13 +8,13 @@ open NBomber.Domain.Stats
 open NBomber.Domain
 open NBomber.Extensions.InternalExtensions
 
+let printDataKb (highlightTxt: obj -> string) (bytes: int) =
+    $"{bytes |> Statistics.Converter.fromBytesToKb |> highlightTxt} KB"
+
+let printAllData (highlightTxt: obj -> string) (bytes: int64) =
+    $"{bytes |> Statistics.Converter.fromBytesToMb |> highlightTxt} MB"
+
 module StepStats =
-
-    let private printDataKb (highlightTxt: obj -> string) (bytes: int) =
-        $"{bytes |> Statistics.Converter.fromBytesToKb |> highlightTxt} KB"
-
-    let private printAllData (highlightTxt: obj -> string) (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb |> highlightTxt} MB"
 
     let printStepStatsRow (isOkStats: bool)
                           (okColor: obj -> string)
@@ -60,7 +60,7 @@ module LoadSimulation =
         values
         |> List.map(fun (key, value) -> $"{key}: {okColor value}")
         |> String.concatWithComma
-        |> fun argsStr -> $"  - {name}, {argsStr}"
+        |> fun argsStr -> $"  - {okColor name}, {argsStr}"
 
     let print (okColor: obj -> string) (simulation: LoadSimulation) =
 
