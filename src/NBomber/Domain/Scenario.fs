@@ -63,17 +63,26 @@ module Validation =
             | [] -> Ok scenario
             | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName(scenario.ScenarioName, factoryName))
 
+    let checkClientFactoryName (scenario: Contracts.Scenario) =
+        scenario.Steps
+        |> Seq.cast<Step>
+        |> Seq.choose(fun x -> x.ClientFactory)
+        |> Seq.distinct
+        |> Seq.map(fun x -> ClientFactory.validateName x.FactoryName)
+        |> Result.sequence
+        |> function
+            | Ok _ -> Ok scenario
+            | Error errors -> errors |> List.head |> AppError.createResult
+
     let validate =
         checkEmptyScenarioName
         >=> checkInitOnlyScenario
         >=> checkEmptyStepName
         >=> checkDuplicateStepNameButDiffImpl
+        >=> checkClientFactoryName
         >=> checkDuplicateClientFactories
 
 module ClientFactory =
-
-    let createName (factoryName: string) (scenarioName: string) =
-        $"{factoryName}.{scenarioName}"
 
     let updateName (scenarioName: string) (steps: IStep list) =
         steps
@@ -81,7 +90,7 @@ module ClientFactory =
         |> Seq.map(fun step ->
             match step.ClientFactory with
             | Some factory ->
-                let factoryName = createName factory.FactoryName scenarioName
+                let factoryName = ClientFactory.createFullName factory.FactoryName scenarioName
                 { step with ClientFactory = Some(factory.Clone factoryName) }
 
             | None -> step
@@ -220,9 +229,9 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
     let! vScns = scenarios |> Validation.checkDuplicateScenarioName
 
     return! vScns
-            |> List.map(create)
+            |> List.map create
             |> Result.sequence
-            |> Result.mapError(List.head)
+            |> Result.mapError List.head
 }
 
 let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario list) =
@@ -242,17 +251,17 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
             match settings.LoadSimulationsSettings with
             | Some simulation ->
                 simulation
-                |> List.map(LoadTimeLine.createSimulationFromSettings)
+                |> List.map LoadTimeLine.createSimulationFromSettings
                 |> LoadTimeLine.createWithDuration
                 |> Result.getOk
 
             | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = getWarmUpDuration(settings)
+                        WarmUpDuration = getWarmUpDuration settings
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
-                        GetCustomStepOrder = settings.CustomStepOrder |> Option.map (fun x -> fun () -> x) }
+                        GetCustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
 
     scenarios
     |> List.map(fun scn ->

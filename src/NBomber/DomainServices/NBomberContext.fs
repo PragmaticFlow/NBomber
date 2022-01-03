@@ -236,7 +236,7 @@ let getClientFactorySettings (context: NBomberContext) =
             option {
                 let! factorySettings = scn.ClientFactorySettings
                 return factorySettings |> List.map(fun pool ->
-                    let newName = Scenario.ClientFactory.createName pool.FactoryName scn.ScenarioName
+                    let newName = ClientFactory.createFullName pool.FactoryName scn.ScenarioName
                     { pool with FactoryName = newName }
                 )
             }

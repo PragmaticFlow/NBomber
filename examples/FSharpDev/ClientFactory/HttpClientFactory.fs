@@ -19,6 +19,7 @@ let run () =
 
     let step = Step.create("fetch_html_page",
                            clientFactory = httpFactory,
+                           //timeout = milliseconds 500,
                            execute = fun context -> task {
 
         let! response = context.Client.GetAsync("https://nbomber.com",
@@ -34,8 +35,8 @@ let run () =
     use pingPlugin = new PingPlugin(pingPluginConfig)
 
     Scenario.create "simple_http" [step]
-    |> Scenario.withWarmUpDuration(seconds 5)
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 30)]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run

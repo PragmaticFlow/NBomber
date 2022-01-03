@@ -8,6 +8,7 @@ open HdrHistogram
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =
@@ -169,7 +170,7 @@ module ScenarioStats =
             |> List.mapi(fun i st ->
                 if st.DoNotTrack then None
                 else
-                    let clName = st.ClientFactory |> Option.map(fun x -> x.OriginalFactoryName)
+                    let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName)
                     let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount)
                     Some(StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount reportingInterval))
             |> List.choose id

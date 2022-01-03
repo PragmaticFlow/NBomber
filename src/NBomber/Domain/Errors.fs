@@ -26,6 +26,7 @@ type ValidationError =
     | SessionIsWrong
     | SendStatsValueSmallerThanMin
     | SendStatsConfigValueHasInvalidFormat of value:string
+    | InvalidClientFactoryName of factoryName:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
 
@@ -96,6 +97,9 @@ type AppError =
 
         | SendStatsConfigValueHasInvalidFormat value ->
             $"""SendStatsInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
+
+        | InvalidClientFactoryName factoryName ->
+            $"ClientFactory: '{factoryName}' contains restricted symbol '@'"
 
         | DuplicateClientFactoryName (scenarioName, factoryName) ->
             $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'"
