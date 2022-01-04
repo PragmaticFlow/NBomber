@@ -341,8 +341,8 @@ namespace NBomber.FSharp.SyncApi
     open NBomber
     open NBomber.Contracts
     open NBomber.Domain
-    open NBomber.Domain.DomainTypes
     open NBomber.Domain.ClientFactory
+    open NBomber.Domain.DomainTypes
 
     [<RequireQualifiedAccess>]
     type SyncStep =

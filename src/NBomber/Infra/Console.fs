@@ -11,17 +11,17 @@ let escapeMarkup (text: string) =
 let render (renderable: IRenderable) =
     AnsiConsole.Render(renderable)
 
-let okColor (text: 'T) =
-    $"[lime]{text}[/]"
+let okColor (text: 'T) = $"[lime]{text}[/]"
+let okEscColor: (obj -> string) = string >> escapeMarkup >> okColor
 
-let warningColor (text: 'T) =
-    $"[yellow]{text}[/]"
+let warningColor (text: 'T) = $"[yellow]{text}[/]"
+let warningEscColor: (obj -> string) = string >> escapeMarkup >> warningColor
 
-let errorColor (text: 'T) =
-    $"[red]{text}[/]"
+let errorColor (text: 'T) = $"[red]{text}[/]"
+let errorEscColor: (obj -> string) = string >> escapeMarkup >> errorColor
 
-let blueColor (text: 'T) =
-    $"[deepskyblue1]{text}[/]"
+let blueColor (text: 'T) = $"[deepskyblue1]{text}[/]"
+let blueEscColor: (obj -> string)  = string >> escapeMarkup >> blueColor
 
 let bold (text: 'T) =
     $"[bold]{text}[/]"

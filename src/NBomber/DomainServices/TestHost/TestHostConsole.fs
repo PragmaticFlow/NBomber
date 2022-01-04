@@ -55,7 +55,7 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
 
     let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
         let simulationDescription = createSimulationDescription simulation simulationValue
-        $"{scenarioName |> Console.okColor}{MultilineColumn.NewLine}{simulationDescription}"
+        $"{Console.okEscColor scenarioName}{MultilineColumn.NewLine}{simulationDescription}"
 
     let createProgressTaskConfig (scheduler: ScenarioScheduler) =
         let scenarioName = scheduler.Scenario.ScenarioName

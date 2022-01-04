@@ -68,7 +68,7 @@ module Validation =
         |> Seq.cast<Step>
         |> Seq.choose(fun x -> x.ClientFactory)
         |> Seq.distinct
-        |> Seq.map(fun x -> ClientFactory.validateName x.FactoryName)
+        |> Seq.map(fun x -> ClientFactory.checkName x.FactoryName)
         |> Result.sequence
         |> function
             | Ok _ -> Ok scenario

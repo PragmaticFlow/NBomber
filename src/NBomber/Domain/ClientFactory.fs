@@ -14,7 +14,7 @@ let createFullName (factoryName: string) (scenarioName: string) =
 let getOriginalName (fullName: string) =
     fullName |> String.split [|"@"|] |> Array.head
 
-let validateName (factoryName: string) =
+let checkName (factoryName: string) =
     if factoryName.Contains("@") then Error(InvalidClientFactoryName factoryName)
     else Ok factoryName
 

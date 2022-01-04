@@ -13,18 +13,14 @@ open NBomber.Extensions
 open NBomber.Extensions.InternalExtensions
 open NBomber.Infra
 
-let okColor: (obj -> string)    = string >> Console.escapeMarkup >> Console.okColor
-let errorColor: (obj -> string) = string >> Console.escapeMarkup >> Console.errorColor
-let blueColor: (obj -> string)  = string >> Console.escapeMarkup >> Console.blueColor
-
 module ConsoleTestInfo =
 
     let printTestInfo (testInfo: TestInfo) =
         [ Console.addHeader "test info"
           Console.addLine String.Empty
-          Console.addLine $"test suite: {okColor testInfo.TestSuite}"
-          Console.addLine $"test name: {okColor testInfo.TestName}"
-          Console.addLine $"session id: {okColor testInfo.SessionId}"
+          Console.addLine $"test suite: {Console.okEscColor testInfo.TestSuite}"
+          Console.addLine $"test name: {Console.okEscColor testInfo.TestName}"
+          Console.addLine $"session id: {Console.okEscColor testInfo.SessionId}"
           Console.addLine String.Empty ]
 
 module ConsoleStatusCodesStats =
@@ -33,7 +29,7 @@ module ConsoleStatusCodesStats =
         Console.addLine $"status codes for scenario: {Console.okColor scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats)  =
-        let createTableRows = ReportHelper.StatusCodesStats.createTableRows okColor errorColor
+        let createTableRows = ReportHelper.StatusCodesStats.createTableRows Console.okEscColor Console.errorEscColor
         let headers = ["status code"; "count"; "message"]
         let rows = createTableRows scnStats
         Console.addTable headers rows
@@ -41,30 +37,30 @@ module ConsoleStatusCodesStats =
 module ConsoleLoadSimulations =
 
     let print (simulations: LoadSimulation list) =
-        let printLoadSimulation = ReportHelper.LoadSimulation.print okColor
+        let printLoadSimulation = ReportHelper.LoadSimulation.print Console.okEscColor
         let simulationsList = simulations |> List.map(printLoadSimulation >> Console.addLine)
         Console.addLine "load simulations: " :: simulationsList
 
 module ConsoleNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
-        [ Console.addLine $"scenario: {okColor scnStats.ScenarioName}"
-          Console.addLine $"  - ok count: {okColor scnStats.OkCount}"
-          Console.addLine $"  - fail count: {errorColor scnStats.FailCount}"
-          Console.addLine $"  - all data: {ReportHelper.printAllData okColor scnStats.AllBytes}"
-          Console.addLine $"  - duration: {okColor scnStats.Duration}" ]
+        [ Console.addLine $"scenario: {Console.okEscColor scnStats.ScenarioName}"
+          Console.addLine $"  - ok count: {Console.okEscColor scnStats.OkCount}"
+          Console.addLine $"  - fail count: {Console.errorEscColor scnStats.FailCount}"
+          Console.addLine $"  - all data: {ReportHelper.printAllData Console.okEscColor scnStats.AllBytes}"
+          Console.addLine $"  - duration: {Console.okEscColor scnStats.Duration}" ]
 
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) = seq {
-            $"step: {blueColor stats.StepName}"
-            $"  - timeout: {okColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
-            $"  - client factory: {okColor stats.StepInfo.ClientFactoryName}, clients: {okColor stats.StepInfo.ClientFactoryClientCount}"
+            $"step: {Console.blueEscColor stats.StepName}"
+            $"  - timeout: {Console.okEscColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
+            $"  - client factory: {Console.okEscColor stats.StepInfo.ClientFactoryName}, clients: {Console.okEscColor stats.StepInfo.ClientFactoryClientCount}"
         }
 
         stepStats |> Seq.map print |> Console.addList
 
     let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
-        let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats okColor errorColor blueColor
+        let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Console.okEscColor Console.errorEscColor Console.blueEscColor
         let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
         let rows = stepStats |> Seq.mapi(printStepStatsRow) |> List.concat
         Console.addTable headers rows
@@ -108,7 +104,7 @@ module ConsoleNodeStats =
 module ConsolePluginStats =
 
     let private printPluginStatsHeader (table: DataTable) =
-        Console.addLine $"plugin stats: {okColor table.TableName}"
+        Console.addLine $"plugin stats: {Console.okEscColor table.TableName}"
 
     let private createPluginStatsRow (columns: DataColumn[]) (row: DataRow) =
         columns
@@ -154,8 +150,8 @@ module ConsoleHints =
     let private printHintsList (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint -> seq {
-            $"hint for {hint.SourceType} {okColor hint.SourceName}:"
-            $"{hint.Hint |> Console.escapeMarkup |> Console.warningColor}"
+            $"hint for {hint.SourceType} {Console.okEscColor hint.SourceName}:"
+            $"{Console.warningEscColor hint.Hint}"
         })
         |> Console.addList
 

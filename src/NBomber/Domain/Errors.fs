@@ -60,7 +60,7 @@ type AppError =
     static member toString (error: ValidationError) =
         match error with
         | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) ->
-            $"Target scenarios: {registeredScenarios |> String.concatWithComma} is not found. Available scenarios are {notFoundScenarios |> String.concatWithComma}"
+            $"Target scenarios: '{String.concatWithComma registeredScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
 
         | WarmUpConfigValueHasInvalidFormat (scnName, warmUpValue) ->
             $"""ScenariosSettings for Scenario: '{scnName}' contains invalid WarmUpDuration: '{warmUpValue}'. The value should be in this format: "00:00:00" """
@@ -69,26 +69,26 @@ type AppError =
             $"""ScenariosSettings for Scenario: '{scenarioName}' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00" """
 
         | EmptyReportName -> "Report file name cannot be empty string"
-        | InvalidReportName -> $"Report file name contains invalid chars %A{Path.GetInvalidFileNameChars()}"
+        | InvalidReportName -> $"Report file name contains invalid chars: '%A{Path.GetInvalidFileNameChars()}'"
 
         | EmptyReportFolderPath -> "Report folder path cannot be empty string"
-        | InvalidReportFolderPath -> $"Report folder path contains invalid chars %A{Path.GetInvalidFileNameChars()}"
+        | InvalidReportFolderPath -> $"Report folder path contains invalid chars: '%A{Path.GetInvalidFileNameChars()}'"
 
         | EmptyScenarioName -> "Scenario name cannot be empty"
 
         | DuplicateScenarioName scenarioNames ->
-            $"Scenario names are not unique: '{scenarioNames |> String.concatWithComma}'"
+            $"Scenario names are not unique: '{String.concatWithComma scenarioNames}'"
 
-        | EmptyStepName scenarioName -> $"Step names are empty in Scenario: {scenarioName}"
+        | EmptyStepName scenarioName -> $"Step names are empty in Scenario: '{scenarioName}'"
         | EmptySteps scenarioName -> $"Scenario: '{scenarioName}' has no steps"
 
         | CurrentTargetGroupNotMatched currentTargetGroup ->
-            $"The current target group not matched, current target group is '{currentTargetGroup}'"
+            $"The current target group not matched, current target group is: '{currentTargetGroup}'"
 
         | TargetGroupsAreNotFound notFoundGroups ->
             notFoundGroups
             |> String.concatWithComma
-            |> sprintf "Target groups are not found: %s"
+            |> sprintf "Target groups are not found: '%s'"
 
         | SessionIsWrong -> "Session is wrong"
 
@@ -99,7 +99,7 @@ type AppError =
             $"""SendStatsInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
 
         | InvalidClientFactoryName factoryName ->
-            $"ClientFactory: '{factoryName}' contains restricted symbol '@'"
+            $"ClientFactory: '{factoryName}' contains not allowed symbol '@'"
 
         | DuplicateClientFactoryName (scenarioName, factoryName) ->
             $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'"
