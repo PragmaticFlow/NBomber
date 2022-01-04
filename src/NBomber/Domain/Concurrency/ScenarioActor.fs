@@ -79,12 +79,12 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                         else
                             do! Step.execStepsAsync(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
                     with
-                    | ex -> _logger.Error(ex, $"Invalid step order for Scenario: '{dep.Scenario.ScenarioName}'")
+                    | ex -> _logger.Error(ex, $"Invalid step order for Scenario: {dep.Scenario.ScenarioName}")
 
                     checkFlushBuffer _responseBuffer
                     shouldRun <- runInfinite
             else
-                _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
+                _logger.Error($"ExecSteps was invoked for already working actor with Scenario: {dep.Scenario.ScenarioName}")
         finally
             _working <- false
     }

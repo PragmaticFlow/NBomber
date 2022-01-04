@@ -195,7 +195,7 @@ let ``getClientFactorySettings should return from Config with updated poolName, 
         let result = NBomberContext.getClientFactorySettings(ctx)
 
         test <@ result.Head.ClientCount = poolSettings.ClientCount @>
-        test <@ result.Head.FactoryName = Domain.Scenario.ClientFactory.createName poolSettings.FactoryName scnSettings.ScenarioName @>
+        test <@ result.Head.FactoryName = Domain.ClientFactory.createFullName poolSettings.FactoryName scnSettings.ScenarioName @>
         test <@ result.Head.FactoryName <> poolSettings.FactoryName @>
 
     | None ->

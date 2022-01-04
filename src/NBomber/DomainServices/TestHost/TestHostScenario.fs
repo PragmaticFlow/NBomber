@@ -32,7 +32,7 @@ let initDataFeeds (dep: IGlobalDependency) (context: IBaseContext) (feeds: IFeed
     try
         for feed in feeds do
             do! feed.Init(context)
-            dep.Logger.Information("Initialized data feed: '{FeedName}'.", feed.FeedName)
+            dep.Logger.Information("Initialized data feed: {FeedName}", feed.FeedName)
 
         return feeds
     with
@@ -52,7 +52,7 @@ let initScenarios (dep: IGlobalDependency,
             match scn.Init with
             | Some initFunc ->
 
-                dep.Logger.Information("Start init scenario: '{Scenario}'.", scn.ScenarioName)
+                dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
                 let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 do! initFunc scnContext
 
@@ -94,13 +94,13 @@ let cleanScenarios (dep: IGlobalDependency)
     for scn in scenarios do
         match scn.Clean with
         | Some cleanFunc ->
-            dep.Logger.Information("Start cleaning scenario: '{Scenario}'.", scn.ScenarioName)
+            dep.Logger.Information("Start cleaning scenario: {Scenario}", scn.ScenarioName)
 
             let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
             try
                 do! cleanFunc context
             with
-            | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: '{Scenario}'.", scn.ScenarioName)
+            | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: {Scenario}", scn.ScenarioName)
 
         | None -> ()
 }

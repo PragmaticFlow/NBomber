@@ -10,6 +10,7 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 
 type StopCommand =

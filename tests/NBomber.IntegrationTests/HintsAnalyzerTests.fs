@@ -21,7 +21,7 @@ let baseNodeStats = {
     RequestCount = 0
     OkCount = 0
     FailCount = 0
-    AllBytes = 0L
+    AllBytes = 0
     ScenarioStats = Array.empty
     PluginStats = Array.empty
     NodeInfo = NodeInfo.init None
@@ -32,7 +32,7 @@ let baseNodeStats = {
 
 let baseScnStats = {
     ScenarioName = "scenario"; RequestCount = 0; OkCount = 0; FailCount = 0;
-    AllBytes = 0L; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
+    AllBytes = 0; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
     StatusCodes = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
 }
@@ -45,7 +45,7 @@ let baseStepStats = {
                     Percent50 = 0.0; Percent75 = 0.0; Percent95 = 0.0; Percent99 = 0.0; StdDev = 0.0
                     LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 } }
         DataTransfer = { MinBytes = 0; MeanBytes = 0; MaxBytes = 0
-                         Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0.0; AllBytes = 0L }
+                         Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0.0; AllBytes = 0 }
         StatusCodes = Array.empty
     }
     Fail = {
@@ -54,8 +54,14 @@ let baseStepStats = {
                     Percent50 = 0.0; Percent75 = 0.0; Percent95 = 0.0; Percent99 = 0.0; StdDev = 0.0
                     LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 } }
         DataTransfer = { MinBytes = 0; MeanBytes = 0; MaxBytes = 0
-                         Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0.0; AllBytes = 0L }
+                         Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0.0; AllBytes = 0 }
         StatusCodes = Array.empty
+    }
+    StepInfo = {
+        Timeout = seconds 1
+        ClientFactoryName = "none"
+        ClientFactoryClientCount = 0
+        FeedName = "none"
     }
 }
 
@@ -91,7 +97,7 @@ let ``HintsAnalyzer should be enable by default`` () =
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step 'same_name' in scenario 'test' didn't track data transfer.")) @>
+        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step: 'same_name' in Scenario: 'test' didn't track data transfer.")) @>
 
 [<Fact>]
 let ``disableHintsAnalyzer should disable hints`` () =

@@ -20,7 +20,7 @@ open NBomber.Infra.ProgressBar
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
     |> List.map(fun x -> x.ScenarioName)
-    |> fun targets -> dep.Logger.Information $"Target scenarios: {String.concatWithCommaAndQuotes targets}."
+    |> fun targets -> dep.Logger.Information("Target scenarios: {TargetScenarios}", String.concatWithComma targets)
 
 let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
@@ -41,21 +41,21 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
         | InjectPerSecRandom _ -> progressInfo.OneTimeActorCount
 
     let createSimulationDescription (simulation: LoadSimulation) (simulationValue: int) =
-        let simulationName = LoadTimeLine.getSimulationName(simulation)
+        let simulationName = LoadTimeLine.getSimulationName simulation
 
         match simulation with
         | RampConstant _
         | KeepConstant _        ->
-            $"load: {simulationName |> Console.highlightSecondary}, copies: {simulationValue |> Console.highlightSecondary}"
+            $"load: {Console.blueColor simulationName}, copies: {Console.blueColor simulationValue}"
 
         | RampPerSec _
         | InjectPerSec _
         | InjectPerSecRandom _  ->
-            $"load: {simulationName |> Console.highlightSecondary}, rate: {simulationValue |> Console.highlightSecondary}"
+            $"load: {Console.blueColor simulationName}, rate: {Console.blueColor simulationValue}"
 
     let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
         let simulationDescription = createSimulationDescription simulation simulationValue
-        $"{scenarioName |> Console.highlightPrimary}{MultilineColumn.NewLine}{simulationDescription}"
+        $"{Console.okEscColor scenarioName}{MultilineColumn.NewLine}{simulationDescription}"
 
     let createProgressTaskConfig (scheduler: ScenarioScheduler) =
         let scenarioName = scheduler.Scenario.ScenarioName
@@ -76,7 +76,7 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
         |> ProgressBar.defaultTick
 
     let createDescriptionForStoppedTask (scenarioName) =
-        $"{scenarioName |> Console.highlightDanger}"
+        $"{scenarioName |> Console.errorColor}"
 
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
@@ -100,7 +100,7 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
                                 pbTotalTask |> ProgressBar.defaultTick
                             )
                             (fun () ->
-                                let remainCount = ProgressBar.getRemainTicks(pbTask)
+                                let remainCount = ProgressBar.getRemainTicks pbTask
 
                                 if remainCount > 0.0 then
                                     let desc =
@@ -149,9 +149,9 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
     match applicationType with
     | ApplicationType.Console ->
         if scnSchedulers.Length > 1 then
-            displayProgressForConcurrentScenarios(scnSchedulers) |> ignore
+            scnSchedulers |> displayProgressForConcurrentScenarios |> ignore
         else
-            displayProgressForOneScenario(scnSchedulers.Head) |> ignore
+            scnSchedulers.Head |> displayProgressForOneScenario |> ignore
     | _ -> ()
 
 let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
@@ -167,22 +167,22 @@ let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
             )
             |> Observable.subscribe(function
                 | StartedInit poolName ->
-                    dep.Logger.Information $"Start init client pool: '{poolName}'."
+                    dep.Logger.Information("Start init client factory: {ClientFactory}", poolName)
 
                 | StartedDispose poolName ->
-                    dep.Logger.Information $"Start disposing client pool: '{poolName}'."
+                    dep.Logger.Information("Start disposing client factory: {ClientFactory}", poolName)
 
                 | ClientInitialized (poolName,number) ->
                     pbTask
-                    |> ProgressBar.setDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}initialized client: {number |> Console.highlightSecondary}"
+                    |> ProgressBar.setDescription $"{Console.okColor poolName}{MultilineColumn.NewLine}initialized client: {Console.blueColor number}"
                     |> ProgressBar.defaultTick
 
                 | ClientDisposed (poolName,number,error) ->
                     pbTask
-                    |> ProgressBar.setDescription $"{poolName |> Console.highlightPrimary}{MultilineColumn.NewLine}disposed client: {number |> Console.highlightSecondary}"
+                    |> ProgressBar.setDescription $"{Console.okColor poolName}{MultilineColumn.NewLine}disposed client: {Console.blueColor number}"
                     |> ProgressBar.defaultTick
 
-                    error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred."))
+                    error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
 
                 | InitFinished
                 | InitFailed -> ()
@@ -201,13 +201,13 @@ let printContextInfo (dep: IGlobalDependency) =
     dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
 
     if dep.WorkerPlugins.IsEmpty then
-        dep.Logger.Information "Plugins: no plugins were loaded."
+        dep.Logger.Information "Plugins: no plugins were loaded"
     else
         dep.WorkerPlugins
-        |> List.iter(fun plugin -> dep.Logger.Information("Plugins: '{PluginName}' loaded.", plugin.PluginName))
+        |> List.iter(fun plugin -> dep.Logger.Information("Plugin loaded: {PluginName}", plugin.PluginName))
 
     if dep.ReportingSinks.IsEmpty then
-        dep.Logger.Information "Reporting sinks: no reporting sinks were loaded."
+        dep.Logger.Information "Reporting sinks: no reporting sinks were loaded"
     else
         dep.ReportingSinks
-        |> List.iter(fun sink -> dep.Logger.Information("Reporting sinks: '{SinkName}' loaded.", sink.SinkName))
+        |> List.iter(fun sink -> dep.Logger.Information("Reporting sink loaded: {SinkName}", sink.SinkName))

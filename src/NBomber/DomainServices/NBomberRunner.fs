@@ -16,7 +16,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         Constants.Logo |> Console.addLogo |> Console.render
 
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
-        dep.Logger.Information("NBomber started as single node.")
+        dep.Logger.Information "NBomber started as single node"
 
         let! scenarios    = context |> NBomberContext.createScenarios
         let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo scenarios

@@ -45,7 +45,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                _logger.Warning $"Stopping scenario early: '{sch.Scenario.ScenarioName}', reason: '{reason}'"
+                _logger.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
             )
 
         | StopTest reason -> this.StopScenarios(reason) |> ignore
@@ -86,8 +86,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         let disabledScenarios = scenarios |> List.filter(fun x -> not x.IsEnabled)
 
-        do! TestHostReportingSinks.init dep baseContext
-        do! TestHostPlugins.init dep baseContext
+        do! dep.ReportingSinks |> TestHostReportingSinks.init dep baseContext
+        do! dep.WorkerPlugins  |> TestHostPlugins.init dep baseContext
 
         let! initializedScenarios = TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, enabledScenarios)
         return initializedScenarios @ disabledScenarios
@@ -106,8 +106,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         let isWarmUp = false
 
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
-        do! TestHostReportingSinks.start _logger dep.ReportingSinks
-        do! TestHostPlugins.start _logger dep.WorkerPlugins
+        do! dep.ReportingSinks |> TestHostReportingSinks.start _logger
+        do! dep.WorkerPlugins  |> TestHostPlugins.start _logger
 
         reportingTimer.Start()
         currentOperationTimer.Start()
@@ -117,8 +117,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         reportingTimer.Stop()
         currentOperationTimer.Stop()
 
-        do! TestHostReportingSinks.stop _logger dep.ReportingSinks
-        do! TestHostPlugins.stop _logger dep.WorkerPlugins
+        do! dep.ReportingSinks |> TestHostReportingSinks.stop _logger
+        do! dep.WorkerPlugins  |> TestHostPlugins.stop _logger
     }
 
     let cleanScenarios (sessionArgs: SessionArgs,
@@ -157,14 +157,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         match! initScenarios(sessionArgs, _cancelToken.Token, targetScenarios) with
         | Ok initializedScenarios ->
-            _logger.Information "Init finished."
+            _logger.Information "Init finished"
             _targetScenarios <- initializedScenarios
             _sessionArgs <- sessionArgs
             _currentOperation <- OperationType.None
             return Ok()
 
         | Error appError ->
-            _logger.Error "Init failed."
+            _logger.Error "Init failed"
             _currentOperation <- OperationType.Stop
             return AppError.createResult appError
     }
@@ -206,7 +206,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
             do! Task.Yield()
 
             if not(String.IsNullOrEmpty reason) then
-                _logger.Warning("Stopping test early: '{0}'", reason)
+                _logger.Warning("Stopping test early: {StopReason}", reason)
             else
                 _logger.Information "Stopping scenarios..."
 
@@ -266,4 +266,4 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                     use x = plugin
                     ()
 
-                _logger.Verbose $"{nameof TestHost} disposed."
+                _logger.Verbose $"{nameof TestHost} disposed"

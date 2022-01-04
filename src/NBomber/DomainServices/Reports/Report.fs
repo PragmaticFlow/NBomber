@@ -58,7 +58,7 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
                 | ReportFormat.Html -> ".html"
                 | ReportFormat.Csv  -> ".csv"
                 | ReportFormat.Md   -> ".md"
-                | _                 -> failwith "invalid report format."
+                | _                 -> failwith "invalid report format"
 
             let filePath = Path.Combine(folder, fileName) + fileExt
             { FilePath = filePath; ReportFormat = format }
@@ -72,15 +72,15 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
             | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
             | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
-            | _                 -> failwith "invalid report format."
+            | _                 -> failwith "invalid report format"
         )
         |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content.Value))
 
         if report.SessionFinishedWithErrors then
-            logger.Warning("Test finished with errors, please check the log file.")
+            logger.Warning("Test finished with errors, please check the log file")
 
         if reportFiles.Length > 0 then
-            logger.Information("Reports saved in folder: '{0}'", DirectoryInfo(folder).FullName)
+            logger.Information("Reports saved in folder: {0}", DirectoryInfo(folder).FullName)
 
         reportFiles
     with
@@ -89,9 +89,9 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
 
 let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
 
-    let fileName = context |> NBomberContext.getReportFileNameOrDefault(DateTime.UtcNow)
-    let folder = context |> NBomberContext.getReportFolderOrDefault(stats.TestInfo.SessionId)
-    let formats = context |> NBomberContext.getReportFormats
+    let fileName = context |> NBomberContext.getReportFileNameOrDefault DateTime.UtcNow
+    let folder   = context |> NBomberContext.getReportFolderOrDefault stats.TestInfo.SessionId
+    let formats  = context |> NBomberContext.getReportFormats
 
     report.ConsoleReport.Value |> List.iter Console.render
 

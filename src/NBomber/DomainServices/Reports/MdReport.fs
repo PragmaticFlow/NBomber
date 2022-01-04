@@ -1,265 +1,93 @@
 module internal NBomber.DomainServices.Reports.MdReport
 
-open System
 open System.Collections.Generic
 open System.Data
 
-open FuncyDown.Document
+open FuncyDown
 open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain
 open NBomber.Domain.Stats
 open NBomber.Extensions
 
+type Document = Document.Document
+
 module Md =
 
+    let addNewLine (document: Document) =
+        document |> Document.addNewline |> Document.addNewline
+
     let printInlineCode (code: obj) =
-       emptyDocument
-       |> addInlineCode { Code = code.ToString(); Language = None }
-       |> asString
+       Document.emptyDocument
+       |> Document.addInlineCode { Code = code.ToString(); Language = None }
+       |> Document.asString
 
     let printHeader (header) (document: Document) =
         document
-        |> addBlockQuote header
-        |> addNewline
-        |> addNewline
-
-    let printBold (text) =
-        emptyDocument
-        |> addStrongEmphasis text
-        |> asString
+        |> Document.addBlockQuote header
+        |> addNewLine
 
 module MdTestInfo =
 
     let printTestInfo (testInfo: TestInfo) (document: Document) =
         document
-        |> Md.printHeader $"test suite: {testInfo.TestSuite |> Md.printInlineCode}"
-        |> Md.printHeader $"test name: {testInfo.TestName |> Md.printInlineCode}"
+        |> Md.printHeader "test info"
+        |> Document.addText $"test suite: {Md.printInlineCode testInfo.TestSuite}" |> Md.addNewLine
+        |> Document.addText $"test name: {Md.printInlineCode testInfo.TestName}"   |> Md.addNewLine
+        |> Document.addText $"session id: {Md.printInlineCode testInfo.SessionId}" |> Md.addNewLine
 
 module MdStatusCodeStats =
 
     let printScenarioHeader (scenarioName: string) (document: Document) =
         document
-        |> Md.printHeader $"status codes for scenario: {scenarioName |> Md.printInlineCode}"
-
-    let private createTableRows (scnStats: ScenarioStats) =
-        let okStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let failStatusCodes =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.map(fun x ->
-                [ x.StatusCode.ToString()
-                  x.Count.ToString()
-                  x.Message ]
-            )
-            |> List.ofSeq
-
-        let okStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> not x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let failStatusCodesCount =
-            scnStats.StatusCodes
-            |> Seq.filter(fun x -> x.IsError)
-            |> Seq.sumBy(fun x -> x.Count)
-
-        let okNotAvailableStatusCodes =
-            if okStatusCodesCount < scnStats.OkCount then
-                List.singleton [
-                  "ok (no status)"
-                  (scnStats.OkCount - okStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let failNotAvailableStatusCodes =
-            if failStatusCodesCount < scnStats.FailCount then
-                List.singleton [
-                  "fail (no status)"
-                  (scnStats.FailCount - failStatusCodesCount).ToString()
-                  String.Empty
-                ]
-            else
-                List.Empty
-
-        let allStatusCodes = okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
-        allStatusCodes
+        |> Md.printHeader $"status codes for scenario: {Md.printInlineCode scenarioName}"
 
     let printStatusCodeTable (scnStats: ScenarioStats) (document: Document) =
+        let createTableRows = ReportHelper.StatusCodesStats.createTableRows string string
         let headers = ["status code"; "count"; "message"]
-        let rows = createTableRows(scnStats)
-        document |> addTable headers rows
+        let rows = createTableRows scnStats
+        document |> Document.addTable headers rows
+
+module MdLoadSimulations =
+
+    let print (simulations: LoadSimulation list) (document: Document) =
+        let initState = document |> Document.addText "load simulations:" |> Md.addNewLine
+
+        simulations
+        |> List.fold(fun document simulation ->
+            let row = ReportHelper.LoadSimulation.print Md.printInlineCode simulation
+            document |> Document.addText row |> Md.addNewLine
+        ) initState
 
 module MdNodeStats =
 
-    let private printDataKb (bytes: int) =
-        $"{bytes |> Statistics.Converter.fromBytesToKb |> Md.printInlineCode} KB"
-
-    let private printAllData (bytes: int64) =
-        $"{bytes |> Statistics.Converter.fromBytesToMb |> Md.printInlineCode} MB"
-
     let private printScenarioHeader (scnStats: ScenarioStats) (document: Document) =
-        let header =
-            $"scenario: {scnStats.ScenarioName |> Md.printInlineCode}" +
-            $", duration: {scnStats.Duration |> Md.printInlineCode}" +
-            $", ok count: {scnStats.OkCount |> Md.printInlineCode}" +
-            $", fail count: {scnStats.FailCount |> Md.printInlineCode}" +
-            $", all data: {scnStats.AllBytes |> printAllData} MB"
+        document
+        |> Document.addText $"scenario: {Md.printInlineCode scnStats.ScenarioName}" |> Md.addNewLine
+        |> Document.addText $"  - ok count: {Md.printInlineCode scnStats.OkCount}" |> Md.addNewLine
+        |> Document.addText $"  - fail count: {Md.printInlineCode scnStats.FailCount}" |> Md.addNewLine
+        |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode scnStats.AllBytes}" |> Md.addNewLine
+        |> Document.addText $"  - duration: {Md.printInlineCode scnStats.Duration}" |> Md.addNewLine
 
-        document |> Md.printHeader header
+    let private printStepStatsHeader (stepStats: StepStats[]) (document: Document) =
 
-    let private printLoadSimulation (simulation: LoadSimulation) (document: Document) =
-        let simulationName = LoadTimeLine.getSimulationName(simulation)
-        let loadSimulation =
-            match simulation with
-            | RampConstant (copies, during)     ->
-                $"load simulation: {simulationName |> Md.printInlineCode}" +
-                $", copies: {copies |> Md.printInlineCode}" +
-                $", during: {during |> Md.printInlineCode}"
-
-            | KeepConstant (copies, during)     ->
-                $"load simulation: {simulationName |> Md.printInlineCode}" +
-                $", copies: {copies |> Md.printInlineCode}" +
-                $", during: {during |> Md.printInlineCode}"
-
-            | RampPerSec (rate, during)         ->
-                $"load simulation: {simulationName |> Md.printInlineCode}" +
-                $", rate: {rate |> Md.printInlineCode}" +
-                $", during: {during |> Md.printInlineCode}"
-
-            | InjectPerSec (rate, during)       ->
-                $"load simulation: {simulationName |> Md.printInlineCode}" +
-                $", rate: {rate |> Md.printInlineCode}" +
-                $", during: {during |> Md.printInlineCode}"
-
-            | InjectPerSecRandom (minRate, maxRate, during) ->
-                $"load simulation: {simulationName |> Md.printInlineCode}" +
-                $", min rate: {minRate |> Md.printInlineCode}" +
-                $", max rate: {maxRate |> Md.printInlineCode}" +
-                $", during: {during |> Md.printInlineCode}"
-
-        document |> addText loadSimulation
-
-    let private printLoadSimulations (simulations: LoadSimulation list) (document: Document) =
-        simulations
-        |> Seq.fold(fun document simulation ->
-            document |> printLoadSimulation simulation |> addNewline
-        ) document
-
-    let private createOkStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let okRPS = s.Ok.Request.RPS
-        let okLatency = s.Ok.Latency
-        let okDataTransfer = s.Ok.DataTransfer
-
-        let reqCount =
-            $"all = {allReqCount |> Md.printInlineCode}" +
-            $", ok = {okReqCount |> Md.printInlineCode}" +
-            $", RPS = {okRPS |> Md.printInlineCode}"
-
-        let okLatencies =
-            $"min = {okLatency.MinMs |> Md.printInlineCode}" +
-            $", mean = {okLatency.MeanMs |> Md.printInlineCode}" +
-            $", max = {okLatency.MaxMs |> Md.printInlineCode}" +
-            $", StdDev = {okLatency.StdDev |> Md.printInlineCode}"
-
-        let okPercentile =
-            $"50%% = {okLatency.Percent50 |> Md.printInlineCode}" +
-            $", 75%% = {okLatency.Percent75 |> Md.printInlineCode}" +
-            $", 95%% = {okLatency.Percent95 |> Md.printInlineCode}" +
-            $", 99%% = {okLatency.Percent99 |> Md.printInlineCode}"
-
-        let okDt =
-            $"min = {okDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {okDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {okDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {okDataTransfer.AllBytes |> printAllData}"
-
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name |> Md.printInlineCode]
-          ["request count"; reqCount]
-          ["latency"; okLatencies]
-          ["latency percentile"; okPercentile]
-          if okDataTransfer.AllBytes > 0L then ["data transfer"; okDt] ]
-
-    let private createFailStepStatsRow (i) (s: StepStats) =
-        let name = s.StepName
-        let okReqCount = s.Ok.Request.Count
-        let failReqCount = s.Fail.Request.Count
-        let allReqCount = okReqCount + failReqCount
-        let failRPS = s.Fail.Request.RPS
-        let failLatency = s.Fail.Latency
-        let failDataTransfer = s.Fail.DataTransfer
-
-        let reqCount =
-            $"all = {allReqCount |> Md.printInlineCode}" +
-            $", fail = {failReqCount |> Md.printInlineCode}" +
-            $", RPS = {failRPS |> Md.printInlineCode}"
-
-        let failLatencies =
-            $"min = {failLatency.MinMs |> Md.printInlineCode}" +
-            $", mean = {failLatency.MeanMs |> Md.printInlineCode}" +
-            $", max = {failLatency.MaxMs |> Md.printInlineCode}" +
-            $", StdDev = {failLatency.StdDev |> Md.printInlineCode}"
-
-        let failPercentile =
-            $"50%% = {failLatency.Percent50 |> Md.printInlineCode}" +
-            $", 75%% = {failLatency.Percent75 |> Md.printInlineCode}" +
-            $", 95%% = {failLatency.Percent95 |> Md.printInlineCode}" +
-            $", 99%% = {failLatency.Percent99 |> Md.printInlineCode}"
-
-        let failDt =
-            $"min = {failDataTransfer.MinBytes |> printDataKb}" +
-            $", mean = {failDataTransfer.MeanBytes |> printDataKb}" +
-            $", max = {failDataTransfer.MaxBytes |> printDataKb}" +
-            $", all = {failDataTransfer.AllBytes |> printAllData}"
-
-        [ if i > 0 then [String.Empty; String.Empty]
-          ["name"; name |> Md.printInlineCode]
-          ["request count"; reqCount]
-          ["latency"; failLatencies]
-          ["latency percentile"; failPercentile]
-          if failDataTransfer.AllBytes > 0L then ["data transfer"; failDt] ]
-
-    let private printOkStepStatsTable (stepStats: StepStats[]) (document: Document) =
-        stepStats
-        |> Seq.mapi createOkStepStatsRow
-        |> Seq.concat
-        |> List.ofSeq
-        |> fun rows -> document |> addTable ["step"; "ok stats"] rows
-
-    let private failStepStatsExist (stepStats: StepStats[]) =
-        stepStats |> Seq.exists(fun stats -> stats.Fail.Request.Count > 0)
-
-    let private printFailStepStatsTable (stepStats: StepStats[]) (document: Document) =
-        if failStepStatsExist(stepStats) then
-            stepStats
-            |> Seq.filter(fun stats -> stats.Fail.Request.Count > 0)
-            |> Seq.mapi createFailStepStatsRow
-            |> Seq.concat
-            |> List.ofSeq
-            |> fun rows ->
-                document
-                |> addNewline
-                |> addTable ["step"; "fail stats"] rows
-        else
+        let print (document: Document) (stats: StepStats) =
             document
+            |> Document.addText $"step: {Md.printInlineCode stats.StepName}" |> Md.addNewLine
+            |> Document.addText $"  - timeout: {Md.printInlineCode stats.StepInfo.Timeout.TotalMilliseconds} ms" |> Md.addNewLine
+            |> Document.addText $"  - client factory: {Md.printInlineCode stats.StepInfo.ClientFactoryName}, clients: {Md.printInlineCode stats.StepInfo.ClientFactoryClientCount}" |> Md.addNewLine
+            |> Document.addText $"  - data feed: {Md.printInlineCode stats.StepInfo.FeedName}" |> Md.addNewLine
+
+        stepStats |> Seq.fold print document
+
+    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) (document: Document) =
+        let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Md.printInlineCode Md.printInlineCode Md.printInlineCode
+        let headers = if isOkStats then ["step"; "ok stats"] else ["step"; "fail stats"]
+        stepStats
+        |> Seq.mapi printStepStatsRow
+        |> List.concat
+        |> fun rows -> document |> Document.addTable headers rows |> Md.addNewLine
 
     let private printScenarioStatusCodeStats (scnStats: ScenarioStats) (document: Document) =
         if scnStats.StatusCodes.Length > 0 then
@@ -270,17 +98,26 @@ module MdNodeStats =
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =
         document
+        |> Md.printHeader "scenario stats"
         |> printScenarioHeader scnStats
-        |> printLoadSimulations simulations
-        |> printOkStepStatsTable scnStats.StepStats
-        |> printFailStepStatsTable scnStats.StepStats
+        |> MdLoadSimulations.print simulations
+        |> printStepStatsHeader scnStats.StepStats
+        |> printStepStatsTable true scnStats.StepStats
+        |> fun doc ->
+            if Statistics.ScenarioStats.failStepStatsExist scnStats then
+                doc |> printStepStatsTable false scnStats.StepStats
+            else
+                doc
         |> printScenarioStatusCodeStats scnStats
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) (document: Document) =
-        stats.ScenarioStats
-        |> Seq.fold(fun document scnStats ->
-            document |> printScenarioStats scnStats loadSimulations[scnStats.ScenarioName] |> addNewline
-        ) document
+
+        let print (document: Document) (scnStats: ScenarioStats) =
+            document
+            |> printScenarioStats scnStats loadSimulations[scnStats.ScenarioName]
+            |> Md.addNewLine
+
+        stats.ScenarioStats |> Seq.fold print document
 
 module MdPluginStats =
 
@@ -297,8 +134,8 @@ module MdPluginStats =
         let columns = table.GetColumns()
 
         table.GetRows()
-        |> Seq.map(fun row -> columns |> Seq.map(fun col -> row[col] |> string) |> List.ofSeq)
-        |> List.ofSeq
+        |> Seq.map(fun row -> columns |> Seq.map(fun col -> row[col] |> string) |> Seq.toList)
+        |> Seq.toList
 
     let private printPluginStatsTable (table: DataTable) (document: Document) =
         let headers = createPluginStatsTableHeaders(table)
@@ -306,14 +143,12 @@ module MdPluginStats =
 
         document
         |> printPluginStatsHeader table
-        |> addTable headers rows
+        |> Document.addTable headers rows
 
     let printPluginStats (stats: NodeStats) (document: Document) =
         stats.PluginStats
         |> Seq.collect(fun dataSet -> dataSet.GetTables())
-        |> Seq.fold(fun document table ->
-            document |> printPluginStatsTable table |> addNewline
-        ) document
+        |> Seq.fold(fun document table -> document |> printPluginStatsTable table |> Md.addNewLine) document
 
 module MdHints =
 
@@ -324,7 +159,7 @@ module MdHints =
     let private createHintsTableRows (hints: HintResult[]) =
         hints
         |> Seq.map(fun hint -> [hint.SourceType.ToString(); hint.SourceName; hint.Hint])
-        |> List.ofSeq
+        |> Seq.toList
 
     let printHints (hints: HintResult[]) (document: Document) =
         if hints.Length > 0 then
@@ -333,7 +168,7 @@ module MdHints =
 
             document
             |> printHintsHeader
-            |> addTable headers rows
+            |> Document.addTable headers rows
         else
             document
 
@@ -341,12 +176,12 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) (simulations: IDi
     try
         logger.Verbose("MdReport.print")
 
-        emptyDocument
+        Document.emptyDocument
         |> MdTestInfo.printTestInfo sessionResult.FinalStats.TestInfo
         |> MdNodeStats.printNodeStats sessionResult.FinalStats simulations
         |> MdPluginStats.printPluginStats sessionResult.FinalStats
         |> MdHints.printHints sessionResult.Hints
-        |> asString
+        |> Document.asString
     with
     | ex ->
         logger.Error(ex, "MdReport.print failed")

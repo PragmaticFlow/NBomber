@@ -10,7 +10,7 @@ open FsCheck.Xunit
 open NBomber.Extensions.InternalExtensions
 
 [<Fact>]
-let ``String concatWithCommaAndQuotes should concat strings with quotes`` () =
-    Assert.Equal("'foo', 'bar', 'baz'", ["foo"; "bar"; "baz"] |> String.concatWithCommaAndQuotes)
-    Assert.Equal("'foo'", ["foo"] |> String.concatWithCommaAndQuotes)
-    Assert.Equal("", [] |> String.concatWithCommaAndQuotes)
+let ``String concatWithComma should concat strings with comma`` () =
+    Assert.Equal("foo, bar, baz", ["foo"; "bar"; "baz"] |> String.concatWithComma)
+    Assert.Equal("foo", ["foo"] |> String.concatWithComma)
+    Assert.Equal("", [] |> String.concatWithComma)

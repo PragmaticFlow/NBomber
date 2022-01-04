@@ -205,5 +205,5 @@ type ScenarioScheduler(dep: ActorDep) =
             stop()
             (dep.ScenarioStatsActor :> IDisposable).Dispose()
             _eventStream.Dispose()
-            _logger.Verbose $"{nameof ScenarioScheduler} disposed."
+            _logger.Verbose $"{nameof ScenarioScheduler} disposed"
 

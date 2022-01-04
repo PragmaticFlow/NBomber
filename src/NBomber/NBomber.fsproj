@@ -28,13 +28,13 @@
         <Compile Include="Extensions\Extensions.fs" />
         <Compile Include="Extensions\InternalExtensions.fs" />
         <Compile Include="Extensions\PushExtensions.fs" />
+        <Compile Include="Domain\Errors.fs" />
+        <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
-        <Compile Include="Domain\HintsAnalyzer.fs" />
-        <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\Feed.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\LoadTimeLine.fs" />
@@ -44,10 +44,12 @@
         <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
         <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
         <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
+        <Compile Include="Domain\HintsAnalyzer.fs" />
         <Compile Include="Infra\Console.fs" />
         <Compile Include="Infra\ProgressBar.fs" />
         <Compile Include="Infra\Dependency.fs" />
         <Compile Include="DomainServices\NBomberContext.fs" />
+        <Compile Include="DomainServices\Reports\ReportHelper.fs" />
         <Compile Include="DomainServices\Reports\TxtReport.fs" />
         <Compile Include="DomainServices\Reports\CsvReport.fs" />
         <Compile Include="DomainServices\Reports\HtmlReport.fs" />
@@ -75,7 +77,7 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="CsvHelper" Version="15.0.5" />        
+        <PackageReference Include="CsvHelper" Version="15.0.5" />
         <PackageReference Include="FSharp.Control.Reactive" Version="5.0.2" />
         <PackageReference Include="FSharp.Json" Version="0.4.1" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.10.0" />

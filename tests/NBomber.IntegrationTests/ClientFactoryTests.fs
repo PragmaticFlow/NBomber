@@ -17,12 +17,11 @@ let ``should distribute client with one to one mapping if clientCount = loadSimu
 
     let poolCount = 100
 
-    let factory =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) -> Task.FromResult number),
-            clientCount = poolCount
-        )
+    let factory = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) -> Task.FromResult number),
+        clientCount = poolCount
+    )
 
     let step = Step.create("step", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -51,12 +50,11 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
     let clientCount = 5
     let copiesCount = 10
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) -> Task.FromResult number),
-            clientCount = clientCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) -> Task.FromResult number),
+        clientCount = clientCount
+    )
 
     let step = Step.create("step", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -82,16 +80,15 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
         test <@ stepStats.FailCount = 0 @>
 
 [<Fact>]
-let ``should be shared btw steps as singlton instance``() =
+let ``should be shared btw steps as singleton instance``() =
 
     let poolCount = 100
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) -> Guid.NewGuid() |> Task.FromResult),
-            clientCount = poolCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) -> Guid.NewGuid() |> Task.FromResult),
+        clientCount = poolCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -126,12 +123,11 @@ let ``initClient should stop test session in case of failure``() =
 
     let clientCount = 100
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) -> failwith "unhandled exception"),
-            clientCount = clientCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) -> failwith "unhandled exception"),
+        clientCount = clientCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -153,14 +149,13 @@ let ``initClient should use try logic in case of some errors``() =
     let clientCount = 1
     let mutable tryCount = 0
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,token) ->
-                tryCount <- tryCount + 1
-                failwith "unhandled exception"),
-            clientCount = clientCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,token) ->
+            tryCount <- tryCount + 1
+            failwith "unhandled exception"),
+        clientCount = clientCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -182,14 +177,13 @@ let ``should be initialized one time per scenario``() =
     let clientCount = 10
     let mutable initializedClients = 0
 
-    let factory =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) ->
-                initializedClients <- initializedClients + 1
-                Task.FromResult number),
-            clientCount = clientCount
-        )
+    let factory = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) ->
+            initializedClients <- initializedClients + 1
+            Task.FromResult number),
+        clientCount = clientCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -229,14 +223,13 @@ let ``should be initialized after scenario init``() =
         lastInvokeClient <- "scenario"
     }
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) ->
-                lastInvokeClient <- "client_pool"
-                Task.FromResult number),
-            clientCount = clientCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) ->
+            lastInvokeClient <- "client_pool"
+            Task.FromResult number),
+        clientCount = clientCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -259,14 +252,13 @@ let ``should support 2K of clients``() =
     let clientCount = 2_000
     let mutable invokeCount = 0
 
-    let pool =
-        ClientFactory.create(
-            name = "test_pool",
-            initClient = (fun (number,context) ->
-                invokeCount <- invokeCount + 1
-                Task.FromResult number),
-            clientCount = clientCount
-        )
+    let pool = ClientFactory.create(
+        name = "test_pool",
+        initClient = (fun (number,context) ->
+            invokeCount <- invokeCount + 1
+            Task.FromResult number),
+        clientCount = clientCount
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -285,19 +277,17 @@ let ``should support 2K of clients``() =
 [<Fact>]
 let ``should not allow to have duplicates with the same name but different implementation``() =
 
-    let pool1 =
-        ClientFactory.create(
-            name = "duplicate_pool_name",
-            initClient = (fun (number,context) -> Task.FromResult number),
-            clientCount = 50
-        )
+    let pool1 = ClientFactory.create(
+        name = "duplicate_pool_name",
+        initClient = (fun (number,context) -> Task.FromResult number),
+        clientCount = 50
+    )
 
-    let pool2 =
-        ClientFactory.create(
-            name = "duplicate_pool_name",
-            initClient = (fun (number,context) -> Task.FromResult(number + 1)),
-            clientCount = 100
-        )
+    let pool2 = ClientFactory.create(
+        name = "duplicate_pool_name",
+        initClient = (fun (number,context) -> Task.FromResult(number + 1)),
+        clientCount = 100
+    )
 
     let step1 = Step.create("step_1", clientFactory = pool1, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -329,11 +319,10 @@ let ``should provide default dispose client``() =
                 defaultDisposeInvoked <- true
     }
 
-    let factory =
-        ClientFactory.create(
-            name = "factory_1",
-            initClient = (fun (number,context) -> Task.FromResult client)
-        )
+    let factory = ClientFactory.create(
+        name = "factory_1",
+        initClient = (fun (number,context) -> Task.FromResult client)
+    )
 
     let step = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -355,14 +344,13 @@ let ``should provide custom dispose client``() =
 
     let mutable customDisposeInvoked = false
 
-    let factory =
-        ClientFactory.create(
-            name = "factory_1",
-            initClient = (fun (number,context) -> Task.FromResult 1),
-            disposeClient = (fun (client,context) -> task {
-                customDisposeInvoked <- true
-            })
-        )
+    let factory = ClientFactory.create(
+        name = "factory_1",
+        initClient = (fun (number,context) -> Task.FromResult 1),
+        disposeClient = (fun (client,context) -> task {
+            customDisposeInvoked <- true
+        })
+    )
 
     let step = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
@@ -378,3 +366,25 @@ let ``should provide custom dispose client``() =
     |> ignore
 
     test <@ customDisposeInvoked = true @>
+
+[<Fact>]
+let ``should validate factory name``() =
+
+    let factory = ClientFactory.create(
+        name = "factory@name", // invalid symbol '@'
+        initClient = (fun (number,context) -> Task.FromResult 1)
+    )
+
+    let step = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    Scenario.create "test" [step]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./client-pool/12/"
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error -> test <@ error.Contains("") @>

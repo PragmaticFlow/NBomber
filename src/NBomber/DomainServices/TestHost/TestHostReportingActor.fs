@@ -25,7 +25,7 @@ let saveRealtimeScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) 
         try
             do! sink.SaveRealtimeStats(stats)
         with
-        | ex -> dep.Logger.Warning(ex, "Reporting sink '{SinkName}' failed to save scenario stats.", sink.SinkName)
+        | ex -> dep.Logger.Warning(ex, "Reporting sink: {SinkName} failed to save scenario stats", sink.SinkName)
 }
 
 let getRealtimeScenarioStats (schedulers: ScenarioScheduler list) (duration: TimeSpan) =
@@ -49,11 +49,11 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
         let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
         if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
         else
-            dep.Logger.Error("Getting plugin stats failed with the timeout error.")
+            dep.Logger.Error("Getting plugin stats failed with the timeout error")
             return Array.empty
     with
     | ex ->
-        dep.Logger.Error(ex, "Getting plugin stats failed with the following error.")
+        dep.Logger.Error(ex, "Getting plugin stats failed with the following error")
         return Array.empty
 }
 
@@ -103,7 +103,7 @@ let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testIn
                     |> Task.WaitAll
                     return! loop currentHistory
             with
-            | ex -> dep.Logger.Error(ex, "Reporting actor failed.")
+            | ex -> dep.Logger.Error(ex, "Reporting actor failed")
         }
         loop List.empty
     )

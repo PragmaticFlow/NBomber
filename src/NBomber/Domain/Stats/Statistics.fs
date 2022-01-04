@@ -8,6 +8,7 @@ open HdrHistogram
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =
@@ -45,7 +46,7 @@ module LatencyStats =
     let create (stats: RawStepStats) =
 
         let latencies =
-            if stats.LatencyHistogram.TotalCount > 0L then ValueSome(stats.LatencyHistogram)
+            if stats.LatencyHistogram.TotalCount > 0 then ValueSome stats.LatencyHistogram
             else ValueNone
 
         { MinMs  = if latencies.IsSome then stats.MinMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
@@ -107,16 +108,22 @@ module StatusCodeStats =
 
 module StepStats =
 
-    let create (stepName: string) (stepData: StepStatsRawData) (duration: TimeSpan) =
+    let create (stepName: string)
+               (stepData: StepStatsRawData)
+               (stepTimeout: TimeSpan)
+               (clientFactoryName: string)
+               (clientFactoryClientCount: int)
+               (feedName: string)
+               (duration: TimeSpan) =
 
-        let okStats: OkStepStats = {
+        let okStats = {
             Request = RequestStats.create stepData.OkStats duration
             Latency = LatencyStats.create stepData.OkStats
             DataTransfer = DataTransferStats.create stepData.OkStats
             StatusCodes = StatusCodeStats.create stepData.OkStats.StatusCodes
         }
 
-        let failStats: FailStepStats = {
+        let failStats = {
             Request = RequestStats.create stepData.FailStats duration
             Latency = LatencyStats.create stepData.FailStats
             DataTransfer = DataTransferStats.create stepData.FailStats
@@ -125,7 +132,11 @@ module StepStats =
 
         { StepName = stepName
           Ok = okStats
-          Fail = failStats }
+          Fail = failStats
+          StepInfo = { Timeout = stepTimeout
+                       ClientFactoryName = clientFactoryName
+                       ClientFactoryClientCount = clientFactoryClientCount
+                       FeedName = feedName } }
 
     let round (stats: StepStats) =
         { stats with Ok = { stats.Ok with Request = stats.Ok.Request |> RequestStats.round
@@ -135,6 +146,9 @@ module StepStats =
                      Fail = { stats.Fail with Request = stats.Fail.Request |> RequestStats.round
                                               Latency = stats.Fail.Latency |> LatencyStats.round
                                               DataTransfer = stats.Fail.DataTransfer |> DataTransferStats.round } }
+
+    let getAllRequestCount (stats: StepStats) =
+        stats.Ok.Request.Count + stats.Fail.Request.Count
 
 module ScenarioStats =
 
@@ -155,9 +169,15 @@ module ScenarioStats =
 
         let stepStats =
             scenario.Steps
-            |> Seq.mapi(fun i x -> if x.DoNotTrack then None else Some(StepStats.create x.StepName allStepsData[i] reportingInterval))
-            |> Seq.choose(id)
-            |> Seq.toArray
+            |> List.mapi(fun i st ->
+                if st.DoNotTrack then None
+                else
+                    let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
+                    let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
+                    let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
+                    Some(StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount fdName reportingInterval))
+            |> List.choose id
+            |> List.toArray
 
         let okCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.OkStats.StatusCodes)
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
@@ -178,6 +198,9 @@ module ScenarioStats =
     let round (stats: ScenarioStats) =
         { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
+
+    let failStepStatsExist (stats: ScenarioStats) =
+        stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
 module NodeStats =
 

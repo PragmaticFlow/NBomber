@@ -35,7 +35,9 @@ type PingPluginConfig = {
     /// The default is 1000 ms.
     Timeout: int
 } with
-    static member CreateDefault([<ParamArray>]hosts: string[]) = {
+
+    [<CompiledName("CreateDefault")>]
+    static member createDefault([<ParamArray>]hosts: string[]) = {
         Hosts = hosts
         BufferSizeBytes = 32
         Ttl = 128
@@ -43,8 +45,9 @@ type PingPluginConfig = {
         Timeout = 1_000
     }
 
-    static member CreateDefault(hosts: string seq) =
-        hosts |> Seq.toArray |> PingPluginConfig.CreateDefault
+    [<CompiledName("CreateDefault")>]
+    static member createDefault(hosts: string seq) =
+        hosts |> Seq.toArray |> PingPluginConfig.createDefault
 
 module internal PingPluginStatistics =
 
@@ -93,7 +96,7 @@ module internal PingPluginHintsAnalyzer =
     let analyze (pingResults: (string * PingReply)[]) =
 
         let printHint (hostName, result: PingReply) =
-            $"Physical latency to host: '%s{hostName}' is '%d{result.RoundtripTime}'. This is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency."
+            $"Physical latency to host: '%s{hostName}' is '%d{result.RoundtripTime}'. This is bigger than 2ms which is not appropriate for load testing. You should run your test in an environment with very small latency"
 
         pingResults
         |> Seq.filter(fun (_,result) -> result.RoundtripTime > 2L)
@@ -138,7 +141,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
         return pingResult, stats
     }
 
-    new() = new PingPlugin(PingPluginConfig.CreateDefault())
+    new() = new PingPlugin(PingPluginConfig.createDefault())
 
     interface IWorkerPlugin with
         member _.PluginName = _pluginName

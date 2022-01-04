@@ -85,24 +85,25 @@ type DataTransferStats = {
     AllBytes: int64
 }
 
-type OkStepStats = {
+type StepStatsData = {
     Request: RequestStats
     Latency: LatencyStats
     DataTransfer: DataTransferStats
     StatusCodes: StatusCodeStats[]
 }
 
-type FailStepStats = {
-    Request: RequestStats
-    Latency: LatencyStats
-    DataTransfer: DataTransferStats
-    StatusCodes: StatusCodeStats[]
+type StepInfo = {
+    Timeout: TimeSpan
+    ClientFactoryName: string
+    ClientFactoryClientCount: int
+    FeedName: string
 }
 
 type StepStats = {
     StepName: string
-    Ok: OkStepStats
-    Fail: FailStepStats
+    Ok: StepStatsData
+    Fail: StepStatsData
+    StepInfo: StepInfo
 }
 
 type LoadSimulationStats = {
@@ -152,7 +153,7 @@ type NodeStats = {
 
     [<CompiledName("Empty")>]
     static member empty = {
-        RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0L
+        RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0
         ScenarioStats = Array.empty; PluginStats = Array.empty
         NodeInfo = Unchecked.defaultof<_>; TestInfo = Unchecked.defaultof<_>
         ReportFiles = Array.empty; Duration = TimeSpan.MinValue
