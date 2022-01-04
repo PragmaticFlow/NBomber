@@ -47,8 +47,8 @@ let DefaultSimulationDuration = TimeSpan.FromMinutes 1.0
 let MinSimulationDuration = TimeSpan.FromSeconds 1.0
 let MaxSimulationDuration = TimeSpan.FromDays 10.0
 let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
-let MinSendStatsInterval = TimeSpan.FromSeconds 5.0
-let DefaultSendStatsInterval = TimeSpan.FromSeconds 10.0
+let MinReportingInterval = TimeSpan.FromSeconds 5.0
+let DefaultReportingInterval = TimeSpan.FromSeconds 10.0
 let StepTimeout = TimeSpan.FromSeconds 1.0
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5.0
 

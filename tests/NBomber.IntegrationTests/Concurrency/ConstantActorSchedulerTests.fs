@@ -35,7 +35,7 @@ let internal baseDep = {
     CancellationToken = CancellationToken.None
     ScenarioGlobalTimer = Stopwatch()
     Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor.create logger baseScenario Constants.DefaultSendStatsInterval
+    ScenarioStatsActor = ScenarioStatsActor.create logger baseScenario Constants.DefaultReportingInterval
     ExecStopCommand = fun _ -> ()
 }
 

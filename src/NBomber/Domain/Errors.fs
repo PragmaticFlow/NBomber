@@ -24,8 +24,8 @@ type ValidationError =
     | CurrentTargetGroupNotMatched  of currentTargetGroup:string
     | TargetGroupsAreNotFound       of notFoundTargetGroups:string[]
     | SessionIsWrong
-    | SendStatsValueSmallerThanMin
-    | SendStatsConfigValueHasInvalidFormat of value:string
+    | ReportingIntervalSmallerThanMin
+    | ReportingIntervalConfigInvalidFormat of value:string
     | InvalidClientFactoryName of factoryName:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
@@ -92,11 +92,11 @@ type AppError =
 
         | SessionIsWrong -> "Session is wrong"
 
-        | SendStatsValueSmallerThanMin ->
-            $"SendStatsInterval should be bigger than min value: '{int Constants.MinSendStatsInterval.TotalSeconds}'"
+        | ReportingIntervalSmallerThanMin ->
+            $"ReportingInterval should be bigger than min value: '{int Constants.MinReportingInterval.TotalSeconds}'"
 
-        | SendStatsConfigValueHasInvalidFormat value ->
-            $"""SendStatsInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
+        | ReportingIntervalConfigInvalidFormat value ->
+            $"""ReportingInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
 
         | InvalidClientFactoryName factoryName ->
             $"ClientFactory: '{factoryName}' contains not allowed symbol '@'"

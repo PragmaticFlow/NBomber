@@ -28,7 +28,7 @@
         "ReportFileName": "my_report_name",
         "ReportFolder": "./my_reports",
         "ReportFormats": [ "Html", "Md", "Txt", "Csv" ],
-        "SendStatsInterval": "00:00:05",
+        "ReportingInterval": "00:00:05",
 
         "UseHintsAnalyzer": true
     }

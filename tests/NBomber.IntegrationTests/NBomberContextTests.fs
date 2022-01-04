@@ -23,7 +23,7 @@ let baseGlobalSettings = {
     ReportFileName = None
     ReportFolder = None
     ReportFormats = None
-    SendStatsInterval = None
+    ReportingInterval = None
     UseHintsAnalyzer = None
 }
 
@@ -58,7 +58,7 @@ let context = {
         FolderName = None
         Formats = List.empty
         Sinks = List.empty
-        SendStatsInterval = Constants.DefaultSendStatsInterval
+        ReportingInterval = Constants.DefaultReportingInterval
     }
     WorkerPlugins = List.empty
     UseHintsAnalyzer = false
@@ -203,13 +203,13 @@ let ``getClientFactorySettings should return from Config with updated poolName, 
         test <@ result = List.empty @>
 
 [<Fact>]
-let ``getSendStatsInterval should return fail if interval is smaller than min value`` () =
+let ``getReportingInterval should return fail if interval is smaller than min value`` () =
 
-    let okContext =    { context with Reporting = { context.Reporting with SendStatsInterval = seconds 5 }}
-    let errorContext = { context with Reporting = { context.Reporting with SendStatsInterval = seconds 2 }}
+    let okContext =    { context with Reporting = { context.Reporting with ReportingInterval = seconds 5 }}
+    let errorContext = { context with Reporting = { context.Reporting with ReportingInterval = seconds 2 }}
 
-    let ok = NBomberContext.getSendStatsInterval(okContext)
-    let error = NBomberContext.getSendStatsInterval(errorContext)
+    let ok = NBomberContext.getReportingInterval(okContext)
+    let error = NBomberContext.getReportingInterval(errorContext)
 
     test <@ Result.isOk ok @>
     test <@ Result.isError error @>
@@ -265,20 +265,20 @@ let ``checkReportFolder should return fail if ReportFolderPath contains invalid 
     )
 
 [<Fact>]
-let ``checkSendStatsInterval should return fail if SendStatsInterval is smaller than min value`` () =
-    match NBomberContext.Validation.checkSendStatsInterval(seconds 3) with
-    | Error (SendStatsValueSmallerThanMin _) -> ()
+let ``checkReportingInterval should return fail if ReportingInterval is smaller than min value`` () =
+    match NBomberContext.Validation.checkReportingInterval(seconds 3) with
+    | Error (ReportingIntervalSmallerThanMin _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
-let ``checkSendStatsSetting should return fail if SendStatsInterval has invalid format`` () =
-    match NBomberContext.Validation.checkSendStatsSettings("1232") with
-    | Error (SendStatsConfigValueHasInvalidFormat _) -> ()
+let ``checkReportingIntervalSetting should return fail if ReportingInterval has invalid format`` () =
+    match NBomberContext.Validation.checkReportingIntervalSettings("1232") with
+    | Error (ReportingIntervalConfigInvalidFormat _) -> ()
     | _ -> failwith ""
 
 [<Fact>]
-let ``checkSendStatsSetting should return ok if SendStatsInterval has valid format and correct value`` () =
-    match NBomberContext.Validation.checkSendStatsSettings("00:00:20") with
+let ``checkReportingIntervalSetting should return ok if ReportingInterval has valid format and correct value`` () =
+    match NBomberContext.Validation.checkReportingIntervalSettings("00:00:20") with
     | Error _ -> failwith ""
     | _       -> ()
 

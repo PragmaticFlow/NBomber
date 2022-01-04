@@ -28,7 +28,7 @@ type GlobalSettings = {
     ReportFileName: string option
     ReportFolder: string option
     ReportFormats: ReportFormat list option
-    SendStatsInterval: string option
+    ReportingInterval: string option
     UseHintsAnalyzer: bool option
 }
 

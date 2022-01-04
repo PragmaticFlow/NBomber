@@ -31,6 +31,6 @@
     "ReportFileName": "custom_report_name",
     "ReportFolder": "./my_custom_reports",
     "ReportFormats": ["Html", "Txt"],
-    "SendStatsInterval": "00:00:30"
+    "ReportingInterval": "00:00:30"
   }
 }

@@ -25,7 +25,7 @@ type SessionArgs = {
     ScenariosSettings: ScenarioSetting list
     TargetScenarios: string list
     UpdatedClientFactorySettings: ClientFactorySetting list
-    SendStatsInterval: TimeSpan
+    ReportingInterval: TimeSpan
     UseHintsAnalyzer: bool
 } with
 
@@ -34,7 +34,7 @@ type SessionArgs = {
         ScenariosSettings = List.empty
         TargetScenarios = List.empty
         UpdatedClientFactorySettings = List.empty
-        SendStatsInterval = Constants.DefaultSendStatsInterval
+        ReportingInterval = Constants.DefaultReportingInterval
         UseHintsAnalyzer = true
     }
 
@@ -57,14 +57,14 @@ module Validation =
        elif Path.GetInvalidPathChars() |> folderPath.IndexOfAny <> -1 then Error InvalidReportFolderPath
        else Ok folderPath
 
-    let checkSendStatsInterval (interval: TimeSpan) =
-        if interval >= Constants.MinSendStatsInterval then Ok interval
-        else Error <| SendStatsValueSmallerThanMin
+    let checkReportingInterval (interval: TimeSpan) =
+        if interval >= Constants.MinReportingInterval then Ok interval
+        else Error <| ReportingIntervalSmallerThanMin
 
-    let checkSendStatsSettings (interval: string) =
+    let checkReportingIntervalSettings (interval: string) =
         match TimeSpan.TryParseExact(interval, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
-        | true, value -> checkSendStatsInterval(value)
-        | false, _    -> Error <| SendStatsConfigValueHasInvalidFormat(interval)
+        | true, value -> checkReportingInterval value
+        | false, _    -> Error(ReportingIntervalConfigInvalidFormat interval)
 
     let checkWarmUpSettings (settings: ScenarioSetting list) =
         settings
@@ -205,16 +205,16 @@ let getReportFormats (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.Reporting.Formats
 
-let getSendStatsInterval (context: NBomberContext) =
+let getReportingInterval (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.SendStatsInterval
+        return! settings.ReportingInterval
     }
     context
     |> tryGetFromConfig
-    |> Option.map(Validation.checkSendStatsSettings)
-    |> Option.defaultValue(context.Reporting.SendStatsInterval |> Validation.checkSendStatsInterval)
+    |> Option.map(Validation.checkReportingIntervalSettings)
+    |> Option.defaultValue(context.Reporting.ReportingInterval |> Validation.checkReportingInterval)
 
 let getUseHintsAnalyzer (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
@@ -252,7 +252,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName
         let! reportFolder      = context |> getReportFolderOrDefault("SessionId") |> Validation.checkReportFolder
-        let! sendStatsInterval = context |> getSendStatsInterval
+        let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
         let clientFactorySettings = context |> getClientFactorySettings
         let useHintsAnalyzer = context |> getUseHintAnalyzer
@@ -262,7 +262,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
             ScenariosSettings = scenariosSettings
             TargetScenarios = targetScenarios
             UpdatedClientFactorySettings = clientFactorySettings
-            SendStatsInterval = sendStatsInterval
+            ReportingInterval = reportingInterval
             UseHintsAnalyzer = useHintsAnalyzer
         }
     }

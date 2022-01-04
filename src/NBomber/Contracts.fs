@@ -14,7 +14,7 @@ type ReportingContext = {
     FileName: string option
     Sinks: IReportingSink list
     Formats: ReportFormat list
-    SendStatsInterval: TimeSpan
+    ReportingInterval: TimeSpan
 }
 
 type NBomberContext = {
@@ -42,7 +42,7 @@ type NBomberContext = {
             FileName = None
             Formats = Constants.AllReportFormats
             Sinks = List.empty
-            SendStatsInterval = Constants.DefaultSendStatsInterval
+            ReportingInterval = Constants.DefaultReportingInterval
         }
         WorkerPlugins = List.empty
         UseHintsAnalyzer = true

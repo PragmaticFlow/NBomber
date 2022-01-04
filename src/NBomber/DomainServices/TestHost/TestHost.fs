@@ -59,7 +59,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor _logger scn _sessionArgs.SendStatsInterval
+                ScenarioStatsActor = createStatsActor _logger scn _sessionArgs.ReportingInterval
                 ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)
@@ -232,7 +232,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         reportingActor.Error.Subscribe(fun ex -> _logger.Error("Reporting actor error", ex)) |> ignore
 
         let currentOperationTimer = Stopwatch()
-        use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
+        use reportingTimer = new Timers.Timer(sessionArgs.ReportingInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
             reportingActor.Post(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
         )
