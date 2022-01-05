@@ -46,12 +46,58 @@ module StepContext =
           StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ExecStopCommand
           StopCurrentTest = fun reason -> StopTest(reason) |> dep.ExecStopCommand }
 
+module StepClientContext =
+
+    let toUntyped (getClientNumber: IStepClientContext<'TFeedItem> -> int) =
+
+        fun (untyped: IStepClientContext<obj>) ->
+
+            let typed = {
+                new IStepClientContext<'TFeedItem> with
+                    member _.ScenarioInfo = untyped.ScenarioInfo
+                    member _.Logger = untyped.Logger
+                    member _.Data = untyped.Data
+                    member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
+                    member _.InvocationCount = untyped.InvocationCount
+                    member _.ClientCount = untyped.ClientCount
+            }
+
+            getClientNumber typed
+
+    let create (context: UntypedStepContext) (clientCount: int) = {
+        new IStepClientContext<obj> with
+            member _.ScenarioInfo = context.ScenarioInfo
+            member _.Logger = context.Logger
+            member _.Data = context.Data
+            member _.FeedItem = context.FeedItem
+            member _.InvocationCount = context.InvocationCount
+            member _.ClientCount = clientCount
+    }
+
+
 module RunningStep =
 
     let create (dep: StepDep) (step: Step) =
         { Value = step; Context = StepContext.create dep step }
 
+    let getClient (context: UntypedStepContext)
+                  (clientPool: ClientPool option)
+                  (clientDistribution: (IStepClientContext<obj> -> int) option) =
+
+        match clientPool, clientDistribution with
+        | Some pool, Some getClientIndex ->
+            let ctx = StepClientContext.create context pool.ClientCount
+            let index = getClientIndex ctx
+            pool.InitializedClients[index]
+
+        | Some pool, None ->
+            let index = context.ScenarioInfo.ThreadNumber % pool.InitializedClients.Length
+            pool.InitializedClients[index]
+
+        | _, _ -> Unchecked.defaultof<_>
+
     let updateContext (step: RunningStep) (data: Dictionary<string,obj>) =
+        let st = step.Value
         let context = step.Context
 
         let feedItem =
@@ -62,27 +108,30 @@ module RunningStep =
         context.InvocationCount <- context.InvocationCount + 1
         context.Data <- data
         context.FeedItem <- feedItem
+        // context.Client should be set as the last field because init order matter here
+        context.Client <- getClient context st.ClientPool st.ClientDistribution
+
         step
 
 let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
 
-    fun (untypedCtx: UntypedStepContext) ->
+    fun (untyped: UntypedStepContext) ->
 
-        let typedCtx = {
+        let typed = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
-                member _.Client = untypedCtx.Client :?> 'TClient
-                member _.Data = untypedCtx.Data
-                member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
-                member _.Logger = untypedCtx.Logger
-                member _.InvocationCount = untypedCtx.InvocationCount
-                member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
-                member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
+                member _.ScenarioInfo = untyped.ScenarioInfo
+                member _.CancellationToken = untyped.CancellationToken
+                member _.Client = untyped.Client :?> 'TClient
+                member _.Data = untyped.Data
+                member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
+                member _.Logger = untyped.Logger
+                member _.InvocationCount = untyped.InvocationCount
+                member _.StopScenario(scenarioName, reason) = untyped.StopScenario(scenarioName, reason)
+                member _.StopCurrentTest(reason) = untyped.StopCurrentTest(reason)
 
                 member _.GetPreviousStepResponse() =
                     try
-                        let prevStepResponse = untypedCtx.Data[Constants.StepResponseKey]
+                        let prevStepResponse = untyped.Data[Constants.StepResponseKey]
                         if isNull prevStepResponse then
                             Unchecked.defaultof<'T>
                         else
@@ -91,27 +140,27 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
                     | ex -> Unchecked.defaultof<'T>
         }
 
-        execute typedCtx
+        execute typed
 
 let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>) =
 
-    fun (untypedCtx: UntypedStepContext) ->
+    fun (untyped: UntypedStepContext) ->
 
-        let typedCtx = {
+        let typed = {
             new IStepContext<'TClient,'TFeedItem> with
-                member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
-                member _.Client = untypedCtx.Client :?> 'TClient
-                member _.Data = untypedCtx.Data
-                member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
-                member _.Logger = untypedCtx.Logger
-                member _.InvocationCount = untypedCtx.InvocationCount
-                member _.StopScenario(scenarioName, reason) = untypedCtx.StopScenario(scenarioName, reason)
-                member _.StopCurrentTest(reason) = untypedCtx.StopCurrentTest(reason)
+                member _.ScenarioInfo = untyped.ScenarioInfo
+                member _.CancellationToken = untyped.CancellationToken
+                member _.Client = untyped.Client :?> 'TClient
+                member _.Data = untyped.Data
+                member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
+                member _.Logger = untyped.Logger
+                member _.InvocationCount = untyped.InvocationCount
+                member _.StopScenario(scenarioName, reason) = untyped.StopScenario(scenarioName, reason)
+                member _.StopCurrentTest(reason) = untyped.StopCurrentTest(reason)
 
                 member _.GetPreviousStepResponse() =
                     try
-                        let prevStepResponse = untypedCtx.Data[Constants.StepResponseKey]
+                        let prevStepResponse = untyped.Data[Constants.StepResponseKey]
                         if isNull prevStepResponse then
                             Unchecked.defaultof<'T>
                         else
@@ -120,7 +169,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
                     | ex -> Unchecked.defaultof<'T>
         }
 
-        execute typedCtx
+        execute typed
 
 let execStep (step: RunningStep) (globalTimer: Stopwatch) =
     let startTime = globalTimer.Elapsed.TotalMilliseconds

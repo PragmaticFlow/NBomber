@@ -20,8 +20,8 @@ type StopCommand =
 type UntypedStepContext = {
     ScenarioInfo: ScenarioInfo
     CancellationToken: CancellationToken
-    Client: obj
     Logger: ILogger
+    mutable Client: obj
     mutable FeedItem: obj
     mutable Data: Dictionary<string,obj>
     mutable InvocationCount: int
@@ -36,6 +36,7 @@ type StepExecution =
 type Step = {
     StepName: string
     ClientFactory: ClientFactory<obj> option
+    ClientDistribution: (IStepClientContext<obj> -> int) option
     ClientPool: ClientPool option
     Execute: StepExecution
     Feed: IFeed<obj> option
