@@ -10,7 +10,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -106,15 +105,19 @@ type ScenarioScheduler(dep: ActorDep) =
             _oneTimeScheduler.ScheduledActorCount
         )
 
+    let prepareRealtimeStats () =
+        _constantScheduler.AvailableActors |> List.iter(fun x -> x.FlushStats())
+        _oneTimeScheduler.AvailableActors |> List.iter(fun x -> x.FlushStats())
+
     let getRealtimeStats (duration) =
         let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration duration
         let simulationStats = getCurrentSimulationStats()
-        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetRealtimeStats(reply, simulationStats, executedDuration))
+        dep.GlobalScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
     let getFinalStats () =
         let scnDuration = _scenario |> Scenario.getDuration
         let simulationStats = getCurrentSimulationStats()
-        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetFinalStats(reply, simulationStats, scnDuration))
+        dep.GlobalScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
     let start () =
         dep.ScenarioGlobalTimer.Stop()
@@ -197,13 +200,13 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.GetRealtimeStats(duration) = getRealtimeStats(duration)
+    member _.PrepareRealtimeStats() = prepareRealtimeStats()
+    member _.GetRealtimeStats(duration) = getRealtimeStats duration
     member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with
         member _.Dispose() =
             stop()
-            (dep.ScenarioStatsActor :> IDisposable).Dispose()
             _eventStream.Dispose()
             _logger.Verbose $"{nameof ScenarioScheduler} disposed."
 

@@ -32,12 +32,12 @@ let getRealtimeScenarioStats (schedulers: ScenarioScheduler list) (duration: Tim
     schedulers
     |> List.filter(fun x  -> x.Working = true)
     |> List.map(fun x -> x.GetRealtimeStats duration)
-    |> List.toArray
+    |> Task.WhenAll
 
 let getFinalScenarioStats (schedulers: ScenarioScheduler list) =
     schedulers
     |> List.map(fun x -> x.GetFinalStats())
-    |> List.toArray
+    |> Task.WhenAll
 
 let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
     try
@@ -62,11 +62,12 @@ let getFinalStats (dep: IGlobalDependency)
                   (testInfo: TestInfo)
                   (nodeInfo: NodeInfo) = task {
 
-    let! pluginStats = getPluginStats dep nodeInfo.CurrentOperation
+    let pluginStats = getPluginStats dep nodeInfo.CurrentOperation
     let scenarioStats = getFinalScenarioStats schedulers
+    do! Task.WhenAll(pluginStats, scenarioStats)
 
-    return if Array.isEmpty scenarioStats then None
-           else Some(NodeStats.create testInfo nodeInfo scenarioStats pluginStats)
+    return if Array.isEmpty scenarioStats.Result then None
+           else Some(NodeStats.create testInfo nodeInfo scenarioStats.Result pluginStats.Result)
 }
 
 let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo) =
@@ -76,11 +77,11 @@ let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testIn
         let getRealtimeStats = getRealtimeScenarioStats schedulers
         let getFinalStats = getFinalStats dep schedulers testInfo
 
-        let fetchAndSaveRealtimeStats (duration, history) = async {
-            let scnStats = duration |> getRealtimeStats |> Array.map(ScenarioStats.round)
+        let fetchAndSaveRealtimeStats (duration, history) = task {
+            let! scnStats = getRealtimeStats duration
             if Array.isEmpty scnStats then return history
             else
-                do! scnStats |> saveRealtimeStats |> Async.AwaitTask
+                do! scnStats |> Array.map(ScenarioStats.round) |> saveRealtimeStats
                 let historyRecord = TimeLineHistoryRecord.create scnStats
                 return historyRecord :: history
         }
@@ -89,7 +90,7 @@ let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testIn
             try
                 match! inbox.Receive() with
                 | FetchAndSaveRealtimeStats duration ->
-                    let! newHistory = fetchAndSaveRealtimeStats(duration, currentHistory)
+                    let! newHistory = fetchAndSaveRealtimeStats(duration, currentHistory) |> Async.AwaitTask
                     return! loop newHistory
 
                 | GetTimeLineHistory reply ->

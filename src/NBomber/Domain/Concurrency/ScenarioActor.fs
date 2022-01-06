@@ -8,20 +8,19 @@ open System.Threading.Tasks
 open Serilog
 open FSharp.Control.Tasks.NonAffine
 
-open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
-open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.Stats.GlobalScenarioStatsActor
+open NBomber.Domain.Stats.LocalScenarioStatsActor
 
 type ActorDep = {
     Logger: ILogger
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
-    ScenarioStatsActor: MailboxProcessor<StatsActorMessage>
+    GlobalScenarioStatsActor: GlobalScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -30,34 +29,18 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
     let _logger = dep.Logger.ForContext<ScenarioActor>()
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
 
-    let _stepDep = { ScenarioInfo = scenarioInfo
-                     Logger = dep.Logger
-                     CancellationToken = dep.CancellationToken
-                     ScenarioGlobalTimer = dep.ScenarioGlobalTimer
-                     ExecStopCommand = dep.ExecStopCommand }
+    let _stepDep = {
+        ScenarioInfo = scenarioInfo
+        Logger = dep.Logger
+        CancellationToken = dep.CancellationToken
+        ScenarioGlobalTimer = dep.ScenarioGlobalTimer
+        ExecStopCommand = dep.ExecStopCommand
+        LocalScenarioStatsActor = LocalScenarioStatsActor(dep.GlobalScenarioStatsActor)
+        Data = Dictionary<string,obj>()
+    }
 
-    let _steps = dep.Scenario.Steps
-                 |> List.map(RunningStep.create _stepDep)
-                 |> List.toArray
-
-    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ResponseBufferLength) // stepIndex * StepResponse
-    let mutable _latestBufferFlushSec = 0
-    let _stepDataDict = Dictionary<string,obj>()
+    let _steps = dep.Scenario.Steps |> List.map(RunningStep.create _stepDep) |> List.toArray
     let mutable _working = false
-
-    let flushStats (buffer: ResizeArray<int * StepResponse>) =
-        let responses = buffer.ToArray()
-        dep.ScenarioStatsActor.Post(AddResponses responses)
-        buffer.Clear()
-        _latestBufferFlushSec <- int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds
-
-    let checkFlushBuffer (buffer: ResizeArray<int * StepResponse>) =
-        if buffer.Count >= Constants.ResponseBufferLength then
-            flushStats(buffer)
-        else
-            let delay = int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
-            if delay >= Constants.ResponseBufferFlushDelaySec then
-                flushStats(buffer)
 
     let execSteps () = task {
         try
@@ -65,14 +48,12 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 _working <- true
                 do! Task.Yield()
 
-                _stepDataDict.Clear()
+                _stepDep.Data.Clear()
 
                 if _isAllExecSync then
-                    Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
+                    Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder())
                 else
-                    do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
-
-                checkFlushBuffer(_responseBuffer)
+                    do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder())
             else
                 _logger.Error($"ExecSteps was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
@@ -87,27 +68,28 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 do! Task.Yield()
                 while _working && not dep.CancellationToken.IsCancellationRequested do
 
-                    _stepDataDict.Clear()
+                    _stepDep.Data.Clear()
 
                     if _isAllExecSync then
-                        Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
+                        Step.execSteps(_stepDep, _steps, dep.Scenario.GetStepsOrder())
                     else
-                        do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder(), _responseBuffer, _stepDataDict)
-
-                    checkFlushBuffer(_responseBuffer)
+                        do! Step.execStepsAsync(_stepDep, _steps, dep.Scenario.GetStepsOrder())
             else
                 _logger.Error($"RunInfinite was invoked for already working actor with scenario '{dep.Scenario.ScenarioName}'.")
         finally
             _working <- false
     }
 
-    member _.ScenarioStatsActor = dep.ScenarioStatsActor
+    let flushStats () =
+        _stepDep.LocalScenarioStatsActor.Publish(ActorMessage.FlushBuffer)
+
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
 
     member _.ExecSteps() = execSteps()
     member _.RunInfinite() = runInfinite()
+    member _.FlushStats() = flushStats()
 
     member _.Stop() =
         _working <- false
-        flushStats(_responseBuffer)
+        flushStats()

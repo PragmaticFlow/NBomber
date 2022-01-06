@@ -15,6 +15,7 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats
+open NBomber.Domain.Stats.GlobalScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra
@@ -51,7 +52,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         | StopTest reason -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
-                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
+                                 (createStatsActor: ILogger * Scenario * TimeSpan -> GlobalScenarioStatsActor) =
 
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
@@ -59,7 +60,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor _logger scn _sessionArgs.SendStatsInterval
+                GlobalScenarioStatsActor = createStatsActor(_logger, scn, _sessionArgs.SendStatsInterval)
                 ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)
@@ -100,6 +101,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     let startBombing (schedulers: ScenarioScheduler list,
+                      prepareStatsTimer: Timers.Timer,
                       reportingTimer: Timers.Timer,
                       currentOperationTimer: Stopwatch) = task {
 
@@ -109,11 +111,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! TestHostReportingSinks.start _logger dep.ReportingSinks
         do! TestHostPlugins.start _logger dep.WorkerPlugins
 
+        prepareStatsTimer.Start()
         reportingTimer.Start()
         currentOperationTimer.Start()
 
+        // waiting on all scenarios to finish
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
 
+        prepareStatsTimer.Stop()
         reportingTimer.Stop()
         currentOperationTimer.Stop()
 
@@ -177,7 +182,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         _logger.Information "Starting warm up..."
 
-        let schedulers = this.CreateScenarioSchedulers(ScenarioStatsActor.create)
+        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor)
         _currentSchedulers <- schedulers
 
         do! startWarmUp schedulers
@@ -187,6 +192,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     member _.StartBombing(schedulers: ScenarioScheduler list,
+                          prepareStatsTimer: Timers.Timer,
                           reportingTimer: Timers.Timer,
                           currentOperationTimer: Stopwatch) = task {
         _stopped <- false
@@ -195,7 +201,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! Task.Yield()
 
         _logger.Information "Starting bombing..."
-        do! startBombing(schedulers, reportingTimer, currentOperationTimer)
+        do! startBombing(schedulers, prepareStatsTimer, reportingTimer, currentOperationTimer)
         do! this.StopScenarios()
 
         _currentOperation <- OperationType.Complete
@@ -220,7 +226,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     member _.GetHints(finalStats) = _targetScenarios |> getHints finalStats
 
-    member _.CreateScenarioSchedulers(createStatsActor: ILogger -> Scenario -> TimeSpan -> MailboxProcessor<_>) =
+    member _.CreateScenarioSchedulers(createStatsActor: ILogger * Scenario * TimeSpan -> GlobalScenarioStatsActor) =
         createScenarioSchedulers _targetScenarios createStatsActor
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
@@ -228,17 +234,23 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! this.StartInit(sessionArgs, targetScenarios)
         do! this.StartWarmUp()
 
-        let schedulers = this.CreateScenarioSchedulers(ScenarioStatsActor.create)
+        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor)
         use reportingActor = TestHostReportingActor.create dep schedulers sessionArgs.TestInfo
         reportingActor.Error.Subscribe(fun ex -> _logger.Error("Reporting actor error", ex)) |> ignore
 
         let currentOperationTimer = Stopwatch()
+
+        use prepareStatsTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds - 1000.0)
+        prepareStatsTimer.Elapsed.Add(fun _ ->
+            schedulers |> List.iter(fun x -> x.PrepareRealtimeStats())
+        )
+
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
             reportingActor.Post(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
         )
 
-        do! this.StartBombing(schedulers, reportingTimer, currentOperationTimer)
+        do! this.StartBombing(schedulers, prepareStatsTimer, reportingTimer, currentOperationTimer)
 
         // gets final stats
         _logger.Information "Calculating final statistics..."

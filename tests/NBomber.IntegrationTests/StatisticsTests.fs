@@ -33,6 +33,7 @@ module StepStatsRawData =
                                ErrorMessage = ""; SizeBytes = 10
                                LatencyMs = clientResMs; Payload = null }
         let stepResponse = {
+            StepIndex = 0
             ClientResponse = clientResponse
             EndTimeMs = Double.MaxValue
             LatencyMs = stepResMs
@@ -63,6 +64,7 @@ module StepStatsRawData =
                 LatencyMs = float latency; Payload = null
             }
             let stepResponse = {
+                StepIndex = 0
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = 0.0
@@ -96,6 +98,7 @@ module StepStatsRawData =
                 LatencyMs = 0.0; Payload = null
             }
             let stepResponse = { // only stepResponse latency will be included
+                StepIndex = 0
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = latency |> float
@@ -150,6 +153,7 @@ module StepStatsRawData =
                 LatencyMs = 1.0; Payload = null
             }
             let stepResponse = {
+                StepIndex = 0
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = 0.0
