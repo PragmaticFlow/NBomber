@@ -96,18 +96,18 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
             member _.Dispose() = ()
     }
 
-    let mutable interval = seconds 1
+    let mutable delay = seconds 1
     let mutable size = 1000
 
     let okStep = Step.create("ok step", timeout = seconds 5, execute = fun context -> task {
-        do! Task.Delay interval
+        do! Task.Delay delay
 
         if context.InvocationCount = 5 then
-            interval <- milliseconds 500
+            delay <- milliseconds 500
             size <- 500
 
         if context.InvocationCount = 15 then
-            interval <- milliseconds 100
+            delay <- milliseconds 100
             size <- 100
 
         return Response.ok(sizeBytes = size)
@@ -139,6 +139,53 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes > last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes @>
         test <@ first.[0].StepStats.[0].Ok.DataTransfer.MaxBytes >= 1000  @>
         test <@ last.[0].StepStats.[0].Ok.DataTransfer.MaxBytes <= 1000  @>
+
+[<Fact>]
+let ``SaveRealtimeStats should receive correct calculated stats for long running steps`` () =
+
+    let _realtimeStats = ResizeArray<ScenarioStats[]>()
+
+    let reportingSink = {
+        new IReportingSink with
+            member _.SinkName = "TestSink"
+            member _.Init(_, _) = Task.CompletedTask
+            member _.Start() = Task.CompletedTask
+
+            member _.SaveRealtimeStats(stats) =
+                _realtimeStats.Add(stats)
+                Task.CompletedTask
+
+            member _.SaveFinalStats(stats) = Task.CompletedTask
+            member _.Stop() = Task.CompletedTask
+            member _.Dispose() = ()
+    }
+
+    let fastStep = Step.create("fast_step", timeout = seconds 30, execute = fun context -> task {
+        do! Task.Delay(seconds 1)
+        return Response.ok()
+    })
+
+    let longStep = Step.create("long_step", timeout = seconds 60, execute = fun context -> task {
+        do! Task.Delay(seconds 30)
+        return Response.ok()
+    })
+
+    let scenario1 =
+        Scenario.create "scenario_1" [fastStep; longStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 20)]
+
+    NBomberRunner.registerScenarios [scenario1]
+    |> NBomberRunner.withReportFolder "./reporting-sinks/3/"
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.withReportingInterval(seconds 5)
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun nodeStats ->
+        let first = _realtimeStats.[0]
+
+        test <@ first.[0].StepStats.[0].Ok.Request.Count = 10 @>
+        test <@ first.[0].StepStats.[0].Ok.Request.RPS = 2 @>
 
 [<Fact>]
 let ``SaveFinalStats should receive correct stats`` () =
