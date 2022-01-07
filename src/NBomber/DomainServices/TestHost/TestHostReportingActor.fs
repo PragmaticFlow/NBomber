@@ -2,6 +2,7 @@ module internal NBomber.DomainServices.TestHost.TestHostReportingActor
 
 open System
 open System.Threading.Tasks
+open System.Threading.Tasks.Dataflow
 
 open FsToolkit.ErrorHandling
 open FSharp.Control.Tasks.NonAffine
@@ -14,11 +15,6 @@ open NBomber.Domain.LoadTimeLine
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
-
-type ReportingActorMessage =
-    | FetchAndSaveRealtimeStats of duration:TimeSpan
-    | GetTimeLineHistory        of AsyncReplyChannel<TimeLineHistoryRecord list>
-    | GetFinalStats             of NodeInfo * AsyncReplyChannel<NodeStats>
 
 let saveRealtimeScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = task {
     for sink in dep.ReportingSinks do
@@ -70,41 +66,58 @@ let getFinalStats (dep: IGlobalDependency)
            else Some(NodeStats.create testInfo nodeInfo scenarioStats.Result pluginStats.Result)
 }
 
-let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (testInfo: TestInfo) =
-    MailboxProcessor.Start(fun inbox ->
+type ActorMessage =
+    | FetchAndSaveRealtimeStats of duration:TimeSpan
+    | GetTimeLineHistory        of TaskCompletionSource<TimeLineHistoryRecord list>
+    | GetFinalStats             of TaskCompletionSource<NodeStats> * NodeInfo
 
-        let saveRealtimeStats = saveRealtimeScenarioStats dep
-        let getRealtimeStats = getRealtimeScenarioStats schedulers
-        let getFinalStats = getFinalStats dep schedulers testInfo
+type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
 
-        let fetchAndSaveRealtimeStats (duration, history) = task {
-            let! scnStats = getRealtimeStats duration
-            if Array.isEmpty scnStats then return history
-            else
-                do! scnStats |> Array.map(ScenarioStats.round) |> saveRealtimeStats
-                let historyRecord = TimeLineHistoryRecord.create scnStats
-                return historyRecord :: history
-        }
+    let saveRealtimeStats = saveRealtimeScenarioStats dep
+    let getRealtimeStats = getRealtimeScenarioStats schedulers
+    let getFinalStats = getFinalStats dep schedulers testInfo
 
-        let rec loop (currentHistory: TimeLineHistoryRecord list) = async {
+    let mutable _currentHistory = List.empty<TimeLineHistoryRecord>
+
+    let fetchAndSaveRealtimeStats (duration, history) = task {
+        let! scnStats = getRealtimeStats duration
+        if Array.isEmpty scnStats then return history
+        else
+            do! scnStats |> Array.map(ScenarioStats.round) |> saveRealtimeStats
+            let historyRecord = TimeLineHistoryRecord.create scnStats
+            return historyRecord :: history
+    }
+
+    let _actor = ActionBlock(fun msg ->
+        task {
             try
-                match! inbox.Receive() with
+                match msg with
                 | FetchAndSaveRealtimeStats duration ->
-                    let! newHistory = fetchAndSaveRealtimeStats(duration, currentHistory) |> Async.AwaitTask
-                    return! loop newHistory
+                    let! newHistory = fetchAndSaveRealtimeStats(duration, _currentHistory)
+                    _currentHistory <- newHistory
 
                 | GetTimeLineHistory reply ->
-                    currentHistory |> TimeLineHistory.filterRealtime |> reply.Reply
-                    return! loop currentHistory
+                    _currentHistory |> TimeLineHistory.filterRealtime |> reply.TrySetResult |> ignore
 
-                | GetFinalStats (nodeInfo, reply) ->
+                | GetFinalStats (reply, nodeInfo) ->
                     nodeInfo
                     |> getFinalStats
-                    |> TaskOption.map(NodeStats.round >> reply.Reply)
+                    |> TaskOption.map(NodeStats.round >> reply.TrySetResult)
                     |> Task.WaitAll
-                    return! loop currentHistory
             with
-            | ex -> dep.Logger.Error(ex, "Reporting actor failed.")
+            | ex -> dep.Logger.Error(ex, "TestHostReporting actor failed.")
         }
-        loop List.empty
+        :> Task
     )
+
+    member _.Publish(msg) = _actor.Post(msg) |> ignore
+
+    member _.GetTimeLineHistory() =
+        let tcs = TaskCompletionSource<TimeLineHistoryRecord list>()
+        GetTimeLineHistory(tcs) |> _actor.Post |> ignore
+        tcs.Task
+
+    member _.GetFinalStats(nodeInfo) =
+        let tcs = TaskCompletionSource<NodeStats>()
+        GetFinalStats(tcs, nodeInfo) |> _actor.Post |> ignore
+        tcs.Task

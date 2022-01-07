@@ -235,34 +235,28 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! this.StartWarmUp()
 
         let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor)
-        use reportingActor = TestHostReportingActor.create dep schedulers sessionArgs.TestInfo
-        reportingActor.Error.Subscribe(fun ex -> _logger.Error("Reporting actor error", ex)) |> ignore
-
-        let currentOperationTimer = Stopwatch()
 
         use prepareStatsTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds - 1000.0)
         prepareStatsTimer.Elapsed.Add(fun _ ->
             schedulers |> List.iter(fun x -> x.PrepareRealtimeStats())
         )
 
+        let currentOperationTimer = Stopwatch()
+        let reportingActor = TestHostReportingActor(dep, schedulers, sessionArgs.TestInfo)
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
-            reportingActor.Post(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
+            reportingActor.Publish(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
         )
 
         do! this.StartBombing(schedulers, prepareStatsTimer, reportingTimer, currentOperationTimer)
 
         // gets final stats
         _logger.Information "Calculating final statistics..."
-        let finalStats = reportingActor.PostAndReply(fun reply -> GetFinalStats(getCurrentNodeInfo(), reply))
-
-        let timeLineHistory =
-            reportingActor.PostAndReply(fun reply -> GetTimeLineHistory reply)
-            |> List.toArray
-
+        let! finalStats = reportingActor.GetFinalStats(getCurrentNodeInfo())
+        let! timeLineHistory = reportingActor.GetTimeLineHistory()
         let hints = _targetScenarios |> getHints finalStats
 
-        return { FinalStats = finalStats; TimeLineHistory = timeLineHistory; Hints = hints }
+        return { FinalStats = finalStats; TimeLineHistory = Array.ofList timeLineHistory; Hints = hints }
     }
 
     interface IDisposable with
