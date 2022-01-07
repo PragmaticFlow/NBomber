@@ -11,7 +11,7 @@ type ActorMessage =
     | AddResponse of StepResponse
     | FlushBuffer
 
-type LocalScenarioStatsActor(globalStatsActor: GlobalScenarioStatsActor) =
+type LocalScenarioStatsActor(globalStatsActor: IScenarioStatsActor) =
 
     let _buffer = ResizeArray<StepResponse>()
 

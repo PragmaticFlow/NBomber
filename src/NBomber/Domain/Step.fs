@@ -240,4 +240,3 @@ let isAllExecSync (steps: Step list) =
     steps
     |> List.map(fun x -> x.Execute)
     |> List.forall(function SyncExec _ -> true | AsyncExec _ -> false)
-

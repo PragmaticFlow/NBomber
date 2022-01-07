@@ -20,7 +20,7 @@ type ActorDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
-    GlobalScenarioStatsActor: GlobalScenarioStatsActor
+    GlobalScenarioStatsActor: IScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
 }
 

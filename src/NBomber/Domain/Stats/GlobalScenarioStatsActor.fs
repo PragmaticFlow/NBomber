@@ -18,6 +18,12 @@ type ActorMessage =
     | GetRealtimeStats of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats    of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
+type IScenarioStatsActor =
+    abstract GetEmptyResponsesFromPool: count:int -> StepResponse[]
+    abstract Publish: ActorMessage -> unit
+    abstract GetRealtimeStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
+    abstract GetFinalStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
+
 type GlobalScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
@@ -54,18 +60,23 @@ type GlobalScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInte
         | ex -> logger.Error(ex, "GlobalScenarioStatsActor failed.")
     )
 
-    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    member _.GetEmptyResponsesFromPool(count) = _arrayPool.Rent(count)
+    interface IScenarioStatsActor with
 
-    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    member _.Publish(msg) = _actor.Post(msg) |> ignore
+        [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+        member _.GetEmptyResponsesFromPool(count) = _arrayPool.Rent(count)
 
-    member _.GetRealtimeStats(simulationStats, duration) =
-        let tcs = TaskCompletionSource<ScenarioStats>()
-        GetRealtimeStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
-        tcs.Task
+        [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+        member _.Publish(msg) = _actor.Post(msg) |> ignore
 
-    member _.GetFinalStats(simulationStats, duration) =
-        let tcs = TaskCompletionSource<ScenarioStats>()
-        GetFinalStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
-        tcs.Task
+        member _.GetRealtimeStats(simulationStats, duration) =
+            let tcs = TaskCompletionSource<ScenarioStats>()
+            GetRealtimeStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
+            tcs.Task
+
+        member _.GetFinalStats(simulationStats, duration) =
+            let tcs = TaskCompletionSource<ScenarioStats>()
+            GetFinalStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
+            tcs.Task
+
+let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
+    GlobalScenarioStatsActor(logger, scenario, reportingInterval) :> IScenarioStatsActor

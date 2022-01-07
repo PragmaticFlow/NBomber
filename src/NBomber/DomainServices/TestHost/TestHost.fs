@@ -52,7 +52,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         | StopTest reason -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
-                                 (createStatsActor: ILogger * Scenario * TimeSpan -> GlobalScenarioStatsActor) =
+                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
 
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
@@ -60,7 +60,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                GlobalScenarioStatsActor = createStatsActor(_logger, scn, _sessionArgs.SendStatsInterval)
+                GlobalScenarioStatsActor = createStatsActor _logger scn _sessionArgs.SendStatsInterval
                 ExecStopCommand = execStopCommand
             }
             new ScenarioScheduler(actorDep)
@@ -182,7 +182,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         _logger.Information "Starting warm up..."
 
-        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor)
+        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor.create)
         _currentSchedulers <- schedulers
 
         do! startWarmUp schedulers
@@ -226,7 +226,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
     member _.GetHints(finalStats) = _targetScenarios |> getHints finalStats
 
-    member _.CreateScenarioSchedulers(createStatsActor: ILogger * Scenario * TimeSpan -> GlobalScenarioStatsActor) =
+    member _.CreateScenarioSchedulers(createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
         createScenarioSchedulers _targetScenarios createStatsActor
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
@@ -234,7 +234,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! this.StartInit(sessionArgs, targetScenarios)
         do! this.StartWarmUp()
 
-        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor)
+        let schedulers = this.CreateScenarioSchedulers(GlobalScenarioStatsActor.create)
 
         use prepareStatsTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds - 1000.0)
         prepareStatsTimer.Elapsed.Add(fun _ ->
