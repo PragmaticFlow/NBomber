@@ -19,6 +19,132 @@ open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
 open Tests.TestHelper
 
+let baseNodeInfo =
+    { MachineName = "machine name"
+      NodeType = NodeType.SingleNode
+      CurrentOperation = OperationType.Complete
+      OS = Environment.OSVersion
+      DotNetVersion = "6.0"
+      Processor = "processor"
+      CoresCount = 4
+      NBomberVersion = "2.0" }
+
+let baseTestInfo =
+    { SessionId = "session id"
+      TestSuite = "test suite"
+      TestName = "test name" }
+
+let baseLatencyCount =
+    { LessOrEq800 = 1
+      More800Less1200 = 1
+      MoreOrEq1200 = 1 }
+
+let baseLoadSimulationStats =
+    { SimulationName = "simulation name"
+      Value = 1 }
+
+let baseScenarioStats =
+    { ScenarioName = "scenario name"
+      RequestCount = 1
+      OkCount = 1
+      FailCount = 1
+      AllBytes = 1
+      StepStats = Array.empty
+      LatencyCount = baseLatencyCount
+      LoadSimulationStats = baseLoadSimulationStats
+      StatusCodes = Array.empty
+      CurrentOperation = OperationType.Complete
+      Duration = TimeSpan.Zero }
+
+module NodeStatsTest =
+
+    [<Property>]
+    let ``NodeStats RequestCount should be sum of RequestCount of each scenario``
+        (requestCount1: int, requestCount2: int) =
+
+        let scenario1 ={ baseScenarioStats with RequestCount = requestCount1 }
+        let scenario2 = { baseScenarioStats with RequestCount = requestCount2 }
+
+        let nodeStats =
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+
+        test <@ nodeStats.RequestCount = requestCount1 + requestCount2 @>
+
+    [<Property>]
+    let ``NodeStats OkCount should be sum of OkCount of each scenario`` (okCount1: int, okCount2: int) =
+        let scenario1 ={ baseScenarioStats with OkCount = okCount1 }
+        let scenario2 = { baseScenarioStats with OkCount = okCount2 }
+
+        let nodeStats =
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+
+        test <@ nodeStats.OkCount = okCount1 + okCount2 @>
+
+    [<Property>]
+    let ``NodeStats FailCount should be sum of FailCount of each scenario`` (failCount1: int, failCount2: int) =
+        let scenario1 ={ baseScenarioStats with FailCount = failCount1 }
+        let scenario2 = { baseScenarioStats with FailCount = failCount2 }
+
+        let nodeStats =
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+
+        test <@ nodeStats.FailCount = failCount1 + failCount2 @>
+
+    [<Property>]
+    let ``NodeStats AllBytes should be sum of AllBytes of each scenario`` (allBytes1: int64, allBytes2: int64) =
+        let scenario1 ={ baseScenarioStats with AllBytes = allBytes1 }
+        let scenario2 = { baseScenarioStats with AllBytes = allBytes2 }
+
+        let nodeStats =
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+
+        test <@ nodeStats.AllBytes = allBytes1 + allBytes2 @>
+
+    [<Fact>]
+    let ``NodeStats Duration should be duration of the longest scenario`` () =
+        let scenario1 ={ baseScenarioStats with Duration = seconds 10 }
+        let scenario2 = { baseScenarioStats with Duration = seconds 20 }
+
+        let nodeStats =
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+
+        test <@ nodeStats.Duration = seconds 20 @>
+
+    [<Fact>]
+    let ``NodeStats should be calculated during test execution`` () =
+        let okStep = Step.create("ok step", timeout = seconds 2, execute = fun _ -> task {
+            do! Task.Delay(milliseconds 500)
+            return Response.ok(sizeBytes = 100)
+        })
+
+        let failStep = Step.create("fail step", timeout = seconds 2, execute = fun _ -> task {
+            do! Task.Delay(milliseconds 500)
+            return Response.fail(error = "reason", statusCode = 10, sizeBytes = 10)
+        })
+
+        let okScenario =
+            Scenario.create "realtime stats ok scenario" [okStep]
+            |> Scenario.withoutWarmUp
+            |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+
+        let failScenario =
+            Scenario.create "realtime stats fail scenario" [failStep]
+            |> Scenario.withoutWarmUp
+            |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+
+        NBomberRunner.registerScenarios [okScenario; failScenario]
+        |> NBomberRunner.withReportFolder "./stats-tests/1/"
+        |> NBomberRunner.run
+        |> Result.getOk
+        |> fun stats ->
+            let sc0 = stats.ScenarioStats[0]
+            let sc1 = stats.ScenarioStats[1]
+            test <@ stats.Duration = seconds 10 @>
+            test <@ stats.RequestCount >= 20 && stats.RequestCount <= 40 @>
+            test <@ stats.OkCount >= 10 && stats.OkCount <= 20 @>
+            test <@ stats.FailCount >= 10 && stats.FailCount <= 20 @>
+            test <@ stats.AllBytes = sc0.AllBytes + sc1.AllBytes @>
+
 module StepStatsRawData =
 
     [<Property>]
