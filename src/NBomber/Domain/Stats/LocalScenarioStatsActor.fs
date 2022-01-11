@@ -15,9 +15,8 @@ type LocalScenarioStatsActor(globalStatsActor: IScenarioStatsActor) =
 
     let _buffer = ResizeArray<StepResponse>()
 
-    let flushBuffer () =
-        let responses = globalStatsActor.GetEmptyResponsesFromPool(_buffer.Count)
-        _buffer.CopyTo(responses)
+    let flushBuffer () =        
+        let responses = _buffer.ToArray()
         _buffer.Clear()
         globalStatsActor.Publish(ActorMessage.AddResponses responses)
 
