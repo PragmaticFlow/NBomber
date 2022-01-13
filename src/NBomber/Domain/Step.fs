@@ -15,7 +15,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
-open NBomber.Domain.Stats.LocalScenarioStatsActor
+open NBomber.Domain.Stats.ScenarioStatsActor
 
 type StepDep = {
     ScenarioInfo: ScenarioInfo
@@ -23,7 +23,7 @@ type StepDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
-    LocalScenarioStatsActor: LocalScenarioStatsActor
+    ScenarioStatsActor: IScenarioStatsActor
     Data: Dictionary<string,obj>
 }
 
@@ -198,7 +198,7 @@ let execSteps (dep: StepDep, steps: RunningStep[], stepsOrder: int[]) =
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        dep.LocalScenarioStatsActor.Publish(AddResponse response)
+                        dep.ScenarioStatsActor.Publish(AddResponse response)
 
                         match response.ClientResponse.IsError with
                         | true ->
@@ -223,7 +223,7 @@ let execStepsAsync (dep: StepDep, steps: RunningStep[], stepsOrder: int[]) = tas
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        dep.LocalScenarioStatsActor.Publish(AddResponse response)
+                        dep.ScenarioStatsActor.Publish(AddResponse response)
 
                         match response.ClientResponse.IsError with
                         | true ->

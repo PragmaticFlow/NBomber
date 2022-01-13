@@ -33,8 +33,7 @@
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
-        <Compile Include="Domain\Stats\GlobalScenarioStatsActor.fs" />
-        <Compile Include="Domain\Stats\LocalScenarioStatsActor.fs" />
+        <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
         <Compile Include="Domain\HintsAnalyzer.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\Feed.fs" />

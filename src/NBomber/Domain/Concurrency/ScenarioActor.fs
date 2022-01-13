@@ -12,15 +12,14 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
-open NBomber.Domain.Stats.GlobalScenarioStatsActor
-open NBomber.Domain.Stats.LocalScenarioStatsActor
+open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
     Logger: ILogger
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
-    GlobalScenarioStatsActor: IScenarioStatsActor
+    ScenarioStatsActor: IScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -35,7 +34,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
         CancellationToken = dep.CancellationToken
         ScenarioGlobalTimer = dep.ScenarioGlobalTimer
         ExecStopCommand = dep.ExecStopCommand
-        LocalScenarioStatsActor = LocalScenarioStatsActor(dep.GlobalScenarioStatsActor)
+        ScenarioStatsActor = dep.ScenarioStatsActor
         Data = Dictionary<string,obj>()
     }
 
@@ -80,16 +79,11 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
             _working <- false
     }
 
-    let flushStats () =
-        _stepDep.LocalScenarioStatsActor.Publish(ActorMessage.FlushBuffer)
-
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
 
     member _.ExecSteps() = execSteps()
     member _.RunInfinite() = runInfinite()
-    member _.FlushStats() = flushStats()
 
     member _.Stop() =
         _working <- false
-        flushStats()

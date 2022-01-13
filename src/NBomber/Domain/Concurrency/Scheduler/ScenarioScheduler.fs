@@ -105,19 +105,15 @@ type ScenarioScheduler(dep: ActorDep) =
             _oneTimeScheduler.ScheduledActorCount
         )
 
-    let prepareRealtimeStats () =
-        _constantScheduler.AvailableActors |> List.iter(fun x -> x.FlushStats())
-        _oneTimeScheduler.AvailableActors |> List.iter(fun x -> x.FlushStats())
-
     let getRealtimeStats (duration) =
         let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration duration
         let simulationStats = getCurrentSimulationStats()
-        dep.GlobalScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
+        dep.ScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
     let getFinalStats () =
         let scnDuration = _scenario |> Scenario.getDuration
         let simulationStats = getCurrentSimulationStats()
-        dep.GlobalScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
+        dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
     let start () =
         dep.ScenarioGlobalTimer.Stop()
@@ -200,7 +196,6 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.PrepareRealtimeStats() = prepareRealtimeStats()
     member _.GetRealtimeStats(duration) = getRealtimeStats duration
     member _.GetFinalStats() = getFinalStats()
 

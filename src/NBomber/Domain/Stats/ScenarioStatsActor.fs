@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Stats.GlobalScenarioStatsActor
+﻿module internal NBomber.Domain.Stats.ScenarioStatsActor
 
 open System
 open System.Runtime.CompilerServices
@@ -13,26 +13,26 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
 type ActorMessage =
-    | AddResponses     of StepResponse[]
+    | AddResponse      of StepResponse
+    | FlushStats
     | GetRealtimeStats of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats    of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
-type IScenarioStatsActor =    
+type IScenarioStatsActor =
     abstract Publish: ActorMessage -> unit
     abstract GetRealtimeStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
     abstract GetFinalStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
 
-type GlobalScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
+type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
 
-    let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())    
+    let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
-    let addResponses (allData: StepStatsRawData[], intervalData: StepStatsRawData[], responses: StepResponse[]) =
-        for resp in responses do
-            let allStData = allData.[resp.StepIndex]
-            let intervalStData = intervalData.[resp.StepIndex]
-            allData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
-            intervalData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
+    let addResponse (allData: StepStatsRawData[], intervalData: StepStatsRawData[], resp: StepResponse) =
+        let allStData = allData.[resp.StepIndex]
+        let intervalStData = intervalData.[resp.StepIndex]
+        allData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
+        intervalData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
 
     let createScenarioStats (stepsData, simulationStats, operation, duration, interval) =
         ScenarioStats.create scenario stepsData simulationStats operation duration interval
@@ -40,8 +40,10 @@ type GlobalScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInte
     let _actor = ActionBlock(fun msg ->
         try
             match msg with
-            | AddResponses responses ->
-                addResponses(_allStepsData, _intervalStepsData, responses)                
+            | AddResponse response ->
+                addResponse(_allStepsData, _intervalStepsData, response)
+
+            | FlushStats -> () // it's only needed for cluster
 
             | GetRealtimeStats (reply, simulationStats, duration) ->
                 let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
@@ -72,4 +74,4 @@ type GlobalScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInte
             tcs.Task
 
 let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
-    GlobalScenarioStatsActor(logger, scenario, reportingInterval) :> IScenarioStatsActor
+    ScenarioStatsActor(logger, scenario, reportingInterval) :> IScenarioStatsActor
