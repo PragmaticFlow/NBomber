@@ -322,7 +322,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
         do! Task.Delay(seconds 1, context.CancellationToken)
 
-        data.[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
+        data[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
 
         return Response.ok()
     })
