@@ -40,7 +40,7 @@ module StepContext =
             | None -> Unchecked.defaultof<_>
 
         { ScenarioInfo = dep.ScenarioInfo
-          CancellationToken = dep.CancellationToken
+          CancellationTokenSource = new CancellationTokenSource()
           Client = getClient step.ClientPool
           Logger = dep.Logger
           FeedItem = Unchecked.defaultof<_>
@@ -62,6 +62,7 @@ module RunningStep =
             | Some feed -> feed.GetNextItem(context.ScenarioInfo, data)
             | None      -> Unchecked.defaultof<_>
 
+        context.CancellationTokenSource <- new CancellationTokenSource()
         context.InvocationCount <- context.InvocationCount + 1
         context.Data <- data
         context.FeedItem <- feedItem
@@ -74,7 +75,7 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
                 member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.CancellationToken = untypedCtx.CancellationTokenSource.Token
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
@@ -103,7 +104,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
                 member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.CancellationToken = untypedCtx.CancellationTokenSource.Token
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
@@ -162,13 +163,14 @@ let execStepAsync (step: RunningStep, stepIndex: int, globalTimer: Stopwatch) = 
             let! pause = responseTask
             return { StepIndex = stepIndex; ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
         else
-            let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationToken))
+            let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationTokenSource.Token))
             let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = endTime - startTime
 
             if finishedTask.Id = responseTask.Id then
                 return { StepIndex = stepIndex; ClientResponse = responseTask.Result; EndTimeMs = endTime; LatencyMs = latency }
             else
+                step.Context.CancellationTokenSource.Cancel()
                 let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
                 return { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     with

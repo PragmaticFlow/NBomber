@@ -47,7 +47,8 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
             | AddResponses responses ->
                 responses |> Array.iter(addResponse _allStepsData _intervalStepsData)
 
-            | PublishStatsToCoordinator -> () // it's only needed for cluster
+            | PublishStatsToCoordinator ->
+                failwith "invalid operation" // it's only needed for cluster
 
             | GetRealtimeStats (reply, simulationStats, duration) ->
                 let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
