@@ -14,7 +14,8 @@ open NBomber.Domain.Stats.Statistics
 
 type ActorMessage =
     | AddResponse      of StepResponse
-    | FlushStats
+    | AddResponses     of StepResponse[]
+    | PublishStatsToCoordinator
     | GetRealtimeStats of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats    of TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
@@ -28,7 +29,7 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
-    let addResponse (allData: StepStatsRawData[], intervalData: StepStatsRawData[], resp: StepResponse) =
+    let addResponse (allData: StepStatsRawData[]) (intervalData: StepStatsRawData[]) (resp: StepResponse) =
         let allStData = allData.[resp.StepIndex]
         let intervalStData = intervalData.[resp.StepIndex]
         allData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
@@ -41,9 +42,12 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
         try
             match msg with
             | AddResponse response ->
-                addResponse(_allStepsData, _intervalStepsData, response)
+                addResponse _allStepsData _intervalStepsData response
 
-            | FlushStats -> () // it's only needed for cluster
+            | AddResponses responses ->
+                responses |> Array.iter(addResponse _allStepsData _intervalStepsData)
+
+            | PublishStatsToCoordinator -> () // it's only needed for cluster
 
             | GetRealtimeStats (reply, simulationStats, duration) ->
                 let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)

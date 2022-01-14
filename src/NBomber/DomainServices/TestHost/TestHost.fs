@@ -101,6 +101,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     let startBombing (schedulers: ScenarioScheduler list,
+                      flushStatsTimer: Timers.Timer option,
                       reportingTimer: Timers.Timer,
                       currentOperationTimer: Stopwatch) = task {
 
@@ -110,12 +111,14 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! TestHostReportingSinks.start _logger dep.ReportingSinks
         do! TestHostPlugins.start _logger dep.WorkerPlugins
 
+        flushStatsTimer |> Option.iter(fun x -> x.Start())
         reportingTimer.Start()
         currentOperationTimer.Start()
 
         // waiting on all scenarios to finish
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
 
+        flushStatsTimer |> Option.iter(fun x -> x.Stop())
         reportingTimer.Stop()
         currentOperationTimer.Stop()
 
@@ -189,6 +192,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     }
 
     member _.StartBombing(schedulers: ScenarioScheduler list,
+                          flushStatsTimer: Timers.Timer option,
                           reportingTimer: Timers.Timer,
                           currentOperationTimer: Stopwatch) = task {
         _stopped <- false
@@ -197,7 +201,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! Task.Yield()
 
         _logger.Information "Starting bombing..."
-        do! startBombing(schedulers, reportingTimer, currentOperationTimer)
+        do! startBombing(schedulers, flushStatsTimer, reportingTimer, currentOperationTimer)
         do! this.StopScenarios()
 
         _currentOperation <- OperationType.Complete
@@ -237,11 +241,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         let reportingActor = TestHostReportingActor(dep, schedulers, sessionArgs.TestInfo)
         use reportingTimer = new Timers.Timer(sessionArgs.SendStatsInterval.TotalMilliseconds)
         reportingTimer.Elapsed.Add(fun _ ->
-            reportingActor.Publish(FetchAndSaveRealtimeStats currentOperationTimer.Elapsed)
+            reportingActor.Publish(SaveRealtimeStats currentOperationTimer.Elapsed)
         )
 
         // start bombing
-        do! this.StartBombing(schedulers, reportingTimer, currentOperationTimer)
+        do! this.StartBombing(schedulers, None, reportingTimer, currentOperationTimer)
 
         // gets final stats
         _logger.Information "Calculating final statistics..."

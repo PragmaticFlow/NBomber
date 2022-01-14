@@ -67,9 +67,9 @@ let getFinalStats (dep: IGlobalDependency)
 }
 
 type ActorMessage =
-    | FetchAndSaveRealtimeStats of duration:TimeSpan
-    | GetTimeLineHistory        of TaskCompletionSource<TimeLineHistoryRecord list>
-    | GetFinalStats             of TaskCompletionSource<NodeStats> * NodeInfo
+    | SaveRealtimeStats  of duration:TimeSpan
+    | GetTimeLineHistory of TaskCompletionSource<TimeLineHistoryRecord list>
+    | GetFinalStats      of TaskCompletionSource<NodeStats> * NodeInfo
 
 type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioScheduler list, testInfo: TestInfo) =
 
@@ -79,7 +79,7 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
 
     let mutable _currentHistory = List.empty<TimeLineHistoryRecord>
 
-    let fetchAndSaveRealtimeStats (duration, history) = task {
+    let getAndSaveRealtimeStats (duration, history) = task {
         let! scnStats = getRealtimeStats duration
         if Array.isEmpty scnStats then return history
         else
@@ -92,8 +92,8 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
         task {
             try
                 match msg with
-                | FetchAndSaveRealtimeStats duration ->
-                    let! newHistory = fetchAndSaveRealtimeStats(duration, _currentHistory)
+                | SaveRealtimeStats duration ->
+                    let! newHistory = getAndSaveRealtimeStats(duration, _currentHistory)
                     _currentHistory <- newHistory
 
                 | GetTimeLineHistory reply ->

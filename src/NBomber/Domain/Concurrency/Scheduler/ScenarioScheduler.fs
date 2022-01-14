@@ -10,6 +10,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -196,6 +197,7 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
+    member _.PublishStatsToCoordinator() = dep.ScenarioStatsActor.Publish(ActorMessage.PublishStatsToCoordinator)
     member _.GetRealtimeStats(duration) = getRealtimeStats duration
     member _.GetFinalStats() = getFinalStats()
 
