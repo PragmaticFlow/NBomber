@@ -134,6 +134,7 @@ type ScenarioStats = {
 type ReportFile = {
     FilePath: string
     ReportFormat: ReportFormat
+    ReportContent: string
 }
 
 type NodeStats = {
