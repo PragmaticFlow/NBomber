@@ -14,7 +14,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Domain
-open NBomber.Domain.Stats
+open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
@@ -35,7 +35,7 @@ let internal baseDep = {
     CancellationToken = CancellationToken.None
     ScenarioGlobalTimer = Stopwatch()
     Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor.create logger baseScenario Constants.DefaultReportingInterval
+    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
 }
 

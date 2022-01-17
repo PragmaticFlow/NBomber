@@ -15,6 +15,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
+open NBomber.Domain.Stats.ScenarioStatsActor
 
 type StepDep = {
     ScenarioInfo: ScenarioInfo
@@ -22,6 +23,8 @@ type StepDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
+    ScenarioStatsActor: IScenarioStatsActor
+    Data: Dictionary<string,obj>
 }
 
 module StepContext =
@@ -37,7 +40,7 @@ module StepContext =
             | None -> Unchecked.defaultof<_>
 
         { ScenarioInfo = dep.ScenarioInfo
-          CancellationToken = dep.CancellationToken
+          CancellationTokenSource = new CancellationTokenSource()
           Client = getClient step.ClientPool
           Logger = dep.Logger
           FeedItem = Unchecked.defaultof<_>
@@ -59,6 +62,7 @@ module RunningStep =
             | Some feed -> feed.GetNextItem(context.ScenarioInfo, data)
             | None      -> Unchecked.defaultof<_>
 
+        context.CancellationTokenSource <- new CancellationTokenSource()
         context.InvocationCount <- context.InvocationCount + 1
         context.Data <- data
         context.FeedItem <- feedItem
@@ -71,7 +75,7 @@ let toUntypedExecute (execute: IStepContext<'TClient,'TFeedItem> -> Response) =
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
                 member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.CancellationToken = untypedCtx.CancellationTokenSource.Token
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
@@ -100,7 +104,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
         let typedCtx = {
             new IStepContext<'TClient,'TFeedItem> with
                 member _.ScenarioInfo = untypedCtx.ScenarioInfo
-                member _.CancellationToken = untypedCtx.CancellationToken
+                member _.CancellationToken = untypedCtx.CancellationTokenSource.Token
                 member _.Client = untypedCtx.Client :?> 'TClient
                 member _.Data = untypedCtx.Data
                 member _.FeedItem = untypedCtx.FeedItem :?> 'TFeedItem
@@ -122,7 +126,7 @@ let toUntypedExecuteAsync (execute: IStepContext<'TClient,'TFeedItem> -> Task<Re
 
         execute typedCtx
 
-let execStep (step: RunningStep) (globalTimer: Stopwatch) =
+let execStep (step: RunningStep, stepIndex: int, globalTimer: Stopwatch) =
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let resp =
@@ -132,25 +136,21 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
 
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-
-        { ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
+        { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
-          EndTimeMs = endTime
-          LatencyMs = latency }
+        let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+        { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     | ex ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
-                                         error = $"step unhandled exception: {ex.Message}")
-          EndTimeMs = endTime
-          LatencyMs = latency }
+        let resp = Response.fail(statusCode = Constants.StepExceptionStatusCode, error = $"step unhandled exception: {ex.Message}")
+        { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
 
-let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
+let execStepAsync (step: RunningStep, stepIndex: int, globalTimer: Stopwatch) = task {
     let startTime = globalTimer.Elapsed.TotalMilliseconds
     try
         let responseTask =
@@ -161,94 +161,81 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
         // for pause we skip timeout logic
         if step.Value.StepName = Constants.StepPauseName then
             let! pause = responseTask
-            return { ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
+            return { StepIndex = stepIndex; ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
         else
-            let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationToken))
+            let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationTokenSource.Token))
             let endTime = globalTimer.Elapsed.TotalMilliseconds
             let latency = endTime - startTime
 
             if finishedTask.Id = responseTask.Id then
-                return { ClientResponse = responseTask.Result
-                         EndTimeMs = endTime
-                         LatencyMs = latency }
+                return { StepIndex = stepIndex; ClientResponse = responseTask.Result; EndTimeMs = endTime; LatencyMs = latency }
             else
-                return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.TotalMilliseconds} ms")
-                         EndTimeMs = endTime
-                         LatencyMs = latency }
+                step.Context.CancellationTokenSource.Cancel()
+                let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.TotalMilliseconds} ms")
+                return { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     with
     | :? TaskCanceledException
     | :? OperationCanceledException ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        return { ClientResponse = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
-                 EndTimeMs = endTime
-                 LatencyMs = latency }
+        let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+        return { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     | ex ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        return { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
-                                                error = $"step unhandled exception: {ex.Message}")
-                 EndTimeMs = endTime
-                 LatencyMs = latency }
+        let resp = Response.fail(statusCode = Constants.StepExceptionStatusCode, error = $"step unhandled exception: {ex.Message}")
+        return { StepIndex = stepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
 }
 
-let execSteps (dep: StepDep,
-               steps: RunningStep[],
-               stepsOrder: int[],
-               responseBuffer: ResizeArray<int * StepResponse>,
-               stepDataDict: Dictionary<string,obj>) =
+let execSteps (dep: StepDep, steps: RunningStep[], stepsOrder: int[]) =
 
     let mutable skipStep = false
 
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps[stepIndex] stepDataDict
-                let response = execStep step dep.ScenarioGlobalTimer
+                let step = RunningStep.updateContext steps[stepIndex] dep.Data
+                let response = execStep(step, stepIndex, dep.ScenarioGlobalTimer)
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        responseBuffer.Add(stepIndex, response)
+                        dep.ScenarioStatsActor.Publish(AddResponse response)
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}.")
+                            dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
                             skipStep <- true
 
                         | false ->
-                            stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed")
 
-let execStepsAsync (dep: StepDep,
-                    steps: RunningStep[],
-                    stepsOrder: int[],
-                    responseBuffer: ResizeArray<int * StepResponse>,
-                    stepDataDict: Dictionary<string,obj>) = task {
+let execStepsAsync (dep: StepDep, steps: RunningStep[], stepsOrder: int[]) = task {
 
     let mutable skipStep = false
 
     for stepIndex in stepsOrder do
         if not skipStep && not dep.CancellationToken.IsCancellationRequested then
             try
-                let step = RunningStep.updateContext steps[stepIndex] stepDataDict
-                let! response = execStepAsync step dep.ScenarioGlobalTimer
+                let step = RunningStep.updateContext steps[stepIndex] dep.Data
+                let! response = execStepAsync(step, stepIndex, dep.ScenarioGlobalTimer)
 
                 if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
                     && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
-                        responseBuffer.Add(stepIndex, response)
+                        dep.ScenarioStatsActor.Publish(AddResponse response)
 
                         match response.ClientResponse.IsError with
                         | true ->
-                            dep.Logger.Fatal($"Step: '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}.")
+                            dep.Logger.Fatal($"Step: '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
                             skipStep <- true
 
                         | false ->
-                            stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                            dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed")
 }
 
 let isAllExecSync (steps: Step list) =

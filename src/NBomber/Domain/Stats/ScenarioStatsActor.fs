@@ -1,6 +1,9 @@
-module internal NBomber.Domain.Stats.ScenarioStatsActor
+﻿module internal NBomber.Domain.Stats.ScenarioStatsActor
 
 open System
+open System.Runtime.CompilerServices
+open System.Threading.Tasks
+open System.Threading.Tasks.Dataflow
 
 open Serilog
 
@@ -9,52 +12,71 @@ open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
-type StatsActorMessage =
-    | AddResponses     of responses:(int * StepResponse)[] // stepIndex * StepResponse
-    | GetRealtimeStats of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
-    | GetFinalStats    of AsyncReplyChannel<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+type ActorMessage =
+    | AddResponse      of StepResponse
+    | AddResponses     of StepResponse[]
+    | PublishStatsToCoordinator
+    | GetRealtimeStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+    | GetFinalStats    of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
-let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
+type IScenarioStatsActor =
+    abstract Publish: ActorMessage -> unit
+    abstract GetRealtimeStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
+    abstract GetFinalStats: LoadSimulationStats * duration:TimeSpan -> Task<ScenarioStats>
+
+type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan) =
 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
-    let addResponses (allData: StepStatsRawData[],
-                      intervalData: StepStatsRawData[],
-                      responses: (int * StepResponse)[]) =
-
-        for (stepIndex, res) in responses do
-            let allStData = allData[stepIndex]
-            let intervalStData = intervalData[stepIndex]
-            allData[stepIndex] <- StepStatsRawData.addResponse allStData res
-            intervalData[stepIndex] <- StepStatsRawData.addResponse intervalStData res
+    let addResponse (allData: StepStatsRawData[]) (intervalData: StepStatsRawData[]) (resp: StepResponse) =
+        let allStData = allData.[resp.StepIndex]
+        let intervalStData = intervalData.[resp.StepIndex]
+        allData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
+        intervalData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
 
     let createScenarioStats (stepsData, simulationStats, operation, duration, interval) =
         ScenarioStats.create scenario stepsData simulationStats operation duration interval
 
-    MailboxProcessor.Start(fun inbox ->
+    let _actor = ActionBlock(fun msg ->
+        try
+            match msg with
+            | AddResponse response ->
+                addResponse _allStepsData _intervalStepsData response
 
-        let rec loop () = async {
-            try
-                match! inbox.Receive() with
-                | AddResponses responses ->
-                    addResponses(_allStepsData, _intervalStepsData, responses)
-                    return! loop()
+            | AddResponses responses ->
+                responses |> Array.iter(addResponse _allStepsData _intervalStepsData)
 
-                | GetRealtimeStats (reply, simulationStats, duration) ->
-                    let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
-                    // reset interval steps data
-                    _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-                    reply.Reply(scnStats)
-                    return! loop()
+            | PublishStatsToCoordinator ->
+                failwith "invalid operation" // it's only needed for cluster
 
-                | GetFinalStats (reply, simulationStats, duration) ->
-                    let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration, duration)
-                    reply.Reply(scnStats)
-                    return! loop()
-            with
-            | ex -> logger.Error(ex, "ScenarioStatsActor failed")
-        }
+            | GetRealtimeStats (reply, simulationStats, duration) ->
+                let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
+                // reset interval steps data
+                _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
+                reply.TrySetResult(scnStats) |> ignore
 
-        loop()
+            | GetFinalStats (reply, simulationStats, duration) ->
+                let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration, duration)
+                reply.TrySetResult(scnStats) |> ignore
+        with
+        | ex -> logger.Error(ex, "GlobalScenarioStatsActor failed")
     )
+
+    interface IScenarioStatsActor with
+
+        [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+        member _.Publish(msg) = _actor.Post(msg) |> ignore
+
+        member _.GetRealtimeStats(simulationStats, duration) =
+            let tcs = TaskCompletionSource<ScenarioStats>()
+            GetRealtimeStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
+            tcs.Task
+
+        member _.GetFinalStats(simulationStats, duration) =
+            let tcs = TaskCompletionSource<ScenarioStats>()
+            GetFinalStats(tcs, simulationStats, duration) |> _actor.Post |> ignore
+            tcs.Task
+
+let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
+    ScenarioStatsActor(logger, scenario, reportingInterval) :> IScenarioStatsActor
