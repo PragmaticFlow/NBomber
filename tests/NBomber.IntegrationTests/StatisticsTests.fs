@@ -461,7 +461,7 @@ module StepStatsRawData =
                   Payload = null
             }
 
-            let stepResponse = {
+            let stepResponse = { // only stepResponse latency will be included
                   ClientResponse = clientResponse
                   EndTimeMs = Double.MaxValue
                   LatencyMs = latency |> float
