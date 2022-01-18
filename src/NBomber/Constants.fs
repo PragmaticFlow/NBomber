@@ -59,7 +59,10 @@ let SchedulerTickIntervalMs = 1_000.0
 let TimeoutStatusCode = -100
 
 [<Literal>]
-let StepExceptionStatusCode = -101
+let StepUnhandledErrorCode = -101
+
+[<Literal>]
+let StepInternalClientErrorCode = -102
 
 let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 

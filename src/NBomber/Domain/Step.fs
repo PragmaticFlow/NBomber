@@ -194,7 +194,7 @@ let execStep (step: RunningStep) (globalTimer: Stopwatch) =
     | ex ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
+        { ClientResponse = Response.fail(statusCode = Constants.StepUnhandledErrorCode,
                                          error = $"step unhandled exception: {ex.Message}")
           EndTimeMs = endTime
           LatencyMs = latency }
@@ -210,7 +210,7 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
         // for pause we skip timeout logic
         if step.Value.StepName = Constants.StepPauseName then
             let! pause = responseTask
-            return { ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
+            return { ClientResponse = pause; EndTimeMs = 0; LatencyMs = 0 }
         else
             let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationToken))
             let endTime = globalTimer.Elapsed.TotalMilliseconds
@@ -235,7 +235,7 @@ let execStepAsync (step: RunningStep) (globalTimer: Stopwatch) = task {
     | ex ->
         let endTime = globalTimer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
-        return { ClientResponse = Response.fail(statusCode = Constants.StepExceptionStatusCode,
+        return { ClientResponse = Response.fail(statusCode = Constants.StepUnhandledErrorCode,
                                                 error = $"step unhandled exception: {ex.Message}")
                  EndTimeMs = endTime
                  LatencyMs = latency }
@@ -268,7 +268,10 @@ let execSteps (dep: StepDep,
                         | false ->
                             stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex ->
+                dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+                let response = Response.fail(error = $"step internal client exception, stepIndex: {stepIndex}, error: {ex.Message}", statusCode = Constants.StepInternalClientErrorCode)
+                responseBuffer.Add(stepIndex, { ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 })
 
 let execStepsAsync (dep: StepDep,
                     steps: RunningStep[],
@@ -297,7 +300,10 @@ let execStepsAsync (dep: StepDep,
                         | false ->
                             stepDataDict[Constants.StepResponseKey] <- response.ClientResponse.Payload
             with
-            | ex -> dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+            | ex ->
+                dep.Logger.Fatal(ex, $"Step with index '{stepIndex}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed.")
+                let response = Response.fail(error = $"step internal client exception, stepIndex: {stepIndex}, error: {ex.Message}", statusCode = Constants.StepInternalClientErrorCode)
+                responseBuffer.Add(stepIndex, { ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 })
 }
 
 let isAllExecSync (steps: Step list) =
