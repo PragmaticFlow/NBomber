@@ -24,52 +24,52 @@ open Tests.TestHelper
 module ScenarioStatsTests =
 
     let internal baseSteps = {
-          StepName = "name"
-          ClientFactory = None
-          ClientPool = None
-          Execute =
-            fun _ -> task { return Response.ok(sizeBytes = 100) }
-            |> Step.toUntypedExecuteAsync
-            |> AsyncExec
-          Feed = Some(Feed.createConstant "feed name" [ 1; 2 ])
-          Timeout = seconds 0
-          DoNotTrack = Constants.DefaultDoNotTrack
+        StepName = "name"
+        ClientFactory = None
+        ClientPool = None
+        ClientDistribution = None
+        Execute =
+          fun _ -> task { return Response.ok(sizeBytes = 100) }
+          |> Step.toUntypedExecuteAsync
+          |> AsyncExec
+        Feed = Some(Feed.createConstant "feed name" [ 1; 2 ])
+        Timeout = seconds 0
+        DoNotTrack = Constants.DefaultDoNotTrack
     }
 
     let internal baseScenario = {
-          ScenarioName = "scenario name"
-          Init = None
-          Clean = None
-          Steps = [ baseSteps ]
-          LoadTimeLine = LoadTimeLine.Empty
-          WarmUpDuration = seconds 0
-          PlanedDuration = seconds 0
-          ExecutedDuration = None
-          CustomSettings = "settings"
-          DefaultStepOrder = Array.empty
-          StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
-          GetCustomStepOrder = None
-          IsEnabled = false
+        ScenarioName = "scenario name"
+        Init = None
+        Clean = None
+        Steps = [ baseSteps ]
+        LoadTimeLine = LoadTimeLine.Empty
+        WarmUpDuration = seconds 0
+        PlanedDuration = seconds 0
+        ExecutedDuration = None
+        CustomSettings = "settings"
+        DefaultStepOrder = Array.empty
+        StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
+        GetCustomStepOrder = None
+        IsEnabled = false
     }
 
     let internal baseRawStepStats ={
-          MinMicroSec = Int32.MaxValue
-          MaxMicroSec = 0
-          MinBytes = Int32.MaxValue
-          MaxBytes = 0
-          RequestCount = 0
-          LessOrEq800 = 0
-          More800Less1200 = 0
-          MoreOrEq1200 = 0
-          AllBytes = 0L
-          LatencyHistogram =
-            LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
-          DataTransferHistogram =
+        MinMicroSec = Int32.MaxValue
+        MaxMicroSec = 0
+        MinBytes = Int32.MaxValue
+        MaxBytes = 0
+        RequestCount = 0
+        LessOrEq800 = 0
+        More800Less1200 = 0
+        MoreOrEq1200 = 0
+        AllBytes = 0L
+        LatencyHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
+        DataTransferHistogram =
             LongHistogram(
                 highestTrackableValue = Constants.MaxTrackableStepResponseSize,
                 numberOfSignificantValueDigits = 3
             )
-          StatusCodes = Dictionary<int, StatusCodeStats>()
+        StatusCodes = Dictionary<int, StatusCodeStats>()
     }
 
     let internal baseStepStatsRawData = StepStatsRawData.createEmpty()
@@ -380,12 +380,12 @@ module StepStatsRawData =
         let stepResMs = 42.0
 
         let clientResponse = {
-              StatusCode = Nullable()
-              IsError = false
-              Message = ""
-              SizeBytes = 10
-              LatencyMs = clientResMs
-              Payload = null
+            StatusCode = Nullable()
+            IsError = false
+            Message = ""
+            SizeBytes = 10
+            LatencyMs = clientResMs
+            Payload = null
         }
 
         let stepResponse = {
@@ -416,12 +416,12 @@ module StepStatsRawData =
         latencies
         |> List.iter(fun latency ->
             let clientResponse = {
-                  StatusCode = Nullable()
-                  IsError = false
-                  Message = ""
-                  SizeBytes = 10
-                  LatencyMs = float latency
-                  Payload = null
+                StatusCode = Nullable()
+                IsError = false
+                Message = ""
+                SizeBytes = 10
+                LatencyMs = float latency
+                Payload = null
             }
 
             let stepResponse = {
@@ -455,12 +455,12 @@ module StepStatsRawData =
         latencies
         |> Seq.iter(fun (isOk, latency) ->
             let clientResponse = {
-                  StatusCode = Nullable()
-                  IsError = not isOk
-                  Message = ""
-                  SizeBytes = 10
-                  LatencyMs = 0.0
-                  Payload = null
+                StatusCode = Nullable()
+                IsError = not isOk
+                Message = ""
+                SizeBytes = 10
+                LatencyMs = 0.0
+                Payload = null
             }
 
             let stepResponse = { // only stepResponse latency will be included
@@ -523,12 +523,12 @@ module StepStatsRawData =
         responseSizes
         |> Seq.iter(fun (isOk, resSize) ->
             let clientResponse = {
-                  StatusCode = Nullable()
-                  IsError = not isOk
-                  Message = ""
-                  SizeBytes = resSize
-                  LatencyMs = 1.0
-                  Payload = null
+                StatusCode = Nullable()
+                IsError = not isOk
+                Message = ""
+                SizeBytes = resSize
+                LatencyMs = 1.0
+                Payload = null
             }
 
             let stepResponse = {
