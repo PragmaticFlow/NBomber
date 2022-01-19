@@ -73,7 +73,12 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
         let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray
 
         reportFiles
-        |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.ReportContent))
+        |> Seq.iter(fun x ->
+            try
+                File.WriteAllText(x.FilePath, x.ReportContent)
+            with
+            | ex -> logger.Error(ex, "Could not save the report file {0}", x.FilePath)
+        )
 
         if report.SessionFinishedWithErrors then
             logger.Warning("Test finished with errors, please check the log file")
