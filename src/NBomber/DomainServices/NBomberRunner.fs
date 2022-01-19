@@ -34,8 +34,8 @@ let run (context: NBomberContext) =
 
     let testInfo = {
         SessionId = Dependency.createSessionId()
-        TestSuite = NBomberContext.getTestSuite(context)
-        TestName = NBomberContext.getTestName(context)
+        TestSuite = NBomberContext.getTestSuite context
+        TestName = NBomberContext.getTestName context
     }
 
     let nodeInfo = NodeInfo.init None

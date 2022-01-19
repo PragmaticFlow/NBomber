@@ -67,7 +67,7 @@ type IStepContext<'TClient,'TFeedItem> =
     abstract FeedItem: 'TFeedItem
     /// NBomber's logger.
     abstract Logger: ILogger
-    /// Returns the invocations number of the current step.
+    /// Returns the invocations number of the current step instance located in the current scenario instance.
     abstract InvocationCount: int
     /// Returns response from previous step.
     abstract GetPreviousStepResponse: unit -> 'T
@@ -77,6 +77,14 @@ type IStepContext<'TClient,'TFeedItem> =
     /// Stops all running scenarios.
     /// Use it when you don't see any sense to continue the current test.
     abstract StopCurrentTest: reason:string -> unit
+
+type IStepClientContext<'TFeedItem> =
+    abstract ScenarioInfo: ScenarioInfo
+    abstract Logger: ILogger
+    abstract Data: Dictionary<string,obj>
+    abstract FeedItem: 'TFeedItem
+    abstract InvocationCount: int
+    abstract ClientCount: int
 
 type IScenarioContext =
     /// Gets current test info

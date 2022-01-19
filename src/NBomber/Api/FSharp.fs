@@ -88,6 +88,7 @@ type Step =
     static member create (name: string,
                           execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
                           ?clientFactory: IClientFactory<'TClient>,
+                          ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
                           ?feed: IFeed<'TFeedItem>,
                           ?timeout: TimeSpan,
                           ?doNotTrack: bool) =
@@ -95,6 +96,13 @@ type Step =
         match clientFactory with
         | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
         | None   -> ()
+
+        match clientDistribution with
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientDistribution")
+        | None   -> ()
+
+        if clientFactory.IsNone && clientDistribution.IsSome then
+            raise(ArgumentException "The 'clientDistribution' requires to have the 'clientFactory'. Please provide the 'clientFactory' as argument.")
 
         match feed with
         | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "feed")
@@ -105,10 +113,15 @@ type Step =
             |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
             |> Option.map(fun x -> x.GetUntyped())
 
+        let clDistribution =
+            clientDistribution
+            |> Option.map(Step.StepClientContext.toUntyped)
+
         let timeout = timeout |> Option.defaultValue(Constants.StepTimeout)
 
         { StepName = name
           ClientFactory = factory
+          ClientDistribution = clDistribution
           ClientPool = None
           Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
           Feed = feed |> Option.map Feed.toUntypedFeed
@@ -368,6 +381,7 @@ namespace NBomber.FSharp.SyncApi
 
             { StepName = name
               ClientFactory = factory
+              ClientDistribution = None
               ClientPool = None
               Execute = execute |> Step.toUntypedExecute |> SyncExec
               Feed = feed |> Option.map Feed.toUntypedFeed

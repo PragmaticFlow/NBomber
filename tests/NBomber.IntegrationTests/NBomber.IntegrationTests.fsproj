@@ -46,6 +46,7 @@
         <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />
         <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
         <Compile Include="ClientFactoryTests.fs" />
+        <Compile Include="ClientDistributionTests.fs" />
         <Compile Include="Reporting\ReportingSinkTests.fs" />
         <Compile Include="Reporting\ReportingConfigurationTests.fs" />
         <Compile Include="Plugins\PluginTests.fs" />
