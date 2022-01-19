@@ -3,6 +3,7 @@ namespace NBomber.Extensions.PushExtensions
 open System
 open System.Collections.Generic
 open System.Diagnostics
+open System.Runtime.CompilerServices
 open System.Threading.Tasks
 open System.Threading.Tasks.Dataflow
 
@@ -82,16 +83,19 @@ type PushResponseQueue() =
     let _actor = ActionBlock(fun msg -> _state <- ActorState.receive _state msg)
     let _currentTime = CurrentTime()
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.InitQueueForClient(clientId: string) =
         let awaiterTsc = TaskCompletionSource<unit>()
         _actor.Post(InitQueueForClient(awaiterTsc, clientId)) |> ignore
         awaiterTsc.Task.Wait()
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.ReceiveResponse(clientId: string) =
         let awaiterTsc = TaskCompletionSource<PushResponse>()
         _actor.Post(SubscribeOnResponse(awaiterTsc, clientId)) |> ignore
         awaiterTsc.Task
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.AddResponse(clientId: string, payload: obj) =
         let pushResponse = { ClientId = clientId; Payload = payload; ReceivedTime = _currentTime.UtcNow }
         _actor.Post(ReceivedPushResponse pushResponse) |> ignore

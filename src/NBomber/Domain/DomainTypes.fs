@@ -19,7 +19,7 @@ type StopCommand =
 
 type UntypedStepContext = {
     ScenarioInfo: ScenarioInfo
-    CancellationToken: CancellationToken
+    mutable CancellationTokenSource: CancellationTokenSource    
     Logger: ILogger
     mutable Client: obj
     mutable FeedItem: obj
