@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>NBomber</Authors>
         <Company>NBomber</Company>
-        <Version>2.1.2</Version>
+        <Version>2.1.3</Version>
         <Copyright>NBomber@2021</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
@@ -14,11 +14,10 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>v2.1.2
-- updated PingPlugin API to have CreateDefault(ParamArray hosts: string[])
-- extended ScenarioScheduler to provide fake execution
-- fixed issue with disposed ScenarioScheduler.EventStream
-- refactored TestInit, TestClean, and Warmup functionality related to scenario.IsEnabled</PackageReleaseNotes>
+        <PackageReleaseNotes>v2.1.3
+- fixed bug with CancellationToken for step context
+- improved flushing reporting stats
+- replaced F# MailBox on TPL DataFlow</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />

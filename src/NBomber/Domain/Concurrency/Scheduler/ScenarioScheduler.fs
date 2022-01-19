@@ -109,12 +109,12 @@ type ScenarioScheduler(dep: ActorDep) =
     let getRealtimeStats (duration) =
         let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration duration
         let simulationStats = getCurrentSimulationStats()
-        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetRealtimeStats(reply, simulationStats, executedDuration))
+        dep.ScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
     let getFinalStats () =
         let scnDuration = _scenario |> Scenario.getDuration
         let simulationStats = getCurrentSimulationStats()
-        dep.ScenarioStatsActor.PostAndReply(fun reply -> GetFinalStats(reply, simulationStats, scnDuration))
+        dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
     let start () =
         dep.ScenarioGlobalTimer.Stop()
@@ -197,13 +197,13 @@ type ScenarioScheduler(dep: ActorDep) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.GetRealtimeStats(duration) = getRealtimeStats(duration)
+    member _.PublishStatsToCoordinator() = dep.ScenarioStatsActor.Publish(ActorMessage.PublishStatsToCoordinator)
+    member _.GetRealtimeStats(duration) = getRealtimeStats duration
     member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with
         member _.Dispose() =
             stop()
-            (dep.ScenarioStatsActor :> IDisposable).Dispose()
             _eventStream.Dispose()
             _logger.Verbose $"{nameof ScenarioScheduler} disposed"
 

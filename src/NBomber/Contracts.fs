@@ -59,6 +59,7 @@ type CommandLineArgs = {
 }
 
 type StepResponse = {
+    StepIndex: int
     ClientResponse: Response
     EndTimeMs: float
     LatencyMs: float

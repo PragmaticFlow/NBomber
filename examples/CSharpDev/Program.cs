@@ -1,4 +1,5 @@
 ﻿using System;
+using CSharpDev.ClientFactory;
 using CSharpDev.HelloWorld;
 
 namespace CSharpDev
@@ -8,6 +9,7 @@ namespace CSharpDev
         static void Main(string[] args)
         {
             HelloWorldExample.Run();
+            //CustomDistributionExample.Run();
         }
     }
 }
