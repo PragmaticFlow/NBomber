@@ -389,9 +389,10 @@ module StepStatsRawData =
         }
 
         let stepResponse = {
-              ClientResponse = clientResponse
-              EndTimeMs = Double.MaxValue
-              LatencyMs = stepResMs
+            StepIndex = 0
+            ClientResponse = clientResponse
+            EndTimeMs = Double.MaxValue
+            LatencyMs = stepResMs
         }
 
         let data = StepStatsRawData.addResponse emptyData stepResponse
@@ -424,9 +425,10 @@ module StepStatsRawData =
             }
 
             let stepResponse = {
-                  ClientResponse = clientResponse
-                  EndTimeMs = Double.MaxValue
-                  LatencyMs = 0.0
+                StepIndex = 0
+                ClientResponse = clientResponse
+                EndTimeMs = Double.MaxValue
+                LatencyMs = 0.0
             }
 
             data <- StepStatsRawData.addResponse data stepResponse
@@ -462,9 +464,10 @@ module StepStatsRawData =
             }
 
             let stepResponse = { // only stepResponse latency will be included
-                  ClientResponse = clientResponse
-                  EndTimeMs = Double.MaxValue
-                  LatencyMs = latency |> float
+                StepIndex = 0
+                ClientResponse = clientResponse
+                EndTimeMs = Double.MaxValue
+                LatencyMs = latency |> float
             }
 
             data <- StepStatsRawData.addResponse data stepResponse
@@ -529,9 +532,10 @@ module StepStatsRawData =
             }
 
             let stepResponse = {
-                  ClientResponse = clientResponse
-                  EndTimeMs = Double.MaxValue
-                  LatencyMs = 0.0
+                StepIndex = 0
+                ClientResponse = clientResponse
+                EndTimeMs = Double.MaxValue
+                LatencyMs = 0.0
             }
 
             data <- StepStatsRawData.addResponse data stepResponse

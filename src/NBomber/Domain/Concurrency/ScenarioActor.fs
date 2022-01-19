@@ -8,11 +8,10 @@ open System.Threading.Tasks
 open Serilog
 open FSharp.Control.Tasks.NonAffine
 
-open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
@@ -20,7 +19,7 @@ type ActorDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
-    ScenarioStatsActor: MailboxProcessor<StatsActorMessage>
+    ScenarioStatsActor: IScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
 }
 
@@ -28,37 +27,22 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let _logger = dep.Logger.ForContext<ScenarioActor>()
     let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
+    let mutable _working = false
 
-    let _stepDep: Step.StepDep =
-        { ScenarioInfo = scenarioInfo
-          Logger = dep.Logger
-          CancellationToken = dep.CancellationToken
-          ScenarioGlobalTimer = dep.ScenarioGlobalTimer
-          ExecStopCommand = dep.ExecStopCommand }
+    let _stepDep = {
+        ScenarioInfo = scenarioInfo
+        Logger = dep.Logger
+        CancellationToken = dep.CancellationToken
+        ScenarioGlobalTimer = dep.ScenarioGlobalTimer
+        ExecStopCommand = dep.ExecStopCommand
+        ScenarioStatsActor = dep.ScenarioStatsActor
+        Data = Dictionary<string,obj>()
+    }
 
     let _steps =
         dep.Scenario.Steps
         |> List.map(Step.RunningStep.create _stepDep)
         |> List.toArray
-
-    let _responseBuffer = ResizeArray<int * StepResponse>(Constants.ResponseBufferLength) // stepIndex * StepResponse
-    let mutable _latestBufferFlushSec = 0
-    let _stepDataDict = Dictionary<string,obj>()
-    let mutable _working = false
-
-    let flushStats (buffer: ResizeArray<int * StepResponse>) =
-        let responses = buffer.ToArray()
-        dep.ScenarioStatsActor.Post(AddResponses responses)
-        buffer.Clear()
-        _latestBufferFlushSec <- int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds
-
-    let checkFlushBuffer (buffer: ResizeArray<int * StepResponse>) =
-        if buffer.Count >= Constants.ResponseBufferLength then
-            flushStats buffer
-        else
-            let delay = int dep.ScenarioGlobalTimer.Elapsed.TotalSeconds - _latestBufferFlushSec
-            if delay >= Constants.ResponseBufferFlushDelaySec then
-                flushStats buffer
 
     let execSteps (runInfinite: bool) = task {
         try
@@ -69,19 +53,18 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
                 while shouldRun && _working && not dep.CancellationToken.IsCancellationRequested do
 
-                    _stepDataDict.Clear()
+                    _stepDep.Data.Clear()
 
                     try
                         let stepsOrder = Scenario.getStepOrder dep.Scenario
 
                         if _isAllExecSync then
-                            Step.execSteps(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
+                            Step.execSteps(_stepDep, _steps, stepsOrder)
                         else
-                            do! Step.execStepsAsync(_stepDep, _steps, stepsOrder, _responseBuffer, _stepDataDict)
+                            do! Step.execStepsAsync(_stepDep, _steps, stepsOrder)
                     with
                     | ex -> _logger.Error(ex, $"Invalid step order for Scenario: {dep.Scenario.ScenarioName}")
 
-                    checkFlushBuffer _responseBuffer
                     shouldRun <- runInfinite
             else
                 _logger.Error($"ExecSteps was invoked for already working actor with Scenario: {dep.Scenario.ScenarioName}")
@@ -98,4 +81,3 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     member _.Stop() =
         _working <- false
-        flushStats(_responseBuffer)
