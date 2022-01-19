@@ -1,6 +1,7 @@
 ﻿module Tests.Statistics
 
 open System
+open System.IO
 open System.Collections.Generic
 open System.Threading.Tasks
 
@@ -607,6 +608,33 @@ let ``NodeStats should be calculated properly`` () =
 
         test <@ st2.Fail.DataTransfer.MinBytes = 10 @>
         test <@ st2.Ok.Request.Count = 0 @>
+
+[<Fact>]
+let ``NodeStats ReportFiles should contain report content`` () =
+
+    let okStep = Step.create("ok step", timeout = seconds 2, execute = fun context -> task {
+        do! Task.Delay(milliseconds 500)
+        return Response.ok(sizeBytes = 100)
+    })
+
+    let failStep = Step.create("fail step 1", timeout = seconds 2, execute = fun context -> task {
+        do! Task.Delay(milliseconds 500)
+        return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
+    })
+
+    let scenario =
+        Scenario.create "realtime stats scenario" [okStep; failStep]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+
+    NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let reportFile = stats.ReportFiles[0]
+        let fileContent = File.ReadAllText(reportFile.FilePath)
+
+        test <@ reportFile.ReportContent = fileContent @>
 
 [<Fact>]
 let ``status codes should be calculated properly`` () =

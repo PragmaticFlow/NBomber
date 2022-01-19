@@ -9,7 +9,6 @@ open NBomber.Infra.Dependency
 open Serilog
 open Spectre.Console.Rendering
 
-open NBomber.Configuration
 open NBomber.Contracts.Stats
 open NBomber.Extensions.InternalExtensions
 open NBomber.Domain.DomainTypes
@@ -60,21 +59,26 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
                 | ReportFormat.Md   -> ".md"
                 | _                 -> failwith "invalid report format"
 
+            let fileContent =
+                match format with
+                | ReportFormat.Txt  -> report.TxtReport
+                | ReportFormat.Html -> report.HtmlReport
+                | ReportFormat.Csv  -> report.CsvReport
+                | ReportFormat.Md   -> report.MdReport
+                | _                 -> failwith "invalid report format"
+
             let filePath = Path.Combine(folder, fileName) + fileExt
-            { FilePath = filePath; ReportFormat = format }
+            { FilePath = filePath; ReportFormat = format; ReportContent = fileContent.Value }
 
         let reportFiles = reportFormats |> Seq.map(buildReportFile) |> Seq.toArray
 
         reportFiles
-        |> Seq.map(fun x ->
-            match x.ReportFormat with
-            | ReportFormat.Txt  -> {| Content = report.TxtReport; FilePath = x.FilePath |}
-            | ReportFormat.Html -> {| Content = report.HtmlReport; FilePath = x.FilePath |}
-            | ReportFormat.Csv  -> {| Content = report.CsvReport; FilePath = x.FilePath |}
-            | ReportFormat.Md   -> {| Content = report.MdReport; FilePath = x.FilePath |}
-            | _                 -> failwith "invalid report format"
+        |> Seq.iter(fun x ->
+            try
+                File.WriteAllText(x.FilePath, x.ReportContent)
+            with
+            | ex -> logger.Error(ex, "Could not save the report file {0}", x.FilePath)
         )
-        |> Seq.iter(fun x -> File.WriteAllText(x.FilePath, x.Content.Value))
 
         if report.SessionFinishedWithErrors then
             logger.Warning("Test finished with errors, please check the log file")
