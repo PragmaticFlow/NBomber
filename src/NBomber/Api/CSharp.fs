@@ -199,6 +199,16 @@ type ScenarioBuilder =
     static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<string[]>) =
         scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
+    /// Sets custom steps execution control.
+    /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
+    /// By default, all steps are executing sequentially but you can inject your custom execution control to change
+    /// default order per step iteration.
+    /// execControl function will be invoked before each step. You can think about execControl like a callback before step invocation
+    /// where you can specify what step should be invoked.
+    [<Extension>]
+    static member WithCustomStepExecControl(scenario: Scenario, execControl: Func<IStepExecControlContext voption, string voption>) =
+        scenario |> FSharp.Scenario.withCustomStepExecControl(execControl.Invoke)
+
 [<Extension>]
 type NBomberRunner =
 
@@ -339,45 +349,8 @@ type Simulation =
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
 
-namespace NBomber.CSharp.SyncApi
+type ValueOption =
 
-    open System
-    open System.Runtime.InteropServices
+    static member Some(value: 'T) = ValueSome value
+    static member None() = ValueNone
 
-    open NBomber
-    open NBomber.Contracts
-    open NBomber.FSharp.SyncApi
-
-    type SyncStep =
-
-        static member Create
-            (name: string,
-             pool: IClientFactory<'TClient>,
-             feed: IFeed<'TFeedItem>,
-             exec: Func<IStepContext<'TClient,'TFeedItem>,Response>,
-             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-            SyncStep.create(name, exec.Invoke, pool, feed, doNotTrack)
-
-        static member Create
-            (name: string,
-             pool: IClientFactory<'TClient>,
-             exec: Func<IStepContext<'TClient,unit>,Response>,
-             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-            SyncStep.create(name, exec.Invoke, pool, doNotTrack = doNotTrack)
-
-        static member Create
-            (name: string,
-             feed: IFeed<'TFeedItem>,
-             exec: Func<IStepContext<unit,'TFeedItem>,Response>,
-             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-            SyncStep.create(name, exec.Invoke, feed = feed, doNotTrack = doNotTrack)
-
-        static member Create
-            (name: string,
-             exec: Func<IStepContext<unit,unit>,Response>,
-             [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack:bool)>]doNotTrack: bool) =
-
-            SyncStep.create(name, exec.Invoke, doNotTrack = doNotTrack)

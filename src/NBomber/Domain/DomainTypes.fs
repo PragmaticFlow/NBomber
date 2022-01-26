@@ -18,8 +18,9 @@ type StopCommand =
     | StopTest of reason:string
 
 type UntypedStepContext = {
+    StepName: string
     ScenarioInfo: ScenarioInfo
-    mutable CancellationTokenSource: CancellationTokenSource    
+    mutable CancellationTokenSource: CancellationTokenSource
     Logger: ILogger
     mutable Client: obj
     mutable FeedItem: obj
@@ -29,16 +30,12 @@ type UntypedStepContext = {
     StopCurrentTest: string -> unit       // reason
 }
 
-type StepExecution =
-    | SyncExec  of (UntypedStepContext -> Response)
-    | AsyncExec of (UntypedStepContext -> Task<Response>)
-
 type Step = {
     StepName: string
     ClientFactory: ClientFactory<obj> option
     ClientDistribution: (IStepClientContext<obj> -> int) option
     ClientPool: ClientPool option
-    Execute: StepExecution
+    Execute: UntypedStepContext -> Task<Response>
     Feed: IFeed<obj> option
     Timeout: TimeSpan
     DoNotTrack: bool
@@ -69,6 +66,7 @@ type StepStatsRawData = {
 }
 
 type RunningStep = {
+    StepIndex: int
     Value: Step
     Context: UntypedStepContext
 }
@@ -95,6 +93,7 @@ type Scenario = {
     CustomSettings: string
     DefaultStepOrder: int[]
     StepOrderIndex: Dictionary<string,int> // stepName * orderNumber
-    GetCustomStepOrder: (unit -> string[]) option
+    CustomStepOrder: (unit -> string[]) option
+    CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
     IsEnabled: bool // used for stats in the cluster mode
 }

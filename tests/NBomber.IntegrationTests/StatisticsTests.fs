@@ -30,8 +30,7 @@ module ScenarioStatsTests =
         ClientDistribution = None
         Execute =
           fun _ -> task { return Response.ok(sizeBytes = 100) }
-          |> Step.toUntypedExecuteAsync
-          |> AsyncExec
+          |> Step.StepContext.toUntypedExecute
         Feed = Some(Feed.createConstant "feed name" [ 1; 2 ])
         Timeout = seconds 0
         DoNotTrack = Constants.DefaultDoNotTrack
@@ -49,7 +48,8 @@ module ScenarioStatsTests =
         CustomSettings = "settings"
         DefaultStepOrder = Array.empty
         StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
-        GetCustomStepOrder = None
+        CustomStepOrder = None
+        CustomStepExecControl = None
         IsEnabled = false
     }
 

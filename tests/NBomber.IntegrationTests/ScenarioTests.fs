@@ -455,3 +455,44 @@ let ``withStepTimeout should set step timeout`` () =
         test <@ stepsStats.Fail.Request.Count > 0 @>
         test <@ stepsStats.Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
         test <@ stepsStats.Fail.StatusCodes[0].Count = stepsStats.Fail.Request.Count @>
+
+[<Fact>]
+let ``NBomber should support CustomStepExecControl`` () =
+
+    let mutable initialStepCount = 0
+    let mutable step1Count = 0
+    let mutable step2Count = 0
+
+    let step1 = Step.create("step_1", fun context -> task {
+        step1Count <- step1Count + 1
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step_2", fun context -> task {
+        step2Count <- step2Count + 1
+        do! Task.Delay(milliseconds 10)
+        return Response.ok()
+    })
+
+    Scenario.create "scenario" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 2)]
+    |> Scenario.withCustomStepExecControl(fun context ->
+        match context with
+        | ValueSome ctx ->
+            if ctx.PrevStepResponse.IsError then ValueNone
+            else ValueSome "step_1"
+
+        | ValueNone ->
+            initialStepCount <- initialStepCount + 1
+            ValueSome "step_1"
+    )
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/11/"
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ initialStepCount = 1 @>
+    test <@ step1Count > 0 @>
+    test <@ step2Count = 0 @>

@@ -344,27 +344,6 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     test <@ maxNumber >= 5 && maxNumber <= 11 @>
 
 [<Fact>]
-let ``NBomber should support synchronous step execution`` () =
-
-    let mutable counter = 0
-
-    let step = SyncApi.SyncStep.create("step", fun context ->
-        Task.Delay(seconds 1).Wait()
-        counter <- context.InvocationCount
-        Response.ok()
-    )
-
-    Scenario.create "scenario" [step]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./steps-tests/12/"
-    |> NBomberRunner.run
-    |> ignore
-
-    test <@ counter > 0 && counter <= 6 @>
-
-[<Fact>]
 let ``StepContext Data should be cleared after each iteration`` () =
 
     let step1 = Step.create("step 1", fun context -> task {
@@ -425,23 +404,5 @@ let ``create should check clientFactory on null and throw NRE`` () =
         typeof<NullReferenceException>,
         fun _ -> let nullFactory = Unchecked.defaultof<_>()
                  Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
-                 |> ignore
-    )
-
-[<Fact>]
-let ``SyncStep create should check feed on null and throw NRE`` () =
-    Assert.Throws(
-        typeof<NullReferenceException>,
-        fun _ -> let nullFeed = Unchecked.defaultof<_>()
-                 SyncApi.SyncStep.create("null_feed", feed = nullFeed, execute = fun context -> Response.ok())
-                 |> ignore
-    )
-
-[<Fact>]
-let ``SyncStep create should check clientFactory on null and throw NRE`` () =
-    Assert.Throws(
-        typeof<NullReferenceException>,
-        fun _ -> let nullFactory = Unchecked.defaultof<_>()
-                 SyncApi.SyncStep.create("null_feed", clientFactory = nullFactory, execute = fun context -> Response.ok())
                  |> ignore
     )

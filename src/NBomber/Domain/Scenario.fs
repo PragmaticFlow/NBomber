@@ -186,7 +186,7 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioDuration = duration }
 
 let createStepOrderIndex (scenario: Contracts.Scenario) =
-    if List.isEmpty scenario.Steps then Dictionary<_,_>()
+    if List.isEmpty scenario.Steps then Dictionary<_,_>() // it's needed for case when scenario only init
     else scenario.Steps |> Seq.distinct |> Seq.mapi(fun i x -> x.StepName, i) |> Dict.ofSeq
 
 let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: Contracts.Scenario) =
@@ -196,7 +196,7 @@ let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: C
     |> Seq.toArray
 
 let getStepOrder (scenario: Scenario) =
-    match scenario.GetCustomStepOrder with
+    match scenario.CustomStepOrder with
     | Some getStepOrder ->
         getStepOrder()
         |> Array.map(fun stName -> scenario.StepOrderIndex[stName])
@@ -222,7 +222,8 @@ let createScenarios (scenarios: Contracts.Scenario list) = result {
                  CustomSettings = String.Empty
                  DefaultStepOrder = defaultStepOrder
                  StepOrderIndex = stepOrderIndex
-                 GetCustomStepOrder = scenario.GetCustomStepOrder
+                 CustomStepOrder = scenario.CustomStepOrder
+                 CustomStepExecControl = scenario.CustomStepExecControl
                  IsEnabled = true }
     }
 
@@ -261,7 +262,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
                         WarmUpDuration = getWarmUpDuration settings
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
-                        GetCustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
+                        CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
 
     scenarios
     |> List.map(fun scn ->
