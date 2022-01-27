@@ -53,6 +53,8 @@ type IFeed<'TFeedItem> =
     abstract GetNextItem: scenarioInfo:ScenarioInfo * stepData:Dictionary<string,obj> -> 'TFeedItem
 
 type IStepContext<'TClient,'TFeedItem> =
+    /// Gets the currently running step name.
+    abstract StepName: string
     /// Gets info about the currently running scenario.
     /// You can use ScenarioInfo.ThreadId as correlation id.
     abstract ScenarioInfo: ScenarioInfo
@@ -78,7 +80,12 @@ type IStepContext<'TClient,'TFeedItem> =
     /// Use it when you don't see any sense to continue the current test.
     abstract StopCurrentTest: reason:string -> unit
 
+type IStepExecControlContext =
+    abstract PrevStepContext: IStepContext<obj,obj>
+    abstract PrevStepResponse: Response
+
 type IStepClientContext<'TFeedItem> =
+    abstract StepName: string
     abstract ScenarioInfo: ScenarioInfo
     abstract Logger: ILogger
     abstract Data: Dictionary<string,obj>
@@ -131,7 +138,8 @@ type Scenario = {
     Steps: IStep list
     WarmUpDuration: TimeSpan
     LoadSimulations: LoadSimulation list
-    GetCustomStepOrder: (unit -> string[]) option
+    CustomStepOrder: (unit -> string[]) option
+    CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
 }
 
 type IReportingSink =

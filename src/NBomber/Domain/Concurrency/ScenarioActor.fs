@@ -8,7 +8,9 @@ open System.Threading.Tasks
 open Serilog
 open FSharp.Control.Tasks.NonAffine
 
+open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
@@ -26,10 +28,10 @@ type ActorDep = {
 type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let _logger = dep.Logger.ForContext<ScenarioActor>()
-    let _isAllExecSync = Step.isAllExecSync dep.Scenario.Steps
     let mutable _working = false
 
     let _stepDep = {
+        Scenario = dep.Scenario
         ScenarioInfo = scenarioInfo
         Logger = dep.Logger
         CancellationToken = dep.CancellationToken
@@ -41,7 +43,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let _steps =
         dep.Scenario.Steps
-        |> List.map(Step.RunningStep.create _stepDep)
+        |> List.map(fun step -> RunningStep.create _stepDep dep.Scenario.StepOrderIndex[step.StepName] step)
         |> List.toArray
 
     let execSteps (runInfinite: bool) = task {
@@ -57,13 +59,13 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
                     try
                         let stepsOrder = Scenario.getStepOrder dep.Scenario
-
-                        if _isAllExecSync then
-                            Step.execSteps(_stepDep, _steps, stepsOrder)
-                        else
-                            do! Step.execStepsAsync(_stepDep, _steps, stepsOrder)
+                        do! RunningStep.execSteps _stepDep _steps stepsOrder
                     with
-                    | ex -> _logger.Error(ex, $"Invalid step order for Scenario: {dep.Scenario.ScenarioName}")
+                    | ex ->
+                        _logger.Error(ex, $"Unhandled exception for Scenario: {dep.Scenario.ScenarioName}")
+                        let response = Response.fail(statusCode = Constants.StepInternalClientErrorCode, error = ex.Message)
+                        let resp = { StepIndex = 0; ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 }
+                        dep.ScenarioStatsActor.Publish(AddResponse resp)
 
                     shouldRun <- runInfinite
             else

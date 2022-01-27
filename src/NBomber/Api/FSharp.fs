@@ -123,7 +123,7 @@ type Step =
           ClientFactory = factory
           ClientDistribution = clDistribution
           ClientPool = None
-          Execute = execute |> Step.toUntypedExecuteAsync |> AsyncExec
+          Execute = execute |> Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Feed.toUntypedFeed
           Timeout = timeout
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
@@ -168,7 +168,8 @@ module Scenario =
           Steps = steps
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          GetCustomStepOrder = None }
+          CustomStepOrder = None
+          CustomStepExecControl = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -198,7 +199,16 @@ module Scenario =
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: Contracts.Scenario) =
-        { scenario with GetCustomStepOrder = Some getStepsOrder }
+        { scenario with CustomStepOrder = Some getStepsOrder }
+
+    /// Sets custom steps execution control.
+    /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
+    /// By default, all steps are executing sequentially but you can inject your custom execution control to change
+    /// default order per step iteration.
+    /// execControl function will be invoked before each step. You can think about execControl like a callback before step invocation
+    /// where you can specify what step should be invoked.
+    let withCustomStepExecControl (execControl: IStepExecControlContext voption -> string voption) (scenario: Contracts.Scenario) =
+        { scenario with CustomStepExecControl = Some execControl }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
@@ -347,44 +357,3 @@ module NBomberRunner =
         |> runWithResult args
         |> Result.map(fun x -> x.FinalStats)
         |> Result.mapError(AppError.toString)
-
-namespace NBomber.FSharp.SyncApi
-
-    open System
-    open NBomber
-    open NBomber.Contracts
-    open NBomber.Domain
-    open NBomber.Domain.ClientFactory
-    open NBomber.Domain.DomainTypes
-
-    [<RequireQualifiedAccess>]
-    type SyncStep =
-
-        static member create (name: string,
-                              execute: IStepContext<'TClient,'TFeedItem> -> Response,
-                              ?clientFactory: IClientFactory<'TClient>,
-                              ?feed: IFeed<'TFeedItem>,
-                              ?doNotTrack: bool) =
-
-            match clientFactory with
-            | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
-            | None   -> ()
-
-            match feed with
-            | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "feed")
-            | None   -> ()
-
-            let factory =
-                clientFactory
-                |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
-                |> Option.map(fun x -> x.GetUntyped())
-
-            { StepName = name
-              ClientFactory = factory
-              ClientDistribution = None
-              ClientPool = None
-              Execute = execute |> Step.toUntypedExecute |> SyncExec
-              Feed = feed |> Option.map Feed.toUntypedFeed
-              Timeout = Constants.StepTimeout
-              DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
-              :> IStep
