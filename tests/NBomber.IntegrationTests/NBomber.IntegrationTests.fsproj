@@ -60,6 +60,7 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="HintsAnalyzerTests.fs" />
+        <Compile Include="CustomStepExecControlTests.fs" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />

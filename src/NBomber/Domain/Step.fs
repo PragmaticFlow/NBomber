@@ -215,7 +215,6 @@ module RunningStep =
                 | ValueSome resp ->
                     execContext <- ValueSome {
                         new IStepExecControlContext with
-                            member _.StepName = stepName
                             member _.PrevStepContext = StepContext.create step.Context
                             member _.PrevStepResponse = resp
                     }

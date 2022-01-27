@@ -81,7 +81,6 @@ type IStepContext<'TClient,'TFeedItem> =
     abstract StopCurrentTest: reason:string -> unit
 
 type IStepExecControlContext =
-    abstract StepName: string
     abstract PrevStepContext: IStepContext<obj,obj>
     abstract PrevStepResponse: Response
 
