@@ -163,7 +163,7 @@ let ``should handle errors without stopping the test``() =
 
     Scenario.create "test" [step]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 2)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run
     |> Result.getOk

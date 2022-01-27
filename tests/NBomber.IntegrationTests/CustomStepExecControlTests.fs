@@ -1,4 +1,4 @@
-﻿module NBomber.IntegrationTests.CustomStepExecControl
+﻿module Tests.CustomStepExecControl
 
 open System
 open System.Threading.Tasks
