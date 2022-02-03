@@ -11,6 +11,7 @@ open FSharpDev.MqttTests
 let main argv =
 
     //HelloWorldExample.run()
+    //CustomStepExecControlExample.run()
     //CustomSettingsExample.run()
     //DataFeedTest.run()
     //SimpleHttpTest.run()

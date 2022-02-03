@@ -17,6 +17,7 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="HelloWorld\CustomSettingsExample.fs" />
+        <Compile Include="HelloWorld\CustomStepExecControlExample.fs" />
         <Compile Include="HelloWorld\HelloWorldExample.fs" />
         <None Include="HelloWorld\config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
