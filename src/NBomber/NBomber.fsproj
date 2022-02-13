@@ -44,6 +44,7 @@
         <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
         <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
         <Compile Include="Domain\HintsAnalyzer.fs" />
+        <Compile Include="Domain\BatchFeed.fs" />
         <Compile Include="Infra\Console.fs" />
         <Compile Include="Infra\ProgressBar.fs" />
         <Compile Include="Infra\Dependency.fs" />

@@ -1,9 +1,9 @@
 module Tests.Feed
 
-open System
 open System.Threading
 open System.Threading.Tasks
 
+open NBomber.Domain
 open Xunit
 open FsCheck
 open FsCheck.Xunit
@@ -270,3 +270,79 @@ let ``Init for the same instance shared btw steps and scenarios should be invoke
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats -> test <@ feedInitCount = 1 @>
+
+[<Fact>]
+let rec ``BatchFeed Circular Batch test`` () =
+
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, 10)
+    let userFeed =
+        "./DataFeed/users-feed-data.csv"
+        |> BatchFeed.fromCsv
+        |> BatchFeed.batch 2
+        |> BatchFeed.circular
+
+    let feed = BatchFeed.create<User> ("feed user", userFeed)
+
+    let actual = seq {1..10}
+              |> Seq.map(fun _ -> feed.GetNextItem(scenarioInfo, null).Id)
+              |> Seq.toArray
+
+    test <@ actual = [|1;2;3;4;5;1;2;3;4;5|] @>
+
+[<Fact>]
+let rec ``BatchFeed Random Batch test`` () =
+
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, 10)
+    let userFeed =
+        "./DataFeed/users-feed-data.csv"
+        |> BatchFeed.fromCsv
+        |> BatchFeed.batch 2
+        |> BatchFeed.random
+
+    let feed = BatchFeed.create<User> ("feed user", userFeed)
+
+    let actual = seq {1..10}
+              |> Seq.map(fun _ -> feed.GetNextItem(scenarioInfo, null).Id)
+              |> Seq.toArray
+
+    test <@ actual <> [|1;2;3;4;5;1;2;3;4;5|] @>
+
+[<Fact>]
+let rec ``BatchFeed Circular Eager test`` () =
+
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, 10)
+    let userFeed =
+        "./DataFeed/users-feed-data.csv"
+        |> BatchFeed.fromCsv
+        |> BatchFeed.eager
+        |> BatchFeed.circular
+
+    let feed = BatchFeed.create<User> ("feed user", userFeed)
+    let context = createBaseContext()
+    feed.Init(context).Wait()
+
+    let actual = seq {1..10}
+              |> Seq.map(fun _ -> feed.GetNextItem(scenarioInfo, null).Id)
+              |> Seq.toArray
+
+    test <@ actual = [|1;2;3;4;5;1;2;3;4;5|] @>
+
+[<Fact>]
+let rec ``BatchFeed Random Eager test`` () =
+
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, 10)
+    let userFeed =
+        "./DataFeed/users-feed-data.csv"
+        |> BatchFeed.fromCsv
+        |> BatchFeed.eager
+        |> BatchFeed.random
+
+    let feed = BatchFeed.create<User> ("feed user", userFeed)
+    let context = createBaseContext()
+    feed.Init(context).Wait()
+
+    let actual = seq {1..10}
+              |> Seq.map(fun _ -> feed.GetNextItem(scenarioInfo, null).Id)
+              |> Seq.toArray
+
+    test <@ actual <> [|1;2;3;4;5;1;2;3;4;5|] @>
