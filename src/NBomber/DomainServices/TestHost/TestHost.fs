@@ -193,7 +193,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     member _.StartBombing(schedulers: ScenarioScheduler list,
                           flushStatsTimer: Timers.Timer option,
                           reportingTimer: Timers.Timer,
-                          currentOperationTimer: Stopwatch) = task {
+                          currentOperationTimer: Stopwatch,
+                          ?cleanUp: unit -> Task<unit>) = task {
         _stopped <- false
         _currentOperation <- OperationType.Bombing
         _currentSchedulers <- schedulers
@@ -201,6 +202,11 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
 
         _logger.Information "Starting bombing..."
         do! startBombing(schedulers, flushStatsTimer, reportingTimer, currentOperationTimer)
+
+        if cleanUp.IsSome then
+            _logger.Information "NBomber is executing internal cleanup..."
+            do! cleanUp.Value()
+
         do! this.StopScenarios()
 
         _currentOperation <- OperationType.Complete
