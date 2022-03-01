@@ -203,34 +203,32 @@ let getStepOrder (scenario: Scenario) =
 
     | None -> scenario.DefaultStepOrder
 
+let createScenario (scn: Contracts.Scenario) = result {
+    let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
+    let! scenario = Validation.validate scn
+    let stepOrderIndex = createStepOrderIndex scenario
+    let defaultStepOrder = scenario |> createDefaultStepOrder stepOrderIndex
+
+    return { ScenarioName = scenario.ScenarioName
+             Init = scenario.Init
+             Clean = scenario.Clean
+             Steps = scenario.Steps |> ClientFactory.updateName scenario.ScenarioName
+             LoadTimeLine = timeline.LoadTimeLine
+             WarmUpDuration = scenario.WarmUpDuration
+             PlanedDuration = timeline.ScenarioDuration
+             ExecutedDuration = None
+             CustomSettings = String.Empty
+             DefaultStepOrder = defaultStepOrder
+             StepOrderIndex = stepOrderIndex
+             CustomStepOrder = scenario.CustomStepOrder
+             CustomStepExecControl = scenario.CustomStepExecControl
+             IsEnabled = true }
+}
+
 let createScenarios (scenarios: Contracts.Scenario list) = result {
-
-    let create (scn: Contracts.Scenario) = result {
-        let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
-        let! scenario = Validation.validate scn
-        let stepOrderIndex = createStepOrderIndex scenario
-        let defaultStepOrder = scenario |> createDefaultStepOrder stepOrderIndex
-
-        return { ScenarioName = scenario.ScenarioName
-                 Init = scenario.Init
-                 Clean = scenario.Clean
-                 Steps = scenario.Steps |> ClientFactory.updateName scenario.ScenarioName
-                 LoadTimeLine = timeline.LoadTimeLine
-                 WarmUpDuration = scenario.WarmUpDuration
-                 PlanedDuration = timeline.ScenarioDuration
-                 ExecutedDuration = None
-                 CustomSettings = String.Empty
-                 DefaultStepOrder = defaultStepOrder
-                 StepOrderIndex = stepOrderIndex
-                 CustomStepOrder = scenario.CustomStepOrder
-                 CustomStepExecControl = scenario.CustomStepExecControl
-                 IsEnabled = true }
-    }
-
     let! vScns = scenarios |> Validation.checkDuplicateScenarioName
-
     return! vScns
-            |> List.map create
+            |> List.map createScenario
             |> Result.sequence
             |> Result.mapError List.head
 }

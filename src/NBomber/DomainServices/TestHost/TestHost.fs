@@ -204,7 +204,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         do! startBombing(schedulers, flushStatsTimer, reportingTimer, currentOperationTimer)
 
         if cleanUp.IsSome then
-            _logger.Information "NBomber is executing internal cleanup..."
+            _logger.Debug "NBomber is executing internal cleanup..."
             do! cleanUp.Value()
 
         do! this.StopScenarios()
