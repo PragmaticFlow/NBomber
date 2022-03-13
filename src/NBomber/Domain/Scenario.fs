@@ -196,12 +196,7 @@ let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: C
     |> Seq.toArray
 
 let getStepOrder (scenario: Scenario) =
-    match scenario.CustomStepOrder with
-    | Some getStepOrder ->
-        getStepOrder()
-        |> Array.map(fun stName -> scenario.StepOrderIndex[stName])
-
-    | None -> scenario.DefaultStepOrder
+    scenario.DefaultStepOrder
 
 let createScenario (scn: Contracts.Scenario) = result {
     let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration

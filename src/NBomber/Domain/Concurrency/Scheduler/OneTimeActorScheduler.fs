@@ -10,6 +10,7 @@ type SchedulerCommand =
     | StartActors of actors:ScenarioActor list
     | RentActors of actorCount:int
 
+// dep * actorPool * scheduledActorCount
 type SchedulerExec = ActorDep -> ScenarioActor list -> int -> ScenarioActor list
 
 // todo: add tests

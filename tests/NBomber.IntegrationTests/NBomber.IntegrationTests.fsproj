@@ -11,7 +11,6 @@
         <Compile Include="AssemblyInfo.fs" />
         <Compile Include="TestHelper.fs" />
         <Compile Include="ExtensionsTests.fs" />
-        <Compile Include="PushResponseQueueTests.fs" />
         <Content Include="Configuration\scenario_init_only_config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -20,12 +19,6 @@
         </Content>
         <Content Include="Configuration\test_config.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Configuration\step_order_config.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Configuration\step_order_invalid_config.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Content Include="Configuration\test_config_2.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,8 +39,6 @@
         <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />
         <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
         <Compile Include="ClientFactoryTests.fs" />
-        <Compile Include="ClientDistributionTests.fs" />
-        <Compile Include="Reporting\ReportingSinkTests.fs" />
         <Compile Include="Reporting\ReportingConfigurationTests.fs" />
         <Compile Include="Plugins\PluginTests.fs" />
         <Compile Include="CliArgsTests.fs" />

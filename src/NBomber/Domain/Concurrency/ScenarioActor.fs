@@ -11,7 +11,6 @@ open FSharp.Control.Tasks.NonAffine
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
-open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
@@ -23,6 +22,8 @@ type ActorDep = {
     Scenario: Scenario
     ScenarioStatsActor: IScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
+    GetStepOrder: Scenario -> int[]
+    ExecSteps: StepDep -> RunningStep[] -> int[] -> Task<unit> // stepDep steps stepsOrder
 }
 
 type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
@@ -58,8 +59,8 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                     _stepDep.Data.Clear()
 
                     try
-                        let stepsOrder = Scenario.getStepOrder dep.Scenario
-                        do! RunningStep.execSteps _stepDep _steps stepsOrder
+                        let stepsOrder = dep.GetStepOrder dep.Scenario
+                        do! dep.ExecSteps _stepDep _steps stepsOrder
                     with
                     | ex ->
                         _logger.Error(ex, $"Unhandled exception for Scenario: {dep.Scenario.ScenarioName}")

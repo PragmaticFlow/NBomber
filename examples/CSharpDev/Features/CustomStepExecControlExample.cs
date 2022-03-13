@@ -1,10 +1,9 @@
-﻿using System;
+﻿namespace CSharpDev.Features;
+
+using System;
 using System.Threading.Tasks;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using ValueOption = NBomber.CSharp.ValueOption;
-
-namespace CSharpDev.HelloWorld;
 
 public class CustomStepExecControlExample
 {

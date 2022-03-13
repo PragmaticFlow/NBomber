@@ -6,6 +6,8 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
+open NBomber.Domain
+open NBomber.Domain.Step
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices.Reports
@@ -18,14 +20,16 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information "NBomber started as single node"
 
-        let! scenarios    = context |> NBomberContext.createScenarios
-        let! sessionArgs  = context |> NBomberContext.createSessionArgs testInfo scenarios
-        use testHost      = new TestHost(dep, scenarios)
+        let! ctx = NBomberContext.EnterpriseValidation.validate dep context
+
+        let! scenarios    = ctx |> NBomberContext.createScenarios
+        let! sessionArgs  = ctx |> NBomberContext.createSessionArgs testInfo scenarios
+        use testHost      = new TestHost(dep, scenarios, Scenario.getStepOrder, RunningStep.execSteps)
         let! result       = testHost.RunSession(sessionArgs)
 
         let finalStats =
             Report.build dep.Logger result testHost.TargetScenarios
-            |> Report.save dep context result.FinalStats
+            |> Report.save dep ctx result.FinalStats
 
         return { result with FinalStats = finalStats }
     }

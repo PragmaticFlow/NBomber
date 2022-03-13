@@ -1,13 +1,11 @@
-﻿using System;
+﻿namespace CSharpDev.ClientFactory;
+
+using System;
 using System.Threading.Tasks;
-
-namespace CSharpDev.ClientFactory;
-
-using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-public class CustomDistributionExample
+public class ClientDistributionExample
 {
     public static void Run()
     {
@@ -38,6 +36,5 @@ public class CustomDistributionExample
         NBomberRunner
             .RegisterScenarios(scenario)
             .Run();
-
     }
 }

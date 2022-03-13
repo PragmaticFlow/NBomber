@@ -14,6 +14,7 @@ open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Step
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
@@ -24,7 +25,10 @@ open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
 open NBomber.DomainServices.TestHost.TestHostReportingActor
 
-type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario list) as this =
+type internal TestHost(dep: IGlobalDependency,
+                       registeredScenarios: Scenario list,
+                       getStepOrder: Scenario -> int[],
+                       execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) as this =
 
     let _logger = dep.Logger.ForContext<TestHost>()
     let mutable _stopped = false
@@ -52,7 +56,9 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         | StopTest reason -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
-                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
+                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor)
+                                 (getStepOrder: Scenario -> int[])
+                                 (execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) =
 
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
@@ -62,6 +68,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
                 Scenario = scn
                 ScenarioStatsActor = createStatsActor _logger scn _sessionArgs.ReportingInterval
                 ExecStopCommand = execStopCommand
+                GetStepOrder = getStepOrder
+                ExecSteps = execSteps
             }
             new ScenarioScheduler(actorDep)
 
@@ -232,7 +240,7 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
     member _.GetHints(finalStats) = _targetScenarios |> getHints finalStats
 
     member _.CreateScenarioSchedulers(createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
-        createScenarioSchedulers _targetScenarios createStatsActor
+        createScenarioSchedulers _targetScenarios createStatsActor getStepOrder execSteps
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let targetScenarios = registeredScenarios |> TestHostScenario.getTargetScenarios sessionArgs
@@ -257,8 +265,8 @@ type internal TestHost(dep: IGlobalDependency, registeredScenarios: Scenario lis
         let! finalStats = reportingActor.GetFinalStats(getCurrentNodeInfo())
         let! timeLineHistory = reportingActor.GetTimeLineHistory()
         let hints = _targetScenarios |> getHints finalStats
-
-        return { FinalStats = finalStats; TimeLineHistory = Array.ofList timeLineHistory; Hints = hints }
+        let result = { FinalStats = finalStats; TimeLineHistory = Array.ofList timeLineHistory; Hints = hints }
+        return result
     }
 
     interface IDisposable with

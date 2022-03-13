@@ -61,7 +61,7 @@ module StepContext =
           StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ExecStopCommand
           StopCurrentTest = fun reason -> StopTest(reason) |> dep.ExecStopCommand }
 
-    let inline create (untyped: UntypedStepContext) = {
+    let create (untyped: UntypedStepContext) = {
         new IStepContext<'TClient,'TFeedItem> with
             member _.StepName = untyped.StepName
             member _.ScenarioInfo = untyped.ScenarioInfo
@@ -83,7 +83,7 @@ module StepContext =
 
 module StepClientContext =
 
-    let inline create (untyped: UntypedStepContext) (clientCount: int) = {
+    let create (untyped: UntypedStepContext) (clientCount: int) = {
         new IStepClientContext<'TFeedItem> with
             member _.StepName = untyped.StepName
             member _.ScenarioInfo = untyped.ScenarioInfo
@@ -113,21 +113,14 @@ module RunningStep =
     let create (dep: StepDep) (stepIndex: int) (step: Step) =
         { StepIndex = stepIndex; Value = step; Context = StepContext.createUntyped dep step }
 
-    let getClient (context: UntypedStepContext)
-                  (clientPool: ClientPool option)
-                  (clientDistribution: (IStepClientContext<obj> -> int) option) =
+    let getClient (context: UntypedStepContext) (clientPool: ClientPool option) =
 
-        match clientPool, clientDistribution with
-        | Some pool, Some getClientIndex ->
-            let ctx = StepClientContext.create context pool.ClientCount
-            let index = getClientIndex ctx
-            pool.InitializedClients[index]
-
-        | Some pool, None ->
+        match clientPool with
+        | Some pool ->
             let index = context.ScenarioInfo.ThreadNumber % pool.InitializedClients.Length
             pool.InitializedClients[index]
 
-        | _, _ -> Unchecked.defaultof<_>
+        | _ -> Unchecked.defaultof<_>
 
     let updateContext (step: RunningStep) (data: Dictionary<string,obj>) =
         let st = step.Value
@@ -143,7 +136,7 @@ module RunningStep =
         context.Data <- data
         context.FeedItem <- feedItem
         // context.Client should be set as the last field because init order matter here
-        context.Client <- getClient context st.ClientPool st.ClientDistribution
+        context.Client <- getClient context st.ClientPool
 
         step
 
@@ -200,30 +193,6 @@ module RunningStep =
             return ValueNone
     }
 
-    let execCustomExec (dep: StepDep) (steps: RunningStep[]) (execControl: IStepExecControlContext voption -> string voption) = task {
-        let mutable stop = false
-        let mutable execContext = ValueNone
-        while stop || not dep.CancellationToken.IsCancellationRequested do
-            let nextStep = execControl execContext
-            match nextStep with
-            | ValueSome stepName ->
-                let stepIndex = dep.Scenario.StepOrderIndex[stepName]
-                let step = updateContext steps[stepIndex] dep.Data
-                let! response = execStep dep step
-
-                match response with
-                | ValueSome resp ->
-                    execContext <- ValueSome {
-                        new IStepExecControlContext with
-                            member _.PrevStepContext = StepContext.create step.Context
-                            member _.PrevStepResponse = resp
-                    }
-
-                | ValueNone -> stop <- true
-
-            | ValueNone -> stop <- true
-    }
-
     let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = task {
         let mutable stop = false
         for stepIndex in stepsOrder do
@@ -237,6 +206,4 @@ module RunningStep =
     }
 
     let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
-        match dep.Scenario.CustomStepExecControl with
-        | Some execControl -> execCustomExec dep steps execControl
-        | None             -> execRegularExec dep steps stepsOrder
+        execRegularExec dep steps stepsOrder

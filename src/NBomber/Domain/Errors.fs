@@ -39,6 +39,7 @@ type ValidationError =
     | SimulationIsBiggerThanMax of simulation:string
     | CopiesCountIsZeroOrNegative of simulation:string
     | RateIsZeroOrNegative of simulation:string
+    | EnterpriseOnlyFeature of message:string
 
 type AppError =
     | Domain        of DomainError
@@ -125,6 +126,7 @@ type AppError =
         | DuplicateScenarioNamesInConfig scenarioNames ->
             $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"
 
+        | EnterpriseOnlyFeature message -> message
 
     static member toString (error: AppError) =
         match error with

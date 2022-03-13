@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="HelloWorld\config.json">
+      <None Update="Features\config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

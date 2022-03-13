@@ -12,6 +12,7 @@ type SchedulerCommand =
     | RemoveActor of removeCount:int
     | StopScheduler
 
+// dep * actorPool * scheduledActorCount
 type SchedulerExec = ActorDep -> ScenarioActor list -> int -> ScenarioActor list
 
 let removeFromScheduler scheduledActorsCount removeCount =

@@ -33,7 +33,6 @@
         <Compile Include="Contracts.fs" />
         <Compile Include="Extensions\Extensions.fs" />
         <Compile Include="Extensions\InternalExtensions.fs" />
-        <Compile Include="Extensions\PushExtensions.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
@@ -90,7 +89,7 @@
         <PackageReference Include="FuncyDown" Version="1.1.0" />
         <PackageReference Include="HdrHistogram" Version="2.5.0" />
         <PackageReference Include="Json.Net.DataSetConverters" Version="1.0.1" />
-        <PackageReference Include="NBomber.Contracts" Version="3.0.0-beta" />
+<!--        <PackageReference Include="NBomber.Contracts" Version="3.0.0-beta" />-->
         <PackageReference Include="Serilog" Version="2.10.0" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
         <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
@@ -108,5 +107,8 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\NBomber.Contracts\NBomber.Contracts.fsproj" />
     </ItemGroup>
 </Project>

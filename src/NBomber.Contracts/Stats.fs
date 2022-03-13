@@ -22,7 +22,6 @@ type NodeType =
     | SingleNode
     | Coordinator
     | Agent
-    | Cluster
 
 type OperationType =
     | None = 0

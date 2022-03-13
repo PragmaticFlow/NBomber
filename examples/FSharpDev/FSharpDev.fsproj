@@ -17,7 +17,6 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Include="HelloWorld\CustomSettingsExample.fs" />
-        <Compile Include="HelloWorld\CustomStepExecControlExample.fs" />
         <Compile Include="HelloWorld\HelloWorldExample.fs" />
         <None Include="HelloWorld\config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -27,10 +26,6 @@
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <Compile Include="MqttTests\PublisherScenario.fs" />
-        <Compile Include="MqttTests\SubscriberScenario.fs" />
-        <Compile Include="MqttTests\MqttScenario.fs" />
-        <None Include="MqttTests\docker-compose.yaml" />
         <Compile Include="ClientFactory\HttpClientFactory.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

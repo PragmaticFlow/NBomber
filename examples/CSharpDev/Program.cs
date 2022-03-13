@@ -1,5 +1,8 @@
 ﻿using System;
 using CSharpDev.ClientFactory;
+using CSharpDev.CustomReporting;
+using CSharpDev.DataFeed;
+using CSharpDev.Features;
 using CSharpDev.HelloWorld;
 
 namespace CSharpDev
@@ -9,8 +12,11 @@ namespace CSharpDev
         static void Main(string[] args)
         {
             HelloWorldExample.Run();
-            //CustomDistributionExample.Run();
-            //CustomStepExecControlExample.Run();
+            // ClientDistributionExample.Run();
+            // CustomStepExecControlExample.Run();
+            // DataFeedTest.Run();
+            // CustomReportingExample.Run();
+            // CustomSettingsExample.Run();
         }
     }
 }

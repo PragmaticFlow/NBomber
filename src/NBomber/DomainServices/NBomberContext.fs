@@ -7,13 +7,14 @@ open System.Globalization
 open FsToolkit.ErrorHandling
 
 open NBomber
+open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
-open NBomber.Extensions.InternalExtensions
-open NBomber.Extensions.Operator.Result
+open NBomber.Infra.Dependency
 
 // we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
 // since after init (for case when the same ClientFactory assigned to several Scenarios)
@@ -37,6 +38,64 @@ type SessionArgs = {
         ReportingInterval = Constants.DefaultReportingInterval
         UseHintsAnalyzer = true
     }
+
+module EnterpriseValidation =
+
+    let validateReportingSinks (dep: IGlobalDependency) =
+        match dep.NodeType with
+        | SingleNode when dep.ReportingSinks.Length > 0 ->
+            Error(EnterpriseOnlyFeature "ReportingSinks feature supported only for the Enterprise version")
+        | _ ->
+            Ok()
+
+    let validateCustomStepExecControl (context: NBomberContext) =
+        let scenarios =
+            context.RegisteredScenarios
+            |> List.filter(fun x -> x.CustomStepExecControl.IsSome)
+            |> List.map(fun x -> x.ScenarioName)
+
+        if scenarios.Length > 0 then
+            let names = scenarios |> String.concatWithComma
+            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using CustomStepExecControl feature that supported only for the Enterprise version")
+        else
+            Ok()
+
+    let validateCustomStepOrder (context: NBomberContext) =
+        let scenarios =
+            context.RegisteredScenarios
+            |> List.filter(fun x -> x.CustomStepOrder.IsSome)
+            |> List.map(fun x -> x.ScenarioName)
+
+        if scenarios.Length > 0 then
+            let names = scenarios |> String.concatWithComma
+            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using CustomStepOrder feature that supported only for the Enterprise version")
+        else
+            Ok()
+
+    let validateClientDistribution (context: NBomberContext) =
+        let steps =
+            context.RegisteredScenarios
+            |> List.collect(fun x -> x.Steps)
+            |> Seq.cast<DomainTypes.Step>
+            |> Seq.filter(fun x -> x.ClientDistribution.IsSome)
+            |> Seq.map(fun x -> x.StepName)
+            |> Seq.toList
+
+        if steps.Length > 0 then
+            let names = steps |> String.concatWithComma
+            Error(EnterpriseOnlyFeature $"Step: '{names}' is using ClientDistribution feature that supported only for the Enterprise version")
+        else
+            Ok()
+
+    let validate (dep: IGlobalDependency) (context: NBomberContext) =
+        result {
+            do! validateReportingSinks dep
+            do! validateCustomStepExecControl context
+            do! validateCustomStepOrder context
+            do! validateClientDistribution context
+            return context
+        }
+        |> Result.mapError AppError.create
 
 module Validation =
 
@@ -266,7 +325,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
             UseHintsAnalyzer = useHintsAnalyzer
         }
     }
-    |> Result.mapError(AppError.create)
+    |> Result.mapError AppError.create
 
 let createScenarios (context: NBomberContext) =
     context.RegisteredScenarios |> Scenario.createScenarios

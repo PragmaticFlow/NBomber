@@ -15,6 +15,7 @@ open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.Step
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
@@ -37,6 +38,8 @@ let internal baseDep = {
     Scenario = baseScenario
     ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
+    GetStepOrder = Scenario.getStepOrder
+    ExecSteps = RunningStep.execSteps
 }
 
 [<Fact>]
