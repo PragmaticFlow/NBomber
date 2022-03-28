@@ -1,9 +1,6 @@
 module FSharpProd.DataFeed.DataFeedTest
 
 open System.Threading.Tasks
-
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp

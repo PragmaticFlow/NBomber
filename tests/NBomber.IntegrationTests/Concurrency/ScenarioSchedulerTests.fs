@@ -7,7 +7,6 @@ open Xunit
 open FsCheck
 open FsCheck.Xunit
 open FsToolkit.ErrorHandling
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts

@@ -47,31 +47,34 @@ let ``AddActors should start actors if there is no actors`` () =
     use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
-    scheduler.AddActors(20)
+    scheduler.AddActors(5)
+    Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
     test <@ initCount = 0 @>
-    test <@ scheduler.ScheduledActorCount = 20 @>
-    test <@ workingActors.Length = 20 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
+    test <@ workingActors.Length = 5 @>
 
 [<Fact>]
 let ``AddActors should start actors to run forever until the finish of scenario duration`` () =
     use scheduler = new ConstantActorScheduler(baseDep, exec)
 
-    scheduler.AddActors(10)
-    Task.Delay(seconds 5).Wait()
+    scheduler.AddActors(5)
+    Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
-    test <@ scheduler.ScheduledActorCount = 10 @>
-    test <@ workingActors.Length = 10 @>
-    test <@ scheduler.AvailableActors.Length = 10 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
+    test <@ workingActors.Length = 5 @>
+    test <@ scheduler.AvailableActors.Length = 5 @>
 
 [<Fact>]
 let ``RemoveActors should stop some actors and keep them in actor pool`` () =
     use scheduler = new ConstantActorScheduler(baseDep, exec)
 
     scheduler.AddActors(10)
+    Task.Delay(milliseconds 10).Wait()
     scheduler.RemoveActors(5)
+    Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
@@ -82,10 +85,12 @@ let ``RemoveActors should stop some actors and keep them in actor pool`` () =
 let ``Stop should stop all working actors`` () =
     use scheduler = new ConstantActorScheduler(baseDep, exec)
 
-    scheduler.AddActors(10)
+    scheduler.AddActors(5)
+    Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
+    Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
-    test <@ scheduler.ScheduledActorCount = 10 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
     test <@ workingActors.Length = 0 @>
-    test <@ scheduler.AvailableActors.Length = 10 @>
+    test <@ scheduler.AvailableActors.Length = 5 @>

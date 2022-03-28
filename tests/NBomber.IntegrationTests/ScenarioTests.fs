@@ -6,7 +6,6 @@ open System.Threading.Tasks
 open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
 open Microsoft.Extensions.Configuration
 
 open NBomber

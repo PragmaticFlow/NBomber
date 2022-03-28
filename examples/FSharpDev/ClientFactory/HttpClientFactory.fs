@@ -1,9 +1,6 @@
 module FSharpDev.ClientFactory.HttpClientFactoryExample
 
 open System.Net.Http
-open System.Threading.Tasks
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -36,7 +33,7 @@ let run () =
 
     Scenario.create "simple_http" [step]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = seconds 10)]
+    |> Scenario.withLoadSimulations [InjectPerSec(rate = 100, during = minutes 3)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withWorkerPlugins [pingPlugin]
     |> NBomberRunner.run

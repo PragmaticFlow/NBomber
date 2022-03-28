@@ -1,9 +1,6 @@
 module FSharpDev.HelloWorld.HelloWorldExample
 
 open System.Threading.Tasks
-
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
@@ -23,7 +20,7 @@ let run () =
     // you also can define them in opposite direction, like [step2; step1]
     // or even repeat [step1; step1; step1; step2]
     Scenario.create "hello_world_scenario" [step1]
-    |> Scenario.withoutWarmUp    
+    |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withTestSuite "example"
     |> NBomberRunner.withTestName "hello_world_test"

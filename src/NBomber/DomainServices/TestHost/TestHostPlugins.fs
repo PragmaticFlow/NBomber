@@ -3,7 +3,6 @@ module internal NBomber.DomainServices.TestHost.TestHostPlugins
 open System.Threading.Tasks
 
 open Serilog
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
 open NBomber
@@ -23,7 +22,7 @@ let init (dep: IGlobalDependency) (context: IBaseContext) (plugins: IWorkerPlugi
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let start (logger: ILogger) (plugins: IWorkerPlugin list) = task {
+let start (logger: ILogger) (plugins: IWorkerPlugin list) = backgroundTask {
     for plugin in plugins do
         try
             plugin.Start() |> ignore
@@ -32,7 +31,7 @@ let start (logger: ILogger) (plugins: IWorkerPlugin list) = task {
 }
 
 //todo: add Polly for timout and retry logic, using cancel token
-let stop (logger: ILogger) (plugins: IWorkerPlugin list) = task {
+let stop (logger: ILogger) (plugins: IWorkerPlugin list) = backgroundTask {
     for plugin in plugins do
         try
             logger.Information("Stop plugin: {PluginName}", plugin.PluginName)
@@ -49,7 +48,7 @@ let getHints (plugins: IWorkerPlugin list) =
     )
     |> Seq.toList
 
-let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (operation: OperationType) = task {
+let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (operation: OperationType) = backgroundTask {
     try
         let pluginStatusesTask =
             plugins

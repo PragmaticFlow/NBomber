@@ -9,7 +9,6 @@ open Serilog.Sinks.InMemory
 open Serilog.Sinks.InMemory.Assertions
 open Swensen.Unquote
 open Xunit
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Extensions.InternalExtensions

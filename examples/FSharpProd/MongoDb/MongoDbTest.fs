@@ -1,6 +1,5 @@
 module FSharpProd.MongoDb.MongoDbTest
 
-open FSharp.Control.Tasks.NonAffine
 open MongoDB.Bson
 open MongoDB.Bson.Serialization.Attributes
 open MongoDB.Driver

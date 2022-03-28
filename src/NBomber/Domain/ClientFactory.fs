@@ -2,8 +2,6 @@ module internal NBomber.Domain.ClientFactory
 
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber.Contracts
 open NBomber.Extensions.InternalExtensions
 open NBomber.Errors

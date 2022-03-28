@@ -6,7 +6,6 @@ open System.Threading.Tasks
 open System.Net.Sockets
 open System.Diagnostics
 
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
@@ -92,7 +91,7 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
     let mutable _pingResults = Array.empty
     let mutable _pluginStats = new DataSet()
 
-    let execPing (config: PsPingPluginConfig) = task {
+    let execPing (config: PsPingPluginConfig) = backgroundTask {
         try
             // from https://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
             use sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -100,7 +99,7 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
 
             let! replies =
                 config.Hosts
-                |> Array.map(fun uri -> task {
+                |> Array.map(fun uri -> backgroundTask {
                     let stopwatch = Stopwatch()
 
                     // measure the Connect call only

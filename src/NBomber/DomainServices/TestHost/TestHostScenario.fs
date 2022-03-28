@@ -1,6 +1,5 @@
 module internal NBomber.DomainServices.TestHost.TestHostScenario
 
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
@@ -85,7 +84,7 @@ let disposeClientPools (dep: IGlobalDependency) (baseContext: IBaseContext) (poo
 let cleanScenarios (dep: IGlobalDependency)
                    (baseContext: IBaseContext)
                    (defaultScnContext: IScenarioContext)
-                   (scenarios: Scenario list) = task {
+                   (scenarios: Scenario list) = backgroundTask {
 
     scenarios
     |> Scenario.ClientPool.filterDistinct

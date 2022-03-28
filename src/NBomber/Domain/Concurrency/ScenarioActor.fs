@@ -6,7 +6,6 @@ open System.Threading
 open System.Threading.Tasks
 
 open Serilog
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
@@ -47,12 +46,11 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
         |> List.map(fun step -> RunningStep.create _stepDep dep.Scenario.StepOrderIndex[step.StepName] step)
         |> List.toArray
 
-    let execSteps (runInfinite: bool) = task {
+    let execSteps (runInfinite: bool) = backgroundTask {
         try
             if not _working then
                 let mutable shouldRun = true
                 _working <- true
-                do! Task.Yield()
 
                 while shouldRun && _working && not dep.CancellationToken.IsCancellationRequested do
 

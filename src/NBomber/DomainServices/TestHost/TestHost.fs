@@ -7,7 +7,6 @@ open System.Diagnostics
 open System.Runtime.InteropServices
 
 open Serilog
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts.Stats
@@ -102,7 +101,7 @@ type internal TestHost(dep: IGlobalDependency,
         return initializedScenarios @ disabledScenarios
     }
 
-    let startWarmUp (schedulers: ScenarioScheduler list) = task {
+    let startWarmUp (schedulers: ScenarioScheduler list) = backgroundTask {
         let isWarmUp = true
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
@@ -111,7 +110,7 @@ type internal TestHost(dep: IGlobalDependency,
     let startBombing (schedulers: ScenarioScheduler list,
                       flushStatsTimer: Timers.Timer option,
                       reportingTimer: Timers.Timer,
-                      currentOperationTimer: Stopwatch) = task {
+                      currentOperationTimer: Stopwatch) = backgroundTask {
 
         let isWarmUp = false
 
@@ -158,10 +157,9 @@ type internal TestHost(dep: IGlobalDependency,
     member _.RegisteredScenarios = registeredScenarios
     member _.TargetScenarios = _targetScenarios
 
-    member _.StartInit(sessionArgs: SessionArgs, targetScenarios: Scenario list) = task {
+    member _.StartInit(sessionArgs: SessionArgs, targetScenarios: Scenario list) = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.Init
-        do! Task.Yield()
 
         TestHostConsole.printContextInfo(dep)
         _logger.Information "Starting init..."
@@ -182,10 +180,9 @@ type internal TestHost(dep: IGlobalDependency,
             return AppError.createResult appError
     }
 
-    member _.StartWarmUp() = task {
+    member _.StartWarmUp() = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
-        do! Task.Yield()
 
         _logger.Information "Starting warm up..."
 
@@ -202,11 +199,10 @@ type internal TestHost(dep: IGlobalDependency,
                           flushStatsTimer: Timers.Timer option,
                           reportingTimer: Timers.Timer,
                           currentOperationTimer: Stopwatch,
-                          ?cleanUp: unit -> Task<unit>) = task {
+                          ?cleanUp: unit -> Task<unit>) = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.Bombing
         _currentSchedulers <- schedulers
-        do! Task.Yield()
 
         _logger.Information "Starting bombing..."
         do! startBombing(schedulers, flushStatsTimer, reportingTimer, currentOperationTimer)
@@ -220,10 +216,9 @@ type internal TestHost(dep: IGlobalDependency,
         _currentOperation <- OperationType.Complete
     }
 
-    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = task {
+    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = backgroundTask {
         if _currentOperation <> OperationType.Stop && not _stopped then
             _currentOperation <- OperationType.Stop
-            do! Task.Yield()
 
             if not(String.IsNullOrEmpty reason) then
                 _logger.Warning("Stopping test early: {StopReason}", reason)

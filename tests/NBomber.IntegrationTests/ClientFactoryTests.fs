@@ -5,7 +5,6 @@ open System.Threading.Tasks
 
 open Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts

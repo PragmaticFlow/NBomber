@@ -1,10 +1,7 @@
 module FSharpDev.HelloWorld.CustomSettingsExample
 
 open System.Threading.Tasks
-
 open Microsoft.Extensions.Configuration
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp

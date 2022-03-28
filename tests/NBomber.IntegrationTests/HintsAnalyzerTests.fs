@@ -7,7 +7,6 @@ open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
 open FsToolkit.ErrorHandling
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Extensions.InternalExtensions

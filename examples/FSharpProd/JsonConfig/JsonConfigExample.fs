@@ -5,7 +5,6 @@ open System.Data
 open System.Net.Http
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
 open Microsoft.Extensions.Configuration
 open Newtonsoft.Json
 

@@ -7,10 +7,7 @@ open Serilog
 open Serilog.Events
 open Serilog.Sinks.InMemory
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber.Contracts
 open NBomber.FSharp

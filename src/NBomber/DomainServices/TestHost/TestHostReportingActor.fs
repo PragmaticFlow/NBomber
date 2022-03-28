@@ -5,7 +5,6 @@ open System.Threading.Tasks
 open System.Threading.Tasks.Dataflow
 
 open FsToolkit.ErrorHandling
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling.Operator.Task
 
 open NBomber
@@ -16,7 +15,7 @@ open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 
-let saveRealtimeScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = task {
+let saveRealtimeScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = backgroundTask {
     for sink in dep.ReportingSinks do
         try
             do! sink.SaveRealtimeStats(stats)
@@ -35,7 +34,7 @@ let getFinalScenarioStats (schedulers: ScenarioScheduler list) =
     |> List.map(fun x -> x.GetFinalStats())
     |> Task.WhenAll
 
-let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
+let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = backgroundTask {
     try
         let pluginStatusesTask =
             dep.WorkerPlugins
@@ -56,7 +55,7 @@ let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = task {
 let getFinalStats (dep: IGlobalDependency)
                   (schedulers: ScenarioScheduler list)
                   (testInfo: TestInfo)
-                  (nodeInfo: NodeInfo) = task {
+                  (nodeInfo: NodeInfo) = backgroundTask {
 
     let pluginStats = getPluginStats dep nodeInfo.CurrentOperation
     let scenarioStats = getFinalScenarioStats schedulers
@@ -79,7 +78,7 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
 
     let mutable _currentHistory = List.empty<TimeLineHistoryRecord>
 
-    let getAndSaveRealtimeStats (duration, history) = task {
+    let getAndSaveRealtimeStats (duration, history) = backgroundTask {
         let! scnStats = getRealtimeStats duration
         if Array.isEmpty scnStats then return history
         else
@@ -89,7 +88,7 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
     }
 
     let _actor = ActionBlock(fun msg ->
-        task {
+        backgroundTask {
             try
                 match msg with
                 | SaveRealtimeStats duration ->

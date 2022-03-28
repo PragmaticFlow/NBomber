@@ -7,11 +7,9 @@ open System.Threading.Tasks
 open FsCheck.Xunit
 open Xunit
 open Swensen.Unquote
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Errors
 open NBomber.FSharp
 open NBomber.Extensions.InternalExtensions
 

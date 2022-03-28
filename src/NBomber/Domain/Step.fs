@@ -8,7 +8,6 @@ open System.Threading
 open System.Threading.Tasks
 
 open Serilog
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
@@ -140,7 +139,7 @@ module RunningStep =
 
         step
 
-    let measureExec (step: RunningStep) (globalTimer: Stopwatch) = task {
+    let measureExec (step: RunningStep) (globalTimer: Stopwatch) = backgroundTask {
         let startTime = globalTimer.Elapsed.TotalMilliseconds
         try
             let responseTask = step.Value.Execute(step.Context)
@@ -174,7 +173,7 @@ module RunningStep =
             return { StepIndex = step.StepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     }
 
-    let execStep (dep: StepDep) (step: RunningStep) = task {
+    let execStep (dep: StepDep) (step: RunningStep) = backgroundTask {
 
         let! response = measureExec step dep.ScenarioGlobalTimer
 
@@ -193,7 +192,7 @@ module RunningStep =
             return ValueNone
     }
 
-    let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = task {
+    let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = backgroundTask {
         let mutable stop = false
         for stepIndex in stepsOrder do
             if not stop && not dep.CancellationToken.IsCancellationRequested then

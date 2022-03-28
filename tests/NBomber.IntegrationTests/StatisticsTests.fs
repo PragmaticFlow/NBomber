@@ -5,7 +5,6 @@ open System.IO
 open System.Collections.Generic
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
 open FsCheck.Xunit
 open HdrHistogram
 open Xunit

@@ -1,8 +1,6 @@
 module FSharpDev.CustomReportingExample
 
 open System.Threading.Tasks
-open FSharp.Control.Tasks.NonAffine
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats

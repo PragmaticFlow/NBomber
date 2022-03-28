@@ -2,7 +2,6 @@ module internal NBomber.DomainServices.TestHost.TestHostReportingSinks
 
 open Serilog
 open FsToolkit.ErrorHandling
-open FSharp.Control.Tasks.NonAffine
 
 open NBomber
 open NBomber.Contracts
@@ -20,7 +19,7 @@ let init (dep: IGlobalDependency) (context: IBaseContext) (sinks: IReportingSink
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let start (logger: ILogger) (sinks: IReportingSink list) = task {
+let start (logger: ILogger) (sinks: IReportingSink list) = backgroundTask {
     for sink in sinks do
         try
             sink.Start() |> ignore
@@ -29,7 +28,7 @@ let start (logger: ILogger) (sinks: IReportingSink list) = task {
 }
 
 //todo: add Polly for timout and retry logic, using cancel token
-let stop (logger: ILogger) (sinks: IReportingSink list) = task {
+let stop (logger: ILogger) (sinks: IReportingSink list) = backgroundTask {
     for sink in sinks do
         try
             logger.Information("Stop reporting sink: {SinkName}", sink.SinkName)

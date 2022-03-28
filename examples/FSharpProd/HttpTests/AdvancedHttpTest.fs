@@ -1,8 +1,6 @@
 module FSharpProd.HttpTests.AdvancedHttpTest
 
-open FSharp.Control.Tasks.NonAffine
 open Newtonsoft.Json
-
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp

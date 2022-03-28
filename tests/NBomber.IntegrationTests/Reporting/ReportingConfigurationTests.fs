@@ -3,7 +3,6 @@ module Tests.ReportingConfiguration
 open System.IO
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
 open Serilog
 open Serilog.Events
 open Serilog.Sinks.InMemory

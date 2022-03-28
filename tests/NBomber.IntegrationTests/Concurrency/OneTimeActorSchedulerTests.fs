@@ -1,6 +1,5 @@
 module Tests.Concurrency.OneTimeActorScheduler
 
-open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -47,31 +46,34 @@ let ``InjectActors should start actors if there is no actors`` () =
     use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
-    scheduler.InjectActors(20)
+    scheduler.InjectActors(5)
+    Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
     test <@ initCount = 0 @>
-    test <@ scheduler.ScheduledActorCount = 20 @>
-    test <@ workingActors.Length = 20 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
+    test <@ workingActors.Length = 5 @>
 
 [<Fact>]
 let ``InjectActors should execute actors once until next turn`` () =
     use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
-    scheduler.InjectActors(20)
-    Task.Delay(seconds 5).Wait()
+    scheduler.InjectActors(5)
+    Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
-    test <@ scheduler.ScheduledActorCount = 20 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
     test <@ workingActors.Length = 0 @>
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
     use scheduler = new OneTimeActorScheduler(baseDep, exec)
 
-    scheduler.InjectActors(20)
+    scheduler.InjectActors(5)
+    Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
+    Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
 
-    test <@ scheduler.ScheduledActorCount = 20 @>
+    test <@ scheduler.ScheduledActorCount = 5 @>
     test <@ workingActors.Length = 0 @>

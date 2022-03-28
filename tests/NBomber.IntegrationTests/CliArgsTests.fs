@@ -3,7 +3,6 @@ module Tests.CliArgs
 open System
 open System.IO
 
-open FSharp.Control.Tasks.NonAffine
 open Swensen.Unquote
 open Xunit
 

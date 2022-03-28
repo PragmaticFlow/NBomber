@@ -3,7 +3,6 @@ module internal NBomber.Infra.ProgressBar
 open System
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks.NonAffine
 open Spectre.Console
 open Spectre.Console.Rendering
 
@@ -51,7 +50,7 @@ let create (pbHandler: ProgressTask list -> unit) (config: ProgressTaskConfig li
     |> fun progressBar -> ProgressExtensions.Columns(progressBar, defaultColumns)
     |> fun progressBar ->
         progressBar.StartAsync(fun ctx ->
-            task {
+            backgroundTask {
                 config |> List.map(createProgressTask ctx) |> pbHandler
 
                 while not ctx.IsFinished do

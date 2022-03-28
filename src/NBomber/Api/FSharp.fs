@@ -8,7 +8,6 @@ open System.Threading.Tasks
 
 open Serilog
 open CommandLine
-open FSharp.Control.Tasks.NonAffine
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
@@ -132,10 +131,14 @@ type Step =
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
-        Step.create(name = Constants.StepPauseName,
-                    execute = (fun _ -> task { do! Task.Delay(getDuration())
-                                               return Response.ok() }),
-                    doNotTrack = true)
+        Step.create(
+            name = Constants.StepPauseName,
+            execute = (fun _ -> backgroundTask {
+                do! Task.Delay(getDuration())
+                return Response.ok()
+            }),
+            doNotTrack = true
+        )
 
     /// Creates pause step in milliseconds in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
