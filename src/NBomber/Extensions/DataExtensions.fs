@@ -1,4 +1,4 @@
-﻿namespace NBomber.Extensions
+﻿namespace NBomber.Extensions.Data
 
 open System
 open System.Data

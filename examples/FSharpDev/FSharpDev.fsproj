@@ -37,6 +37,7 @@
     <ItemGroup>
       <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.2.0" />
       <PackageReference Include="MQTTnet" Version="3.0.16" />
+      <PackageReference Update="FSharp.Core" Version="6.0.3" />
     </ItemGroup>
 
 </Project>
