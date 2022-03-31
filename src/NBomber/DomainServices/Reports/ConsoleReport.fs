@@ -10,7 +10,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain.Stats
 open NBomber.Extensions.Data
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Infra
 
 module ConsoleTestInfo =

@@ -9,7 +9,7 @@ open Swensen.Unquote
 open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 [<Fact>]
 let ``should distribute client with one to one mapping if clientCount = loadSimulation copiesCount``() =

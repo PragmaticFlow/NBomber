@@ -19,7 +19,7 @@ open NBomber.Domain.Step
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 let internal baseScenario =
     Scenario.create "test_scn" [Step.createPause(milliseconds 100)]

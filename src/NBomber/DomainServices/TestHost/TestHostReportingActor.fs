@@ -9,7 +9,7 @@ open FsToolkit.ErrorHandling.Operator.Task
 
 open NBomber
 open NBomber.Contracts.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Domain.LoadTimeLine
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler

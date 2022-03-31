@@ -7,7 +7,7 @@ open Swensen.Unquote
 open FsCheck
 open FsCheck.Xunit
 
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 [<Fact>]
 let ``String concatWithComma should concat strings with comma`` () =

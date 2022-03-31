@@ -9,7 +9,7 @@ open Swensen.Unquote
 open Microsoft.Extensions.Configuration
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats

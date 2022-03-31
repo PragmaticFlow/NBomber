@@ -31,8 +31,8 @@
         <Compile Include="Constants.fs" />
         <Compile Include="Configuration.fs" />
         <Compile Include="Contracts.fs" />
-        <Compile Include="Extensions\DataExtensions.fs" />
-        <Compile Include="Extensions\InternalExtensions.fs" />
+        <Compile Include="Extensions\Data.fs" />
+        <Compile Include="Extensions\Internal.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
@@ -82,13 +82,13 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="CsvHelper" Version="15.0.5" />
+        <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.Control.Reactive" Version="5.0.2" />
         <PackageReference Include="FSharp.Json" Version="0.4.1" />
-        <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.10.0" />
-        <PackageReference Include="FuncyDown" Version="1.1.0" />
+        <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.13.0" />
+        <PackageReference Include="FuncyDown" Version="1.3.0" />
         <PackageReference Include="HdrHistogram" Version="2.5.0" />
-        <PackageReference Include="Json.Net.DataSetConverters" Version="1.0.1" />
+        <PackageReference Include="Json.Net.DataSetConverters" Version="1.1.0" />
 <!--        <PackageReference Include="NBomber.Contracts" Version="3.0.0-beta" />-->
         <PackageReference Include="Serilog" Version="2.10.0" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />

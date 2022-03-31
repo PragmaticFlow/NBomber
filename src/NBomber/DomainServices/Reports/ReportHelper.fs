@@ -6,7 +6,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain.Stats
 open NBomber.Domain
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 let printDataKb (highlightTxt: obj -> string) (bytes: int) =
     $"{bytes |> Statistics.Converter.fromBytesToKb |> highlightTxt} KB"

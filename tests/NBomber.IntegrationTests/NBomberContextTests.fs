@@ -13,7 +13,7 @@ open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.DomainServices
 open NBomber.FSharp

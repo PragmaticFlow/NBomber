@@ -11,7 +11,7 @@ open Swensen.Unquote
 open Xunit
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
@@ -201,7 +201,7 @@ let ``StopTest should be invoked once`` () =
 
 [<Fact>]
 let ``PluginStats should return empty data set in case of execution timeout`` () =
-    let inMemorySink = InMemorySink()
+    let inMemorySink = new InMemorySink()
     let loggerConfig = fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink)
 
     let timeoutPlugin = {
@@ -234,7 +234,7 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
 
 [<Fact>]
 let ``PluginStats should return empty data set in case of internal exception`` () =
-    let inMemorySink = InMemorySink()
+    let inMemorySink = new InMemorySink()
     let loggerConfig = fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink)
 
     let exceptionPlugin = {

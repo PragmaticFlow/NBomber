@@ -10,7 +10,7 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts

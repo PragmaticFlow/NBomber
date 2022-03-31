@@ -18,7 +18,7 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats
 open NBomber.FSharp
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open Tests.TestHelper
 
 module ScenarioStatsTests =

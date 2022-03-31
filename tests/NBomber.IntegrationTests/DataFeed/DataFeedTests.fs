@@ -10,7 +10,7 @@ open FsCheck.Xunit
 open Swensen.Unquote
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Infra

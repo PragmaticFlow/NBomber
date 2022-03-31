@@ -9,7 +9,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Infra.Dependency
 
 //todo: add Polly for timout and retry logic, using cancel token

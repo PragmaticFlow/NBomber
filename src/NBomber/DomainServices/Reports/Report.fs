@@ -10,7 +10,7 @@ open Serilog
 open Spectre.Console.Rendering
 
 open NBomber.Contracts.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Infra
 open NBomber.DomainServices

@@ -10,7 +10,7 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 [<CLIMutable>]
 type PingPluginConfig = {

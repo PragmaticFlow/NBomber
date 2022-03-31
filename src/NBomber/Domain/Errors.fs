@@ -1,7 +1,7 @@
 ﻿module internal NBomber.Errors
 
 open System.IO
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 type DomainError =
     | InitScenarioError  of ex:exn

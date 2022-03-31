@@ -9,7 +9,7 @@ open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling
 open Newtonsoft.Json
 
-module internal InternalExtensions =
+module internal Internal =
 
     let inline isNotNull (value) =
         not(isNull value)

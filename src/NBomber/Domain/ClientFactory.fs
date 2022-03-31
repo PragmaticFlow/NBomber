@@ -3,7 +3,7 @@ module internal NBomber.Domain.ClientFactory
 open System.Threading.Tasks
 
 open NBomber.Contracts
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Errors
 
 let createFullName (factoryName: string) (scenarioName: string) =

@@ -8,7 +8,7 @@ open System.Runtime.CompilerServices
 open CsvHelper
 
 open NBomber.Domain.Stats
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 
 [<Extension>]
 type FeedData() =

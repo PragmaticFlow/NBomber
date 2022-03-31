@@ -6,7 +6,7 @@ open FsToolkit.ErrorHandling
 open FSharp.Control.Reactive
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Contracts
 
 type ClientPoolEvent =

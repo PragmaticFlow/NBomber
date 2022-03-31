@@ -9,7 +9,7 @@ open Swensen.Unquote
 open FsToolkit.ErrorHandling
 
 open NBomber
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain

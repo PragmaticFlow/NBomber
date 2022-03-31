@@ -10,7 +10,7 @@ open Serilog
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Domain.Stats
 
 module TxtTestInfo =

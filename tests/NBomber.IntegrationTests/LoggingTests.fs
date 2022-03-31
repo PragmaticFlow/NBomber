@@ -21,8 +21,8 @@ let ``set min logger level should work correctly`` () =
         return Response.ok()
     })
 
-    let inMemorySink1 = InMemorySink()
-    let inMemorySink2 = InMemorySink()
+    let inMemorySink1 = new InMemorySink()
+    let inMemorySink2 = new InMemorySink()
 
     let createLoggerConfig1 = fun () ->
         LoggerConfiguration()

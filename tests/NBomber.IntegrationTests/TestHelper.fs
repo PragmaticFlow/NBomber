@@ -33,7 +33,7 @@ module internal Dependency =
             TestName = Constants.DefaultTestName
         }
 
-        let inMemorySink = InMemorySink()
+        let inMemorySink = new InMemorySink()
         let loggerConfig = fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink)
         let context = { NBomberContext.empty with CreateLoggerConfig = Some loggerConfig }
         let logFolder = "./reports"

@@ -12,7 +12,7 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ClientPool
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Infra.ProgressBar

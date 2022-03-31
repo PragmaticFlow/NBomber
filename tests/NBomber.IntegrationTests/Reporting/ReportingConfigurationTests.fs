@@ -13,7 +13,7 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.FSharp
 
 [<Fact>]
@@ -97,7 +97,7 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
 [<Fact>]
 let ``withoutReports should not print report files`` () =
 
-    let inMemorySink = InMemorySink()
+    let inMemorySink = new InMemorySink()
 
     let createLoggerConfig = fun () ->
         LoggerConfiguration()

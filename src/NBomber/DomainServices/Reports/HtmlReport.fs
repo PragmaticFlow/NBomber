@@ -6,7 +6,7 @@ open System.Text.RegularExpressions
 open Serilog
 open FsToolkit.ErrorHandling
 
-open NBomber.Extensions.InternalExtensions
+open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Option
 open NBomber.Contracts.Stats
 open NBomber.Infra
