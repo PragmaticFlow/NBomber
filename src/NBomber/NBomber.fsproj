@@ -33,6 +33,7 @@
         <Compile Include="Contracts.fs" />
         <Compile Include="Extensions\Data.fs" />
         <Compile Include="Extensions\Internal.fs" />
+        <Compile Include="Extensions\Push.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
