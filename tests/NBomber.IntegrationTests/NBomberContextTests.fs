@@ -62,6 +62,7 @@ let context = {
     }
     WorkerPlugins = List.empty
     UseHintsAnalyzer = false
+    TargetScenarios = None
 }
 
 [<Fact>]

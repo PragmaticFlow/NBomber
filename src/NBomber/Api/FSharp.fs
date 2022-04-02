@@ -227,6 +227,10 @@ module NBomberRunner =
     let registerScenarios (scenarios: Contracts.Scenario list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
+    /// Sets target scenarios among all registered that will execute
+    let withTargetScenarios (scenarioNames: string list) (context: NBomberContext) =
+        context |> NBomberContext.setTargetScenarios scenarioNames
+
     /// Sets test suite name
     /// Default value is: nbomber_default_test_suite_name.
     let withTestSuite (testSuite: string) (context: NBomberContext) =
@@ -320,33 +324,43 @@ module NBomberRunner =
         { context with UseHintsAnalyzer = false }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
-        let invokeConfigLoader (configName) (configLoader) (config) (context) =
-            if config = String.Empty then $"{configName} is empty" |> failwith
-            elif String.IsNullOrEmpty config then context
-            else configLoader config context
+
+        let loadConfigFn (loadConfig) (configPath) (context) =
+            if String.IsNullOrWhiteSpace configPath then context
+            else loadConfig configPath context
+
+        let setTargetScenarios (targetScenarios: string seq) (context: NBomberContext) =
+            if Seq.isEmpty targetScenarios then context
+            else NBomberContext.setTargetScenarios (List.ofSeq targetScenarios) context
 
         match CommandLine.Parser.Default.ParseArguments<CommandLineArgs>(args) with
         | :? Parsed<CommandLineArgs> as parsed ->
-            let values = parsed.Value
-            let execLoadConfigCmd = invokeConfigLoader "config" loadConfig values.Config
-            let execLoadInfraConfigCmd = invokeConfigLoader "infra config" loadInfraConfig values.InfraConfig
-            let execCmd = execLoadConfigCmd >> execLoadInfraConfigCmd
+            let cliArgs = parsed.Value
+            let loadCnf = loadConfigFn loadConfig cliArgs.Config
+            let loadInfra = loadConfigFn loadInfraConfig cliArgs.InfraConfig
 
-            context |> execCmd
+            let run =
+                loadCnf
+                >> loadInfra
+                >> setTargetScenarios cliArgs.TargetScenarios
+
+            run context
 
         | _ -> context
 
     let internal runWithResult (args) (context: NBomberContext) =
         GCSettings.LatencyMode <- GCLatencyMode.SustainedLowLatency
-        context
-        |> executeCliArgs args
-        |> NBomberRunner.run
+
+        if Seq.isEmpty args then
+            NBomberRunner.run context
+        else
+            context |> executeCliArgs args |> NBomberRunner.run
 
     let run (context: NBomberContext) =
         context
         |> runWithResult List.empty
         |> Result.map(fun x -> x.FinalStats)
-        |> Result.mapError(AppError.toString)
+        |> Result.mapError AppError.toString
 
     /// Runs scenarios with arguments.
     /// The following CLI commands are supported:
@@ -359,4 +373,4 @@ module NBomberRunner =
         context
         |> runWithResult args
         |> Result.map(fun x -> x.FinalStats)
-        |> Result.mapError(AppError.toString)
+        |> Result.mapError AppError.toString

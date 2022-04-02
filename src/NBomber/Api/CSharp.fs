@@ -217,6 +217,11 @@ type NBomberRunner =
     static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
+    /// Sets target scenarios among all registered that will execute
+    static member WithTargetScenarios(context: NBomberContext, [<ParamArray>]scenarioNames: string[]) =
+        let names = scenarioNames |> Seq.toList
+        context |> FSharp.NBomberRunner.withTargetScenarios(names)
+
     /// Sets test suite name
     /// Default value is: nbomber_default_test_suite_name.
     [<Extension>]

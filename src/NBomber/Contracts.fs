@@ -27,6 +27,7 @@ type NBomberContext = {
     Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
     UseHintsAnalyzer: bool
+    TargetScenarios: string list option
 } with
 
     [<CompiledName("Empty")>]
@@ -46,6 +47,7 @@ type NBomberContext = {
         }
         WorkerPlugins = List.empty
         UseHintsAnalyzer = true
+        TargetScenarios = None
     }
 
 namespace NBomber.Contracts.Internal
@@ -56,6 +58,7 @@ open NBomber.Contracts
 type CommandLineArgs = {
     [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
     [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
+    [<Option('t', "target", HelpText = "Target Scenarios")>] TargetScenarios: string seq
 }
 
 type StepResponse = {

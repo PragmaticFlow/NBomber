@@ -15,6 +15,7 @@ let okStep = Step.create("ok step", fun _ -> task {
 })
 
 let scenario = Scenario.create "scenario" [okStep] |> Scenario.withoutWarmUp
+let scenario2 = Scenario.create "scenario2" [okStep] |> Scenario.withoutWarmUp
 
 [<Theory>]
 [<InlineData("-c")>]
@@ -87,19 +88,12 @@ let ``CLI commands should throw ex if infra config file is not found`` (command)
                            |> ignore)
 
 [<Theory>]
-[<InlineData("-c")>]
-[<InlineData("--config")>]
-let ``CLI commands should throw ex if config file is empty`` (command) =
-    Assert.Throws(typeof<Exception>,
-                  fun _ -> NBomberRunner.registerScenarios [scenario]
-                           |> NBomberRunner.executeCliArgs [command; ""]
-                           |> ignore)
+[<InlineData("-t")>]
+[<InlineData("--target")>]
+let ``TargetScenarios should update NBomberContext`` (command) =
+    let context =
+        NBomberRunner.registerScenarios [scenario; scenario2]
+        |> NBomberRunner.executeCliArgs [command; "scenario2"]
 
-[<Theory>]
-[<InlineData("-i")>]
-[<InlineData("--infra")>]
-let ``CLI commands should throw ex if infra config file is empty`` (command) =
-    Assert.Throws(typeof<Exception>,
-                  fun _ -> NBomberRunner.registerScenarios [scenario]
-                           |> NBomberRunner.executeCliArgs [command; ""]
-                           |> ignore)
+    test <@ context.TargetScenarios.Value.Length = 1 @>
+    test <@ context.TargetScenarios.Value.Head = "scenario2" @>

@@ -204,11 +204,16 @@ let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBombe
 
 let getTargetScenarios (context: NBomberContext) =
     let targetScn =
-        context.NBomberConfig
-        |> Option.bind(fun x -> x.TargetScenarios)
+        context.TargetScenarios
+        |> Option.orElseWith(fun () ->
+            context.NBomberConfig |> Option.bind(fun x -> x.TargetScenarios)
+        )
 
     let allScns = context.RegisteredScenarios |> List.map(fun x -> x.ScenarioName)
     defaultArg targetScn allScns
+
+let setTargetScenarios (scenarios: string list) (context: NBomberContext) =
+    { context with TargetScenarios = Some scenarios }
 
 let getReportFileName (context: NBomberContext) =
     let tryGetFromConfig (ctx) = option {
