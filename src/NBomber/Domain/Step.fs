@@ -188,6 +188,10 @@ module RunningStep =
                     dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
 
                 return ValueSome response.ClientResponse
+
+        elif step.Value.StepName = Constants.StepPauseName then
+            return ValueSome response.ClientResponse
+
         else
             return ValueNone
     }

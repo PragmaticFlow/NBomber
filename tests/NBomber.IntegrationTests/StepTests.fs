@@ -10,6 +10,7 @@ open Swensen.Unquote
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.FSharp
 open NBomber.Extensions.Internal
 
@@ -170,17 +171,28 @@ let ``createPause should work correctly and not printed in statistics`` () =
         return Response.ok()
     })
 
-    let pause4sec = Step.createPause(seconds 4)
+    // pause here longer than default timeout
+    let pause2sec = Step.createPause(seconds 2)
 
-    Scenario.create "test context.Data" [pause4sec; step1]
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    Scenario.create "test context.Data" [step1; pause2sec; step2]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withReportFolder "./steps-tests/6/"
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.FinalStats.ScenarioStats.Length = 1 @>
+        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
+        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
+
+        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
+        test <@ step1Stats.Ok.Request.Count > 0 @>
+        test <@ step2Stats.Ok.Request.Count > 0 @>
 
 [<Fact>]
 let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
