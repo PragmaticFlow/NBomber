@@ -55,6 +55,7 @@ type internal TestHost(dep: IGlobalDependency,
         | StopTest reason -> this.StopScenarios(reason) |> ignore
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
+                                 (getScenarioClusterCount: ScenarioName -> int)
                                  (createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor)
                                  (getStepOrder: Scenario -> int[])
                                  (execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) =
@@ -70,7 +71,8 @@ type internal TestHost(dep: IGlobalDependency,
                 GetStepOrder = getStepOrder
                 ExecSteps = execSteps
             }
-            new ScenarioScheduler(actorDep)
+            let count = getScenarioClusterCount scn.ScenarioName
+            new ScenarioScheduler(actorDep, count)
 
         _currentSchedulers |> List.iter(fun x -> x.Stop())
         _cancelToken.Dispose()
@@ -186,7 +188,7 @@ type internal TestHost(dep: IGlobalDependency,
 
         _logger.Information "Starting warm up..."
 
-        let schedulers = this.CreateScenarioSchedulers(ScenarioStatsActor.create)
+        let schedulers = this.CreateScenarioSchedulers(Scenario.defaultClusterCount, ScenarioStatsActor.create)
         _currentSchedulers <- schedulers
 
         do! startWarmUp schedulers
@@ -234,15 +236,17 @@ type internal TestHost(dep: IGlobalDependency,
 
     member _.GetHints(finalStats) = _targetScenarios |> getHints finalStats
 
-    member _.CreateScenarioSchedulers(createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
-        createScenarioSchedulers _targetScenarios createStatsActor getStepOrder execSteps
+    member _.CreateScenarioSchedulers(getScenarioClusterCount: ScenarioName -> int,
+                                      createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
+
+        createScenarioSchedulers _targetScenarios getScenarioClusterCount createStatsActor getStepOrder execSteps
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let targetScenarios = registeredScenarios |> TestHostScenario.getTargetScenarios sessionArgs
         do! this.StartInit(sessionArgs, targetScenarios)
         do! this.StartWarmUp()
 
-        let schedulers = this.CreateScenarioSchedulers(ScenarioStatsActor.create)
+        let schedulers = this.CreateScenarioSchedulers(Scenario.defaultClusterCount, ScenarioStatsActor.create)
 
         // create timers
         let currentOperationTimer = Stopwatch()

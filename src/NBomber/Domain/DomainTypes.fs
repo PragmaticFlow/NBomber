@@ -81,6 +81,8 @@ type LoadTimeSegment = {
 
 type LoadTimeLine = LoadTimeSegment list
 
+type ScenarioName = string
+
 type Scenario = {
     ScenarioName: string
     Init: (IScenarioContext -> Task) option

@@ -78,7 +78,7 @@ let correctExecutedDuration (executionTime: TimeSpan) (scnDuration: TimeSpan) =
 
 let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
 
-type ScenarioScheduler(dep: ActorDep) =
+type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     let _logger = dep.Logger.ForContext<ScenarioScheduler>()
     let mutable _warmUp = false
@@ -99,11 +99,14 @@ type ScenarioScheduler(dep: ActorDep) =
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
+    let getConstantActorCount () = _constantScheduler.ScheduledActorCount * scenarioClusterCount
+    let getOneTimeActorCount () = _oneTimeScheduler.ScheduledActorCount * scenarioClusterCount
+
     let getCurrentSimulationStats () =
         LoadTimeLine.createSimulationStats(
             _currentSimulation,
-            _constantScheduler.ScheduledActorCount,
-            _oneTimeScheduler.ScheduledActorCount
+            getConstantActorCount(),
+            getOneTimeActorCount()
         )
 
     let getRealtimeStats (duration) =
@@ -112,7 +115,7 @@ type ScenarioScheduler(dep: ActorDep) =
         dep.ScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
     let getFinalStats () =
-        let scnDuration = _scenario |> Scenario.getDuration
+        let scnDuration = Scenario.getDuration _scenario
         let simulationStats = getCurrentSimulationStats()
         dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
@@ -174,8 +177,8 @@ type ScenarioScheduler(dep: ActorDep) =
                 | None -> stop()
 
             let progressInfo = {
-                ConstantActorCount = _constantScheduler.ScheduledActorCount
-                OneTimeActorCount = _oneTimeScheduler.ScheduledActorCount
+                ConstantActorCount = getConstantActorCount()
+                OneTimeActorCount = getOneTimeActorCount()
                 CurrentSimulation = _currentSimulation
             }
             _eventStream.OnNext(ProgressUpdated progressInfo)

@@ -275,3 +275,5 @@ let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
 
 let getDuration (scenario: Scenario) =
     scenario.ExecutedDuration |> Option.defaultValue(scenario.PlanedDuration)
+
+let defaultClusterCount = fun _ -> 1
