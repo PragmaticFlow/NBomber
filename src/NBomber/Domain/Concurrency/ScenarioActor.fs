@@ -16,6 +16,7 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
     Logger: ILogger
+    mutable ShouldWork: bool
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
@@ -34,6 +35,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
         Scenario = dep.Scenario
         ScenarioInfo = scenarioInfo
         Logger = dep.Logger
+        ShouldWork = fun _ -> dep.ShouldWork
         CancellationToken = dep.CancellationToken
         ScenarioGlobalTimer = dep.ScenarioGlobalTimer
         ExecStopCommand = dep.ExecStopCommand
@@ -52,7 +54,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 let mutable shouldRun = true
                 _working <- true
 
-                while shouldRun && _working && not dep.CancellationToken.IsCancellationRequested do
+                while shouldRun && _working && dep.ShouldWork do
 
                     _stepDep.Data.Clear()
 

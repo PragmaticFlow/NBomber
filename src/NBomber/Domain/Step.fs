@@ -20,6 +20,7 @@ type StepDep = {
     Scenario: Scenario
     ScenarioInfo: ScenarioInfo
     Logger: ILogger
+    ShouldWork: unit -> bool
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
@@ -149,7 +150,7 @@ module RunningStep =
                 let! pause = responseTask
                 return { StepIndex = step.StepIndex; ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
             else
-                let! finishedTask = Task.WhenAny(responseTask, Task.Delay(step.Value.Timeout, step.Context.CancellationTokenSource.Token))
+                let! finishedTask = Task.WhenAny(responseTask, Task.Delay step.Value.Timeout)
                 let endTime = globalTimer.Elapsed.TotalMilliseconds
                 let latency = endTime - startTime
 
@@ -177,7 +178,7 @@ module RunningStep =
 
         let! response = measureExec step dep.ScenarioGlobalTimer
 
-        if not dep.CancellationToken.IsCancellationRequested && not step.Value.DoNotTrack
+        if dep.ShouldWork() && not step.Value.DoNotTrack
             && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
 
                 dep.ScenarioStatsActor.Publish(AddResponse response)
@@ -197,15 +198,15 @@ module RunningStep =
     }
 
     let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = backgroundTask {
-        let mutable stop = false
+        let mutable shouldWork = true
         for stepIndex in stepsOrder do
-            if not stop && not dep.CancellationToken.IsCancellationRequested then
+            if shouldWork && dep.ShouldWork() then
                 let step = updateContext steps[stepIndex] dep.Data
                 let! response = execStep dep step
                 match response with
-                | ValueSome r when r.IsError -> stop <- true
+                | ValueSome r when r.IsError -> shouldWork <- false
                 | ValueSome _ -> ()
-                | ValueNone   -> stop <- true
+                | ValueNone   -> shouldWork <- false
     }
 
     let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =

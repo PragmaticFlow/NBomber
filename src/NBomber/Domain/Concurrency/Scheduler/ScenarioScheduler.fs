@@ -121,6 +121,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
     let start () =
+        dep.ShouldWork <- true
         dep.ScenarioGlobalTimer.Stop()
         _schedulerTimer.Start()
         _progressTimer.Start()
@@ -128,6 +129,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     let stop () =
         if _schedulerTimer.Enabled then
+            dep.ShouldWork <- false
             _scenario <- Scenario.setExecutedDuration(_scenario, dep.ScenarioGlobalTimer.Elapsed)
             _currentOperation <- OperationType.Complete
 
@@ -154,10 +156,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
             if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
                 stop()
-
-            elif dep.CancellationToken.IsCancellationRequested then
-                stop()
-
             else
                 match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with
                 | Some timeSegment ->

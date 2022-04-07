@@ -63,6 +63,7 @@ type internal TestHost(dep: IGlobalDependency,
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
                 Logger = _logger
+                ShouldWork = true
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
