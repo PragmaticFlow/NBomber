@@ -95,6 +95,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         else new OneTimeActorScheduler(dep, emptyExec)
 
     let _schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
+    let _progressTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
@@ -122,6 +123,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let start () =
         dep.ScenarioGlobalTimer.Stop()
         _schedulerTimer.Start()
+        _progressTimer.Start()
         _tcs.Task :> Task
 
     let stop () =
@@ -131,6 +133,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
             dep.ScenarioGlobalTimer.Stop()
             _schedulerTimer.Stop()
+            _progressTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
             _eventStream.OnCompleted()
@@ -141,8 +144,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _randomGen.Next(minRate, maxRate)
 
     do
-        _schedulerTimer.Elapsed.Add(fun _ ->
-
+        _schedulerTimer.Elapsed
+        |> Observable.subscribe(fun _ ->
             if not dep.ScenarioGlobalTimer.IsRunning then
                 _eventStream.OnNext(ScenarioStarted)
                 dep.ScenarioGlobalTimer.Restart()
@@ -175,7 +178,11 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
                     )
 
                 | None -> stop()
+        )
+        |> ignore
 
+        _progressTimer.Elapsed
+        |> Observable.subscribe(fun _ ->
             let progressInfo = {
                 ConstantActorCount = getConstantActorCount()
                 OneTimeActorCount = getOneTimeActorCount()
@@ -183,6 +190,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             }
             _eventStream.OnNext(ProgressUpdated progressInfo)
         )
+        |> ignore
 
     member _.Working = _schedulerTimer.Enabled
 
