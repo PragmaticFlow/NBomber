@@ -23,10 +23,10 @@ let saveRealtimeScenarioStats (dep: IGlobalDependency) (stats: ScenarioStats[]) 
         | ex -> dep.Logger.Warning(ex, "Reporting sink: {SinkName} failed to save scenario stats", sink.SinkName)
 }
 
-let getRealtimeScenarioStats (schedulers: ScenarioScheduler list) (duration: TimeSpan) =
+let getRealtimeScenarioStats (schedulers: ScenarioScheduler list) (executionTime: TimeSpan) =
     schedulers
     |> List.filter(fun x  -> x.Working = true)
-    |> List.map(fun x -> x.GetRealtimeStats duration)
+    |> List.map(fun x -> x.GetRealtimeStats executionTime)
     |> Task.WhenAll
 
 let getFinalScenarioStats (schedulers: ScenarioScheduler list) =
@@ -66,7 +66,7 @@ let getFinalStats (dep: IGlobalDependency)
 }
 
 type ActorMessage =
-    | SaveRealtimeStats  of duration:TimeSpan
+    | SaveRealtimeStats  of executionTime:TimeSpan
     | GetTimeLineHistory of TaskCompletionSource<TimeLineHistoryRecord list>
     | GetFinalStats      of TaskCompletionSource<NodeStats> * NodeInfo
 
@@ -78,8 +78,8 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
 
     let mutable _currentHistory = List.empty<TimeLineHistoryRecord>
 
-    let getAndSaveRealtimeStats (duration, history) = backgroundTask {
-        let! scnStats = getRealtimeStats duration
+    let getAndSaveRealtimeStats (executionTime, history) = backgroundTask {
+        let! scnStats = getRealtimeStats executionTime
         if Array.isEmpty scnStats then return history
         else
             do! scnStats |> Array.map(ScenarioStats.round) |> saveRealtimeStats
@@ -91,8 +91,8 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
         backgroundTask {
             try
                 match msg with
-                | SaveRealtimeStats duration ->
-                    let! newHistory = getAndSaveRealtimeStats(duration, _currentHistory)
+                | SaveRealtimeStats executionTime ->
+                    let! newHistory = getAndSaveRealtimeStats(executionTime, _currentHistory)
                     _currentHistory <- newHistory
 
                 | GetTimeLineHistory reply ->

@@ -33,7 +33,6 @@ let internal logger = LoggerConfiguration().CreateLogger()
 
 let internal baseDep = {
     Logger = logger
-    ShouldWork = true
     CancellationToken = CancellationToken.None
     ScenarioGlobalTimer = Stopwatch()
     Scenario = baseScenario

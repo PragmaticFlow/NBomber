@@ -110,8 +110,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             getOneTimeActorCount()
         )
 
-    let getRealtimeStats (duration) =
-        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration duration
+    let getRealtimeStats (executionTime) =
+        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration executionTime
         let simulationStats = getCurrentSimulationStats()
         dep.ScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
@@ -121,7 +121,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
     let start () =
-        dep.ShouldWork <- true
         dep.ScenarioGlobalTimer.Stop()
         _schedulerTimer.Start()
         _progressTimer.Start()
@@ -129,7 +128,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     let stop () =
         if _schedulerTimer.Enabled then
-            dep.ShouldWork <- false
             _scenario <- Scenario.setExecutedDuration(_scenario, dep.ScenarioGlobalTimer.Elapsed)
             _currentOperation <- OperationType.Complete
 
@@ -164,7 +162,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
                     let timeProgress =
                         timeSegment
-                        |> LoadTimeLine.calcTimeSegmentProgress(currentTime)
+                        |> LoadTimeLine.calcTimeSegmentProgress currentTime
                         |> LoadTimeLine.correctTimeProgress
 
                     schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
@@ -207,7 +205,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
     member _.PublishStatsToCoordinator() = dep.ScenarioStatsActor.Publish(ActorMessage.PublishStatsToCoordinator)
-    member _.GetRealtimeStats(duration) = getRealtimeStats duration
+    member _.GetRealtimeStats(executionTime) = getRealtimeStats executionTime
     member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with

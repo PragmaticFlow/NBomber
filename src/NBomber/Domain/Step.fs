@@ -20,7 +20,6 @@ type StepDep = {
     Scenario: Scenario
     ScenarioInfo: ScenarioInfo
     Logger: ILogger
-    ShouldWork: unit -> bool
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
@@ -178,35 +177,41 @@ module RunningStep =
 
         let! response = measureExec step dep.ScenarioGlobalTimer
 
-        if dep.ShouldWork() && not step.Value.DoNotTrack
-            && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds >= response.EndTimeMs then
+        if not step.Value.DoNotTrack then
+            dep.ScenarioStatsActor.Publish(AddResponse response)
 
-                dep.ScenarioStatsActor.Publish(AddResponse response)
+            if response.ClientResponse.IsError then
+                dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+            else
+                dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
 
-                if response.ClientResponse.IsError then
-                    dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
-                else
-                    dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
-
-                return ValueSome response.ClientResponse
+            return response.ClientResponse
 
         elif step.Value.StepName = Constants.StepPauseName then
-            return ValueSome response.ClientResponse
+            return response.ClientResponse
 
         else
-            return ValueNone
+            if response.ClientResponse.IsError then
+                dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+            else
+                dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
+
+            return response.ClientResponse
     }
 
     let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = backgroundTask {
         let mutable shouldWork = true
         for stepIndex in stepsOrder do
-            if shouldWork && dep.ShouldWork() then
+
+            if shouldWork
+               && not dep.CancellationToken.IsCancellationRequested
+               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > dep.ScenarioGlobalTimer.Elapsed.TotalMilliseconds then
+
                 let step = updateContext steps[stepIndex] dep.Data
                 let! response = execStep dep step
-                match response with
-                | ValueSome r when r.IsError -> shouldWork <- false
-                | ValueSome _ -> ()
-                | ValueNone   -> shouldWork <- false
+
+                if response.IsError then
+                    shouldWork <- false
     }
 
     let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =

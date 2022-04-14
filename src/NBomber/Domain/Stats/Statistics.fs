@@ -12,8 +12,9 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =
-    let totalSec = if executionTime.TotalSeconds < 1.0 then 1.0
-                   else executionTime.TotalSeconds
+    let totalSec =
+        if executionTime.TotalSeconds < 1.0 then 1.0
+        else executionTime.TotalSeconds
 
     float requestCount / totalSec
 

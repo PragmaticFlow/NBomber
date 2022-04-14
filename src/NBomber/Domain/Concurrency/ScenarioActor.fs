@@ -16,7 +16,6 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
     Logger: ILogger
-    mutable ShouldWork: bool
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
@@ -29,13 +28,12 @@ type ActorDep = {
 type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let _logger = dep.Logger.ForContext<ScenarioActor>()
-    let mutable _working = false
+    let mutable _actorWorking = false
 
     let _stepDep = {
         Scenario = dep.Scenario
         ScenarioInfo = scenarioInfo
         Logger = dep.Logger
-        ShouldWork = fun _ -> dep.ShouldWork
         CancellationToken = dep.CancellationToken
         ScenarioGlobalTimer = dep.ScenarioGlobalTimer
         ExecStopCommand = dep.ExecStopCommand
@@ -50,11 +48,13 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
 
     let execSteps (runInfinite: bool) = backgroundTask {
         try
-            if not _working then
+            if not _actorWorking then
                 let mutable shouldRun = true
-                _working <- true
+                _actorWorking <- true
 
-                while shouldRun && _working && dep.ShouldWork do
+                while shouldRun && _actorWorking
+                    && not dep.CancellationToken.IsCancellationRequested
+                    && dep.Scenario.PlanedDuration.TotalMilliseconds > dep.ScenarioGlobalTimer.Elapsed.TotalMilliseconds do
 
                     _stepDep.Data.Clear()
 
@@ -72,15 +72,15 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
             else
                 _logger.Error($"ExecSteps was invoked for already working actor with Scenario: {dep.Scenario.ScenarioName}")
         finally
-            _working <- false
+            _actorWorking <- false
     }
 
     member _.ScenarioStatsActor = dep.ScenarioStatsActor
     member _.ScenarioInfo = scenarioInfo
-    member _.Working = _working
+    member _.Working = _actorWorking
 
     member _.ExecSteps() = execSteps false
     member _.RunInfinite() = execSteps true
 
     member _.Stop() =
-        _working <- false
+        _actorWorking <- false
