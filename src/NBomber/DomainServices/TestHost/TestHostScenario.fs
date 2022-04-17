@@ -10,8 +10,8 @@ open NBomber.DomainServices.NBomberContext
 open NBomber.Errors
 open NBomber.Infra.Dependency
 
-let getTargetScenarios (sessionArgs: SessionArgs) (registeredScenarios: Scenario list) =
-    registeredScenarios
+let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) =
+    regScenarios
     |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
     |> Scenario.applySettings sessionArgs.ScenariosSettings
 

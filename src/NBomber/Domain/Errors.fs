@@ -8,7 +8,7 @@ type DomainError =
     | CleanScenarioError of ex:exn
 
 type ValidationError =
-    | TargetScenariosNotFound of notFoundScenarios:string list * registeredScenarios:string list
+    | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
     | WarmUpConfigValueHasInvalidFormat of scnName:string * warmUpValue:string
     | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
 
@@ -60,8 +60,8 @@ type AppError =
 
     static member toString (error: ValidationError) =
         match error with
-        | TargetScenariosNotFound (notFoundScenarios, registeredScenarios) ->
-            $"Target scenarios: '{String.concatWithComma registeredScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
+        | TargetScenariosNotFound (notFoundScenarios, regScenarios) ->
+            $"Target scenarios: '{String.concatWithComma regScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
 
         | WarmUpConfigValueHasInvalidFormat (scnName, warmUpValue) ->
             $"""ScenariosSettings for Scenario: '{scnName}' contains invalid WarmUpDuration: '{warmUpValue}'. The value should be in this format: "00:00:00" """

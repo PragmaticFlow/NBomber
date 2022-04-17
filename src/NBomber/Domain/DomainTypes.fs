@@ -13,6 +13,9 @@ open NBomber.Contracts.Stats
 open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 
+type SessionId = string
+type ScenarioName = string
+
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
@@ -80,8 +83,6 @@ type LoadTimeSegment = {
 }
 
 type LoadTimeLine = LoadTimeSegment list
-
-type ScenarioName = string
 
 type Scenario = {
     ScenarioName: string
