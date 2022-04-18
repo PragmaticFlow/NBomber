@@ -51,6 +51,8 @@ let MaxTrackableStepResponseSize = int64 Int32.MaxValue
 let SchedulerTimerDriftMs = 10.0
 [<Literal>]
 let SchedulerTickIntervalMs = 1_000.0
+[<Literal>]
+let ReportingTimerCompleteMs = 3_000
 
 /// Default status codes
 

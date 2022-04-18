@@ -9,6 +9,7 @@ open System.Runtime.InteropServices
 open Serilog
 open FsToolkit.ErrorHandling
 
+open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Domain
@@ -126,6 +127,9 @@ type internal TestHost(dep: IGlobalDependency,
 
         // waiting on all scenarios to finish
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
+
+        // wait on final metrics and reporting tick
+        do! Task.Delay(Constants.ReportingTimerCompleteMs)
 
         flushStatsTimer |> Option.iter(fun x -> x.Stop())
         reportingTimer.Stop()
