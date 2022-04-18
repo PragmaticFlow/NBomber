@@ -354,7 +354,6 @@ module NodeStatsTests =
             |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
 
-
         NBomberRunner.registerScenarios [ okScenario; failScenario ]
         |> NBomberRunner.withReportFolder "./stats-tests/1/"
         |> NBomberRunner.run

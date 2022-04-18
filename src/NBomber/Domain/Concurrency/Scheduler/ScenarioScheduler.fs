@@ -80,7 +80,7 @@ let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCou
 
 type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
-    let _logger = dep.Logger.ForContext<ScenarioScheduler>()
+    let log = dep.Logger.ForContext<ScenarioScheduler>()
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
     let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
@@ -120,11 +120,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         let simulationStats = getCurrentSimulationStats()
         dep.ScenarioStatsActor.GetFinalStats(simulationStats, scnDuration)
 
-    let start () =
-        dep.ScenarioGlobalTimer.Stop()
-        _schedulerTimer.Start()
-        _progressTimer.Start()
-        _tcs.Task :> Task
+    let getRandomValue minRate maxRate =
+        _randomGen.Next(minRate, maxRate)
 
     let stop () =
         if _schedulerTimer.Enabled then
@@ -140,45 +137,43 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
             _tcs.TrySetResult() |> ignore
 
-    let getRandomValue minRate maxRate =
-        _randomGen.Next(minRate, maxRate)
+    let execScheduler () =
+        let currentTime = dep.ScenarioGlobalTimer.Elapsed
+
+        if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
+            stop()
+        else
+            match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with
+            | Some timeSegment ->
+
+                _currentSimulation <- timeSegment.LoadSimulation
+
+                let timeProgress =
+                    timeSegment
+                    |> LoadTimeLine.calcTimeSegmentProgress currentTime
+                    |> LoadTimeLine.correctTimeProgress
+
+                schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
+                |> List.iter(function
+                    | AddConstantActors count    -> _constantScheduler.AddActors(count)
+                    | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
+                    | InjectOneTimeActors count  -> _oneTimeScheduler.InjectActors(count)
+                    | DoNothing -> ()
+                )
+
+            | None -> stop()
+
+    let start () =
+        _schedulerTimer.Start()
+        _progressTimer.Start()
+        _eventStream.OnNext(ScenarioStarted)
+        dep.ScenarioGlobalTimer.Restart()
+        execScheduler()
+        _tcs.Task :> Task
 
     do
-        _schedulerTimer.Elapsed
-        |> Observable.subscribe(fun _ ->
-            if not dep.ScenarioGlobalTimer.IsRunning then
-                _eventStream.OnNext(ScenarioStarted)
-                dep.ScenarioGlobalTimer.Restart()
-
-            let currentTime = dep.ScenarioGlobalTimer.Elapsed
-
-            if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
-                stop()
-            else
-                match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with
-                | Some timeSegment ->
-
-                    _currentSimulation <- timeSegment.LoadSimulation
-
-                    let timeProgress =
-                        timeSegment
-                        |> LoadTimeLine.calcTimeSegmentProgress currentTime
-                        |> LoadTimeLine.correctTimeProgress
-
-                    schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
-                    |> List.iter(function
-                        | AddConstantActors count    -> _constantScheduler.AddActors(count)
-                        | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
-                        | InjectOneTimeActors count  -> _oneTimeScheduler.InjectActors(count)
-                        | DoNothing -> ()
-                    )
-
-                | None -> stop()
-        )
-        |> ignore
-
-        _progressTimer.Elapsed
-        |> Observable.subscribe(fun _ ->
+        _schedulerTimer.Elapsed.Add(fun _ -> execScheduler())
+        _progressTimer.Elapsed.Add(fun _ ->
             let progressInfo = {
                 ConstantActorCount = getConstantActorCount()
                 OneTimeActorCount = getOneTimeActorCount()
@@ -186,7 +181,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             }
             _eventStream.OnNext(ProgressUpdated progressInfo)
         )
-        |> ignore
 
     member _.Working = _schedulerTimer.Enabled
 
@@ -212,5 +206,5 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         member _.Dispose() =
             stop()
             _eventStream.Dispose()
-            _logger.Verbose $"{nameof ScenarioScheduler} disposed"
+            log.Verbose $"{nameof ScenarioScheduler} disposed"
 

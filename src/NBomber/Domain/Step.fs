@@ -205,7 +205,7 @@ module RunningStep =
 
             if shouldWork
                && not dep.CancellationToken.IsCancellationRequested
-               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > dep.ScenarioGlobalTimer.Elapsed.TotalMilliseconds then
+               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioGlobalTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
 
                 let step = updateContext steps[stepIndex] dep.Data
                 let! response = execStep dep step
