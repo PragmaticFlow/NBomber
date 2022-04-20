@@ -27,7 +27,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         use testHost      = new TestHost(dep, scenarios, Scenario.getStepOrder, RunningStep.execSteps)
         let! result       = testHost.RunSession(sessionArgs)
 
-        let finalStats =
+        let! finalStats =
             Report.build dep.Logger result testHost.TargetScenarios
             |> Report.save dep ctx result.FinalStats
 

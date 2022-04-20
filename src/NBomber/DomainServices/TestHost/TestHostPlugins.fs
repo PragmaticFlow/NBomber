@@ -48,11 +48,11 @@ let getHints (plugins: IWorkerPlugin list) =
     )
     |> Seq.toList
 
-let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (operation: OperationType) = backgroundTask {
+let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (stats: NodeStats) = backgroundTask {
     try
         let pluginStatusesTask =
             plugins
-            |> List.map(fun plugin -> plugin.GetStats operation)
+            |> List.map(fun plugin -> plugin.GetStats stats)
             |> Task.WhenAll
 
         let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
@@ -62,7 +62,7 @@ let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (operation: Operati
             return Array.empty
     with
     | ex ->
-        logger.Error(ex, "Getting plugin stats failed with the following error")
+        logger.Error("Getting plugin stats failed: {0}", ex.ToString())
         return Array.empty
 }
 

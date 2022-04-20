@@ -284,7 +284,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with RequestCount = requestCount2 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.RequestCount = requestCount1 + requestCount2 @>
 
@@ -295,7 +295,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with OkCount = okCount2 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.OkCount = okCount1 + okCount2 @>
 
@@ -306,7 +306,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with FailCount = failCount2 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.FailCount = failCount1 + failCount2 @>
 
@@ -317,7 +317,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with AllBytes = allBytes2 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.AllBytes = allBytes1 + allBytes2 @>
 
@@ -327,7 +327,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with Duration = seconds 20 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
+            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.Duration = seconds 20 @>
 

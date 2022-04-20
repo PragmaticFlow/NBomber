@@ -154,9 +154,8 @@ let ``GetStats should be invoked only one time when final stats fetching`` () =
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
 
-            member _.GetStats(operation) =
-                if operation = OperationType.Complete then
-                    pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
+            member _.GetStats(stats) =
+                pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
                 Task.FromResult(new DataSet())
 
             member _.GetHints() = Array.empty

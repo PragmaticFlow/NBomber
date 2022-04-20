@@ -129,7 +129,7 @@ type internal TestHost(dep: IGlobalDependency,
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
 
         // wait on final metrics and reporting tick
-        do! Task.Delay(Constants.ReportingTimerCompleteMs)
+        do! Task.Delay Constants.ReportingTimerCompleteMs
 
         flushStatsTimer |> Option.iter(fun x -> x.Stop())
         reportingTimer.Stop()

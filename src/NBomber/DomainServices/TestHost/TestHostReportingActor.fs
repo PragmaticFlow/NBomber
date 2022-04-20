@@ -34,14 +34,14 @@ let getFinalScenarioStats (schedulers: ScenarioScheduler list) =
     |> List.map(fun x -> x.GetFinalStats())
     |> Task.WhenAll
 
-let getPluginStats (dep: IGlobalDependency) (operation: OperationType) = backgroundTask {
+let getPluginStats (dep: IGlobalDependency) (stats: NodeStats) = backgroundTask {
     try
         let pluginStatusesTask =
             dep.WorkerPlugins
-            |> List.map(fun plugin -> plugin.GetStats operation)
+            |> List.map(fun plugin -> plugin.GetStats stats)
             |> Task.WhenAll
 
-        let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
+        let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay Constants.GetPluginStatsTimeout)
         if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
         else
             dep.Logger.Error("Getting plugin stats failed with the timeout error")
@@ -57,12 +57,13 @@ let getFinalStats (dep: IGlobalDependency)
                   (testInfo: TestInfo)
                   (nodeInfo: NodeInfo) = backgroundTask {
 
-    let pluginStats = getPluginStats dep nodeInfo.CurrentOperation
-    let scenarioStats = getFinalScenarioStats schedulers
-    do! Task.WhenAll(pluginStats, scenarioStats)
+    let! scenarioStats = getFinalScenarioStats schedulers
 
-    return if Array.isEmpty scenarioStats.Result then None
-           else Some(NodeStats.create testInfo nodeInfo scenarioStats.Result pluginStats.Result)
+    if Array.isEmpty scenarioStats then return None
+    else
+        let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats
+        let! pluginStats = getPluginStats dep nodeStats
+        return Some { nodeStats with PluginStats = pluginStats }
 }
 
 type ActorMessage =
@@ -104,7 +105,7 @@ type TestHostReportingActor(dep: IGlobalDependency, schedulers: ScenarioSchedule
                     |> TaskOption.map(NodeStats.round >> reply.TrySetResult)
                     |> Task.WaitAll
             with
-            | ex -> dep.Logger.Error(ex, "TestHostReporting actor failed")
+            | ex -> dep.Logger.Error("TestHostReporting actor failed: {0}", ex.ToString())
         }
         :> Task
     )

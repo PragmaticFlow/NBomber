@@ -148,7 +148,7 @@ type IReportingSink =
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
     abstract SaveRealtimeStats: stats:ScenarioStats[] -> Task
-    abstract SaveFinalStats: stats:NodeStats[] -> Task
+    abstract SaveFinalStats: stats:NodeStats -> Task
     abstract Stop: unit -> Task
 
 type IWorkerPlugin =
@@ -156,7 +156,7 @@ type IWorkerPlugin =
     abstract PluginName: string
     abstract Init: context:IBaseContext * infraConfig:IConfiguration -> Task
     abstract Start: unit -> Task
-    abstract GetStats: currentOperation:OperationType -> Task<DataSet>
+    abstract GetStats: stats:NodeStats -> Task<DataSet>
     abstract GetHints: unit -> string[]
     abstract Stop: unit -> Task
 

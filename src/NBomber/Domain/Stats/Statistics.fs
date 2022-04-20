@@ -205,8 +205,7 @@ module ScenarioStats =
 
 module NodeStats =
 
-    let create (testInfo: TestInfo) (nodeInfo: NodeInfo)
-               (scnStats: ScenarioStats[]) (pluginStats: DataSet[]) =
+    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
 
         let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
 
@@ -215,7 +214,7 @@ module NodeStats =
           FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)
           AllBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
           ScenarioStats = scnStats
-          PluginStats = pluginStats
+          PluginStats = Array.empty
           NodeInfo = nodeInfo
           TestInfo = testInfo
           ReportFiles = Array.empty
