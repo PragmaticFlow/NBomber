@@ -36,7 +36,7 @@ let internal baseDep = {
     CancellationToken = CancellationToken.None
     ScenarioGlobalTimer = Stopwatch()
     Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
+    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
     ExecStopCommand = fun _ -> ()
     GetStepOrder = Scenario.getStepOrder
     ExecSteps = RunningStep.execSteps

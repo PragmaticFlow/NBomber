@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.TestHost.TestHostReportingSinks
+module internal NBomber.DomainServices.TestHost.ReportingSinks
 
 open Serilog
 open FsToolkit.ErrorHandling

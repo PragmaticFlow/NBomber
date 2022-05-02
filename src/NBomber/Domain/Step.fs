@@ -176,6 +176,8 @@ module RunningStep =
     let execStep (dep: StepDep) (step: RunningStep) = backgroundTask {
 
         let! response = measureExec step dep.ScenarioGlobalTimer
+        let payload = response.ClientResponse.Payload
+        response.ClientResponse.Payload <- null // to prevent holding it for stats actor
 
         if not step.Value.DoNotTrack then
             dep.ScenarioStatsActor.Publish(AddResponse response)
@@ -183,7 +185,7 @@ module RunningStep =
             if response.ClientResponse.IsError then
                 dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
-                dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                dep.Data[Constants.StepResponseKey] <- payload
 
             return response.ClientResponse
 
@@ -194,7 +196,7 @@ module RunningStep =
             if response.ClientResponse.IsError then
                 dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
-                dep.Data[Constants.StepResponseKey] <- response.ClientResponse.Payload
+                dep.Data[Constants.StepResponseKey] <- payload
 
             return response.ClientResponse
     }

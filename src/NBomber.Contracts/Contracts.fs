@@ -15,10 +15,10 @@ open NBomber.Contracts.Stats
 type Response = {
     StatusCode: Nullable<int>
     IsError: bool
-    Message: string
+    mutable Message: string
     SizeBytes: int
     LatencyMs: float
-    Payload: obj
+    mutable Payload: obj
 }
 
 type ScenarioInfo = {

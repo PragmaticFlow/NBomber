@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.IO
 open System.Text
+open System.Threading.Tasks
 
 open Json.Net.DataSetConverters
 open FsToolkit.ErrorHandling
@@ -11,8 +12,21 @@ open Newtonsoft.Json
 
 module internal Internal =
 
-    let inline isNotNull (value) =
-        not(isNull value)
+    module Operation =
+
+        let waitOnComplete (retryCount: int) (isComplete: unit -> bool) = backgroundTask {
+            let mutable counter = 0
+            let mutable completed = false
+            completed <- isComplete()
+            while not completed || counter < retryCount do
+                counter <- counter + 1
+                do! Task.Delay 1_000
+                completed <- isComplete()
+
+            return
+                if completed then Ok()
+                else Error()
+        }
 
     module Json =
 
@@ -56,7 +70,7 @@ module internal Internal =
 
         let ofRecord (value: 'T) =
             let boxed = box(value)
-            if isNotNull(boxed) then Some value
+            if not(isNull boxed) then Some value
             else None
 
     module String =

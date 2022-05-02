@@ -1,6 +1,5 @@
 ﻿using System;
 using CSharpDev.ClientFactory;
-using CSharpDev.CustomReporting;
 using CSharpDev.DataFeed;
 using CSharpDev.Features;
 using CSharpDev.HelloWorld;

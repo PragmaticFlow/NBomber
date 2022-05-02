@@ -21,7 +21,6 @@
         <None Include="HelloWorld\config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <Compile Include="CustomReporting\CustomReporting.fs" />
         <Compile Include="HttpTests\SimpleHttpTest.fs" />
         <None Include="HttpTests\infra-config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>

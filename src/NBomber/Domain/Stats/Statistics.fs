@@ -2,7 +2,6 @@ module internal NBomber.Domain.Stats.Statistics
 
 open System
 open System.Collections.Generic
-open System.Data
 
 open HdrHistogram
 
@@ -206,19 +205,20 @@ module ScenarioStats =
 module NodeStats =
 
     let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
-
-        let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
-
-        { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)
-          OkCount = scnStats |> Array.sumBy(fun x -> x.OkCount)
-          FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)
-          AllBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
-          ScenarioStats = scnStats
-          PluginStats = Array.empty
-          NodeInfo = nodeInfo
-          TestInfo = testInfo
-          ReportFiles = Array.empty
-          Duration = maxDuration }
+        if Array.isEmpty scnStats then
+            NodeStats.empty
+        else
+            let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
+            { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)
+              OkCount = scnStats |> Array.sumBy(fun x -> x.OkCount)
+              FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)
+              AllBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
+              ScenarioStats = scnStats
+              PluginStats = Array.empty
+              NodeInfo = nodeInfo
+              TestInfo = testInfo
+              ReportFiles = Array.empty
+              Duration = maxDuration }
 
     let round (stats: NodeStats) =
         { stats with ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)

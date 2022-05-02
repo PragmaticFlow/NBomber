@@ -1,4 +1,4 @@
-module internal NBomber.DomainServices.TestHost.TestHostPlugins
+module internal NBomber.DomainServices.TestHost.WorkerPlugins
 
 open System.Threading.Tasks
 

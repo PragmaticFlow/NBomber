@@ -262,13 +262,6 @@ type NBomberRunner =
     static member WithReportingInterval(context: NBomberContext, interval: TimeSpan) =
         context |> FSharp.NBomberRunner.withReportingInterval interval
 
-    /// Sets reporting sinks.
-    /// Reporting sink is used to save real-time metrics to correspond database.
-    [<Extension>]
-    static member WithReportingSinks(context: NBomberContext, [<ParamArray>]reportingSinks: IReportingSink[]) =
-        let sinks = reportingSinks |> Seq.toList
-        context |> FSharp.NBomberRunner.withReportingSinks sinks
-
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
     [<Extension>]

@@ -258,4 +258,4 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     |> Result.getOk
     |> fun nodeStats ->
         test <@ Array.isEmpty nodeStats.PluginStats @>
-        inMemorySink.Should().HaveMessage("Getting plugin stats failed with the following error", "because exception was thrown") |> ignore
+        inMemorySink.Should().HaveMessage("Getting plugin stats failed: {0}", "because exception was thrown") |> ignore

@@ -52,6 +52,7 @@ type NBomberContext = {
 
 namespace NBomber.Contracts.Internal
 
+open System
 open CommandLine
 open NBomber.Contracts
 
@@ -66,4 +67,10 @@ type StepResponse = {
     ClientResponse: Response
     EndTimeMs: float
     LatencyMs: float
+}
+
+type ScenarioRawStats = {
+    ScenarioName: string
+    Data: StepResponse list
+    Timestamp: TimeSpan
 }

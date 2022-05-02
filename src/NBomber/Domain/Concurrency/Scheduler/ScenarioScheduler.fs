@@ -7,6 +7,7 @@ open FSharp.Control.Reactive
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -80,7 +81,7 @@ let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCou
 
 type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
-    let log = dep.Logger.ForContext<ScenarioScheduler>()
+    let _log = dep.Logger.ForContext<ScenarioScheduler>()
     let mutable _warmUp = false
     let mutable _scenario = dep.Scenario
     let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
@@ -110,8 +111,15 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             getOneTimeActorCount()
         )
 
-    let getRealtimeStats (executionTime) =
-        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration executionTime
+    let addRawStats (rawStats: ScenarioRawStats) =
+        dep.ScenarioStatsActor.Publish(AddResponses rawStats.Data)
+
+    let getRawStats (timestamp) =
+        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration timestamp
+        dep.ScenarioStatsActor.GetRawStats executedDuration
+
+    let getRealtimeStats (timestamp) =
+        let executedDuration = _scenario |> Scenario.getDuration |> correctExecutedDuration timestamp
         let simulationStats = getCurrentSimulationStats()
         dep.ScenarioStatsActor.GetRealtimeStats(simulationStats, executedDuration)
 
@@ -198,13 +206,16 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = dep.Scenario
-    member _.PublishStatsToCoordinator() = dep.ScenarioStatsActor.Publish(ActorMessage.PublishStatsToCoordinator)
-    member _.GetRealtimeStats(executionTime) = getRealtimeStats executionTime
+
+    member _.AddRawStats(rawStats) = addRawStats rawStats
+    member _.GetRawStats(timestamp) = getRawStats timestamp
+    member _.GetRealtimeStats(timestamp) = getRealtimeStats timestamp
     member _.GetFinalStats() = getFinalStats()
+    member _.GetStatusMessages() = ()
 
     interface IDisposable with
         member _.Dispose() =
             stop()
             _eventStream.Dispose()
-            log.Verbose $"{nameof ScenarioScheduler} disposed"
+            _log.Verbose $"{nameof ScenarioScheduler} disposed"
 

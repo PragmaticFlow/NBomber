@@ -23,14 +23,14 @@ open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.NBomberContext
-open NBomber.DomainServices.TestHost.TestHostReportingActor
+open NBomber.DomainServices.TestHost.ReportingManager
 
 type internal TestHost(dep: IGlobalDependency,
                        regScenarios: Scenario list,
                        getStepOrder: Scenario -> int[],
                        execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) as this =
 
-    let log = dep.Logger.ForContext<TestHost>()
+    let _log = dep.Logger.ForContext<TestHost>()
     let mutable _stopped = false
     let mutable _disposed = false
     let mutable _targetScenarios = List.empty<Scenario>
@@ -50,7 +50,7 @@ type internal TestHost(dep: IGlobalDependency,
             |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
+                _log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
             )
 
         | StopTest reason -> this.StopScenarios(reason) |> ignore
@@ -63,11 +63,11 @@ type internal TestHost(dep: IGlobalDependency,
 
         let createScheduler (cancelToken: CancellationToken) (scn: Scenario) =
             let actorDep = {
-                Logger = log
+                Logger = _log
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor log scn _sessionArgs.ReportingInterval
+                ScenarioStatsActor = createStatsActor _log scn _sessionArgs.ReportingInterval
                 ExecStopCommand = execStopCommand
                 GetStepOrder = getStepOrder
                 ExecSteps = execSteps
@@ -91,14 +91,14 @@ type internal TestHost(dep: IGlobalDependency,
                        cancelToken: CancellationToken,
                        scenarios: Scenario list) = taskResult {
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, log)
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
 
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         let disabledScenarios = scenarios |> List.filter(fun x -> not x.IsEnabled)
 
-        do! dep.ReportingSinks |> TestHostReportingSinks.init dep baseContext
-        do! dep.WorkerPlugins  |> TestHostPlugins.init dep baseContext
+        do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
+        do! dep.WorkerPlugins  |> WorkerPlugins.init dep baseContext
 
         let! initializedScenarios = TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, enabledScenarios)
         return initializedScenarios @ disabledScenarios
@@ -106,24 +106,23 @@ type internal TestHost(dep: IGlobalDependency,
 
     let startWarmUp (schedulers: ScenarioScheduler list) = backgroundTask {
         let isWarmUp = true
+        _currentSchedulers <- schedulers
+
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
     }
 
-    let startBombing (schedulers: ScenarioScheduler list,
-                      flushStatsTimer: Timers.Timer option,
-                      reportingTimer: Timers.Timer,
-                      currentOperationTimer: Stopwatch) = backgroundTask {
+    let startBombing (schedulers: ScenarioScheduler list)
+                     (reportingManager: IReportingManager) = backgroundTask {
 
         let isWarmUp = false
+        _currentSchedulers <- schedulers
 
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
-        do! dep.ReportingSinks |> TestHostReportingSinks.start log
-        do! dep.WorkerPlugins  |> TestHostPlugins.start log
+        do! dep.ReportingSinks |> ReportingSinks.start _log
+        do! dep.WorkerPlugins  |> WorkerPlugins.start _log
 
-        flushStatsTimer |> Option.iter(fun x -> x.Start())
-        reportingTimer.Start()
-        currentOperationTimer.Start()
+        reportingManager.Start()
 
         // waiting on all scenarios to finish
         do! schedulers |> List.map(fun x -> x.Start isWarmUp) |> Task.WhenAll
@@ -131,31 +130,21 @@ type internal TestHost(dep: IGlobalDependency,
         // wait on final metrics and reporting tick
         do! Task.Delay Constants.ReportingTimerCompleteMs
 
-        flushStatsTimer |> Option.iter(fun x -> x.Stop())
-        reportingTimer.Stop()
-        currentOperationTimer.Stop()
+        // waiting (in case of cluster) on all raw stats
+        do! reportingManager.Stop()
 
-        do! dep.ReportingSinks |> TestHostReportingSinks.stop log
-        do! dep.WorkerPlugins  |> TestHostPlugins.stop log
+        do! dep.ReportingSinks |> ReportingSinks.stop _log
+        do! dep.WorkerPlugins  |> WorkerPlugins.stop _log
     }
 
     let cleanScenarios (sessionArgs: SessionArgs,
                         cancelToken: CancellationToken,
                         scenarios: Scenario list) =
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, log)
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         TestHostScenario.cleanScenarios dep baseContext defaultScnContext enabledScenarios
-
-    let getHints (finalStats: NodeStats) (targetScenarios: Scenario list) =
-        if _sessionArgs.UseHintsAnalyzer then
-            dep.WorkerPlugins
-            |> TestHostPlugins.getHints
-            |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
-            |> List.toArray
-        else
-            Array.empty
 
     member _.SessionArgs = _sessionArgs
     member _.CurrentOperation = _currentOperation
@@ -168,20 +157,20 @@ type internal TestHost(dep: IGlobalDependency,
         _currentOperation <- OperationType.Init
 
         TestHostConsole.printContextInfo(dep)
-        log.Information "Starting init..."
+        _log.Information "Starting init..."
         _cancelToken.Dispose()
         _cancelToken <- new CancellationTokenSource()
 
         match! initScenarios(sessionArgs, _cancelToken.Token, targetScenarios) with
         | Ok initializedScenarios ->
-            log.Information "Init finished"
+            _log.Information "Init finished"
             _targetScenarios <- initializedScenarios
             _sessionArgs <- sessionArgs
             _currentOperation <- OperationType.None
             return Ok()
 
         | Error appError ->
-            log.Error "Init failed"
+            _log.Error "Init failed"
             _currentOperation <- OperationType.Stop
             return AppError.createResult appError
     }
@@ -190,35 +179,23 @@ type internal TestHost(dep: IGlobalDependency,
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
 
-        log.Information "Starting warm up..."
+        _log.Information "Starting warm up..."
 
-        let schedulers = this.CreateScenarioSchedulers(Scenario.defaultClusterCount, ScenarioStatsActor.create)
-        _currentSchedulers <- schedulers
-
+        let schedulers = this.CreateScenarioSchedulers()
         do! startWarmUp schedulers
         stopSchedulers(_cancelToken, schedulers)
 
         _currentOperation <- OperationType.None
     }
 
-    member _.StartBombing(schedulers: ScenarioScheduler list,
-                          flushStatsTimer: Timers.Timer option,
-                          reportingTimer: Timers.Timer,
-                          currentOperationTimer: Stopwatch,
-                          ?cleanUp: unit -> Task<unit>) = backgroundTask {
+    member _.StartBombing(schedulers: ScenarioScheduler list, reportingManager: IReportingManager) = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.Bombing
-        _currentSchedulers <- schedulers
 
-        log.Information "Starting bombing..."
-        do! startBombing(schedulers, flushStatsTimer, reportingTimer, currentOperationTimer)
-
-        if cleanUp.IsSome then
-            log.Debug "NBomber is executing internal cleanup..."
-            do! cleanUp.Value()
+        _log.Information "Starting bombing..."
+        do! startBombing schedulers reportingManager
 
         do! this.StopScenarios()
-
         _currentOperation <- OperationType.Complete
     }
 
@@ -227,9 +204,9 @@ type internal TestHost(dep: IGlobalDependency,
             _currentOperation <- OperationType.Stop
 
             if not(String.IsNullOrEmpty reason) then
-                log.Warning("Stopping test early: {StopReason}", reason)
+                _log.Warning("Stopping test early: {StopReason}", reason)
             else
-                log.Information "Stopping scenarios..."
+                _log.Information "Stopping scenarios..."
 
             stopSchedulers(_cancelToken, _currentSchedulers)
             do! cleanScenarios(_sessionArgs, _cancelToken.Token, _targetScenarios)
@@ -238,52 +215,49 @@ type internal TestHost(dep: IGlobalDependency,
             _currentOperation <- OperationType.None
     }
 
-    member _.GetHints(finalStats) = _targetScenarios |> getHints finalStats
+    member _.CreateScenarioSchedulers() =
+        createScenarioSchedulers _targetScenarios Scenario.defaultClusterCount ScenarioStatsActor.create getStepOrder execSteps
 
     member _.CreateScenarioSchedulers(getScenarioClusterCount: ScenarioName -> int,
                                       createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
 
         createScenarioSchedulers _targetScenarios getScenarioClusterCount createStatsActor getStepOrder execSteps
 
+    member _.GetRawStats(timestamp) = backgroundTask {
+        let! stats = _currentSchedulers |> List.map(fun x -> x.GetRawStats timestamp) |> Task.WhenAll
+        return List.ofArray stats
+    }
+
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let targetScenarios = regScenarios |> TestHostScenario.getTargetScenarios sessionArgs
         do! this.StartInit(sessionArgs, targetScenarios)
         do! this.StartWarmUp()
 
-        let schedulers = this.CreateScenarioSchedulers(Scenario.defaultClusterCount, ScenarioStatsActor.create)
-
-        // create timers
-        let currentOperationTimer = Stopwatch()
-        let reportingActor = TestHostReportingActor(dep, schedulers, sessionArgs.TestInfo)
-        use reportingTimer = new Timers.Timer(sessionArgs.ReportingInterval.TotalMilliseconds)
-        reportingTimer.Elapsed.Add(fun _ ->
-            reportingActor.Publish(SaveRealtimeStats currentOperationTimer.Elapsed)
-        )
+        let schedulers = this.CreateScenarioSchedulers()
+        use reportingManager = new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager
 
         // start bombing
-        do! this.StartBombing(schedulers, None, reportingTimer, currentOperationTimer)
+        do! this.StartBombing(schedulers, reportingManager)
 
         // gets final stats
-        log.Information "Calculating final statistics..."
-        let! finalStats = reportingActor.GetFinalStats(getCurrentNodeInfo())
-        let! timeLineHistory = reportingActor.GetTimeLineHistory()
-        let hints = _targetScenarios |> getHints finalStats
-        let result = { FinalStats = finalStats; TimeLineHistory = Array.ofList timeLineHistory; Hints = hints }
-        return result
+        _log.Information "Calculating final statistics..."
+        return! reportingManager.GetSessionResult(getCurrentNodeInfo())
     }
 
+    member _.Dispose() =
+        if not _disposed then
+            _disposed <- true
+            this.StopScenarios().Wait()
+
+            for sink in dep.ReportingSinks do
+                use _ = sink
+                ()
+
+            for plugin in dep.WorkerPlugins do
+                use _ = plugin
+                ()
+
+            _log.Verbose $"{nameof TestHost} disposed"
+
     interface IDisposable with
-        member _.Dispose() =
-            if not _disposed then
-                _disposed <- true
-                this.StopScenarios().Wait()
-
-                for sink in dep.ReportingSinks do
-                    use x = sink
-                    ()
-
-                for plugin in dep.WorkerPlugins do
-                    use x = plugin
-                    ()
-
-                log.Verbose $"{nameof TestHost} disposed"
+        member _.Dispose() = this.Dispose()
