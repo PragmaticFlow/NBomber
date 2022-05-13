@@ -34,6 +34,7 @@ module ScenarioStatsTests =
         Feed = Some(Feed.createConstant "feed name" [ 1; 2 ])
         Timeout = seconds 0
         DoNotTrack = Constants.DefaultDoNotTrack
+        IsPause = false
     }
 
     let internal baseScenario = {

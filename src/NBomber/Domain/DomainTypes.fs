@@ -42,6 +42,7 @@ type Step = {
     Feed: IFeed<obj> option
     Timeout: TimeSpan
     DoNotTrack: bool
+    IsPause: bool
 } with
 
     interface IStep with

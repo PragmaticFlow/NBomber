@@ -82,15 +82,15 @@ module Feed =
 [<RequireQualifiedAccess>]
 type Step =
 
-    /// Creates Step.
-    /// Step represents a single user action like login, logout, etc.
-    static member create (name: string,
-                          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-                          ?clientFactory: IClientFactory<'TClient>,
-                          ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
-                          ?feed: IFeed<'TFeedItem>,
-                          ?timeout: TimeSpan,
-                          ?doNotTrack: bool) =
+    static member private create
+        (name: string,
+         execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
+         ?clientFactory: IClientFactory<'TClient>,
+         ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
+         ?feed: IFeed<'TFeedItem>,
+         ?timeout: TimeSpan,
+         ?doNotTrack: bool,
+         ?isPause: bool) =
 
         match clientFactory with
         | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
@@ -116,28 +116,41 @@ type Step =
             clientDistribution
             |> Option.map(Step.StepClientContext.toUntyped)
 
-        let timeout = timeout |> Option.defaultValue(Constants.StepTimeout)
-
         { StepName = name
           ClientFactory = factory
           ClientDistribution = clDistribution
           ClientPool = None
           Execute = execute |> Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Feed.toUntypedFeed
-          Timeout = timeout
-          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack }
+          Timeout = timeout |> Option.defaultValue Constants.StepTimeout
+          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
+          IsPause = defaultArg isPause false }
           :> IStep
+
+    /// Creates Step.
+    /// Step represents a single user action like login, logout, etc.
+    static member create
+        (name: string,
+         execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
+         ?clientFactory: IClientFactory<'TClient>,
+         ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
+         ?feed: IFeed<'TFeedItem>,
+         ?timeout: TimeSpan,
+         ?doNotTrack: bool) =
+
+        Step.create(name, execute, ?clientFactory = clientFactory, ?clientDistribution = clientDistribution, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
     static member createPause (getDuration: unit -> TimeSpan) =
         Step.create(
-            name = Constants.StepPauseName,
+            name = $"{Constants.StepPauseName}_{Guid.NewGuid()}",
             execute = (fun _ -> backgroundTask {
                 do! Task.Delay(getDuration())
                 return Response.ok()
             }),
-            doNotTrack = true
+            doNotTrack = true,
+            isPause = true
         )
 
     /// Creates pause step in milliseconds in lazy mode.

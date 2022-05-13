@@ -195,6 +195,76 @@ let ``createPause should work correctly and not printed in statistics`` () =
         test <@ step2Stats.Ok.Request.Count > 0 @>
 
 [<Fact>]
+let ``step should support multiple pause instances`` () =
+
+    let step1 = Step.create("step 1", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    // pause here longer than default timeout
+    let pause1 = Step.createPause(milliseconds 100)
+    let pause2 = Step.createPause(milliseconds 100)
+
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    Scenario.create "test context.Data" [step1; pause1; pause2; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/6/"
+    |> NBomberRunner.runWithResult Seq.empty
+    |> Result.getOk
+    |> fun result ->
+        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
+        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
+
+        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
+        test <@ step1Stats.Ok.Request.Count > 0 @>
+        test <@ step2Stats.Ok.Request.Count > 0 @>
+
+[<Fact>]
+let ``createPause should support reuse`` () =
+
+    let step1 = Step.create("step 1", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    // pause here longer than default timeout
+    let pause = Step.createPause(milliseconds 100)
+
+    let step2 = Step.create("step 2", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    let step3 = Step.create("step 3", fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    Scenario.create "test context.Data" [step1; pause; step2; pause; step3]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withReportFolder "./steps-tests/6/"
+    |> NBomberRunner.runWithResult Seq.empty
+    |> Result.getOk
+    |> fun result ->
+        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
+        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
+        let step3Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 3"
+
+        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 3 @>
+        test <@ step1Stats.Ok.Request.Count > 0 @>
+        test <@ step2Stats.Ok.Request.Count > 0 @>
+        test <@ step3Stats.Ok.Request.Count > 0 @>
+
+[<Fact>]
 let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
 
     let step1 = Step.create("step 1", fun context -> task {

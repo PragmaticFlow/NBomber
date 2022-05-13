@@ -145,7 +145,7 @@ module RunningStep =
             let responseTask = step.Value.Execute(step.Context)
 
             // for pause we skip timeout logic
-            if step.Value.StepName = Constants.StepPauseName then
+            if step.Value.IsPause then
                 let! pause = responseTask
                 return { StepIndex = step.StepIndex; ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
             else
@@ -189,7 +189,7 @@ module RunningStep =
 
             return response.ClientResponse
 
-        elif step.Value.StepName = Constants.StepPauseName then
+        elif step.Value.IsPause then
             return response.ClientResponse
 
         else

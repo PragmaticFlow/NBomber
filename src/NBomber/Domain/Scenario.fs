@@ -187,7 +187,7 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
 
 let createStepOrderIndex (scenario: Contracts.Scenario) =
     if List.isEmpty scenario.Steps then Dictionary<_,_>() // it's needed for case when scenario only init
-    else scenario.Steps |> Seq.distinct |> Seq.mapi(fun i x -> x.StepName, i) |> Dict.ofSeq
+    else scenario.Steps |> List.distinct |> List.mapi(fun i x -> x.StepName, i) |> Dict.ofSeq
 
 let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: Contracts.Scenario) =
     seq {
@@ -207,7 +207,7 @@ let createScenario (scn: Contracts.Scenario) = result {
     return { ScenarioName = scenario.ScenarioName
              Init = scenario.Init
              Clean = scenario.Clean
-             Steps = scenario.Steps |> ClientFactory.updateName scenario.ScenarioName
+             Steps = scenario.Steps |> List.distinct |> ClientFactory.updateName scenario.ScenarioName
              LoadTimeLine = timeline.LoadTimeLine
              WarmUpDuration = scenario.WarmUpDuration
              PlanedDuration = timeline.ScenarioDuration
