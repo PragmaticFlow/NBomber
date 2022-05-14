@@ -151,6 +151,26 @@ module StepStats =
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
 
+module MetricStats =
+
+    let failStatsExist stats =
+        let failed stats =
+            stats
+            |> List.map snd
+            |> List.exists (fun status ->
+                match status with
+                | Passed -> false
+                | Failed -> true
+            )
+
+        match stats with
+        | RequestCountStats stats -> stats |> failed
+        | LatencyStats stats -> stats |> failed
+        | LatencyPercentileStats stats -> stats |> failed
+
+    let applyMetricThresholds metric stepStats =
+        Array.empty<MetricStats>
+
 module ScenarioStats =
 
     let create (scenario: Scenario)
@@ -184,6 +204,8 @@ module ScenarioStats =
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
         let statusCodes = StatusCodeStats.merge(okCodes |> Array.append(failCodes))
 
+        let metricStats = scenario.Thresholds |> Option.map (MetricStats.applyMetricThresholds stepStats)
+
         { ScenarioName = scenario.ScenarioName
           RequestCount = okCount + failCount
           OkCount = okCount
@@ -194,14 +216,17 @@ module ScenarioStats =
           LoadSimulationStats = simulationStats
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
-          Duration = %duration }
+          Duration = duration
+          MetricStats = metricStats }
 
     let round (stats: ScenarioStats) =
         { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
     let failStepStatsExist (stats: ScenarioStats) =
-        stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
+        stats.MetricStats
+        |> Option.map (Array.exists MetricStats.failStatsExist)
+        |> Option.defaultValue (stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0))
 
 module NodeStats =
 

@@ -53,6 +53,7 @@ module ScenarioStatsTests =
         CustomStepOrder = None
         CustomStepExecControl = None
         IsEnabled = false
+        Thresholds = None
     }
 
     let internal baseRawStepStats ={
@@ -275,6 +276,7 @@ module NodeStatsTests =
           StatusCodes = Array.empty
           CurrentOperation = OperationType.Complete
           Duration = TimeSpan.Zero
+          MetricStats = None
     }
 
     [<Property>]

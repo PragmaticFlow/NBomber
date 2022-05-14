@@ -217,7 +217,8 @@ let createScenario (scn: Contracts.Scenario) = result {
              StepOrderIndex = stepOrderIndex
              CustomStepOrder = scenario.CustomStepOrder
              CustomStepExecControl = scenario.CustomStepExecControl
-             IsEnabled = true }
+             IsEnabled = true
+             Thresholds = scenario.Thresholds }
 }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {

@@ -11,6 +11,7 @@ open Serilog
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
 
 /// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
@@ -209,6 +210,10 @@ type ScenarioBuilder =
     static member WithCustomStepExecControl(scenario: Scenario, execControl: Func<IStepExecControlContext voption, string voption>) =
         scenario |> FSharp.Scenario.withCustomStepExecControl(execControl.Invoke)
 
+    [<Extension>]
+    static member WithThresholds(scenario: Scenario, [<ParamArray>]thresholds: Metric[]) =
+        scenario |> FSharp.Scenario.withThresholds(Seq.toList thresholds)
+
 [<Extension>]
 type NBomberRunner =
 
@@ -352,3 +357,54 @@ type ValueOption =
     static member Some(value: 'T) = ValueSome value
     static member None() = ValueNone
 
+type Metric =
+
+    static member RequestCount([<ParamArray>]thresholds: RequestCountThreshold[]) =
+        RequestCount(Seq.toList thresholds)
+
+    static member Latency([<ParamArray>]thresholds: LatencyThreshold[]) =
+        Latency(Seq.toList thresholds)
+
+    static member LatencyPercentile([<ParamArray>]thresholds: LatencyPercentileThreshold[]) =
+        LatencyPercentile(Seq.toList thresholds)
+
+type Threshold =
+
+    static member AllCount(predicate: Func<float, bool>) =
+        AllCount(predicate.Invoke)
+
+    static member OkCount(predicate: Func<float, bool>) =
+        OkCount(predicate.Invoke)
+
+    static member FailedCount(predicate: Func<float, bool>) =
+        FailedCount(predicate.Invoke)
+
+    static member FailedRate(predicate: Func<float, bool>) =
+        FailedRate(predicate.Invoke)
+
+    static member RPS(predicate: Func<float, bool>) =
+        RPS(predicate.Invoke)
+
+    static member Min(predicate: Func<float, bool>) =
+        Min(predicate.Invoke)
+
+    static member Mean(predicate: Func<float, bool>) =
+        Mean(predicate.Invoke)
+
+    static member Max(predicate: Func<float, bool>) =
+        Max(predicate.Invoke)
+
+    static member StdDev(predicate: Func<float, bool>) =
+        StdDev(predicate.Invoke)
+
+    static member P50(predicate: Func<float, bool>) =
+        P50(predicate.Invoke)
+
+    static member P75(predicate: Func<float, bool>) =
+        P75(predicate.Invoke)
+
+    static member P95(predicate: Func<float, bool>) =
+        P95(predicate.Invoke)
+
+    static member P99(predicate: Func<float, bool>) =
+        P99(predicate.Invoke)

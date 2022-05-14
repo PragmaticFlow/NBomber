@@ -13,6 +13,7 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Configuration
@@ -185,7 +186,8 @@ module Scenario =
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
-          CustomStepExecControl = None }
+          CustomStepExecControl = None
+          Thresholds = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -225,6 +227,9 @@ module Scenario =
     /// where you can specify what step should be invoked.
     let withCustomStepExecControl (execControl: IStepExecControlContext voption -> string voption) (scenario: Contracts.Scenario) =
         { scenario with CustomStepExecControl = Some execControl }
+
+    let withThresholds (thresholds: Metric list) (scenario: Contracts.Scenario) =
+        { scenario with Thresholds = Some thresholds }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.

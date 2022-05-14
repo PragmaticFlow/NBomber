@@ -6,6 +6,8 @@ open System.Data
 open Newtonsoft.Json
 open Newtonsoft.Json.Converters
 
+open NBomber.Contracts.Metrics
+
 type ReportFormat =
     | Txt = 0
     | Html = 1
@@ -110,6 +112,15 @@ type LoadSimulationStats = {
     Value: int
 }
 
+type ThresholdStatus =
+    | Passed
+    | Failed
+
+type MetricStats =
+    | RequestCountStats of (RequestCountThreshold * ThresholdStatus) list
+    | LatencyStats of (LatencyThreshold * ThresholdStatus) list
+    | LatencyPercentileStats of (LatencyPercentileThreshold * ThresholdStatus) list
+
 type ScenarioStats = {
     ScenarioName: string
     RequestCount: int
@@ -122,6 +133,7 @@ type ScenarioStats = {
     StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
+    MetricStats: MetricStats[] option
 } with
 
     member this.GetStepStats(stepName: string) = ScenarioStats.getStepStats stepName this

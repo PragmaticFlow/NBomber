@@ -10,6 +10,7 @@ open System.Threading.Tasks
 open Serilog
 open Microsoft.Extensions.Configuration
 
+open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
 
 type Response = {
@@ -140,6 +141,7 @@ type Scenario = {
     LoadSimulations: LoadSimulation list
     CustomStepOrder: (unit -> string[]) option
     CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
+    Thresholds: Metric list option
 }
 
 type IReportingSink =

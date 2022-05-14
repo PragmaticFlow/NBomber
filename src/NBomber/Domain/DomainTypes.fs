@@ -6,6 +6,7 @@ open System.Threading
 open System.Threading.Tasks
 
 open HdrHistogram
+open NBomber.Contracts.Metrics
 open Serilog
 
 open NBomber.Contracts
@@ -102,4 +103,5 @@ type Scenario = {
     CustomStepOrder: (unit -> string[]) option
     CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
     IsEnabled: bool // used for stats in the cluster mode
+    Thresholds: Metric list option
 }
