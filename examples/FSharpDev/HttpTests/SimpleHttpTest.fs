@@ -26,23 +26,23 @@ let run () =
     |> Scenario.withLoadSimulations [ InjectPerSec(rate = 20, during = seconds 30) ]
     |> Scenario.withThresholds [
         RequestCount [
-            AllCount(fun x -> x > 200)
-            OkCount(fun x -> x > 190)
+            AllCount(fun x -> x > 290)
+            OkCount(fun x -> x > 180)
             FailedCount(fun x -> x <= 10)
             FailedRate(fun x -> x < 0.1)
-            RPS(fun x -> x > 20.0)
+            RPS(fun x -> x > 15.0)
         ]
         Latency [
             Min(fun x -> x < 100)
-            Mean(fun x -> x < 400)
-            Max(fun x -> x < 500)
-            StdDev(fun x -> x > 100 && x < 200)
+            Mean(fun x -> x < 200)
+            Max(fun x -> x < 700)
+            StdDev(fun x -> x > 50 && x < 100)
         ]
         LatencyPercentile [
-            P50(fun x -> x < 300)
-            P75(fun x -> x < 320)
+            P50(fun x -> x < 200)
+            P75(fun x -> x < 250)
             P95(fun x -> x < 400)
-            P99(fun x -> x < 500)
+            P99(fun x -> x < 400)
         ]
     ]
     |> NBomberRunner.registerScenario

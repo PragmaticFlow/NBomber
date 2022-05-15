@@ -1,9 +1,9 @@
 ﻿namespace NBomber.Contracts.Metrics
 
 type RequestCountThreshold =
-    | AllCount of (float -> bool)
-    | OkCount of (float -> bool)
-    | FailedCount of (float -> bool)
+    | AllCount of (int -> bool)
+    | OkCount of (int -> bool)
+    | FailedCount of (int -> bool)
     | FailedRate of (float -> bool)
     | RPS of (float -> bool)
 

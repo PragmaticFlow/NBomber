@@ -7,6 +7,7 @@ open HdrHistogram
 open FSharp.UMX
 
 open NBomber
+open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -162,14 +163,68 @@ module MetricStats =
                 | Passed -> false
                 | Failed -> true
             )
-
         match stats with
         | RequestCountStats stats -> stats |> failed
         | LatencyStats stats -> stats |> failed
         | LatencyPercentileStats stats -> stats |> failed
 
-    let applyMetricThresholds metric stepStats =
-        Array.empty<MetricStats>
+    let applyRequestCountThresholds stepStats thresholds =
+        let sum by = stepStats |> Array.sumBy by
+        let okCount = sum (fun x -> x.Ok.Request.Count)
+        let failedCount = sum (fun x -> x.Fail.Request.Count)
+        let allCount = okCount + failedCount
+        let rps f =
+            (true, stepStats)
+            ||> Array.fold (fun status stats ->
+                status
+                && (f stats.Ok.Request.RPS || stats.Ok.Request.Count = 0)
+                && (f stats.Fail.Request.RPS || stats.Fail.Request.Count = 0)
+            )
+        let applyThreshold threshold =
+            match threshold with
+            | AllCount f -> f allCount
+            | OkCount f -> f okCount
+            | FailedCount f -> f failedCount
+            | FailedRate f -> f (float failedCount * 100. / float allCount)
+            | RPS f -> rps f
+            |> ThresholdStatus.map
+        thresholds
+        |> (List.map (fun threshold -> threshold, applyThreshold threshold))
+        |> RequestCountStats
+
+    let applyLatencyThresholds (stepStats: StepStats[]) (thresholds: LatencyThreshold list) : MetricStats =
+        let applyThreshold threshold =
+            match threshold with
+            | Min f ->
+                threshold, Passed
+            | Mean f ->
+                threshold, Passed
+            | Max f ->
+                threshold, Passed
+            | StdDev f ->
+                threshold, Passed
+
+        thresholds |> (List.map applyThreshold) |> LatencyStats
+
+    let applyLatencyPercentileThresholds (stepStats: StepStats[]) (thresholds: LatencyPercentileThreshold list) : MetricStats =
+        let applyThreshold threshold =
+            match threshold with
+            | P50 f ->
+                threshold, Passed
+            | P75 f ->
+                threshold, Passed
+            | P95 f ->
+                threshold, Passed
+            | P99 f ->
+                threshold, Passed
+
+        thresholds |> (List.map applyThreshold) |> LatencyPercentileStats
+
+    let applyMetricThresholds (stepStats: StepStats[]) (metric: Metric) : MetricStats =
+        match metric with
+        | RequestCount thresholds -> applyRequestCountThresholds stepStats thresholds
+        | Latency thresholds -> applyLatencyThresholds stepStats thresholds
+        | LatencyPercentile thresholds -> applyLatencyPercentileThresholds stepStats thresholds
 
 module ScenarioStats =
 
@@ -204,7 +259,13 @@ module ScenarioStats =
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
         let statusCodes = StatusCodeStats.merge(okCodes |> Array.append(failCodes))
 
-        let metricStats = scenario.Thresholds |> Option.map (MetricStats.applyMetricThresholds stepStats)
+        let metricStats =
+            scenario.Thresholds
+            |> Option.map (
+                MetricStats.applyMetricThresholds stepStats
+                |> List.map
+                >> Array.ofList
+            )
 
         { ScenarioName = scenario.ScenarioName
           RequestCount = okCount + failCount

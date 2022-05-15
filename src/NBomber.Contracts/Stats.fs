@@ -115,6 +115,9 @@ type LoadSimulationStats = {
 type ThresholdStatus =
     | Passed
     | Failed
+with
+    static member map value =
+        if value then Passed else Failed
 
 type MetricStats =
     | RequestCountStats of (RequestCountThreshold * ThresholdStatus) list
