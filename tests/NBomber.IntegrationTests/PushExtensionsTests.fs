@@ -11,7 +11,7 @@ open NBomber.Extensions.Push
 
 [<Fact>]
 let ``PushResponseQueue ReceiveResponse should return always a new task`` () =
-    use responseQueue = new PushResponseQueue()
+    use responseQueue = new PushResponseQueue<_>()
 
     responseQueue.InitQueueForClient("id")
     responseQueue.InitQueueForClient("new_id")
@@ -28,7 +28,7 @@ let ``PushResponseQueue should handle waiting on response correctly`` () =
     let clientId = "clientId"
     let payload = "payload"
 
-    use responseQueue = new PushResponseQueue()
+    use responseQueue = new PushResponseQueue<string>()
     responseQueue.InitQueueForClient(clientId)
 
     let task = responseQueue.ReceiveResponse(clientId)
@@ -44,7 +44,7 @@ let ``PushResponseQueue should handle waiting on response correctly`` () =
 let ``PushResponseQueue should queue responses (in order) if no client is found`` () =
     let clientId = "clientId"
 
-    use responseQueue = new PushResponseQueue()
+    use responseQueue = new PushResponseQueue<int>()
     responseQueue.InitQueueForClient(clientId)
 
     // register the time when requests were sent
@@ -71,7 +71,7 @@ let ``PushResponseQueue should queue responses (in order) if no client is found`
 [<Fact>]
 let ``PushResponseQueue should handle concurrency without deadlocks`` () =
 
-    use responseQueue = new PushResponseQueue()
+    use responseQueue = new PushResponseQueue<string>()
 
     // we create only 5 clients
     [0..4]

@@ -9,9 +9,9 @@ open System.Threading.Tasks.Dataflow
 
 open NBomber.Extensions.Internal
 
-type PushResponse = {
+type PushResponse<'T> = {
     ClientId: string
-    Payload: obj
+    Payload: 'T
     ReceivedTime: DateTime
 }
 
@@ -26,25 +26,25 @@ type internal CurrentTime() =
 
     member _.UtcNow = _initTime + _timer.Elapsed
 
-type internal ActorMessage =
+type internal ActorMessage<'T> =
     | InitQueueForClient of awaiterTsc:TaskCompletionSource<unit> * ClientId
-    | ReceivedPushResponse of PushResponse
-    | SubscribeOnResponse of awaiterTsc:TaskCompletionSource<PushResponse> * ClientId
+    | ReceivedPushResponse of PushResponse<'T>
+    | SubscribeOnResponse of awaiterTsc:TaskCompletionSource<PushResponse<'T>> * ClientId
     | ClearQueue of awaiterTsc:TaskCompletionSource<unit>
 
-type internal ActorState =
-    { Clients: Dictionary<ClientId, TaskCompletionSource<PushResponse> option>
-      ClientResponses: Dictionary<ClientId, Queue<PushResponse>> }
+type internal ActorState<'T> =
+    { Clients: Dictionary<ClientId, TaskCompletionSource<PushResponse<'T>> option>
+      ClientResponses: Dictionary<ClientId, Queue<PushResponse<'T>>> }
 
     static member init () =
-        { Clients = Dictionary<ClientId, TaskCompletionSource<PushResponse> option>()
-          ClientResponses = Dictionary<ClientId, Queue<PushResponse>>() }
+        { Clients = Dictionary<ClientId, TaskCompletionSource<PushResponse<'T>> option>()
+          ClientResponses = Dictionary<ClientId, Queue<PushResponse<'T>>>() }
 
-    static member receive (state: ActorState) (msg: ActorMessage) =
+    static member receive (state: ActorState<'T>) (msg: ActorMessage<'T>) =
         match msg with
         | InitQueueForClient (awaiterTsc, clientId) ->
             state.Clients[clientId] <- None
-            state.ClientResponses[clientId] <- Queue<PushResponse>()
+            state.ClientResponses[clientId] <- Queue<PushResponse<'T>>()
             awaiterTsc.TrySetResult() |> ignore
 
         | ReceivedPushResponse pushResponse ->
@@ -77,7 +77,7 @@ type internal ActorState =
 
         state
 
-type PushResponseQueue() =
+type PushResponseQueue<'T>() =
 
     let mutable _state = ActorState.init()
     let _actor = ActionBlock(fun msg -> _state <- ActorState.receive _state msg)
@@ -91,12 +91,12 @@ type PushResponseQueue() =
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.ReceiveResponse(clientId: string) =
-        let awaiterTsc = TaskCompletionSource<PushResponse>()
+        let awaiterTsc = TaskCompletionSource<PushResponse<'T>>()
         _actor.Post(SubscribeOnResponse(awaiterTsc, clientId)) |> ignore
         awaiterTsc.Task
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    member _.AddResponse(clientId: string, payload: obj) =
+    member _.AddResponse(clientId: string, payload: 'T) =
         let pushResponse = { ClientId = clientId; Payload = payload; ReceivedTime = _currentTime.UtcNow }
         _actor.Post(ReceivedPushResponse pushResponse) |> ignore
 
