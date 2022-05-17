@@ -6,7 +6,7 @@ open System.Data
 open Newtonsoft.Json
 open Newtonsoft.Json.Converters
 
-open NBomber.Contracts.Metrics
+open NBomber.Contracts.Thresholds
 
 type ReportFormat =
     | Txt = 0
@@ -119,7 +119,7 @@ with
     static member map value =
         if value then Passed else Failed
 
-type MetricStats =
+type ThresholdStats =
     | RequestCountStats of (RequestCountThreshold * ThresholdStatus) list
     | LatencyStats of (LatencyThreshold * ThresholdStatus) list
     | LatencyPercentileStats of (LatencyPercentileThreshold * ThresholdStatus) list
@@ -136,7 +136,7 @@ type ScenarioStats = {
     StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
-    MetricStats: MetricStats[] option
+    ThresholdStats: ThresholdStats[] option
 } with
 
     member this.GetStepStats(stepName: string) = ScenarioStats.getStepStats stepName this

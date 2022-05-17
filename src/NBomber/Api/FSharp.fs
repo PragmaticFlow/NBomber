@@ -13,9 +13,9 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Metrics
-open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
+open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
@@ -228,7 +228,7 @@ module Scenario =
     let withCustomStepExecControl (execControl: IStepExecControlContext voption -> string voption) (scenario: Contracts.Scenario) =
         { scenario with CustomStepExecControl = Some execControl }
 
-    let withThresholds (thresholds: Metric list) (scenario: Contracts.Scenario) =
+    let withThresholds (thresholds: Threshold list) (scenario: Contracts.Scenario) =
         { scenario with Thresholds = Some thresholds }
 
 /// NBomberRunner is responsible for registering and running scenarios.

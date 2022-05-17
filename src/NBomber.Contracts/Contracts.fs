@@ -10,8 +10,8 @@ open System.Threading.Tasks
 open Serilog
 open Microsoft.Extensions.Configuration
 
-open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 
 type Response = {
     StatusCode: Nullable<int>
@@ -141,7 +141,7 @@ type Scenario = {
     LoadSimulations: LoadSimulation list
     CustomStepOrder: (unit -> string[]) option
     CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
-    Thresholds: Metric list option
+    Thresholds: Threshold list option
 }
 
 type IReportingSink =

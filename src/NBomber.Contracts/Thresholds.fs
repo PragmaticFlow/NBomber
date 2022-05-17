@@ -1,4 +1,4 @@
-﻿namespace NBomber.Contracts.Metrics
+﻿namespace NBomber.Contracts.Thresholds
 
 type RequestCountThreshold =
     | AllCount of (int -> bool)
@@ -19,7 +19,7 @@ type LatencyPercentileThreshold =
     | P95 of (float -> bool)
     | P99 of (float -> bool)
 
-type Metric =
+type Threshold =
     | RequestCount of RequestCountThreshold list
     | Latency of LatencyThreshold list
     | LatencyPercentile of LatencyPercentileThreshold list

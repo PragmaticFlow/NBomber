@@ -11,8 +11,8 @@ open Serilog
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 
 /// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
 type ClientFactory =
@@ -211,7 +211,7 @@ type ScenarioBuilder =
         scenario |> FSharp.Scenario.withCustomStepExecControl(execControl.Invoke)
 
     [<Extension>]
-    static member WithThresholds(scenario: Scenario, [<ParamArray>]thresholds: Metric[]) =
+    static member WithThresholds(scenario: Scenario, [<ParamArray>]thresholds: Threshold[]) =
         scenario |> FSharp.Scenario.withThresholds(Seq.toList thresholds)
 
 [<Extension>]
@@ -357,7 +357,7 @@ type ValueOption =
     static member Some(value: 'T) = ValueSome value
     static member None() = ValueNone
 
-type Metric =
+type Threshold =
 
     static member RequestCount([<ParamArray>]thresholds: RequestCountThreshold[]) =
         RequestCount(Seq.toList thresholds)
@@ -367,8 +367,6 @@ type Metric =
 
     static member LatencyPercentile([<ParamArray>]thresholds: LatencyPercentileThreshold[]) =
         LatencyPercentile(Seq.toList thresholds)
-
-type Threshold =
 
     static member AllCount(predicate: Func<float, bool>) =
         AllCount(predicate.Invoke)

@@ -276,7 +276,7 @@ module NodeStatsTests =
           StatusCodes = Array.empty
           CurrentOperation = OperationType.Complete
           Duration = TimeSpan.Zero
-          MetricStats = None
+          ThresholdStats = None
     }
 
     [<Property>]

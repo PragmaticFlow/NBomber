@@ -6,11 +6,11 @@ open System.Threading
 open System.Threading.Tasks
 
 open HdrHistogram
-open NBomber.Contracts.Metrics
 open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 
@@ -103,5 +103,5 @@ type Scenario = {
     CustomStepOrder: (unit -> string[]) option
     CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
     IsEnabled: bool // used for stats in the cluster mode
-    Thresholds: Metric list option
+    Thresholds: Threshold list option
 }

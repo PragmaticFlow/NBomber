@@ -7,8 +7,8 @@ open HdrHistogram
 open FSharp.UMX
 
 open NBomber
-open NBomber.Contracts.Metrics
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
@@ -152,7 +152,7 @@ module StepStats =
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
 
-module MetricStats =
+module ThresholdStats =
 
     let private applySepsStats stats f =
         (true, stats)
@@ -208,8 +208,8 @@ module MetricStats =
             threshold, status)
         |> LatencyPercentileStats
 
-    let applyMetricThresholds stepStats metric =
-        match metric with
+    let applyThresholds stepStats threshold =
+        match threshold with
         | RequestCount thresholds -> applyRequestCountThresholds stepStats thresholds
         | Latency thresholds -> applyLatencyThresholds stepStats thresholds
         | LatencyPercentile thresholds -> applyLatencyPercentileThresholds stepStats thresholds
@@ -261,10 +261,10 @@ module ScenarioStats =
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
         let statusCodes = StatusCodeStats.merge(okCodes |> Array.append(failCodes))
 
-        let metricStats =
+        let thresholdStats =
             scenario.Thresholds
             |> Option.map (
-                MetricStats.applyMetricThresholds stepStats
+                ThresholdStats.applyThresholds stepStats
                 |> List.map
                 >> Array.ofList
             )
@@ -280,15 +280,15 @@ module ScenarioStats =
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
           Duration = duration
-          MetricStats = metricStats }
+          ThresholdStats = thresholdStats }
 
     let round (stats: ScenarioStats) =
         { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
     let failStepStatsExist (stats: ScenarioStats) =
-        stats.MetricStats
-        |> Option.map (Array.exists MetricStats.failStatsExist)
+        stats.ThresholdStats
+        |> Option.map (Array.exists ThresholdStats.failStatsExist)
         |> Option.defaultValue (stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0))
 
 module NodeStats =

@@ -3,7 +3,7 @@ module FSharpDev.HttpTests.SimpleHttpTest
 open System.Net.Http
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Metrics
+open NBomber.Contracts.Thresholds
 open NBomber.FSharp
 
 let run () =

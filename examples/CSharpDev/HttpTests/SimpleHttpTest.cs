@@ -28,20 +28,20 @@ namespace CSharpDev.HttpTests
                     Simulation.InjectPerSec(rate: 1, during: TimeSpan.FromSeconds(30))
                 )
                 .WithThresholds(
-                    Metric.RequestCount(
+                    Threshold.RequestCount(
                         Threshold.AllCount(x => x > 200),
                         Threshold.OkCount(x => x > 190),
                         Threshold.FailedCount(x => x <= 10),
                         Threshold.FailedRate(x => x < 0.1),
                         Threshold.RPS(GetRpsConfig)
                     ),
-                    Metric.Latency(
+                    Threshold.Latency(
                         Threshold.Min(x => x < 100),
                         Threshold.Mean(x => x < 400),
                         Threshold.Max(x => x < 500),
                         Threshold.StdDev(x => x is > 100 and < 200)
                     ),
-                    Metric.LatencyPercentile(
+                    Threshold.LatencyPercentile(
                         Threshold.P50(x => x < 300),
                         Threshold.P75(x => x < 320),
                         Threshold.P95(x => x < 400),
