@@ -119,10 +119,10 @@ with
     static member map value =
         if value then Passed else Failed
 
-type ThresholdStats =
-    | RequestCountStats of (RequestCountThreshold * ThresholdStatus) list
-    | LatencyStats of (LatencyThreshold * ThresholdStatus) list
-    | LatencyPercentileStats of (LatencyPercentileThreshold * ThresholdStatus) list
+type ThresholdStats = {
+    Threshold: Threshold
+    Status: ThresholdStatus
+}
 
 type ScenarioStats = {
     ScenarioName: string

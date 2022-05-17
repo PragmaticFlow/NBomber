@@ -25,25 +25,19 @@ let run () =
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [ InjectPerSec(rate = 20, during = seconds 30) ]
     |> Scenario.withThresholds [
-        RequestCount [
-            AllCount(fun x -> x > 290)
-            OkCount(fun x -> x > 180)
-            FailedCount(fun x -> x <= 10)
-            FailedRate(fun x -> x < 0.1)
-            RPS(fun x -> x > 15.0)
-        ]
-        Latency [
-            Min(fun x -> x < 100)
-            Mean(fun x -> x < 200)
-            Max(fun x -> x < 700)
-            StdDev(fun x -> x > 50 && x < 100)
-        ]
-        LatencyPercentile [
-            P50(fun x -> x < 200)
-            P75(fun x -> x < 250)
-            P95(fun x -> x < 400)
-            P99(fun x -> x < 400)
-        ]
+        RequestAllCount(fun x -> x > 290)
+        RequestOkCount(fun x -> x > 180)
+        RequestFailedCount(fun x -> x <= 10)
+        RequestFailedRate(fun x -> x < 0.1)
+        RPS(fun x -> x > 15.0)
+        LatencyMin(fun x -> x < 100)
+        LatencyMean(fun x -> x < 200)
+        LatencyMax(fun x -> x < 700)
+        LatencyStdDev(fun x -> x > 50 && x < 100)
+        LatencyP50(fun x -> x < 200)
+        LatencyP75(fun x -> x < 250)
+        LatencyP95(fun x -> x < 400)
+        LatencyP99(fun x -> x < 400)
     ]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.run

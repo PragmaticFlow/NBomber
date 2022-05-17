@@ -359,50 +359,41 @@ type ValueOption =
 
 type Threshold =
 
-    static member RequestCount([<ParamArray>]thresholds: RequestCountThreshold[]) =
-        RequestCount(Seq.toList thresholds)
+    static member RequestAllCount(predicate: Func<float, bool>) =
+        RequestAllCount(predicate.Invoke)
 
-    static member Latency([<ParamArray>]thresholds: LatencyThreshold[]) =
-        Latency(Seq.toList thresholds)
+    static member RequestOkCount(predicate: Func<float, bool>) =
+        RequestOkCount(predicate.Invoke)
 
-    static member LatencyPercentile([<ParamArray>]thresholds: LatencyPercentileThreshold[]) =
-        LatencyPercentile(Seq.toList thresholds)
+    static member RequestFailedCount(predicate: Func<float, bool>) =
+        RequestFailedCount(predicate.Invoke)
 
-    static member AllCount(predicate: Func<float, bool>) =
-        AllCount(predicate.Invoke)
-
-    static member OkCount(predicate: Func<float, bool>) =
-        OkCount(predicate.Invoke)
-
-    static member FailedCount(predicate: Func<float, bool>) =
-        FailedCount(predicate.Invoke)
-
-    static member FailedRate(predicate: Func<float, bool>) =
-        FailedRate(predicate.Invoke)
+    static member RequestFailedRate(predicate: Func<float, bool>) =
+        RequestFailedRate(predicate.Invoke)
 
     static member RPS(predicate: Func<float, bool>) =
         RPS(predicate.Invoke)
 
-    static member Min(predicate: Func<float, bool>) =
-        Min(predicate.Invoke)
+    static member LatencyMin(predicate: Func<float, bool>) =
+        LatencyMin(predicate.Invoke)
 
-    static member Mean(predicate: Func<float, bool>) =
-        Mean(predicate.Invoke)
+    static member LatencyMean(predicate: Func<float, bool>) =
+        LatencyMean(predicate.Invoke)
 
-    static member Max(predicate: Func<float, bool>) =
-        Max(predicate.Invoke)
+    static member LatencyMax(predicate: Func<float, bool>) =
+        LatencyMax(predicate.Invoke)
 
-    static member StdDev(predicate: Func<float, bool>) =
-        StdDev(predicate.Invoke)
+    static member LatencyStdDev(predicate: Func<float, bool>) =
+        LatencyStdDev(predicate.Invoke)
 
-    static member P50(predicate: Func<float, bool>) =
-        P50(predicate.Invoke)
+    static member LatencyP50(predicate: Func<float, bool>) =
+        LatencyP50(predicate.Invoke)
 
-    static member P75(predicate: Func<float, bool>) =
-        P75(predicate.Invoke)
+    static member LatencyP75(predicate: Func<float, bool>) =
+        LatencyP75(predicate.Invoke)
 
-    static member P95(predicate: Func<float, bool>) =
-        P95(predicate.Invoke)
+    static member LatencyP95(predicate: Func<float, bool>) =
+        LatencyP95(predicate.Invoke)
 
-    static member P99(predicate: Func<float, bool>) =
-        P99(predicate.Invoke)
+    static member LatencyP99(predicate: Func<float, bool>) =
+        LatencyP99(predicate.Invoke)

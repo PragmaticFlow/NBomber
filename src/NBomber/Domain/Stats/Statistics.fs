@@ -162,7 +162,7 @@ module ThresholdStats =
             && (f stats.Fail || stats.Fail.Request.Count = 0)
         )
 
-    let private applyRequestCountThresholds stepStats thresholds =
+    let applyThresholds stepStats thresholds =
         let sum by = stepStats |> Array.sumBy by
         let okCount = sum (fun x -> x.Ok.Request.Count)
         let failedCount = sum (fun x -> x.Fail.Request.Count)
@@ -171,62 +171,31 @@ module ThresholdStats =
         |> List.map (fun threshold ->
             let status =
                 match threshold with
-                | AllCount f -> f allCount
-                | OkCount f -> f okCount
-                | FailedCount f -> f failedCount
-                | FailedRate f -> f (float failedCount * 100. / float allCount)
+                | RequestAllCount f -> f allCount
+                | RequestOkCount f -> f okCount
+                | RequestFailedCount f -> f failedCount
+                | RequestFailedRate f -> f (float failedCount * 100. / float allCount)
                 | RPS f -> applySepsStats stepStats (fun s -> f s.Request.RPS)
+                | LatencyMin f -> applySepsStats stepStats (fun s -> f s.Latency.MinMs)
+                | LatencyMean f -> applySepsStats stepStats (fun s -> f s.Latency.MeanMs)
+                | LatencyMax f -> applySepsStats stepStats (fun s -> f s.Latency.MaxMs)
+                | LatencyStdDev f -> applySepsStats stepStats (fun s -> f s.Latency.StdDev)
+                | LatencyP50 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
+                | LatencyP75 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
+                | LatencyP95 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
+                | LatencyP99 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
                 |> ThresholdStatus.map
-            threshold, status)
-        |> RequestCountStats
 
-    let private applyLatencyThresholds stepStats thresholds =
-        thresholds
-        |> List.map (fun threshold ->
-            let status =
-                match threshold with
-                | Min f -> (fun s -> f s.Latency.MinMs)
-                | Mean f -> (fun s -> f s.Latency.MeanMs)
-                | Max f -> (fun s -> f s.Latency.MaxMs)
-                | StdDev f -> (fun s -> f s.Latency.StdDev)
-                |> applySepsStats stepStats
-                |> ThresholdStatus.map
-            threshold, status)
-        |> LatencyStats
-
-    let private applyLatencyPercentileThresholds stepStats thresholds =
-        thresholds
-        |> List.map (fun threshold ->
-            let status =
-                match threshold with
-                | P50 f -> (fun s -> f s.Latency.Percent50)
-                | P75 f -> (fun s -> f s.Latency.Percent75)
-                | P95 f -> (fun s -> f s.Latency.Percent95)
-                | P99 f -> (fun s -> f s.Latency.Percent99)
-                |> applySepsStats stepStats
-                |> ThresholdStatus.map
-            threshold, status)
-        |> LatencyPercentileStats
-
-    let applyThresholds stepStats threshold =
-        match threshold with
-        | RequestCount thresholds -> applyRequestCountThresholds stepStats thresholds
-        | Latency thresholds -> applyLatencyThresholds stepStats thresholds
-        | LatencyPercentile thresholds -> applyLatencyPercentileThresholds stepStats thresholds
+            { Threshold = threshold; Status = status }
+        )
 
     let failStatsExist stats =
-        let failed stats =
-            stats
-            |> List.map snd
-            |> List.exists (fun status ->
-                match status with
-                | Passed -> false
-                | Failed -> true
-            )
-        match stats with
-        | RequestCountStats stats -> stats |> failed
-        | LatencyStats stats -> stats |> failed
-        | LatencyPercentileStats stats -> stats |> failed
+        stats
+        |> Array.exists (fun stats ->
+            match stats.Status with
+            | Passed -> false
+            | Failed -> true
+        )
 
 module ScenarioStats =
 
@@ -264,9 +233,7 @@ module ScenarioStats =
         let thresholdStats =
             scenario.Thresholds
             |> Option.map (
-                ThresholdStats.applyThresholds stepStats
-                |> List.map
-                >> Array.ofList
+                ThresholdStats.applyThresholds stepStats >> Array.ofList
             )
 
         { ScenarioName = scenario.ScenarioName
@@ -288,7 +255,7 @@ module ScenarioStats =
 
     let failStepStatsExist (stats: ScenarioStats) =
         stats.ThresholdStats
-        |> Option.map (Array.exists ThresholdStats.failStatsExist)
+        |> Option.map ThresholdStats.failStatsExist
         |> Option.defaultValue (stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0))
 
 module NodeStats =
