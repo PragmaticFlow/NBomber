@@ -152,7 +152,7 @@ module StepStats =
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
 
-module ThresholdStats =
+module private ThresholdStats =
 
     let private applySepsStats stats f =
         (true, stats)
@@ -180,21 +180,22 @@ module ThresholdStats =
                 | LatencyMean f -> applySepsStats stepStats (fun s -> f s.Latency.MeanMs)
                 | LatencyMax f -> applySepsStats stepStats (fun s -> f s.Latency.MaxMs)
                 | LatencyStdDev f -> applySepsStats stepStats (fun s -> f s.Latency.StdDev)
-                | LatencyP50 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
-                | LatencyP75 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
-                | LatencyP95 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
-                | LatencyP99 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
+                | LatencyPercent50 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
+                | LatencyPercent75 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
+                | LatencyPercent95 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
+                | LatencyPercent99 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
+                | DataTransferMinBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MinBytes)
+                | DataTransferMeanBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MeanBytes)
+                | DataTransferMaxBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MaxBytes)
+                | DataTransferPercent50 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent50)
+                | DataTransferPercent75 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent75)
+                | DataTransferPercent95 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent95)
+                | DataTransferPercent99 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent99)
+                | DataTransferStdDev f -> applySepsStats stepStats (fun s -> f s.DataTransfer.StdDev)
+                | DataTransferAllBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.AllBytes)
                 |> ThresholdStatus.map
 
             { Threshold = threshold; Status = status }
-        )
-
-    let failStatsExist stats =
-        stats
-        |> Array.exists (fun stats ->
-            match stats.Status with
-            | Passed -> false
-            | Failed -> true
         )
 
 module ScenarioStats =
@@ -254,9 +255,18 @@ module ScenarioStats =
                      Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
 
     let failStepStatsExist (stats: ScenarioStats) =
+        stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
+
+    let failThresholdStatsExist stats =
         stats.ThresholdStats
-        |> Option.map ThresholdStats.failStatsExist
-        |> Option.defaultValue (stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0))
+        |> Option.map (
+            Array.exists (fun stats ->
+                match stats.Status with
+                | Passed -> false
+                | Failed -> true
+            )
+        )
+        |> Option.defaultValue false
 
 module NodeStats =
 

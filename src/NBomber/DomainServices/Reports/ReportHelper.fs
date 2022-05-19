@@ -123,3 +123,32 @@ module StatusCodesStats =
 
         // all status codes
         okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+
+module ThresholdStats =
+
+    let createTableRows (okColor: obj -> string)
+                        (errorColor: obj -> string)
+                        (thresholdStats: ThresholdStats[]) =
+
+        let createThresholdRows f thresholdStats =
+            thresholdStats
+            |> Seq.choose f
+            |> Seq.toList
+
+        let okThresholds =
+            thresholdStats
+            |> createThresholdRows(fun x ->
+                match x.Status with
+                | Passed -> Some [$"{x.Threshold}"; okColor "passed"]
+                | Failed -> None
+            )
+
+        let failThresholds =
+            thresholdStats
+            |> createThresholdRows(fun x ->
+                match x.Status with
+                | Failed -> Some [$"{x.Threshold}"; errorColor "failed"]
+                | Passed -> None
+            )
+
+        okThresholds @ failThresholds

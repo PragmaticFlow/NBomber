@@ -37,10 +37,11 @@ namespace CSharpDev.HttpTests
                     Threshold.LatencyMean(x => x < 400),
                     Threshold.LatencyMax(x => x < 500),
                     Threshold.LatencyStdDev(x => x is > 100 and < 200),
-                    Threshold.LatencyP50(x => x < 300),
-                    Threshold.LatencyP75(x => x < 320),
-                    Threshold.LatencyP95(x => x < 400),
-                    Threshold.LatencyP99(x => x < 500)
+                    Threshold.LatencyPercent50(x => x < 300),
+                    Threshold.LatencyPercent75(x => x < 320),
+                    Threshold.LatencyPercent95(x => x < 400),
+                    Threshold.LatencyPercent99(x => x < 500),
+                    Threshold.DataTransferAllBytes(x => x < 10000)
                 );
 
             NBomberRunner

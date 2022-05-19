@@ -386,14 +386,41 @@ type Threshold =
     static member LatencyStdDev(predicate: Func<float, bool>) =
         LatencyStdDev(predicate.Invoke)
 
-    static member LatencyP50(predicate: Func<float, bool>) =
-        LatencyP50(predicate.Invoke)
+    static member LatencyPercent50(predicate: Func<float, bool>) =
+        LatencyPercent50(predicate.Invoke)
 
-    static member LatencyP75(predicate: Func<float, bool>) =
-        LatencyP75(predicate.Invoke)
+    static member LatencyPercent75(predicate: Func<float, bool>) =
+        LatencyPercent75(predicate.Invoke)
 
-    static member LatencyP95(predicate: Func<float, bool>) =
-        LatencyP95(predicate.Invoke)
+    static member LatencyPercent95(predicate: Func<float, bool>) =
+        LatencyPercent95(predicate.Invoke)
 
-    static member LatencyP99(predicate: Func<float, bool>) =
-        LatencyP99(predicate.Invoke)
+    static member LatencyPercent99(predicate: Func<float, bool>) =
+        LatencyPercent99(predicate.Invoke)
+
+    static member DataTransferMinBytes(predicate: Func<int, bool>) =
+        DataTransferMinBytes(predicate.Invoke)
+
+    static member DataTransferMeanBytes(predicate: Func<int, bool>) =
+        DataTransferMeanBytes(predicate.Invoke)
+
+    static member DataTransferMaxBytes(predicate: Func<int, bool>) =
+        DataTransferMaxBytes(predicate.Invoke)
+
+    static member DataTransferPercent50(predicate: Func<int, bool>) =
+        DataTransferPercent50(predicate.Invoke)
+
+    static member DataTransferPercent75(predicate: Func<int, bool>) =
+        DataTransferPercent75(predicate.Invoke)
+
+    static member DataTransferPercent95(predicate: Func<int, bool>) =
+        DataTransferPercent95(predicate.Invoke)
+
+    static member DataTransferPercent99(predicate: Func<int, bool>) =
+        DataTransferPercent99(predicate.Invoke)
+
+    static member DataTransferStdDev(predicate: Func<float, bool>) =
+        DataTransferStdDev(predicate.Invoke)
+
+    static member DataTransferAllBytes(predicate: Func<int64, bool>) =
+        DataTransferAllBytes(predicate.Invoke)

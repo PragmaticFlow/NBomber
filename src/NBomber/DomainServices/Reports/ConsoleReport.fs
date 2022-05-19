@@ -4,11 +4,11 @@ open System
 open System.Collections.Generic
 open System.Data
 
+open NBomber.Domain.Stats.Statistics
 open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
 open NBomber.Infra
@@ -51,7 +51,7 @@ module ConsoleNodeStats =
           Console.addLine $"  - duration: {Console.okEscColor scnStats.Duration}" ]
 
     let private printStepStatsHeader (stepStats: StepStats[]) =
-        let print (stats) = seq {
+        let print stats = seq {
             $"step: {Console.blueEscColor stats.StepName}"
             $"  - timeout: {Console.okEscColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
             $"  - client factory: {Console.okEscColor stats.StepInfo.ClientFactoryName}, clients: {Console.okEscColor stats.StepInfo.ClientFactoryClientCount}"
@@ -70,6 +70,16 @@ module ConsoleNodeStats =
         [ ConsoleStatusCodesStats.printScenarioHeader scnStats.ScenarioName
           ConsoleStatusCodesStats.printStatusCodeTable scnStats ]
 
+    let private printThresholdStats (scnStats: ScenarioStats) =
+        let headers = ["threshold"; "status"]
+        let rows =
+            scnStats.ThresholdStats
+            |> Option.map (ReportHelper.ThresholdStats.createTableRows Console.okEscColor Console.errorEscColor)
+            |> Option.defaultValue List.empty
+
+        [ Console.addLine $"thresholds for scenario: {Console.okColor scnStats.ScenarioName}"
+          Console.addTable headers rows ]
+
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
         [ yield! printScenarioHeader scnStats
           Console.addLine String.Empty
@@ -82,12 +92,16 @@ module ConsoleNodeStats =
 
           printStepStatsTable true scnStats.StepStats
 
-          if Statistics.ScenarioStats.failStepStatsExist scnStats then
+          if ScenarioStats.failStepStatsExist scnStats then
               printStepStatsTable false scnStats.StepStats
 
           if scnStats.StatusCodes.Length > 0 then
               Console.addLine String.Empty
-              yield! printScenarioStatusCodes scnStats ]
+              yield! printScenarioStatusCodes scnStats
+
+          if ScenarioStats.failThresholdStatsExist scnStats then
+              Console.addLine String.Empty
+              yield! printThresholdStats scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         let scenarioStats =
