@@ -29,6 +29,8 @@ type ValidationError =
     | InvalidClientFactoryName of factoryName:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
+    | EmptyThresholds of scenarioName:string
+    | DuplicateThresholdName of scenarioName:string * thresholdName:string
 
     // ScenarioSettings
     | CustomStepOrderContainsNotFoundStepName of scenarioName:string * stepName:string
@@ -127,6 +129,12 @@ type AppError =
             $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"
 
         | EnterpriseOnlyFeature message -> message
+
+        | EmptyThresholds scenarioName ->
+            $"Scenario: '{scenarioName}' has no thresholds"
+
+        | DuplicateThresholdName(scenarioName, thresholdName) ->
+            $"Scenario: '{scenarioName}' contains thresholds with duplicated name: '{thresholdName}'"
 
     static member toString (error: AppError) =
         match error with

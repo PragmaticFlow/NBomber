@@ -247,7 +247,7 @@ module ScenarioStats =
           LoadSimulationStats = simulationStats
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
-          Duration = duration
+          Duration = %duration
           ThresholdStats = thresholdStats }
 
     let round (stats: ScenarioStats) =

@@ -26,6 +26,8 @@ type Threshold =
     | DataTransferStdDev of (float -> bool)
     | DataTransferAllBytes of (int64 -> bool)
 with
-    override this.ToString () =
+    member this.Name =
         match FSharpValue.GetUnionFields(this, typeof<Threshold>) with
         | case, _ -> case.Name
+
+    override this.ToString () = this.Name
