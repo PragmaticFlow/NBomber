@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 
 open HdrHistogram
+open FSharp.UMX
 
 open NBomber
 open NBomber.Contracts.Stats
@@ -156,7 +157,7 @@ module ScenarioStats =
                (allStepsData: StepStatsRawData[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
-               (duration: TimeSpan)
+               (duration: TimeSpan<scenarioDuration>)
                (reportingInterval: TimeSpan) =
 
         let okCount = allStepsData |> Array.sumBy(fun x -> x.OkStats.RequestCount)
@@ -193,7 +194,7 @@ module ScenarioStats =
           LoadSimulationStats = simulationStats
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
-          Duration = duration }
+          Duration = %duration }
 
     let round (stats: ScenarioStats) =
         { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)

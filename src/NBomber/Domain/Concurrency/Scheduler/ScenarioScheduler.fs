@@ -134,7 +134,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     let getFinalStats () =
         let simulationStats = getCurrentSimulationStats()
-        let duration = _scenario |> Scenario.getDuration
+        let duration = Scenario.getDuration _scenario
         let reply = TaskCompletionSource<ScenarioStats>()
         dep.ScenarioStatsActor.Publish(GetFinalStats(reply, simulationStats, duration))
         reply.Task

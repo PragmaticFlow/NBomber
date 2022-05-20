@@ -5,6 +5,7 @@ open System.Runtime.CompilerServices
 open System.Threading.Tasks
 open System.Threading.Tasks.Dataflow
 
+open FSharp.UMX
 open Serilog
 
 open NBomber.Contracts.Stats
@@ -12,7 +13,6 @@ open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
-// todo: use UMX to distinguish scnDuration vs reportingInterval
 type ScenarioDuration = string
 
 type ActorMessage =
@@ -47,20 +47,22 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
             resp.ClientResponse.Message <- null
             _intervalRawStats <- resp :: _intervalRawStats
 
-    let createScenarioStats (stepsData, simulationStats, operation, duration, interval) =
-        ScenarioStats.create scenario stepsData simulationStats operation duration interval
+    let createRealtimeStats (simulationStats) (duration) (stepsData) =
+        ScenarioStats.create scenario stepsData simulationStats OperationType.Bombing %duration reportingInterval
 
-    let buildRealtimeStats (simulationStats: LoadSimulationStats) (duration: TimeSpan) =
-        let scnStats = createScenarioStats(_intervalStepsData, simulationStats, OperationType.Bombing, duration, reportingInterval)
-        _allRealtimeStats <- _allRealtimeStats.Add(duration.ToString(), scnStats)
-        _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty()) // reset interval steps data
+    let createFinalStats (simulationStats) (duration) (stepsData) =
+        ScenarioStats.create scenario stepsData simulationStats OperationType.Complete %duration duration
+
+    let addToCache (realtimeStats: ScenarioStats) =
+        _allRealtimeStats <- _allRealtimeStats.Add(realtimeStats.Duration.ToString(), realtimeStats)
+        // reset interval steps data
+        _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
         if keepRawStats then
-            let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = duration }
-            _allRawStats <- _allRawStats.Add(duration.ToString(), rawStats)
-            _intervalRawStats <- List.empty // reset interval steps data
-
-        scnStats
+            let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = realtimeStats.Duration }
+            _allRawStats <- _allRawStats.Add(realtimeStats.Duration.ToString(), rawStats)
+            // reset interval raw steps data
+            _intervalRawStats <- List.empty
 
     let _actor = ActionBlock(fun msg ->
         try
@@ -81,8 +83,9 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
                 _tempBuffer <- List.empty
 
             | BuildRealtimeStats (reply, simulationStats, duration) ->
-                let scnStats = buildRealtimeStats simulationStats duration
-                reply.TrySetResult(scnStats) |> ignore
+                let realtimeStats = _intervalStepsData |> createRealtimeStats simulationStats duration
+                addToCache realtimeStats
+                reply.TrySetResult(realtimeStats) |> ignore
 
             | GetRemainedRawStats reply ->
                 let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = TimeSpan.MaxValue }
@@ -92,8 +95,8 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
                 _allRawStats <- _allRawStats.Remove(duration.ToString())
 
             | GetFinalStats (reply, simulationStats, duration) ->
-                let scnStats = createScenarioStats(_allStepsData, simulationStats, OperationType.Complete, duration, duration)
-                reply.TrySetResult(scnStats) |> ignore
+                let finalStats = _allStepsData |> createFinalStats simulationStats duration
+                reply.TrySetResult(finalStats) |> ignore
         with
         | ex -> logger.Error $"{nameof ScenarioStatsActor} failed: {ex.ToString()}"
     )

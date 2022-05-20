@@ -5,6 +5,7 @@ open System.IO
 open System.Collections.Generic
 open System.Threading.Tasks
 
+open FSharp.UMX
 open FsCheck.Xunit
 open HdrHistogram
 open Xunit
@@ -92,7 +93,7 @@ module ScenarioStatsTests =
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.RequestCount = okCount + failCount @>
@@ -112,7 +113,7 @@ module ScenarioStatsTests =
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.AllBytes = okAllBytes + failAllBytes @>
@@ -131,7 +132,7 @@ module ScenarioStatsTests =
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.OkCount = okCount1 + okCount2 @>
@@ -150,7 +151,7 @@ module ScenarioStatsTests =
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.FailCount = failCount1 + failCount2 @>
@@ -182,7 +183,7 @@ module ScenarioStatsTests =
                 [| stepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.LatencyCount.LessOrEq800 = less800 * 2 @>
@@ -201,7 +202,7 @@ module ScenarioStatsTests =
                 [| baseStepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         test <@ scenarioStats.StepStats.Length = 0 @>
@@ -218,7 +219,7 @@ module ScenarioStatsTests =
                 [| baseStepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         let stepStats = scenarioStats.StepStats[0]
@@ -235,7 +236,7 @@ module ScenarioStatsTests =
                 [| baseStepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (seconds 1)
+                (UMX.tag (seconds 1))
                 (seconds 1)
 
         let stepStats = scenarioStats.StepStats[0]
