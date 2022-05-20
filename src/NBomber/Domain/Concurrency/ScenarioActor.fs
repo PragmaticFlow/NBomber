@@ -19,7 +19,7 @@ type ActorDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     Scenario: Scenario
-    ScenarioStatsActor: IScenarioStatsActor
+    ScenarioStatsActor: ScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
     GetStepOrder: Scenario -> int[]
     ExecSteps: StepDep -> RunningStep[] -> int[] -> Task<unit> // stepDep steps stepsOrder

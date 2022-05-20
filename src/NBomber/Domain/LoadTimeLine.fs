@@ -57,19 +57,16 @@ module Validation =
 
 module TimeLineHistory =
 
-    let filterRealtime (history: TimeLineHistoryRecord list) =
-
-        let filterBombing (history: TimeLineHistoryRecord list) =
-            history
-            |> List.filter(fun x -> x.ScenarioStats |> Array.exists(fun x -> x.CurrentOperation = OperationType.Bombing))
-
-        history
-        |> List.sortBy(fun x -> x.Duration)
-        |> List.groupBy(fun x -> x.Duration)
-        |> List.collect(fun (duration,history) ->
-            if history.Length > 1 then history |> filterBombing
-            else history
+    let create (schedulersRealtimeStats: Map<string,ScenarioStats> seq) =
+        schedulersRealtimeStats
+        |> Seq.collect(fun stats -> stats |> Map.toList)
+        |> Seq.groupBy(fun (duration, _) -> duration)
+        |> Seq.map(fun (duration, stats) ->
+            let data = stats |> Seq.map snd |> Seq.toArray
+            { ScenarioStats = data; Duration = TimeSpan.Parse duration }
         )
+        |> Seq.sortBy(fun x -> x.Duration)
+        |> Seq.toArray
 
 module TimeLineHistoryRecord =
 

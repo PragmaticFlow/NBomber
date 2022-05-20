@@ -22,13 +22,12 @@ let init (dep: IGlobalDependency) (context: IBaseContext) (plugins: IWorkerPlugi
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let start (logger: ILogger) (plugins: IWorkerPlugin list) = backgroundTask {
+let start (logger: ILogger) (plugins: IWorkerPlugin list) =
     for plugin in plugins do
         try
             plugin.Start() |> ignore
         with
         | ex -> logger.Warning(ex, "Failed to start plugin: {PluginName}", plugin.PluginName)
-}
 
 //todo: add Polly for timout and retry logic, using cancel token
 let stop (logger: ILogger) (plugins: IWorkerPlugin list) = backgroundTask {

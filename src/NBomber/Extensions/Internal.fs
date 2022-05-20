@@ -73,6 +73,14 @@ module internal Internal =
             if not(isNull boxed) then Some value
             else None
 
+        let sequence (data: 'T option list) =
+            let folder (item: 'T option) (state: ('T list) option) =
+                match item, state with
+                | Some v, Some list -> Some(v :: list)
+                | _, _              -> None
+
+            List.foldBack folder data (Some [])
+
     module String =
 
         let replace (oldValue: string, newValue: string) (str: string) =

@@ -71,6 +71,6 @@ type StepResponse = {
 
 type ScenarioRawStats = {
     ScenarioName: string
-    Data: StepResponse list
-    Timestamp: TimeSpan
+    StepResponses: StepResponse list
+    Duration: TimeSpan
 }

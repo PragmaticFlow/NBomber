@@ -19,13 +19,12 @@ let init (dep: IGlobalDependency) (context: IBaseContext) (sinks: IReportingSink
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let start (logger: ILogger) (sinks: IReportingSink list) = backgroundTask {
+let start (logger: ILogger) (sinks: IReportingSink list) =
     for sink in sinks do
         try
             sink.Start() |> ignore
         with
         | ex -> logger.Warning(ex, "Failed to start reporting sink: {SinkName}", sink.SinkName)
-}
 
 //todo: add Polly for timout and retry logic, using cancel token
 let stop (logger: ILogger) (sinks: IReportingSink list) = backgroundTask {

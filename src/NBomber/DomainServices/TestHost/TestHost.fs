@@ -11,6 +11,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -57,7 +58,7 @@ type internal TestHost(dep: IGlobalDependency,
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
                                  (getScenarioClusterCount: ScenarioName -> int)
-                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor)
+                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor)
                                  (getStepOrder: Scenario -> int[])
                                  (execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) =
 
@@ -119,8 +120,8 @@ type internal TestHost(dep: IGlobalDependency,
         _currentSchedulers <- schedulers
 
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
-        do! dep.ReportingSinks |> ReportingSinks.start _log
-        do! dep.WorkerPlugins  |> WorkerPlugins.start _log
+        dep.ReportingSinks |> ReportingSinks.start _log
+        dep.WorkerPlugins  |> WorkerPlugins.start _log
 
         reportingManager.Start()
 
@@ -219,14 +220,15 @@ type internal TestHost(dep: IGlobalDependency,
         createScenarioSchedulers _targetScenarios Scenario.defaultClusterCount ScenarioStatsActor.create getStepOrder execSteps
 
     member _.CreateScenarioSchedulers(getScenarioClusterCount: ScenarioName -> int,
-                                      createStatsActor: ILogger -> Scenario -> TimeSpan -> IScenarioStatsActor) =
+                                      createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor) =
 
         createScenarioSchedulers _targetScenarios getScenarioClusterCount createStatsActor getStepOrder execSteps
 
-    member _.GetRawStats(timestamp) = backgroundTask {
-        let! stats = _currentSchedulers |> List.map(fun x -> x.GetRawStats timestamp) |> Task.WhenAll
-        return List.ofArray stats
-    }
+    member _.GetRawStats(duration) =
+        _currentSchedulers |> List.map(fun x -> x.GetRawStats duration) |> Option.sequence
+
+    member _.DelRawStats(duration) =
+        _currentSchedulers |> List.iter(fun x -> x.DelRawStats duration)
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let targetScenarios = regScenarios |> TestHostScenario.getTargetScenarios sessionArgs
@@ -234,7 +236,7 @@ type internal TestHost(dep: IGlobalDependency,
         do! this.StartWarmUp()
 
         let schedulers = this.CreateScenarioSchedulers()
-        use reportingManager = new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager
+        use reportingManager = ReportingManager.create dep schedulers sessionArgs
 
         // start bombing
         do! this.StartBombing(schedulers, reportingManager)

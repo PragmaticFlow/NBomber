@@ -23,7 +23,7 @@ type StepDep = {
     CancellationToken: CancellationToken
     ScenarioGlobalTimer: Stopwatch
     ExecStopCommand: StopCommand -> unit
-    ScenarioStatsActor: IScenarioStatsActor
+    ScenarioStatsActor: ScenarioStatsActor
     Data: Dictionary<string,obj>
 }
 

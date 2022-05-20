@@ -25,6 +25,7 @@ type TestCustomSettings = {
 }
 
 //todo: add test on TestInit and TestClean should be executed only for scenario.Enabled
+//todo: test on context.StopScenario("name") and check what realtime stats it provides
 
 [<Fact>]
 let ``TestClean should be invoked only once and not fail runner`` () =
