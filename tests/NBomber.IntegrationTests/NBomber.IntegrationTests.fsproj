@@ -32,6 +32,7 @@
         <Compile Include="NBomberContextTests.fs" />
         <Compile Include="StepTests.fs" />
         <Compile Include="ScenarioTests.fs" />
+        <Compile Include="ScenarioStatsActorTests.fs" />
         <Compile Include="StatisticsTests.fs" />
         <Compile Include="ConfigurationTests.fs" />
         <Compile Include="LoadTimeLineTests.fs" />
