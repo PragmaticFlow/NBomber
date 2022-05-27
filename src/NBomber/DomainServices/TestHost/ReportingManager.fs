@@ -5,6 +5,7 @@ open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
 
+open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 open NBomber.Domain
@@ -12,7 +13,6 @@ open NBomber.Domain.LoadTimeLine
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
-open NBomber.DomainServices.NBomberContext
 
 type IReportingManager =
     inherit IDisposable
@@ -21,7 +21,7 @@ type IReportingManager =
     abstract GetSessionResult: NodeInfo -> Task<NodeSessionResult>
 
 let getHints (dep: IGlobalDependency) (sessionArgs: SessionArgs) (finalStats: NodeStats) =
-    if sessionArgs.UseHintsAnalyzer then
+    if sessionArgs.GetUseHintsAnalyzer() then
         dep.WorkerPlugins
         |> WorkerPlugins.getHints
         |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
@@ -68,7 +68,8 @@ type ReportingManager(dep: IGlobalDependency,
                       sessionArgs: SessionArgs,
                       saveRealtimeStats: ScenarioStats[] -> Task<unit>) =
 
-    let _buildRealtimeStatsTimer = new Timers.Timer(sessionArgs.ReportingInterval.TotalMilliseconds)
+    let _reportingInterval = sessionArgs.GetReportingInterval()
+    let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
     let mutable _curDuration = TimeSpan.Zero
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max |> fun duration -> duration.Add(TimeSpan.FromSeconds 2)
 
@@ -83,7 +84,7 @@ type ReportingManager(dep: IGlobalDependency,
 
     do
         _buildRealtimeStatsTimer.Elapsed.Add(fun _ ->
-            let duration = _curDuration + sessionArgs.ReportingInterval
+            let duration = _curDuration + _reportingInterval
             if duration <= _timerMaxDuration then
                 _curDuration <- duration
                 schedulers

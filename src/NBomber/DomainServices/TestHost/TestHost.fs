@@ -11,6 +11,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain
@@ -68,7 +69,7 @@ type internal TestHost(dep: IGlobalDependency,
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor _log scn _sessionArgs.ReportingInterval
+                ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
                 ExecStopCommand = execStopCommand
                 GetStepOrder = getStepOrder
                 ExecSteps = execSteps

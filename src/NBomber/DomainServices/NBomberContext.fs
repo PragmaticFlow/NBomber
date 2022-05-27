@@ -12,32 +12,10 @@ open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Infra.Dependency
-
-// we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
-// since after init (for case when the same ClientFactory assigned to several Scenarios)
-// factoryName = factoryName + scenarioName
-// and it's more convenient to prepare it for usage
-
-type SessionArgs = {
-    TestInfo: TestInfo
-    ScenariosSettings: ScenarioSetting list
-    TargetScenarios: string list
-    UpdatedClientFactorySettings: ClientFactorySetting list
-    ReportingInterval: TimeSpan
-    UseHintsAnalyzer: bool
-} with
-
-    static member empty = {
-        TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
-        ScenariosSettings = List.empty
-        TargetScenarios = List.empty
-        UpdatedClientFactorySettings = List.empty
-        ReportingInterval = Constants.DefaultReportingInterval
-        UseHintsAnalyzer = true
-    }
 
 module EnterpriseValidation =
 
@@ -187,7 +165,7 @@ let getTestName (context: NBomberContext) =
     |> Option.defaultValue context.TestName
 
 let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ScenariosSettings
@@ -216,7 +194,7 @@ let setTargetScenarios (scenarios: string list) (context: NBomberContext) =
     { context with TargetScenarios = Some scenarios }
 
 let getReportFileName (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportFileName
@@ -234,7 +212,7 @@ let getReportFileNameOrDefault (currentTime: DateTime) (context: NBomberContext)
     )
 
 let getUseHintAnalyzer (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.UseHintsAnalyzer
@@ -244,7 +222,7 @@ let getUseHintAnalyzer (context: NBomberContext) =
     |> Option.defaultValue(context.UseHintsAnalyzer)
 
 let private getReportFolder (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportFolder
@@ -259,7 +237,7 @@ let getReportFolderOrDefault (sessionId: string) (context: NBomberContext) =
     |> Option.defaultValue(Path.Combine(Constants.DefaultReportFolder, sessionId))
 
 let getReportFormats (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! formats = settings.ReportFormats
@@ -270,7 +248,7 @@ let getReportFormats (context: NBomberContext) =
     |> Option.defaultValue context.Reporting.Formats
 
 let getReportingInterval (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.ReportingInterval
@@ -281,7 +259,7 @@ let getReportingInterval (context: NBomberContext) =
     |> Option.defaultValue(context.Reporting.ReportingInterval |> Validation.checkReportingInterval)
 
 let getUseHintsAnalyzer (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         return! settings.UseHintsAnalyzer
@@ -291,7 +269,7 @@ let getUseHintsAnalyzer (context: NBomberContext) =
     |> Option.defaultValue(context.UseHintsAnalyzer)
 
 let getClientFactorySettings (context: NBomberContext) =
-    let tryGetFromConfig (ctx) = option {
+    let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
         let! scnSettings = settings.ScenariosSettings
@@ -315,19 +293,31 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
         let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName
-        let! reportFolder      = context |> getReportFolderOrDefault("SessionId") |> Validation.checkReportFolder
+        let! reportFolder      = context |> getReportFolderOrDefault(testInfo.SessionId) |> Validation.checkReportFolder
+        let reportFormats      = context |> getReportFormats
         let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
         let clientFactorySettings = context |> getClientFactorySettings
         let useHintsAnalyzer = context |> getUseHintAnalyzer
 
+        let nbConfig = {
+            TestSuite = Some testInfo.TestSuite
+            TestName = Some testInfo.TestName
+            TargetScenarios = Some targetScenarios
+            GlobalSettings = Some {
+                ScenariosSettings = Some scenariosSettings
+                ReportFileName = Some reportName
+                ReportFolder = Some reportFolder
+                ReportFormats = Some reportFormats
+                ReportingInterval = Some(reportingInterval.ToString())
+                UseHintsAnalyzer = Some useHintsAnalyzer
+            }
+        }
+
         return {
             TestInfo = testInfo
-            ScenariosSettings = scenariosSettings
-            TargetScenarios = targetScenarios
+            NBomberConfig = nbConfig
             UpdatedClientFactorySettings = clientFactorySettings
-            ReportingInterval = reportingInterval
-            UseHintsAnalyzer = useHintsAnalyzer
         }
     }
     |> Result.mapError AppError.create
