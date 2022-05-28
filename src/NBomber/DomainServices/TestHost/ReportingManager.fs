@@ -20,8 +20,8 @@ type IReportingManager =
     abstract Stop: unit -> Task<unit>
     abstract GetSessionResult: NodeInfo -> Task<NodeSessionResult>
 
-let getHints (dep: IGlobalDependency) (sessionArgs: SessionArgs) (finalStats: NodeStats) =
-    if sessionArgs.GetUseHintsAnalyzer() then
+let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: NodeStats) =
+    if useHintsAnalyzer then
         dep.WorkerPlugins
         |> WorkerPlugins.getHints
         |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
@@ -30,7 +30,7 @@ let getHints (dep: IGlobalDependency) (sessionArgs: SessionArgs) (finalStats: No
         Array.empty
 
 let getFinalStats (dep: IGlobalDependency)
-                  (sessionArgs: SessionArgs)
+                  (testInfo: TestInfo)
                   (schedulers: ScenarioScheduler list)
                   (nodeInfo: NodeInfo) = backgroundTask {
 
@@ -40,7 +40,7 @@ let getFinalStats (dep: IGlobalDependency)
         |> Task.WhenAll
 
     let nodeStats =
-        NodeStats.create sessionArgs.TestInfo nodeInfo scenarioStats
+        NodeStats.create testInfo nodeInfo scenarioStats
         |> NodeStats.round
 
     let! pluginStats = WorkerPlugins.getStats dep.Logger dep.WorkerPlugins nodeStats
@@ -48,7 +48,8 @@ let getFinalStats (dep: IGlobalDependency)
 }
 
 let getSessionResult (dep: IGlobalDependency)
-                     (sessionArgs: SessionArgs)
+                     (testInfo: TestInfo)
+                     (useHintsAnalyzer: bool)
                      (schedulers: ScenarioScheduler list)
                      (nodeInfo: NodeInfo) = backgroundTask {
     let history =
@@ -56,8 +57,8 @@ let getSessionResult (dep: IGlobalDependency)
         |> Seq.map(fun x -> x.AllRealtimeStats)
         |> TimeLineHistory.create
 
-    let! finalStats = getFinalStats dep sessionArgs schedulers nodeInfo
-    let hints = getHints dep sessionArgs finalStats
+    let! finalStats = getFinalStats dep testInfo schedulers nodeInfo
+    let hints = getHints dep useHintsAnalyzer finalStats
 
     let result = { FinalStats = finalStats; TimeLineHistory = history; Hints = hints }
     return result
@@ -73,7 +74,7 @@ type ReportingManager(dep: IGlobalDependency,
     let mutable _curDuration = TimeSpan.Zero
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max |> fun duration -> duration.Add(TimeSpan.FromSeconds 2)
 
-    let getSessionResult = getSessionResult dep sessionArgs schedulers
+    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
 
     let start () =
         _buildRealtimeStatsTimer.Start()

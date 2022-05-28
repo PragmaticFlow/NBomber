@@ -31,6 +31,8 @@
     "ReportFileName": "custom_report_name",
     "ReportFolder": "./my_reports",
     "ReportFormats": ["Html", "Txt"],
-    "ReportingInterval": "00:00:30"
+    "ReportingInterval": "00:00:30",
+    "UseHintsAnalyzer": false,
+    "DefaultStepTimeoutMs" : 200
   }
 }

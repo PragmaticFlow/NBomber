@@ -28,6 +28,7 @@ type NBomberContext = {
     WorkerPlugins: IWorkerPlugin list
     UseHintsAnalyzer: bool
     TargetScenarios: string list option
+    DefaultStepTimeoutMs: int
 } with
 
     [<CompiledName("Empty")>]
@@ -48,6 +49,7 @@ type NBomberContext = {
         WorkerPlugins = List.empty
         UseHintsAnalyzer = true
         TargetScenarios = None
+        DefaultStepTimeoutMs = Constants.DefaultStepTimeoutMs
     }
 
 namespace NBomber.Contracts.Internal
@@ -95,6 +97,7 @@ type SessionArgs = {
     }
 
     member this.GetReportingInterval() = TimeSpan.Parse this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
+    member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
     member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
 
     member this.SetTargetScenarios(targetScenarios) =
@@ -103,3 +106,4 @@ type SessionArgs = {
 
     member this.GetScenariosSettings() = this.NBomberConfig.GlobalSettings.Value.ScenariosSettings.Value
     member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.UseHintsAnalyzer.Value
+    member this.GetDefaultStepTimeout() = this.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs.Value |> TimeSpan.FromMilliseconds

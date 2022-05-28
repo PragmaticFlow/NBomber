@@ -122,7 +122,7 @@ type Step =
           ClientPool = None
           Execute = execute |> Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Feed.toUntypedFeed
-          Timeout = timeout |> Option.defaultValue Constants.StepTimeout
+          Timeout = timeout |> Option.defaultValue TimeSpan.Zero
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
           IsPause = defaultArg isPause false }
           :> IStep

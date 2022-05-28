@@ -204,10 +204,15 @@ let createScenario (scn: Contracts.Scenario) = result {
     let stepOrderIndex = createStepOrderIndex scenario
     let defaultStepOrder = scenario |> createDefaultStepOrder stepOrderIndex
 
+    let steps =
+        scenario.Steps
+        |> List.distinct
+        |> ClientFactory.updateName scenario.ScenarioName
+
     return { ScenarioName = scenario.ScenarioName
              Init = scenario.Init
              Clean = scenario.Clean
-             Steps = scenario.Steps |> List.distinct |> ClientFactory.updateName scenario.ScenarioName
+             Steps = steps
              LoadTimeLine = timeline.LoadTimeLine
              WarmUpDuration = scenario.WarmUpDuration
              PlanedDuration = timeline.ScenarioDuration
@@ -232,7 +237,7 @@ let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario li
     scenarios
     |> List.filter(fun x -> targetScenarios |> Seq.exists(fun target -> x.ScenarioName = target))
 
-let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
+let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan) (scenarios: Scenario list) =
 
     let getWarmUpDuration (settings: ScenarioSetting) =
         match settings.WarmUpDuration with
@@ -257,6 +262,12 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
                         CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
 
+    let updateStepTimeout (defaultStepTimeout: TimeSpan) (step: Step) =
+        if step.Timeout = TimeSpan.Zero then
+            { step with Timeout = defaultStepTimeout }
+        else
+            step
+
     scenarios
     |> List.map(fun scn ->
         settings
@@ -266,6 +277,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         )
         |> Option.map updateScenario
         |> Option.defaultValue scn)
+    |> List.map(fun scn -> { scn with Steps = scn.Steps |> List.map(updateStepTimeout defaultStepTimeout) })
 
 let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
     if executedDuration < scenario.PlanedDuration then

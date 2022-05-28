@@ -24,7 +24,6 @@ open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
-open NBomber.DomainServices.NBomberContext
 open NBomber.DomainServices.TestHost.ReportingManager
 
 type internal TestHost(dep: IGlobalDependency,
