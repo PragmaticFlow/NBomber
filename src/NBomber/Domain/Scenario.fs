@@ -75,21 +75,12 @@ module Validation =
             | Ok _ -> Ok scenario
             | Error errors -> errors |> List.head |> AppError.createResult
 
-    let checkEmptyOrDuplicatedThresholds (scenario: Contracts.Scenario) =
+    let checkEmptyThresholds (scenario: Contracts.Scenario) =
         scenario.Thresholds
         |> Option.map (fun thresholds ->
             match thresholds with
             | [] -> AppError.createResult(EmptyThresholds scenario.ScenarioName)
-            | _ ->
-                thresholds
-                |> List.groupBy (fun x -> x.Name)
-                |> List.choose (fun (name, thresholds) ->
-                    if List.length(thresholds) > 1 then Some name
-                    else None
-                )
-                |> function
-                    | [] -> Ok scenario
-                    | thresholdName::_ -> AppError.createResult(DuplicateThresholdName(scenario.ScenarioName, thresholdName))
+            | _ -> Ok scenario
         )
         |> Option.defaultValue (Ok scenario)
 
@@ -100,7 +91,7 @@ module Validation =
         >=> checkDuplicateStepNameButDiffImpl
         >=> checkClientFactoryName
         >=> checkDuplicateClientFactories
-        >=> checkEmptyOrDuplicatedThresholds
+        >=> checkEmptyThresholds
 
 module ClientFactory =
 

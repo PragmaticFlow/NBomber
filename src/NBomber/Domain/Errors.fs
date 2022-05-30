@@ -30,7 +30,6 @@ type ValidationError =
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
     | EmptyThresholds of scenarioName:string
-    | DuplicateThresholdName of scenarioName:string * thresholdName:string
 
     // ScenarioSettings
     | CustomStepOrderContainsNotFoundStepName of scenarioName:string * stepName:string
@@ -132,9 +131,6 @@ type AppError =
 
         | EmptyThresholds scenarioName ->
             $"Scenario: '{scenarioName}' has no thresholds"
-
-        | DuplicateThresholdName(scenarioName, thresholdName) ->
-            $"Scenario: '{scenarioName}' contains thresholds with duplicated name: '{thresholdName}'"
 
     static member toString (error: AppError) =
         match error with
