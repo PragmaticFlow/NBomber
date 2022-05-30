@@ -30,6 +30,7 @@ type GlobalSettings = {
     ReportFormats: ReportFormat list option
     ReportingInterval: string option
     UseHintsAnalyzer: bool option
+    DefaultStepTimeoutMs: int option
 }
 
 type NBomberConfig = {

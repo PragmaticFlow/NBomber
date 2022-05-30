@@ -297,6 +297,13 @@ type NBomberRunner =
     static member DisableHintsAnalyzer(context: NBomberContext) =
         context |> FSharp.NBomberRunner.disableHintsAnalyzer
 
+    /// Sets and overrides the global default step timeout.
+    /// This value will be applied for steps that have not set timeout.
+    /// By default DefaultStepTimeout = 1 second
+    [<Extension>]
+    static member WithDefaultStepTimeout(context: NBomberContext, timeout: TimeSpan) =
+        context |> FSharp.NBomberRunner.withDefaultStepTimeout timeout
+
     [<Extension>]
     static member Run(context: NBomberContext) =
         match FSharp.NBomberRunner.run context with

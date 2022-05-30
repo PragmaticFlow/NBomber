@@ -122,7 +122,7 @@ type Step =
           ClientPool = None
           Execute = execute |> Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Feed.toUntypedFeed
-          Timeout = timeout |> Option.defaultValue Constants.StepTimeout
+          Timeout = timeout |> Option.defaultValue TimeSpan.Zero
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
           IsPause = defaultArg isPause false }
           :> IStep
@@ -329,6 +329,12 @@ module NBomberRunner =
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
     let disableHintsAnalyzer (context: NBomberContext) =
         { context with UseHintsAnalyzer = false }
+
+    /// Sets and overrides the global default step timeout.
+    /// This value will be applied for steps that have not set timeout.
+    /// By default DefaultStepTimeout = 1 second
+    let withDefaultStepTimeout (timeout: TimeSpan) (context: NBomberContext) =
+        { context with DefaultStepTimeoutMs = int timeout.TotalMilliseconds }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
 

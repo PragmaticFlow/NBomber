@@ -13,6 +13,7 @@ open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.DomainServices
@@ -25,6 +26,7 @@ let baseGlobalSettings = {
     ReportFormats = None
     ReportingInterval = None
     UseHintsAnalyzer = None
+    DefaultStepTimeoutMs = None
 }
 
 let baseScenarioSetting = {
@@ -46,24 +48,9 @@ let config = {
     GlobalSettings = None
 }
 
-let context = {
-    TestSuite = Constants.DefaultTestSuite
-    TestName = Constants.DefaultTestName
-    RegisteredScenarios = [baseScenario]
-    NBomberConfig = None
-    InfraConfig = None
-    CreateLoggerConfig = None
-    Reporting = {
-        FileName = None
-        FolderName = None
-        Formats = List.empty
-        Sinks = List.empty
-        ReportingInterval = Constants.DefaultReportingInterval
-    }
-    WorkerPlugins = List.empty
-    UseHintsAnalyzer = false
-    TargetScenarios = None
-}
+let context =
+    NBomberRunner.registerScenario baseScenario
+    |> NBomberRunner.disableHintsAnalyzer
 
 [<Fact>]
 let ``getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
@@ -310,3 +297,27 @@ let ``checkLoadSimulationsSettings should return ok if duration time has correct
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
     | Error _ -> failwith ""
     | _       -> ()
+
+[<Fact>]
+let ``createSessionArgs should properly create args with default values`` () =
+
+    let context = NBomberRunner.registerScenario baseScenario
+
+    taskResult {
+        let testInfo = SessionArgs.empty.TestInfo
+        let! scenarios  = context |> NBomberContext.createScenarios
+        let! sessionArgs = context |> NBomberContext.createSessionArgs testInfo scenarios
+        return sessionArgs
+    }
+    |> fun t -> t.Result
+    |> Result.getOk
+    |> fun sessionArgs ->
+        test <@ context.NBomberConfig.IsNone @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs = Some Constants.DefaultStepTimeoutMs @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFileName.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFolder.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFormats.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportingInterval.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ScenariosSettings.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.UseHintsAnalyzer.IsSome @>

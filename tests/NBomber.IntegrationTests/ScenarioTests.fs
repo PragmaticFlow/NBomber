@@ -228,7 +228,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
         |> Scenario.createScenarios
         |> Result.getOk
 
-    let updatedScenarios = Scenario.applySettings [settings] originalScenarios
+    let updatedScenarios = Scenario.applySettings [settings] (seconds 1) originalScenarios
 
     test <@ updatedScenarios[0].PlanedDuration = duration1 @>
     test <@ updatedScenarios[0].WarmUpDuration = warmUp1 @>
@@ -261,7 +261,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         |> Scenario.createScenarios
         |> Result.getOk
 
-    let updatedScenario = Scenario.applySettings [settings] scenario
+    let updatedScenario = Scenario.applySettings [settings] (seconds 1) scenario
 
     test <@ updatedScenario.Head.WarmUpDuration = TimeSpan.Parse "00:00:00" @>
     test <@ updatedScenario.Head.PlanedDuration = duration2 @>
@@ -270,7 +270,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 let ``applyScenariosSettings() with no Scenarios should return empty array`` () =
     let scenarios = List.empty
     let settings = List.empty
-    Scenario.applySettings settings scenarios
+    Scenario.applySettings settings (seconds 1) scenarios
     |> List.isEmpty
     |> Assert.True
 

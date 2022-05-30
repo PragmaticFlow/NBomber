@@ -219,7 +219,17 @@ let getUseHintAnalyzer (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue(context.UseHintsAnalyzer)
+    |> Option.defaultValue context.UseHintsAnalyzer
+
+let getDefaultStepTimeoutMs (context: NBomberContext) =
+    let tryGetFromConfig (ctx: NBomberContext) = option {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.DefaultStepTimeoutMs
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue context.DefaultStepTimeoutMs
 
 let private getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
@@ -229,7 +239,7 @@ let private getReportFolder (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.orElse(context.Reporting.FolderName)
+    |> Option.orElse context.Reporting.FolderName
 
 let getReportFolderOrDefault (sessionId: string) (context: NBomberContext) =
     context
@@ -266,7 +276,7 @@ let getUseHintsAnalyzer (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue(context.UseHintsAnalyzer)
+    |> Option.defaultValue context.UseHintsAnalyzer
 
 let getClientFactorySettings (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
@@ -291,14 +301,15 @@ let getClientFactorySettings (context: NBomberContext) =
 
 let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
     result {
-        let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios)
-        let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName
-        let! reportFolder      = context |> getReportFolderOrDefault(testInfo.SessionId) |> Validation.checkReportFolder
+        let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets context.RegisteredScenarios
+        let! reportName        = context |> getReportFileNameOrDefault DateTime.UtcNow |> Validation.checkReportName
+        let! reportFolder      = context |> getReportFolderOrDefault testInfo.SessionId |> Validation.checkReportFolder
         let reportFormats      = context |> getReportFormats
         let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
         let clientFactorySettings = context |> getClientFactorySettings
         let useHintsAnalyzer = context |> getUseHintAnalyzer
+        let stepTimeout = context |> getDefaultStepTimeoutMs
 
         let nbConfig = {
             TestSuite = Some testInfo.TestSuite
@@ -309,8 +320,9 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFileName = Some reportName
                 ReportFolder = Some reportFolder
                 ReportFormats = Some reportFormats
-                ReportingInterval = Some(reportingInterval.ToString())
+                ReportingInterval = Some (reportingInterval.ToString())
                 UseHintsAnalyzer = Some useHintsAnalyzer
+                DefaultStepTimeoutMs = Some stepTimeout
             }
         }
 

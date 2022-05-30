@@ -13,7 +13,7 @@ open NBomber.Infra.Dependency
 let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) =
     regScenarios
     |> Scenario.filterTargetScenarios (sessionArgs.GetTargetScenarios())
-    |> Scenario.applySettings (sessionArgs.GetScenariosSettings())
+    |> Scenario.applySettings (sessionArgs.GetScenariosSettings()) (sessionArgs.GetDefaultStepTimeout())
 
 let initClientPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try
