@@ -109,7 +109,7 @@ let ``disableHintsAnalyzer should disable hints`` () =
     Scenario.create "test" [step1]
     |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.disableHintsAnalyzer
+    |> NBomberRunner.enableHintsAnalyzer false
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->

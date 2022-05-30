@@ -32,7 +32,7 @@
     "ReportFolder": "./my_reports",
     "ReportFormats": ["Html", "Txt"],
     "ReportingInterval": "00:00:30",
-    "UseHintsAnalyzer": false,
+    "EnableHintsAnalyzer": false,
     "DefaultStepTimeoutMs" : 200
   }
 }

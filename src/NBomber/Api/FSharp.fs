@@ -325,10 +325,11 @@ module NBomberRunner =
 
         { context with CreateLoggerConfig = Some createLoggerConfig }
 
-    /// Disables hints analyzer.
+    /// Enables or disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
-    let disableHintsAnalyzer (context: NBomberContext) =
-        { context with UseHintsAnalyzer = false }
+    /// The default value is true.
+    let enableHintsAnalyzer (enable: bool) (context: NBomberContext) =
+        { context with EnableHintsAnalyzer = enable }
 
     /// Sets and overrides the global default step timeout.
     /// This value will be applied for steps that have not set timeout.

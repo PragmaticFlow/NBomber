@@ -25,7 +25,7 @@ let baseGlobalSettings = {
     ReportFolder = None
     ReportFormats = None
     ReportingInterval = None
-    UseHintsAnalyzer = None
+    EnableHintsAnalyzer = None
     DefaultStepTimeoutMs = None
 }
 
@@ -50,7 +50,7 @@ let config = {
 
 let context =
     NBomberRunner.registerScenario baseScenario
-    |> NBomberRunner.disableHintsAnalyzer
+    |> NBomberRunner.enableHintsAnalyzer false
 
 [<Fact>]
 let ``getTargetScenarios should return all registered scenarios if TargetScenarios are empty`` () =
@@ -122,22 +122,22 @@ let ``getReportFormats should return from GlobalSettings, if empty then from Tes
     | None, v -> test <@ formats = contextValue @>
 
 [<Property>]
-let ``getUseHintAnalyzer should be based on UseHintsAnalyzer from GlobalSettings, if empty then from TestContext``
+let ``getHintAnalyzer should be based on EnableHintsAnalyzer from GlobalSettings, if empty then from TestContext``
     (configValue: bool option, contextValue: bool) =
 
-    let glSettings = { baseGlobalSettings with UseHintsAnalyzer = configValue }
+    let glSettings = { baseGlobalSettings with EnableHintsAnalyzer = configValue }
     let config = { config with GlobalSettings = Some glSettings }
 
     let ctx = {
         context with
             NBomberConfig = Some config
-            UseHintsAnalyzer = contextValue
+            EnableHintsAnalyzer = contextValue
     }
 
-    let useHintAnalyzer = NBomberContext.getUseHintAnalyzer(ctx)
+    let enable = NBomberContext.getEnableHintAnalyzer ctx
     match configValue with
-    | Some value -> test <@ value = useHintAnalyzer @>
-    | None       -> test <@ contextValue = useHintAnalyzer @>
+    | Some value -> test <@ value = enable @>
+    | None       -> test <@ contextValue = enable @>
 
 [<Property>]
 let ``getTestSuite should return from Config, if empty then from TestContext``
@@ -320,4 +320,4 @@ let ``createSessionArgs should properly create args with default values`` () =
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFormats.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportingInterval.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ScenariosSettings.IsSome @>
-        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.UseHintsAnalyzer.IsSome @>
+        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.IsSome @>

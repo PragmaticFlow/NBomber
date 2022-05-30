@@ -26,7 +26,7 @@ type NBomberContext = {
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
     Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
-    UseHintsAnalyzer: bool
+    EnableHintsAnalyzer: bool
     TargetScenarios: string list option
     DefaultStepTimeoutMs: int
 } with
@@ -47,7 +47,7 @@ type NBomberContext = {
             ReportingInterval = Constants.DefaultReportingInterval
         }
         WorkerPlugins = List.empty
-        UseHintsAnalyzer = true
+        EnableHintsAnalyzer = true
         TargetScenarios = None
         DefaultStepTimeoutMs = Constants.DefaultStepTimeoutMs
     }
@@ -105,5 +105,5 @@ type SessionArgs = {
         { this with NBomberConfig = nbConfig }
 
     member this.GetScenariosSettings() = this.NBomberConfig.GlobalSettings.Value.ScenariosSettings.Value
-    member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.UseHintsAnalyzer.Value
+    member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.Value
     member this.GetDefaultStepTimeout() = this.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs.Value |> TimeSpan.FromMilliseconds

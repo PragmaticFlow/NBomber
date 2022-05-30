@@ -211,15 +211,15 @@ let getReportFileNameOrDefault (currentTime: DateTime) (context: NBomberContext)
         $"{Constants.DefaultReportName}_{currentTime}"
     )
 
-let getUseHintAnalyzer (context: NBomberContext) =
+let getEnableHintAnalyzer (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.UseHintsAnalyzer
+        return! settings.EnableHintsAnalyzer
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.UseHintsAnalyzer
+    |> Option.defaultValue context.EnableHintsAnalyzer
 
 let getDefaultStepTimeoutMs (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
@@ -272,11 +272,11 @@ let getUseHintsAnalyzer (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
         let! settings = config.GlobalSettings
-        return! settings.UseHintsAnalyzer
+        return! settings.EnableHintsAnalyzer
     }
     context
     |> tryGetFromConfig
-    |> Option.defaultValue context.UseHintsAnalyzer
+    |> Option.defaultValue context.EnableHintsAnalyzer
 
 let getClientFactorySettings (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
@@ -308,7 +308,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
         let clientFactorySettings = context |> getClientFactorySettings
-        let useHintsAnalyzer = context |> getUseHintAnalyzer
+        let enableHintsAnalyzer = context |> getEnableHintAnalyzer
         let stepTimeout = context |> getDefaultStepTimeoutMs
 
         let nbConfig = {
@@ -321,7 +321,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFolder = Some reportFolder
                 ReportFormats = Some reportFormats
                 ReportingInterval = Some (reportingInterval.ToString())
-                UseHintsAnalyzer = Some useHintsAnalyzer
+                EnableHintsAnalyzer = Some enableHintsAnalyzer
                 DefaultStepTimeoutMs = Some stepTimeout
             }
         }

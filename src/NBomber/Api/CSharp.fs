@@ -291,11 +291,12 @@ type NBomberRunner =
     static member WithLoggerConfig(context: NBomberContext, buildLoggerConfig: Func<LoggerConfiguration>) =
         context |> FSharp.NBomberRunner.withLoggerConfig(buildLoggerConfig.Invoke)
 
-    /// Disables hints analyzer.
+    /// Enables or disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
+    /// The default value is true.
     [<Extension>]
-    static member DisableHintsAnalyzer(context: NBomberContext) =
-        context |> FSharp.NBomberRunner.disableHintsAnalyzer
+    static member EnableHintsAnalyzer(context: NBomberContext, enable: bool) =
+        context |> FSharp.NBomberRunner.enableHintsAnalyzer enable
 
     /// Sets and overrides the global default step timeout.
     /// This value will be applied for steps that have not set timeout.
