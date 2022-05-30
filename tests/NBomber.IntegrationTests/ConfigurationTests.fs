@@ -19,7 +19,7 @@ type TestCustomSettings = {
 module JsonConfig =
 
     [<Fact>]
-    let ``unsafeParse() should read json file successfully`` () =
+    let ``unsafeParse() should parse json file successfully`` () =
         "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
         "Configuration/scenario_init_only_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
 

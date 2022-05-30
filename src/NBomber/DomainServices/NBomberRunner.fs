@@ -44,7 +44,7 @@ let run (context: NBomberContext) =
 
     let nodeInfo = NodeInfo.init None
     let appType = NodeInfo.getApplicationType()
-    let reportFolder = context |> NBomberContext.getReportFolderOrDefault(testInfo.SessionId)
+    let reportFolder = NBomberContext.getReportFolderOrDefault testInfo.SessionId context
 
     Dependency.create reportFolder testInfo appType NodeType.SingleNode context
     |> runSession testInfo nodeInfo context

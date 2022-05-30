@@ -26,8 +26,9 @@ type NBomberContext = {
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
     Reporting: ReportingContext
     WorkerPlugins: IWorkerPlugin list
-    UseHintsAnalyzer: bool
+    EnableHintsAnalyzer: bool
     TargetScenarios: string list option
+    DefaultStepTimeoutMs: int
 } with
 
     [<CompiledName("Empty")>]
@@ -46,15 +47,18 @@ type NBomberContext = {
             ReportingInterval = Constants.DefaultReportingInterval
         }
         WorkerPlugins = List.empty
-        UseHintsAnalyzer = true
+        EnableHintsAnalyzer = true
         TargetScenarios = None
+        DefaultStepTimeoutMs = Constants.DefaultStepTimeoutMs
     }
 
 namespace NBomber.Contracts.Internal
 
 open System
 open CommandLine
+open NBomber.Configuration
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 
 type CommandLineArgs = {
     [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
@@ -74,3 +78,32 @@ type ScenarioRawStats = {
     StepResponses: StepResponse list
     Duration: TimeSpan
 }
+
+// we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
+// since after init (for case when the same ClientFactory assigned to several Scenarios)
+// factoryName = factoryName + scenarioName
+// and it's more convenient to prepare it for usage
+
+type SessionArgs = {
+    TestInfo: TestInfo
+    NBomberConfig: NBomberConfig
+    UpdatedClientFactorySettings: ClientFactorySetting list
+} with
+
+    static member empty = {
+        TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
+        NBomberConfig = Unchecked.defaultof<_>
+        UpdatedClientFactorySettings = List.empty
+    }
+
+    member this.GetReportingInterval() = TimeSpan.Parse this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
+    member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
+    member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
+
+    member this.SetTargetScenarios(targetScenarios) =
+        let nbConfig = { this.NBomberConfig with TargetScenarios = Some targetScenarios }
+        { this with NBomberConfig = nbConfig }
+
+    member this.GetScenariosSettings() = this.NBomberConfig.GlobalSettings.Value.ScenariosSettings.Value
+    member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.Value
+    member this.GetDefaultStepTimeout() = this.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs.Value |> TimeSpan.FromMilliseconds

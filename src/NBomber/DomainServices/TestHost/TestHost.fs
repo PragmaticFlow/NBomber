@@ -11,6 +11,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain
@@ -23,7 +24,6 @@ open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices
-open NBomber.DomainServices.NBomberContext
 open NBomber.DomainServices.TestHost.ReportingManager
 
 type internal TestHost(dep: IGlobalDependency,
@@ -68,7 +68,7 @@ type internal TestHost(dep: IGlobalDependency,
                 CancellationToken = cancelToken
                 ScenarioGlobalTimer = Stopwatch()
                 Scenario = scn
-                ScenarioStatsActor = createStatsActor _log scn _sessionArgs.ReportingInterval
+                ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
                 ExecStopCommand = execStopCommand
                 GetStepOrder = getStepOrder
                 ExecSteps = execSteps

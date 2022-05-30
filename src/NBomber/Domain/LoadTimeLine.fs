@@ -57,13 +57,13 @@ module Validation =
 
 module TimeLineHistory =
 
-    let create (schedulersRealtimeStats: Map<string,ScenarioStats> seq) =
+    let create (schedulersRealtimeStats: Map<TimeSpan,ScenarioStats> seq) =
         schedulersRealtimeStats
         |> Seq.collect(fun stats -> stats |> Map.toList)
         |> Seq.groupBy(fun (duration, _) -> duration)
         |> Seq.map(fun (duration, stats) ->
             let data = stats |> Seq.map snd |> Seq.toArray
-            { ScenarioStats = data; Duration = TimeSpan.Parse duration }
+            { ScenarioStats = data; Duration = duration }
         )
         |> Seq.sortBy(fun x -> x.Duration)
         |> Seq.toArray

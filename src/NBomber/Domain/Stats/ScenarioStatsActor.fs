@@ -13,8 +13,6 @@ open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
-type ScenarioDuration = string
-
 type ActorMessage =
     | AddResponse        of StepResponse
     | AddFromAgent       of StepResponse list
@@ -31,8 +29,8 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalRawStats = List.empty<StepResponse>
-    let mutable _allRealtimeStats = Map.empty<ScenarioDuration,ScenarioStats>
-    let mutable _allRawStats = Map.empty<ScenarioDuration,ScenarioRawStats>
+    let mutable _allRealtimeStats = Map.empty<TimeSpan,ScenarioStats>
+    let mutable _allRawStats = Map.empty<TimeSpan,ScenarioRawStats>
     let mutable _tempBuffer = List.empty<StepResponse>
     let mutable _useTempBuffer = false
 
@@ -54,13 +52,13 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
         ScenarioStats.create scenario stepsData simulationStats OperationType.Complete %duration duration
 
     let addToCache (realtimeStats: ScenarioStats) =
-        _allRealtimeStats <- _allRealtimeStats.Add(realtimeStats.Duration.ToString(), realtimeStats)
+        _allRealtimeStats <- _allRealtimeStats.Add(realtimeStats.Duration, realtimeStats)
         // reset interval steps data
         _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
 
         if keepRawStats then
             let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = realtimeStats.Duration }
-            _allRawStats <- _allRawStats.Add(realtimeStats.Duration.ToString(), rawStats)
+            _allRawStats <- _allRawStats.Add(realtimeStats.Duration, rawStats)
             // reset interval raw steps data
             _intervalRawStats <- List.empty
 
@@ -92,7 +90,7 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
                 reply.TrySetResult(rawStats) |> ignore
 
             | DelRawStats duration ->
-                _allRawStats <- _allRawStats.Remove(duration.ToString())
+                _allRawStats <- _allRawStats.Remove duration
 
             | GetFinalStats (reply, simulationStats, duration) ->
                 let finalStats = _allStepsData |> createFinalStats simulationStats duration

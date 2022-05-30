@@ -486,3 +486,28 @@ let ``create should check clientFactory on null and throw NRE`` () =
                  Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
                  |> ignore
     )
+
+[<Fact>]
+let ``create should allow set step timeout`` () =
+
+    let step1 = Step.create("step 1", timeout = milliseconds 500, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step 2", timeout = milliseconds 500, execute = fun context -> task {
+        do! Task.Delay(600)
+        return Response.ok()
+    })
+
+    Scenario.create "timeout tests" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ stats.ScenarioStats[0].GetStepStats("step 1").Fail.Request.Count = 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>

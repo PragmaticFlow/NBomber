@@ -3,17 +3,17 @@ module internal NBomber.DomainServices.TestHost.TestHostScenario
 open FsToolkit.ErrorHandling
 
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
-open NBomber.DomainServices.NBomberContext
 open NBomber.Errors
 open NBomber.Infra.Dependency
 
 let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) =
     regScenarios
-    |> Scenario.filterTargetScenarios sessionArgs.TargetScenarios
-    |> Scenario.applySettings sessionArgs.ScenariosSettings
+    |> Scenario.filterTargetScenarios (sessionArgs.GetTargetScenarios())
+    |> Scenario.applySettings (sessionArgs.GetScenariosSettings()) (sessionArgs.GetDefaultStepTimeout())
 
 let initClientPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try

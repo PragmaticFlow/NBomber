@@ -125,7 +125,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         reply.Task
 
     let getRawStats (duration: TimeSpan) =
-        dep.ScenarioStatsActor.AllRawStats.TryFind(duration.ToString())
+        dep.ScenarioStatsActor.AllRawStats.TryFind duration
 
     let getRemainedRawStats () =
         let reply = TaskCompletionSource<ScenarioRawStats>()

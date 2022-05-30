@@ -5,6 +5,7 @@ open Xunit
 open Swensen.Unquote
 
 open NBomber
+open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Domain
@@ -37,3 +38,29 @@ let ``withTargetScenarios should run only specified scenarios`` () =
 
     test <@ scn1Started = false @>
     test <@ scn2Started @>
+
+[<Fact>]
+let ``withDefaultStepTimeout should overrides default step timeout`` () =
+
+    let step1 = Step.create("step 1", timeout = milliseconds 500, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step 2", execute = fun context -> task {
+        do! Task.Delay(600)
+        return Response.ok()
+    })
+
+    Scenario.create "timeout tests" [step1; step2]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.withDefaultStepTimeout(milliseconds 500)
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ stats.ScenarioStats[0].GetStepStats("step 1").Fail.Request.Count = 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>
