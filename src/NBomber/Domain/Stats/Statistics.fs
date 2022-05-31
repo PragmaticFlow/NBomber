@@ -171,28 +171,28 @@ module private ThresholdStats =
         |> List.map (fun threshold ->
             let status =
                 match threshold with
-                | RequestAllCount f -> f allCount
-                | RequestOkCount f -> f okCount
-                | RequestFailedCount f -> f failedCount
-                | RequestFailedRate f -> f (float failedCount * 100. / float allCount)
-                | RPS f -> applySepsStats stepStats (fun s -> f s.Request.RPS)
-                | LatencyMin f -> applySepsStats stepStats (fun s -> f s.Latency.MinMs)
-                | LatencyMean f -> applySepsStats stepStats (fun s -> f s.Latency.MeanMs)
-                | LatencyMax f -> applySepsStats stepStats (fun s -> f s.Latency.MaxMs)
-                | LatencyStdDev f -> applySepsStats stepStats (fun s -> f s.Latency.StdDev)
-                | LatencyPercent50 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
-                | LatencyPercent75 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
-                | LatencyPercent95 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
-                | LatencyPercent99 f -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
-                | DataTransferMinBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MinBytes)
-                | DataTransferMeanBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MeanBytes)
-                | DataTransferMaxBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.MaxBytes)
-                | DataTransferPercent50 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent50)
-                | DataTransferPercent75 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent75)
-                | DataTransferPercent95 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent95)
-                | DataTransferPercent99 f -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent99)
-                | DataTransferStdDev f -> applySepsStats stepStats (fun s -> f s.DataTransfer.StdDev)
-                | DataTransferAllBytes f -> applySepsStats stepStats (fun s -> f s.DataTransfer.AllBytes)
+                | RequestAllCount (f, _) -> f allCount
+                | RequestOkCount (f, _) -> f okCount
+                | RequestFailedCount (f, _) -> f failedCount
+                | RequestFailedRate (f, _) -> f (float failedCount * 100. / float allCount)
+                | RPS (f, _) -> applySepsStats stepStats (fun s -> f s.Request.RPS)
+                | LatencyMin (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MinMs)
+                | LatencyMean (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MeanMs)
+                | LatencyMax (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MaxMs)
+                | LatencyStdDev (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.StdDev)
+                | LatencyPercent50 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
+                | LatencyPercent75 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
+                | LatencyPercent95 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
+                | LatencyPercent99 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
+                | DataTransferMinBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MinBytes)
+                | DataTransferMeanBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MeanBytes)
+                | DataTransferMaxBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MaxBytes)
+                | DataTransferPercent50 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent50)
+                | DataTransferPercent75 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent75)
+                | DataTransferPercent95 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent95)
+                | DataTransferPercent99 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent99)
+                | DataTransferStdDev (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.StdDev)
+                | DataTransferAllBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.AllBytes)
                 |> ThresholdStatus.map
 
             { Threshold = threshold; Status = status }

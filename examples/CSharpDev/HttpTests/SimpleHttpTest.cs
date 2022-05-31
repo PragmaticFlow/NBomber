@@ -28,7 +28,7 @@ namespace CSharpDev.HttpTests
                     Simulation.InjectPerSec(rate: 1, during: TimeSpan.FromSeconds(30))
                 )
                 .WithThresholds(
-                    Threshold.RequestAllCount(x => x > 200),
+                    Threshold.RequestAllCount(x => x > 200, "request all count > 200"),
                     Threshold.RequestOkCount(x => x > 190),
                     Threshold.RequestFailedCount(x => x <= 10),
                     Threshold.RequestFailedRate(x => x < 0.1),
@@ -36,7 +36,7 @@ namespace CSharpDev.HttpTests
                     Threshold.LatencyMin(x => x < 100),
                     Threshold.LatencyMean(x => x < 400),
                     Threshold.LatencyMax(x => x < 500),
-                    Threshold.LatencyStdDev(x => x is > 100 and < 200),
+                    Threshold.LatencyStdDev(x => x is > 100 and < 200, "latency standard deviation > 50 and < 100"),
                     Threshold.LatencyPercent50(x => x < 300),
                     Threshold.LatencyPercent75(x => x < 320),
                     Threshold.LatencyPercent95(x => x < 400),

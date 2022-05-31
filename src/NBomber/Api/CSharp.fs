@@ -367,68 +367,68 @@ type ValueOption =
 
 type Threshold =
 
-    static member RequestAllCount(predicate: Func<float, bool>) =
-        RequestAllCount(predicate.Invoke)
+    static member RequestAllCount(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        RequestAllCount(predicate.Invoke, Option.ofObj description)
 
-    static member RequestOkCount(predicate: Func<float, bool>) =
-        RequestOkCount(predicate.Invoke)
+    static member RequestOkCount(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        RequestOkCount(predicate.Invoke, Option.ofObj description)
 
-    static member RequestFailedCount(predicate: Func<float, bool>) =
-        RequestFailedCount(predicate.Invoke)
+    static member RequestFailedCount(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        RequestFailedCount(predicate.Invoke, Option.ofObj description)
 
-    static member RequestFailedRate(predicate: Func<float, bool>) =
-        RequestFailedRate(predicate.Invoke)
+    static member RequestFailedRate(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        RequestFailedRate(predicate.Invoke, Option.ofObj description)
 
-    static member RPS(predicate: Func<float, bool>) =
-        RPS(predicate.Invoke)
+    static member RPS(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        RPS(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyMin(predicate: Func<float, bool>) =
-        LatencyMin(predicate.Invoke)
+    static member LatencyMin(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyMin(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyMean(predicate: Func<float, bool>) =
-        LatencyMean(predicate.Invoke)
+    static member LatencyMean(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyMean(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyMax(predicate: Func<float, bool>) =
-        LatencyMax(predicate.Invoke)
+    static member LatencyMax(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyMax(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyStdDev(predicate: Func<float, bool>) =
-        LatencyStdDev(predicate.Invoke)
+    static member LatencyStdDev(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyStdDev(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyPercent50(predicate: Func<float, bool>) =
-        LatencyPercent50(predicate.Invoke)
+    static member LatencyPercent50(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyPercent50(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyPercent75(predicate: Func<float, bool>) =
-        LatencyPercent75(predicate.Invoke)
+    static member LatencyPercent75(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyPercent75(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyPercent95(predicate: Func<float, bool>) =
-        LatencyPercent95(predicate.Invoke)
+    static member LatencyPercent95(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyPercent95(predicate.Invoke, Option.ofObj description)
 
-    static member LatencyPercent99(predicate: Func<float, bool>) =
-        LatencyPercent99(predicate.Invoke)
+    static member LatencyPercent99(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        LatencyPercent99(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferMinBytes(predicate: Func<int, bool>) =
-        DataTransferMinBytes(predicate.Invoke)
+    static member DataTransferMinBytes(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferMinBytes(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferMeanBytes(predicate: Func<int, bool>) =
-        DataTransferMeanBytes(predicate.Invoke)
+    static member DataTransferMeanBytes(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferMeanBytes(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferMaxBytes(predicate: Func<int, bool>) =
-        DataTransferMaxBytes(predicate.Invoke)
+    static member DataTransferMaxBytes(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferMaxBytes(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferPercent50(predicate: Func<int, bool>) =
-        DataTransferPercent50(predicate.Invoke)
+    static member DataTransferPercent50(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferPercent50(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferPercent75(predicate: Func<int, bool>) =
-        DataTransferPercent75(predicate.Invoke)
+    static member DataTransferPercent75(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferPercent75(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferPercent95(predicate: Func<int, bool>) =
-        DataTransferPercent95(predicate.Invoke)
+    static member DataTransferPercent95(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferPercent95(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferPercent99(predicate: Func<int, bool>) =
-        DataTransferPercent99(predicate.Invoke)
+    static member DataTransferPercent99(predicate: Func<int, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferPercent99(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferStdDev(predicate: Func<float, bool>) =
-        DataTransferStdDev(predicate.Invoke)
+    static member DataTransferStdDev(predicate: Func<float, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferStdDev(predicate.Invoke, Option.ofObj description)
 
-    static member DataTransferAllBytes(predicate: Func<int64, bool>) =
-        DataTransferAllBytes(predicate.Invoke)
+    static member DataTransferAllBytes(predicate: Func<int64, bool>, [<Optional;DefaultParameterValue(null)>] description: string) =
+        DataTransferAllBytes(predicate.Invoke, Option.ofObj description)
