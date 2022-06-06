@@ -54,7 +54,7 @@ let print (logger: ILogger) (sessionResult: NodeSessionResult) =
 
         let body = sessionResult.FinalStats.ScenarioStats
                    |> Array.map(printSteps sessionResult.FinalStats.TestInfo)
-                   |> String.concat String.Empty
+                   |> String.concat Environment.NewLine
 
         header + Environment.NewLine + body
     with
