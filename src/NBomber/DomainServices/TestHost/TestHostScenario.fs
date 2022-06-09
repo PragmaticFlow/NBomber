@@ -69,8 +69,7 @@ let initScenarios (dep: IGlobalDependency,
             |> initDataFeeds dep baseContext
             |> TaskResult.ignore
 
-        return targetScenarios
-               |> Scenario.ClientPool.setPools pools
+        return targetScenarios |> Scenario.ClientPool.setPools pools
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }

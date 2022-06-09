@@ -136,7 +136,7 @@ type Scenario = {
     Init: (IScenarioContext -> Task) option
     Clean: (IScenarioContext -> Task) option
     Steps: IStep list
-    WarmUpDuration: TimeSpan
+    WarmUpDuration: TimeSpan option
     LoadSimulations: LoadSimulation list
     CustomStepOrder: (unit -> string[]) option
     CustomStepExecControl: (IStepExecControlContext voption -> string voption) option

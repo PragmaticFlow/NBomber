@@ -168,7 +168,7 @@ type internal TestHost(dep: IGlobalDependency,
             _targetScenarios <- initializedScenarios
             _sessionArgs <- sessionArgs
             _currentOperation <- OperationType.None
-            return Ok()
+            return Ok _targetScenarios
 
         | Error appError ->
             _log.Error "Init failed"
@@ -176,13 +176,12 @@ type internal TestHost(dep: IGlobalDependency,
             return AppError.createResult appError
     }
 
-    member _.StartWarmUp() = backgroundTask {
+    member _.StartWarmUp(schedulers: ScenarioScheduler list) = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
 
         _log.Information "Starting warm up..."
 
-        let schedulers = this.CreateScenarioSchedulers()
         do! startWarmUp schedulers
         stopSchedulers(_cancelToken, schedulers)
 
@@ -216,13 +215,14 @@ type internal TestHost(dep: IGlobalDependency,
             _currentOperation <- OperationType.None
     }
 
-    member _.CreateScenarioSchedulers() =
-        createScenarioSchedulers _targetScenarios Scenario.defaultClusterCount ScenarioStatsActor.create getStepOrder execSteps
+    member _.CreateScenarioSchedulers(scenarios: Scenario list) =
+        createScenarioSchedulers scenarios Scenario.defaultClusterCount ScenarioStatsActor.create getStepOrder execSteps
 
-    member _.CreateScenarioSchedulers(getScenarioClusterCount: ScenarioName -> int,
+    member _.CreateScenarioSchedulers(scenarios: Scenario list,
+                                      getScenarioClusterCount: ScenarioName -> int,
                                       createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor) =
 
-        createScenarioSchedulers _targetScenarios getScenarioClusterCount createStatsActor getStepOrder execSteps
+        createScenarioSchedulers scenarios getScenarioClusterCount createStatsActor getStepOrder execSteps
 
     member _.GetRawStats(duration) =
         _currentSchedulers |> List.map(fun x -> x.GetRawStats duration) |> Option.sequence
@@ -232,14 +232,17 @@ type internal TestHost(dep: IGlobalDependency,
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let targetScenarios = regScenarios |> TestHostScenario.getTargetScenarios sessionArgs
-        do! this.StartInit(sessionArgs, targetScenarios)
-        do! this.StartWarmUp()
+        let! initializedScenarios = this.StartInit(sessionArgs, targetScenarios)
 
-        let schedulers = this.CreateScenarioSchedulers()
-        use reportingManager = ReportingManager.create dep schedulers sessionArgs
+        // start warm up
+        let warmUpSchedulers = initializedScenarios |> Scenario.getScenariosForWarmUp |> this.CreateScenarioSchedulers
+        if warmUpSchedulers.Length > 0 then
+            do! this.StartWarmUp warmUpSchedulers
 
         // start bombing
-        do! this.StartBombing(schedulers, reportingManager)
+        let bombingSchedulers = this.CreateScenarioSchedulers initializedScenarios
+        use reportingManager = ReportingManager.create dep bombingSchedulers sessionArgs
+        do! this.StartBombing(bombingSchedulers, reportingManager)
 
         // gets final stats
         _log.Information "Calculating final statistics..."

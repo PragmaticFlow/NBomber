@@ -110,7 +110,7 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
     </ItemGroup>
-<!--    <ItemGroup>-->
-<!--      <ProjectReference Include="..\NBomber.Contracts\NBomber.Contracts.fsproj" />-->
-<!--    </ItemGroup>-->
+    <ItemGroup>
+      <ProjectReference Include="..\NBomber.Contracts\NBomber.Contracts.fsproj" />
+    </ItemGroup>
 </Project>

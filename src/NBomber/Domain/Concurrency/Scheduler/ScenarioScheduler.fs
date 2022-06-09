@@ -159,7 +159,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let execScheduler () =
         let currentTime = dep.ScenarioGlobalTimer.Elapsed
 
-        if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
+        if _warmUp && dep.Scenario.WarmUpDuration.Value <= currentTime then
             stop()
         else
             match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with

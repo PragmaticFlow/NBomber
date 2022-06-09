@@ -93,7 +93,7 @@ type Scenario = {
     Clean: (IScenarioContext -> Task) option
     Steps: Step list
     LoadTimeLine: LoadTimeLine
-    WarmUpDuration: TimeSpan
+    WarmUpDuration: TimeSpan option
     PlanedDuration: TimeSpan
     ExecutedDuration: TimeSpan option
     CustomSettings: string

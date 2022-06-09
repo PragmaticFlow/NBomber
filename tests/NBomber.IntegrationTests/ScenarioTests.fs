@@ -3,6 +3,8 @@
 open System
 open System.Threading.Tasks
 
+open Serilog
+open Serilog.Sinks.InMemory
 open Xunit
 open FsCheck.Xunit
 open Swensen.Unquote
@@ -231,10 +233,10 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
     let updatedScenarios = Scenario.applySettings [settings] (seconds 1) originalScenarios
 
     test <@ updatedScenarios[0].PlanedDuration = duration1 @>
-    test <@ updatedScenarios[0].WarmUpDuration = warmUp1 @>
+    test <@ updatedScenarios[0].WarmUpDuration.Value = warmUp1 @>
     test <@ updatedScenarios[0].CustomSettings = settings.CustomSettings.Value @>
 
-[<Property>]
+[<Fact>]
 let ``applyScenariosSettings() should skip applying settings when scenario name is not match`` () =
 
     let scnName1 = "scenario_1"
@@ -246,7 +248,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let settings = {
         ScenarioName = scnName1
-        WarmUpDuration = Some(warmUp1.ToString("hh\:mm\:ss"))
+        WarmUpDuration = Some (warmUp1.ToString("hh\:mm\:ss"))
         LoadSimulationsSettings = Some [LoadSimulationSettings.RampConstant(5, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
         CustomSettings = None
@@ -263,7 +265,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let updatedScenario = Scenario.applySettings [settings] (seconds 1) scenario
 
-    test <@ updatedScenario.Head.WarmUpDuration = TimeSpan.Parse "00:00:00" @>
+    test <@ updatedScenario.Head.WarmUpDuration = None @>
     test <@ updatedScenario.Head.PlanedDuration = duration2 @>
 
 [<Fact>]
@@ -379,3 +381,24 @@ let ``withStepTimeout should set step timeout`` () =
         test <@ stepsStats.Fail.Request.Count > 0 @>
         test <@ stepsStats.Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
         test <@ stepsStats.Fail.StatusCodes[0].Count = stepsStats.Fail.Request.Count @>
+
+[<Fact>]
+let ``withoutWarmUp should hide the warmup info on the console`` () =
+
+    let step1 = Step.create("step_1", fun context -> task {
+        do! Task.Delay(seconds 0.5)
+        return Response.ok()
+    })
+
+    let inMemorySink = new InMemorySink()
+
+    Scenario.create "1" [step1]
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withLoggerConfig(fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink))
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ inMemorySink.LogEvents |> Seq.exists(fun x -> x.MessageTemplate.Text.Contains "Starting warm up...") |> not @>
+    test <@ inMemorySink.LogEvents |> Seq.exists(fun x -> x.MessageTemplate.Text.Contains "Starting bombing...") @>

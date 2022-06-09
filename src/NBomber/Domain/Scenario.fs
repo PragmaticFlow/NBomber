@@ -239,11 +239,6 @@ let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario li
 
 let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan) (scenarios: Scenario list) =
 
-    let getWarmUpDuration (settings: ScenarioSetting) =
-        match settings.WarmUpDuration with
-        | Some v -> TimeSpan.Parse v
-        | None   -> TimeSpan.Zero
-
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
@@ -257,7 +252,7 @@ let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan
             | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = getWarmUpDuration settings
+                        WarmUpDuration = settings.WarmUpDuration |> Option.map TimeSpan.Parse
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
                         CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
@@ -289,3 +284,6 @@ let getDuration (scenario: Scenario) =
     scenario.ExecutedDuration |> Option.defaultValue(scenario.PlanedDuration)
 
 let defaultClusterCount = fun _ -> 1
+
+let getScenariosForWarmUp (scenarios: Scenario list) =
+    scenarios |> List.filter(fun x -> x.WarmUpDuration.IsSome)

@@ -182,7 +182,7 @@ module Scenario =
           Init = None
           Clean = None
           Steps = steps
-          WarmUpDuration = Constants.DefaultWarmUpDuration
+          WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
           CustomStepExecControl = None }
@@ -199,10 +199,10 @@ module Scenario =
     /// Sets warm-up duration
     /// Warm-up will just simply start a scenario with a specified duration.
     let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
-        { scenario with WarmUpDuration = duration }
+        { scenario with WarmUpDuration = Some duration }
 
     let withoutWarmUp (scenario: Contracts.Scenario) =
-        { scenario with WarmUpDuration = TimeSpan.Zero }
+        { scenario with WarmUpDuration = None }
 
     /// Sets load simulations.
     /// Default value is: KeepConstant(copies = 1, during = minutes 1)
