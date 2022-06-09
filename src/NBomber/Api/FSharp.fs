@@ -13,8 +13,9 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
+open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 open NBomber.Configuration
 open NBomber.Errors
 open NBomber.Domain
@@ -185,7 +186,8 @@ module Scenario =
           WarmUpDuration = Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
-          CustomStepExecControl = None }
+          CustomStepExecControl = None
+          Thresholds = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -225,6 +227,9 @@ module Scenario =
     /// where you can specify what step should be invoked.
     let withCustomStepExecControl (execControl: IStepExecControlContext voption -> string voption) (scenario: Contracts.Scenario) =
         { scenario with CustomStepExecControl = Some execControl }
+
+    let withThresholds (thresholds: Threshold list) (scenario: Contracts.Scenario) =
+        { scenario with Thresholds = Some thresholds }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
@@ -388,3 +393,69 @@ module NBomberRunner =
         |> runWithResult args
         |> Result.map(fun x -> x.FinalStats)
         |> Result.mapError AppError.toString
+
+type ThresholdsBuilder () =
+    member _.Yield _ = [ ]
+
+    member _.Run state = state
+
+    [<CustomOperation("request_all_count")>]
+    member _.RequestAllCount(state, predicate, ?description: string) =
+        state @ [ RequestAllCount(predicate, description) ]
+
+    [<CustomOperation("request_ok_count")>]
+    member _.RequestOkCount(state, predicate, ?description: string) =
+        state @ [ RequestOkCount(predicate, description) ]
+
+    [<CustomOperation("request_failed_count")>]
+    member _.RequestFailedCount(state, predicate, ?description: string) =
+        state @ [ RequestFailedCount(predicate, description) ]
+
+    [<CustomOperation("request_failed_rate")>]
+    member _.RequestFailedRate(state, predicate, ?description: string) =
+        state @ [ RequestFailedRate(predicate, description) ]
+
+    [<CustomOperation("rps")>]
+    member _.RPS(state, predicate, ?description: string) =
+        state @ [ RPS(predicate, description) ]
+
+    [<CustomOperation("latency_min")>]
+    member _.LatencyMin(state, predicate, ?description: string) =
+        state @ [ LatencyMin(predicate, description) ]
+
+    [<CustomOperation("latency_mean")>]
+    member _.LatencyMean(state, predicate, ?description: string) =
+        state @ [ LatencyMean(predicate, description) ]
+
+    [<CustomOperation("latency_max")>]
+    member _.LatencyMax(state, predicate, ?description: string) =
+        state @ [ LatencyMax(predicate, description) ]
+
+    [<CustomOperation("latency_std_dev")>]
+    member _.LatencyStdDev(state, predicate, ?description: string) =
+        state @ [ LatencyStdDev(predicate, description) ]
+
+    [<CustomOperation("latency_p50")>]
+    member _.LatencyPercent50(state, predicate, ?description: string) =
+        state @ [ LatencyPercent50(predicate, description) ]
+
+    [<CustomOperation("latency_p75")>]
+    member _.LatencyPercent75(state, predicate, ?description: string) =
+        state @ [ LatencyPercent75(predicate, description) ]
+
+    [<CustomOperation("latency_p95")>]
+    member _.LatencyPercent95(state, predicate, ?description: string) =
+        state @ [ LatencyPercent95(predicate, description) ]
+
+    [<CustomOperation("latency_p99")>]
+    member _.LatencyPercent99(state, predicate, ?description: string) =
+        state @ [ LatencyPercent99(predicate, description) ]
+
+    [<CustomOperation("data_transfer_all_bytes")>]
+    member _.DataTransferAllBytes(state, predicate, ?description: string) =
+        state @ [ DataTransferAllBytes(predicate, description) ]
+
+[<AutoOpen>]
+module ComputationExpressions =
+
+    let thresholds = ThresholdsBuilder()

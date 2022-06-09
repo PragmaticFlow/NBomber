@@ -29,6 +29,7 @@ type ValidationError =
     | InvalidClientFactoryName of factoryName:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
+    | EmptyThresholds of scenarioName:string
 
     // ScenarioSettings
     | CustomStepOrderContainsNotFoundStepName of scenarioName:string * stepName:string
@@ -127,6 +128,9 @@ type AppError =
             $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"
 
         | EnterpriseOnlyFeature message -> message
+
+        | EmptyThresholds scenarioName ->
+            $"Scenario: '{scenarioName}' has no thresholds"
 
     static member toString (error: AppError) =
         match error with

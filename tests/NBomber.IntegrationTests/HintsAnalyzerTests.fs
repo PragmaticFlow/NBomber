@@ -34,6 +34,7 @@ let baseScnStats = {
     AllBytes = 0; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
     StatusCodes = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
+    ThresholdStats = None
 }
 
 let baseStepStats = {

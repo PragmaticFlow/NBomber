@@ -12,8 +12,8 @@ let main argv =
     //HelloWorldExample.run()
     //CustomSettingsExample.run()
     //DataFeedTest.run()
-    //SimpleHttpTest.run()
-    HttpClientFactoryExample.run()
+    SimpleHttpTest.run()
+    //HttpClientFactoryExample.run()
     //MqttScenario.run()
 
     0 // return an integer exit code

@@ -8,6 +8,7 @@ open FSharp.UMX
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Thresholds
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
@@ -151,6 +152,52 @@ module StepStats =
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
 
+module private ThresholdStats =
+
+    let private applySepsStats stats f =
+        (true, stats)
+        ||> Array.fold (fun status stats ->
+            status
+            && (f stats.Ok || stats.Ok.Request.Count = 0)
+            && (f stats.Fail || stats.Fail.Request.Count = 0)
+        )
+
+    let applyThresholds stepStats thresholds =
+        let sum by = stepStats |> Array.sumBy by
+        let okCount = sum (fun x -> x.Ok.Request.Count)
+        let failedCount = sum (fun x -> x.Fail.Request.Count)
+        let allCount = okCount + failedCount
+        thresholds
+        |> List.map (fun threshold ->
+            let status =
+                match threshold with
+                | RequestAllCount (f, _) -> f allCount
+                | RequestOkCount (f, _) -> f okCount
+                | RequestFailedCount (f, _) -> f failedCount
+                | RequestFailedRate (f, _) -> f (float failedCount * 100. / float allCount)
+                | RPS (f, _) -> applySepsStats stepStats (fun s -> f s.Request.RPS)
+                | LatencyMin (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MinMs)
+                | LatencyMean (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MeanMs)
+                | LatencyMax (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.MaxMs)
+                | LatencyStdDev (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.StdDev)
+                | LatencyPercent50 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent50)
+                | LatencyPercent75 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent75)
+                | LatencyPercent95 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent95)
+                | LatencyPercent99 (f, _) -> applySepsStats stepStats (fun s -> f s.Latency.Percent99)
+                | DataTransferMinBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MinBytes)
+                | DataTransferMeanBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MeanBytes)
+                | DataTransferMaxBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.MaxBytes)
+                | DataTransferPercent50 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent50)
+                | DataTransferPercent75 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent75)
+                | DataTransferPercent95 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent95)
+                | DataTransferPercent99 (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.Percent99)
+                | DataTransferStdDev (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.StdDev)
+                | DataTransferAllBytes (f, _) -> applySepsStats stepStats (fun s -> f s.DataTransfer.AllBytes)
+                |> ThresholdStatus.map
+
+            { Threshold = threshold; Status = status }
+        )
+
 module ScenarioStats =
 
     let create (scenario: Scenario)
@@ -184,6 +231,12 @@ module ScenarioStats =
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
         let statusCodes = StatusCodeStats.merge(okCodes |> Array.append(failCodes))
 
+        let thresholdStats =
+            scenario.Thresholds
+            |> Option.map (
+                ThresholdStats.applyThresholds stepStats >> Array.ofList
+            )
+
         { ScenarioName = scenario.ScenarioName
           RequestCount = okCount + failCount
           OkCount = okCount
@@ -194,7 +247,8 @@ module ScenarioStats =
           LoadSimulationStats = simulationStats
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
-          Duration = %duration }
+          Duration = %duration
+          ThresholdStats = thresholdStats }
 
     let round (stats: ScenarioStats) =
         { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
@@ -202,6 +256,17 @@ module ScenarioStats =
 
     let failStepStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
+
+    let failThresholdStatsExist stats =
+        stats.ThresholdStats
+        |> Option.map (
+            Array.exists (fun stats ->
+                match stats.Status with
+                | Passed -> false
+                | Failed -> true
+            )
+        )
+        |> Option.defaultValue false
 
 module NodeStats =
 

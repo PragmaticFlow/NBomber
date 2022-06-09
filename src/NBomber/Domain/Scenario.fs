@@ -10,6 +10,7 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber
+open NBomber.Contracts.Thresholds
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
@@ -74,6 +75,15 @@ module Validation =
             | Ok _ -> Ok scenario
             | Error errors -> errors |> List.head |> AppError.createResult
 
+    let checkEmptyThresholds (scenario: Contracts.Scenario) =
+        scenario.Thresholds
+        |> Option.map (fun thresholds ->
+            match thresholds with
+            | [] -> AppError.createResult(EmptyThresholds scenario.ScenarioName)
+            | _ -> Ok scenario
+        )
+        |> Option.defaultValue (Ok scenario)
+
     let validate =
         checkEmptyScenarioName
         >=> checkInitOnlyScenario
@@ -81,6 +91,7 @@ module Validation =
         >=> checkDuplicateStepNameButDiffImpl
         >=> checkClientFactoryName
         >=> checkDuplicateClientFactories
+        >=> checkEmptyThresholds
 
 module ClientFactory =
 
@@ -222,7 +233,8 @@ let createScenario (scn: Contracts.Scenario) = result {
              StepOrderIndex = stepOrderIndex
              CustomStepOrder = scenario.CustomStepOrder
              CustomStepExecControl = scenario.CustomStepExecControl
-             IsEnabled = true }
+             IsEnabled = true
+             Thresholds = scenario.Thresholds }
 }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {

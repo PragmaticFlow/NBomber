@@ -6,6 +6,8 @@ open System.Data
 open Newtonsoft.Json
 open Newtonsoft.Json.Converters
 
+open NBomber.Contracts.Thresholds
+
 type ReportFormat =
     | Txt = 0
     | Html = 1
@@ -110,6 +112,18 @@ type LoadSimulationStats = {
     Value: int
 }
 
+type ThresholdStatus =
+    | Passed
+    | Failed
+with
+    static member map value =
+        if value then Passed else Failed
+
+type ThresholdStats = {
+    Threshold: Threshold
+    Status: ThresholdStatus
+}
+
 type ScenarioStats = {
     ScenarioName: string
     RequestCount: int
@@ -122,6 +136,7 @@ type ScenarioStats = {
     StatusCodes: StatusCodeStats[]
     CurrentOperation: OperationType
     Duration: TimeSpan
+    ThresholdStats: ThresholdStats[] option
 } with
 
     member this.GetStepStats(stepName: string) = ScenarioStats.getStepStats stepName this
