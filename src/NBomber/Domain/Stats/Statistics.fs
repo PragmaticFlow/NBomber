@@ -8,8 +8,10 @@ open FSharp.UMX
 
 open NBomber
 open NBomber.Contracts.Stats
+open NBomber.Extensions.Data
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.StepStatsRawData
 
 let calcRPS (requestCount: int) (executionTime: TimeSpan) =
     let totalSec =
@@ -17,15 +19,6 @@ let calcRPS (requestCount: int) (executionTime: TimeSpan) =
         else executionTime.TotalSeconds
 
     float requestCount / totalSec
-
-module Converter =
-
-    let fromMicroSecToMs (microSec: float) = (microSec / 1000.0)
-    let fromMsToMicroSec (ms: float) = (ms * 1000.0) |> int
-
-    let inline fromBytesToKb (bytes) = Math.Round(float bytes / 1024.0, 3)
-    let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 4)
-    let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
 module Histogram =
 
@@ -61,21 +54,21 @@ module LatencyStats =
           LatencyCount = { LessOrEq800 = stats.LessOrEq800; More800Less1200 = stats.More800Less1200; MoreOrEq1200 = stats.MoreOrEq1200 } }
 
     let round (stats: LatencyStats) =
-        { stats with MinMs = stats.MinMs |> Converter.round(Constants.StatsRounding)
-                     MeanMs = stats.MeanMs |> Converter.round(Constants.StatsRounding)
-                     MaxMs = stats.MaxMs |> Converter.round(Constants.StatsRounding)
-                     Percent50 = stats.Percent50 |> Converter.round(Constants.StatsRounding)
-                     Percent75 = stats.Percent75 |> Converter.round(Constants.StatsRounding)
-                     Percent95 = stats.Percent95 |> Converter.round(Constants.StatsRounding)
-                     Percent99 = stats.Percent99 |> Converter.round(Constants.StatsRounding)
-                     StdDev = stats.StdDev |> Converter.round(Constants.StatsRounding) }
+        { stats with MinMs = stats.MinMs |> Converter.round Constants.StatsRounding
+                     MeanMs = stats.MeanMs |> Converter.round Constants.StatsRounding
+                     MaxMs = stats.MaxMs |> Converter.round Constants.StatsRounding
+                     Percent50 = stats.Percent50 |> Converter.round Constants.StatsRounding
+                     Percent75 = stats.Percent75 |> Converter.round Constants.StatsRounding
+                     Percent95 = stats.Percent95 |> Converter.round Constants.StatsRounding
+                     Percent99 = stats.Percent99 |> Converter.round Constants.StatsRounding
+                     StdDev = stats.StdDev |> Converter.round Constants.StatsRounding }
 
 module DataTransferStats =
 
     let create (stats: RawStepStats) =
 
         let dataTransfer =
-            if stats.DataTransferHistogram.TotalCount > 0L then ValueSome(stats.DataTransferHistogram)
+            if stats.DataTransferHistogram.TotalCount > 0L then ValueSome stats.DataTransferHistogram
             else ValueNone
 
         { MinBytes  = if dataTransfer.IsSome then stats.MinBytes else 0
@@ -89,7 +82,7 @@ module DataTransferStats =
           AllBytes  = stats.AllBytes }
 
     let round (stats: DataTransferStats) =
-        { stats with StdDev = stats.StdDev |> Converter.round(Constants.StatsRounding) }
+        { stats with StdDev = stats.StdDev |> Converter.round Constants.StatsRounding }
 
 module StatusCodeStats =
 

@@ -16,14 +16,19 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
 open NBomber.Domain.Stats.ScenarioStatsActor
 
-type StepDep = {
-    Scenario: Scenario
-    ScenarioInfo: ScenarioInfo
+type ScenarioDep = {
     Logger: ILogger
-    CancellationToken: CancellationToken
-    ScenarioGlobalTimer: Stopwatch
-    ExecStopCommand: StopCommand -> unit
+    Scenario: Scenario
+    CancellationTokenSource: CancellationTokenSource
+    ScenarioTimer: Stopwatch
+    ScenarioOperation: ScenarioOperation
     ScenarioStatsActor: ScenarioStatsActor
+    ExecStopCommand: StopCommand -> unit
+}
+
+type StepDep = {
+    ScenarioDep: ScenarioDep
+    ScenarioInfo: ScenarioInfo
     Data: Dictionary<string,obj>
 }
 
@@ -53,12 +58,12 @@ module StepContext =
           ScenarioInfo = dep.ScenarioInfo
           CancellationTokenSource = new CancellationTokenSource()
           Client = getClient step.ClientPool
-          Logger = dep.Logger
+          Logger = dep.ScenarioDep.Logger
           FeedItem = ()
           Data = Dictionary<string,obj>()
           InvocationCount = 0
-          StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ExecStopCommand
-          StopCurrentTest = fun reason -> StopTest(reason) |> dep.ExecStopCommand }
+          StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ScenarioDep.ExecStopCommand
+          StopCurrentTest = fun reason -> StopTest(reason) |> dep.ScenarioDep.ExecStopCommand }
 
     let create (untyped: UntypedStepContext) = {
         new IStepContext<'TClient,'TFeedItem> with
@@ -175,15 +180,15 @@ module RunningStep =
 
     let execStep (dep: StepDep) (step: RunningStep) = backgroundTask {
 
-        let! response = measureExec step dep.ScenarioGlobalTimer
+        let! response = measureExec step dep.ScenarioDep.ScenarioTimer
         let payload = response.ClientResponse.Payload
         response.ClientResponse.Payload <- null // to prevent holding it for stats actor
 
         if not step.Value.DoNotTrack then
-            dep.ScenarioStatsActor.Publish(AddResponse response)
+            dep.ScenarioDep.ScenarioStatsActor.Publish(AddResponse response)
 
             if response.ClientResponse.IsError then
-                dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+                dep.ScenarioDep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
                 dep.Data[Constants.StepResponseKey] <- payload
 
@@ -194,7 +199,7 @@ module RunningStep =
 
         else
             if response.ClientResponse.IsError then
-                dep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+                dep.ScenarioDep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
                 dep.Data[Constants.StepResponseKey] <- payload
 
@@ -206,8 +211,8 @@ module RunningStep =
         for stepIndex in stepsOrder do
 
             if shouldWork
-               && not dep.CancellationToken.IsCancellationRequested
-               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioGlobalTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
+               && not dep.ScenarioDep.CancellationTokenSource.IsCancellationRequested
+               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioDep.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
 
                 let step = updateContext steps[stepIndex] dep.Data
                 let! response = execStep dep step

@@ -30,20 +30,23 @@ let internal baseScenario =
 
 let internal logger = LoggerConfiguration().CreateLogger()
 
-let internal baseDep = {
-    Logger = logger
-    CancellationToken = CancellationToken.None
-    ScenarioGlobalTimer = Stopwatch()
-    Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
-    ExecStopCommand = fun _ -> ()
+let internal baseActorDep = {
+    ScenarioDep = {
+        Logger = logger
+        Scenario = baseScenario
+        CancellationTokenSource = new CancellationTokenSource()
+        ScenarioTimer = Stopwatch()
+        ScenarioOperation = ScenarioOperation.Bombing
+        ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
+        ExecStopCommand = fun _ -> ()
+    }
     GetStepOrder = Scenario.getStepOrder
     ExecSteps = RunningStep.execSteps
 }
 
 [<Fact>]
 let ``InjectActors should start actors if there is no actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.InjectActors(5)
@@ -56,7 +59,7 @@ let ``InjectActors should start actors if there is no actors`` () =
 
 [<Fact>]
 let ``InjectActors should execute actors once until next turn`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
 
     scheduler.InjectActors(5)
     Task.Delay(seconds 2).Wait()
@@ -67,7 +70,7 @@ let ``InjectActors should execute actors once until next turn`` () =
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
 
     scheduler.InjectActors(5)
     Task.Delay(milliseconds 10).Wait()

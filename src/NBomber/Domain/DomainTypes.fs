@@ -5,11 +5,9 @@ open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
 
-open HdrHistogram
 open Serilog
 
 open NBomber.Contracts
-open NBomber.Contracts.Stats
 open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 
@@ -48,26 +46,6 @@ type Step = {
     interface IStep with
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack
-
-type RawStepStats = {
-    mutable MinMicroSec: int
-    mutable MaxMicroSec: int
-    mutable MinBytes: int
-    mutable MaxBytes: int
-    mutable RequestCount: int
-    mutable LessOrEq800: int
-    mutable More800Less1200: int
-    mutable MoreOrEq1200: int
-    mutable AllBytes: int64
-    LatencyHistogram: LongHistogram
-    DataTransferHistogram: LongHistogram
-    StatusCodes: Dictionary<int,StatusCodeStats>
-}
-
-type StepStatsRawData = {
-    OkStats: RawStepStats
-    FailStats: RawStepStats
-}
 
 type RunningStep = {
     StepIndex: int

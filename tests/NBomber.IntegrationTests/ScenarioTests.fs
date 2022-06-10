@@ -385,7 +385,13 @@ let ``withStepTimeout should set step timeout`` () =
 [<Fact>]
 let ``withoutWarmUp should hide the warmup info on the console`` () =
 
+    let mutable warmupRun = false
+
     let step1 = Step.create("step_1", fun context -> task {
+
+        if context.ScenarioInfo.ScenarioOperation = ScenarioOperation.WarmUp then
+            warmupRun <- true
+
         do! Task.Delay(seconds 0.5)
         return Response.ok()
     })
@@ -400,5 +406,57 @@ let ``withoutWarmUp should hide the warmup info on the console`` () =
     |> NBomberRunner.run
     |> ignore
 
+    test <@ warmupRun = false @>
     test <@ inMemorySink.LogEvents |> Seq.exists(fun x -> x.MessageTemplate.Text.Contains "Starting warm up...") |> not @>
     test <@ inMemorySink.LogEvents |> Seq.exists(fun x -> x.MessageTemplate.Text.Contains "Starting bombing...") @>
+
+[<Fact>]
+let ``withWarmUpDuration should run warmup only for specified scenarios`` () =
+
+    let mutable warmupStep1 = false
+    let mutable warmupStep2 = false
+    let mutable bombingStep1 = false
+    let mutable bombingStep2 = false
+
+    let step1 = Step.create("step_1", fun context -> task {
+
+        if context.ScenarioInfo.ScenarioOperation = ScenarioOperation.WarmUp then
+            warmupStep1 <- true
+
+        if context.ScenarioInfo.ScenarioOperation = ScenarioOperation.Bombing then
+            bombingStep1 <- true
+
+        do! Task.Delay(seconds 0.5)
+        return Response.ok()
+    })
+
+    let step2 = Step.create("step_2", fun context -> task {
+
+        if context.ScenarioInfo.ScenarioOperation = ScenarioOperation.WarmUp then
+            warmupStep2 <- true
+
+        if context.ScenarioInfo.ScenarioOperation = ScenarioOperation.Bombing then
+            bombingStep2 <- true
+
+        do! Task.Delay(seconds 0.5)
+        return Response.ok()
+    })
+
+    let scn1 =
+        Scenario.create "1" [step1]
+        |> Scenario.withWarmUpDuration(seconds 2)
+        |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+
+    let scn2 =
+        Scenario.create "2" [step2]
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.run
+    |> ignore
+
+    test <@ warmupStep1 = true @>
+    test <@ warmupStep2 = false @>
+    test <@ bombingStep1 = true @>
+    test <@ bombingStep2 = true @>

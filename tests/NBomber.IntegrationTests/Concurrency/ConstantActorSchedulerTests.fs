@@ -31,20 +31,23 @@ let internal baseScenario =
 
 let internal logger = LoggerConfiguration().CreateLogger()
 
-let internal baseDep = {
-    Logger = logger
-    CancellationToken = CancellationToken.None
-    ScenarioGlobalTimer = Stopwatch()
-    Scenario = baseScenario
-    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
-    ExecStopCommand = fun _ -> ()
+let internal baseActorDep = {
+    ScenarioDep = {
+        Logger = logger
+        Scenario = baseScenario
+        CancellationTokenSource = new CancellationTokenSource()
+        ScenarioTimer = Stopwatch()
+        ScenarioOperation = ScenarioOperation.Bombing
+        ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
+        ExecStopCommand = fun _ -> ()
+    }
     GetStepOrder = Scenario.getStepOrder
     ExecSteps = RunningStep.execSteps
 }
 
 [<Fact>]
 let ``AddActors should start actors if there is no actors`` () =
-    use scheduler = new ConstantActorScheduler(baseDep, exec)
+    use scheduler = new ConstantActorScheduler(baseActorDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.AddActors(5)
@@ -57,7 +60,7 @@ let ``AddActors should start actors if there is no actors`` () =
 
 [<Fact>]
 let ``AddActors should start actors to run forever until the finish of scenario duration`` () =
-    use scheduler = new ConstantActorScheduler(baseDep, exec)
+    use scheduler = new ConstantActorScheduler(baseActorDep, exec)
 
     scheduler.AddActors(5)
     Task.Delay(milliseconds 10).Wait()
@@ -69,7 +72,7 @@ let ``AddActors should start actors to run forever until the finish of scenario 
 
 [<Fact>]
 let ``RemoveActors should stop some actors and keep them in actor pool`` () =
-    use scheduler = new ConstantActorScheduler(baseDep, exec)
+    use scheduler = new ConstantActorScheduler(baseActorDep, exec)
 
     scheduler.AddActors(10)
     Task.Delay(milliseconds 10).Wait()
@@ -83,7 +86,7 @@ let ``RemoveActors should stop some actors and keep them in actor pool`` () =
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new ConstantActorScheduler(baseDep, exec)
+    use scheduler = new ConstantActorScheduler(baseActorDep, exec)
 
     scheduler.AddActors(5)
     Task.Delay(milliseconds 10).Wait()

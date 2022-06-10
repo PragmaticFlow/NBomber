@@ -21,6 +21,10 @@ type Response = {
     mutable Payload: obj
 }
 
+type ScenarioOperation =
+    | WarmUp = 0
+    | Bombing = 1
+
 type ScenarioInfo = {
     /// Gets the current scenario thread id.
     /// You can use it as correlation id.
@@ -28,6 +32,9 @@ type ScenarioInfo = {
     ThreadNumber: int
     ScenarioName: string
     ScenarioDuration: TimeSpan
+    /// Returns info about current operation type.
+    /// It can be: WarmUp or Bombing.
+    ScenarioOperation: ScenarioOperation
 }
 
 type IBaseContext =

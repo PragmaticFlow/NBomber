@@ -3,6 +3,7 @@ module internal NBomber.Domain.Scenario
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.IO
 open System.Text
 
@@ -10,10 +11,10 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber
+open NBomber.Contracts
+open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
-open NBomber.Configuration
-open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
@@ -179,11 +180,12 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int) =
+let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int, operation: ScenarioOperation) =
     { ThreadId = $"{scenarioName}_{threadNumber}"
       ThreadNumber = threadNumber
       ScenarioName = scenarioName
-      ScenarioDuration = duration }
+      ScenarioDuration = duration
+      ScenarioOperation = operation }
 
 let createStepOrderIndex (scenario: Contracts.Scenario) =
     if List.isEmpty scenario.Steps then Dictionary<_,_>() // it's needed for case when scenario only init
@@ -280,8 +282,8 @@ let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
     else
         { scenario with ExecutedDuration = Some scenario.PlanedDuration }
 
-let getDuration (scenario: Scenario) =
-    scenario.ExecutedDuration |> Option.defaultValue(scenario.PlanedDuration)
+let getExecutedDuration (scenario: Scenario) =
+    scenario.ExecutedDuration |> Option.defaultValue scenario.PlanedDuration
 
 let defaultClusterCount = fun _ -> 1
 

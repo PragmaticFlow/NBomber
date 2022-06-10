@@ -38,8 +38,8 @@
         <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
-        <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
+        <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
         <Compile Include="Domain\Feed.fs" />
         <Compile Include="Domain\Step.fs" />
