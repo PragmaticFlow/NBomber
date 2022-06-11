@@ -77,19 +77,18 @@ let emptyExec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCou
 
 type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
-    let _log = dep.Logger.ForContext<ScenarioScheduler>()
-    let mutable _warmUp = false
-    let mutable _scenario = dep.Scenario
-    let mutable _currentSimulation = dep.Scenario.LoadTimeLine.Head.LoadSimulation
+    let _log = dep.ScenarioDep.Logger.ForContext<ScenarioScheduler>()
+    let _scnDep = dep.ScenarioDep
+    let mutable _scenario = _scnDep.Scenario
+    let mutable _currentSimulation = _scenario.LoadTimeLine.Head.LoadSimulation
     let mutable _cachedSimulationStats = Unchecked.defaultof<LoadSimulationStats>
-    let mutable _currentOperation = OperationType.None
 
     let _constantScheduler =
-        if dep.Scenario.IsEnabled then new ConstantActorScheduler(dep, ConstantActorScheduler.exec)
+        if _scenario.IsEnabled then new ConstantActorScheduler(dep, ConstantActorScheduler.exec)
         else new ConstantActorScheduler(dep, emptyExec)
 
     let _oneTimeScheduler =
-        if dep.Scenario.IsEnabled then new OneTimeActorScheduler(dep, OneTimeActorScheduler.exec)
+        if _scenario.IsEnabled then new OneTimeActorScheduler(dep, OneTimeActorScheduler.exec)
         else new OneTimeActorScheduler(dep, emptyExec)
 
     let _schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
@@ -110,45 +109,47 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     let prepareForRealtimeStats () =
         _cachedSimulationStats <- getCurrentSimulationStats()
-        dep.ScenarioStatsActor.Publish StartUseTempBuffer
+        _scnDep.ScenarioStatsActor.Publish StartUseTempBuffer
 
     let buildRealtimeStats (duration) =
         let simulationStats = getCurrentSimulationStats()
         let reply = TaskCompletionSource<ScenarioStats>()
-        dep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration))
         reply.Task
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        dep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
-        dep.ScenarioStatsActor.Publish FlushTempBuffer
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish FlushTempBuffer
         reply.Task
 
     let getRawStats (duration: TimeSpan) =
-        dep.ScenarioStatsActor.AllRawStats.TryFind duration
+        _scnDep.ScenarioStatsActor.AllRawStats.TryFind duration
 
     let getRemainedRawStats () =
         let reply = TaskCompletionSource<ScenarioRawStats>()
-        dep.ScenarioStatsActor.Publish(GetRemainedRawStats reply)
+        _scnDep.ScenarioStatsActor.Publish(GetRemainedRawStats reply)
         reply.Task
 
     let getFinalStats () =
         let simulationStats = getCurrentSimulationStats()
-        let duration = Scenario.getDuration _scenario
+        let duration = Scenario.getExecutedDuration _scenario
         let reply = TaskCompletionSource<ScenarioStats>()
-        dep.ScenarioStatsActor.Publish(GetFinalStats(reply, simulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(GetFinalStats(reply, simulationStats, duration))
         reply.Task
 
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)
 
     let stop () =
-        if _schedulerTimer.Enabled then
-            _scenario <- Scenario.setExecutedDuration(_scenario, dep.ScenarioGlobalTimer.Elapsed)
-            _currentOperation <- OperationType.Complete
+        if not _scnDep.CancellationTokenSource.IsCancellationRequested then
+            _scnDep.CancellationTokenSource.Cancel()
 
-            dep.ScenarioGlobalTimer.Stop()
+        if _schedulerTimer.Enabled then
             _schedulerTimer.Stop()
+            _scenario <- Scenario.setExecutedDuration(_scenario, _scnDep.ScenarioTimer.Elapsed)
+
+            _scnDep.ScenarioTimer.Stop()
             _progressTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
@@ -157,12 +158,13 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             _tcs.TrySetResult() |> ignore
 
     let execScheduler () =
-        let currentTime = dep.ScenarioGlobalTimer.Elapsed
+        let currentTime = _scnDep.ScenarioTimer.Elapsed
 
-        if _warmUp && dep.Scenario.WarmUpDuration <= currentTime then
+        if _scnDep.ScenarioOperation = ScenarioOperation.WarmUp
+           && _scenario.WarmUpDuration.IsSome && _scenario.WarmUpDuration.Value <= currentTime then
             stop()
         else
-            match LoadTimeLine.getRunningTimeSegment(dep.Scenario.LoadTimeLine, currentTime) with
+            match LoadTimeLine.getRunningTimeSegment(_scenario.LoadTimeLine, currentTime) with
             | Some timeSegment ->
 
                 _currentSimulation <- timeSegment.LoadSimulation
@@ -182,18 +184,11 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
             | None -> stop()
 
-    let start (isWarmUp) =
-        _warmUp <- isWarmUp
-
-        if _warmUp then
-            _currentOperation <- OperationType.WarmUp
-        else
-            _currentOperation <- OperationType.Bombing
-
+    let start () =
         _schedulerTimer.Start()
         _progressTimer.Start()
         _eventStream.OnNext(ScenarioStarted)
-        dep.ScenarioGlobalTimer.Restart()
+        _scnDep.ScenarioTimer.Restart()
         execScheduler()
         _tcs.Task :> Task
 
@@ -210,20 +205,20 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     member _.Working = _schedulerTimer.Enabled
     member _.EventStream = _eventStream :> IObservable<_>
-    member _.Scenario = dep.Scenario
-    member _.AllRealtimeStats = dep.ScenarioStatsActor.AllRealtimeStats
-    member _.AllRawStats = dep.ScenarioStatsActor.AllRawStats
+    member _.Scenario = _scenario
+    member _.AllRealtimeStats = _scnDep.ScenarioStatsActor.AllRealtimeStats
+    member _.AllRawStats = _scnDep.ScenarioStatsActor.AllRawStats
 
-    member _.Start(isWarmUp) = start isWarmUp
+    member _.Start() = start()
     member _.Stop() = stop()
 
-    member _.AddStatsFromAgent(stats) = dep.ScenarioStatsActor.Publish(AddFromAgent stats)
+    member _.AddStatsFromAgent(stats) = _scnDep.ScenarioStatsActor.Publish(AddFromAgent stats)
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
     member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
     member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
 
     member _.GetRawStats(duration) = getRawStats duration
-    member _.DelRawStats(duration) = dep.ScenarioStatsActor.Publish(DelRawStats duration)
+    member _.DelRawStats(duration) = _scnDep.ScenarioStatsActor.Publish(DelRawStats duration)
     member _.GetRemainedRawStats() = getRemainedRawStats()
 
     member _.GetFinalStats() = getFinalStats()

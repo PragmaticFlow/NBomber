@@ -105,7 +105,7 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.Publish(msg) = _actor.Post(msg) |> ignore
 
-let create (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
+let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval, keepRawStats = false)
 
 let createWithRawStats (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =

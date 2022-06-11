@@ -2,8 +2,8 @@ namespace NBomber.Contracts
 
 open System
 
-open Microsoft.Extensions.Configuration
 open Serilog
+open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Configuration

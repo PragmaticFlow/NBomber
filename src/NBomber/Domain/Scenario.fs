@@ -3,6 +3,7 @@ module internal NBomber.Domain.Scenario
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.IO
 open System.Text
 
@@ -10,10 +11,10 @@ open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber
+open NBomber.Contracts
+open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
-open NBomber.Configuration
-open NBomber.Contracts
 open NBomber.Errors
 open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
@@ -179,11 +180,12 @@ module ScenarioContext =
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
-let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int) =
+let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int, operation: ScenarioOperation) =
     { ThreadId = $"{scenarioName}_{threadNumber}"
       ThreadNumber = threadNumber
       ScenarioName = scenarioName
-      ScenarioDuration = duration }
+      ScenarioDuration = duration
+      ScenarioOperation = operation }
 
 let createStepOrderIndex (scenario: Contracts.Scenario) =
     if List.isEmpty scenario.Steps then Dictionary<_,_>() // it's needed for case when scenario only init
@@ -222,7 +224,8 @@ let createScenario (scn: Contracts.Scenario) = result {
              StepOrderIndex = stepOrderIndex
              CustomStepOrder = scenario.CustomStepOrder
              CustomStepExecControl = scenario.CustomStepExecControl
-             IsEnabled = true }
+             IsEnabled = true
+             IsInitialized = false }
 }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {
@@ -239,11 +242,6 @@ let filterTargetScenarios (targetScenarios: string list) (scenarios: Scenario li
 
 let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan) (scenarios: Scenario list) =
 
-    let getWarmUpDuration (settings: ScenarioSetting) =
-        match settings.WarmUpDuration with
-        | Some v -> TimeSpan.Parse v
-        | None   -> TimeSpan.Zero
-
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
         let timeLine =
@@ -257,7 +255,7 @@ let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan
             | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = getWarmUpDuration settings
+                        WarmUpDuration = settings.WarmUpDuration |> Option.map TimeSpan.Parse
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
                         CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
@@ -285,7 +283,10 @@ let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
     else
         { scenario with ExecutedDuration = Some scenario.PlanedDuration }
 
-let getDuration (scenario: Scenario) =
-    scenario.ExecutedDuration |> Option.defaultValue(scenario.PlanedDuration)
+let getExecutedDuration (scenario: Scenario) =
+    scenario.ExecutedDuration |> Option.defaultValue scenario.PlanedDuration
 
 let defaultClusterCount = fun _ -> 1
+
+let getScenariosForWarmUp (scenarios: Scenario list) =
+    scenarios |> List.filter(fun x -> x.WarmUpDuration.IsSome)

@@ -38,8 +38,8 @@
         <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\ClientPool.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
-        <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
+        <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
         <Compile Include="Domain\Feed.fs" />
         <Compile Include="Domain\Step.fs" />
@@ -110,7 +110,7 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
     </ItemGroup>
-<!--    <ItemGroup>-->
-<!--      <ProjectReference Include="..\NBomber.Contracts\NBomber.Contracts.fsproj" />-->
-<!--    </ItemGroup>-->
+    <ItemGroup>
+      <ProjectReference Include="..\NBomber.Contracts\NBomber.Contracts.fsproj" />
+    </ItemGroup>
 </Project>

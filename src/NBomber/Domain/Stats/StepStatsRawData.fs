@@ -9,8 +9,27 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.Statistics
+open NBomber.Extensions.Data
+
+type RawStepStats = {
+    mutable MinMicroSec: int
+    mutable MaxMicroSec: int
+    mutable MinBytes: int
+    mutable MaxBytes: int
+    mutable RequestCount: int
+    mutable LessOrEq800: int
+    mutable More800Less1200: int
+    mutable MoreOrEq1200: int
+    mutable AllBytes: int64
+    LatencyHistogram: LongHistogram
+    DataTransferHistogram: LongHistogram
+    StatusCodes: Dictionary<int,StatusCodeStats>
+}
+
+type StepStatsRawData = {
+    OkStats: RawStepStats
+    FailStats: RawStepStats
+}
 
 let createEmpty () =
 

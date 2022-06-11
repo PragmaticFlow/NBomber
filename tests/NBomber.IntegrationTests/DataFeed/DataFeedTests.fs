@@ -45,7 +45,7 @@ let ``createCircular iterate over array sequentially``(length: int) =
     let iterateLength = length + length // increase original length
 
     let actual = List.init iterateLength (fun i ->
-        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i, ScenarioOperation.Bombing)
         feed.GetNextItem(scenarioInfo, null)
     )
 
@@ -67,7 +67,7 @@ let ``createConstant returns next value from seq for the same scenarioThreadId``
     feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
-        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i, ScenarioOperation.Bombing)
         feed.GetNextItem(scenarioInfo, null), feed.GetNextItem(scenarioInfo, null)
     )
 
@@ -87,7 +87,7 @@ let ``createConstant returns the same value for the same scenarioInfo``(length: 
     feed.Init(context).Wait()
 
     let actual = List.init length (fun i ->
-        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i, ScenarioOperation.Bombing)
         feed.GetNextItem(scenarioInfo, null), feed.GetNextItem(scenarioInfo, null)
     )
 
@@ -106,12 +106,12 @@ let ``createRandom returns the random numbers list for each full iteration``() =
     feed2.Init(context).Wait()
 
     let actual1 = List.init numbers.Length (fun i ->
-        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i, ScenarioOperation.Bombing)
         feed1.GetNextItem(scenarioInfo, null)
     )
 
     let actual2 = List.init numbers.Length (fun i ->
-        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i)
+        let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, i, ScenarioOperation.Bombing)
         feed2.GetNextItem(scenarioInfo, null)
     )
 
@@ -122,7 +122,7 @@ let ``provides infinite iteration``(numbers: int list, iterationTimes: uint32) =
 
     (numbers.Length > 0 && numbers.Length < 200 && iterationTimes > 0u && iterationTimes < 5000u) ==> lazy
 
-    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, numbers.Length)
+    let scenarioInfo = NBomber.Domain.Scenario.createScenarioInfo("test_scn", seconds 10, numbers.Length, ScenarioOperation.Bombing)
 
     let circular = numbers |> Feed.createCircular "circular"
     let constant = numbers |> Feed.createConstant "constant"

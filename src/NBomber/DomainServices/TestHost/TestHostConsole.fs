@@ -25,7 +25,7 @@ let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
 let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 
     let calcTickCount (scn: Scenario) =
-        if isWarmUp then int(scn.WarmUpDuration.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
+        if isWarmUp then int(scn.WarmUpDuration.Value.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
         else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
 
     let calcTotalTickCount (schedulers: ScenarioScheduler list) =

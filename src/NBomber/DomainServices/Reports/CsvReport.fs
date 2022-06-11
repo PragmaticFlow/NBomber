@@ -5,7 +5,7 @@ open System
 open Serilog
 
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
+open NBomber.Extensions.Data
 
 let private separator = ","
 
@@ -19,10 +19,10 @@ let private getHeader () =
     |> String.concat(separator)
 
 let private toKb (bytes: int) =
-    bytes |> Statistics.Converter.fromBytesToKb
+    bytes |> Converter.fromBytesToKb
 
 let private toMb (bytes: int64) =
-    bytes |> Statistics.Converter.fromBytesToMb
+    bytes |> Converter.fromBytesToMb
 
 let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats, testInfo: TestInfo) =
     let format = [0 .. 20] |> List.map(fun x -> $"{{{x}}}") |> String.concat separator // {0},{1},{2},...

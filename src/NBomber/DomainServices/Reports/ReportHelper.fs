@@ -4,15 +4,16 @@ open System
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Extensions.Data
 open NBomber.Domain.Stats
 open NBomber.Domain
 open NBomber.Extensions.Internal
 
 let printDataKb (highlightTxt: obj -> string) (bytes: int) =
-    $"{bytes |> Statistics.Converter.fromBytesToKb |> highlightTxt} KB"
+    $"{bytes |> Converter.fromBytesToKb |> highlightTxt} KB"
 
 let printAllData (highlightTxt: obj -> string) (bytes: int64) =
-    $"{bytes |> Statistics.Converter.fromBytesToMb |> highlightTxt} MB"
+    $"{bytes |> Converter.fromBytesToMb |> highlightTxt} MB"
 
 module StepStats =
 

@@ -30,15 +30,6 @@ type FeedData() =
         data |> Seq.toArray |> Array.shuffle
 
 [<AutoOpen>]
-module Converter =
-
-    [<CompiledName("KB")>]
-    let inline kb (bytes) = Statistics.Converter.fromBytesToKb(bytes)
-
-    [<CompiledName("MB")>]
-    let inline mb (bytes) = Statistics.Converter.fromBytesToMb(bytes)
-
-[<AutoOpen>]
 module Time =
 
     [<CompiledName("Milliseconds")>]
@@ -49,4 +40,3 @@ module Time =
 
     [<CompiledName("Minutes")>]
     let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
-

@@ -10,11 +10,10 @@ type ActorPoolResult = {
 }
 
 let createActors (dep: ActorDep) count fromIndex =
+    let scenario = dep.ScenarioDep.Scenario
     List.init count (fun i ->
         let actorIndex = fromIndex + i
-        let scenarioInfo = Scenario.createScenarioInfo(dep.Scenario.ScenarioName,
-                                                       dep.Scenario.PlanedDuration,
-                                                       actorIndex)
+        let scenarioInfo = Scenario.createScenarioInfo(scenario.ScenarioName, scenario.PlanedDuration, actorIndex, dep.ScenarioDep.ScenarioOperation)
         ScenarioActor(dep, scenarioInfo)
     )
 

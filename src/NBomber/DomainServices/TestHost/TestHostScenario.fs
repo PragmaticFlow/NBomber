@@ -44,10 +44,13 @@ let initScenarios (dep: IGlobalDependency,
                    sessionArgs: SessionArgs,
                    targetScenarios: Scenario list) = taskResult {
     try
-        TestHostConsole.printTargetScenarios dep targetScenarios
+        let enabledScenarios = targetScenarios |> List.filter(fun x -> x.IsEnabled)
+        let disabledScenarios = targetScenarios |> List.filter(fun x -> not x.IsEnabled)
+
+        TestHostConsole.printTargetScenarios dep enabledScenarios
 
         // scenario init
-        for scn in targetScenarios do
+        for scn in enabledScenarios do
             match scn.Init with
             | Some initFunc ->
 
@@ -59,18 +62,21 @@ let initScenarios (dep: IGlobalDependency,
 
         // client pools init
         let! pools =
-            targetScenarios
+            enabledScenarios
             |> Scenario.ClientPool.createPools sessionArgs.UpdatedClientFactorySettings
             |> initClientPools dep baseContext
 
         // data feed init
-        do! targetScenarios
+        do! enabledScenarios
             |> Scenario.Feed.filterDistinctFeeds
             |> initDataFeeds dep baseContext
             |> TaskResult.ignore
 
-        return targetScenarios
-               |> Scenario.ClientPool.setPools pools
+        return
+            enabledScenarios
+            |> Scenario.ClientPool.setPools pools
+            |> List.append disabledScenarios
+            |> List.map(fun scenario -> { scenario with IsInitialized = true })
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
