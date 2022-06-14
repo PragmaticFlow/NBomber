@@ -142,8 +142,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _randomGen.Next(minRate, maxRate)
 
     let stop () =
-        if not _scnDep.CancellationTokenSource.IsCancellationRequested then
-            _scnDep.CancellationTokenSource.Cancel()
+        if not _scnDep.ScenarioCancellationToken.IsCancellationRequested then
+            _scnDep.ScenarioCancellationToken.Cancel()
 
         if _schedulerTimer.Enabled then
             _schedulerTimer.Stop()

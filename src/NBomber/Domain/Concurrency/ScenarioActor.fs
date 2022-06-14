@@ -41,7 +41,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 _actorWorking <- true
 
                 while shouldRun && _actorWorking
-                    && not _scnDep.CancellationTokenSource.IsCancellationRequested
+                    && not _scnDep.ScenarioCancellationToken.IsCancellationRequested
                     && _scenario.PlanedDuration.TotalMilliseconds > _scnDep.ScenarioTimer.Elapsed.TotalMilliseconds do
 
                     _stepDep.Data.Clear()

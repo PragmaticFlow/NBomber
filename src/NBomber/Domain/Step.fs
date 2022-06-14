@@ -19,7 +19,7 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 type ScenarioDep = {
     Logger: ILogger
     Scenario: Scenario
-    CancellationTokenSource: CancellationTokenSource
+    ScenarioCancellationToken: CancellationTokenSource
     ScenarioTimer: Stopwatch
     ScenarioOperation: ScenarioOperation
     ScenarioStatsActor: ScenarioStatsActor
@@ -210,7 +210,7 @@ module RunningStep =
         for stepIndex in stepsOrder do
 
             if shouldWork
-               && not dep.ScenarioDep.CancellationTokenSource.IsCancellationRequested
+               && not dep.ScenarioDep.ScenarioCancellationToken.IsCancellationRequested
                && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioDep.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
 
                 let step = updateContext steps[stepIndex] dep.Data

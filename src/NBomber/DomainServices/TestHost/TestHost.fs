@@ -71,7 +71,7 @@ type internal TestHost(dep: IGlobalDependency,
                 ScenarioDep = {
                     Logger = _log
                     Scenario = scn
-                    CancellationTokenSource = new CancellationTokenSource()
+                    ScenarioCancellationToken = new CancellationTokenSource()
                     ScenarioTimer = Stopwatch()
                     ScenarioOperation = operation
                     ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())

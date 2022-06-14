@@ -35,7 +35,7 @@ let internal baseActorDep = {
     ScenarioDep = {
         Logger = logger
         Scenario = baseScenario
-        CancellationTokenSource = new CancellationTokenSource()
+        ScenarioCancellationToken = new CancellationTokenSource()
         ScenarioTimer = Stopwatch()
         ScenarioOperation = ScenarioOperation.Bombing
         ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
