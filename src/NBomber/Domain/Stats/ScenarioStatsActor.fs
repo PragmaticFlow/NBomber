@@ -41,9 +41,8 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
         _intervalStepsData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
 
         if keepRawStats then
-            resp.ClientResponse.Payload <- null // to prevent sending in cluster mode
-            resp.ClientResponse.Message <- null
-            _intervalRawStats <- resp :: _intervalRawStats
+            let cleanedResp = StepResponse.clean resp
+            _intervalRawStats <- cleanedResp :: _intervalRawStats
 
     let createRealtimeStats (simulationStats) (duration) (stepsData) =
         ScenarioStats.create scenario stepsData simulationStats OperationType.Bombing %duration reportingInterval

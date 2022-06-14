@@ -182,7 +182,6 @@ module RunningStep =
 
         let! response = measureExec step dep.ScenarioDep.ScenarioTimer
         let payload = response.ClientResponse.Payload
-        response.ClientResponse.Payload <- null // to prevent holding it for stats actor
 
         if not step.Value.DoNotTrack then
             dep.ScenarioDep.ScenarioStatsActor.Publish(AddResponse response)

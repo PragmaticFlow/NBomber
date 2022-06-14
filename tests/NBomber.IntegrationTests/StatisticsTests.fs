@@ -74,7 +74,7 @@ module ScenarioStatsTests =
                 highestTrackableValue = Constants.MaxTrackableStepResponseSize,
                 numberOfSignificantValueDigits = 3
             )
-        StatusCodes = Dictionary<int, StatusCodeStats>()
+        StatusCodes = Dictionary<int, RawStatusCodeStats>()
     }
 
     let internal baseStepStatsRawData = StepStatsRawData.createEmpty()
@@ -249,14 +249,14 @@ module ScenarioStatsTests =
 module NodeStatsTests =
 
     let baseNodeInfo = {
-          MachineName = "machine name"
-          NodeType = NodeType.SingleNode
-          CurrentOperation = OperationType.Complete
-          OS = Environment.OSVersion
-          DotNetVersion = "6.0"
-          Processor = "processor"
-          CoresCount = 4
-          NBomberVersion = "2.0"
+        MachineName = "machine name"
+        NodeType = NodeType.SingleNode
+        CurrentOperation = OperationType.Complete
+        OS = Environment.OSVersion.ToString()
+        DotNetVersion = "6.0"
+        Processor = "processor"
+        CoresCount = 4
+        NBomberVersion = "2.0"
     }
 
     let baseTestInfo =
@@ -689,7 +689,7 @@ let ``status codes should be calculated properly`` () =
 [<Fact>]
 let ``StatusCodeStats merge function returns sorted results`` () =
 
-    let stats = [|
+    let stats: StatusCodeStats[] = [|
        { StatusCode = 50; IsError = false; Message = String.Empty; Count = 1 }
        { StatusCode = 80; IsError = false; Message = String.Empty; Count = 1 }
        { StatusCode = 10; IsError = false; Message = String.Empty; Count = 1 }

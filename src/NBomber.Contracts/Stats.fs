@@ -2,6 +2,7 @@
 
 open System
 open System.Data
+open System.Runtime.Serialization
 
 open Newtonsoft.Json
 open Newtonsoft.Json.Converters
@@ -12,10 +13,12 @@ type ReportFormat =
     | Csv = 2
     | Md = 3
 
+[<CLIMutable>]
+[<DataContract>]
 type TestInfo = {
-    SessionId: string
-    TestSuite: string
-    TestName: string
+    [<DataMember(Order = 0)>] SessionId: string
+    [<DataMember(Order = 1)>] TestSuite: string
+    [<DataMember(Order = 2)>] TestName: string
 }
 
 type NodeType =
@@ -31,97 +34,119 @@ type OperationType =
     | Stop = 4
     | Complete = 5
 
+[<CLIMutable>]
+[<DataContract>]
 type NodeInfo = {
-    MachineName: string
-    NodeType: NodeType
-    CurrentOperation: OperationType
-    OS: OperatingSystem
-    DotNetVersion: string
-    Processor: string
-    CoresCount: int
-    NBomberVersion: string
+    [<DataMember(Order = 0)>] MachineName: string
+    [<DataMember(Order = 1)>] NodeType: NodeType
+    [<DataMember(Order = 2)>] CurrentOperation: OperationType
+    [<DataMember(Order = 3)>] OS: string
+    [<DataMember(Order = 4)>] DotNetVersion: string
+    [<DataMember(Order = 5)>] Processor: string
+    [<DataMember(Order = 6)>] CoresCount: int
+    [<DataMember(Order = 7)>] NBomberVersion: string
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type StatusCodeStats = {
-    StatusCode: int
-    IsError: bool
-    Message: string
-    mutable Count: int
+    [<DataMember(Order = 0)>] StatusCode: int
+    [<DataMember(Order = 1)>] IsError: bool
+    [<DataMember(Order = 2)>] Message: string
+    [<DataMember(Order = 3)>] Count: int
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type RequestStats = {
-    Count: int
-    RPS: float
+    [<DataMember(Order = 0)>] Count: int
+    [<DataMember(Order = 1)>] RPS: float
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type LatencyCount = {
-    LessOrEq800: int
-    More800Less1200: int
-    MoreOrEq1200: int
+    [<DataMember(Order = 0)>] LessOrEq800: int
+    [<DataMember(Order = 1)>] More800Less1200: int
+    [<DataMember(Order = 2)>] MoreOrEq1200: int
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type LatencyStats = {
-    MinMs: float
-    MeanMs: float
-    MaxMs: float
-    Percent50: float
-    Percent75: float
-    Percent95: float
-    Percent99: float
-    StdDev: float
-    LatencyCount: LatencyCount
+    [<DataMember(Order = 0)>] MinMs: float
+    [<DataMember(Order = 1)>] MeanMs: float
+    [<DataMember(Order = 2)>] MaxMs: float
+    [<DataMember(Order = 3)>] Percent50: float
+    [<DataMember(Order = 4)>] Percent75: float
+    [<DataMember(Order = 5)>] Percent95: float
+    [<DataMember(Order = 6)>] Percent99: float
+    [<DataMember(Order = 7)>] StdDev: float
+    [<DataMember(Order = 8)>] LatencyCount: LatencyCount
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type DataTransferStats = {
-    MinBytes: int
-    MeanBytes: int
-    MaxBytes: int
-    Percent50: int
-    Percent75: int
-    Percent95: int
-    Percent99: int
-    StdDev: float
-    AllBytes: int64
+    [<DataMember(Order = 0)>] MinBytes: int
+    [<DataMember(Order = 1)>] MeanBytes: int
+    [<DataMember(Order = 2)>] MaxBytes: int
+    [<DataMember(Order = 3)>] Percent50: int
+    [<DataMember(Order = 4)>] Percent75: int
+    [<DataMember(Order = 5)>] Percent95: int
+    [<DataMember(Order = 6)>] Percent99: int
+    [<DataMember(Order = 7)>] StdDev: float
+    [<DataMember(Order = 8)>] AllBytes: int64
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type StepStatsData = {
-    Request: RequestStats
-    Latency: LatencyStats
-    DataTransfer: DataTransferStats
-    StatusCodes: StatusCodeStats[]
+    [<DataMember(Order = 0)>] Request: RequestStats
+    [<DataMember(Order = 1)>] Latency: LatencyStats
+    [<DataMember(Order = 2)>] DataTransfer: DataTransferStats
+    [<DataMember(Order = 3)>] StatusCodes: StatusCodeStats[]
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type StepInfo = {
-    Timeout: TimeSpan
-    ClientFactoryName: string
-    ClientFactoryClientCount: int
-    FeedName: string
+    [<DataMember(Order = 0)>] Timeout: TimeSpan
+    [<DataMember(Order = 1)>] ClientFactoryName: string
+    [<DataMember(Order = 2)>] ClientFactoryClientCount: int
+    [<DataMember(Order = 3)>] FeedName: string
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type StepStats = {
-    StepName: string
-    Ok: StepStatsData
-    Fail: StepStatsData
-    StepInfo: StepInfo
+    [<DataMember(Order = 0)>] StepName: string
+    [<DataMember(Order = 1)>] Ok: StepStatsData
+    [<DataMember(Order = 2)>] Fail: StepStatsData
+    [<DataMember(Order = 3)>] StepInfo: StepInfo
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type LoadSimulationStats = {
-    SimulationName: string
-    Value: int
+    [<DataMember(Order = 0)>] SimulationName: string
+    [<DataMember(Order = 1)>] Value: int
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type ScenarioStats = {
-    ScenarioName: string
-    RequestCount: int
-    OkCount: int
-    FailCount: int
-    AllBytes: int64
-    StepStats: StepStats[]
-    LatencyCount: LatencyCount
-    LoadSimulationStats: LoadSimulationStats
-    StatusCodes: StatusCodeStats[]
-    CurrentOperation: OperationType
-    Duration: TimeSpan
+    [<DataMember(Order = 0)>] ScenarioName: string
+    [<DataMember(Order = 1)>] RequestCount: int
+    [<DataMember(Order = 2)>] OkCount: int
+    [<DataMember(Order = 3)>] FailCount: int
+    [<DataMember(Order = 4)>] AllBytes: int64
+    [<DataMember(Order = 5)>] StepStats: StepStats[]
+    [<DataMember(Order = 6)>] LatencyCount: LatencyCount
+    [<DataMember(Order = 7)>] LoadSimulationStats: LoadSimulationStats
+    [<DataMember(Order = 8)>] StatusCodes: StatusCodeStats[]
+    [<DataMember(Order = 9)>] CurrentOperation: OperationType
+    [<DataMember(Order = 10)>] Duration: TimeSpan
 } with
 
     member this.GetStepStats(stepName: string) = ScenarioStats.getStepStats stepName this
@@ -136,17 +161,19 @@ type ReportFile = {
     ReportContent: string
 }
 
+[<CLIMutable>]
+[<DataContract>]
 type NodeStats = {
-    RequestCount: int
-    OkCount: int
-    FailCount: int
-    AllBytes: int64
-    ScenarioStats: ScenarioStats[]
-    PluginStats: DataSet[]
-    NodeInfo: NodeInfo
-    TestInfo: TestInfo
-    ReportFiles: ReportFile[]
-    Duration: TimeSpan
+    [<DataMember(Order = 0)>] RequestCount: int
+    [<DataMember(Order = 1)>] OkCount: int
+    [<DataMember(Order = 2)>] FailCount: int
+    [<DataMember(Order = 3)>] AllBytes: int64
+    [<DataMember(Order = 4)>] ScenarioStats: ScenarioStats[]
+    [<IgnoreDataMember>] PluginStats: DataSet[]
+    [<DataMember(Order = 6)>] NodeInfo: NodeInfo
+    [<DataMember(Order = 7)>] TestInfo: TestInfo
+    [<IgnoreDataMember>] ReportFiles: ReportFile[]
+    [<DataMember(Order = 9)>] Duration: TimeSpan
 } with
 
     member this.GetScenarioStats(scenarioName: string) = NodeStats.getScenarioStats scenarioName this

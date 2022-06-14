@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Data
 open System.Runtime.InteropServices
+open System.Runtime.Serialization
 open System.Threading
 open System.Threading.Tasks
 
@@ -12,13 +13,15 @@ open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts.Stats
 
+[<CLIMutable>]
+[<DataContract>]
 type Response = {
-    StatusCode: Nullable<int>
-    IsError: bool
-    mutable Message: string
-    SizeBytes: int
-    LatencyMs: float
-    mutable Payload: obj
+    [<DataMember(Order = 0)>] StatusCode: Nullable<int>
+    [<DataMember(Order = 1)>] IsError: bool
+    [<DataMember(Order = 2)>] SizeBytes: int
+    [<DataMember(Order = 3)>] LatencyMs: float
+    [<IgnoreDataMember>] Message: string
+    [<IgnoreDataMember>] Payload: obj
 }
 
 type ScenarioOperation =

@@ -86,10 +86,17 @@ module DataTransferStats =
 
 module StatusCodeStats =
 
-    let create (stats: Dictionary<int,StatusCodeStats>) =
-        stats.Values |> Seq.toArray
+    let create (stats: Dictionary<int,RawStatusCodeStats>) =
+        stats.Values
+        |> Seq.map(fun x ->
+            { StatusCodeStats.StatusCode = x.StatusCode
+              IsError = x.IsError
+              Message = x.Message
+              Count = x.Count }
+        )
+        |> Seq.toArray
 
-    let merge (stats: StatusCodeStats[]) =
+    let merge (stats: StatusCodeStats[]): StatusCodeStats[] =
         stats
         |> Array.groupBy(fun x -> x.StatusCode)
         |> Array.sortBy(fun (code,codeStats) -> code)
@@ -175,7 +182,7 @@ module ScenarioStats =
 
         let okCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.OkStats.StatusCodes)
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
-        let statusCodes = StatusCodeStats.merge(okCodes |> Array.append(failCodes))
+        let statusCodes = StatusCodeStats.merge (okCodes |> Array.append failCodes)
 
         { ScenarioName = scenario.ScenarioName
           RequestCount = okCount + failCount

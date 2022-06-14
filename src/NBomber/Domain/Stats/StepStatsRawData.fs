@@ -7,9 +7,15 @@ open HdrHistogram
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Data
+
+type RawStatusCodeStats = {
+    StatusCode: int
+    IsError: bool
+    Message: string
+    mutable Count: int
+}
 
 type RawStepStats = {
     mutable MinMicroSec: int
@@ -23,7 +29,7 @@ type RawStepStats = {
     mutable AllBytes: int64
     LatencyHistogram: LongHistogram
     DataTransferHistogram: LongHistogram
-    StatusCodes: Dictionary<int,StatusCodeStats>
+    StatusCodes: Dictionary<int,RawStatusCodeStats>
 }
 
 type StepStatsRawData = {
@@ -45,7 +51,7 @@ let createEmpty () =
         AllBytes = 0L
         LatencyHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
         DataTransferHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
-        StatusCodes = Dictionary<int,StatusCodeStats>()
+        StatusCodes = Dictionary<int,RawStatusCodeStats>()
     }
 
     { OkStats = createStats()
@@ -53,7 +59,7 @@ let createEmpty () =
 
 let addResponse (stData: StepStatsRawData) (response: StepResponse) =
 
-    let updateStatusCodeStats (statuses: Dictionary<int,StatusCodeStats>, res: Response) =
+    let updateStatusCodeStats (statuses: Dictionary<int,RawStatusCodeStats>, res: Response) =
         let statusCode = res.StatusCode.Value
         match statuses.TryGetValue statusCode with
         | true, codeStats -> codeStats.Count <- codeStats.Count + 1
