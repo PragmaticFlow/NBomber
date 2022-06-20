@@ -8,6 +8,10 @@
 
 Very simple load testing framework for Pull and Push scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
 
+### Project Support
+We appreciate every little donation. If everyone we've ever helped gave back just small donation a month, we'd be able to bring you NBomber for years and years to come.
+If you or your company are using NBomber and willing to help keep the project sustainable, please donate via [Patreon](https://www.patreon.com/nbomber).
+
 ### How to install
 To install NBomber via NuGet, run this command in NuGet package manager console:
 ```code
