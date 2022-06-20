@@ -100,7 +100,7 @@ type IStepClientContext<'TFeedItem> =
     abstract Logger: ILogger
     abstract Data: Dictionary<string,obj>
     abstract FeedItem: 'TFeedItem
-    abstract InvocationCount: int
+    abstract InvocationNumber: int
     abstract ClientCount: int
 
 type IScenarioContext =

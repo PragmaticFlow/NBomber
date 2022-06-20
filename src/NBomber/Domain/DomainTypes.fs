@@ -26,7 +26,7 @@ type UntypedStepContext = {
     mutable Client: obj
     mutable FeedItem: obj
     mutable Data: Dictionary<string,obj>
-    mutable InvocationCount: int
+    mutable InvocationNumber: int
     StopScenario: string * string -> unit // scenarioName * reason
     StopCurrentTest: string -> unit       // reason
 }

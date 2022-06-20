@@ -61,7 +61,7 @@ module StepContext =
           Logger = dep.ScenarioDep.Logger
           FeedItem = ()
           Data = Dictionary<string,obj>()
-          InvocationCount = 0
+          InvocationNumber = 0
           StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ScenarioDep.ExecStopCommand
           StopCurrentTest = fun reason -> StopTest(reason) |> dep.ScenarioDep.ExecStopCommand }
 
@@ -74,7 +74,7 @@ module StepContext =
             member _.Data = untyped.Data
             member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
             member _.Logger = untyped.Logger
-            member _.InvocationCount = untyped.InvocationCount
+            member _.InvocationCount = untyped.InvocationNumber
             member _.GetPreviousStepResponse() = getPreviousStepResponse(untyped.Data)
             member _.StopScenario(scenarioName, reason) = untyped.StopScenario(scenarioName, reason)
             member _.StopCurrentTest(reason) = untyped.StopCurrentTest(reason)
@@ -94,7 +94,7 @@ module StepClientContext =
             member _.Logger = untyped.Logger
             member _.Data = untyped.Data
             member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-            member _.InvocationCount = untyped.InvocationCount
+            member _.InvocationNumber = untyped.InvocationNumber
             member _.ClientCount = clientCount
     }
 
@@ -107,7 +107,7 @@ module StepClientContext =
                     member _.Logger = untyped.Logger
                     member _.Data = untyped.Data
                     member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-                    member _.InvocationCount = untyped.InvocationCount
+                    member _.InvocationNumber = untyped.InvocationNumber
                     member _.ClientCount = untyped.ClientCount
             }
             getClientNumber typed
@@ -136,7 +136,7 @@ module RunningStep =
             | None      -> Unchecked.defaultof<_>
 
         context.CancellationTokenSource <- new CancellationTokenSource()
-        context.InvocationCount <- context.InvocationCount + 1
+        context.InvocationNumber <- context.InvocationNumber + 1
         context.Data <- data
         context.FeedItem <- feedItem
         // context.Client should be set as the last field because init order matter here
