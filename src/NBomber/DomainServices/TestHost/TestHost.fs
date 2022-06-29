@@ -96,9 +96,8 @@ type internal TestHost(dep: IGlobalDependency,
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
 
-        if dep.NodeType <> NodeType.Agent then
-            do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
-            do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
+        do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
+        do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
 
         return! TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, targetScenarios)
     }
@@ -115,9 +114,8 @@ type internal TestHost(dep: IGlobalDependency,
         let isWarmUp = false
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
 
-        if dep.NodeType <> NodeType.Agent then
-            dep.WorkerPlugins |> WorkerPlugins.start _log
-            dep.ReportingSinks |> ReportingSinks.start _log
+        dep.WorkerPlugins |> WorkerPlugins.start _log
+        dep.ReportingSinks |> ReportingSinks.start _log
 
         reportingManager.Start()
 
@@ -130,9 +128,8 @@ type internal TestHost(dep: IGlobalDependency,
         // waiting (in case of cluster) on all raw stats
         do! reportingManager.Stop()
 
-        if dep.NodeType <> NodeType.Agent then
-            do! dep.WorkerPlugins |> WorkerPlugins.stop _log
-            do! dep.ReportingSinks |> ReportingSinks.stop _log
+        do! dep.WorkerPlugins |> WorkerPlugins.stop _log
+        do! dep.ReportingSinks |> ReportingSinks.stop _log
     }
 
     let cleanScenarios (sessionArgs: SessionArgs,

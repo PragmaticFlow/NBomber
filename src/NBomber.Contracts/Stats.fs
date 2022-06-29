@@ -19,6 +19,7 @@ type TestInfo = {
     [<DataMember(Order = 0)>] SessionId: string
     [<DataMember(Order = 1)>] TestSuite: string
     [<DataMember(Order = 2)>] TestName: string
+    [<DataMember(Order = 3)>] ClusterId: string
 }
 
 type NodeType =

@@ -101,7 +101,7 @@
         <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="0.1.1" />
         <PackageReference Include="Spectre.Console" Version="[0.38.0]" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-        <PackageReference Update="FSharp.Core" Version="6.0.3" />
+        <PackageReference Update="FSharp.Core" Version="6.0.5" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\HtmlReport\assets\js\index.js" />

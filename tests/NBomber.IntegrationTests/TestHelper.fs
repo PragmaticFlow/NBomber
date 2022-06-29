@@ -18,6 +18,7 @@ module internal Dependency =
             SessionId = Dependency.createSessionId()
             TestSuite = Constants.DefaultTestSuite
             TestName = Constants.DefaultTestName
+            ClusterId = ""
         }
 
         let emptyContext = NBomberContext.empty
@@ -31,6 +32,7 @@ module internal Dependency =
             SessionId = Dependency.createSessionId()
             TestSuite = Constants.DefaultTestSuite
             TestName = Constants.DefaultTestName
+            ClusterId = ""
         }
 
         let inMemorySink = new InMemorySink()

@@ -260,7 +260,7 @@ module NodeStatsTests =
     }
 
     let baseTestInfo =
-        { SessionId = "session id"; TestSuite = "test suite"; TestName = "test name" }
+        { SessionId = "session id"; TestSuite = "test suite"; TestName = "test name"; ClusterId = "" }
 
     let baseLatencyCount = { LessOrEq800 = 1; More800Less1200 = 1; MoreOrEq1200 = 1 }
 

@@ -40,6 +40,7 @@ let run (context: NBomberContext) =
         SessionId = Dependency.createSessionId()
         TestSuite = NBomberContext.getTestSuite context
         TestName = NBomberContext.getTestName context
+        ClusterId = ""
     }
 
     let nodeInfo = NodeInfo.init None

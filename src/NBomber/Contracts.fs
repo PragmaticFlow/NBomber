@@ -100,7 +100,7 @@ type SessionArgs = {
 } with
 
     static member empty = {
-        TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
+        TestInfo = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
         NBomberConfig = Unchecked.defaultof<_>
         UpdatedClientFactorySettings = List.empty
     }

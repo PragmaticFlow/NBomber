@@ -24,7 +24,7 @@ let baseNodeStats = {
     ScenarioStats = Array.empty
     PluginStats = Array.empty
     NodeInfo = NodeInfo.init None
-    TestInfo = { SessionId = ""; TestSuite = ""; TestName = "" }
+    TestInfo = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
     ReportFiles = Array.empty
     Duration = TimeSpan.MinValue
 }

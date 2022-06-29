@@ -70,6 +70,6 @@
         <PackageReference Include="FsCheck" Version="2.16.4" />
         <PackageReference Include="FsCheck.Xunit" Version="2.16.4" />
         <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-        <PackageReference Update="FSharp.Core" Version="6.0.3" />
+        <PackageReference Update="FSharp.Core" Version="6.0.5" />
     </ItemGroup>
 </Project>

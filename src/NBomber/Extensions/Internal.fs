@@ -14,18 +14,18 @@ module internal Internal =
 
     module Operation =
 
-        let waitOnComplete (retryCount: int) (isComplete: unit -> bool) = backgroundTask {
-            let mutable counter = 0
-            let mutable completed = false
-            completed <- isComplete()
-            while not completed || counter < retryCount do
-                counter <- counter + 1
-                do! Task.Delay 1_000
-                completed <- isComplete()
+        let waitOnComplete (retryCount: int) (getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
+            let mutable counter = 1
+            let mutable result = Unchecked.defaultof<_>
+            let! r = getResult()
+            result <- r
 
-            return
-                if completed then Ok()
-                else Error()
+            while Result.isError result && counter < retryCount do
+                counter <- counter + 1
+                let! r = getResult()
+                result <- r
+
+            return result
         }
 
     module Json =
