@@ -7,7 +7,6 @@ open FSharp.Control.Reactive
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -97,15 +96,12 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
+    // we use scenarioClusterCount only to display on console the correct numbers (awareness  of cluster execution)
     let getConstantActorCount () = _constantScheduler.ScheduledActorCount * scenarioClusterCount
     let getOneTimeActorCount () = _oneTimeScheduler.ScheduledActorCount * scenarioClusterCount
 
     let getCurrentSimulationStats () =
-        LoadTimeLine.createSimulationStats(
-            _currentSimulation,
-            getConstantActorCount(),
-            getOneTimeActorCount()
-        )
+        LoadTimeLine.createSimulationStats(_currentSimulation, _constantScheduler.ScheduledActorCount, _oneTimeScheduler.ScheduledActorCount)
 
     let prepareForRealtimeStats () =
         _cachedSimulationStats <- getCurrentSimulationStats()
@@ -121,14 +117,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         let reply = TaskCompletionSource<ScenarioStats>()
         _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
         _scnDep.ScenarioStatsActor.Publish FlushTempBuffer
-        reply.Task
-
-    let getRawStats (duration: TimeSpan) =
-        _scnDep.ScenarioStatsActor.AllRawStats.TryFind duration
-
-    let getRemainedRawStats () =
-        let reply = TaskCompletionSource<ScenarioRawStats>()
-        _scnDep.ScenarioStatsActor.Publish(GetRemainedRawStats reply)
         reply.Task
 
     let getFinalStats () =
@@ -207,7 +195,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = _scenario
     member _.AllRealtimeStats = _scnDep.ScenarioStatsActor.AllRealtimeStats
-    member _.AllRawStats = _scnDep.ScenarioStatsActor.AllRawStats
 
     member _.Start() = start()
     member _.Stop() = stop()
@@ -216,11 +203,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
     member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
     member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
-
-    member _.GetRawStats(duration) = getRawStats duration
-    member _.DelRawStats(duration) = _scnDep.ScenarioStatsActor.Publish(DelRawStats duration)
-    member _.GetRemainedRawStats() = getRemainedRawStats()
-
     member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with

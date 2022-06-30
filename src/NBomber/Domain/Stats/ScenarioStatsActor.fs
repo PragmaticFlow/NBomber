@@ -14,23 +14,23 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 
 type ActorMessage =
-    | AddResponse        of StepResponse
-    | AddFromAgent       of StepResponse list
+    | AddResponse of StepResponse
+    | AddFromAgent of realtimeStats:ScenarioStats
     | StartUseTempBuffer
     | FlushTempBuffer
-    | BuildRealtimeStats  of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
-    | GetRemainedRawStats of reply:TaskCompletionSource<ScenarioRawStats>
-    | DelRawStats         of duration:TimeSpan
-    | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+    | BuildRealtimeStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+    | GetFinalStats      of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
-type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: TimeSpan, keepRawStats: bool) =
+type ScenarioStatsActor(logger: ILogger,
+                        scenario: Scenario,
+                        reportingInterval: TimeSpan,
+                        ?mergeStatsFn: ScenarioStats list -> ScenarioStats) =
 
     let _log = logger.ForContext<ScenarioStatsActor>()
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-    let mutable _intervalRawStats = List.empty<StepResponse>
     let mutable _allRealtimeStats = Map.empty<TimeSpan,ScenarioStats>
-    let mutable _allRawStats = Map.empty<TimeSpan,ScenarioRawStats>
+    let mutable _agentsRealtimeStats = List.empty<ScenarioStats>
     let mutable _tempBuffer = List.empty<StepResponse>
     let mutable _useTempBuffer = false
 
@@ -40,26 +40,17 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
         _allStepsData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
         _intervalStepsData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
 
-        if keepRawStats then
-            let cleanedResp = StepResponse.clean resp
-            _intervalRawStats <- cleanedResp :: _intervalRawStats
-
     let createRealtimeStats (simulationStats) (duration) (stepsData) =
         ScenarioStats.create scenario stepsData simulationStats OperationType.Bombing %duration reportingInterval
 
     let createFinalStats (simulationStats) (duration) (stepsData) =
         ScenarioStats.create scenario stepsData simulationStats OperationType.Complete %duration duration
 
-    let addToCache (realtimeStats: ScenarioStats) =
+    let addToCacheAndReset (realtimeStats: ScenarioStats) =
         _allRealtimeStats <- _allRealtimeStats.Add(realtimeStats.Duration, realtimeStats)
         // reset interval steps data
         _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-
-        if keepRawStats then
-            let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = realtimeStats.Duration }
-            _allRawStats <- _allRawStats.Add(realtimeStats.Duration, rawStats)
-            // reset interval raw steps data
-            _intervalRawStats <- List.empty
+        _agentsRealtimeStats <- List.empty
 
     let _actor = ActionBlock(fun msg ->
         try
@@ -68,8 +59,8 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
                 if _useTempBuffer then _tempBuffer <- response :: _tempBuffer
                 else addResponse response
 
-            | AddFromAgent responses ->
-                responses |> List.iter addResponse
+            | AddFromAgent realtimeStats ->
+                _agentsRealtimeStats <- realtimeStats :: _agentsRealtimeStats
 
             | StartUseTempBuffer ->
                 _useTempBuffer <- true
@@ -80,16 +71,23 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
                 _tempBuffer <- List.empty
 
             | BuildRealtimeStats (reply, simulationStats, duration) ->
-                let realtimeStats = _intervalStepsData |> createRealtimeStats simulationStats duration
-                addToCache realtimeStats
-                reply.TrySetResult(realtimeStats) |> ignore
+                let cordStats = _intervalStepsData |> createRealtimeStats simulationStats duration
 
-            | GetRemainedRawStats reply ->
-                let rawStats = { ScenarioName = scenario.ScenarioName; StepResponses = _intervalRawStats; Duration = TimeSpan.MaxValue }
-                reply.TrySetResult(rawStats) |> ignore
+                let allRealtimeStats =
+                    if scenario.IsEnabled then cordStats :: _agentsRealtimeStats
+                    else _agentsRealtimeStats
 
-            | DelRawStats duration ->
-                _allRawStats <- _allRawStats.Remove duration
+                if allRealtimeStats.Length > 0 then
+                    let merged =
+                        mergeStatsFn
+                        |> Option.map(fun merge -> merge allRealtimeStats)
+                        |> Option.defaultValue cordStats
+
+                    addToCacheAndReset merged
+                    reply.TrySetResult(merged) |> ignore
+                else
+                    addToCacheAndReset cordStats
+                    reply.TrySetResult(cordStats) |> ignore
 
             | GetFinalStats (reply, simulationStats, duration) ->
                 let finalStats = _allStepsData |> createFinalStats simulationStats duration
@@ -99,13 +97,13 @@ type ScenarioStatsActor(logger: ILogger, scenario: Scenario, reportingInterval: 
     )
 
     member _.AllRealtimeStats = _allRealtimeStats
-    member _.AllRawStats = _allRawStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member _.Publish(msg) = _actor.Post(msg) |> ignore
 
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
-    ScenarioStatsActor(logger, scenario, reportingInterval, keepRawStats = false)
+    ScenarioStatsActor(logger, scenario, reportingInterval)
 
-let createWithRawStats (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
-    ScenarioStatsActor(logger, scenario, reportingInterval, keepRawStats = true)
+let createForCoordinator (mergeStats: ScenarioStats list -> ScenarioStats)
+                         (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
+    ScenarioStatsActor(logger, scenario, reportingInterval, mergeStats)

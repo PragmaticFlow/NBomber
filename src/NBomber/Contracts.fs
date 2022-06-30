@@ -74,18 +74,6 @@ type StepResponse = {
     [<DataMember(Order = 1)>] ClientResponse: Response
     [<DataMember(Order = 2)>] EndTimeMs: float
     [<DataMember(Order = 3)>] LatencyMs: float
-} with
-
-    static member clean (response: StepResponse) =
-        let clientResponse = { response.ClientResponse with Message = ""; Payload = null }
-        { response with ClientResponse = clientResponse }
-
-[<CLIMutable>]
-[<DataContract>]
-type ScenarioRawStats = {
-    [<DataMember(Order = 0)>] ScenarioName: string
-    [<DataMember(Order = 1)>] StepResponses: StepResponse list
-    [<DataMember(Order = 2)>] Duration: TimeSpan
 }
 
 // we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
