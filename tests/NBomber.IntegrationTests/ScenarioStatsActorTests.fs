@@ -25,10 +25,10 @@ let internal baseScenario =
     |> Result.getOk
 
 [<Fact>]
-let ``with keepRawStats = true should cache raw stats`` () =
+let ``AllRealtimeStats should contain cached realtime stats`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5, keepRawStats = true)
+    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     for i in [1..10] do
         let res = { StepIndex = 0; ClientResponse = Response.ok(); EndTimeMs = float(100 + i); LatencyMs = i }
@@ -40,27 +40,6 @@ let ``with keepRawStats = true should cache raw stats`` () =
     statsActor.Publish(BuildRealtimeStats(tcs, loadStats, duration))
     let realtimeStats = tcs.Task.Result
 
-    test <@ statsActor.AllRawStats[duration].StepResponses.Length = 10 @>
-    test <@ statsActor.AllRealtimeStats[duration].RequestCount = 10 @>
-    test <@ realtimeStats.RequestCount = 10 @>
-
-[<Fact>]
-let ``with keepRawStats = false should not cache raw stats`` () =
-
-    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5, keepRawStats = false)
-
-    for i in [1..10] do
-        let res = { StepIndex = 0; ClientResponse = Response.ok(); EndTimeMs = float(100 + i); LatencyMs = i }
-        statsActor.Publish(AddResponse res)
-
-    let tcs = TaskCompletionSource<ScenarioStats>()
-    let loadStats = { SimulationName = ""; Value = 10 }
-    let duration = seconds 10
-    statsActor.Publish(BuildRealtimeStats(tcs, loadStats, duration))
-    let realtimeStats = tcs.Task.Result
-
-    test <@ statsActor.AllRawStats.Count = 0 @>
     test <@ statsActor.AllRealtimeStats[duration].RequestCount = 10 @>
     test <@ realtimeStats.RequestCount = 10 @>
 
@@ -68,7 +47,7 @@ let ``with keepRawStats = false should not cache raw stats`` () =
 let ``TempBuffer should work correctly`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5, keepRawStats = false)
+    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     statsActor.Publish StartUseTempBuffer
 
@@ -92,6 +71,5 @@ let ``TempBuffer should work correctly`` () =
 
     test <@ statsBufferEnabled.RequestCount = 0 @>
     test <@ statsBufferFlushed.RequestCount = 10 @>
-    test <@ statsActor.AllRawStats.Count = 0 @>
     test <@ statsActor.AllRealtimeStats[duration].RequestCount = 10 @>
 

@@ -232,11 +232,8 @@ type internal TestHost(dep: IGlobalDependency,
         let createStatsActor = createStatsActor |> Option.defaultValue ScenarioStatsActor.createDefault
         createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor getStepOrder execSteps
 
-    member _.GetRawStats(duration) =
-        _currentSchedulers |> List.map(fun x -> x.GetRawStats duration) |> Option.sequence
-
-    member _.DelRawStats(duration) =
-        _currentSchedulers |> List.iter(fun x -> x.DelRawStats duration)
+    member _.GetRealtimeStats(duration) =
+        _currentSchedulers |> List.map(fun x -> x.AllRealtimeStats.TryFind duration) |> Option.sequence
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let! initializedScenarios = this.StartInit sessionArgs

@@ -38,7 +38,7 @@ let internal baseActorDep = {
         ScenarioCancellationToken = new CancellationTokenSource()
         ScenarioTimer = Stopwatch()
         ScenarioOperation = ScenarioOperation.Bombing
-        ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval, keepRawStats = false)
+        ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
         ExecStopCommand = fun _ -> ()
     }
     GetStepOrder = Scenario.getStepOrder
