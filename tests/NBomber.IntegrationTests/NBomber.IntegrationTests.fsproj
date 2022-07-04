@@ -54,7 +54,6 @@
         </None>
         <Compile Include="HintsAnalyzerTests.fs" />
         <Compile Include="NBomberRunnerTests.fs" />
-        <Compile Include="PushExtensionsTests.fs" />
         <Compile Include="TestHostScenarioTests.fs" />
     </ItemGroup>
     <ItemGroup>
