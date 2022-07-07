@@ -130,6 +130,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _randomGen.Next(minRate, maxRate)
 
     let stop () =
+        _tcs.TrySetResult() |> ignore
+
         if not _scnDep.ScenarioCancellationToken.IsCancellationRequested then
             _scnDep.ScenarioCancellationToken.Cancel()
 
@@ -142,8 +144,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
             _eventStream.OnCompleted()
-
-            _tcs.TrySetResult() |> ignore
 
     let execScheduler () =
         let currentTime = _scnDep.ScenarioTimer.Elapsed

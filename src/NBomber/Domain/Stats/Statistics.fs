@@ -207,7 +207,7 @@ module NodeStats =
 
     let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
         if Array.isEmpty scnStats then
-            NodeStats.empty
+            { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
             let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
             { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)

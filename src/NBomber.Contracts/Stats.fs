@@ -20,7 +20,9 @@ type TestInfo = {
     [<DataMember(Order = 1)>] TestSuite: string
     [<DataMember(Order = 2)>] TestName: string
     [<DataMember(Order = 3)>] ClusterId: string
-}
+} with
+    [<CompiledName("Empty")>]
+    static member empty = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
 
 type NodeType =
     | SingleNode
@@ -46,7 +48,12 @@ type NodeInfo = {
     [<DataMember(Order = 5)>] Processor: string
     [<DataMember(Order = 6)>] CoresCount: int
     [<DataMember(Order = 7)>] NBomberVersion: string
-}
+} with
+    [<CompiledName("Empty")>]
+    static member empty = {
+        MachineName = ""; NodeType = NodeType.SingleNode; CurrentOperation = OperationType.None
+        OS = ""; DotNetVersion = ""; Processor = ""; CoresCount = 0; NBomberVersion = ""
+    }
 
 [<CLIMutable>]
 [<DataContract>]
@@ -183,8 +190,8 @@ type NodeStats = {
     static member empty = {
         RequestCount = 0; OkCount = 0; FailCount = 0; AllBytes = 0
         ScenarioStats = Array.empty; PluginStats = Array.empty
-        NodeInfo = Unchecked.defaultof<_>; TestInfo = Unchecked.defaultof<_>
-        ReportFiles = Array.empty; Duration = TimeSpan.MinValue
+        NodeInfo = NodeInfo.empty; TestInfo = TestInfo.empty
+        ReportFiles = Array.empty; Duration = TimeSpan.Zero
     }
 
     [<CompiledName("GetScenarioStats")>]

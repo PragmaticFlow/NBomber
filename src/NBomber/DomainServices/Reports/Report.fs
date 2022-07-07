@@ -102,9 +102,9 @@ let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (
     if formats.Length > 0 then
         let reportFiles = saveToFolder(dep.Logger, folder, fileName, formats, report)
         let finalStats = { stats with ReportFiles = reportFiles }
-        do! dep.ReportingSinks
-            |> List.map(fun x -> x.SaveFinalStats finalStats)
-            |> Task.WhenAll
+
+        if dep.NodeType <> NodeType.Agent then
+            do! dep.ReportingSinks |> List.map(fun x -> x.SaveFinalStats finalStats) |> Task.WhenAll
 
         return finalStats
     else
