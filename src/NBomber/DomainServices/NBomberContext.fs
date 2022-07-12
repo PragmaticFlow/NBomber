@@ -98,23 +98,6 @@ module Validation =
         if interval >= Constants.MinReportingInterval then Ok interval
         else Error <| ReportingIntervalSmallerThanMin
 
-    let checkReportingIntervalSettings (interval: string) =
-        match TimeSpan.TryParseExact(interval, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
-        | true, value -> checkReportingInterval value
-        | false, _    -> Error(ReportingIntervalConfigInvalidFormat interval)
-
-    let checkWarmUpSettings (settings: ScenarioSetting list) =
-        settings
-        |> List.filter(fun x -> x.WarmUpDuration |> Option.isSome)
-        |> List.map(fun x -> {| ScnName = x.ScenarioName; WarmUp = x.WarmUpDuration.Value |})
-        |> List.tryFind(fun x ->
-            match TimeSpan.TryParseExact(x.WarmUp, "hh\:mm\:ss", CultureInfo.InvariantCulture) with
-            | true, _  -> false
-            | false, _ -> true
-        )
-        |> Option.map(fun x -> Error <| WarmUpConfigValueHasInvalidFormat(x.ScnName, x.WarmUp))
-        |> Option.defaultValue(Ok settings)
-
     let checkLoadSimulationsSettings (settings: ScenarioSetting list) =
         settings
         |> List.tryFind(fun scenarioSetting ->
@@ -173,8 +156,7 @@ let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBombe
     context
     |> tryGetFromConfig
     |> Option.map(
-        Validation.checkWarmUpSettings
-        >=> Validation.checkLoadSimulationsSettings
+        Validation.checkLoadSimulationsSettings
         >=> Validation.checkDuplicateScenarioSettings
         >=> Validation.checkCustomStepOrderSettings scenarios
     )
@@ -265,7 +247,7 @@ let getReportingInterval (context: NBomberContext) =
     }
     context
     |> tryGetFromConfig
-    |> Option.map(Validation.checkReportingIntervalSettings)
+    |> Option.map Validation.checkReportingInterval
     |> Option.defaultValue(context.Reporting.ReportingInterval |> Validation.checkReportingInterval)
 
 let getUseHintsAnalyzer (context: NBomberContext) =
@@ -320,7 +302,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFileName = Some reportName
                 ReportFolder = Some reportFolder
                 ReportFormats = Some reportFormats
-                ReportingInterval = Some (reportingInterval.ToString())
+                ReportingInterval = Some reportingInterval
                 EnableHintsAnalyzer = Some enableHintsAnalyzer
                 DefaultStepTimeoutMs = Some stepTimeout
             }

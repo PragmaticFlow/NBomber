@@ -90,7 +90,7 @@ type SessionArgs = {
         UpdatedClientFactorySettings = List.empty
     }
 
-    member this.GetReportingInterval() = TimeSpan.Parse this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
+    member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
     member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
     member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
 

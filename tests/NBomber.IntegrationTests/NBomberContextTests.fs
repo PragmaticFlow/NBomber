@@ -259,32 +259,6 @@ let ``checkReportingInterval should return fail if ReportingInterval is smaller 
     | _ -> failwith ""
 
 [<Fact>]
-let ``checkReportingIntervalSetting should return fail if ReportingInterval has invalid format`` () =
-    match NBomberContext.Validation.checkReportingIntervalSettings("1232") with
-    | Error (ReportingIntervalConfigInvalidFormat _) -> ()
-    | _ -> failwith ""
-
-[<Fact>]
-let ``checkReportingIntervalSetting should return ok if ReportingInterval has valid format and correct value`` () =
-    match NBomberContext.Validation.checkReportingIntervalSettings("00:00:20") with
-    | Error _ -> failwith ""
-    | _       -> ()
-
-[<Fact>]
-let ``checkWarmUpSettings should return fail if WarmUp has invalid format`` () =
-    let setting = { baseScenarioSetting with WarmUpDuration = Some "::"}
-    match NBomberContext.Validation.checkWarmUpSettings [setting] with
-    | Error (WarmUpConfigValueHasInvalidFormat _) -> ()
-    | _ -> failwith ""
-
-[<Fact>]
-let ``checkWarmUpSettings should return ok if WarmUp has correct format`` () =
-    let setting = { baseScenarioSetting with WarmUpDuration = Some "00:00:10"}
-    match NBomberContext.Validation.checkWarmUpSettings [setting] with
-    | Error _ -> failwith ""
-    | _       -> ()
-
-[<Fact>]
 let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
     let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
     match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
