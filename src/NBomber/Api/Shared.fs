@@ -5,9 +5,8 @@ open System.IO
 open System.Globalization
 open System.Runtime.CompilerServices
 
+open System.Text.Json
 open CsvHelper
-
-open NBomber.Domain.Stats
 open NBomber.Extensions.Internal
 
 [<Extension>]
@@ -22,8 +21,7 @@ type FeedData() =
 
     [<CompiledName("FromJson")>]
     static member fromJson<'T> (filePath: string) =
-        File.ReadAllText filePath
-        |> Newtonsoft.Json.JsonConvert.DeserializeObject<'T[]>
+        filePath |> File.ReadAllText |> JsonSerializer.Deserialize<'T[]>
 
     [<Extension; CompiledName("ShuffleData")>]
     static member shuffleData (data: 'T seq) =

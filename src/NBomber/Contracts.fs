@@ -55,7 +55,6 @@ type NBomberContext = {
 namespace NBomber.Contracts.Internal
 
 open System
-open System.Runtime.Serialization
 open CommandLine
 open NBomber.Configuration
 open NBomber.Contracts
@@ -67,13 +66,11 @@ type CommandLineArgs = {
     [<Option('t', "target", HelpText = "Target Scenarios")>] TargetScenarios: string seq
 }
 
-[<CLIMutable>]
-[<DataContract>]
 type StepResponse = {
-    [<DataMember(Order = 0)>] StepIndex: int
-    [<DataMember(Order = 1)>] ClientResponse: Response
-    [<DataMember(Order = 2)>] EndTimeMs: float
-    [<DataMember(Order = 3)>] LatencyMs: float
+    StepIndex: int
+    ClientResponse: Response
+    EndTimeMs: float
+    LatencyMs: float
 }
 
 // we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
@@ -93,7 +90,7 @@ type SessionArgs = {
         UpdatedClientFactorySettings = List.empty
     }
 
-    member this.GetReportingInterval() = TimeSpan.Parse this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
+    member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
     member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
     member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
 

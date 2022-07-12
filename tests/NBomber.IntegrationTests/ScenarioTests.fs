@@ -217,7 +217,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
 
     let settings = {
         ScenarioName = scnName1
-        WarmUpDuration = Some(warmUp1.ToString("hh\:mm\:ss"))
+        WarmUpDuration = Some warmUp1
         LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(10, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
         CustomStepOrder = None
@@ -248,7 +248,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
 
     let settings = {
         ScenarioName = scnName1
-        WarmUpDuration = Some (warmUp1.ToString("hh\:mm\:ss"))
+        WarmUpDuration = Some warmUp1
         LoadSimulationsSettings = Some [LoadSimulationSettings.RampConstant(5, duration1.ToString("hh\:mm\:ss"))]
         ClientFactorySettings = None
         CustomSettings = None

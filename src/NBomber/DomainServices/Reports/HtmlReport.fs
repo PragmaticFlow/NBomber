@@ -7,7 +7,6 @@ open Serilog
 open FsToolkit.ErrorHandling
 
 open NBomber.Extensions.Internal
-open NBomber.Extensions.Operator.Option
 open NBomber.Contracts.Stats
 open NBomber.Infra
 
@@ -36,12 +35,14 @@ let private applyHtmlReplace (sessionResult: NodeSessionResult) (line: string) =
     let includeViewModelCommand = "<!-- include view model -->"
     let includeAssetCommand = "<!-- include asset -->"
 
-    if line.Contains(removeLineCommand) then
+    if line.Contains removeLineCommand then
         String.Empty
-    else if line.Contains(includeViewModelCommand) then
-        $"const viewModel = {sessionResult |> Json.toJson};"
-    else if line.Contains(includeAssetCommand) then
-        AssetsUtils.tryIncludeStyle(line) |?? AssetsUtils.tryIncludeScript(line)
+    else if line.Contains includeViewModelCommand then
+        $"const viewModel = {JsonExt.serialize sessionResult};"
+    else if line.Contains includeAssetCommand then
+        line
+        |> AssetsUtils.tryIncludeStyle
+        |> Option.orElse(AssetsUtils.tryIncludeScript line)
         |> Option.defaultValue line
     else
         line

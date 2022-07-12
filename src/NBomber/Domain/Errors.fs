@@ -9,7 +9,6 @@ type DomainError =
 
 type ValidationError =
     | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
-    | WarmUpConfigValueHasInvalidFormat of scnName:string * warmUpValue:string
     | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
 
     // ScenarioValidation errors
@@ -25,7 +24,6 @@ type ValidationError =
     | TargetGroupsAreNotFound       of notFoundTargetGroups:string[]
     | SessionIsWrong
     | ReportingIntervalSmallerThanMin
-    | ReportingIntervalConfigInvalidFormat of value:string
     | InvalidClientFactoryName of factoryName:string
     | DuplicateClientFactoryName of scenarioName:string * factoryName:string
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
@@ -63,9 +61,6 @@ type AppError =
         | TargetScenariosNotFound (notFoundScenarios, regScenarios) ->
             $"Target scenarios: '{String.concatWithComma regScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
 
-        | WarmUpConfigValueHasInvalidFormat (scnName, warmUpValue) ->
-            $"""ScenariosSettings for Scenario: '{scnName}' contains invalid WarmUpDuration: '{warmUpValue}'. The value should be in this format: "00:00:00" """
-
         | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
             $"""ScenariosSettings for Scenario: '{scenarioName}' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00" """
 
@@ -95,9 +90,6 @@ type AppError =
 
         | ReportingIntervalSmallerThanMin ->
             $"ReportingInterval should be bigger than min value: '{int Constants.MinReportingInterval.TotalSeconds}'"
-
-        | ReportingIntervalConfigInvalidFormat value ->
-            $"""ReportingInterval config value: '{value}' has invalid format. The value should be in this format: "00:00:00" """
 
         | InvalidClientFactoryName factoryName ->
             $"ClientFactory: '{factoryName}' contains not allowed symbol '@'"

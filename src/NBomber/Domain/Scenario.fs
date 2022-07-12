@@ -255,7 +255,7 @@ let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan
             | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
 
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
-                        WarmUpDuration = settings.WarmUpDuration |> Option.map TimeSpan.Parse
+                        WarmUpDuration = settings.WarmUpDuration
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
                         CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }

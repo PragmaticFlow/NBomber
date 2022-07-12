@@ -16,6 +16,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Configuration
+open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.ClientFactory
@@ -292,7 +293,7 @@ module NBomberRunner =
     let loadConfig (path: string) (context: NBomberContext) =
         let config =
             match Path.GetExtension(path) with
-            | ".json" -> path |> File.ReadAllText |> JsonConfig.unsafeParse
+            | ".json" -> path |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig>
             | _       -> failwith "unsupported config format"
 
         { context with NBomberConfig = Some config }

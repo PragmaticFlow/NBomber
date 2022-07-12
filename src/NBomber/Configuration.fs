@@ -1,7 +1,9 @@
 namespace NBomber.Configuration
 
+open System
 open FSharp.Json
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal.Serialization.JsonTransforms
 
 type LoadSimulationSettings =
     | RampConstant of copies:int * during:string
@@ -16,11 +18,16 @@ type ClientFactorySetting = {
 
 type ScenarioSetting = {
     ScenarioName: string
-    WarmUpDuration: string option
+
+    [<JsonField(Transform=typeof<TimeSpanTransform>)>]
+    WarmUpDuration: TimeSpan option
+
     LoadSimulationsSettings: LoadSimulationSettings list option
     ClientFactorySettings: ClientFactorySetting list option
     CustomStepOrder: string[] option
-    [<JsonField(AsJson = true)>] CustomSettings: string option
+
+    [<JsonField(AsJson = true)>]
+    CustomSettings: string option
 }
 
 type GlobalSettings = {
@@ -28,7 +35,10 @@ type GlobalSettings = {
     ReportFileName: string option
     ReportFolder: string option
     ReportFormats: ReportFormat list option
-    ReportingInterval: string option
+
+    [<JsonField(Transform=typeof<TimeSpanTransform>)>]
+    ReportingInterval: TimeSpan option
+
     EnableHintsAnalyzer: bool option
     DefaultStepTimeoutMs: int option
 }
@@ -39,9 +49,3 @@ type NBomberConfig = {
     TargetScenarios: string list option
     GlobalSettings: GlobalSettings option
 }
-
-module internal JsonConfig =
-
-    let unsafeParse (json) =
-        let parseSettings = JsonConfig.create(allowUntyped = true)
-        Json.deserializeEx<NBomberConfig> parseSettings json
