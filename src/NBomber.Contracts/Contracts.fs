@@ -4,24 +4,24 @@ open System
 open System.Collections.Generic
 open System.Data
 open System.Runtime.InteropServices
-open System.Runtime.Serialization
 open System.Threading
 open System.Threading.Tasks
 
 open Serilog
+open MessagePack
 open Microsoft.Extensions.Configuration
 
 open NBomber.Contracts.Stats
 
 [<CLIMutable>]
-[<DataContract>]
+[<MessagePackObject>]
 type Response = {
-    [<DataMember(Order = 0)>] StatusCode: Nullable<int>
-    [<DataMember(Order = 1)>] IsError: bool
-    [<DataMember(Order = 2)>] SizeBytes: int
-    [<DataMember(Order = 3)>] LatencyMs: float
-    [<IgnoreDataMember>] Message: string
-    [<IgnoreDataMember>] Payload: obj
+    [<Key 0>] StatusCode: Nullable<int>
+    [<Key 1>] IsError: bool
+    [<Key 2>] SizeBytes: int
+    [<Key 3>] LatencyMs: float
+    [<IgnoreMember>] Message: string
+    [<IgnoreMember>] Payload: obj
 }
 
 type ScenarioOperation =

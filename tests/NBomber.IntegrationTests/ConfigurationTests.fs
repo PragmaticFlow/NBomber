@@ -6,7 +6,7 @@ open Xunit
 open FSharp.Json
 
 open NBomber.Configuration
-open NBomber.Extensions
+open NBomber.Extensions.Internal
 open NBomber.FSharp
 
 [<CLIMutable>]
@@ -19,22 +19,22 @@ type TestCustomSettings = {
 module JsonConfig =
 
     [<Fact>]
-    let ``unsafeParse() should parse json file successfully`` () =
-        "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
-        "Configuration/scenario_init_only_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse |> ignore
+    let ``parse() should parse json file successfully`` () =
+        "Configuration/test_config.json" |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig> |> ignore
+        "Configuration/scenario_init_only_config.json" |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig> |> ignore
 
     [<Fact>]
-    let ``unsafeParse() should throw ex if mandatory json fields are missing`` () =
+    let ``parse() should throw ex if mandatory json fields are missing`` () =
         Assert.Throws(typeof<JsonDeserializationError>,
                       fun _ -> "Configuration/missing_fields_config.json"
                                 |> File.ReadAllText
-                                |> JsonConfig.unsafeParse
+                                |> JsonExt.deserialize<NBomberConfig>
                                 |> ignore
         )
 
     [<Fact>]
-    let ``unsafeParse() should parse custom settings successfully`` () =
-        let config = "Configuration/test_config.json" |> File.ReadAllText |> JsonConfig.unsafeParse
+    let ``parse() should parse custom settings successfully`` () =
+        let config = "Configuration/test_config.json" |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig>
         let testCustomSettings =
             config.GlobalSettings
             |> Option.bind(fun x -> x.ScenariosSettings)

@@ -2,13 +2,11 @@ namespace NBomber.Extensions
 
 open System
 open System.Collections.Generic
-open System.IO
 open System.Text
 open System.Threading.Tasks
 
-open Json.Net.DataSetConverters
+open FSharp.Json
 open FsToolkit.ErrorHandling
-open Newtonsoft.Json
 
 module internal Internal =
 
@@ -28,18 +26,15 @@ module internal Internal =
             return result
         }
 
-    module Json =
+    module JsonExt =
 
-        let toJson (object) =
-            let sb = StringBuilder()
-            use sw = new StringWriter(sb)
-            use writer = new JsonTextWriter(sw)
+        let private parseSettings = JsonConfig.create(allowUntyped = true)
 
-            let serializer = JsonSerializer()
-            serializer.Converters.Add(DataSetConverter())
-            serializer.Serialize(writer, object)
+        let serialize (data: 'T) =
+            Json.serializeEx parseSettings data
 
-            sb.ToString()
+        let deserialize<'T> (json: string) =
+            Json.deserializeEx<'T> parseSettings json
 
     module Result =
 
@@ -144,13 +139,6 @@ module internal Internal =
             d
 
 namespace NBomber.Extensions.Operator
-
-module internal Option =
-
-    let inline (|??) (a: 'a option) (b: 'a option) =
-        match a with
-        | Some _ -> a
-        | None   -> b
 
 module internal Result =
 

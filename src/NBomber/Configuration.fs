@@ -39,9 +39,3 @@ type NBomberConfig = {
     TargetScenarios: string list option
     GlobalSettings: GlobalSettings option
 }
-
-module internal JsonConfig =
-
-    let unsafeParse (json) =
-        let parseSettings = JsonConfig.create(allowUntyped = true)
-        Json.deserializeEx<NBomberConfig> parseSettings json
