@@ -36,7 +36,6 @@ let getFinalStats (dep: IGlobalDependency)
 
     let! scenarioStats =
         schedulers
-        |> List.filter(fun x -> x.Scenario.IsEnabled)
         |> List.map(fun x -> x.GetFinalStats())
         |> Task.WhenAll
 

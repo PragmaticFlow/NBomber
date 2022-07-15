@@ -96,12 +96,11 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
-    // we use scenarioClusterCount only to display on console the correct numbers (awareness  of cluster execution)
     let getConstantActorCount () = _constantScheduler.ScheduledActorCount * scenarioClusterCount
     let getOneTimeActorCount () = _oneTimeScheduler.ScheduledActorCount * scenarioClusterCount
 
     let getCurrentSimulationStats () =
-        LoadTimeLine.createSimulationStats(_currentSimulation, _constantScheduler.ScheduledActorCount, _oneTimeScheduler.ScheduledActorCount)
+        LoadTimeLine.createSimulationStats(_currentSimulation, getConstantActorCount(), getOneTimeActorCount())
 
     let prepareForRealtimeStats () =
         _cachedSimulationStats <- getCurrentSimulationStats()

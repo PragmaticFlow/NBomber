@@ -15,7 +15,7 @@ open NBomber.Domain.Stats.Statistics
 
 type ActorMessage =
     | AddResponse of StepResponse
-    | AddFromAgent of realtimeStats:ScenarioStats
+    | AddFromAgent of ScenarioStats
     | StartUseTempBuffer
     | FlushTempBuffer
     | BuildRealtimeStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
@@ -24,13 +24,13 @@ type ActorMessage =
 type ScenarioStatsActor(logger: ILogger,
                         scenario: Scenario,
                         reportingInterval: TimeSpan,
-                        ?mergeStatsFn: ScenarioStats list -> ScenarioStats) =
+                        ?mergeStatsFn: LoadSimulationStats -> ScenarioStats list -> ScenarioStats) =
 
     let _log = logger.ForContext<ScenarioStatsActor>()
     let _allStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _intervalStepsData = Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
     let mutable _allRealtimeStats = Map.empty<TimeSpan,ScenarioStats>
-    let mutable _agentsRealtimeStats = List.empty<ScenarioStats>
+    let mutable _agentsStats = List.empty<ScenarioStats>
     let mutable _tempBuffer = List.empty<StepResponse>
     let mutable _useTempBuffer = false
 
@@ -50,7 +50,7 @@ type ScenarioStatsActor(logger: ILogger,
         _allRealtimeStats <- _allRealtimeStats.Add(realtimeStats.Duration, realtimeStats)
         // reset interval steps data
         _intervalStepsData <- Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-        _agentsRealtimeStats <- List.empty
+        _agentsStats <- List.empty
 
     let _actor = ActionBlock(fun msg ->
         try
@@ -59,8 +59,8 @@ type ScenarioStatsActor(logger: ILogger,
                 if _useTempBuffer then _tempBuffer <- response :: _tempBuffer
                 else addResponse response
 
-            | AddFromAgent realtimeStats ->
-                _agentsRealtimeStats <- realtimeStats :: _agentsRealtimeStats
+            | AddFromAgent agentStats ->
+                _agentsStats <- agentStats :: _agentsStats
 
             | StartUseTempBuffer ->
                 _useTempBuffer <- true
@@ -73,14 +73,14 @@ type ScenarioStatsActor(logger: ILogger,
             | BuildRealtimeStats (reply, simulationStats, duration) ->
                 let cordStats = _intervalStepsData |> createRealtimeStats simulationStats duration
 
-                let allRealtimeStats =
-                    if scenario.IsEnabled then cordStats :: _agentsRealtimeStats
-                    else _agentsRealtimeStats
+                let allStats =
+                    if scenario.IsEnabled then cordStats :: _agentsStats
+                    else _agentsStats
 
-                if allRealtimeStats.Length > 0 then
+                if allStats.Length > 0 then
                     let merged =
                         mergeStatsFn
-                        |> Option.map(fun merge -> merge allRealtimeStats)
+                        |> Option.map(fun merge -> merge simulationStats allStats)
                         |> Option.defaultValue cordStats
 
                     addToCacheAndReset merged
@@ -90,8 +90,21 @@ type ScenarioStatsActor(logger: ILogger,
                     reply.TrySetResult(cordStats) |> ignore
 
             | GetFinalStats (reply, simulationStats, duration) ->
-                let finalStats = _allStepsData |> createFinalStats simulationStats duration
-                reply.TrySetResult(finalStats) |> ignore
+                let cordStats = _allStepsData |> createFinalStats simulationStats duration
+
+                let allStats =
+                    if scenario.IsEnabled then cordStats :: _agentsStats
+                    else _agentsStats
+
+                if allStats.Length > 0 then
+                    let merged =
+                        mergeStatsFn
+                        |> Option.map(fun merge -> merge simulationStats allStats)
+                        |> Option.defaultValue cordStats
+
+                    reply.TrySetResult(merged) |> ignore
+                else
+                    reply.TrySetResult(cordStats) |> ignore
         with
         | ex -> logger.Error $"{nameof ScenarioStatsActor} failed: {ex.ToString()}"
     )
@@ -104,6 +117,6 @@ type ScenarioStatsActor(logger: ILogger,
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval)
 
-let createForCoordinator (mergeStats: ScenarioStats list -> ScenarioStats)
+let createForCoordinator (mergeStats: LoadSimulationStats -> ScenarioStats list -> ScenarioStats)
                          (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval, mergeStats)
