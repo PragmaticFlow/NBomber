@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>NBomber</Authors>
         <Company>NBomber</Company>
-        <Version>3.0.0-beta.13</Version>
+        <Version>3.0.0-rc</Version>
         <Copyright>NBomber@2022</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageIcon>nbomber_icon.png</PackageIcon>
@@ -14,17 +14,10 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>v3.0.0
-- added CustomClientDistribution
-- added CustomStepExecControl
-- added CustomStepOrder
-- added support of TCP ping plugin
-- added NodeStats API for easier asserting
-- added displaying client factory, data feed info
-- reports generation in-memory
-- extended Response.ok API
-- fixed bug with CancellationToken for the StepContex
-- moved NBomber.Contracts into separate project</PackageReleaseNotes>
+        <PackageReleaseNotes>v3.0.0-rc
+- fixed bug with not correct LoadSimulationStats when Agent is overloaded
+- removed newtonsoft json
+        </PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
