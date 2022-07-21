@@ -10,6 +10,7 @@ open NBomber.Domain
 open NBomber.Domain.Step
 open NBomber.Infra
 open NBomber.Infra.Dependency
+open NBomber.Infra.Logger
 open NBomber.DomainServices.Reports
 open NBomber.DomainServices.TestHost
 
@@ -47,7 +48,14 @@ let run (context: NBomberContext) =
     let appType = NodeInfo.getApplicationType()
     let reportFolder = NBomberContext.getReportFolderOrDefault testInfo.SessionId context
 
-    Dependency.create reportFolder testInfo appType NodeType.SingleNode context
+    let logSettings = {
+        Folder = reportFolder
+        TestInfo = testInfo
+        NodeType = NodeType.SingleNode
+        AgentGroup = ""
+    }
+
+    Dependency.create appType logSettings context
     |> runSession testInfo nodeInfo context
     |> TaskResult.mapError(fun error ->
         error |> AppError.toString |> Serilog.Log.Error

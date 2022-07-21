@@ -16,10 +16,16 @@ open NBomber.Contracts.Stats
 
 module internal Logger =
 
-    let create (folder: string)
-               (testInfo: TestInfo)
-               (createConfig: (unit -> LoggerConfiguration) option)
-               (configPath: IConfiguration option) =
+    type LoggerInitSettings = {
+        Folder: string
+        TestInfo: TestInfo
+        NodeType: NodeType
+        AgentGroup: string
+    }
+
+    let create (logSettings: LoggerInitSettings)
+               (infraConfig: IConfiguration option)
+               (createLoggerConfig: (unit -> LoggerConfiguration) option) =
 
         let cleanFolder (folder) =
             try
@@ -30,10 +36,10 @@ module internal Logger =
 
         let attachFileLogger (config: LoggerConfiguration) =
 
-            cleanFolder folder
+            cleanFolder logSettings.Folder
 
             config.WriteTo.File(
-                path = $"{folder}/nbomber-log-.txt",
+                path = $"{logSettings.Folder}/nbomber-log-.txt",
                 outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
@@ -48,18 +54,23 @@ module internal Logger =
                 |> ignore
             )
 
+        let testInfo = logSettings.TestInfo
+
         let loggerConfig =
-            createConfig
+            createLoggerConfig
             |> Option.map(fun tryGet -> tryGet())
             |> Option.defaultValue(LoggerConfiguration().MinimumLevel.Debug())
-            |> fun config -> config.Enrich.WithProperty("SessionId", testInfo.SessionId)
-                                   .Enrich.WithProperty("TestSuite", testInfo.TestSuite)
-                                   .Enrich.WithProperty("TestName", testInfo.TestName)
+            |> fun config -> config.Enrich.WithProperty(nameof testInfo.SessionId, testInfo.SessionId)
+                                   .Enrich.WithProperty(nameof testInfo.TestSuite, testInfo.TestSuite)
+                                   .Enrich.WithProperty(nameof testInfo.TestName, testInfo.TestName)
+                                   .Enrich.WithProperty(nameof logSettings.NodeType, logSettings.NodeType)
+                                   .Enrich.WithProperty(nameof testInfo.ClusterId, testInfo.ClusterId)
+                                   .Enrich.WithProperty(nameof logSettings.AgentGroup, logSettings.AgentGroup)
                                    .Enrich.WithThreadId()
             |> attachFileLogger
             |> attachAnsiConsoleLogger
 
-        match configPath with
+        match infraConfig with
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger
         | None      -> loggerConfig.CreateLogger() :> ILogger
 
@@ -108,6 +119,8 @@ module internal NodeInfo =
 
 module internal Dependency =
 
+    open Logger
+
     type IGlobalDependency =
         abstract ApplicationType: ApplicationType
         abstract NodeType: NodeType
@@ -123,16 +136,14 @@ module internal Dependency =
         let guid = Guid.NewGuid().GetHashCode().ToString("x")
         $"{date}_session_{guid}"
 
-    let create (reportFolder: string) (testInfo: TestInfo)
-               (appType: ApplicationType) (nodeType: NodeType)
-               (context: NBomberContext) =
+    let create (appType: ApplicationType) (logSettings: LoggerInitSettings) (context: NBomberContext) =
 
-        let logger = Logger.create reportFolder testInfo context.CreateLoggerConfig context.InfraConfig
+        let logger = Logger.create logSettings context.InfraConfig context.CreateLoggerConfig
         Log.Logger <- logger
 
         { new IGlobalDependency with
             member _.ApplicationType = appType
-            member _.NodeType = nodeType
+            member _.NodeType = logSettings.NodeType
             member _.NBomberConfig = context.NBomberConfig
             member _.InfraConfig = context.InfraConfig
             member _.CreateLoggerConfig = context.CreateLoggerConfig
