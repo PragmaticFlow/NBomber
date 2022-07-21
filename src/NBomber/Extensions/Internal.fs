@@ -2,6 +2,7 @@ namespace NBomber.Extensions
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.Text
 open System.Threading.Tasks
 
@@ -10,9 +11,9 @@ open FsToolkit.ErrorHandling
 
 module internal Internal =
 
-    module Operation =
+    type Operation =
 
-        let waitOnComplete (retryCount: int) (getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
+        static member retry (retryCount: int, getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
             let mutable counter = 1
             let mutable result = Unchecked.defaultof<_>
             let! r = getResult()
@@ -23,6 +24,32 @@ module internal Internal =
                 let! r = getResult()
                 result <- r
 
+            return result
+        }
+
+        static member retryDuring (duration: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =
+            Operation.retryDuring(duration, None, getResult)
+
+        static member retryDuring (duration: TimeSpan, retryDelay: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =
+            Operation.retryDuring(duration, Some retryDelay, getResult)
+
+        static member private retryDuring (duration: TimeSpan, retryDelay: TimeSpan option, getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
+            let stopwatch = Stopwatch()
+            stopwatch.Start()
+
+            let mutable result = Unchecked.defaultof<_>
+            let! r = getResult()
+            result <- r
+
+            while Result.isError result && stopwatch.Elapsed < duration do
+
+                if retryDelay.IsSome then
+                    do! Task.Delay retryDelay.Value
+
+                let! r = getResult()
+                result <- r
+
+            stopwatch.Stop()
             return result
         }
 
