@@ -8,6 +8,7 @@ type DomainError =
     | CleanScenarioError of ex:exn
 
 type ValidationError =
+    | EmptyRegisterScenarios
     | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
     | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
 
@@ -58,6 +59,7 @@ type AppError =
 
     static member toString (error: ValidationError) =
         match error with
+        | EmptyRegisterScenarios -> "No scenarios were registered. Please use NBomberRunner.RegisterScenarios(scenarios) to register scenarios"
         | TargetScenariosNotFound (notFoundScenarios, regScenarios) ->
             $"Target scenarios: '{String.concatWithComma regScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
 

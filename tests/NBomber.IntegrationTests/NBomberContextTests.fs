@@ -295,3 +295,11 @@ let ``createSessionArgs should properly create args with default values`` () =
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportingInterval.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ScenariosSettings.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.IsSome @>
+
+[<Fact>]
+let ``createSessionArgs should validate empty register scenarios`` () =
+    NBomberRunner.registerScenarios []
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error ->
+        test <@ error.Contains "No scenarios were registered" @>

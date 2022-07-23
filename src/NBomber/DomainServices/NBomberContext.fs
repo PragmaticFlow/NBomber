@@ -77,11 +77,12 @@ module EnterpriseValidation =
 
 module Validation =
 
-    let checkAvailableTargets (scenarios: Scenario list) (targetScenarios: string list) =
-        let allScenarios = scenarios |> List.map(fun x -> x.ScenarioName)
-        let notFoundScenarios = targetScenarios |> List.except(allScenarios)
+    let checkAvailableTargets (regScenarios: Scenario list) (targetScenarios: string list) =
+        let allScenarios = regScenarios |> List.map(fun x -> x.ScenarioName)
+        let notFoundScenarios = targetScenarios |> List.except allScenarios
 
-        if List.isEmpty(notFoundScenarios) then Ok targetScenarios
+        if List.isEmpty allScenarios then Error EmptyRegisterScenarios
+        elif List.isEmpty notFoundScenarios then Ok targetScenarios
         else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
 
     let checkReportName (name) =

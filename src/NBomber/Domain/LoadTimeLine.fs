@@ -121,10 +121,10 @@ let createWithDuration (loadSimulations: LoadSimulation list) = result {
 
 let createSimulationFromSettings (settings: Configuration.LoadSimulationSettings) =
     match settings with
-    | Configuration.RampConstant (c,time) -> RampConstant(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
-    | Configuration.KeepConstant (c,time) -> KeepConstant(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
-    | Configuration.RampPerSec (c,time)   -> RampPerSec(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
-    | Configuration.InjectPerSec (c,time) -> InjectPerSec(c, TimeSpan.ParseExact(time, "hh\:mm\:ss", CultureInfo.InvariantCulture))
+    | Configuration.RampConstant (c,time) -> RampConstant(c, TimeSpan.Parse time)
+    | Configuration.KeepConstant (c,time) -> KeepConstant(c, TimeSpan.Parse time)
+    | Configuration.RampPerSec (c,time)   -> RampPerSec(c, TimeSpan.Parse time)
+    | Configuration.InjectPerSec (c,time) -> InjectPerSec(c, TimeSpan.Parse time)
 
 let getSimulationName (simulation) =
     match simulation with
