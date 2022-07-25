@@ -75,9 +75,6 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
         |> ProgressBar.setDescription description
         |> ProgressBar.defaultTick
 
-    let createDescriptionForStoppedTask (scenarioName) =
-        $"{scenarioName |> Console.errorColor}"
-
     let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
         schedulers
         |> List.map createProgressTaskConfig
@@ -85,66 +82,44 @@ let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: Sce
             { Description = $"All Scenarios{MultilineColumn.NewLine}"; Ticks = schedulers |> calcTotalTickCount |> float }
         ]
         |> ProgressBar.create
-           (fun tasks ->
-                let pbTotalTask = tasks.Head
+            (fun progressTasks ->
+                let pbTotalTask = progressTasks.Head
 
-                tasks
+                progressTasks
                 |> List.iteri(fun i pbTask ->
                     if i > 0 then
                         schedulers[i - 1].EventStream
                         |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                         |> Observable.subscribeWithCompletion
+
                             (fun progressInfo ->
                                 let scenarioName = schedulers[i - 1].Scenario.ScenarioName
                                 tickProgressTask pbTask scenarioName progressInfo
-                                pbTotalTask |> ProgressBar.defaultTick
-                            )
-                            (fun () ->
-                                let remainCount = ProgressBar.getRemainTicks pbTask
+                                pbTotalTask |> ProgressBar.defaultTick)
 
-                                if remainCount > 0.0 then
-                                    let desc =
-                                        schedulers[i - 1].Scenario.ScenarioName
-                                        |> createDescriptionForStoppedTask
+                            (fun () -> ProgressBar.stop pbTask)
 
-                                    pbTask
-                                    |> ProgressBar.setDescription desc
-                                    |> ProgressBar.stop
-
-                                    pbTotalTask |> ProgressBar.tick remainCount
-                            )
                         |> ignore
                 )
-           )
+            )
 
     let displayProgressForOneScenario (scheduler: ScenarioScheduler) =
         scheduler
         |> createProgressTaskConfig
         |> List.singleton
         |> ProgressBar.create
-           (fun tasks ->
+            (fun tasks ->
                 scheduler.EventStream
                 |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
                 |> Observable.subscribeWithCompletion
                     (fun progressInfo ->
                         let scenarioName = scheduler.Scenario.ScenarioName
-                        tickProgressTask tasks.Head scenarioName progressInfo
-                    )
-                    (fun () ->
-                        let pbTask = tasks.Head
-                        let remainTicks = ProgressBar.getRemainTicks(pbTask)
+                        tickProgressTask tasks.Head scenarioName progressInfo)
 
-                        if remainTicks > 0.0 then
-                            let desc =
-                                scheduler.Scenario.ScenarioName
-                                |> createDescriptionForStoppedTask
+                    (fun () -> tasks |> List.iter ProgressBar.stop)
 
-                            pbTask
-                            |> ProgressBar.setDescription desc
-                            |> ProgressBar.stop
-                    )
                 |> ignore
-           )
+            )
 
     match applicationType with
     | ApplicationType.Console ->

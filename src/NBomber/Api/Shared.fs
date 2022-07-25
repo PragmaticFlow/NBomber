@@ -38,3 +38,6 @@ module Time =
 
     [<CompiledName("Minutes")>]
     let inline minutes (value) = value |> float |> TimeSpan.FromMinutes
+
+    [<CompiledName("Hours")>]
+    let inline hours (value) = value |> float |> TimeSpan.FromHours
