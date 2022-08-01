@@ -28,7 +28,7 @@ let createBaseContext () =
     let nodeInfo = NodeInfo.init None
     let token = CancellationToken.None
     let dep = Dependency.createFor NodeType.SingleNode
-    NBomberContext.createBaseContext(dep.TestInfo, nodeInfo, token, dep.Dep.Logger)
+    NBomberContext.createBaseContext(dep.TestInfo, (fun () -> nodeInfo), token, dep.Dep.Logger)
 
 [<Property>]
 let ``createCircular iterate over array sequentially``(length: int) =

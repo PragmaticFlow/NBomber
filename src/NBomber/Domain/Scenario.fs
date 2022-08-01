@@ -158,7 +158,7 @@ module ScenarioContext =
     let create (context: IBaseContext) = {
         new IScenarioContext with
             member _.TestInfo = context.TestInfo
-            member _.NodeInfo = context.NodeInfo
+            member _.NodeInfo = context.GetNodeInfo()
             member _.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
             member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger

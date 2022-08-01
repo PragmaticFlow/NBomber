@@ -93,7 +93,7 @@ type internal TestHost(dep: IGlobalDependency,
 
         let targetScenarios = regScenarios |> TestHostScenario.getTargetScenarios sessionArgs
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, _log)
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
 
         do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
@@ -136,7 +136,7 @@ type internal TestHost(dep: IGlobalDependency,
                         cancelToken: CancellationToken,
                         scenarios: Scenario list) =
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo(), cancelToken, _log)
+        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         TestHostScenario.cleanScenarios dep baseContext defaultScnContext enabledScenarios
