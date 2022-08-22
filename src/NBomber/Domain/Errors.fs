@@ -10,7 +10,6 @@ type DomainError =
 type ValidationError =
     | EmptyRegisterScenarios
     | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
-    | LoadSimulationConfigValueHasInvalidFormat of scenarioName:string
 
     // ScenarioValidation errors
     | EmptyReportName
@@ -62,9 +61,6 @@ type AppError =
         | EmptyRegisterScenarios -> "No scenarios were registered. Please use NBomberRunner.RegisterScenarios(scenarios) to register scenarios"
         | TargetScenariosNotFound (notFoundScenarios, regScenarios) ->
             $"Target scenarios: '{String.concatWithComma regScenarios}' are not found. Available scenarios are: '{String.concatWithComma notFoundScenarios}'"
-
-        | LoadSimulationConfigValueHasInvalidFormat scenarioName ->
-            $"""ScenariosSettings for Scenario: '{scenarioName}' contains invalid duration value for LoadSimulationSettings. The value should be in this format: "00:00:00" """
 
         | EmptyReportName -> "Report file name cannot be empty string"
         | InvalidReportName -> $"Report file name contains invalid chars: '%A{Path.GetInvalidFileNameChars()}'"

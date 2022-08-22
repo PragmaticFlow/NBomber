@@ -119,13 +119,6 @@ let createWithDuration (loadSimulations: LoadSimulation list) = result {
     return {| LoadTimeLine = timeLine; ScenarioDuration = timeItem.EndTime |}
 }
 
-let createSimulationFromSettings (settings: Configuration.LoadSimulationSettings) =
-    match settings with
-    | Configuration.RampConstant (c,time) -> RampConstant(c, TimeSpan.Parse time)
-    | Configuration.KeepConstant (c,time) -> KeepConstant(c, TimeSpan.Parse time)
-    | Configuration.RampPerSec (c,time)   -> RampPerSec(c, TimeSpan.Parse time)
-    | Configuration.InjectPerSec (c,time) -> InjectPerSec(c, TimeSpan.Parse time)
-
 let getSimulationName (simulation) =
     match simulation with
     | RampConstant _   -> "ramp_constant"

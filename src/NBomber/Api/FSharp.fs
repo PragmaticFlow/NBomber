@@ -3,7 +3,6 @@
 open System
 open System.IO
 open System.Runtime
-open System.Runtime.InteropServices
 open System.Threading.Tasks
 
 open Serilog
@@ -18,36 +17,8 @@ open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Errors
-open NBomber.Domain
-open NBomber.Domain.ClientFactory
 open NBomber.Domain.DomainTypes
 open NBomber.DomainServices
-
-/// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
-[<RequireQualifiedAccess>]
-type ClientFactory =
-
-    /// Creates ClientFactory.
-    /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
-    static member create (name: string,
-                          initClient: int * IBaseContext -> Task<'TClient>,
-                          ?disposeClient: 'TClient * IBaseContext -> Task<unit>,
-                          [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] ?clientCount: int) =
-
-        let defaultDispose = (fun (client,context) ->
-            match client :> obj with
-            | :? IDisposable as d -> d.Dispose()
-            | _ -> ()
-            Task.CompletedTask
-        )
-
-        let dispose =
-            disposeClient
-            |> Option.map(fun dispose -> fun (c,ctx) -> dispose(c,ctx) :> Task)
-            |> Option.defaultValue defaultDispose
-
-        let count = defaultArg clientCount Constants.DefaultClientCount
-        ClientFactory(name, count, initClient, dispose) :> IClientFactory<'TClient>
 
 /// DataFeed helps inject test data into your load test. It represents a data source.
 [<RequireQualifiedAccess>]
@@ -56,28 +27,28 @@ module Feed =
     /// Creates Feed that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
     let createConstant (name) (data: 'T seq) =
-        NBomber.Domain.Feed.constant(name, fun _ -> data)
+        Domain.Feed.constant(name, fun _ -> data)
 
     /// Creates Feed (in lazy mode) that picks constant value per Step copy.
     /// Every Step copy will have unique constant value.
     let createConstantLazy (name) (getData: IBaseContext -> 'T seq) =
-        NBomber.Domain.Feed.constant(name, getData)
+        Domain.Feed.constant(name, getData)
 
     /// Creates Feed that goes back to the top of the sequence once the end is reached.
     let createCircular (name) (data: 'T seq) =
-        NBomber.Domain.Feed.circular(name, fun _ -> data)
+        Domain.Feed.circular(name, fun _ -> data)
 
     /// Creates Feed (in lazy mode) that goes back to the top of the sequence once the end is reached.
     let createCircularLazy (name) (getData: IBaseContext -> 'T seq) =
-        NBomber.Domain.Feed.circular(name, getData)
+        Domain.Feed.circular(name, getData)
 
     /// Creates Feed that randomly picks an item per Step invocation.
     let createRandom (name) (data: 'T seq) =
-        NBomber.Domain.Feed.random(name, fun _ -> data)
+        Domain.Feed.random(name, fun _ -> data)
 
     /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
     let createRandomLazy (name) (getData: IBaseContext -> 'T seq) =
-        NBomber.Domain.Feed.random(name, getData)
+        Domain.Feed.random(name, getData)
 
 /// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]
@@ -86,7 +57,7 @@ type Step =
     static member private create
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: IClientFactory<'TClient>,
+         ?clientFactory: ClientFactory<'TClient>,
          ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
@@ -110,19 +81,18 @@ type Step =
 
         let factory =
             clientFactory
-            |> Option.map(fun x -> x :?> ClientFactory<'TClient>)
             |> Option.map(fun x -> x.GetUntyped())
 
         let clDistribution =
             clientDistribution
-            |> Option.map(Step.StepClientContext.toUntyped)
+            |> Option.map(Domain.Step.StepClientContext.toUntyped)
 
         { StepName = name
           ClientFactory = factory
           ClientDistribution = clDistribution
           ClientPool = None
-          Execute = execute |> Step.StepContext.toUntypedExecute
-          Feed = feed |> Option.map Feed.toUntypedFeed
+          Execute = execute |> Domain.Step.StepContext.toUntypedExecute
+          Feed = feed |> Option.map Domain.Feed.toUntypedFeed
           Timeout = timeout |> Option.defaultValue TimeSpan.Zero
           DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
           IsPause = defaultArg isPause false }
@@ -133,7 +103,7 @@ type Step =
     static member create
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: IClientFactory<'TClient>,
+         ?clientFactory: ClientFactory<'TClient>,
          ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,

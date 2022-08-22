@@ -99,20 +99,6 @@ module Validation =
         if interval >= Constants.MinReportingInterval then Ok interval
         else Error <| ReportingIntervalSmallerThanMin
 
-    let checkLoadSimulationsSettings (settings: ScenarioSetting list) =
-        settings
-        |> List.tryFind(fun scenarioSetting ->
-            try
-                scenarioSetting.LoadSimulationsSettings
-                |> Option.defaultValue List.empty
-                |> Seq.iter(LoadTimeLine.createSimulationFromSettings >> ignore)
-                false
-            with
-            | ex -> true
-        )
-        |> Option.map(fun invalidScenario -> Error(LoadSimulationConfigValueHasInvalidFormat invalidScenario.ScenarioName))
-        |> Option.defaultValue(Ok settings)
-
     let checkDuplicateScenarioSettings (settings: ScenarioSetting list) =
         let duplicates = settings |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
         if duplicates.Length > 0 then Error(DuplicateScenarioNamesInConfig duplicates)
@@ -157,8 +143,8 @@ let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBombe
     context
     |> tryGetFromConfig
     |> Option.map(
-        Validation.checkLoadSimulationsSettings
-        >=> Validation.checkDuplicateScenarioSettings
+        //Validation.checkLoadSimulationsSettings
+        Validation.checkDuplicateScenarioSettings
         >=> Validation.checkCustomStepOrderSettings scenarios
     )
     |> Option.defaultValue(Ok List.empty)

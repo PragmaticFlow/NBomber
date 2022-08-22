@@ -12,8 +12,6 @@ let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
 [<Literal>]
 let DefaultCopiesCount = 1
 [<Literal>]
-let DefaultClientCount = 1
-[<Literal>]
 let TryCount = 5
 [<Literal>]
 let DefaultDoNotTrack = false

@@ -13,31 +13,6 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
-/// ClientFactory helps you create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
-type ClientFactory =
-
-    /// Creates ClientFactory.
-    /// ClientFactory helps create and initialize API clients to work with specific API or protocol (HTTP, WebSockets, gRPC, GraphQL).
-    static member Create
-        (name: string,
-         initClient: Func<int,IBaseContext,Task<'TClient>>,
-         [<Optional;DefaultParameterValue(null)>] disposeClient: Func<'TClient,IBaseContext,Task>,
-         [<Optional;DefaultParameterValue(Constants.DefaultClientCount)>] clientCount: int) =
-
-        let defaultDispose = (fun (client,context) ->
-            match client :> obj with
-            | :? IDisposable as d -> d.Dispose()
-            | _ -> ()
-            Task.CompletedTask
-        )
-
-        let dispose =
-            if isNull(disposeClient :> obj) then defaultDispose
-            else disposeClient.Invoke
-
-        NBomber.Domain.ClientFactory.ClientFactory(name, clientCount, initClient.Invoke, dispose)
-        :> IClientFactory<'TClient>
-
 /// DataFeed helps inject test data into your load test. It represents a data source.
 type Feed =
 
@@ -74,7 +49,7 @@ type Step =
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
-         clientFactory: IClientFactory<'TClient>,
+         clientFactory: ClientFactory<'TClient>,
          clientDistribution: Func<IStepClientContext<'TFeedItem>,int>,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
@@ -88,7 +63,7 @@ type Step =
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
-         clientFactory: IClientFactory<'TClient>,
+         clientFactory: ClientFactory<'TClient>,
          clientDistribution: Func<IStepClientContext<unit>,int>,
          execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
@@ -101,7 +76,7 @@ type Step =
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
-         clientFactory: IClientFactory<'TClient>,
+         clientFactory: ClientFactory<'TClient>,
          execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =

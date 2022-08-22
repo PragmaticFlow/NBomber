@@ -259,20 +259,6 @@ let ``checkReportingInterval should return fail if ReportingInterval is smaller 
     | _ -> failwith ""
 
 [<Fact>]
-let ``checkLoadSimulationsSettings should return fail if duration time has invalid format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "asd:123")]}
-    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
-    | Error (LoadSimulationConfigValueHasInvalidFormat _) -> ()
-    | _ -> failwith ""
-
-[<Fact>]
-let ``checkLoadSimulationsSettings should return ok if duration time has correct format`` () =
-    let setting = { baseScenarioSetting with LoadSimulationsSettings = Some [LoadSimulationSettings.KeepConstant(1, "00:00:25")]}
-    match NBomberContext.Validation.checkLoadSimulationsSettings [setting] with
-    | Error _ -> failwith ""
-    | _       -> ()
-
-[<Fact>]
 let ``createSessionArgs should properly create args with default values`` () =
 
     let context = NBomberRunner.registerScenario baseScenario

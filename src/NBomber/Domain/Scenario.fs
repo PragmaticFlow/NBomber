@@ -16,7 +16,6 @@ open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
 open NBomber.Errors
-open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 open NBomber.Domain.DomainTypes
 
@@ -248,7 +247,6 @@ let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan
             match settings.LoadSimulationsSettings with
             | Some simulation ->
                 simulation
-                |> List.map LoadTimeLine.createSimulationFromSettings
                 |> LoadTimeLine.createWithDuration
                 |> Result.getOk
 

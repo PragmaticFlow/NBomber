@@ -8,7 +8,6 @@ open System.Threading.Tasks
 open Serilog
 
 open NBomber.Contracts
-open NBomber.Domain.ClientFactory
 open NBomber.Domain.ClientPool
 
 type SessionId = string

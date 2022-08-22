@@ -17,7 +17,7 @@ type ClientPoolEvent =
     | InitFinished
     | InitFailed
 
-type ClientPool(factory: IClientFactory<obj>) =
+type ClientPool(factory: ClientFactory<obj>) =
 
     let mutable _disposed = false
     let mutable _initializedClients = Array.empty
