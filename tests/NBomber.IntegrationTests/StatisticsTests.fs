@@ -53,7 +53,7 @@ module ScenarioStatsTests =
         DefaultStepOrder = Array.empty
         StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
         CustomStepOrder = None
-        CustomStepExecControl = None
+        StepInterceptionHandler = None
         IsEnabled = false
         IsInitialized = false
     }

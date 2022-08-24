@@ -174,15 +174,14 @@ type ScenarioBuilder =
     static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<string[]>) =
         scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
-    /// Sets custom steps execution control.
+    /// Sets step interception handler.
     /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
-    /// By default, all steps are executing sequentially but you can inject your custom execution control to change
-    /// default order per step iteration.
-    /// execControl function will be invoked before each step. You can think about execControl like a callback before step invocation
-    /// where you can specify what step should be invoked.
+    /// By default, all steps are executing sequentially but you can inject your custom step interception to change default order per step iteration.
+    /// handler function will be invoked before each step.
+    /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
     [<Extension>]
-    static member WithCustomStepExecControl(scenario: Scenario, execControl: Func<IStepExecControlContext voption, string voption>) =
-        scenario |> FSharp.Scenario.withCustomStepExecControl(execControl.Invoke)
+    static member WithStepInterception(scenario: Scenario, handler: Func<IStepInterceptionContext voption, string voption>) =
+        scenario |> FSharp.Scenario.withStepInterception(handler.Invoke)
 
 [<Extension>]
 type NBomberRunner =

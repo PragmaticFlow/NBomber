@@ -169,7 +169,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
             Task.CompletedTask
 
         member _.Start() = Task.CompletedTask
-        member _.GetStats(currentOperation) = Task.singleton _pluginStats
+        member _.GetStats(stats) = Task.singleton _pluginStats
         member _.GetHints() = PingPluginHintsAnalyzer.analyze _pingResults
         member _.Stop() = Task.CompletedTask
         member _.Dispose() = ()

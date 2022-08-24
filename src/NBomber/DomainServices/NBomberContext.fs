@@ -26,15 +26,15 @@ module EnterpriseValidation =
         | _ ->
             Ok()
 
-    let validateCustomStepExecControl (context: NBomberContext) =
+    let validateStepInterception (context: NBomberContext) =
         let scenarios =
             context.RegisteredScenarios
-            |> List.filter(fun x -> x.CustomStepExecControl.IsSome)
+            |> List.filter(fun x -> x.StepInterceptionHandler.IsSome)
             |> List.map(fun x -> x.ScenarioName)
 
         if scenarios.Length > 0 then
             let names = scenarios |> String.concatWithComma
-            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using CustomStepExecControl feature that supported only for the Enterprise version")
+            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using StepInterception feature that supported only for the Enterprise version")
         else
             Ok()
 
@@ -68,7 +68,7 @@ module EnterpriseValidation =
     let validate (dep: IGlobalDependency) (context: NBomberContext) =
         result {
             do! validateReportingSinks dep
-            do! validateCustomStepExecControl context
+            do! validateStepInterception context
             do! validateCustomStepOrder context
             do! validateClientDistribution context
             return context

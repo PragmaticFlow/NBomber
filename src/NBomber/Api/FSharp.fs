@@ -156,7 +156,7 @@ module Scenario =
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
-          CustomStepExecControl = None }
+          StepInterceptionHandler = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -188,14 +188,13 @@ module Scenario =
     let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: Contracts.Scenario) =
         { scenario with CustomStepOrder = Some getStepsOrder }
 
-    /// Sets custom steps execution control.
+    /// Sets step interception handler.
     /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
-    /// By default, all steps are executing sequentially but you can inject your custom execution control to change
-    /// default order per step iteration.
-    /// execControl function will be invoked before each step. You can think about execControl like a callback before step invocation
-    /// where you can specify what step should be invoked.
-    let withCustomStepExecControl (execControl: IStepExecControlContext voption -> string voption) (scenario: Contracts.Scenario) =
-        { scenario with CustomStepExecControl = Some execControl }
+    /// By default, all steps are executing sequentially but you can inject your custom step interception to change default order per step iteration.
+    /// handler function will be invoked before each step.
+    /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
+    let withStepInterception (handler: IStepInterceptionContext voption -> string voption) (scenario: Contracts.Scenario) =
+        { scenario with StepInterceptionHandler = Some handler }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
