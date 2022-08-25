@@ -222,7 +222,7 @@ let createScenario (scn: Contracts.Scenario) = result {
              DefaultStepOrder = defaultStepOrder
              StepOrderIndex = stepOrderIndex
              CustomStepOrder = scenario.CustomStepOrder
-             StepInterceptionHandler = scenario.StepInterceptionHandler
+             StepInterception = scenario.StepInterception
              IsEnabled = true
              IsInitialized = false }
 }

@@ -58,38 +58,38 @@ type Step =
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
          ?clientFactory: ClientFactory<'TClient>,
-         ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
+         ?clientInterception: IClientInterceptionContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool,
          ?isPause: bool) =
 
         match clientFactory with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientFactory")
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof clientFactory))
         | None   -> ()
 
-        match clientDistribution with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "clientDistribution")
+        match clientInterception with
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof clientInterception))
         | None   -> ()
 
-        if clientFactory.IsNone && clientDistribution.IsSome then
-            raise(ArgumentException "The 'clientDistribution' requires to have the 'clientFactory'. Please provide the 'clientFactory' as argument.")
+        if clientFactory.IsNone && clientInterception.IsSome then
+            raise(ArgumentException $"The '{nameof clientInterception}' requires to have the '{nameof clientFactory}'. Please provide the '{nameof clientFactory}' as argument.")
 
         match feed with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException "feed")
+        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof feed))
         | None   -> ()
 
         let factory =
             clientFactory
             |> Option.map(fun x -> x.GetUntyped())
 
-        let clDistribution =
-            clientDistribution
+        let clInterception =
+            clientInterception
             |> Option.map(Domain.Step.StepClientContext.toUntyped)
 
         { StepName = name
           ClientFactory = factory
-          ClientDistribution = clDistribution
+          ClientInterception = clInterception
           ClientPool = None
           Execute = execute |> Domain.Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Domain.Feed.toUntypedFeed
@@ -104,12 +104,12 @@ type Step =
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
          ?clientFactory: ClientFactory<'TClient>,
-         ?clientDistribution: IStepClientContext<'TFeedItem> -> int,
+         ?clientInterception: IClientInterceptionContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool) =
 
-        Step.create(name, execute, ?clientFactory = clientFactory, ?clientDistribution = clientDistribution, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
+        Step.create(name, execute, ?clientFactory = clientFactory, ?clientInterception = clientInterception, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.
@@ -156,7 +156,7 @@ module Scenario =
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
-          StepInterceptionHandler = None }
+          StepInterception = None }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -194,7 +194,7 @@ module Scenario =
     /// handler function will be invoked before each step.
     /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
     let withStepInterception (handler: IStepInterceptionContext voption -> string voption) (scenario: Contracts.Scenario) =
-        { scenario with StepInterceptionHandler = Some handler }
+        { scenario with StepInterception = Some handler }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.

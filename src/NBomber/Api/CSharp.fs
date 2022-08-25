@@ -50,27 +50,27 @@ type Step =
     static member Create
         (name: string,
          clientFactory: ClientFactory<'TClient>,
-         clientDistribution: Func<IStepClientContext<'TFeedItem>,int>,
+         clientInterception: Func<IClientInterceptionContext<'TFeedItem>,int>,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
         let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, clientFactory, clientDistribution.Invoke, feed, ?timeout = timeout, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, clientFactory, clientInterception.Invoke, feed, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
          clientFactory: ClientFactory<'TClient>,
-         clientDistribution: Func<IStepClientContext<unit>,int>,
+         clientInterception: Func<IClientInterceptionContext<unit>,int>,
          execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
 
         let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, clientFactory, clientDistribution.Invoke, ?timeout = timeout, doNotTrack = doNotTrack)
+        FSharp.Step.create(name, execute.Invoke, clientFactory, clientInterception.Invoke, ?timeout = timeout, doNotTrack = doNotTrack)
 
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.

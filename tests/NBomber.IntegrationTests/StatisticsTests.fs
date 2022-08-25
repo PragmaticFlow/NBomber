@@ -30,7 +30,7 @@ module ScenarioStatsTests =
         StepName = "name"
         ClientFactory = None
         ClientPool = None
-        ClientDistribution = None
+        ClientInterception = None
         Execute =
           fun _ -> task { return Response.ok(sizeBytes = 100) }
           |> Step.StepContext.toUntypedExecute
@@ -53,7 +53,7 @@ module ScenarioStatsTests =
         DefaultStepOrder = Array.empty
         StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
         CustomStepOrder = None
-        StepInterceptionHandler = None
+        StepInterception = None
         IsEnabled = false
         IsInitialized = false
     }

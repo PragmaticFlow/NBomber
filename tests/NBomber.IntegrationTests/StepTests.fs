@@ -118,12 +118,12 @@ let ``StepContext Data should store any payload data from latest step.Response``
 
     let step1 = Step.create("step 1", fun context -> task {
         do! Task.Delay(milliseconds 100)
-        return Response.ok(context.InvocationCount)
+        return Response.ok(context.InvocationNumber)
     })
 
     let step2 = Step.create("step 2", fun context -> task {
         let prevStepRes = context.GetPreviousStepResponse<int>()
-        if prevStepRes <> context.InvocationCount then return Response.fail()
+        if prevStepRes <> context.InvocationNumber then return Response.fail()
         else return Response.ok()
     })
 
@@ -379,7 +379,7 @@ let ``NBomber should reset step invocation number after warm-up`` () =
 
     let step = Step.create("step", fun context -> task {
         do! Task.Delay(seconds 1)
-        counter <- context.InvocationCount
+        counter <- context.InvocationNumber
         return Response.ok()
     })
 
@@ -402,7 +402,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
         do! Task.Delay(seconds 1, context.CancellationToken)
 
-        data[context.ScenarioInfo.ThreadNumber] <- context.InvocationCount
+        data[context.ScenarioInfo.ThreadNumber] <- context.InvocationNumber
 
         return Response.ok()
     })
@@ -433,7 +433,7 @@ let ``StepContext Data should be cleared after each iteration`` () =
 
     let step2 = Step.create("step 2", fun context -> task {
         do! Task.Delay(100)
-        context.Data.Add(nameof(context.InvocationCount), context.InvocationCount)
+        context.Data.Add(nameof(context.InvocationNumber), context.InvocationNumber)
         return Response.ok();
     })
 
@@ -457,7 +457,7 @@ let ``Response Payload should be cleared from StepContext Data after each iterat
 
     let step2 = Step.create("step 2", fun context -> task {
         do! Task.Delay(100)
-        return Response.ok(context.InvocationCount);
+        return Response.ok(context.InvocationNumber);
     })
 
     Scenario.create "test context.Data" [step1; step2]
