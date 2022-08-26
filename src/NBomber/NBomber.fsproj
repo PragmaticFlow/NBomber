@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>3.0.0</Version>
+        <Version>3.0.1</Version>
         <Copyright>NBomber@2022</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -71,7 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[3.0.0]" />
+        <PackageReference Include="NBomber.Contracts" Version="[3.0.1]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.Control.Reactive" Version="5.0.2" />
