@@ -18,7 +18,7 @@ public class ClientDistributionExample
         var step = Step.Create(
             name: "step",
             clientFactory: factory,
-            clientDistribution: (context) => 5, // always returns client_index = 5 from client factory
+            clientInterception: (context) => 5, // always returns client_index = 5 from client factory
             execute: async (context) =>
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100));

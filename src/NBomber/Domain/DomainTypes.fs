@@ -33,7 +33,7 @@ type UntypedStepContext = {
 type Step = {
     StepName: string
     ClientFactory: ClientFactory<obj> option
-    ClientDistribution: (IStepClientContext<obj> -> int) option
+    ClientInterception: (IClientInterceptionContext<obj> -> int) option
     ClientPool: ClientPool option
     Execute: UntypedStepContext -> Task<Response>
     Feed: IFeed<obj> option
@@ -77,7 +77,7 @@ type Scenario = {
     DefaultStepOrder: int[]
     StepOrderIndex: Dictionary<string,int> // stepName * orderNumber
     CustomStepOrder: (unit -> string[]) option
-    CustomStepExecControl: (IStepExecControlContext voption -> string voption) option
+    StepInterception: (IStepInterceptionContext voption -> string voption) option
     IsEnabled: bool // used for stats in the cluster mode
     IsInitialized: bool
 }

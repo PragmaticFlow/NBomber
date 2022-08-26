@@ -74,7 +74,7 @@ module StepContext =
             member _.Data = untyped.Data
             member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
             member _.Logger = untyped.Logger
-            member _.InvocationCount = untyped.InvocationNumber
+            member _.InvocationNumber = untyped.InvocationNumber
             member _.GetPreviousStepResponse() = getPreviousStepResponse(untyped.Data)
             member _.StopScenario(scenarioName, reason) = untyped.StopScenario(scenarioName, reason)
             member _.StopCurrentTest(reason) = untyped.StopCurrentTest(reason)
@@ -88,26 +88,26 @@ module StepContext =
 module StepClientContext =
 
     let create (untyped: UntypedStepContext) (clientCount: int) = {
-        new IStepClientContext<'TFeedItem> with
+        new IClientInterceptionContext<'TFeedItem> with
             member _.StepName = untyped.StepName
+            member _.StepInvocationNumber = untyped.InvocationNumber
             member _.ScenarioInfo = untyped.ScenarioInfo
             member _.Logger = untyped.Logger
             member _.Data = untyped.Data
             member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-            member _.InvocationNumber = untyped.InvocationNumber
             member _.ClientCount = clientCount
     }
 
-    let toUntyped (getClientNumber: IStepClientContext<'TFeedItem> -> int) =
-        fun (untyped: IStepClientContext<obj>) ->
+    let toUntyped (getClientNumber: IClientInterceptionContext<'TFeedItem> -> int) =
+        fun (untyped: IClientInterceptionContext<obj>) ->
             let typed = {
-                new IStepClientContext<'TFeedItem> with
+                new IClientInterceptionContext<'TFeedItem> with
                     member _.StepName = untyped.StepName
+                    member _.StepInvocationNumber = untyped.StepInvocationNumber
                     member _.ScenarioInfo = untyped.ScenarioInfo
                     member _.Logger = untyped.Logger
                     member _.Data = untyped.Data
                     member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-                    member _.InvocationNumber = untyped.InvocationNumber
                     member _.ClientCount = untyped.ClientCount
             }
             getClientNumber typed

@@ -34,7 +34,7 @@ public class CustomStepExecControlExample
             .CreateScenario("my_scenario", step1, step2, step3)
             .WithoutWarmUp()
             .WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromSeconds(10)))
-            .WithCustomStepExecControl(context =>
+            .WithStepInterception(context =>
             {
                 // step_1 will never be invoked
                 if (context.IsSome)
