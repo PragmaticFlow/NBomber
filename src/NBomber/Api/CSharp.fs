@@ -292,6 +292,13 @@ type NBomberRunner =
     static member WithDefaultStepTimeout(context: NBomberContext, timeout: TimeSpan) =
         context |> FSharp.NBomberRunner.withDefaultStepTimeout timeout
 
+    /// Sets and overrides the default max fail count.
+    /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
+    /// By default MaxFailCount = 500
+    [<Extension>]
+    static member WithMaxFailCount(context: NBomberContext, failCount: int) =
+        context |> FSharp.NBomberRunner.withMaxFailCount failCount
+
     [<Extension>]
     static member Run(context: NBomberContext) =
         match FSharp.NBomberRunner.run context with

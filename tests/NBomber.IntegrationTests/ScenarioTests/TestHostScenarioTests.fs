@@ -1,4 +1,4 @@
-﻿module Tests.TestHostScenario
+﻿module Tests.Scenario.TestHostScenario
 
 open System
 

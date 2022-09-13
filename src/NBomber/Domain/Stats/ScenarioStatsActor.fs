@@ -33,12 +33,16 @@ type ScenarioStatsActor(logger: ILogger,
     let mutable _agentsStats = List.empty<ScenarioStats>
     let mutable _tempBuffer = List.empty<StepResponse>
     let mutable _useTempBuffer = false
+    let mutable _failCount = 0
 
     let addResponse (resp: StepResponse) =
         let allStData = _allStepsData.[resp.StepIndex]
         let intervalStData = _intervalStepsData.[resp.StepIndex]
         _allStepsData.[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
         _intervalStepsData.[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
+
+        if resp.ClientResponse.IsError then
+            _failCount <- _failCount + 1
 
     let createRealtimeStats (simulationStats) (duration) (stepsData) =
         ScenarioStats.create scenario stepsData simulationStats OperationType.Bombing %duration reportingInterval
@@ -109,6 +113,7 @@ type ScenarioStatsActor(logger: ILogger,
         | ex -> logger.Error $"{nameof ScenarioStatsActor} failed: {ex.ToString()}"
     )
 
+    member _.FailCount = _failCount
     member _.AllRealtimeStats = _allRealtimeStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

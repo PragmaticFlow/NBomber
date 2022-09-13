@@ -33,6 +33,7 @@
     "ReportFormats": ["Html", "Txt"],
     "ReportingInterval": "00:00:30",
     "EnableHintsAnalyzer": false,
-    "DefaultStepTimeoutMs" : 200
+    "DefaultStepTimeoutMs" : 200,
+    "MaxFailCount": 500
   }
 }

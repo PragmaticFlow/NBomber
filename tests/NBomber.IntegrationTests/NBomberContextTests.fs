@@ -27,6 +27,7 @@ let baseGlobalSettings = {
     ReportingInterval = None
     EnableHintsAnalyzer = None
     DefaultStepTimeoutMs = None
+    MaxFailCount = None
 }
 
 let baseScenarioSetting = {

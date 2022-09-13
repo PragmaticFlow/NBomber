@@ -76,6 +76,7 @@ type internal TestHost(dep: IGlobalDependency,
                     ScenarioOperation = operation
                     ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
                     ExecStopCommand = execStopCommand
+                    MaxFailCount = _sessionArgs.GetMaxFailCount()
                 }
                 GetStepOrder = getStepOrder
                 ExecSteps = execSteps

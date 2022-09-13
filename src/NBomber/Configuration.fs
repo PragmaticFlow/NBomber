@@ -27,6 +27,7 @@ type GlobalSettings = {
     ReportingInterval: TimeSpan option
     EnableHintsAnalyzer: bool option
     DefaultStepTimeoutMs: int option
+    MaxFailCount: int option
 }
 
 type NBomberConfig = {

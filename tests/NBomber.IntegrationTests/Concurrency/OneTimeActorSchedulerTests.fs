@@ -39,6 +39,7 @@ let internal baseActorDep = {
         ScenarioOperation = ScenarioOperation.Bombing
         ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
         ExecStopCommand = fun _ -> ()
+        MaxFailCount = Constants.DefaultMaxFailCount
     }
     GetStepOrder = Scenario.getStepOrder
     ExecSteps = RunningStep.execSteps

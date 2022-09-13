@@ -31,7 +31,7 @@ type ClientPool(factory: ClientFactory<obj>) =
                 Ok client
             with
             | ex ->
-                if tryCount >= Constants.TryCount then Error ex
+                if tryCount >= Constants.ClientInitTryCount then Error ex
                 else retryInit(clientNumber, tryCount + 1, ctx)
 
         let rec initClients (number, clientCount, context) = seq {

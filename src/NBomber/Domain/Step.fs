@@ -24,6 +24,7 @@ type ScenarioDep = {
     ScenarioOperation: ScenarioOperation
     ScenarioStatsActor: ScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
+    MaxFailCount: int
 }
 
 type StepDep = {

@@ -12,7 +12,7 @@ let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
 [<Literal>]
 let DefaultCopiesCount = 1
 [<Literal>]
-let TryCount = 5
+let ClientInitTryCount = 5
 [<Literal>]
 let DefaultDoNotTrack = false
 
@@ -67,3 +67,5 @@ let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 
 [<Literal>]
 let StatsRounding = 2
+[<Literal>]
+let DefaultMaxFailCount = 500

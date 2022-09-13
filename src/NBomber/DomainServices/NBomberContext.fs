@@ -200,6 +200,16 @@ let getDefaultStepTimeoutMs (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.DefaultStepTimeoutMs
 
+let getMaxFailCount (context: NBomberContext) =
+    let tryGetFromConfig (ctx: NBomberContext) = option {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.MaxFailCount
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue context.MaxFailCount
+
 let private getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
@@ -279,6 +289,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let clientFactorySettings = context |> getClientFactorySettings
         let enableHintsAnalyzer = context |> getEnableHintAnalyzer
         let stepTimeout = context |> getDefaultStepTimeoutMs
+        let maxFailCount = context |> getMaxFailCount
 
         let nbConfig = {
             TestSuite = Some testInfo.TestSuite
@@ -292,6 +303,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportingInterval = Some reportingInterval
                 EnableHintsAnalyzer = Some enableHintsAnalyzer
                 DefaultStepTimeoutMs = Some stepTimeout
+                MaxFailCount = Some maxFailCount
             }
         }
 

@@ -81,6 +81,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let mutable _scenario = _scnDep.Scenario
     let mutable _currentSimulation = _scenario.LoadTimeLine.Head.LoadSimulation
     let mutable _cachedSimulationStats = Unchecked.defaultof<LoadSimulationStats>
+    let mutable _isWorking = false
 
     let _constantScheduler =
         if _scenario.IsEnabled then new ConstantActorScheduler(dep, ConstantActorScheduler.exec)
@@ -129,6 +130,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _randomGen.Next(minRate, maxRate)
 
     let stop () =
+        _isWorking <- false
         _tcs.TrySetResult() |> ignore
 
         if not _scnDep.ScenarioCancellationToken.IsCancellationRequested then
@@ -145,33 +147,39 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             _eventStream.OnCompleted()
 
     let execScheduler () =
-        let currentTime = _scnDep.ScenarioTimer.Elapsed
-
-        if _scnDep.ScenarioOperation = ScenarioOperation.WarmUp
-           && _scenario.WarmUpDuration.IsSome && _scenario.WarmUpDuration.Value <= currentTime then
+        if _isWorking && _scnDep.ScenarioStatsActor.FailCount > _scnDep.MaxFailCount then
             stop()
-        else
-            match LoadTimeLine.getRunningTimeSegment(_scenario.LoadTimeLine, currentTime) with
-            | Some timeSegment ->
+            _scnDep.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{_scnDep.ScenarioStatsActor.FailCount}' fails.")
 
-                _currentSimulation <- timeSegment.LoadSimulation
+        elif _isWorking then
+            let currentTime = _scnDep.ScenarioTimer.Elapsed
 
-                let timeProgress =
-                    timeSegment
-                    |> LoadTimeLine.calcTimeSegmentProgress currentTime
-                    |> LoadTimeLine.correctTimeProgress
+            if _scnDep.ScenarioOperation = ScenarioOperation.WarmUp
+               && _scenario.WarmUpDuration.IsSome && _scenario.WarmUpDuration.Value <= currentTime then
+                stop()
+            else
+                match LoadTimeLine.getRunningTimeSegment(_scenario.LoadTimeLine, currentTime) with
+                | Some timeSegment ->
 
-                schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
-                |> List.iter(function
-                    | AddConstantActors count    -> _constantScheduler.AddActors(count)
-                    | RemoveConstantActors count -> _constantScheduler.RemoveActors(count)
-                    | InjectOneTimeActors count  -> _oneTimeScheduler.InjectActors(count)
-                    | DoNothing -> ()
-                )
+                    _currentSimulation <- timeSegment.LoadSimulation
 
-            | None -> stop()
+                    let timeProgress =
+                        timeSegment
+                        |> LoadTimeLine.calcTimeSegmentProgress currentTime
+                        |> LoadTimeLine.correctTimeProgress
+
+                    schedule getRandomValue timeSegment timeProgress _constantScheduler.ScheduledActorCount
+                    |> List.iter(function
+                        | AddConstantActors count    -> _constantScheduler.AddActors count
+                        | RemoveConstantActors count -> _constantScheduler.RemoveActors count
+                        | InjectOneTimeActors count  -> _oneTimeScheduler.InjectActors count
+                        | DoNothing -> ()
+                    )
+
+                | None -> stop()
 
     let start () =
+        _isWorking <- true
         _schedulerTimer.Start()
         _progressTimer.Start()
         _eventStream.OnNext(ScenarioStarted)
@@ -190,7 +198,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             _eventStream.OnNext(ProgressUpdated progressInfo)
         )
 
-    member _.Working = _schedulerTimer.Enabled
+    member _.Working = _isWorking
     member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = _scenario
     member _.AllRealtimeStats = _scnDep.ScenarioStatsActor.AllRealtimeStats
