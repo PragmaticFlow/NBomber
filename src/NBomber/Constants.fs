@@ -39,7 +39,7 @@ let MaxSimulationDuration = TimeSpan.FromDays 10.0
 let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
 let MinReportingInterval = TimeSpan.FromSeconds 5.0
 let DefaultReportingInterval = TimeSpan.FromSeconds 10.0
-let DefaultStepTimeoutMs = 1_000
+let DefaultStepTimeoutMs = 5_000
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5.0
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
