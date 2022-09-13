@@ -360,7 +360,7 @@ module NodeStatsTests =
             |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
 
         NBomberRunner.registerScenarios [ okScenario; failScenario ]
-        |> NBomberRunner.withReportFolder "./stats-tests/1/"
+        |> NBomberRunner.withoutReports
         |> NBomberRunner.run
         |> Result.getOk
         |> fun stats ->
@@ -594,7 +594,7 @@ let ``NodeStats should be calculated properly`` () =
         |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
 
     NBomberRunner.registerScenarios [ scenario ]
-    |> NBomberRunner.withReportFolder "./stats-tests/1/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
@@ -631,6 +631,7 @@ let ``NodeStats ReportFiles should contain report content`` () =
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
 
     NBomberRunner.registerScenarios [scenario]
+    |> NBomberRunner.withReportFolder "./reports/node_stats/1"
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
@@ -663,7 +664,7 @@ let ``status codes should be calculated properly`` () =
         |> Scenario.withLoadSimulations [ KeepConstant(copies = 2, during = seconds 10) ]
 
     NBomberRunner.registerScenarios [ scenario ]
-    |> NBomberRunner.withReportFolder "./stats-tests/2/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->

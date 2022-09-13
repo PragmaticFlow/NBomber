@@ -35,7 +35,7 @@ let ``should distribute client with one to one mapping if clientCount = loadSimu
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = poolCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/1/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -70,7 +70,7 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = copiesCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/2/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -109,7 +109,7 @@ let ``should be shared btw steps as singleton instance``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = poolCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/3/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -137,7 +137,7 @@ let ``initClient should stop test session in case of failure``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/4/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> ignore
@@ -165,7 +165,7 @@ let ``initClient should use try logic in case of some errors``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/5/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> fun error -> test <@ tryCount >= 5 @>
@@ -205,7 +205,7 @@ let ``should be initialized one time per scenario``() =
         |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.withReportFolder "./client-pool/7/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -240,7 +240,7 @@ let ``should be initialized after scenario init``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/8/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun allStats -> test <@ lastInvokeClient = "client_pool" @>
@@ -268,7 +268,7 @@ let ``should support 2K of clients``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/9/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun allStats -> test <@ invokeCount = clientCount @>
@@ -302,7 +302,7 @@ let ``should not allow to have duplicates with the same name but different imple
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/10/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> ignore
@@ -332,7 +332,7 @@ let ``should provide default dispose client``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/11/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 
@@ -360,7 +360,7 @@ let ``should provide custom dispose client``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/12/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 
@@ -383,7 +383,7 @@ let ``should validate factory name``() =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./client-pool/12/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> fun error -> test <@ error.Contains("") @>

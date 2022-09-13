@@ -5,7 +5,6 @@ open System.Threading.Tasks
 
 open FSharp.Control.Reactive
 
-open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
@@ -91,8 +90,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         if _scenario.IsEnabled then new OneTimeActorScheduler(dep, OneTimeActorScheduler.exec)
         else new OneTimeActorScheduler(dep, emptyExec)
 
-    let _schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
-    let _progressTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
     let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
@@ -130,18 +127,12 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _randomGen.Next(minRate, maxRate)
 
     let stop () =
-        _isWorking <- false
-        _tcs.TrySetResult() |> ignore
-
-        if not _scnDep.ScenarioCancellationToken.IsCancellationRequested then
+        if _isWorking then
+            _isWorking <- false
+            _tcs.TrySetResult() |> ignore
             _scnDep.ScenarioCancellationToken.Cancel()
-
-        if _schedulerTimer.Enabled then
-            _schedulerTimer.Stop()
             _scenario <- Scenario.setExecutedDuration(_scenario, _scnDep.ScenarioTimer.Elapsed)
-
             _scnDep.ScenarioTimer.Stop()
-            _progressTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
             _eventStream.OnCompleted()
@@ -178,25 +169,20 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
                 | None -> stop()
 
+    let updateProgress () =
+        let progressInfo = {
+            ConstantActorCount = getConstantActorCount()
+            OneTimeActorCount = getOneTimeActorCount()
+            CurrentSimulation = _currentSimulation
+        }
+        _eventStream.OnNext(ProgressUpdated progressInfo)
+
     let start () =
         _isWorking <- true
-        _schedulerTimer.Start()
-        _progressTimer.Start()
-        _eventStream.OnNext(ScenarioStarted)
         _scnDep.ScenarioTimer.Restart()
         execScheduler()
+        _eventStream.OnNext(ScenarioStarted)
         _tcs.Task :> Task
-
-    do
-        _schedulerTimer.Elapsed.Add(fun _ -> execScheduler())
-        _progressTimer.Elapsed.Add(fun _ ->
-            let progressInfo = {
-                ConstantActorCount = getConstantActorCount()
-                OneTimeActorCount = getOneTimeActorCount()
-                CurrentSimulation = _currentSimulation
-            }
-            _eventStream.OnNext(ProgressUpdated progressInfo)
-        )
 
     member _.Working = _isWorking
     member _.EventStream = _eventStream :> IObservable<_>
@@ -205,6 +191,8 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
     member _.Start() = start()
     member _.Stop() = stop()
+    member _.ExecScheduler() = execScheduler()
+    member _.UpdateProgress() = updateProgress()
 
     member _.AddStatsFromAgent(stats) = _scnDep.ScenarioStatsActor.Publish(AddFromAgent stats)
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()

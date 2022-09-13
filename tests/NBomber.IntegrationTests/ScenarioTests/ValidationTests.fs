@@ -108,6 +108,7 @@ let ``scenario should fail when it has duplicate step names that has different i
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> ignore
@@ -126,6 +127,7 @@ let ``check that scenario should fail if it has no steps and no init and no clea
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getError
     |> ignore
@@ -137,6 +139,7 @@ let ``check that scenario should be ok if it has no steps but clean function exi
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> ignore
@@ -148,6 +151,7 @@ let ``check that scenario should be ok if it has no steps but init function exis
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> ignore
@@ -164,6 +168,7 @@ let ``ScenarioSettings should be validated on duplicates `` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.loadConfig "Configuration/duplicate_scenarios_config.json" // duplicated scenario 1
     |> NBomberRunner.run
     |> Result.getError
@@ -181,6 +186,7 @@ let ``withStepTimeout should set step timeout`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> NodeStats.getScenarioStats "1"

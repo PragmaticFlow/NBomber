@@ -5,6 +5,7 @@ open System.Threading
 open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
+open Microsoft.FSharp.Collections
 
 open Serilog
 open FsToolkit.ErrorHandling
@@ -35,12 +36,13 @@ type internal TestHost(dep: IGlobalDependency,
                        execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) as this =
 
     let _log = dep.Logger.ForContext<TestHost>()
+    let mutable _currentSchedulers = List.empty<ScenarioScheduler>
+
     let mutable _stopped = false
     let mutable _disposed = false
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _sessionArgs = SessionArgs.empty
     let mutable _currentOperation = OperationType.None
-    let mutable _currentSchedulers = List.empty<ScenarioScheduler>
     let mutable _globalCancelToken = new CancellationTokenSource()
     let _defaultNodeInfo = NodeInfo.init None
 
@@ -106,7 +108,20 @@ type internal TestHost(dep: IGlobalDependency,
     let startWarmUp (schedulers: ScenarioScheduler list) = backgroundTask {
         let isWarmUp = true
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
+
+        let schedulersArray = schedulers |> List.toArray
+        use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
+        schedulerTimer.Elapsed.Add(fun _ ->
+            schedulersArray
+            |> Array.Parallel.iter(fun x ->
+                x.ExecScheduler()
+                x.UpdateProgress()
+            )
+        )
+
+        schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
+        schedulerTimer.Stop()
 
         // wait on warmup progress bar to finish rendering
         do! Task.Delay Constants.WarmUpFinishPause
@@ -124,7 +139,19 @@ type internal TestHost(dep: IGlobalDependency,
         reportingManager.Start()
 
         // waiting on all scenarios to finish
+        let schedulersArray = schedulers |> List.toArray
+        use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
+        schedulerTimer.Elapsed.Add(fun _ ->
+            schedulersArray
+            |> Array.Parallel.iter(fun x ->
+                x.ExecScheduler()
+                x.UpdateProgress()
+            )
+        )
+
+        schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
+        schedulerTimer.Stop()
 
         // wait on final metrics and reporting tick
         do! Task.Delay Constants.ReportingTimerCompleteMs

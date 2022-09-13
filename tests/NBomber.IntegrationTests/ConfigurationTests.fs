@@ -54,6 +54,7 @@ module NBomberRunner =
     [<Fact>]
     let ``loadInfraConfig should parse json config successfully`` () =
         NBomberRunner.registerScenarios []
+        |> NBomberRunner.withoutReports
         |> NBomberRunner.loadInfraConfig "Configuration/infra_config.json"
 
     [<Fact>]
@@ -61,6 +62,7 @@ module NBomberRunner =
         Assert.Throws(
             typeof<FileNotFoundException>,
             fun _ -> NBomberRunner.registerScenarios []
+                     |> NBomberRunner.withoutReports
                      |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
                      |> ignore
         )

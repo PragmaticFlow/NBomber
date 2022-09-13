@@ -31,7 +31,7 @@ let ``Warmup should have no effect on stats`` () =
     |> Scenario.withWarmUpDuration(seconds 3)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./scenarios-tests/4/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -65,6 +65,7 @@ let ``withoutWarmUp should hide the warmup info on the console`` () =
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig(fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink))
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 
@@ -115,6 +116,7 @@ let ``withWarmUpDuration should run warmup only for specified scenarios`` () =
         |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
 
     NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 

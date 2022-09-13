@@ -45,7 +45,7 @@ let ``TestClean should be invoked only once and not fail runner`` () =
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
     |> NBomberRunner.registerScenario
-    |> NBomberRunner.withReportFolder "./scenarios-tests/1/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 
@@ -75,6 +75,7 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.loadConfig "Configuration/test_config.json"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> ignore
 
@@ -110,7 +111,7 @@ let ``should be stopped via StepContext.StopScenario`` () =
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.withReportFolder "./scenarios-tests/2/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
@@ -162,7 +163,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
         |> Scenario.withLoadSimulations [KeepConstant(1, duration)]
 
     NBomberRunner.registerScenarios [scenario1; scenario2]
-    |> NBomberRunner.withReportFolder "./scenarios-tests/3/"
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
