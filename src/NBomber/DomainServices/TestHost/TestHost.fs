@@ -106,6 +106,9 @@ type internal TestHost(dep: IGlobalDependency,
         let isWarmUp = true
         TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
+
+        // wait on warmup progress bar to finish rendering
+        do! Task.Delay Constants.WarmUpFinishPause
     }
 
     let startBombing (schedulers: ScenarioScheduler list)
