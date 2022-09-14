@@ -31,7 +31,7 @@ type CustomElapsedTimeColumn () =
 
         let maxTime = TimeSpan.FromSeconds task.MaxValue
 
-        Markup($"{elapsedTime:g}-{maxTime:g}").RightAligned() :> IRenderable
+        Markup($"({elapsedTime:g}-{maxTime:g})").RightAligned() :> IRenderable
 
 let defaultColumns: ProgressColumn[] =
     [| MultilineColumn()
@@ -58,7 +58,6 @@ let private createProgressTask (ctx: ProgressContext) (config: ProgressTaskConfi
     task
 
 let create (pbHandler: ProgressTask list -> unit) (config: ProgressTaskConfig list) =
-
     AnsiConsole.Progress()
     |> fun progressBar -> ProgressExtensions.Columns(progressBar, defaultColumns)
     |> fun progressBar ->
