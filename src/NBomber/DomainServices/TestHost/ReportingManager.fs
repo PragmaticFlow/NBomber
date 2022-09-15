@@ -89,7 +89,7 @@ type ReportingManager(dep: IGlobalDependency,
             if duration <= _timerMaxDuration then
                 _curDuration <- duration
                 schedulers
-                |> List.map(fun x -> x.BuildRealtimeStats duration)
+                |> List.map(fun x -> x.BuildRealtimeStats(duration, shouldAddToCache = true))
                 |> Task.WhenAll
                 |> Task.map saveRealtimeStats
                 |> ignore

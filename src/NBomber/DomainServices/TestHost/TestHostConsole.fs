@@ -1,9 +1,11 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
+open System
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
+open NBomber.Extensions.Data
 open Spectre.Console
 
 open NBomber
@@ -21,6 +23,55 @@ let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
     |> List.map(fun x -> x.ScenarioName)
     |> fun targets -> dep.Logger.Information("Target scenarios: {TargetScenarios}", String.concatWithComma targets)
+
+let displayRealtimeStatusTable (scnSchedulers: ScenarioScheduler list) (isWarmUp: bool) =
+
+    let duration = TimeSpan.Zero
+
+    let stats =
+        scnSchedulers
+        |> List.map(fun x -> x.BuildRealtimeStats(duration, shouldAddToCache = false))
+        |> Task.WhenAll
+        |> fun t -> t.Result
+
+    let table = Table()
+    table.Border <- TableBorder.Square
+
+    TableColumn("scenario") |> table.AddColumn |> ignore
+    TableColumn("step") |> table.AddColumn |> ignore
+    TableColumn("load simulation") |> table.AddColumn |> ignore
+    TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
+    TableColumn("data transfer stats (bytes)") |> table.AddColumn |> ignore
+
+    let liveTable = AnsiConsole.Live(table)
+    liveTable.AutoClear <- false
+    liveTable.Overflow <- VerticalOverflow.Ellipsis
+    liveTable.Cropping <- VerticalOverflowCropping.Bottom
+
+    liveTable.StartAsync(fun ctx ->  backgroundTask {
+        while true do
+            for scnStats in stats do
+                for stepStats in scnStats.StepStats do
+                    let ok = stepStats.Ok
+                    let req = ok.Request
+                    let lt = ok.Latency
+                    let data = ok.DataTransfer
+
+                    table.AddRow(
+                        scnStats.ScenarioName,
+                        stepStats.StepName,
+                        "inject_per_sec, rate: 30",
+                        $"ok: {req.Count}, fail: {stepStats.Fail.Request.Count}, RPS: {req.RPS}, min = {lt.MinMs}, max = {lt.MaxMs}, p50 = {lt.Percent50}, p75 = {lt.Percent75}, p99 = {lt.Percent99}",
+                        $"min: {data.MinBytes}, max: {data.MaxBytes}, p99: {data.Percent99}, all: {Converter.fromBytesToMb data.AllBytes} MB")
+                    |> ignore
+
+                    //table.Title <- TableTitle("real time stats table")
+                    table.Title <- TableTitle("duration: (00:01:00 - 00:05:00)")
+
+            //table.UpdateCell(0, 0, "My Row2") |> ignore
+            ctx.Refresh()
+            do! Task.Delay 1_000
+    })
 
 let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
 

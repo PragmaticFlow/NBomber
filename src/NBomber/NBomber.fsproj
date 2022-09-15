@@ -84,7 +84,7 @@
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
         <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="0.1.1" />
-        <PackageReference Include="Spectre.Console" Version="[0.38.0]" />
+        <PackageReference Include="Spectre.Console" Version="0.45.0" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
         <PackageReference Update="FSharp.Core" Version="6.0.5" />
     </ItemGroup>
@@ -94,5 +94,8 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Serilog.Sinks.SpectreConsole\src\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj" />
     </ItemGroup>
 </Project>

@@ -104,15 +104,15 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _cachedSimulationStats <- getCurrentSimulationStats()
         _scnDep.ScenarioStatsActor.Publish StartUseTempBuffer
 
-    let buildRealtimeStats (duration) =
+    let buildRealtimeStats (duration: TimeSpan) (shouldAddToCache: bool) =
         let simulationStats = getCurrentSimulationStats()
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration, shouldAddToCache))
         reply.Task
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration, shouldAddToCache = true))
         _scnDep.ScenarioStatsActor.Publish FlushTempBuffer
         reply.Task
 
@@ -197,7 +197,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.AddStatsFromAgent(stats) = _scnDep.ScenarioStatsActor.Publish(AddFromAgent stats)
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
     member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
-    member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
+    member _.BuildRealtimeStats(duration, shouldAddToCache) = buildRealtimeStats duration shouldAddToCache
     member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with

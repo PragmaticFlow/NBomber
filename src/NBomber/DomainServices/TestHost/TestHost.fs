@@ -131,7 +131,8 @@ type internal TestHost(dep: IGlobalDependency,
                      (reportingManager: IReportingManager) = backgroundTask {
 
         let isWarmUp = false
-        TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
+        //TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
+        (TestHostConsole.displayRealtimeStatusTable schedulers isWarmUp).Wait()
 
         dep.WorkerPlugins |> WorkerPlugins.start _log
         dep.ReportingSinks |> ReportingSinks.start _log
