@@ -1,6 +1,7 @@
 module internal NBomber.DomainServices.TestHost.TestHostScenario
 
 open FsToolkit.ErrorHandling
+open Spectre.Console
 
 open NBomber.Contracts
 open NBomber.Contracts.Internal
@@ -8,6 +9,7 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ClientPool
 open NBomber.Errors
+open NBomber.Infra
 open NBomber.Infra.Dependency
 
 let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) =
@@ -15,23 +17,26 @@ let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) 
     |> Scenario.filterTargetScenarios (sessionArgs.GetTargetScenarios())
     |> Scenario.applySettings (sessionArgs.GetScenariosSettings()) (sessionArgs.GetDefaultStepTimeout())
 
-let initClientPools (dep: IGlobalDependency) (context: IBaseContext) (pools: ClientPool list) = taskResult {
+let initClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try
         for pool in pools do
-            let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
-            do! pool.Init(context) |> TaskResult.mapError(InitScenarioError >> AppError.create)
-            progressTask.Wait()
+            TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
+
+            do! pool.Init(context)
+                |> TaskResult.mapError(InitScenarioError >> AppError.create)
 
         return pools
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let initDataFeeds (dep: IGlobalDependency) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
+let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
     try
         for feed in feeds do
+            consoleStatus.Status <- $"Initializing data feed: {Console.okColor feed.FeedName}"
+            consoleStatus.Refresh()
             do! feed.Init(context)
-            dep.Logger.Information("Initialized data feed: {FeedName}", feed.FeedName)
+            dep.Logger.Information("Initialized data feed: {0}", feed.FeedName)
 
         return feeds
     with
@@ -39,11 +44,14 @@ let initDataFeeds (dep: IGlobalDependency) (context: IBaseContext) (feeds: IFeed
 }
 
 let initScenarios (dep: IGlobalDependency,
+                   consoleStatus: StatusContext,
                    baseContext: IBaseContext,
-                   defaultScnContext: IScenarioContext,
                    sessionArgs: SessionArgs,
-                   targetScenarios: Scenario list) = taskResult {
+                   regScenarios: Scenario list) = taskResult {
     try
+        let targetScenarios = regScenarios |> getTargetScenarios sessionArgs
+        let defaultScnContext = Scenario.ScenarioContext.create baseContext
+
         let enabledScenarios = targetScenarios |> List.filter(fun x -> x.IsEnabled)
         let disabledScenarios = targetScenarios |> List.filter(fun x -> not x.IsEnabled)
 
@@ -53,8 +61,9 @@ let initScenarios (dep: IGlobalDependency,
         for scn in enabledScenarios do
             match scn.Init with
             | Some initFunc ->
-
                 dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
+                consoleStatus.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
+                consoleStatus.Refresh()
                 let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 do! initFunc scnContext
 
@@ -64,12 +73,12 @@ let initScenarios (dep: IGlobalDependency,
         let! pools =
             enabledScenarios
             |> Scenario.ClientPool.createPools sessionArgs.UpdatedClientFactorySettings
-            |> initClientPools dep baseContext
+            |> initClientPools dep consoleStatus baseContext
 
         // data feed init
         do! enabledScenarios
             |> Scenario.Feed.filterDistinctFeeds
-            |> initDataFeeds dep baseContext
+            |> initDataFeeds dep consoleStatus baseContext
             |> TaskResult.ignore
 
         return
@@ -81,20 +90,20 @@ let initScenarios (dep: IGlobalDependency,
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let disposeClientPools (dep: IGlobalDependency) (baseContext: IBaseContext) (pools: ClientPool list) =
+let disposeClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext) (baseContext: IBaseContext) (pools: ClientPool list) =
     for pool in pools do
-        let progressTask = TestHostConsole.displayClientPoolProgress(dep, pool)
+        TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
         pool.DisposePool(baseContext)
-        progressTask.Wait()
 
 let cleanScenarios (dep: IGlobalDependency)
+                   (consoleStatus: StatusContext)
                    (baseContext: IBaseContext)
                    (defaultScnContext: IScenarioContext)
                    (scenarios: Scenario list) = backgroundTask {
 
     scenarios
     |> Scenario.ClientPool.filterDistinct
-    |> disposeClientPools dep baseContext
+    |> disposeClientPools dep consoleStatus baseContext
 
     for scn in scenarios do
         match scn.Clean with

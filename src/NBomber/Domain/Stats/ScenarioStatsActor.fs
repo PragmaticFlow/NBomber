@@ -18,7 +18,7 @@ type ActorMessage =
     | AddFromAgent of ScenarioStats
     | StartUseTempBuffer
     | FlushTempBuffer
-    | BuildRealtimeStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan * shouldAddToCache:bool
+    | BuildRealtimeStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
     | GetFinalStats      of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
 
 type ScenarioStatsActor(logger: ILogger,
@@ -74,7 +74,7 @@ type ScenarioStatsActor(logger: ILogger,
                 _tempBuffer |> List.iter addResponse
                 _tempBuffer <- List.empty
 
-            | BuildRealtimeStats (reply, simulationStats, duration, shouldAddToCache) ->
+            | BuildRealtimeStats (reply, simulationStats, duration) ->
                 let cordStats = _intervalStepsData |> createRealtimeStats simulationStats duration
 
                 let allStats =
@@ -87,10 +87,10 @@ type ScenarioStatsActor(logger: ILogger,
                         |> Option.map(fun merge -> merge simulationStats allStats)
                         |> Option.defaultValue cordStats
 
-                    if shouldAddToCache then addToCacheAndReset merged
+                    addToCacheAndReset merged
                     reply.TrySetResult(merged) |> ignore
                 else
-                    if shouldAddToCache then addToCacheAndReset cordStats
+                    addToCacheAndReset cordStats
                     reply.TrySetResult(cordStats) |> ignore
 
             | GetFinalStats (reply, simulationStats, duration) ->

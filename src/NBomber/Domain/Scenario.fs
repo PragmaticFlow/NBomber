@@ -288,3 +288,9 @@ let defaultClusterCount = fun _ -> 1
 
 let getScenariosForWarmUp (scenarios: Scenario list) =
     scenarios |> List.filter(fun x -> x.WarmUpDuration.IsSome)
+
+let getMaxDuration (scenarios: Scenario list) =
+    scenarios |> List.map(fun x -> x.PlanedDuration) |> List.max
+
+let getMaxWarmUpDuration (scenarios: Scenario list) =
+    scenarios |> List.choose(fun x -> x.WarmUpDuration) |> List.max

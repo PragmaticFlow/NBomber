@@ -3,8 +3,6 @@ module internal NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open System
 open System.Threading.Tasks
 
-open FSharp.Control.Reactive
-
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
@@ -20,16 +18,6 @@ type SchedulerCommand =
     | RemoveConstantActors of removeCount:int
     | InjectOneTimeActors  of scheduledCount:int
     | DoNothing
-
-type ScenarioProgressInfo = {
-    ConstantActorCount: int
-    OneTimeActorCount: int
-    CurrentSimulation: LoadSimulation
-}
-
-type SchedulerEvent =
-    | ScenarioStarted
-    | ProgressUpdated of ScenarioProgressInfo
 
 let calcScheduleByTime (copiesCount: int, prevSegmentCopiesCount: int, timeSegmentProgress: int) =
     let value = copiesCount - prevSegmentCopiesCount
@@ -90,7 +78,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         if _scenario.IsEnabled then new OneTimeActorScheduler(dep, OneTimeActorScheduler.exec)
         else new OneTimeActorScheduler(dep, emptyExec)
 
-    let _eventStream = Subject.broadcast
     let _tcs = TaskCompletionSource()
     let _randomGen = Random()
 
@@ -104,21 +91,25 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
         _cachedSimulationStats <- getCurrentSimulationStats()
         _scnDep.ScenarioStatsActor.Publish StartUseTempBuffer
 
-    let buildRealtimeStats (duration: TimeSpan) (shouldAddToCache: bool) =
+    let buildRealtimeStats (duration: TimeSpan) =
         let simulationStats = getCurrentSimulationStats()
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration, shouldAddToCache))
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration))
         reply.Task
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration, shouldAddToCache = true))
+        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
         _scnDep.ScenarioStatsActor.Publish FlushTempBuffer
         reply.Task
 
-    let getFinalStats () =
+    let getStats (isFinal: bool) =
         let simulationStats = getCurrentSimulationStats()
-        let duration = Scenario.getExecutedDuration _scenario
+
+        let duration =
+            if isFinal then Scenario.getExecutedDuration _scenario
+            else _scnDep.ScenarioTimer.Elapsed
+
         let reply = TaskCompletionSource<ScenarioStats>()
         _scnDep.ScenarioStatsActor.Publish(GetFinalStats(reply, simulationStats, duration))
         reply.Task
@@ -135,7 +126,6 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
             _scnDep.ScenarioTimer.Stop()
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
-            _eventStream.OnCompleted()
 
     let execScheduler () =
         if _isWorking && _scnDep.ScenarioStatsActor.FailCount > _scnDep.MaxFailCount then
@@ -169,40 +159,28 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
 
                 | None -> stop()
 
-    let updateProgress () =
-        let progressInfo = {
-            ConstantActorCount = getConstantActorCount()
-            OneTimeActorCount = getOneTimeActorCount()
-            CurrentSimulation = _currentSimulation
-        }
-        _eventStream.OnNext(ProgressUpdated progressInfo)
-
     let start () =
         _isWorking <- true
         _scnDep.ScenarioTimer.Restart()
         execScheduler()
-        _eventStream.OnNext(ScenarioStarted)
         _tcs.Task :> Task
 
     member _.Working = _isWorking
-    member _.EventStream = _eventStream :> IObservable<_>
     member _.Scenario = _scenario
     member _.AllRealtimeStats = _scnDep.ScenarioStatsActor.AllRealtimeStats
 
     member _.Start() = start()
     member _.Stop() = stop()
     member _.ExecScheduler() = execScheduler()
-    member _.UpdateProgress() = updateProgress()
 
     member _.AddStatsFromAgent(stats) = _scnDep.ScenarioStatsActor.Publish(AddFromAgent stats)
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
     member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
-    member _.BuildRealtimeStats(duration, shouldAddToCache) = buildRealtimeStats duration shouldAddToCache
-    member _.GetFinalStats() = getFinalStats()
+    member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
+    member _.GetFinalStats() = getStats true
+    member _.GetCurrentStats() = getStats false
 
     interface IDisposable with
         member _.Dispose() =
             stop()
-            _eventStream.Dispose()
             _log.Verbose $"{nameof ScenarioScheduler} disposed"
-

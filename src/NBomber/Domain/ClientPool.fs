@@ -10,7 +10,7 @@ open NBomber.Extensions.Internal
 open NBomber.Contracts
 
 type ClientPoolEvent =
-    | StartedInit       of poolName:string
+    | StartedInit       of poolName:string * clientCount:int
     | StartedDispose    of poolName:string
     | ClientInitialized of poolName:string * clientNumber:int
     | ClientDisposed    of poolName:string * clientNumber:int * error:exn option
@@ -46,7 +46,7 @@ type ClientPool(factory: ClientFactory<obj>) =
                 | Error ex -> yield Error ex
         }
 
-        _eventStream.OnNext(StartedInit factory.FactoryName)
+        _eventStream.OnNext(StartedInit(factory.FactoryName, factory.ClientCount))
 
         let result = initClients(0, factory.ClientCount, context) |> Result.sequence
         match result with

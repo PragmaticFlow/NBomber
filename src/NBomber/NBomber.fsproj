@@ -41,7 +41,6 @@
         <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
         <Compile Include="Domain\HintsAnalyzer.fs" />
         <Compile Include="Infra\Console.fs" />
-        <Compile Include="Infra\ProgressBar.fs" />
         <Compile Include="Infra\Dependency.fs" />
         <Compile Include="DomainServices\NBomberContext.fs" />
         <Compile Include="DomainServices\Reports\ReportHelper.fs" />
@@ -83,8 +82,8 @@
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
-        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="0.1.1" />
-        <PackageReference Include="Spectre.Console" Version="0.45.0" />
+        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.0]" />
+        <PackageReference Include="Spectre.Console" Version="[0.45.0]" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
         <PackageReference Update="FSharp.Core" Version="6.0.5" />
     </ItemGroup>
@@ -94,8 +93,5 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\Serilog.Sinks.SpectreConsole\src\Serilog.Sinks.SpectreConsole\Serilog.Sinks.SpectreConsole.fsproj" />
     </ItemGroup>
 </Project>

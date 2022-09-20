@@ -51,8 +51,6 @@ let SchedulerTimerDriftMs = 10.0
 let SchedulerTickIntervalMs = 1_000.0
 [<Literal>]
 let ReportingTimerCompleteMs = 3_000
-[<Literal>]
-let WarmUpFinishPause = 1_000
 
 /// Default status codes
 

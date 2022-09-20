@@ -1,38 +1,39 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
-open System
+open System.Diagnostics
+open System.Threading
 open System.Threading.Tasks
 
 open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
-open NBomber.Extensions.Data
 open Spectre.Console
 
-open NBomber
-open NBomber.Contracts
+open NBomber.Extensions.Data
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ClientPool
 open NBomber.Extensions.Internal
 open NBomber.Infra
 open NBomber.Infra.Dependency
-open NBomber.Infra.ProgressBar
 
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
     |> List.map(fun x -> x.ScenarioName)
     |> fun targets -> dep.Logger.Information("Target scenarios: {TargetScenarios}", String.concatWithComma targets)
 
-let displayRealtimeStatusTable (scnSchedulers: ScenarioScheduler list) (isWarmUp: bool) =
+let displayStatus (msg: string) (runAction: StatusContext -> Task<'T>) =
+    let status = AnsiConsole.Status()
+    status.StartAsync(msg, runAction)
 
-    let duration = TimeSpan.Zero
+let displayRealtimeStatusTable (cancelToken: CancellationToken) (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
+    let stopWatch = Stopwatch()
+    let mutable refreshTableCounter = 0
 
-    let stats =
-        scnSchedulers
-        |> List.map(fun x -> x.BuildRealtimeStats(duration, shouldAddToCache = false))
-        |> Task.WhenAll
-        |> fun t -> t.Result
+    let maxDuration =
+        if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
+        else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
 
     let table = Table()
     table.Border <- TableBorder.Square
@@ -48,180 +49,85 @@ let displayRealtimeStatusTable (scnSchedulers: ScenarioScheduler list) (isWarmUp
     liveTable.Overflow <- VerticalOverflow.Ellipsis
     liveTable.Cropping <- VerticalOverflowCropping.Bottom
 
-    liveTable.StartAsync(fun ctx ->  backgroundTask {
-        while true do
-            for scnStats in stats do
-                for stepStats in scnStats.StepStats do
-                    let ok = stepStats.Ok
-                    let req = ok.Request
-                    let lt = ok.Latency
-                    let data = ok.DataTransfer
+    stopWatch.Start()
 
-                    table.AddRow(
-                        scnStats.ScenarioName,
-                        stepStats.StepName,
-                        "inject_per_sec, rate: 30",
-                        $"ok: {req.Count}, fail: {stepStats.Fail.Request.Count}, RPS: {req.RPS}, min = {lt.MinMs}, max = {lt.MaxMs}, p50 = {lt.Percent50}, p75 = {lt.Percent75}, p99 = {lt.Percent99}",
-                        $"min: {data.MinBytes}, max: {data.MaxBytes}, p99: {data.Percent99}, all: {Converter.fromBytesToMb data.AllBytes} MB")
-                    |> ignore
+    liveTable.StartAsync(fun ctx -> backgroundTask {
+        while not cancelToken.IsCancellationRequested do
+            try
+                let currentTime = stopWatch.Elapsed
+                if currentTime < maxDuration && refreshTableCounter = 0 then
 
-                    //table.Title <- TableTitle("real time stats table")
-                    table.Title <- TableTitle("duration: (00:01:00 - 00:05:00)")
+                    let! stats =
+                        scnSchedulers
+                        |> List.map(fun x -> x.GetCurrentStats() |> Task.map ScenarioStats.round)
+                        |> Task.WhenAll
 
-            //table.UpdateCell(0, 0, "My Row2") |> ignore
-            ctx.Refresh()
-            do! Task.Delay 1_000
+                    let mutable rowIndex = 0
+                    let updateOperation = table.Rows.Count > 0
+
+                    for scnStats in stats do
+                        for stepStats in scnStats.StepStats do
+                            let ok = stepStats.Ok
+                            let req = ok.Request
+                            let lt = ok.Latency
+                            let data = ok.DataTransfer
+
+                            if updateOperation then
+                                table.UpdateCell(rowIndex, 2, $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}") |> ignore
+                                table.UpdateCell(rowIndex, 3, $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}") |> ignore
+                                table.UpdateCell(rowIndex, 4, $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
+                                rowIndex <- rowIndex + 1
+                            else
+                                table.AddRow(
+                                    scnStats.ScenarioName,
+                                    stepStats.StepName,
+                                    $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
+                                    $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
+                                    $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
+                                |> ignore
+
+                table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                ctx.Refresh()
+
+                do! Task.Delay(1_000, cancelToken)
+
+                refreshTableCounter <- refreshTableCounter + 1
+                if refreshTableCounter = 5 then refreshTableCounter <- 0
+            with
+            | _ -> ()
+
+        table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+        ctx.Refresh()
     })
+    |> ignore
 
-let displayBombingProgress (applicationType: ApplicationType, scnSchedulers: ScenarioScheduler list, isWarmUp: bool) =
+let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext, pool: ClientPool) =
+    pool.EventStream
+    |> Observable.takeWhile(function
+        | InitFinished -> false
+        | InitFailed   -> false
+        | _            -> true
+    )
+    |> Observable.subscribe(function
+        | StartedInit (poolName, clientCount) ->
+            dep.Logger.Information("Start init client factory: {0}, client count: {1}", poolName, clientCount)
 
-    let calcTickCount (scn: Scenario) =
-        if isWarmUp then int(scn.WarmUpDuration.Value.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
-        else int(scn.PlanedDuration.TotalMilliseconds / Constants.SchedulerTickIntervalMs)
+        | StartedDispose poolName ->
+            dep.Logger.Information("Start disposing client factory: {0}", poolName)
 
-    let calcTotalTickCount (schedulers: ScenarioScheduler list) =
-        schedulers |> Seq.map(fun scheduler -> scheduler.Scenario) |> Seq.map(calcTickCount) |> Seq.sum
+        | ClientInitialized (poolName,number) ->
+            consoleStatus.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
+            consoleStatus.Refresh()
 
-    let getSimulationValue (progressInfo: ScenarioProgressInfo) =
-        match progressInfo.CurrentSimulation with
-        | RampConstant _
-        | KeepConstant _ -> progressInfo.ConstantActorCount
+        | ClientDisposed (poolName,number,error) ->
+            consoleStatus.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
+            consoleStatus.Refresh()
+            error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
 
-        | RampPerSec _
-        | InjectPerSec _
-        | InjectPerSecRandom _ -> progressInfo.OneTimeActorCount
-
-    let createSimulationDescription (simulation: LoadSimulation) (simulationValue: int) =
-        let simulationName = LoadTimeLine.getSimulationName simulation
-
-        match simulation with
-        | RampConstant _
-        | KeepConstant _        ->
-            $"load: {Console.blueColor simulationName}, copies: {Console.blueColor simulationValue}"
-
-        | RampPerSec _
-        | InjectPerSec _
-        | InjectPerSecRandom _  ->
-            $"load: {Console.blueColor simulationName}, rate: {Console.blueColor simulationValue}"
-
-    let createScenarioDescription (scenarioName: string) (simulation: LoadSimulation) (simulationValue: int) =
-        let simulationDescription = createSimulationDescription simulation simulationValue
-        $"{Console.okEscColor scenarioName}{MultilineColumn.NewLine}{simulationDescription}"
-
-    let createProgressTaskConfig (scheduler: ScenarioScheduler) =
-        let scenarioName = scheduler.Scenario.ScenarioName
-        let simulation = scheduler.Scenario.LoadTimeLine.Head.LoadSimulation
-        let description = createScenarioDescription scenarioName simulation 0
-        let ticks = scheduler.Scenario |> calcTickCount |> float
-        { Description = description; Ticks = ticks }
-
-    let tickProgressTask (pbTask: ProgressTask) (scenarioName: string) (progressInfo: ScenarioProgressInfo) =
-
-        let description =
-            progressInfo
-            |> getSimulationValue
-            |> createScenarioDescription scenarioName progressInfo.CurrentSimulation
-
-        pbTask
-        |> ProgressBar.setDescription description
-        |> ProgressBar.defaultTick
-
-    let displayProgressForConcurrentScenarios (schedulers: ScenarioScheduler list) =
-        schedulers
-        |> List.map createProgressTaskConfig
-        |> List.append [
-            { Description = $"All Scenarios{MultilineColumn.NewLine}"; Ticks = schedulers |> calcTotalTickCount |> float }
-        ]
-        |> ProgressBar.create
-            (fun progressTasks ->
-                let pbTotalTask = progressTasks.Head
-
-                progressTasks
-                |> List.iteri(fun i pbTask ->
-                    if i > 0 then
-                        schedulers[i - 1].EventStream
-                        |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
-                        |> Observable.subscribeWithCompletion
-
-                            (fun progressInfo ->
-                                let scenarioName = schedulers[i - 1].Scenario.ScenarioName
-                                tickProgressTask pbTask scenarioName progressInfo
-                                pbTotalTask |> ProgressBar.defaultTick)
-
-                            (fun () -> ProgressBar.stop pbTask)
-
-                        |> ignore
-                )
-            )
-
-    let displayProgressForOneScenario (scheduler: ScenarioScheduler) =
-        scheduler
-        |> createProgressTaskConfig
-        |> List.singleton
-        |> ProgressBar.create
-            (fun tasks ->
-                scheduler.EventStream
-                |> Observable.choose(function ProgressUpdated info -> Some info | _ -> None)
-                |> Observable.subscribeWithCompletion
-                    (fun progressInfo ->
-                        let scenarioName = scheduler.Scenario.ScenarioName
-                        tickProgressTask tasks.Head scenarioName progressInfo)
-
-                    (fun () -> tasks |> List.iter ProgressBar.stop)
-
-                |> ignore
-            )
-
-    match applicationType with
-    | ApplicationType.Console ->
-        if scnSchedulers.Length > 1 then
-            scnSchedulers |> displayProgressForConcurrentScenarios |> ignore
-        else
-            scnSchedulers.Head |> displayProgressForOneScenario |> ignore
-    | _ -> ()
-
-let displayClientPoolProgress (dep: IGlobalDependency, pool: ClientPool) =
-
-    let pbHandler (pbTasks: ProgressTask list) =
-        pbTasks
-        |> List.iteri(fun i pbTask ->
-            pool.EventStream
-            |> Observable.takeWhile(function
-                | InitFinished -> false
-                | InitFailed   -> false
-                | _            -> true
-            )
-            |> Observable.subscribe(function
-                | StartedInit poolName ->
-                    dep.Logger.Information("Start init client factory: {ClientFactory}", poolName)
-
-                | StartedDispose poolName ->
-                    dep.Logger.Information("Start disposing client factory: {ClientFactory}", poolName)
-
-                | ClientInitialized (poolName,number) ->
-                    pbTask
-                    |> ProgressBar.setDescription $"{Console.okColor poolName}{MultilineColumn.NewLine}initialized client: {Console.blueColor number}"
-                    |> ProgressBar.defaultTick
-
-                | ClientDisposed (poolName,number,error) ->
-                    pbTask
-                    |> ProgressBar.setDescription $"{Console.okColor poolName}{MultilineColumn.NewLine}disposed client: {Console.blueColor number}"
-                    |> ProgressBar.defaultTick
-
-                    error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
-
-                | InitFinished
-                | InitFailed -> ()
-            )
-            |> ignore
-        )
-
-    match dep.ApplicationType with
-    | ApplicationType.Console ->
-        let pbConfig = { Description = pool.PoolName; Ticks = pool.ClientCount |> float }
-        ProgressBar.create pbHandler [pbConfig]
-
-    | _ -> Task.FromResult()
+        | InitFinished
+        | InitFailed -> ()
+    )
+    |> ignore
 
 let printContextInfo (dep: IGlobalDependency) =
     dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")

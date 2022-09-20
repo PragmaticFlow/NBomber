@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.Globalization
 
 open FsToolkit.ErrorHandling
 

@@ -9,7 +9,7 @@ let escapeMarkup (text: string) =
     Markup.Escape(text)
 
 let render (renderable: IRenderable) =
-    AnsiConsole.Render(renderable)
+    AnsiConsole.Write(renderable)
 
 let okColor (text: 'T) = $"[lime]{text}[/]"
 let okEscColor: (obj -> string) = string >> escapeMarkup >> okColor
