@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>3.1.0</Version>
+        <Version>3.2.0</Version>
         <Copyright>NBomber@2022</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -15,13 +15,7 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>- cosmetic changes for console progress bar 
-- changed default step timeout from 1 sec to 5 sec
-- refactored scheduling scenarios to use one single timer
-- added functionality to stop test execution when too many fails
-- fixed minor console bug with rendering progress bar for warm up 
-- when it jumped before starting bombing
-- fixed #480, added C# API Step.Create overload</PackageReleaseNotes>
+        <PackageReleaseNotes>- added live status update for console</PackageReleaseNotes>        
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />

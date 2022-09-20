@@ -8,6 +8,7 @@ open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
 open Spectre.Console
 
+open NBomber.Contracts
 open NBomber.Extensions.Data
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
@@ -28,32 +29,35 @@ let displayStatus (msg: string) (runAction: StatusContext -> Task<'T>) =
     status.StartAsync(msg, runAction)
 
 let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext, pool: ClientPool) =
-    pool.EventStream
-    |> Observable.takeWhile(function
-        | InitFinished -> false
-        | InitFailed   -> false
-        | _            -> true
-    )
-    |> Observable.subscribe(function
-        | StartedInit (poolName, clientCount) ->
-            dep.Logger.Information("Start init client factory: {0}, client count: {1}", poolName, clientCount)
 
-        | StartedDispose poolName ->
-            dep.Logger.Information("Start disposing client factory: {0}", poolName)
+    if dep.ApplicationType = ApplicationType.Console then
 
-        | ClientInitialized (poolName,number) ->
-            consoleStatus.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
-            consoleStatus.Refresh()
+        pool.EventStream
+        |> Observable.takeWhile(function
+            | InitFinished -> false
+            | InitFailed   -> false
+            | _            -> true
+        )
+        |> Observable.subscribe(function
+            | StartedInit (poolName, clientCount) ->
+                dep.Logger.Information("Start init client factory: {0}, client count: {1}", poolName, clientCount)
 
-        | ClientDisposed (poolName,number,error) ->
-            consoleStatus.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
-            consoleStatus.Refresh()
-            error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
+            | StartedDispose poolName ->
+                dep.Logger.Information("Start disposing client factory: {0}", poolName)
 
-        | InitFinished
-        | InitFailed -> ()
-    )
-    |> ignore
+            | ClientInitialized (poolName,number) ->
+                consoleStatus.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
+                consoleStatus.Refresh()
+
+            | ClientDisposed (poolName,number,error) ->
+                consoleStatus.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
+                consoleStatus.Refresh()
+                error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
+
+            | InitFinished
+            | InitFailed -> ()
+        )
+        |> ignore
 
 let printContextInfo (dep: IGlobalDependency) =
     dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
@@ -113,41 +117,47 @@ module LiveStatusTable =
                     |> ignore
     }
 
-    let display (cancelToken: CancellationToken) (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
-        let stopWatch = Stopwatch()
-        let mutable refreshTableCounter = 0
+    let display (appType: ApplicationType)
+                (cancelToken: CancellationToken)
+                (isWarmUp: bool)
+                (scnSchedulers: ScenarioScheduler list) =
 
-        let maxDuration =
-            if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
-            else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
+        if appType = ApplicationType.Console then
 
-        let table = buildTable ()
+            let stopWatch = Stopwatch()
+            let mutable refreshTableCounter = 0
 
-        let liveTable = AnsiConsole.Live(table)
-        liveTable.AutoClear <- false
-        liveTable.Overflow <- VerticalOverflow.Ellipsis
-        liveTable.Cropping <- VerticalOverflowCropping.Bottom
+            let maxDuration =
+                if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
+                else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
 
-        stopWatch.Start()
+            let table = buildTable ()
 
-        liveTable.StartAsync(fun ctx -> backgroundTask {
-            while not cancelToken.IsCancellationRequested do
-                try
-                    let currentTime = stopWatch.Elapsed
-                    if currentTime < maxDuration && refreshTableCounter = 0 then
+            let liveTable = AnsiConsole.Live(table)
+            liveTable.AutoClear <- false
+            liveTable.Overflow <- VerticalOverflow.Ellipsis
+            liveTable.Cropping <- VerticalOverflowCropping.Bottom
 
-                        do! renderTable table scnSchedulers
+            stopWatch.Start()
 
-                    table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
-                    ctx.Refresh()
-                    do! Task.Delay(1_000, cancelToken)
+            liveTable.StartAsync(fun ctx -> backgroundTask {
+                while not cancelToken.IsCancellationRequested do
+                    try
+                        let currentTime = stopWatch.Elapsed
+                        if currentTime < maxDuration && refreshTableCounter = 0 then
 
-                    refreshTableCounter <- refreshTableCounter + 1
-                    if refreshTableCounter = 5 then refreshTableCounter <- 0
-                with
-                | _ -> ()
+                            do! renderTable table scnSchedulers
 
-            table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
-            ctx.Refresh()
-        })
-        |> ignore
+                        table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                        ctx.Refresh()
+                        do! Task.Delay(1_000, cancelToken)
+
+                        refreshTableCounter <- refreshTableCounter + 1
+                        if refreshTableCounter = 5 then refreshTableCounter <- 0
+                    with
+                    | _ -> ()
+
+                table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                ctx.Refresh()
+            })
+            |> ignore
