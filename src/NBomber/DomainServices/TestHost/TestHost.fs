@@ -111,7 +111,7 @@ type internal TestHost(dep: IGlobalDependency,
             dep.ReportingSinks |> ReportingSinks.start _log
 
         use cancelToken = new CancellationTokenSource()
-        schedulers |> TestHostConsole.displayRealtimeStatusTable cancelToken.Token isWarmUp
+        schedulers |> TestHostConsole.LiveStatusTable.display cancelToken.Token isWarmUp
 
         if reportingManager.IsSome then reportingManager.Value.Start()
 

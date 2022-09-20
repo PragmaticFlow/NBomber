@@ -27,80 +27,6 @@ let displayStatus (msg: string) (runAction: StatusContext -> Task<'T>) =
     let status = AnsiConsole.Status()
     status.StartAsync(msg, runAction)
 
-let displayRealtimeStatusTable (cancelToken: CancellationToken) (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
-    let stopWatch = Stopwatch()
-    let mutable refreshTableCounter = 0
-
-    let maxDuration =
-        if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
-        else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
-
-    let table = Table()
-    table.Border <- TableBorder.Square
-
-    TableColumn("scenario") |> table.AddColumn |> ignore
-    TableColumn("step") |> table.AddColumn |> ignore
-    TableColumn("load simulation") |> table.AddColumn |> ignore
-    TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
-    TableColumn("data transfer stats (bytes)") |> table.AddColumn |> ignore
-
-    let liveTable = AnsiConsole.Live(table)
-    liveTable.AutoClear <- false
-    liveTable.Overflow <- VerticalOverflow.Ellipsis
-    liveTable.Cropping <- VerticalOverflowCropping.Bottom
-
-    stopWatch.Start()
-
-    liveTable.StartAsync(fun ctx -> backgroundTask {
-        while not cancelToken.IsCancellationRequested do
-            try
-                let currentTime = stopWatch.Elapsed
-                if currentTime < maxDuration && refreshTableCounter = 0 then
-
-                    let! stats =
-                        scnSchedulers
-                        |> List.map(fun x -> x.GetCurrentStats() |> Task.map ScenarioStats.round)
-                        |> Task.WhenAll
-
-                    let mutable rowIndex = 0
-                    let updateOperation = table.Rows.Count > 0
-
-                    for scnStats in stats do
-                        for stepStats in scnStats.StepStats do
-                            let ok = stepStats.Ok
-                            let req = ok.Request
-                            let lt = ok.Latency
-                            let data = ok.DataTransfer
-
-                            if updateOperation then
-                                table.UpdateCell(rowIndex, 2, $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}") |> ignore
-                                table.UpdateCell(rowIndex, 3, $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}") |> ignore
-                                table.UpdateCell(rowIndex, 4, $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
-                                rowIndex <- rowIndex + 1
-                            else
-                                table.AddRow(
-                                    scnStats.ScenarioName,
-                                    stepStats.StepName,
-                                    $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
-                                    $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
-                                    $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
-                                |> ignore
-
-                table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
-                ctx.Refresh()
-
-                do! Task.Delay(1_000, cancelToken)
-
-                refreshTableCounter <- refreshTableCounter + 1
-                if refreshTableCounter = 5 then refreshTableCounter <- 0
-            with
-            | _ -> ()
-
-        table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
-        ctx.Refresh()
-    })
-    |> ignore
-
 let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext, pool: ClientPool) =
     pool.EventStream
     |> Observable.takeWhile(function
@@ -143,3 +69,85 @@ let printContextInfo (dep: IGlobalDependency) =
     else
         dep.ReportingSinks
         |> List.iter(fun sink -> dep.Logger.Information("Reporting sink loaded: {SinkName}", sink.SinkName))
+
+module LiveStatusTable =
+
+    let private buildTable () =
+        let table = Table()
+        table.Border <- TableBorder.Square
+
+        TableColumn("scenario") |> table.AddColumn |> ignore
+        TableColumn("step") |> table.AddColumn |> ignore
+        TableColumn("load simulation") |> table.AddColumn |> ignore
+        TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
+        TableColumn("data transfer stats (bytes)") |> table.AddColumn
+
+    let private renderTable (table: Table) (scnSchedulers: ScenarioScheduler list) = backgroundTask {
+        let! stats =
+            scnSchedulers
+            |> List.map(fun x -> x.GetCurrentStats() |> Task.map ScenarioStats.round)
+            |> Task.WhenAll
+
+        let mutable rowIndex = 0
+        let updateOperation = table.Rows.Count > 0
+
+        for scnStats in stats do
+            for stepStats in scnStats.StepStats do
+                let ok = stepStats.Ok
+                let req = ok.Request
+                let lt = ok.Latency
+                let data = ok.DataTransfer
+
+                if updateOperation then
+                    table.UpdateCell(rowIndex, 2, $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}") |> ignore
+                    table.UpdateCell(rowIndex, 3, $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}") |> ignore
+                    table.UpdateCell(rowIndex, 4, $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
+                    rowIndex <- rowIndex + 1
+                else
+                    table.AddRow(
+                        scnStats.ScenarioName,
+                        stepStats.StepName,
+                        $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
+                        $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
+                        $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
+                    |> ignore
+    }
+
+    let display (cancelToken: CancellationToken) (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
+        let stopWatch = Stopwatch()
+        let mutable refreshTableCounter = 0
+
+        let maxDuration =
+            if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
+            else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
+
+        let table = buildTable ()
+
+        let liveTable = AnsiConsole.Live(table)
+        liveTable.AutoClear <- false
+        liveTable.Overflow <- VerticalOverflow.Ellipsis
+        liveTable.Cropping <- VerticalOverflowCropping.Bottom
+
+        stopWatch.Start()
+
+        liveTable.StartAsync(fun ctx -> backgroundTask {
+            while not cancelToken.IsCancellationRequested do
+                try
+                    let currentTime = stopWatch.Elapsed
+                    if currentTime < maxDuration && refreshTableCounter = 0 then
+
+                        do! renderTable table scnSchedulers
+
+                    table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                    ctx.Refresh()
+                    do! Task.Delay(1_000, cancelToken)
+
+                    refreshTableCounter <- refreshTableCounter + 1
+                    if refreshTableCounter = 5 then refreshTableCounter <- 0
+                with
+                | _ -> ()
+
+            table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+            ctx.Refresh()
+        })
+        |> ignore
