@@ -8,6 +8,7 @@ open System.Runtime.InteropServices
 open Microsoft.FSharp.Collections
 
 open Serilog
+open Spectre.Console
 open FsToolkit.ErrorHandling
 
 open NBomber
@@ -43,7 +44,6 @@ type internal TestHost(dep: IGlobalDependency,
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _sessionArgs = SessionArgs.empty
     let mutable _currentOperation = OperationType.None
-    let mutable _globalCancelToken = new CancellationTokenSource()
     let _defaultNodeInfo = NodeInfo.init None
 
     let getCurrentNodeInfo () =
@@ -92,85 +92,59 @@ type internal TestHost(dep: IGlobalDependency,
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())
 
-    let initScenarios (sessionArgs: SessionArgs) (cancelToken: CancellationToken) = taskResult {
-
-        let targetScenarios = regScenarios |> TestHostScenario.getTargetScenarios sessionArgs
+    let initScenarios (consoleStatus: StatusContext) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
 
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
-        let defaultScnContext = Scenario.ScenarioContext.create baseContext
 
         do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
         do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
 
-        return! TestHostScenario.initScenarios(dep, baseContext, defaultScnContext, sessionArgs, targetScenarios)
+        return! TestHostScenario.initScenarios(dep, consoleStatus, baseContext, sessionArgs, regScenarios)
     }
 
-    let startWarmUp (schedulers: ScenarioScheduler list) = backgroundTask {
-        let isWarmUp = true
-        TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
+    let startScenarios (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager option) = backgroundTask {
 
-        let schedulersArray = schedulers |> List.toArray
-        use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
-        schedulerTimer.Elapsed.Add(fun _ ->
-            schedulersArray
-            |> Array.Parallel.iter(fun x ->
-                x.ExecScheduler()
-                x.UpdateProgress()
-            )
-        )
+        let isWarmUp = reportingManager.IsNone
 
-        schedulerTimer.Start()
-        do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
-        schedulerTimer.Stop()
+        if not isWarmUp then
+            dep.WorkerPlugins |> WorkerPlugins.start _log
+            dep.ReportingSinks |> ReportingSinks.start _log
 
-        // wait on warmup progress bar to finish rendering
-        do! Task.Delay Constants.WarmUpFinishPause
-    }
+        use cancelToken = new CancellationTokenSource()
+        schedulers |> TestHostConsole.LiveStatusTable.display cancelToken.Token isWarmUp
 
-    let startBombing (schedulers: ScenarioScheduler list)
-                     (reportingManager: IReportingManager) = backgroundTask {
-
-        let isWarmUp = false
-        TestHostConsole.displayBombingProgress(dep.ApplicationType, schedulers, isWarmUp)
-
-        dep.WorkerPlugins |> WorkerPlugins.start _log
-        dep.ReportingSinks |> ReportingSinks.start _log
-
-        reportingManager.Start()
+        if reportingManager.IsSome then reportingManager.Value.Start()
 
         // waiting on all scenarios to finish
         let schedulersArray = schedulers |> List.toArray
         use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
-        schedulerTimer.Elapsed.Add(fun _ ->
-            schedulersArray
-            |> Array.Parallel.iter(fun x ->
-                x.ExecScheduler()
-                x.UpdateProgress()
-            )
-        )
+        schedulerTimer.Elapsed.Add(fun _ -> schedulersArray |> Array.Parallel.iter(fun x -> x.ExecScheduler()))
 
         schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
+        cancelToken.Cancel()
         schedulerTimer.Stop()
 
-        // wait on final metrics and reporting tick
-        do! Task.Delay Constants.ReportingTimerCompleteMs
+        if not isWarmUp then
+            // wait on final metrics and reporting tick
+            do! Task.Delay Constants.ReportingTimerCompleteMs
 
-        // waiting (in case of cluster) on all raw stats
-        do! reportingManager.Stop()
+            // waiting (in case of cluster) on all raw stats
+            do! reportingManager.Value.Stop()
 
-        do! dep.WorkerPlugins |> WorkerPlugins.stop _log
-        do! dep.ReportingSinks |> ReportingSinks.stop _log
+            do! dep.WorkerPlugins |> WorkerPlugins.stop _log
+            do! dep.ReportingSinks |> ReportingSinks.stop _log
     }
 
     let cleanScenarios (sessionArgs: SessionArgs,
+                        consoleStatus: StatusContext,
                         cancelToken: CancellationToken,
                         scenarios: Scenario list) =
 
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
-        TestHostScenario.cleanScenarios dep baseContext defaultScnContext enabledScenarios
+        TestHostScenario.cleanScenarios dep consoleStatus baseContext defaultScnContext enabledScenarios
 
     member _.SessionArgs = _sessionArgs
     member _.CurrentOperation = _currentOperation
@@ -179,28 +153,30 @@ type internal TestHost(dep: IGlobalDependency,
     member _.TargetScenarios = _targetScenarios
     member _.CurrentSchedulers = _currentSchedulers
 
-    member _.StartInit(sessionArgs: SessionArgs) = backgroundTask {
+    member _.StartInit(sessionArgs: SessionArgs) =
         _stopped <- false
         _currentOperation <- OperationType.Init
 
         TestHostConsole.printContextInfo dep
         _log.Information "Starting init..."
-        _globalCancelToken.Dispose()
-        _globalCancelToken <- new CancellationTokenSource()
 
-        match! initScenarios sessionArgs _globalCancelToken.Token with
-        | Ok initializedScenarios ->
-            _log.Information "Init finished"
-            _targetScenarios <- initializedScenarios
-            _sessionArgs <- sessionArgs
-            _currentOperation <- OperationType.None
-            return Ok _targetScenarios
+        TestHostConsole.displayStatus "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
+            use cancelToken = new CancellationTokenSource()
+            match! initScenarios consoleStatus cancelToken.Token sessionArgs with
+            | Ok initializedScenarios ->
+                _log.Information "Init finished"
+                cancelToken.Cancel()
+                _targetScenarios <- initializedScenarios
+                _sessionArgs <- sessionArgs
+                _currentOperation <- OperationType.None
+                return Ok _targetScenarios
 
-        | Error appError ->
-            _log.Error "Init failed"
-            _currentOperation <- OperationType.Stop
-            return AppError.createResult appError
-    }
+            | Error appError ->
+                _log.Error "Init failed"
+                cancelToken.Cancel()
+                _currentOperation <- OperationType.Stop
+                return AppError.createResult appError
+        })
 
     member _.StartWarmUp(scenarios: Scenario list, ?getScenarioClusterCount: ScenarioName -> int) = backgroundTask {
         _stopped <- false
@@ -220,7 +196,7 @@ type internal TestHost(dep: IGlobalDependency,
 
             _currentSchedulers <- warmUpSchedulers
 
-            do! startWarmUp warmUpSchedulers
+            do! startScenarios warmUpSchedulers None
             stopSchedulers warmUpSchedulers
 
         _currentOperation <- OperationType.None
@@ -232,13 +208,13 @@ type internal TestHost(dep: IGlobalDependency,
         _currentSchedulers <- schedulers
 
         _log.Information "Starting bombing..."
-        do! startBombing schedulers reportingManager
+        do! startScenarios schedulers (Some reportingManager)
 
         do! this.StopScenarios()
         _currentOperation <- OperationType.Complete
     }
 
-    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) = backgroundTask {
+    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) =
         if _currentOperation <> OperationType.Stop && not _stopped then
             _currentOperation <- OperationType.Stop
 
@@ -247,12 +223,17 @@ type internal TestHost(dep: IGlobalDependency,
             else
                 _log.Information "Stopping scenarios..."
 
-            stopSchedulers _currentSchedulers
-            do! cleanScenarios(_sessionArgs, _globalCancelToken.Token, _targetScenarios)
+            TestHostConsole.displayStatus "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
+                use cancelToken = new CancellationTokenSource()
+                stopSchedulers _currentSchedulers
 
-            _stopped <- true
-            _currentOperation <- OperationType.None
-    }
+                do! cleanScenarios(_sessionArgs, consoleStatus, cancelToken.Token, _targetScenarios)
+
+                _stopped <- true
+                _currentOperation <- OperationType.None
+            })
+        else
+            Task.FromResult()
 
     member _.CreateScenarioSchedulers(scenarios: Scenario list,
                                       operation: ScenarioOperation,

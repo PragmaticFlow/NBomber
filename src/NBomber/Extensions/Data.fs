@@ -46,7 +46,7 @@ module Converter =
     let inline fromBytesToKb (bytes) = Math.Round(float bytes / 1024.0, 3)
 
     [<CompiledName("FromBytesToMb")>]
-    let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 4)
+    let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 1)
 
     [<CompiledName("Round")>]
     let inline round (digits: int) (value: float) = Math.Round(value, digits)
