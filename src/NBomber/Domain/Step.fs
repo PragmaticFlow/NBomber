@@ -127,7 +127,7 @@ module RunningStep =
 
         | _ -> Unchecked.defaultof<_>
 
-    let updateContext (step: RunningStep) (data: Dictionary<string,obj>) =
+    let updateContext (step: RunningStep) (data: Dictionary<string,obj>) (cancelToken: CancellationTokenSource) =
         let st = step.Value
         let context = step.Context
 
@@ -136,7 +136,7 @@ module RunningStep =
             | Some feed -> feed.GetNextItem(context.ScenarioInfo, data)
             | None      -> Unchecked.defaultof<_>
 
-        context.CancellationTokenSource <- new CancellationTokenSource()
+        context.CancellationTokenSource <- cancelToken
         context.InvocationNumber <- context.InvocationNumber + 1
         context.Data <- data
         context.FeedItem <- feedItem
@@ -214,7 +214,8 @@ module RunningStep =
                && not dep.ScenarioDep.ScenarioCancellationToken.IsCancellationRequested
                && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioDep.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
 
-                let step = updateContext steps[stepIndex] dep.Data
+                use cancelToken = new CancellationTokenSource()
+                let step = updateContext steps[stepIndex] dep.Data cancelToken
                 let! response = execStep dep step
 
                 if response.IsError then
