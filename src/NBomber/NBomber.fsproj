@@ -15,7 +15,7 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>- added live status update for console</PackageReleaseNotes>        
+        <PackageReleaseNotes>- added live status update for console</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
@@ -83,8 +83,7 @@
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
-        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.0]" />
-        <PackageReference Include="Spectre.Console" Version="[0.45.0]" />
+        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
         <PackageReference Update="FSharp.Core" Version="6.0.5" />
     </ItemGroup>
