@@ -120,7 +120,7 @@ let mergeReportingStats (latestReportingStats: ScenarioStats) (reportingStats: S
             { x with Ok = okData; Fail = failData }
         )
 
-    { reportingStats with StepStats = mergedStepSteps } |> ScenarioStats.round
+    { reportingStats with StepStats = mergedStepSteps }
 
 let addReportingStats (state: State) (reportingStats: ScenarioStats) =
     state.AllReportingStats <- Map.add reportingStats.Duration reportingStats state.AllReportingStats

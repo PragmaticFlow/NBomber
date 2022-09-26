@@ -13,12 +13,8 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.StepStatsRawData
 
-let calcRPS (requestCount: int) (executionTime: TimeSpan) =
-    let totalSec =
-        if executionTime.TotalSeconds < 1.0 then 1.0
-        else executionTime.TotalSeconds
-
-    float requestCount / totalSec
+let roundDuration (duration: TimeSpan) =
+    TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
 
 module Histogram =
 
@@ -28,14 +24,20 @@ module Histogram =
 
 module RequestStats =
 
+    let calcRPS (executionTime: TimeSpan) (requestCount: int) =
+        let totalSec =
+            if executionTime.TotalSeconds < 1.0 then 1.0
+            else executionTime.TotalSeconds
+
+        float requestCount / totalSec
+
     let create (stats: RawStepStats) (executionTime: TimeSpan) =
         { Count = stats.RequestCount
-          RPS = calcRPS stats.RequestCount executionTime }
-
-    let round (stats: RequestStats) =
-        { stats with RPS = stats.RPS |> Converter.round 1 }
+          RPS = stats.RequestCount |> calcRPS(executionTime) |> Converter.round 1 }
 
 module LatencyStats =
+
+    let inline microSecToMs (x: 'T) = x |> float |> Converter.fromMicroSecToMs |> Converter.round(Constants.StatsRounding)
 
     let create (stats: RawStepStats) =
 
@@ -43,25 +45,15 @@ module LatencyStats =
             if stats.LatencyHistogram.TotalCount > 0 then ValueSome stats.LatencyHistogram
             else ValueNone
 
-        { MinMs  = if latencies.IsSome then stats.MinMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
-          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> Converter.fromMicroSecToMs else 0.0
-          MaxMs  = if latencies.IsSome then stats.MaxMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
-          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> float |> Converter.fromMicroSecToMs else 0.0
-          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> float |> Converter.fromMicroSecToMs else 0.0
-          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> float |> Converter.fromMicroSecToMs else 0.0
-          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> float |> Converter.fromMicroSecToMs else 0.0
-          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> Converter.fromMicroSecToMs else 0.0
+        { MinMs  = if latencies.IsSome then stats.MinMicroSec |> microSecToMs else 0.0
+          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> microSecToMs else 0.0
+          MaxMs  = if latencies.IsSome then stats.MaxMicroSec |> microSecToMs else 0.0
+          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> microSecToMs else 0.0
+          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> microSecToMs else 0.0
+          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> microSecToMs else 0.0
+          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> microSecToMs else 0.0
+          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> microSecToMs else 0.0
           LatencyCount = { LessOrEq800 = stats.LessOrEq800; More800Less1200 = stats.More800Less1200; MoreOrEq1200 = stats.MoreOrEq1200 } }
-
-    let round (stats: LatencyStats) =
-        { stats with MinMs = stats.MinMs |> Converter.round Constants.StatsRounding
-                     MeanMs = stats.MeanMs |> Converter.round Constants.StatsRounding
-                     MaxMs = stats.MaxMs |> Converter.round Constants.StatsRounding
-                     Percent50 = stats.Percent50 |> Converter.round Constants.StatsRounding
-                     Percent75 = stats.Percent75 |> Converter.round Constants.StatsRounding
-                     Percent95 = stats.Percent95 |> Converter.round Constants.StatsRounding
-                     Percent99 = stats.Percent99 |> Converter.round Constants.StatsRounding
-                     StdDev = stats.StdDev |> Converter.round Constants.StatsRounding }
 
 module DataTransferStats =
 
@@ -78,11 +70,8 @@ module DataTransferStats =
           Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> int else 0
           Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> int else 0
           Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> int else 0
-          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev else 0.0
+          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
           AllBytes  = stats.AllBytes }
-
-    let round (stats: DataTransferStats) =
-        { stats with StdDev = stats.StdDev |> Converter.round Constants.StatsRounding }
 
 module StatusCodeStats =
 
@@ -138,15 +127,6 @@ module StepStats =
                        ClientFactoryName = clientFactoryName
                        ClientFactoryClientCount = clientFactoryClientCount
                        FeedName = feedName } }
-
-    let round (stats: StepStats) =
-        { stats with Ok = { stats.Ok with Request = stats.Ok.Request |> RequestStats.round
-                                          Latency = stats.Ok.Latency |> LatencyStats.round
-                                          DataTransfer = stats.Ok.DataTransfer |> DataTransferStats.round }
-
-                     Fail = { stats.Fail with Request = stats.Fail.Request |> RequestStats.round
-                                              Latency = stats.Fail.Latency |> LatencyStats.round
-                                              DataTransfer = stats.Fail.DataTransfer |> DataTransferStats.round } }
 
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
@@ -226,11 +206,7 @@ module ScenarioStats =
           LoadSimulationStats = simulationStats
           StatusCodes = statusCodes
           CurrentOperation = currentOperation
-          Duration = %duration }
-
-    let round (stats: ScenarioStats) =
-        { stats with StepStats = stats.StepStats |> Array.map(StepStats.round)
-                     Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }
+          Duration = duration |> UMX.untag |> roundDuration }
 
     let failStepStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
@@ -241,7 +217,8 @@ module NodeStats =
         if Array.isEmpty scnStats then
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
-            let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration
+            let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration |> roundDuration
+
             { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)
               OkCount = scnStats |> Array.sumBy(fun x -> x.OkCount)
               FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)
@@ -252,7 +229,3 @@ module NodeStats =
               TestInfo = testInfo
               ReportFiles = Array.empty
               Duration = maxDuration }
-
-    let round (stats: NodeStats) =
-        { stats with ScenarioStats = stats.ScenarioStats |> Array.map(ScenarioStats.round)
-                     Duration = TimeSpan(stats.Duration.Days, stats.Duration.Hours, stats.Duration.Minutes, stats.Duration.Seconds) }

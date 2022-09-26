@@ -151,7 +151,7 @@ module LiveStatusTable =
                         do! Task.Delay(1_000, cancelToken)
 
                         refreshTableCounter <- refreshTableCounter + 1
-                        if refreshTableCounter = 5 then refreshTableCounter <- 0
+                        if refreshTableCounter = NBomber.Constants.ConsoleRefreshTableCounter then refreshTableCounter <- 0
                     with
                     | _ -> ()
 

@@ -51,6 +51,8 @@ let SchedulerTimerDriftMs = 10.0
 let SchedulerTickIntervalMs = 1_000.0
 [<Literal>]
 let ReportingTimerCompleteMs = 3_000
+[<Literal>]
+let ConsoleRefreshTableCounter = 10
 
 /// Default status codes
 

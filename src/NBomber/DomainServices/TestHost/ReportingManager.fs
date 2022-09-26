@@ -39,9 +39,7 @@ let getFinalStats (dep: IGlobalDependency)
         |> List.map(fun x -> x.GetFinalStats())
         |> Task.WhenAll
 
-    let nodeStats =
-        NodeStats.create testInfo nodeInfo scenarioStats
-        |> NodeStats.round
+    let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats
 
     let! pluginStats = WorkerPlugins.getStats dep.Logger dep.WorkerPlugins nodeStats
     return { nodeStats with PluginStats = pluginStats }
