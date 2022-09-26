@@ -37,7 +37,7 @@ let ``AllRealtimeStats should contain cached realtime stats`` () =
     let tcs = TaskCompletionSource<ScenarioStats>()
     let loadStats = { SimulationName = ""; Value = 10 }
     let duration = seconds 10
-    statsActor.Publish(BuildRealtimeStats(tcs, loadStats, duration))
+    statsActor.Publish(BuildReportingStats(tcs, loadStats, duration))
     let realtimeStats = tcs.Task.Result
 
     test <@ statsActor.AllRealtimeStats[duration].RequestCount = 10 @>
@@ -58,7 +58,7 @@ let ``TempBuffer should work correctly`` () =
     let tcs = TaskCompletionSource<ScenarioStats>()
     let loadStats = { SimulationName = ""; Value = 10 }
     let duration = seconds 10
-    statsActor.Publish(BuildRealtimeStats(tcs, loadStats, duration))
+    statsActor.Publish(BuildReportingStats(tcs, loadStats, duration))
     let statsBufferEnabled = tcs.Task.Result
 
     statsActor.Publish FlushTempBuffer
@@ -66,7 +66,7 @@ let ``TempBuffer should work correctly`` () =
     let tcs = TaskCompletionSource<ScenarioStats>()
     let loadStats = { SimulationName = ""; Value = 10 }
     let duration = seconds 10
-    statsActor.Publish(BuildRealtimeStats(tcs, loadStats, duration))
+    statsActor.Publish(BuildReportingStats(tcs, loadStats, duration))
     let statsBufferFlushed = tcs.Task.Result
 
     test <@ statsBufferEnabled.RequestCount = 0 @>

@@ -94,22 +94,18 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     let buildRealtimeStats (duration: TimeSpan) =
         let simulationStats = getCurrentSimulationStats()
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, simulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(BuildReportingStats(reply, simulationStats, duration))
         reply.Task
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        _scnDep.ScenarioStatsActor.Publish(BuildRealtimeStats(reply, _cachedSimulationStats, duration))
+        _scnDep.ScenarioStatsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))
         _scnDep.ScenarioStatsActor.Publish FlushTempBuffer
         reply.Task
 
-    let getStats (isFinal: bool) =
+    let getFinalStats () =
         let simulationStats = getCurrentSimulationStats()
-
-        let duration =
-            if isFinal then Scenario.getExecutedDuration _scenario
-            else _scnDep.ScenarioTimer.Elapsed
-
+        let duration = Scenario.getExecutedDuration _scenario
         let reply = TaskCompletionSource<ScenarioStats>()
         _scnDep.ScenarioStatsActor.Publish(GetFinalStats(reply, simulationStats, duration))
         reply.Task
@@ -168,6 +164,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.Working = _isWorking
     member _.Scenario = _scenario
     member _.AllRealtimeStats = _scnDep.ScenarioStatsActor.AllRealtimeStats
+    member _.MergedReportingStats = _scnDep.ScenarioStatsActor.MergedReportingStats
 
     member _.Start() = start()
     member _.Stop() = stop()
@@ -177,8 +174,7 @@ type ScenarioScheduler(dep: ActorDep, scenarioClusterCount: int) =
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
     member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
     member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
-    member _.GetFinalStats() = getStats true
-    member _.GetCurrentStats() = getStats false
+    member _.GetFinalStats() = getFinalStats()
 
     interface IDisposable with
         member _.Dispose() =

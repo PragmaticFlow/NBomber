@@ -153,6 +153,37 @@ module StepStats =
 
 module ScenarioStats =
 
+    let empty (scenario: Scenario) =
+
+        let simulation = scenario.LoadTimeLine.Head.LoadSimulation
+        let simulationStats = LoadTimeLine.createSimulationStats(simulation, 0, 0)
+
+        let stepStats =
+            scenario.Steps
+            |> List.mapi(fun i st ->
+                if st.DoNotTrack then None
+                else
+                    let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
+                    let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
+                    let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
+                    let stepData = StepStatsRawData.createEmpty()
+                    Some (StepStats.create st.StepName stepData st.Timeout clName clCount fdName (TimeSpan.FromSeconds 5))
+            )
+            |> List.choose id
+            |> List.toArray
+
+        { ScenarioName = scenario.ScenarioName
+          RequestCount = 0
+          OkCount = 0
+          FailCount = 0
+          AllBytes = 0
+          StepStats = stepStats
+          LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
+          LoadSimulationStats = simulationStats
+          StatusCodes = Array.empty
+          CurrentOperation = OperationType.None
+          Duration = TimeSpan.Zero }
+
     let create (scenario: Scenario)
                (allStepsData: StepStatsRawData[])
                (simulationStats: LoadSimulationStats)
@@ -176,7 +207,8 @@ module ScenarioStats =
                     let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
                     let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
                     let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
-                    Some(StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount fdName reportingInterval))
+                    Some (StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount fdName reportingInterval)
+            )
             |> List.choose id
             |> List.toArray
 

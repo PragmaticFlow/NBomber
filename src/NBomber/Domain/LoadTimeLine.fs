@@ -2,7 +2,6 @@
 module internal NBomber.Domain.LoadTimeLine
 
 open System
-open System.Globalization
 
 open FsToolkit.ErrorHandling
 

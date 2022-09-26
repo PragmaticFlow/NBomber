@@ -9,13 +9,13 @@ open FsToolkit.ErrorHandling
 open Spectre.Console
 
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
+open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Domain.ClientPool
-open NBomber.Extensions.Internal
 open NBomber.Infra
 open NBomber.Infra.Dependency
 
@@ -86,16 +86,11 @@ module LiveStatusTable =
         TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
         TableColumn("data transfer stats (bytes)") |> table.AddColumn
 
-    let private renderTable (table: Table) (scnSchedulers: ScenarioScheduler list) = backgroundTask {
-        let! stats =
-            scnSchedulers
-            |> List.map(fun x -> x.GetCurrentStats() |> Task.map ScenarioStats.round)
-            |> Task.WhenAll
-
+    let private renderTable (table: Table) (scenariosStats: ScenarioStats list) =
         let mutable rowIndex = 0
         let updateOperation = table.Rows.Count > 0
 
-        for scnStats in stats do
+        for scnStats in scenariosStats do
             for stepStats in scnStats.StepStats do
                 let ok = stepStats.Ok
                 let req = ok.Request
@@ -115,7 +110,6 @@ module LiveStatusTable =
                         $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
                         $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
                     |> ignore
-    }
 
     let display (appType: ApplicationType)
                 (cancelToken: CancellationToken)
@@ -146,7 +140,11 @@ module LiveStatusTable =
                         let currentTime = stopWatch.Elapsed
                         if currentTime < maxDuration && refreshTableCounter = 0 then
 
-                            do! renderTable table scnSchedulers
+                            let scenariosStats =
+                                scnSchedulers
+                                |> List.map(fun x -> x.MergedReportingStats)
+
+                            renderTable table scenariosStats
 
                         table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
                         ctx.Refresh()
