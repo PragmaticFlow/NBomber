@@ -88,7 +88,7 @@ module LiveStatusTable =
         TableColumn("step") |> table.AddColumn |> ignore
         TableColumn("load simulation") |> table.AddColumn |> ignore
         TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
-        TableColumn("data transfer stats (bytes)") |> table.AddColumn
+        TableColumn("data transfer stats (KB)") |> table.AddColumn
 
     let private renderTable (table: Table) (scenariosStats: ScenarioStats list) =
         let mutable rowIndex = 0
@@ -104,7 +104,7 @@ module LiveStatusTable =
                 if updateOperation then
                     table.UpdateCell(rowIndex, 2, $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}") |> ignore
                     table.UpdateCell(rowIndex, 3, $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}") |> ignore
-                    table.UpdateCell(rowIndex, 4, $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
+                    table.UpdateCell(rowIndex, 4, $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
                     rowIndex <- rowIndex + 1
                 else
                     table.AddRow(
@@ -112,7 +112,7 @@ module LiveStatusTable =
                         stepStats.StepName,
                         $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
                         $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
-                        $"min: {Console.blueColor data.MinBytes}, max: {Console.blueColor data.MaxBytes}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
+                        $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
                     |> ignore
 
     let display (appType: ApplicationType)

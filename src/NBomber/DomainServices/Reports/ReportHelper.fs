@@ -43,7 +43,7 @@ module StepStats =
             $"min = {highlightTxt lt.MinMs}, mean = {highlightTxt lt.MeanMs}, max = {highlightTxt lt.MaxMs}, StdDev = {highlightTxt lt.StdDev}"
 
         let percentiles =
-            $"50%% = {highlightTxt lt.Percent50}, 75%% = {highlightTxt lt.Percent75}, 95%% = {highlightTxt lt.Percent95}, 99%% = {highlightTxt lt.Percent99}"
+            $"p50 = {highlightTxt lt.Percent50}, p75 = {highlightTxt lt.Percent75}, p95 = {highlightTxt lt.Percent95}, p99 = {highlightTxt lt.Percent99}"
 
         let dataTransfer =
             $"min = {printDataKb dt.MinBytes}, mean = {printDataKb dt.MeanBytes}, max = {printDataKb dt.MaxBytes}, all = {printAllData dt.AllBytes}"
