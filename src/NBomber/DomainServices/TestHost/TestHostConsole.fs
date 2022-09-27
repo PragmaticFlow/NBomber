@@ -24,13 +24,17 @@ let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     |> List.map(fun x -> x.ScenarioName)
     |> fun targets -> dep.Logger.Information("Target scenarios: {TargetScenarios}", String.concatWithComma targets)
 
-let displayStatus (msg: string) (runAction: StatusContext -> Task<'T>) =
-    let status = AnsiConsole.Status()
-    status.StartAsync(msg, runAction)
-
-let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext, pool: ClientPool) =
-
+let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusContext option -> Task<'T>) =
     if dep.ApplicationType = ApplicationType.Console then
+        let status = AnsiConsole.Status()
+        status.StartAsync(msg, fun ctx -> runAction (Some ctx))
+    else
+        dep.Logger.Information msg
+        runAction None
+
+let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext option, pool: ClientPool) =
+
+    if consoleStatus.IsSome then
 
         pool.EventStream
         |> Observable.takeWhile(function
@@ -46,12 +50,12 @@ let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusCont
                 dep.Logger.Information("Start disposing client factory: {0}", poolName)
 
             | ClientInitialized (poolName,number) ->
-                consoleStatus.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
-                consoleStatus.Refresh()
+                consoleStatus.Value.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
+                consoleStatus.Value.Refresh()
 
             | ClientDisposed (poolName,number,error) ->
-                consoleStatus.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
-                consoleStatus.Refresh()
+                consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
+                consoleStatus.Value.Refresh()
                 error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
 
             | InitFinished

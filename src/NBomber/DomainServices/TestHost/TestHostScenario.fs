@@ -17,7 +17,7 @@ let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) 
     |> Scenario.filterTargetScenarios (sessionArgs.GetTargetScenarios())
     |> Scenario.applySettings (sessionArgs.GetScenariosSettings()) (sessionArgs.GetDefaultStepTimeout())
 
-let initClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext) (context: IBaseContext) (pools: ClientPool list) = taskResult {
+let initClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext option) (context: IBaseContext) (pools: ClientPool list) = taskResult {
     try
         for pool in pools do
             TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
@@ -30,11 +30,14 @@ let initClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext) (con
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
+let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext option) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
     try
         for feed in feeds do
-            consoleStatus.Status <- $"Initializing data feed: {Console.okColor feed.FeedName}"
-            consoleStatus.Refresh()
+
+            if consoleStatus.IsSome then
+                consoleStatus.Value.Status <- $"Initializing data feed: {Console.okColor feed.FeedName}"
+                consoleStatus.Value.Refresh()
+
             do! feed.Init(context)
             dep.Logger.Information("Initialized data feed: {0}", feed.FeedName)
 
@@ -44,7 +47,7 @@ let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext) (conte
 }
 
 let initScenarios (dep: IGlobalDependency,
-                   consoleStatus: StatusContext,
+                   consoleStatus: StatusContext option,
                    baseContext: IBaseContext,
                    sessionArgs: SessionArgs,
                    regScenarios: Scenario list) = taskResult {
@@ -62,8 +65,11 @@ let initScenarios (dep: IGlobalDependency,
             match scn.Init with
             | Some initFunc ->
                 dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
-                consoleStatus.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
-                consoleStatus.Refresh()
+
+                if consoleStatus.IsSome then
+                    consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
+                    consoleStatus.Value.Refresh()
+
                 let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
                 do! initFunc scnContext
 
@@ -90,13 +96,13 @@ let initScenarios (dep: IGlobalDependency,
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let disposeClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext) (baseContext: IBaseContext) (pools: ClientPool list) =
+let disposeClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext option) (baseContext: IBaseContext) (pools: ClientPool list) =
     for pool in pools do
         TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
         pool.DisposePool(baseContext)
 
 let cleanScenarios (dep: IGlobalDependency)
-                   (consoleStatus: StatusContext)
+                   (consoleStatus: StatusContext option)
                    (baseContext: IBaseContext)
                    (defaultScnContext: IScenarioContext)
                    (scenarios: Scenario list) = backgroundTask {

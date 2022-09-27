@@ -92,7 +92,7 @@ type internal TestHost(dep: IGlobalDependency,
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())
 
-    let initScenarios (consoleStatus: StatusContext) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
+    let initScenarios (consoleStatus: StatusContext option) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
 
         let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
 
@@ -137,7 +137,7 @@ type internal TestHost(dep: IGlobalDependency,
     }
 
     let cleanScenarios (sessionArgs: SessionArgs,
-                        consoleStatus: StatusContext,
+                        consoleStatus: StatusContext option,
                         cancelToken: CancellationToken,
                         scenarios: Scenario list) =
 
@@ -160,7 +160,7 @@ type internal TestHost(dep: IGlobalDependency,
         TestHostConsole.printContextInfo dep
         _log.Information "Starting init..."
 
-        TestHostConsole.displayStatus "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
+        TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
             use cancelToken = new CancellationTokenSource()
             match! initScenarios consoleStatus cancelToken.Token sessionArgs with
             | Ok initializedScenarios ->
@@ -223,7 +223,7 @@ type internal TestHost(dep: IGlobalDependency,
             else
                 _log.Information "Stopping scenarios..."
 
-            TestHostConsole.displayStatus "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
+            TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 use cancelToken = new CancellationTokenSource()
                 stopSchedulers _currentSchedulers
 
