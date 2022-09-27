@@ -46,11 +46,11 @@ let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext option)
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let initScenarios (dep: IGlobalDependency,
-                   consoleStatus: StatusContext option,
-                   baseContext: IBaseContext,
-                   sessionArgs: SessionArgs,
-                   regScenarios: Scenario list) = taskResult {
+let initScenarios (dep: IGlobalDependency)
+                  (consoleStatus: StatusContext option)
+                  (baseContext: IBaseContext)
+                  (sessionArgs: SessionArgs)
+                  (regScenarios: Scenario list) = taskResult {
     try
         let targetScenarios = regScenarios |> getTargetScenarios sessionArgs
         let defaultScnContext = Scenario.ScenarioContext.create baseContext

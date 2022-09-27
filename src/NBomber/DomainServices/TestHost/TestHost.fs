@@ -94,12 +94,12 @@ type internal TestHost(dep: IGlobalDependency,
 
     let initScenarios (consoleStatus: StatusContext option) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
 
         do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
         do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
 
-        return! TestHostScenario.initScenarios(dep, consoleStatus, baseContext, sessionArgs, regScenarios)
+        return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
     }
 
     let startScenarios (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager option) = backgroundTask {
@@ -136,14 +136,15 @@ type internal TestHost(dep: IGlobalDependency,
             do! dep.ReportingSinks |> ReportingSinks.stop _log
     }
 
-    let cleanScenarios (sessionArgs: SessionArgs,
-                        consoleStatus: StatusContext option,
-                        cancelToken: CancellationToken,
-                        scenarios: Scenario list) =
+    let cleanScenarios (sessionArgs: SessionArgs)
+                       (consoleStatus: StatusContext option)
+                       (cancelToken: CancellationToken)
+                       (scenarios: Scenario list) =
 
-        let baseContext = NBomberContext.createBaseContext(sessionArgs.TestInfo, getCurrentNodeInfo, cancelToken, _log)
+        let baseContext       = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
         let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
+        let enabledScenarios  = scenarios |> List.filter(fun x -> x.IsEnabled)
+
         TestHostScenario.cleanScenarios dep consoleStatus baseContext defaultScnContext enabledScenarios
 
     member _.SessionArgs = _sessionArgs
@@ -227,7 +228,7 @@ type internal TestHost(dep: IGlobalDependency,
                 use cancelToken = new CancellationTokenSource()
                 stopSchedulers _currentSchedulers
 
-                do! cleanScenarios(_sessionArgs, consoleStatus, cancelToken.Token, _targetScenarios)
+                do! cleanScenarios _sessionArgs consoleStatus cancelToken.Token _targetScenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None
@@ -240,8 +241,14 @@ type internal TestHost(dep: IGlobalDependency,
                                       ?getScenarioClusterCount: ScenarioName -> int,
                                       ?createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor) =
 
-        let getScenarioClusterCount = getScenarioClusterCount |> Option.defaultValue Scenario.defaultClusterCount
-        let createStatsActor = createStatsActor |> Option.defaultValue ScenarioStatsActor.createDefault
+        let getScenarioClusterCount =
+            getScenarioClusterCount
+            |> Option.defaultValue Scenario.defaultClusterCount
+
+        let createStatsActor =
+            createStatsActor
+            |> Option.defaultValue ScenarioStatsActor.createDefault
+
         createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor getStepOrder execSteps
 
     member _.GetRealtimeStats(duration) =
