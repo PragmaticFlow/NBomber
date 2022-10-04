@@ -58,7 +58,6 @@ type Step =
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
          ?clientFactory: ClientFactory<'TClient>,
-         ?clientInterception: IClientInterceptionContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool,
@@ -68,13 +67,6 @@ type Step =
         | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof clientFactory))
         | None   -> ()
 
-        match clientInterception with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof clientInterception))
-        | None   -> ()
-
-        if clientFactory.IsNone && clientInterception.IsSome then
-            raise(ArgumentException $"The '{nameof clientInterception}' requires to have the '{nameof clientFactory}'. Please provide the '{nameof clientFactory}' as argument.")
-
         match feed with
         | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof feed))
         | None   -> ()
@@ -83,14 +75,8 @@ type Step =
             clientFactory
             |> Option.map(fun x -> x.GetUntyped())
 
-        let clInterception =
-            clientInterception
-            |> Option.map(Domain.Step.StepClientContext.toUntyped)
-
         { StepName = name
           ClientFactory = factory
-          ClientInterception = clInterception
-          ClientPool = None
           Execute = execute |> Domain.Step.StepContext.toUntypedExecute
           Feed = feed |> Option.map Domain.Feed.toUntypedFeed
           Timeout = timeout |> Option.defaultValue TimeSpan.Zero
@@ -104,12 +90,11 @@ type Step =
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
          ?clientFactory: ClientFactory<'TClient>,
-         ?clientInterception: IClientInterceptionContext<'TFeedItem> -> int,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool) =
 
-        Step.create(name, execute, ?clientFactory = clientFactory, ?clientInterception = clientInterception, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
+        Step.create(name, execute, ?clientFactory = clientFactory, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
 
     /// Creates pause step with specified duration in lazy mode.
     /// It's useful when you want to fetch value from some configuration.

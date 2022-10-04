@@ -16,7 +16,6 @@ open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
 open NBomber.Errors
-open NBomber.Domain.ClientPool
 open NBomber.Domain.DomainTypes
 
 module Validation =
@@ -29,6 +28,38 @@ module Validation =
         let duplicates = scenarios |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
+
+    let checkMultipleClientFactoryAssign (regScenarios: Contracts.Scenario list) =
+        let multipleAssignFactories =
+            regScenarios
+            |> Seq.map(fun scn ->
+                scn.Steps
+                |> Seq.map id
+                |> Seq.cast<Step>
+                |> Seq.choose(fun x -> x.ClientFactory)
+                |> Seq.distinct
+                |> Seq.map(fun x -> x.FactoryName)
+                |> Seq.toList
+            )
+            |> Seq.collect id
+            |> String.filterDuplicates
+            |> Seq.toList
+
+        if multipleAssignFactories.Length > 0 then AppError.createResult(MultipleClientFactoryAssign multipleAssignFactories)
+        else Ok regScenarios
+
+    let checkDuplicateClientFactories (regScenarios: Contracts.Scenario list) =
+        regScenarios
+        |> Seq.collect(fun x -> x.Steps)
+        |> Seq.cast<Step>
+        |> Seq.choose(fun x -> x.ClientFactory)
+        |> Seq.distinct
+        |> Seq.groupBy(fun x -> x.FactoryName)
+        |> Seq.choose(fun (name,factories) -> if Seq.length factories > 1 then Some name else None)
+        |> Seq.toList
+        |> function
+            | [] -> Ok regScenarios
+            | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName factoryName)
 
     let checkInitOnlyScenario (scenario: Contracts.Scenario) =
         if List.isEmpty scenario.Steps then
@@ -51,18 +82,6 @@ module Validation =
             | [] -> Ok scenario
             | stName::tail -> AppError.createResult(DuplicateStepNameButDiffImpl(scenario.ScenarioName, stName))
 
-    let checkDuplicateClientFactories (scenario: Contracts.Scenario) =
-        scenario.Steps
-        |> Seq.cast<Step>
-        |> Seq.choose(fun x -> x.ClientFactory)
-        |> Seq.distinct // checking on different instances with the same name
-        |> Seq.groupBy(fun x -> x.FactoryName)
-        |> Seq.choose(fun (name,factories) -> if Seq.length(factories) > 1 then Some name else None)
-        |> Seq.toList
-        |> function
-            | [] -> Ok scenario
-            | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName(scenario.ScenarioName, factoryName))
-
     let checkClientFactoryName (scenario: Contracts.Scenario) =
         scenario.Steps
         |> Seq.cast<Step>
@@ -80,7 +99,6 @@ module Validation =
         >=> checkEmptyStepName
         >=> checkDuplicateStepNameButDiffImpl
         >=> checkClientFactoryName
-        >=> checkDuplicateClientFactories
 
 module ClientFactory =
 
@@ -91,7 +109,8 @@ module ClientFactory =
             match step.ClientFactory with
             | Some factory ->
                 let factoryName = ClientFactory.createFullName factory.FactoryName scenarioName
-                { step with ClientFactory = Some(factory.Clone factoryName) }
+                factory.SetName factoryName
+                step
 
             | None -> step
         )
@@ -106,43 +125,14 @@ module ClientFactory =
     let applySettings (settings: ClientFactorySetting list) (factories: ClientFactory<obj> list) =
         factories
         |> List.map(fun factory ->
-            let setting = settings |> List.tryFind(fun setng -> setng.FactoryName = factory.FactoryName)
+            let setting = settings |> List.tryFind(fun stn -> stn.FactoryName = factory.FactoryName)
             match setting with
-            | Some v -> factory.Clone(v.ClientCount)
-            | None   -> factory
+            | Some v ->
+                factory.SetClientCount v.ClientCount
+                factory
+
+            | None -> factory
         )
-
-module ClientPool =
-
-    let filterDistinct (scenarios: Scenario list) =
-        scenarios
-        |> List.collect(fun x -> x.Steps)
-        |> List.choose(fun x -> x.ClientPool)
-        |> List.distinctBy(fun x -> x.PoolName)
-
-    let createPools (settings: ClientFactorySetting list) (targetScenarios: Scenario list) =
-        targetScenarios
-        |> ClientFactory.filterDistinct
-        |> ClientFactory.applySettings settings
-        |> List.map(fun factory -> ClientPool factory)
-
-    let setPools (pools: ClientPool list) (scenarios: Scenario list) =
-
-        let setPool (scenario: Scenario) =
-            seq {
-                for step in scenario.Steps do
-                match step.ClientFactory with
-                | Some factory ->
-                    let pool = pools |> Seq.tryFind(fun x -> x.PoolName = factory.FactoryName)
-                    match pool with
-                    | Some v -> { step with ClientPool = Some v }
-                    | None   -> step
-
-                | None -> step
-            }
-
-        scenarios
-        |> List.map(fun scenario -> { scenario with Steps = scenario |> setPool |> Seq.toList })
 
 module Feed =
 
@@ -228,7 +218,14 @@ let createScenario (scn: Contracts.Scenario) = result {
 }
 
 let createScenarios (scenarios: Contracts.Scenario list) = result {
-    let! vScns = scenarios |> Validation.checkDuplicateScenarioName
+
+    let validate =
+        Validation.checkDuplicateScenarioName
+        >=> Validation.checkDuplicateClientFactories
+        >=> Validation.checkMultipleClientFactoryAssign
+
+    let! vScns = validate scenarios
+
     return! vScns
             |> List.map createScenario
             |> Result.sequence

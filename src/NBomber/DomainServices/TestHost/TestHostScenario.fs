@@ -5,9 +5,9 @@ open Spectre.Console
 
 open NBomber.Contracts
 open NBomber.Contracts.Internal
+open NBomber.Configuration
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ClientPool
 open NBomber.Errors
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -17,34 +17,82 @@ let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) 
     |> Scenario.filterTargetScenarios (sessionArgs.GetTargetScenarios())
     |> Scenario.applySettings (sessionArgs.GetScenariosSettings()) (sessionArgs.GetDefaultStepTimeout())
 
-let initClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext option) (context: IBaseContext) (pools: ClientPool list) = taskResult {
-    try
-        for pool in pools do
-            TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
+let initClientFactories (dep: IGlobalDependency)
+                        (consoleStatus: StatusContext option)
+                        (context: IBaseContext)
+                        (clientFactorySettings: ClientFactorySetting list)
+                        (enabledScenarios: Scenario list) =
 
-            do! pool.Init(context)
-                |> TaskResult.mapError(InitScenarioError >> AppError.create)
+    let factories =
+        enabledScenarios
+        |> Scenario.ClientFactory.filterDistinct
+        |> Scenario.ClientFactory.applySettings clientFactorySettings
 
-        return pools
-    with
-    | ex -> return! AppError.createResult(InitScenarioError ex)
-}
+    taskResult {
+        for f in factories do
+            dep.Logger.Information $"Start init client factory: {Console.okColor f.FactoryName}, client count: {Console.blueColor f.ClientCount}"
 
-let initDataFeeds (dep: IGlobalDependency) (consoleStatus: StatusContext option) (context: IBaseContext) (feeds: IFeed<obj> list) = taskResult {
-    try
-        for feed in feeds do
+            let clients = ResizeArray<obj>()
+            for i = 0 to f.ClientCount - 1 do
 
-            if consoleStatus.IsSome then
-                consoleStatus.Value.Status <- $"Initializing data feed: {Console.okColor feed.FeedName}"
-                consoleStatus.Value.Refresh()
+                if consoleStatus.IsSome then
+                    consoleStatus.Value.Status <- $"Initializing client factory: {Console.okColor f.FactoryName}, initialized client: {Console.blueColor(i + 1)}"
+                    consoleStatus.Value.Refresh()
 
-            do! feed.Init(context)
-            dep.Logger.Information("Initialized data feed: {0}", feed.FeedName)
+                let! client = ClientFactory.safeInitClient f.InitClient i context
+                clients.Add client
 
-        return feeds
-    with
-    | ex -> return! AppError.createResult(InitScenarioError ex)
-}
+            f.SetInitializedClients clients
+    }
+    |> TaskResult.mapError(InitScenarioError >> AppError.create)
+
+let initDataFeeds (dep: IGlobalDependency)
+                  (consoleStatus: StatusContext option)
+                  (context: IBaseContext)
+                  (enabledScenarios: Scenario list) =
+
+    let feeds = Scenario.Feed.filterDistinctFeeds enabledScenarios
+
+    backgroundTask {
+        try
+            for feed in feeds do
+
+                if consoleStatus.IsSome then
+                    consoleStatus.Value.Status <- $"Initializing data feed: {Console.okColor feed.FeedName}"
+                    consoleStatus.Value.Refresh()
+
+                do! feed.Init context
+                dep.Logger.Information("Initialized data feed: {0}", feed.FeedName)
+
+            return Ok()
+        with
+        | ex -> return AppError.createResult(InitScenarioError ex)
+    }
+
+let initEnabledScenarios (dep: IGlobalDependency)
+                         (consoleStatus: StatusContext option)
+                         (baseContext: IBaseContext)
+                         (enabledScenarios: Scenario list) =
+
+    let defaultScnContext = Scenario.ScenarioContext.create baseContext
+
+    backgroundTask {
+        try
+            for scn in enabledScenarios do
+                if scn.Init.IsSome then
+                    dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
+
+                    if consoleStatus.IsSome then
+                        consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
+                        consoleStatus.Value.Refresh()
+
+                    let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
+                    do! scn.Init.Value scnContext
+
+            return Ok()
+        with
+        | ex -> return AppError.createResult(InitScenarioError ex)
+    }
 
 let initScenarios (dep: IGlobalDependency)
                   (consoleStatus: StatusContext option)
@@ -53,74 +101,68 @@ let initScenarios (dep: IGlobalDependency)
                   (regScenarios: Scenario list) = taskResult {
     try
         let targetScenarios = regScenarios |> getTargetScenarios sessionArgs
-        let defaultScnContext = Scenario.ScenarioContext.create baseContext
-
         let enabledScenarios = targetScenarios |> List.filter(fun x -> x.IsEnabled)
-        let disabledScenarios = targetScenarios |> List.filter(fun x -> not x.IsEnabled)
 
         TestHostConsole.printTargetScenarios dep enabledScenarios
 
-        // scenario init
-        for scn in enabledScenarios do
-            match scn.Init with
-            | Some initFunc ->
-                dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
-
-                if consoleStatus.IsSome then
-                    consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
-                    consoleStatus.Value.Refresh()
-
-                let scnContext = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
-                do! initFunc scnContext
-
-            | None -> ()
-
-        // client pools init
-        let! pools =
-            enabledScenarios
-            |> Scenario.ClientPool.createPools sessionArgs.UpdatedClientFactorySettings
-            |> initClientPools dep consoleStatus baseContext
-
-        // data feed init
         do! enabledScenarios
-            |> Scenario.Feed.filterDistinctFeeds
+            |> initEnabledScenarios dep consoleStatus baseContext
+
+        do! enabledScenarios
+            |> initClientFactories dep consoleStatus baseContext sessionArgs.UpdatedClientFactorySettings
+
+        do! enabledScenarios
             |> initDataFeeds dep consoleStatus baseContext
-            |> TaskResult.ignore
 
         return
-            enabledScenarios
-            |> Scenario.ClientPool.setPools pools
-            |> List.append disabledScenarios
+            targetScenarios
             |> List.map(fun scenario -> { scenario with IsInitialized = true })
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let disposeClientPools (dep: IGlobalDependency) (consoleStatus: StatusContext option) (baseContext: IBaseContext) (pools: ClientPool list) =
-    for pool in pools do
-        TestHostConsole.displayClientPoolProgress(dep, consoleStatus, pool)
-        pool.DisposePool(baseContext)
+let disposeClientFactories (dep: IGlobalDependency)
+                           (consoleStatus: StatusContext option)
+                           (context: IBaseContext)
+                           (enabledScenarios: Scenario list) =
+
+    let factories = enabledScenarios |> Scenario.ClientFactory.filterDistinct
+
+    backgroundTask {
+        for f in factories do
+            try
+                dep.Logger.Information("Start dispose client factory: {0}", f.FactoryName)
+
+                if consoleStatus.IsSome then
+                    consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor f.FactoryName}"
+
+                for c in f.InitializedClients do
+                    do! f.DisposeClient(c, context)
+            with
+            | ex -> dep.Logger.Warning(ex, "Dispose client factory error: {0}", f.FactoryName)
+    }
 
 let cleanScenarios (dep: IGlobalDependency)
                    (consoleStatus: StatusContext option)
                    (baseContext: IBaseContext)
-                   (defaultScnContext: IScenarioContext)
-                   (scenarios: Scenario list) = backgroundTask {
+                   (enabledScenarios: Scenario list) = backgroundTask {
 
-    scenarios
-    |> Scenario.ClientPool.filterDistinct
-    |> disposeClientPools dep consoleStatus baseContext
+    let defaultScnContext = Scenario.ScenarioContext.create baseContext
 
-    for scn in scenarios do
-        match scn.Clean with
-        | Some cleanFunc ->
-            dep.Logger.Information("Start cleaning scenario: {Scenario}", scn.ScenarioName)
+    for scn in enabledScenarios do
+        if scn.Clean.IsSome then
+            dep.Logger.Information("Start cleaning scenario: {0}", scn.ScenarioName)
+
+            if consoleStatus.IsSome then
+                consoleStatus.Value.Status <- $"Cleaning scenario: {Console.okColor scn.ScenarioName}"
+                consoleStatus.Value.Refresh()
 
             let context = Scenario.ScenarioContext.setCustomSettings defaultScnContext scn.CustomSettings
             try
-                do! cleanFunc context
+                do! scn.Clean.Value context
             with
-            | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: {Scenario}", scn.ScenarioName)
+            | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: {0}", scn.ScenarioName)
 
-        | None -> ()
+    do! enabledScenarios
+        |> disposeClientFactories dep consoleStatus baseContext
 }

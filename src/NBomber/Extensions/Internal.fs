@@ -119,8 +119,8 @@ module internal Internal =
 
         let filterDuplicates (data: string seq) =
             data
-            |> Seq.groupBy(id)
-            |> Seq.choose(fun (key, set) -> if Seq.length(set) > 1 then Some key else None)
+            |> Seq.groupBy id
+            |> Seq.choose(fun (key, set) -> if Seq.length set > 1 then Some key else None)
 
         let toOption (str: string) =
             if String.IsNullOrWhiteSpace str then None

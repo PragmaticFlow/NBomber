@@ -81,20 +81,20 @@ let ``should distribute client using modulo if clientCount < loadSimulation copi
 [<Fact>]
 let ``should be shared btw steps as singleton instance``() =
 
-    let poolCount = 100
+    let clientCount = 100
 
-    let pool = ClientFactory.create(
+    let factory = ClientFactory.create(
         name = "test_pool",
         initClient = (fun (number,context) -> Guid.NewGuid() |> Task.FromResult),
-        clientCount = poolCount
+        clientCount = clientCount
     )
 
-    let step1 = Step.create("step_1", clientFactory = pool, execute = fun context -> task {
+    let step1 = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(context.Client)
     })
 
-    let step2 = Step.create("step_2", clientFactory = pool, execute = fun context -> task {
+    let step2 = Step.create("step_2", clientFactory = factory, execute = fun context -> task {
         do! Task.Delay(milliseconds 100)
 
         let stepResponse = context.GetPreviousStepResponse<Guid>()
@@ -107,7 +107,7 @@ let ``should be shared btw steps as singleton instance``() =
 
     Scenario.create "test" [step1; step2]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = poolCount, during = seconds 2)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
@@ -171,6 +171,66 @@ let ``initClient should use try logic in case of some errors``() =
     |> fun error -> test <@ tryCount >= 5 @>
 
 [<Fact>]
+let ``should validate on multiple scenario assignment``() =
+
+    let factory1 = ClientFactory.create(
+        name = "factory_1",
+        initClient = (fun (number,context) -> Task.FromResult number)
+    )
+
+    let step1 = Step.create("step_1", clientFactory = factory1, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    let step2 = Step.create("step_2", clientFactory = factory1, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    let scn1 = Scenario.create "scn1" [step1]
+    let scn2 = Scenario.create "scn2" [step2]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error ->
+        test <@ error.Contains "assigned to multiple scenarios" @>
+
+[<Fact>]
+let ``should validate on duplicate name``() =
+
+    let factory1 = ClientFactory.create(
+        name = "factory_1",
+        initClient = (fun (number,context) -> Task.FromResult number)
+    )
+
+    // duplicate name
+    let factory2 = ClientFactory.create(
+        name = "factory_1",
+        initClient = (fun (number,context) -> Task.FromResult number)
+    )
+
+    let step1 = Step.create("step_1", clientFactory = factory1, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    let step2 = Step.create("step_2", clientFactory = factory2, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    let scn1 = Scenario.create "scn1" [step1]
+    let scn2 = Scenario.create "scn2" [step2]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.run
+    |> Result.getError
+    |> fun error ->
+        test <@ error.Contains "contains duplicated name" @>
+
+[<Fact>]
 let ``should be initialized one time per scenario``() =
 
     let clientCount = 10
@@ -199,18 +259,12 @@ let ``should be initialized one time per scenario``() =
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
 
-    let scenario2 =
-        Scenario.create "scenario 2" [step1]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
-
-    NBomberRunner.registerScenarios [scenario1; scenario2]
+    NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        test <@ initializedClients = 20 @>
-        test <@ nodeStats.ScenarioStats.Length = 2 @>
+        test <@ initializedClients = 10 @>
 
 [<Fact>]
 let ``should be initialized after scenario init``() =
@@ -246,6 +300,76 @@ let ``should be initialized after scenario init``() =
     |> fun allStats -> test <@ lastInvokeClient = "client_pool" @>
 
 [<Fact>]
+let ``should be disposed after scenario clean``() =
+
+    let clientCount = 1
+    let mutable _actionsHistory = List.empty<string>
+
+    let cleanScenario (context: IScenarioContext) = task {
+        _actionsHistory <- "clean scenario" :: _actionsHistory
+    }
+
+    let factory = ClientFactory.create(
+        name = "test_factory",
+        initClient = (fun (number,context) -> Task.FromResult number),
+        disposeClient = (fun (client, context) ->
+            _actionsHistory <- "dispose client" :: _actionsHistory
+            Task.FromResult()
+        ),
+        clientCount = clientCount
+    )
+
+    let step1 = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    Scenario.create "test" [step1]
+    |> Scenario.withClean cleanScenario
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun allStats ->
+        test <@ List.rev _actionsHistory = ["clean scenario"; "dispose client"] @>
+
+[<Fact>]
+let ``InitializedClients should be accessible at scenario clean``() =
+
+    let clientCount = 1
+    let mutable initializedClientsAccessible = false
+    let clientName = "test_client"
+
+    let factory = ClientFactory.create(
+        name = "test_factory",
+        initClient = (fun (number,context) -> Task.FromResult clientName),
+        clientCount = clientCount
+    )
+
+    let cleanScenario (context: IScenarioContext) = task {
+        if factory.InitializedClients[0] = clientName then
+            initializedClientsAccessible <- true
+    }
+
+    let step1 = Step.create("step_1", clientFactory = factory, execute = fun context -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok(context.Client)
+    })
+
+    Scenario.create "test" [step1]
+    |> Scenario.withClean cleanScenario
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = clientCount, during = seconds 2)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun allStats ->
+        test <@ initializedClientsAccessible @>
+
+[<Fact>]
 let ``should support 2K of clients``() =
 
     let clientCount = 2_000
@@ -272,40 +396,6 @@ let ``should support 2K of clients``() =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun allStats -> test <@ invokeCount = clientCount @>
-
-[<Fact>]
-let ``should not allow to have duplicates with the same name but different implementation``() =
-
-    let pool1 = ClientFactory.create(
-        name = "duplicate_pool_name",
-        initClient = (fun (number,context) -> Task.FromResult number),
-        clientCount = 50
-    )
-
-    let pool2 = ClientFactory.create(
-        name = "duplicate_pool_name",
-        initClient = (fun (number,context) -> Task.FromResult(number + 1)),
-        clientCount = 100
-    )
-
-    let step1 = Step.create("step_1", clientFactory = pool1, execute = fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok(context.Client)
-    })
-
-    let step2 = Step.create("step_2", clientFactory = pool2, execute = fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok(context.Client)
-    })
-
-    Scenario.create "test" [step1; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 100, during = seconds 2)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
-    |> Result.getError
-    |> ignore
 
 [<Fact>]
 let ``should provide default dispose client``() =

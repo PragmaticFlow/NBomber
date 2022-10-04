@@ -12,8 +12,6 @@ let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
 [<Literal>]
 let DefaultCopiesCount = 1
 [<Literal>]
-let ClientInitTryCount = 5
-[<Literal>]
 let DefaultDoNotTrack = false
 
 let AllReportFormats = [ReportFormat.Txt; ReportFormat.Html; ReportFormat.Csv; ReportFormat.Md]
@@ -53,6 +51,8 @@ let SchedulerTickIntervalMs = 1_000.0
 let ReportingTimerCompleteMs = 3_000
 [<Literal>]
 let ConsoleRefreshTableCounter = 10
+[<Literal>]
+let MaxClientInitFailCount = 5
 
 /// Default status codes
 

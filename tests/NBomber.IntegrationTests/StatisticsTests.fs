@@ -29,8 +29,6 @@ module ScenarioStatsTests =
     let internal baseSteps = {
         StepName = "name"
         ClientFactory = None
-        ClientPool = None
-        ClientInterception = None
         Execute =
           fun _ -> task { return Response.ok(sizeBytes = 100) }
           |> Step.StepContext.toUntypedExecute

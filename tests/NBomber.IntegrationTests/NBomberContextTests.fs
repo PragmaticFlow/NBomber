@@ -181,14 +181,14 @@ let ``getClientFactorySettings should return from Config with updated poolName, 
         let glSettings = { baseGlobalSettings with ScenariosSettings = Some [scnSettings] }
         let config = { config with GlobalSettings = Some glSettings }
         let ctx = { context with NBomberConfig = Some config }
-        let result = NBomberContext.getClientFactorySettings(ctx)
+        let result = NBomberContext.getClientFactorySettings ctx
 
         test <@ result.Head.ClientCount = poolSettings.ClientCount @>
         test <@ result.Head.FactoryName = Domain.ClientFactory.createFullName poolSettings.FactoryName scnSettings.ScenarioName @>
         test <@ result.Head.FactoryName <> poolSettings.FactoryName @>
 
     | None ->
-        let result = NBomberContext.getClientFactorySettings(context)
+        let result = NBomberContext.getClientFactorySettings context
         test <@ result = List.empty @>
 
 [<Fact>]
