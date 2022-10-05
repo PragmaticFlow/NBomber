@@ -4,6 +4,7 @@ open System
 
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
+open NBomber.Domain.Step
 
 [<Struct>]
 type SchedulerCommand =
@@ -12,8 +13,8 @@ type SchedulerCommand =
     | RemoveActor of removeCount:int
     | StopScheduler
 
-// dep * actorPool * scheduledActorCount
-type SchedulerExec = ActorDep -> ScenarioActor list -> int -> ScenarioActor list
+// scnCtx * actorPool * scheduledActorCount
+type SchedulerExec = ScenarioExecContext -> ScenarioActor list -> int -> ScenarioActor list
 
 let removeFromScheduler scheduledActorsCount removeCount =
     let actorsCount = scheduledActorsCount - removeCount
@@ -27,14 +28,14 @@ let schedule workingActorCount scheduledActorCount =
     elif workingActorCount < scheduledActorCount then AddActors(scheduledActorCount - workingActorCount)
     else RemoveActor(workingActorCount - scheduledActorCount)
 
-let exec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
     let workingActors = ScenarioActorPool.getWorkingActors actorPool
     match schedule workingActors.Length scheduledActorCount with
     | KeepWorking ->
         actorPool
 
     | AddActors count ->
-        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors dep) actorPool count
+        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors scnCtx) actorPool count
         let newActorPool = ScenarioActorPool.updatePool actorPool result.NewActors
         result.ActorsFromPool |> List.iter(fun x -> x.RunInfinite() |> ignore)
         result.NewActors|> List.iter(fun x -> x.RunInfinite() |> ignore)
@@ -50,7 +51,7 @@ let exec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: i
         ScenarioActorPool.stopActors actorPool
         actorPool
 
-type ConstantActorScheduler(dep: ActorDep, exec: SchedulerExec) =
+type ConstantActorScheduler(scnCtx: ScenarioExecContext, exec: SchedulerExec) =
 
     let mutable _actorPool = List.empty<ScenarioActor>
     let mutable _scheduledActorCount = 0
@@ -62,11 +63,11 @@ type ConstantActorScheduler(dep: ActorDep, exec: SchedulerExec) =
 
     member _.AddActors(count) =
         _scheduledActorCount <- _scheduledActorCount + count
-        _actorPool <- exec dep _actorPool _scheduledActorCount
+        _actorPool <- exec scnCtx _actorPool _scheduledActorCount
 
     member _.RemoveActors(count) =
         _scheduledActorCount <- removeFromScheduler _scheduledActorCount count
-        _actorPool <- exec dep _actorPool _scheduledActorCount
+        _actorPool <- exec scnCtx _actorPool _scheduledActorCount
 
     member _.Stop() = stop()
 

@@ -22,7 +22,6 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
-open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.Infra.Dependency
@@ -31,9 +30,7 @@ open NBomber.DomainServices.TestHost.ReportingManager
 
 //todo: add _globalCancelToken.Cancel() + timeout for init and clean + configurable operation timeout
 
-type internal TestHost(dep: IGlobalDependency,
-                       regScenarios: Scenario list,
-                       execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) as this =
+type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as this =
 
     let _log = dep.Logger.ForContext<TestHost>()
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
@@ -63,25 +60,21 @@ type internal TestHost(dep: IGlobalDependency,
     let createScenarioSchedulers (targetScenarios: Scenario list)
                                  (operation: ScenarioOperation)
                                  (getScenarioClusterCount: ScenarioName -> int)
-                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor)
-                                 (execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) =
+                                 (createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor) =
 
         let createScheduler (scn: Scenario) =
-            let actorDep = {
-                ScenarioDep = {
-                    Logger = _log
-                    Scenario = scn
-                    ScenarioCancellationToken = new CancellationTokenSource()
-                    ScenarioTimer = Stopwatch()
-                    ScenarioOperation = operation
-                    ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
-                    ExecStopCommand = execStopCommand
-                    MaxFailCount = _sessionArgs.GetMaxFailCount()
-                }
-                ExecSteps = execSteps
+            let scnDep = {
+                Logger = _log
+                Scenario = scn
+                ScenarioCancellationToken = new CancellationTokenSource()
+                ScenarioTimer = Stopwatch()
+                ScenarioOperation = operation
+                ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
+                ExecStopCommand = execStopCommand
+                MaxFailCount = _sessionArgs.GetMaxFailCount()
             }
             let count = getScenarioClusterCount scn.ScenarioName
-            new ScenarioScheduler(actorDep, count)
+            new ScenarioScheduler(scnDep, count)
 
         _currentSchedulers |> List.iter(fun x -> x.Stop())
         targetScenarios |> List.map createScheduler
@@ -244,7 +237,7 @@ type internal TestHost(dep: IGlobalDependency,
             createStatsActor
             |> Option.defaultValue ScenarioStatsActor.createDefault
 
-        createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor execSteps
+        createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor
 
     member _.GetRealtimeStats(duration) =
         _currentSchedulers |> List.map(fun x -> x.AllRealtimeStats.TryFind duration) |> Option.sequence

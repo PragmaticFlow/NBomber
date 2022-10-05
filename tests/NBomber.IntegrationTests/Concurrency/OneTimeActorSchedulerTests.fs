@@ -30,23 +30,20 @@ let internal baseScenario =
 
 let internal logger = LoggerConfiguration().CreateLogger()
 
-let internal baseActorDep = {
-    ScenarioDep = {
-        Logger = logger
-        Scenario = baseScenario
-        ScenarioCancellationToken = new CancellationTokenSource()
-        ScenarioTimer = Stopwatch()
-        ScenarioOperation = ScenarioOperation.Bombing
-        ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
-        ExecStopCommand = fun _ -> ()
-        MaxFailCount = Constants.DefaultMaxFailCount
-    }
-    ExecSteps = RunningStep.execSteps
+let internal baseScnDep = {
+    Logger = logger
+    Scenario = baseScenario
+    ScenarioCancellationToken = new CancellationTokenSource()
+    ScenarioTimer = Stopwatch()
+    ScenarioOperation = ScenarioOperation.Bombing
+    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
+    ExecStopCommand = fun _ -> ()
+    MaxFailCount = Constants.DefaultMaxFailCount
 }
 
 [<Fact>]
 let ``InjectActors should start actors if there is no actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.InjectActors(5)
@@ -59,7 +56,7 @@ let ``InjectActors should start actors if there is no actors`` () =
 
 [<Fact>]
 let ``InjectActors should execute actors once until next turn`` () =
-    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
 
     scheduler.InjectActors(5)
     Task.Delay(seconds 2).Wait()
@@ -70,7 +67,7 @@ let ``InjectActors should execute actors once until next turn`` () =
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseActorDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
 
     scheduler.InjectActors(5)
     Task.Delay(milliseconds 10).Wait()

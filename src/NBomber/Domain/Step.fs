@@ -15,7 +15,7 @@ open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.ScenarioStatsActor
 
-type ScenarioDep = {
+type ScenarioExecContext = {
     Logger: ILogger
     Scenario: Scenario
     ScenarioCancellationToken: CancellationTokenSource
@@ -26,8 +26,8 @@ type ScenarioDep = {
     MaxFailCount: int
 }
 
-type StepDep = {
-    ScenarioDep: ScenarioDep
+type StepExecContext = {
+    ScenarioExecContext: ScenarioExecContext
     ScenarioInfo: ScenarioInfo
     Data: Dictionary<string,obj>
 }
@@ -52,17 +52,17 @@ module StepContext =
 
         | None -> Unchecked.defaultof<_>
 
-    let createUntyped (dep: StepDep) (step: Step) =
+    let createUntyped (stCtx: StepExecContext) (step: Step) =
         { StepName = step.StepName
-          ScenarioInfo = dep.ScenarioInfo
+          ScenarioInfo = stCtx.ScenarioInfo
           CancellationTokenSource = new CancellationTokenSource()
-          Client = getClient dep.ScenarioInfo step.ClientFactory
-          Logger = dep.ScenarioDep.Logger
+          Client = getClient stCtx.ScenarioInfo step.ClientFactory
+          Logger = stCtx.ScenarioExecContext.Logger
           FeedItem = ()
           Data = Dictionary<string,obj>()
           InvocationNumber = 0
-          StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> dep.ScenarioDep.ExecStopCommand
-          StopCurrentTest = fun reason -> StopTest(reason) |> dep.ScenarioDep.ExecStopCommand }
+          StopScenario = fun (scnName,reason) -> StopScenario(scnName, reason) |> stCtx.ScenarioExecContext.ExecStopCommand
+          StopCurrentTest = fun reason -> StopTest(reason) |> stCtx.ScenarioExecContext.ExecStopCommand }
 
     let create (untyped: UntypedStepContext) = {
         new IStepContext<'TClient,'TFeedItem> with
@@ -86,8 +86,8 @@ module StepContext =
 
 module RunningStep =
 
-    let create (dep: StepDep) (stepIndex: int) (step: Step) =
-        { StepIndex = stepIndex; Value = step; Context = StepContext.createUntyped dep step }
+    let create (stCtx: StepExecContext) (stepIndex: int) (step: Step) =
+        { StepIndex = stepIndex; Value = step; Context = StepContext.createUntyped stCtx step }
 
     let updateContext (step: RunningStep) (data: Dictionary<string,obj>) (cancelToken: CancellationTokenSource) =
         let st = step.Value
@@ -141,18 +141,18 @@ module RunningStep =
             return { StepIndex = step.StepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
     }
 
-    let execStep (dep: StepDep) (step: RunningStep) = backgroundTask {
+    let execStep (stCtx: StepExecContext) (step: RunningStep) = backgroundTask {
 
-        let! response = measureExec step dep.ScenarioDep.ScenarioTimer
+        let! response = measureExec step stCtx.ScenarioExecContext.ScenarioTimer
         let payload = response.ClientResponse.Payload
 
         if not step.Value.DoNotTrack then
-            dep.ScenarioDep.ScenarioStatsActor.Publish(AddResponse response)
+            stCtx.ScenarioExecContext.ScenarioStatsActor.Publish(AddResponse response)
 
             if response.ClientResponse.IsError then
-                dep.ScenarioDep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+                stCtx.ScenarioExecContext.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{stCtx.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
-                dep.Data[Constants.StepResponseKey] <- payload
+                stCtx.Data[Constants.StepResponseKey] <- payload
 
             return response.ClientResponse
 
@@ -161,28 +161,55 @@ module RunningStep =
 
         else
             if response.ClientResponse.IsError then
-                dep.ScenarioDep.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{dep.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
+                stCtx.ScenarioExecContext.Logger.Fatal($"Step '{step.Value.StepName}' from Scenario: '{stCtx.ScenarioInfo.ScenarioName}' has failed. Error: {response.ClientResponse.Message}")
             else
-                dep.Data[Constants.StepResponseKey] <- payload
+                stCtx.Data[Constants.StepResponseKey] <- payload
 
             return response.ClientResponse
     }
 
-    let execRegularExec (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) = backgroundTask {
+    let execCustomExec (stCtx: StepExecContext) (steps: RunningStep[]) (stepInterception: IStepInterceptionContext voption -> string voption) = backgroundTask {
+        let mutable shouldWork = true
+        let mutable execContext = ValueNone
+
+        while shouldWork
+              && not stCtx.ScenarioExecContext.ScenarioCancellationToken.IsCancellationRequested
+              && stCtx.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (stCtx.ScenarioExecContext.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) do
+
+            let nextStep = stepInterception execContext
+            match nextStep with
+            | ValueSome stepName ->
+                let stepIndex = stCtx.ScenarioExecContext.Scenario.StepOrderIndex[stepName]
+                use cancelToken = new CancellationTokenSource()
+                let step = updateContext steps[stepIndex] stCtx.Data cancelToken
+                let! response = execStep stCtx step
+
+                execContext <- ValueSome {
+                    new IStepInterceptionContext with
+                        member _.PrevStepContext = StepContext.create step.Context
+                        member _.PrevStepResponse = response
+                }
+
+            | ValueNone -> shouldWork <- false
+    }
+
+    let execRegularExec (stCtx: StepExecContext) (steps: RunningStep[]) (stepsOrder: int[]) = backgroundTask {
         let mutable shouldWork = true
         for stepIndex in stepsOrder do
 
             if shouldWork
-               && not dep.ScenarioDep.ScenarioCancellationToken.IsCancellationRequested
-               && dep.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (dep.ScenarioDep.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
+               && not stCtx.ScenarioExecContext.ScenarioCancellationToken.IsCancellationRequested
+               && stCtx.ScenarioInfo.ScenarioDuration.TotalMilliseconds > (stCtx.ScenarioExecContext.ScenarioTimer.Elapsed.TotalMilliseconds + Constants.SchedulerTimerDriftMs) then
 
                 use cancelToken = new CancellationTokenSource()
-                let step = updateContext steps[stepIndex] dep.Data cancelToken
-                let! response = execStep dep step
+                let step = updateContext steps[stepIndex] stCtx.Data cancelToken
+                let! response = execStep stCtx step
 
                 if response.IsError then
                     shouldWork <- false
     }
 
-    let execSteps (dep: StepDep) (steps: RunningStep[]) (stepsOrder: int[]) =
-        execRegularExec dep steps stepsOrder
+    let execSteps (stCtx: StepExecContext) (steps: RunningStep[]) (stepsOrder: int[]) =
+        match stCtx.ScenarioExecContext.Scenario.StepInterception with
+        | Some stepInterception -> execCustomExec stCtx steps stepInterception
+        | None                  -> execRegularExec stCtx steps stepsOrder

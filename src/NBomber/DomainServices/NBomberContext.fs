@@ -25,22 +25,9 @@ module EnterpriseValidation =
         | _ ->
             Ok()
 
-    let validateStepInterception (context: NBomberContext) =
-        let scenarios =
-            context.RegisteredScenarios
-            |> List.filter(fun x -> x.StepInterception.IsSome)
-            |> List.map(fun x -> x.ScenarioName)
-
-        if scenarios.Length > 0 then
-            let names = scenarios |> String.concatWithComma
-            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using StepInterception feature that supported only for the Enterprise version")
-        else
-            Ok()
-
     let validate (dep: IGlobalDependency) (context: NBomberContext) =
         result {
             do! validateReportingSinks dep
-            do! validateStepInterception context
             return context
         }
         |> Result.mapError AppError.create

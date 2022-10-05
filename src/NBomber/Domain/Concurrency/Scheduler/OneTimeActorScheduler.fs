@@ -4,14 +4,15 @@ open System
 
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
+open NBomber.Domain.Step
 
 [<Struct>]
 type SchedulerCommand =
     | StartActors of actors:ScenarioActor list
     | RentActors of actorCount:int
 
-// dep * actorPool * scheduledActorCount
-type SchedulerExec = ActorDep -> ScenarioActor list -> int -> ScenarioActor list
+// scnCtx * actorPool * scheduledActorCount
+type SchedulerExec = ScenarioExecContext -> ScenarioActor list -> int -> ScenarioActor list
 
 // todo: add tests
 let schedule (actorPool: ScenarioActor list) (actorCount: int) =
@@ -25,7 +26,7 @@ let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     else
         StartActors freeActors
 
-let exec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
 
     let execSteps (actors: ScenarioActor list) =
         actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
@@ -36,12 +37,12 @@ let exec (dep: ActorDep) (actorPool: ScenarioActor list) (scheduledActorCount: i
         actorPool
 
     | RentActors actorCount ->
-        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors dep) actorPool actorCount
+        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors scnCtx) actorPool actorCount
         execSteps result.ActorsFromPool
         execSteps result.NewActors
         ScenarioActorPool.updatePool actorPool result.NewActors
 
-type OneTimeActorScheduler(dep: ActorDep, exec: SchedulerExec) =
+type OneTimeActorScheduler(scnCtx: ScenarioExecContext, exec: SchedulerExec) =
 
     let _lockObj = obj()
     let mutable _actorPool = List.empty<ScenarioActor>
@@ -55,7 +56,7 @@ type OneTimeActorScheduler(dep: ActorDep, exec: SchedulerExec) =
     member _.InjectActors(count) =
         lock _lockObj (fun _ ->
             _scheduledActorCount <- count
-            _actorPool <- exec dep _actorPool _scheduledActorCount
+            _actorPool <- exec scnCtx _actorPool _scheduledActorCount
         )
 
     member _.Stop() = stop()

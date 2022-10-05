@@ -56,8 +56,9 @@
         <Compile Include="ScenarioTests\WarmUpTests.fs" />
         <Compile Include="ScenarioTests\InitCleanStopTests.fs" />
         <Compile Include="ScenarioTests\TestHostScenarioTests.fs" />
-        <Compile Include="StepTests\StepTests.fs" />
+        <Compile Include="StepTests\BasicStepTests.fs" />
         <Compile Include="StepTests\CustomStepOrderTests.fs" />
+        <Compile Include="StepTests\StepInterceptionTests.fs" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />

@@ -6,8 +6,6 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
-open NBomber.Domain
-open NBomber.Domain.Step
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.Infra.Logger
@@ -23,10 +21,10 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let! ctx = NBomberContext.EnterpriseValidation.validate dep context
 
-        let! scenarios    = ctx |> NBomberContext.createScenarios
-        let! sessionArgs  = ctx |> NBomberContext.createSessionArgs testInfo scenarios
-        use testHost      = new TestHost(dep, scenarios, RunningStep.execSteps)
-        let! result       = testHost.RunSession(sessionArgs)
+        let! scenarios = ctx |> NBomberContext.createScenarios
+        let! sessionArgs = ctx |> NBomberContext.createSessionArgs testInfo scenarios
+        use testHost = new TestHost(dep, scenarios)
+        let! result = testHost.RunSession(sessionArgs)
 
         let! finalStats =
             Report.build dep.Logger result testHost.TargetScenarios

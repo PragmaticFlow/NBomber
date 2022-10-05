@@ -2,6 +2,7 @@ module internal NBomber.Domain.Concurrency.ScenarioActorPool
 
 open NBomber.Domain
 open NBomber.Domain.Concurrency.ScenarioActor
+open NBomber.Domain.Step
 
 [<Struct>]
 type ActorPoolResult = {
@@ -9,12 +10,12 @@ type ActorPoolResult = {
     NewActors: ScenarioActor list
 }
 
-let createActors (dep: ActorDep) count fromIndex =
-    let scenario = dep.ScenarioDep.Scenario
+let createActors (scnCtx: ScenarioExecContext) count fromIndex =
+    let scenario = scnCtx.Scenario
     List.init count (fun i ->
         let actorIndex = fromIndex + i
-        let scenarioInfo = Scenario.createScenarioInfo(scenario.ScenarioName, scenario.PlanedDuration, actorIndex, dep.ScenarioDep.ScenarioOperation)
-        ScenarioActor(dep, scenarioInfo)
+        let scenarioInfo = Scenario.createScenarioInfo(scenario.ScenarioName, scenario.PlanedDuration, actorIndex, scnCtx.ScenarioOperation)
+        ScenarioActor(scnCtx, scenarioInfo)
     )
 
 // todo: add tests

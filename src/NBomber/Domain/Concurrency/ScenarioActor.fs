@@ -1,7 +1,6 @@
 module internal NBomber.Domain.Concurrency.ScenarioActor
 
 open System.Collections.Generic
-open System.Threading.Tasks
 
 open NBomber
 open NBomber.Contracts
@@ -11,20 +10,14 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
 
-type ActorDep = {
-    ScenarioDep: ScenarioDep
-    ExecSteps: StepDep -> RunningStep[] -> int[] -> Task<unit> // stepDep steps stepsOrder
-}
+type ScenarioActor(scnCtx: ScenarioExecContext, scenarioInfo: ScenarioInfo) =
 
-type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
-
-    let _logger = dep.ScenarioDep.Logger.ForContext<ScenarioActor>()
-    let _scnDep = dep.ScenarioDep
-    let _scenario = dep.ScenarioDep.Scenario
+    let _logger = scnCtx.Logger.ForContext<ScenarioActor>()
+    let _scenario = scnCtx.Scenario
     let mutable _actorWorking = false
 
     let _stepDep = {
-        ScenarioDep = _scnDep
+        ScenarioExecContext = scnCtx
         ScenarioInfo = scenarioInfo
         Data = Dictionary<string,obj>()
     }
@@ -41,20 +34,20 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                 _actorWorking <- true
 
                 while shouldRun && _actorWorking
-                    && not _scnDep.ScenarioCancellationToken.IsCancellationRequested
-                    && _scenario.PlanedDuration.TotalMilliseconds > _scnDep.ScenarioTimer.Elapsed.TotalMilliseconds do
+                    && not scnCtx.ScenarioCancellationToken.IsCancellationRequested
+                    && _scenario.PlanedDuration.TotalMilliseconds > scnCtx.ScenarioTimer.Elapsed.TotalMilliseconds do
 
                     _stepDep.Data.Clear()
 
                     try
                         let stepOrder = Scenario.getStepOrder _scenario
-                        do! dep.ExecSteps _stepDep _steps stepOrder
+                        do! RunningStep.execSteps _stepDep _steps stepOrder
                     with
                     | ex ->
                         _logger.Error(ex, $"Unhandled exception for Scenario: {_scenario.ScenarioName}")
                         let response = Response.fail(statusCode = Constants.StepInternalClientErrorCode, error = ex.Message)
                         let resp = { StepIndex = 0; ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 }
-                        _scnDep.ScenarioStatsActor.Publish(AddResponse resp)
+                        scnCtx.ScenarioStatsActor.Publish(AddResponse resp)
 
                     shouldRun <- runInfinite
             else
@@ -63,7 +56,7 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
             _actorWorking <- false
     }
 
-    member _.ScenarioStatsActor = _scnDep.ScenarioStatsActor
+    member _.ScenarioStatsActor = scnCtx.ScenarioStatsActor
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _actorWorking
 
