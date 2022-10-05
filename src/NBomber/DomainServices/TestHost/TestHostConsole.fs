@@ -30,39 +30,6 @@ let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusConte
         dep.Logger.Information msg
         runAction None
 
-// let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext option, pool: ClientPool) =
-//
-//     //if consoleStatus.IsSome then
-//
-//         pool.EventStream
-//         |> Observable.takeWhile(function
-//             | InitFinished -> false
-//             | InitFailed   -> false
-//             | _            -> true
-//         )
-//         |> Observable.subscribe(function
-//             | StartedInit (poolName, clientCount) ->
-//                 dep.Logger.Information("Start init client factory: {0}, client count: {1}", poolName, clientCount)
-//
-//             | StartedDispose poolName ->
-//                 dep.Logger.Information("Start disposing client factory: {0}", poolName)
-//
-//             | ClientInitialized (poolName,number) ->
-//                 consoleStatus.Value.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
-//                 consoleStatus.Value.Refresh()
-//
-//             | ClientDisposed (poolName,number,error) ->
-//                 consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
-//                 consoleStatus.Value.Refresh()
-//                 error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
-//
-//             //| ClientFailed -> log.Warning
-//
-//             | InitFinished
-//             | InitFailed -> ()
-//         )
-//         |> ignore
-
 let printContextInfo (dep: IGlobalDependency) =
     dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
 
