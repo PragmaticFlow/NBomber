@@ -44,11 +44,11 @@ module StepContext =
         with
         | ex -> Unchecked.defaultof<'T>
 
-    let getClient (scnInfo: ScenarioInfo) (factory: ClientFactory<obj> option) =
+    let getClient (scnInfo: ScenarioInfo) (factory: IUntypedClientFactory option) =
         match factory with
         | Some v ->
-            let index = scnInfo.ThreadNumber % v.InitializedClients.Count
-            v.InitializedClients[index]
+            let index = scnInfo.ThreadNumber % v.ClientCount
+            v.GetClient index
 
         | None -> Unchecked.defaultof<_>
 

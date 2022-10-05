@@ -17,14 +17,14 @@ let checkName (factoryName: string) =
     if factoryName.Contains("@") then Error(InvalidClientFactoryName factoryName)
     else Ok factoryName
 
-let safeInitClient (initClient: int * IBaseContext -> Task<obj>)
+let safeInitClient (initClient: int * IBaseContext -> Task<unit>)
                    (clientNumber: int)
                    (context: IBaseContext) =
 
     Operation.retry(Constants.MaxClientInitFailCount, fun () -> backgroundTask {
         try
-            let! client = initClient(clientNumber, context)
-            return Ok client
+            do! initClient(clientNumber, context)
+            return Ok()
         with
         | ex -> return Error ex
     })

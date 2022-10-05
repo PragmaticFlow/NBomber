@@ -49,7 +49,7 @@ type Step =
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
-         clientFactory: ClientFactory<'TClient>,
+         clientFactory: IClientFactory<'TClient>,
          feed: IFeed<'TFeedItem>,
          execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
@@ -62,7 +62,7 @@ type Step =
     /// Step represents a single user action like login, logout, etc.
     static member Create
         (name: string,
-         clientFactory: ClientFactory<'TClient>,
+         clientFactory: IClientFactory<'TClient>,
          execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
          [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
          [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =

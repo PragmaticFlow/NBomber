@@ -70,9 +70,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[3.0.1]" />
+        <PackageReference Include="NBomber.Contracts" Version="[3.1.0]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="CsvHelper" Version="27.2.1" />        
+        <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />
         <PackageReference Include="FuncyDown" Version="1.3.0" />
         <PackageReference Include="HdrHistogram" Version="2.5.0" />
@@ -91,8 +91,5 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\NBomber.Contracts\src\NBomber.Contracts\NBomber.Contracts.fsproj" />
     </ItemGroup>
 </Project>

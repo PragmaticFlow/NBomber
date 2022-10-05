@@ -57,7 +57,7 @@ type Step =
     static member private create
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: ClientFactory<'TClient>,
+         ?clientFactory: IClientFactory<'TClient>,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool,
@@ -73,7 +73,7 @@ type Step =
 
         let factory =
             clientFactory
-            |> Option.map(fun x -> x.GetUntyped())
+            |> Option.map(fun x -> x :?> IUntypedClientFactory)
 
         { StepName = name
           ClientFactory = factory
@@ -89,7 +89,7 @@ type Step =
     static member create
         (name: string,
          execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: ClientFactory<'TClient>,
+         ?clientFactory: IClientFactory<'TClient>,
          ?feed: IFeed<'TFeedItem>,
          ?timeout: TimeSpan,
          ?doNotTrack: bool) =

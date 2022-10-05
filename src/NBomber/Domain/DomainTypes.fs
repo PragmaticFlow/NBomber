@@ -32,14 +32,13 @@ type UntypedStepContext = {
 
 type Step = {
     StepName: string
-    ClientFactory: ClientFactory<obj> option
+    ClientFactory: IUntypedClientFactory option
     Execute: UntypedStepContext -> Task<Response>
     Feed: IFeed<obj> option
     Timeout: TimeSpan
     DoNotTrack: bool
     IsPause: bool
 } with
-
     interface IStep with
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack

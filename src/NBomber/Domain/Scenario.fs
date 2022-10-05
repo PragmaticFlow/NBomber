@@ -122,7 +122,7 @@ module ClientFactory =
         |> List.choose(fun x -> x.ClientFactory)
         |> List.distinctBy(fun x -> x.FactoryName)
 
-    let applySettings (settings: ClientFactorySetting list) (factories: ClientFactory<obj> list) =
+    let applySettings (settings: ClientFactorySetting list) (factories: IUntypedClientFactory list) =
         factories
         |> List.map(fun factory ->
             let setting = settings |> List.tryFind(fun stn -> stn.FactoryName = factory.FactoryName)

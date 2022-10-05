@@ -32,17 +32,13 @@ let initClientFactories (dep: IGlobalDependency)
         for f in factories do
             dep.Logger.Information $"Start init client factory: {Console.okColor f.FactoryName}, client count: {Console.blueColor f.ClientCount}"
 
-            let clients = ResizeArray<obj>()
             for i = 0 to f.ClientCount - 1 do
 
                 if consoleStatus.IsSome then
                     consoleStatus.Value.Status <- $"Initializing client factory: {Console.okColor f.FactoryName}, initialized client: {Console.blueColor(i + 1)}"
                     consoleStatus.Value.Refresh()
 
-                let! client = ClientFactory.safeInitClient f.InitClient i context
-                clients.Add client
-
-            f.SetInitializedClients clients
+                do! ClientFactory.safeInitClient f.InitClient i context
     }
     |> TaskResult.mapError(InitScenarioError >> AppError.create)
 
@@ -130,16 +126,16 @@ let disposeClientFactories (dep: IGlobalDependency)
 
     backgroundTask {
         for f in factories do
-            try
-                dep.Logger.Information("Start dispose client factory: {0}", f.FactoryName)
+            dep.Logger.Information("Start dispose client factory: {0}", f.FactoryName)
 
-                if consoleStatus.IsSome then
-                    consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor f.FactoryName}"
+            if consoleStatus.IsSome then
+                consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor f.FactoryName}"
 
-                for c in f.InitializedClients do
-                    do! f.DisposeClient(c, context)
-            with
-            | ex -> dep.Logger.Warning(ex, "Dispose client factory error: {0}", f.FactoryName)
+            for i = 0 to f.ClientCount - 1 do
+                try
+                    do! f.DisposeClient(i, context)
+                with
+                | ex -> dep.Logger.Warning(ex, "Dispose client factory error: {0}", f.FactoryName)
     }
 
 let cleanScenarios (dep: IGlobalDependency)
