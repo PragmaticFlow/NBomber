@@ -29,7 +29,6 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
         WarmUpDuration = Some warmUp1
         LoadSimulationsSettings = Some [LoadSimulation.KeepConstant(10, duration1)]
         ClientFactorySettings = None
-        CustomStepOrder = None
         CustomSettings = Some "some data"
     }
 
@@ -61,7 +60,6 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         LoadSimulationsSettings = Some [LoadSimulation.RampConstant(5, duration1)]
         ClientFactorySettings = None
         CustomSettings = None
-        CustomStepOrder = None
     }
 
     let scenario =

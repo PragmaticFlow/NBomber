@@ -25,7 +25,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
 
         let! scenarios    = ctx |> NBomberContext.createScenarios
         let! sessionArgs  = ctx |> NBomberContext.createSessionArgs testInfo scenarios
-        use testHost      = new TestHost(dep, scenarios, Scenario.getStepOrder, RunningStep.execSteps)
+        use testHost      = new TestHost(dep, scenarios, RunningStep.execSteps)
         let! result       = testHost.RunSession(sessionArgs)
 
         let! finalStats =

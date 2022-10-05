@@ -30,7 +30,6 @@ type ValidationError =
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
 
     // ScenarioSettings
-    | CustomStepOrderContainsNotFoundStepName of scenarioName:string * stepName:string
     | DuplicateScenarioNamesInConfig of scenarioNames:string list
 
     // ConcurrencyScheduler
@@ -113,9 +112,6 @@ type AppError =
 
         | RateIsZeroOrNegative simulation ->
             $"Simulation: '{simulation}' has invalid rate value. The value should be bigger than 0"
-
-        | CustomStepOrderContainsNotFoundStepName (scenarioName, stepName) ->
-            $"Scenario: '{scenarioName}' contains not found step: '{stepName}' in CustomStepOrder"
 
         | DuplicateScenarioNamesInConfig scenarioNames ->
             $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"

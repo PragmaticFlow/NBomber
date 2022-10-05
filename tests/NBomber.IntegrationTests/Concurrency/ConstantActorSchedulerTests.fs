@@ -42,7 +42,6 @@ let internal baseActorDep = {
         ExecStopCommand = fun _ -> ()
         MaxFailCount = Constants.DefaultMaxFailCount
     }
-    GetStepOrder = Scenario.getStepOrder
     ExecSteps = RunningStep.execSteps
 }
 

@@ -33,7 +33,6 @@ open NBomber.DomainServices.TestHost.ReportingManager
 
 type internal TestHost(dep: IGlobalDependency,
                        regScenarios: Scenario list,
-                       getStepOrder: Scenario -> int[],
                        execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) as this =
 
     let _log = dep.Logger.ForContext<TestHost>()
@@ -65,7 +64,6 @@ type internal TestHost(dep: IGlobalDependency,
                                  (operation: ScenarioOperation)
                                  (getScenarioClusterCount: ScenarioName -> int)
                                  (createStatsActor: ILogger -> Scenario -> TimeSpan -> ScenarioStatsActor)
-                                 (getStepOrder: Scenario -> int[])
                                  (execSteps: StepDep -> RunningStep[] -> int[] -> Task<unit>) =
 
         let createScheduler (scn: Scenario) =
@@ -80,7 +78,6 @@ type internal TestHost(dep: IGlobalDependency,
                     ExecStopCommand = execStopCommand
                     MaxFailCount = _sessionArgs.GetMaxFailCount()
                 }
-                GetStepOrder = getStepOrder
                 ExecSteps = execSteps
             }
             let count = getScenarioClusterCount scn.ScenarioName
@@ -247,7 +244,7 @@ type internal TestHost(dep: IGlobalDependency,
             createStatsActor
             |> Option.defaultValue ScenarioStatsActor.createDefault
 
-        createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor getStepOrder execSteps
+        createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor execSteps
 
     member _.GetRealtimeStats(duration) =
         _currentSchedulers |> List.map(fun x -> x.AllRealtimeStats.TryFind duration) |> Option.sequence

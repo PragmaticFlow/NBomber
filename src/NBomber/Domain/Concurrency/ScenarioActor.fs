@@ -6,13 +6,13 @@ open System.Threading.Tasks
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
+open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ActorDep = {
     ScenarioDep: ScenarioDep
-    GetStepOrder: Scenario -> int[]
     ExecSteps: StepDep -> RunningStep[] -> int[] -> Task<unit> // stepDep steps stepsOrder
 }
 
@@ -47,8 +47,8 @@ type ScenarioActor(dep: ActorDep, scenarioInfo: ScenarioInfo) =
                     _stepDep.Data.Clear()
 
                     try
-                        let stepsOrder = dep.GetStepOrder _scenario
-                        do! dep.ExecSteps _stepDep _steps stepsOrder
+                        let stepOrder = Scenario.getStepOrder _scenario
+                        do! dep.ExecSteps _stepDep _steps stepOrder
                     with
                     | ex ->
                         _logger.Error(ex, $"Unhandled exception for Scenario: {_scenario.ScenarioName}")

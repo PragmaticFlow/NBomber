@@ -30,7 +30,6 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Compile Include="NBomberContextTests.fs" />
-        <Compile Include="StepTests.fs" />
         <Compile Include="ScenarioStatsActorTests.fs" />
         <Compile Include="StatisticsTests.fs" />
         <Compile Include="ConfigurationTests.fs" />
@@ -57,6 +56,8 @@
         <Compile Include="ScenarioTests\WarmUpTests.fs" />
         <Compile Include="ScenarioTests\InitCleanStopTests.fs" />
         <Compile Include="ScenarioTests\TestHostScenarioTests.fs" />
+        <Compile Include="StepTests\StepTests.fs" />
+        <Compile Include="StepTests\CustomStepOrderTests.fs" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />

@@ -37,23 +37,10 @@ module EnterpriseValidation =
         else
             Ok()
 
-    let validateCustomStepOrder (context: NBomberContext) =
-        let scenarios =
-            context.RegisteredScenarios
-            |> List.filter(fun x -> x.CustomStepOrder.IsSome)
-            |> List.map(fun x -> x.ScenarioName)
-
-        if scenarios.Length > 0 then
-            let names = scenarios |> String.concatWithComma
-            Error(EnterpriseOnlyFeature $"Scenario: '{names}' is using CustomStepOrder feature that supported only for the Enterprise version")
-        else
-            Ok()
-
     let validate (dep: IGlobalDependency) (context: NBomberContext) =
         result {
             do! validateReportingSinks dep
             do! validateStepInterception context
-            do! validateCustomStepOrder context
             return context
         }
         |> Result.mapError AppError.create
@@ -87,26 +74,6 @@ module Validation =
         if duplicates.Length > 0 then Error(DuplicateScenarioNamesInConfig duplicates)
         else Ok settings
 
-    let checkCustomStepOrderSettings (scenarios: DomainTypes.Scenario list) (settings: ScenarioSetting list) =
-        settings
-        |> List.collect(fun set ->
-            option {
-                let! stepOrderNames = set.CustomStepOrder
-                let! scn = scenarios |> List.tryFind(fun x -> x.ScenarioName = set.ScenarioName)
-                let stepNames = scn.Steps |> List.map(fun x -> x.StepName)
-                return
-                    stepOrderNames
-                    |> Seq.choose(fun name ->
-                        if not(stepNames |> String.contains name) then Some(set.ScenarioName, name)
-                        else None
-                    )
-                    |> Seq.map(fun (scnName, stName) -> CustomStepOrderContainsNotFoundStepName(scnName, stName))
-                    |> Seq.toList
-            }
-            |> Option.defaultValue List.empty
-        )
-        |> List.fold(fun st error -> if Result.isError st then st else Error error) (Ok settings)
-
 let getTestSuite (context: NBomberContext) =
     context.NBomberConfig
     |> Option.bind(fun x -> x.TestSuite)
@@ -125,10 +92,7 @@ let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBombe
     }
     context
     |> tryGetFromConfig
-    |> Option.map(
-        Validation.checkDuplicateScenarioSettings
-        >=> Validation.checkCustomStepOrderSettings scenarios
-    )
+    |> Option.map Validation.checkDuplicateScenarioSettings
     |> Option.defaultValue(Ok List.empty)
 
 let getTargetScenarios (context: NBomberContext) =

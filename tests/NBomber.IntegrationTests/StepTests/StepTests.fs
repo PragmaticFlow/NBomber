@@ -1,4 +1,4 @@
-﻿module Tests.Step
+﻿module Tests.Step.BasicTests
 
 open System
 open System.Collections.Generic

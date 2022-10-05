@@ -187,7 +187,12 @@ let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: C
     |> Seq.toArray
 
 let getStepOrder (scenario: Scenario) =
-    scenario.DefaultStepOrder
+    match scenario.CustomStepOrder with
+    | Some getStepOrder ->
+        getStepOrder()
+        |> Array.map(fun stName -> scenario.StepOrderIndex[stName])
+
+    | None -> scenario.DefaultStepOrder
 
 let createScenario (scn: Contracts.Scenario) = result {
     let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
@@ -252,8 +257,7 @@ let applySettings (settings: ScenarioSetting list) (defaultStepTimeout: TimeSpan
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = settings.WarmUpDuration
                         PlanedDuration = timeLine.ScenarioDuration
-                        CustomSettings = settings.CustomSettings |> Option.defaultValue ""
-                        CustomStepOrder = settings.CustomStepOrder |> Option.map(fun x -> fun () -> x) }
+                        CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 
     let updateStepTimeout (defaultStepTimeout: TimeSpan) (step: Step) =
         if step.Timeout = TimeSpan.Zero then
