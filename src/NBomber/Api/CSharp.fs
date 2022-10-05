@@ -267,7 +267,7 @@ type NBomberRunner =
 
     /// Sets and overrides the default max fail count.
     /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
-    /// By default MaxFailCount = 500
+    /// By default MaxFailCount = 10_000
     [<Extension>]
     static member WithMaxFailCount(context: NBomberContext, failCount: int) =
         context |> FSharp.NBomberRunner.withMaxFailCount failCount

@@ -294,7 +294,7 @@ module NBomberRunner =
 
     /// Sets and overrides the default max fail count.
     /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
-    /// By default MaxFailCount = 500
+    /// By default MaxFailCount = 10_000
     let withMaxFailCount (failCount: int) (context: NBomberContext) =
         { context with MaxFailCount = failCount }
 
