@@ -294,7 +294,7 @@ module NBomberRunner =
 
     /// Sets and overrides the global default step timeout.
     /// This value will be applied for steps that have not set timeout.
-    /// By default DefaultStepTimeout = 1 second
+    /// By default DefaultStepTimeout = 5 second
     let withDefaultStepTimeout (timeout: TimeSpan) (context: NBomberContext) =
         { context with DefaultStepTimeoutMs = int timeout.TotalMilliseconds }
 
