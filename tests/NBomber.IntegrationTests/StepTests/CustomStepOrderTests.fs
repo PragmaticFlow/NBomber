@@ -28,6 +28,7 @@ let ``withCustomStepOrder should allow to run steps with custom order`` () =
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> Scenario.withCustomStepOrder(fun () -> [| "step_2" |])
     |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->

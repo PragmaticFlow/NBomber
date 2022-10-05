@@ -5,6 +5,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Extensions.Internal
 open NBomber.Infra.Dependency
@@ -34,4 +35,22 @@ let stop (logger: ILogger) (sinks: IReportingSink list) = backgroundTask {
             do! sink.Stop()
         with
         | ex -> logger.Warning(ex, "Failed to stop reporting sink: {SinkName}", sink.SinkName)
+}
+
+let saveRealtimeStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = backgroundTask {
+    if dep.NodeType <> NodeType.Agent then
+        for sink in dep.ReportingSinks do
+            try
+                do! sink.SaveRealtimeStats stats
+            with
+            | ex -> dep.Logger.Fatal(ex, "Reporting sink: {SinkName} failed to save scenario stats", sink.SinkName)
+}
+
+let saveFinalStats (dep: IGlobalDependency) (finalStats: NodeStats) = backgroundTask {
+    if dep.NodeType <> NodeType.Agent then
+        for sink in dep.ReportingSinks do
+            try
+                do! sink.SaveFinalStats finalStats
+            with
+            | ex -> dep.Logger.Fatal(ex, "Reporting sink: {SinkName} failed to save scenario stats", sink.SinkName)
 }

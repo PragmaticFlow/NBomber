@@ -91,7 +91,7 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
     | ex -> logger.Error(ex, "Report.save failed")
             Array.empty
 
-let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) = backgroundTask {
+let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
 
     let fileName = context |> NBomberContext.getReportFileNameOrDefault DateTime.UtcNow
     let folder   = context |> NBomberContext.getReportFolderOrDefault stats.TestInfo.SessionId
@@ -101,12 +101,6 @@ let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (
 
     if formats.Length > 0 then
         let reportFiles = saveToFolder(dep.Logger, folder, fileName, formats, report)
-        let finalStats = { stats with ReportFiles = reportFiles }
-
-        if dep.NodeType <> NodeType.Agent then
-            do! dep.ReportingSinks |> List.map(fun x -> x.SaveFinalStats finalStats) |> Task.WhenAll
-
-        return finalStats
+        { stats with ReportFiles = reportFiles }
     else
-        return stats
-}
+        stats

@@ -1,5 +1,8 @@
 namespace Tests.TestHelper
 
+open System
+open System.Data
+
 open Serilog
 open Serilog.Sinks.InMemory
 
@@ -87,3 +90,46 @@ module List =
     let averageOrDefault (defaultValue: float) list =
         if List.isEmpty list then defaultValue
         else list |> List.average
+
+module internal PluginStatisticsHelper =
+
+    let private getPluginStatisticsColumns (prefix: string) =
+        let colKey = new DataColumn("Key", Type.GetType("System.String"))
+        colKey.Caption <- $"%s{prefix}ColumnKey"
+
+        let colValue = new DataColumn("Value", Type.GetType("System.String"))
+        colValue.Caption <- $"%s{prefix}ColumnValue"
+
+        let colType = new DataColumn("Type", Type.GetType("System.String"))
+        colType.Caption <- $"%s{prefix}ColumnType"
+
+        [| colKey; colValue; colType |]
+
+    let private getPluginStatisticsRows (count: int) (prefix: string) (table: DataTable) = [|
+        for i in 1 .. count do
+            let row = table.NewRow()
+            row["Key"] <- $"%s{prefix}RowKey%i{i}"
+            row["Value"] <- $"%s{prefix}RowValue%i{i}"
+            row["Type"] <- $"%s{prefix}RowType%i{i}"
+            yield row
+    |]
+
+    let private createTable (prefix: string) =
+        let tableName = $"%s{prefix}Table"
+        let table = new DataTable(tableName)
+
+        prefix
+        |> getPluginStatisticsColumns
+        |> table.Columns.AddRange
+
+        table
+        |> getPluginStatisticsRows 10 prefix
+        |> Array.iter(fun x -> x |> table.Rows.Add)
+
+        table
+
+    let createPluginStats () =
+        let pluginStats = new DataSet()
+        pluginStats.Tables.Add(createTable("PluginStatistics1"))
+        pluginStats.Tables.Add(createTable("PluginStatistics2"))
+        pluginStats

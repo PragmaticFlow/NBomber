@@ -236,6 +236,12 @@ module NBomberRunner =
         let report = { context.Reporting with ReportingInterval = interval }
         { context with Reporting = report }
 
+    /// Sets reporting sinks.
+    /// Reporting sink is used to save real-time metrics to correspond database
+    let withReportingSinks (reportingSinks: IReportingSink list) (context: NBomberContext) =
+        let report = { context.Reporting with Sinks = reportingSinks }
+        { context with Reporting = report }
+
     /// Sets worker plugins.
     /// Worker plugin is a plugin that starts at the test start and works as a background worker.
     let withWorkerPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =

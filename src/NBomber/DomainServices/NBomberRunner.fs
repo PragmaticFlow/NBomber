@@ -19,16 +19,16 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
         dep.Logger.Information "NBomber started as single node"
 
-        let! ctx = NBomberContext.EnterpriseValidation.validate dep context
-
-        let! scenarios = ctx |> NBomberContext.createScenarios
-        let! sessionArgs = ctx |> NBomberContext.createSessionArgs testInfo scenarios
+        let! scenarios = context |> NBomberContext.createScenarios
+        let! sessionArgs = context |> NBomberContext.createSessionArgs testInfo scenarios
         use testHost = new TestHost(dep, scenarios)
         let! result = testHost.RunSession(sessionArgs)
 
-        let! finalStats =
+        let finalStats =
             Report.build dep.Logger result testHost.TargetScenarios
-            |> Report.save dep ctx result.FinalStats
+            |> Report.save dep context result.FinalStats
+
+        do! ReportingSinks.saveFinalStats dep finalStats
 
         return { result with FinalStats = finalStats }
     }

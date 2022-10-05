@@ -1,4 +1,4 @@
-module Tests.ReportingConfiguration
+module Tests.Reporting.ReportingConfiguration
 
 open System.IO
 open System.Threading.Tasks

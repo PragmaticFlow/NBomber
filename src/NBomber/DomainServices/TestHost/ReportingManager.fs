@@ -64,8 +64,7 @@ let getSessionResult (dep: IGlobalDependency)
 
 type ReportingManager(dep: IGlobalDependency,
                       schedulers: ScenarioScheduler list,
-                      sessionArgs: SessionArgs,
-                      saveRealtimeStats: ScenarioStats[] -> Task<unit>) =
+                      sessionArgs: SessionArgs) =
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
     let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
@@ -89,7 +88,7 @@ type ReportingManager(dep: IGlobalDependency,
                 schedulers
                 |> List.map(fun x -> x.BuildRealtimeStats duration)
                 |> Task.WhenAll
-                |> Task.map saveRealtimeStats
+                |> Task.map(ReportingSinks.saveRealtimeStats dep)
                 |> ignore
             else
                 _buildRealtimeStatsTimer.Stop()
@@ -105,5 +104,4 @@ type ReportingManager(dep: IGlobalDependency,
             _buildRealtimeStatsTimer.Dispose()
 
 let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (sessionArgs: SessionArgs) =
-    let saveStats = fun _ -> Task.FromResult()
-    new ReportingManager(dep, schedulers, sessionArgs, saveStats) :> IReportingManager
+    new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager

@@ -1,4 +1,4 @@
-module Tests.CSVReporting
+module Tests.Reporting.CSVReporting
 
 open System.IO
 open System.Threading.Tasks
@@ -57,7 +57,7 @@ let ``CSV report should be formatted properly`` () =
 
     let files = Directory.GetFiles("./my_csv_reports", searchPattern = "*.*", searchOption = SearchOption.TopDirectoryOnly)
 
-    let csvRows = 
+    let csvRows =
         files
         |> Seq.map(FileInfo)
         |> Seq.find(fun s -> [".csv"] |> Seq.contains s.Extension)
@@ -73,4 +73,4 @@ let ``CSV report should be formatted properly`` () =
 
 
 
-        
+

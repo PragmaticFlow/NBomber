@@ -7,30 +7,12 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Extensions.Internal
-open NBomber.Extensions.Operator.Result
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Errors
 open NBomber.Domain
-open NBomber.Infra.Dependency
-
-module EnterpriseValidation =
-
-    let validateReportingSinks (dep: IGlobalDependency) =
-        match dep.NodeType with
-        | SingleNode when dep.ReportingSinks.Length > 0 ->
-            Error(EnterpriseOnlyFeature "ReportingSinks feature supported only for the Enterprise version")
-        | _ ->
-            Ok()
-
-    let validate (dep: IGlobalDependency) (context: NBomberContext) =
-        result {
-            do! validateReportingSinks dep
-            return context
-        }
-        |> Result.mapError AppError.create
 
 module Validation =
 
