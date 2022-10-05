@@ -8,10 +8,10 @@ open System.Threading.Tasks
 open Serilog
 
 open NBomber.Contracts
-open NBomber.Domain.ClientPool
 
 type SessionId = string
 type ScenarioName = string
+[<Measure>] type scenarioDuration
 
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
@@ -32,16 +32,13 @@ type UntypedStepContext = {
 
 type Step = {
     StepName: string
-    ClientFactory: ClientFactory<obj> option
-    ClientInterception: (IClientInterceptionContext<obj> -> int) option
-    ClientPool: ClientPool option
+    ClientFactory: IUntypedClientFactory option
     Execute: UntypedStepContext -> Task<Response>
     Feed: IFeed<obj> option
     Timeout: TimeSpan
     DoNotTrack: bool
     IsPause: bool
 } with
-
     interface IStep with
         member this.StepName = this.StepName
         member this.DoNotTrack = this.DoNotTrack
@@ -61,8 +58,6 @@ type LoadTimeSegment = {
 }
 
 type LoadTimeLine = LoadTimeSegment list
-
-[<Measure>] type scenarioDuration
 
 type Scenario = {
     ScenarioName: string

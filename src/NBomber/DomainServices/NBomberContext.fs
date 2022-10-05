@@ -49,27 +49,11 @@ module EnterpriseValidation =
         else
             Ok()
 
-    let validateClientInterception (context: NBomberContext) =
-        let steps =
-            context.RegisteredScenarios
-            |> List.collect(fun x -> x.Steps)
-            |> Seq.cast<DomainTypes.Step>
-            |> Seq.filter(fun x -> x.ClientInterception.IsSome)
-            |> Seq.map(fun x -> x.StepName)
-            |> Seq.toList
-
-        if steps.Length > 0 then
-            let names = steps |> String.concatWithComma
-            Error(EnterpriseOnlyFeature $"Step: '{names}' is using ClientInterception feature that supported only for the Enterprise version")
-        else
-            Ok()
-
     let validate (dep: IGlobalDependency) (context: NBomberContext) =
         result {
             do! validateReportingSinks dep
             do! validateStepInterception context
             do! validateCustomStepOrder context
-            do! validateClientInterception context
             return context
         }
         |> Result.mapError AppError.create
@@ -142,7 +126,6 @@ let getScenariosSettings (scenarios: DomainTypes.Scenario list) (context: NBombe
     context
     |> tryGetFromConfig
     |> Option.map(
-        //Validation.checkLoadSimulationsSettings
         Validation.checkDuplicateScenarioSettings
         >=> Validation.checkCustomStepOrderSettings scenarios
     )
@@ -265,10 +248,12 @@ let getClientFactorySettings (context: NBomberContext) =
         return scnSettings |> List.collect(fun scn ->
             option {
                 let! factorySettings = scn.ClientFactorySettings
-                return factorySettings |> List.map(fun pool ->
-                    let newName = ClientFactory.createFullName pool.FactoryName scn.ScenarioName
-                    { pool with FactoryName = newName }
-                )
+                return
+                    factorySettings
+                    |> List.map(fun factorySetting ->
+                        let newName = ClientFactory.createFullName factorySetting.FactoryName scn.ScenarioName
+                        { factorySetting with FactoryName = newName }
+                    )
             }
             |> Option.defaultValue List.empty
         )

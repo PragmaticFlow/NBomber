@@ -13,7 +13,6 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.ClientPool
 open NBomber.Domain.Stats.ScenarioStatsActor
 
 type ScenarioDep = {
@@ -45,20 +44,19 @@ module StepContext =
         with
         | ex -> Unchecked.defaultof<'T>
 
+    let getClient (scnInfo: ScenarioInfo) (factory: IUntypedClientFactory option) =
+        match factory with
+        | Some v ->
+            let index = scnInfo.ThreadNumber % v.ClientCount
+            v.GetClient index
+
+        | None -> Unchecked.defaultof<_>
+
     let createUntyped (dep: StepDep) (step: Step) =
-
-        let getClient (pool: ClientPool option) =
-            match pool with
-            | Some v ->
-                let index = dep.ScenarioInfo.ThreadNumber % v.InitializedClients.Length
-                v.InitializedClients[index]
-
-            | None -> Unchecked.defaultof<_>
-
         { StepName = step.StepName
           ScenarioInfo = dep.ScenarioInfo
           CancellationTokenSource = new CancellationTokenSource()
-          Client = getClient step.ClientPool
+          Client = getClient dep.ScenarioInfo step.ClientFactory
           Logger = dep.ScenarioDep.Logger
           FeedItem = ()
           Data = Dictionary<string,obj>()
@@ -86,46 +84,10 @@ module StepContext =
             let typed = create untyped
             execute typed
 
-module StepClientContext =
-
-    let create (untyped: UntypedStepContext) (clientCount: int) = {
-        new IClientInterceptionContext<'TFeedItem> with
-            member _.StepName = untyped.StepName
-            member _.StepInvocationNumber = untyped.InvocationNumber
-            member _.ScenarioInfo = untyped.ScenarioInfo
-            member _.Logger = untyped.Logger
-            member _.Data = untyped.Data
-            member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-            member _.ClientCount = clientCount
-    }
-
-    let toUntyped (getClientNumber: IClientInterceptionContext<'TFeedItem> -> int) =
-        fun (untyped: IClientInterceptionContext<obj>) ->
-            let typed = {
-                new IClientInterceptionContext<'TFeedItem> with
-                    member _.StepName = untyped.StepName
-                    member _.StepInvocationNumber = untyped.StepInvocationNumber
-                    member _.ScenarioInfo = untyped.ScenarioInfo
-                    member _.Logger = untyped.Logger
-                    member _.Data = untyped.Data
-                    member _.FeedItem = untyped.FeedItem :?> 'TFeedItem
-                    member _.ClientCount = untyped.ClientCount
-            }
-            getClientNumber typed
-
 module RunningStep =
 
     let create (dep: StepDep) (stepIndex: int) (step: Step) =
         { StepIndex = stepIndex; Value = step; Context = StepContext.createUntyped dep step }
-
-    let getClient (context: UntypedStepContext) (clientPool: ClientPool option) =
-
-        match clientPool with
-        | Some pool ->
-            let index = context.ScenarioInfo.ThreadNumber % pool.InitializedClients.Length
-            pool.InitializedClients[index]
-
-        | _ -> Unchecked.defaultof<_>
 
     let updateContext (step: RunningStep) (data: Dictionary<string,obj>) (cancelToken: CancellationTokenSource) =
         let st = step.Value
@@ -141,7 +103,7 @@ module RunningStep =
         context.Data <- data
         context.FeedItem <- feedItem
         // context.Client should be set as the last field because init order matter here
-        context.Client <- getClient context st.ClientPool
+        context.Client <- StepContext.getClient context.ScenarioInfo st.ClientFactory
 
         step
 

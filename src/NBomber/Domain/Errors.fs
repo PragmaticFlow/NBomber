@@ -25,7 +25,8 @@ type ValidationError =
     | SessionIsWrong
     | ReportingIntervalSmallerThanMin
     | InvalidClientFactoryName of factoryName:string
-    | DuplicateClientFactoryName of scenarioName:string * factoryName:string
+    | DuplicateClientFactoryName of factoryName:string
+    | MultipleClientFactoryAssign of factoryNames:string list
     | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
 
     // ScenarioSettings
@@ -53,8 +54,8 @@ type AppError =
 
     static member toString (error: DomainError) =
         match error with
-        | InitScenarioError ex  -> $"Init scenario error: {ex.ToString()}"
-        | CleanScenarioError ex -> $"Clean scenario error: {ex.ToString()}"
+        | InitScenarioError ex  -> $"Init scenario error: '{ex.ToString()}'"
+        | CleanScenarioError ex -> $"Clean scenario error: '{ex.ToString()}'"
 
     static member toString (error: ValidationError) =
         match error with
@@ -90,10 +91,13 @@ type AppError =
             $"ReportingInterval should be bigger than min value: '{int Constants.MinReportingInterval.TotalSeconds}'"
 
         | InvalidClientFactoryName factoryName ->
-            $"ClientFactory: '{factoryName}' contains not allowed symbol '@'"
+            $"Client factory: '{factoryName}' contains not allowed symbol '@'"
 
-        | DuplicateClientFactoryName (scenarioName, factoryName) ->
-            $"Scenario: '{scenarioName}' contains client factories with duplicated name: '{factoryName}'"
+        | DuplicateClientFactoryName factoryName ->
+            $"Client factory: '{factoryName}' contains duplicated name. The client factory name should be unique across all registered scenarios."
+
+        | MultipleClientFactoryAssign factories ->
+            $"Client factories: '{String.concatWithComma factories}' assigned to multiple scenarios. The client factory instance should be assigned to only one scenario."
 
         | DuplicateStepNameButDiffImpl (scenarioName, stepName) ->
             $"Scenario: '{scenarioName}' contains steps that has duplicate name and different implementations: '{stepName}'. You registered several steps with the same name but different implementations"

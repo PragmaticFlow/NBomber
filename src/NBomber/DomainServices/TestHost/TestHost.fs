@@ -92,16 +92,6 @@ type internal TestHost(dep: IGlobalDependency,
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())
 
-    let initScenarios (consoleStatus: StatusContext option) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
-
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
-
-        do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
-        do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
-
-        return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
-    }
-
     let startScenarios (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager option) = backgroundTask {
 
         let isWarmUp = reportingManager.IsNone
@@ -136,16 +126,24 @@ type internal TestHost(dep: IGlobalDependency,
             do! dep.ReportingSinks |> ReportingSinks.stop _log
     }
 
-    let cleanScenarios (sessionArgs: SessionArgs)
-                       (consoleStatus: StatusContext option)
-                       (cancelToken: CancellationToken)
-                       (scenarios: Scenario list) =
+    let startInit (consoleStatus: StatusContext option) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
 
-        let baseContext       = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
-        let defaultScnContext = Scenario.ScenarioContext.create baseContext
-        let enabledScenarios  = scenarios |> List.filter(fun x -> x.IsEnabled)
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
 
-        TestHostScenario.cleanScenarios dep consoleStatus baseContext defaultScnContext enabledScenarios
+        do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
+        do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
+
+        return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
+    }
+
+    let startClean (sessionArgs: SessionArgs)
+                   (consoleStatus: StatusContext option)
+                   (cancelToken: CancellationToken)
+                   (scenarios: Scenario list) =
+
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
+        let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
+        TestHostScenario.cleanScenarios dep consoleStatus baseContext enabledScenarios
 
     member _.SessionArgs = _sessionArgs
     member _.CurrentOperation = _currentOperation
@@ -163,7 +161,7 @@ type internal TestHost(dep: IGlobalDependency,
 
         TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
             use cancelToken = new CancellationTokenSource()
-            match! initScenarios consoleStatus cancelToken.Token sessionArgs with
+            match! startInit consoleStatus cancelToken.Token sessionArgs with
             | Ok initializedScenarios ->
                 _log.Information "Init finished"
                 cancelToken.Cancel()
@@ -228,7 +226,7 @@ type internal TestHost(dep: IGlobalDependency,
                 use cancelToken = new CancellationTokenSource()
                 stopSchedulers _currentSchedulers
 
-                do! cleanScenarios _sessionArgs consoleStatus cancelToken.Token _targetScenarios
+                do! startClean _sessionArgs consoleStatus cancelToken.Token _targetScenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None

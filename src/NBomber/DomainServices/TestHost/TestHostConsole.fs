@@ -4,7 +4,6 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
-open FSharp.Control.Reactive
 open FsToolkit.ErrorHandling
 open Spectre.Console
 
@@ -15,7 +14,6 @@ open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
-open NBomber.Domain.ClientPool
 open NBomber.Infra
 open NBomber.Infra.Dependency
 
@@ -31,37 +29,6 @@ let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusConte
     else
         dep.Logger.Information msg
         runAction None
-
-let displayClientPoolProgress (dep: IGlobalDependency, consoleStatus: StatusContext option, pool: ClientPool) =
-
-    if consoleStatus.IsSome then
-
-        pool.EventStream
-        |> Observable.takeWhile(function
-            | InitFinished -> false
-            | InitFailed   -> false
-            | _            -> true
-        )
-        |> Observable.subscribe(function
-            | StartedInit (poolName, clientCount) ->
-                dep.Logger.Information("Start init client factory: {0}, client count: {1}", poolName, clientCount)
-
-            | StartedDispose poolName ->
-                dep.Logger.Information("Start disposing client factory: {0}", poolName)
-
-            | ClientInitialized (poolName,number) ->
-                consoleStatus.Value.Status <- $"Initializing client factory: {Console.okColor poolName}, initialized client: {Console.blueColor number}"
-                consoleStatus.Value.Refresh()
-
-            | ClientDisposed (poolName,number,error) ->
-                consoleStatus.Value.Status <- $"Disposing client factory: {Console.okColor poolName}, disposed client: {Console.blueColor number}"
-                consoleStatus.Value.Refresh()
-                error |> Option.iter(fun ex -> dep.Logger.Error(ex, "Client exception occurred"))
-
-            | InitFinished
-            | InitFailed -> ()
-        )
-        |> ignore
 
 let printContextInfo (dep: IGlobalDependency) =
     dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
