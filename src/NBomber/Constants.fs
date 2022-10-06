@@ -68,4 +68,4 @@ let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 [<Literal>]
 let StatsRounding = 2
 [<Literal>]
-let DefaultMaxFailCount = 10_000
+let DefaultMaxFailCount = 5_000
