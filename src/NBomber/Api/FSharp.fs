@@ -247,25 +247,40 @@ module NBomberRunner =
     let withWorkerPlugins (plugins: IWorkerPlugin list) (context: NBomberContext) =
         { context with WorkerPlugins = plugins }
 
-    /// Loads configuration.
+    /// Loads configuration by full file path or by HTTP URL.
     /// The following formats are supported:
     /// - json (.json)
     let loadConfig (path: string) (context: NBomberContext) =
+
         let config =
-            match Path.GetExtension(path) with
-            | ".json" -> path |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig>
-            | _       -> failwith "unsupported config format"
+            if Uri.IsWellFormedUriString(path, UriKind.Absolute) then
+                use client = new System.Net.Http.HttpClient()
+                let configJson = client.GetStringAsync(path).Result
+                JsonExt.deserialize<NBomberConfig> configJson
+            else
+                match Path.GetExtension path with
+                | ".json" -> path |> File.ReadAllText |> JsonExt.deserialize<NBomberConfig>
+                | _       -> failwith "Unsupported config format"
 
-        { context with NBomberConfig = Some config }
+        if config.GlobalSettings.IsSome || config.TargetScenarios.IsSome || config.TestName.IsSome || config.TestSuite.IsSome then
+            { context with NBomberConfig = Some config }
+        else
+            failwith "NBomberConfig file is empty or doesn't follow the config format. Please read the documentation about NBomberConfig (JSON) format."
 
-    /// Loads infrastructure configuration.
+    /// Loads infrastructure configuration by full file path or by HTTP URL.
     /// The following formats are supported:
     /// - json (.json)
     let loadInfraConfig (path: string) (context: NBomberContext) =
+
         let config =
-            match Path.GetExtension(path) with
-            | ".json" -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
-            | _       -> failwith "unsupported config format"
+            if Uri.IsWellFormedUriString(path, UriKind.Absolute) then
+                use client = new System.Net.Http.HttpClient()
+                let configJson = client.GetStreamAsync(path).Result
+                ConfigurationBuilder().AddJsonStream(configJson).Build() :> IConfiguration
+            else
+                match Path.GetExtension path with
+                | ".json" -> ConfigurationBuilder().AddJsonFile(path).Build() :> IConfiguration
+                | _       -> failwith "Unsupported config format"
 
         { context with InfraConfig = Some config }
 

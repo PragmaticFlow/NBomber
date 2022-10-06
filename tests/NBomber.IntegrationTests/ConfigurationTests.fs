@@ -1,9 +1,12 @@
 ﻿namespace Tests.Configuration
 
+open System
 open System.IO
 
+open Microsoft.FSharp.Core
 open Xunit
 open FSharp.Json
+open Swensen.Unquote
 
 open NBomber.Configuration
 open NBomber.Extensions.Internal
@@ -25,11 +28,13 @@ module JsonConfig =
 
     [<Fact>]
     let ``parse() should throw ex if mandatory json fields are missing`` () =
-        Assert.Throws(typeof<JsonDeserializationError>,
-                      fun _ -> "Configuration/missing_fields_config.json"
-                                |> File.ReadAllText
-                                |> JsonExt.deserialize<NBomberConfig>
-                                |> ignore
+        Assert.Throws(
+            typeof<JsonDeserializationError>,
+            fun _ ->
+                "Configuration/missing_fields_config.json"
+                |> File.ReadAllText
+                |> JsonExt.deserialize<NBomberConfig>
+                |> ignore
         )
 
     [<Fact>]
@@ -52,6 +57,30 @@ module JsonConfig =
 module NBomberRunner =
 
     [<Fact>]
+    let ``loadConfig should support load config via HTTP URL`` () =
+
+        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/config.json"
+
+        Scenario.create "scenario_1" []
+        |> NBomberRunner.registerScenario
+        |> NBomberRunner.loadConfig url
+        |> fun nbContext ->
+            test <@ nbContext.NBomberConfig.IsSome @>
+
+    [<Fact>]
+    let ``loadConfig should throw exception if config is empty or doesn't follow NBomberConfig format`` () =
+        Assert.Throws(
+            typeof<Exception>,
+            fun _ ->
+                let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber.Enterprise.Examples/main/examples/ClusterSimpleHttpDemo/coordinator-config.json"
+
+                Scenario.create "scenario_1" []
+                |> NBomberRunner.registerScenario
+                |> NBomberRunner.loadConfig url
+                |> ignore
+        )
+
+    [<Fact>]
     let ``loadInfraConfig should parse json config successfully`` () =
         NBomberRunner.registerScenarios []
         |> NBomberRunner.withoutReports
@@ -66,3 +95,15 @@ module NBomberRunner =
                      |> NBomberRunner.loadInfraConfig "Configuration/infra_config_2.json"
                      |> ignore
         )
+
+    [<Fact>]
+    let ``loadInfraConfig should support load config via HTTP URL`` () =
+
+        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/infra-config.json"
+
+        Scenario.create "scenario_1" []
+        |> NBomberRunner.registerScenario
+        |> NBomberRunner.loadInfraConfig url
+        |> fun nbContext ->
+            test <@ nbContext.InfraConfig.IsSome @>
+            test <@ not (String.IsNullOrEmpty(nbContext.InfraConfig.Value.GetSection("PingPlugin:Ttl").Value)) @>

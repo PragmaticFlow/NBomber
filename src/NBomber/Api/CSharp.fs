@@ -236,14 +236,14 @@ type NBomberRunner =
         let pluginsList = plugins |> Seq.toList
         context |> FSharp.NBomberRunner.withWorkerPlugins(pluginsList)
 
-    /// Loads configuration.
+    /// Loads configuration by full file path or by HTTP URL.
     /// The following formats are supported:
     /// - json (.json)
     [<Extension>]
     static member LoadConfig(context: NBomberContext, path: string) =
         context |> FSharp.NBomberRunner.loadConfig(path)
 
-    /// Loads infrastructure configuration.
+    /// Loads infrastructure configuration by full file path or by HTTP URL.
     /// The following formats are supported:
     /// - json (.json)
     [<Extension>]
