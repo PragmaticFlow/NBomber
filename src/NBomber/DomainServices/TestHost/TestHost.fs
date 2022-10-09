@@ -5,7 +5,6 @@ open System.Threading
 open System.Threading.Tasks
 open System.Diagnostics
 open System.Runtime.InteropServices
-open Microsoft.FSharp.Collections
 
 open Serilog
 open Spectre.Console
@@ -49,7 +48,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         match command with
         | StopScenario (scenarioName, reason) ->
             _currentSchedulers
-            |> List.tryFind(fun sch -> sch.Scenario.ScenarioName = scenarioName)
+            |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
                 _log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
