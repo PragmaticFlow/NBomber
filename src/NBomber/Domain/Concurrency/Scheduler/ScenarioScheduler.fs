@@ -12,6 +12,7 @@ open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
 open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 
 [<Struct>]
 type SchedulerCommand =

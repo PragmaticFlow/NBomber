@@ -98,13 +98,12 @@ module StatusCodeStats =
 
 module StepStats =
 
-    let create (stepName: string)
-               (stepData: StepStatsRawData)
-               (stepTimeout: TimeSpan)
+    let create (stepTimeout: TimeSpan)
                (clientFactoryName: string)
                (clientFactoryClientCount: int)
                (feedName: string)
-               (duration: TimeSpan) =
+               (duration: TimeSpan)
+               (stepData: StepStatsRawData) =
 
         let okStats = {
             Request = RequestStats.create stepData.OkStats duration
@@ -120,7 +119,7 @@ module StepStats =
             StatusCodes = StatusCodeStats.create stepData.FailStats.StatusCodes
         }
 
-        { StepName = stepName
+        { StepName = stepData.StepName
           Ok = okStats
           Fail = failStats
           StepInfo = { Timeout = stepTimeout
@@ -138,26 +137,26 @@ module ScenarioStats =
         let simulation = scenario.LoadTimeLine.Head.LoadSimulation
         let simulationStats = LoadTimeLine.createSimulationStats(simulation, 0, 0)
 
-        let stepStats =
-            scenario.Steps
-            |> List.mapi(fun i st ->
-                if st.DoNotTrack then None
-                else
-                    let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
-                    let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
-                    let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
-                    let stepData = StepStatsRawData.createEmpty()
-                    Some (StepStats.create st.StepName stepData st.Timeout clName clCount fdName (TimeSpan.FromSeconds 5))
-            )
-            |> List.choose id
-            |> List.toArray
+        // let stepStats =
+        //     scenario.Steps
+        //     |> List.mapi(fun i st ->
+        //         if st.DoNotTrack then None
+        //         else
+        //             let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
+        //             let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
+        //             let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
+        //             let stepData = StepStatsRawData.createEmpty()
+        //             Some (StepStats.create st.StepName stepData st.Timeout clName clCount fdName (TimeSpan.FromSeconds 5))
+        //     )
+        //     |> List.choose id
+        //     |> List.toArray
 
         { ScenarioName = scenario.ScenarioName
           RequestCount = 0
           OkCount = 0
           FailCount = 0
           AllBytes = 0
-          StepStats = stepStats
+          StepStats = Array.empty // stepStats
           LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
           LoadSimulationStats = simulationStats
           StatusCodes = Array.empty
@@ -179,18 +178,20 @@ module ScenarioStats =
         let more800Less1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.More800Less1200 + x.FailStats.More800Less1200)
         let more1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.MoreOrEq1200 + x.FailStats.MoreOrEq1200)
 
-        let stepStats =
-            scenario.Steps
-            |> List.mapi(fun i st ->
-                if st.DoNotTrack then None
-                else
-                    let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
-                    let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
-                    let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
-                    Some (StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount fdName reportingInterval)
-            )
-            |> List.choose id
-            |> List.toArray
+        let stepStats = allStepsData |> Array.map(StepStats.create (TimeSpan.MinValue) "" 0 "" reportingInterval)
+
+        // let stepStats =
+        //     scenario.Steps
+        //     |> List.mapi(fun i st ->
+        //         if st.DoNotTrack then None
+        //         else
+        //             let clName = st.ClientFactory |> Option.map(fun x -> x.FactoryName |> ClientFactory.getOriginalName) |> Option.defaultValue "none"
+        //             let clCount = st.ClientFactory |> Option.map(fun x -> x.ClientCount) |> Option.defaultValue 0
+        //             let fdName = st.Feed |> Option.map(fun x -> x.FeedName) |> Option.defaultValue "none"
+        //             Some (StepStats.create st.StepName allStepsData[i] st.Timeout clName clCount fdName reportingInterval)
+        //     )
+        //     |> List.choose id
+        //     |> List.toArray
 
         let okCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.OkStats.StatusCodes)
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)

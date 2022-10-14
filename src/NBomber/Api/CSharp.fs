@@ -45,6 +45,9 @@ type Feed =
 /// Step represents a single user action like login, logout, etc.
 type Step =
 
+    static member Run (name: string, context: IFlowContext, run: Func<Task<FlowResponse<'T>>>) =
+        FSharp.Step.run(name, context, run.Invoke)
+
     /// Creates Step.
     /// Step represents a single user action like login, logout, etc.
     static member Create
@@ -115,34 +118,38 @@ type Step =
 /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
 /// You should think about Scenario as a system thread.
 [<Extension>]
-type ScenarioBuilder =
+type Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    static member CreateScenario(name: string, [<ParamArray>]steps: IStep[]) =
-        FSharp.Scenario.create name (Seq.toList steps)
+    static member Create(name: string, run: Func<IFlowContext,Task>) =
+        FSharp.Scenario.create(name, run.Invoke)
+
+    [<Extension>]
+    static member WithSteps(scenario: ScenarioArgs, step: IStep) =
+        { scenario with Steps = [step] }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
     [<Extension>]
-    static member WithInit(scenario: Scenario, initFunc: Func<IScenarioContext,Task>) =
+    static member WithInit(scenario: ScenarioArgs, initFunc: Func<IScenarioContext,Task>) =
         { scenario with Init = Some initFunc.Invoke }
 
     /// Cleans scenario's resources.
     [<Extension>]
-    static member WithClean(scenario: Scenario, cleanFunc: Func<IScenarioContext,Task>) =
+    static member WithClean(scenario: ScenarioArgs, cleanFunc: Func<IScenarioContext,Task>) =
         { scenario with Clean = Some cleanFunc.Invoke }
 
     /// Sets warm-up duration
     /// Warm-up will just simply start a scenario with a specified duration.
     [<Extension>]
-    static member WithWarmUpDuration(scenario: Scenario, duration: TimeSpan) =
+    static member WithWarmUpDuration(scenario: ScenarioArgs, duration: TimeSpan) =
         scenario |> FSharp.Scenario.withWarmUpDuration(duration)
 
     [<Extension>]
-    static member WithoutWarmUp(scenario: Scenario) =
+    static member WithoutWarmUp(scenario: ScenarioArgs) =
         scenario |> FSharp.Scenario.withoutWarmUp
 
     /// Sets load simulations.
@@ -150,14 +157,14 @@ type ScenarioBuilder =
     /// NBomber is always running simulations in sequential order that you defined them.
     /// All defined simulations are represent the whole Scenario duration.
     [<Extension>]
-    static member WithLoadSimulations(scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
+    static member WithLoadSimulations(scenario: ScenarioArgs, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
     /// Sets custom steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
     [<Extension>]
-    static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<string[]>) =
+    static member WithCustomStepOrder(scenario: ScenarioArgs, getStepsOrder: Func<string[]>) =
         scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
 
     /// Sets step interception handler.
@@ -166,7 +173,7 @@ type ScenarioBuilder =
     /// handler function will be invoked before each step.
     /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
     [<Extension>]
-    static member WithStepInterception(scenario: Scenario, handler: Func<IStepInterceptionContext voption, string voption>) =
+    static member WithStepInterception(scenario: ScenarioArgs, handler: Func<IStepInterceptionContext voption, string voption>) =
         scenario |> FSharp.Scenario.withStepInterception(handler.Invoke)
 
 [<Extension>]
@@ -174,7 +181,7 @@ type NBomberRunner =
 
     /// Registers scenarios in NBomber environment.
     /// Scenarios will be run in parallel.
-    static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
+    static member RegisterScenarios([<ParamArray>]scenarios: ScenarioArgs[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     /// Sets target scenarios among all registered that will execute
@@ -333,4 +340,13 @@ type ValueOption =
 
     static member Some(value: 'T) = ValueSome value
     static member None() = ValueNone
+
+[<Extension>]
+type OptionExtensions =
+
+    [<Extension>]
+    static member IsSome (option: Option<'T>) = option.IsSome
+
+    [<Extension>]
+    static member IsNone (option: Option<'T>) = option.IsNone
 

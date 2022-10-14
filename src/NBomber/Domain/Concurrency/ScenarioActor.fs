@@ -7,6 +7,7 @@ open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Step
 open NBomber.Domain.Stats.ScenarioStatsActor
 
@@ -15,6 +16,8 @@ type ScenarioActor(scnCtx: ScenarioExecContext, scenarioInfo: ScenarioInfo) =
     let _logger = scnCtx.Logger.ForContext<ScenarioActor>()
     let _scenario = scnCtx.Scenario
     let mutable _actorWorking = false
+
+    let _scenarioCtx = ScenarioContext(scenarioInfo, scnCtx)
 
     let _stepDep = {
         ScenarioExecContext = scnCtx
@@ -37,17 +40,20 @@ type ScenarioActor(scnCtx: ScenarioExecContext, scenarioInfo: ScenarioInfo) =
                     && not scnCtx.ScenarioCancellationToken.IsCancellationRequested
                     && _scenario.PlanedDuration.TotalMilliseconds > scnCtx.ScenarioTimer.Elapsed.TotalMilliseconds do
 
-                    _stepDep.Data.Clear()
+                    // _stepDep.Data.Clear()
 
                     try
-                        let stepOrder = Scenario.getStepOrder _scenario
-                        do! RunningStep.execSteps _stepDep _steps stepOrder
+                        if _scenario.Run.IsSome then
+                            do! _scenario.Run.Value(_scenarioCtx)
+
+                        // let stepOrder = Scenario.getStepOrder _scenario
+                        // do! RunningStep.execSteps _stepDep _steps stepOrder
                     with
                     | ex ->
                         _logger.Error(ex, $"Unhandled exception for Scenario: {_scenario.ScenarioName}")
-                        let response = Response.fail(statusCode = Constants.StepInternalClientErrorCode, error = ex.Message)
-                        let resp = { StepIndex = 0; ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 }
-                        scnCtx.ScenarioStatsActor.Publish(AddResponse resp)
+                        // let response = Response.fail(statusCode = Constants.StepInternalClientErrorCode, error = ex.Message)
+                        // let resp = { StepIndex = 0; ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 }
+                        // scnCtx.ScenarioStatsActor.Publish(AddResponse resp)
 
                     shouldRun <- runInfinite
             else

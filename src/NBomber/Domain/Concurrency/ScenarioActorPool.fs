@@ -2,7 +2,7 @@ module internal NBomber.Domain.Concurrency.ScenarioActorPool
 
 open NBomber.Domain
 open NBomber.Domain.Concurrency.ScenarioActor
-open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 
 [<Struct>]
 type ActorPoolResult = {

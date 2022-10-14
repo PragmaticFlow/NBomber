@@ -12,12 +12,14 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
+open NBomber.Contracts.Stats
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.ScenarioContext
 open NBomber.DomainServices
 
 /// DataFeed helps inject test data into your load test. It represents a data source.
@@ -53,6 +55,34 @@ module Feed =
 /// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]
 type Step =
+
+    static member run (name: string, context: IFlowContext, run: unit -> Task<FlowResponse<'T>>) = backgroundTask {
+        let ctx = context :?> ScenarioContext
+
+        if ctx.StopExecution then
+            return Domain.Step.emptyFail
+        else
+            let startTime = ctx.Timer.Elapsed.TotalMilliseconds
+            try
+                let! response = run()
+                let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+                let latency = endTime - startTime
+
+                let result = { StepName = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+                ctx.StatsActor.Publish(AddStepResult result)
+                return response
+            with
+            | ex ->
+                let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+                let latency = endTime - startTime
+
+                context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}, Step: {name}")
+
+                let error = FlowResponse.fail<'T>(ex, latencyMs = latency)
+                let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+                ctx.StatsActor.Publish(AddStepResult result)
+                return error
+    }
 
     static member private create
         (name: string,
@@ -133,11 +163,12 @@ module Scenario =
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    let create (name: string) (steps: IStep list): Contracts.Scenario =
+    let create (name: string, run: IFlowContext -> Task): ScenarioArgs =
         { ScenarioName = name
           Init = None
           Clean = None
-          Steps = steps
+          Run = Some run
+          Steps = List.empty
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           CustomStepOrder = None
@@ -145,32 +176,32 @@ module Scenario =
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
-    let withInit (initFunc: IScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
+    let withInit (initFunc: IScenarioContext -> Task<unit>) (scenario: ScenarioArgs) =
         { scenario with Init = Some(fun token -> initFunc(token) :> Task) }
 
     /// Cleans scenario's resources.
-    let withClean (cleanFunc: IScenarioContext -> Task<unit>) (scenario: Contracts.Scenario) =
+    let withClean (cleanFunc: IScenarioContext -> Task<unit>) (scenario: ScenarioArgs) =
         { scenario with Clean = Some(fun token -> cleanFunc(token) :> Task) }
 
     /// Sets warm-up duration
     /// Warm-up will just simply start a scenario with a specified duration.
-    let withWarmUpDuration (duration: TimeSpan) (scenario: Contracts.Scenario) =
+    let withWarmUpDuration (duration: TimeSpan) (scenario: ScenarioArgs) =
         { scenario with WarmUpDuration = Some duration }
 
-    let withoutWarmUp (scenario: Contracts.Scenario) =
+    let withoutWarmUp (scenario: ScenarioArgs) =
         { scenario with WarmUpDuration = None }
 
     /// Sets load simulations.
     /// Default value is: KeepConstant(copies = 1, during = minutes 1)
     /// NBomber is always running simulations in sequential order that you defined them.
     /// All defined simulations are represent the whole Scenario duration.
-    let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: Contracts.Scenario) =
+    let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: ScenarioArgs) =
         { scenario with LoadSimulations = loadSimulations }
 
     /// Sets custom steps order that will be used by NBomber Scenario executor.
     /// By default, all steps are executing sequentially but you can inject your custom order.
     /// getStepsOrder function will be invoked on every turn before steps list execution.
-    let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: Contracts.Scenario) =
+    let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: ScenarioArgs) =
         { scenario with CustomStepOrder = Some getStepsOrder }
 
     /// Sets step interception handler.
@@ -178,7 +209,7 @@ module Scenario =
     /// By default, all steps are executing sequentially but you can inject your custom step interception to change default order per step iteration.
     /// handler function will be invoked before each step.
     /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
-    let withStepInterception (handler: IStepInterceptionContext voption -> string voption) (scenario: Contracts.Scenario) =
+    let withStepInterception (handler: IStepInterceptionContext voption -> string voption) (scenario: ScenarioArgs) =
         { scenario with StepInterception = Some handler }
 
 /// NBomberRunner is responsible for registering and running scenarios.
@@ -187,12 +218,12 @@ module Scenario =
 module NBomberRunner =
 
     /// Registers scenario in NBomber environment.
-    let registerScenario (scenario: Contracts.Scenario) =
+    let registerScenario (scenario: ScenarioArgs) =
         { NBomberContext.empty with RegisteredScenarios = [scenario] }
 
     /// Registers scenarios in NBomber environment.
     /// Scenarios will be run in parallel.
-    let registerScenarios (scenarios: Contracts.Scenario list) =
+    let registerScenarios (scenarios: ScenarioArgs list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
     /// Sets target scenarios among all registered that will execute

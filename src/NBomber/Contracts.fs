@@ -20,7 +20,7 @@ type ReportingContext = {
 type NBomberContext = {
     TestSuite: string
     TestName: string
-    RegisteredScenarios: Scenario list
+    RegisteredScenarios: ScenarioArgs list
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
@@ -66,6 +66,13 @@ type CommandLineArgs = {
     [<Option('c', "config", HelpText = "NBomber configuration")>] Config: string
     [<Option('i', "infra", HelpText = "NBomber infra configuration")>] InfraConfig: string
     [<Option('t', "target", HelpText = "Target Scenarios")>] TargetScenarios: string seq
+}
+
+type StepResult = {
+    StepName: string
+    ClientResponse: IResponse
+    EndTimeMs: float
+    LatencyMs: float
 }
 
 type StepResponse = {

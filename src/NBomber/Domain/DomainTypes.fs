@@ -63,6 +63,7 @@ type Scenario = {
     ScenarioName: string
     Init: (IScenarioContext -> Task) option
     Clean: (IScenarioContext -> Task) option
+    Run: (IFlowContext -> Task) option
     Steps: Step list
     LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan option

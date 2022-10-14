@@ -16,7 +16,7 @@ open NBomber.Domain
 
 module Validation =
 
-    let checkAvailableTargets (regScenarios: Scenario list) (targetScenarios: string list) =
+    let checkAvailableTargets (regScenarios: ScenarioArgs list) (targetScenarios: string list) =
         let allScenarios = regScenarios |> List.map(fun x -> x.ScenarioName)
         let notFoundScenarios = targetScenarios |> List.except allScenarios
 

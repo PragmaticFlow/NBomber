@@ -5,6 +5,7 @@ open System
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 
 [<Struct>]
 type SchedulerCommand =

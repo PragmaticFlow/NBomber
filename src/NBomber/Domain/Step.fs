@@ -13,24 +13,48 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats.ScenarioStatsActor
 
-type ScenarioExecContext = {
-    Logger: ILogger
-    Scenario: Scenario
-    ScenarioCancellationToken: CancellationTokenSource
-    ScenarioTimer: Stopwatch
-    ScenarioOperation: ScenarioOperation
-    ScenarioStatsActor: ScenarioStatsActor
-    ExecStopCommand: StopCommand -> unit
-    MaxFailCount: int
-}
+let emptyFail<'T> : FlowResponse<'T> =
+    { StatusCode = Nullable()
+      IsError = true
+      SizeBytes = 0
+      Message = String.Empty
+      LatencyMs = 0
+      Payload = None }
 
-type StepExecContext = {
-    ScenarioExecContext: ScenarioExecContext
-    ScenarioInfo: ScenarioInfo
-    Data: Dictionary<string,obj>
-}
+// let startTime = globalTimer.Elapsed.TotalMilliseconds
+//         try
+//             let responseTask = step.Value.Execute(step.Context)
+//
+//             // for pause we skip timeout logic
+//             if step.Value.IsPause then
+//                 let! pause = responseTask
+//                 return { StepIndex = step.StepIndex; ClientResponse = pause; EndTimeMs = 0.0; LatencyMs = 0.0 }
+//             else
+//                 let! finishedTask = Task.WhenAny(responseTask, Task.Delay step.Value.Timeout)
+//                 let endTime = globalTimer.Elapsed.TotalMilliseconds
+//                 let latency = endTime - startTime
+//
+//                 if finishedTask.Id = responseTask.Id then
+//                     return { StepIndex = step.StepIndex; ClientResponse = responseTask.Result; EndTimeMs = endTime; LatencyMs = latency }
+//                 else
+//                     step.Context.CancellationTokenSource.Cancel()
+//                     let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = $"step timeout: {step.Value.Timeout.TotalMilliseconds} ms")
+//                     return { StepIndex = step.StepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
+//         with
+//         | :? TaskCanceledException
+//         | :? OperationCanceledException ->
+//             let endTime = globalTimer.Elapsed.TotalMilliseconds
+//             let latency = endTime - startTime
+//             let resp = Response.fail(statusCode = Constants.TimeoutStatusCode, error = "step timeout")
+//             return { StepIndex = step.StepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
+//         | ex ->
+//             let endTime = globalTimer.Elapsed.TotalMilliseconds
+//             let latency = endTime - startTime
+//             let resp = Response.fail(statusCode = Constants.StepUnhandledErrorCode, error = $"step unhandled exception: {ex.Message}")
+//             return { StepIndex = step.StepIndex; ClientResponse = resp; EndTimeMs = endTime; LatencyMs = latency }
 
 module StepContext =
 

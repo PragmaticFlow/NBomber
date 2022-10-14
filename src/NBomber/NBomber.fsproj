@@ -31,6 +31,7 @@
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
+        <Compile Include="Domain\ScenarioContext.fs" />
         <Compile Include="Domain\Feed.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
@@ -70,7 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[3.1.0]" />
+<!--        <PackageReference Include="NBomber.Contracts" Version="[3.1.0]" />-->
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />
@@ -84,6 +85,9 @@
         <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
         <PackageReference Update="FSharp.Core" Version="6.0.5" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\NBomber.Contracts\src\NBomber.Contracts\NBomber.Contracts.fsproj" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\HtmlReport\assets\js\index.js" />

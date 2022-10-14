@@ -20,6 +20,7 @@ open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
@@ -93,7 +94,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         use cancelToken = new CancellationTokenSource()
         schedulers |> TestHostConsole.LiveStatusTable.display dep.ApplicationType cancelToken.Token isWarmUp
 
-        if reportingManager.IsSome then reportingManager.Value.Start()
+        if reportingManager.IsSome then
+            reportingManager.Value.Start()
 
         // waiting on all scenarios to finish
         let schedulersArray = schedulers |> List.toArray

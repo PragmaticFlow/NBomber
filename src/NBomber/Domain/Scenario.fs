@@ -20,16 +20,16 @@ open NBomber.Domain.DomainTypes
 
 module Validation =
 
-    let checkEmptyScenarioName (scenario: Contracts.Scenario) =
+    let checkEmptyScenarioName (scenario: Contracts.ScenarioArgs) =
         if String.IsNullOrWhiteSpace scenario.ScenarioName then AppError.createResult EmptyScenarioName
         else Ok scenario
 
-    let checkDuplicateScenarioName (scenarios: Contracts.Scenario list) =
+    let checkDuplicateScenarioName (scenarios: Contracts.ScenarioArgs list) =
         let duplicates = scenarios |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
-    let checkMultipleClientFactoryAssign (regScenarios: Contracts.Scenario list) =
+    let checkMultipleClientFactoryAssign (regScenarios: Contracts.ScenarioArgs list) =
         let multipleAssignFactories =
             regScenarios
             |> Seq.map(fun scn ->
@@ -48,7 +48,7 @@ module Validation =
         if multipleAssignFactories.Length > 0 then AppError.createResult(MultipleClientFactoryAssign multipleAssignFactories)
         else Ok regScenarios
 
-    let checkDuplicateClientFactories (regScenarios: Contracts.Scenario list) =
+    let checkDuplicateClientFactories (regScenarios: Contracts.ScenarioArgs list) =
         regScenarios
         |> Seq.collect(fun x -> x.Steps)
         |> Seq.cast<Step>
@@ -61,19 +61,19 @@ module Validation =
             | [] -> Ok regScenarios
             | factoryName::tail -> AppError.createResult(DuplicateClientFactoryName factoryName)
 
-    let checkInitOnlyScenario (scenario: Contracts.Scenario) =
+    let checkInitOnlyScenario (scenario: Contracts.ScenarioArgs) =
         if List.isEmpty scenario.Steps then
             // for init only scenario we can have scenario with 0 steps
             if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
             else AppError.createResult(EmptySteps scenario.ScenarioName)
         else Ok scenario
 
-    let checkEmptyStepName (scenario: Contracts.Scenario) =
+    let checkEmptyStepName (scenario: Contracts.ScenarioArgs) =
         let emptyStepExist = scenario.Steps |> List.exists(fun x -> String.IsNullOrWhiteSpace x.StepName)
         if emptyStepExist then AppError.createResult(EmptyStepName scenario.ScenarioName)
         else Ok scenario
 
-    let checkDuplicateStepNameButDiffImpl (scenario: Contracts.Scenario) =
+    let checkDuplicateStepNameButDiffImpl (scenario: Contracts.ScenarioArgs) =
         scenario.Steps
         |> List.distinct
         |> List.groupBy(fun x -> x.StepName)
@@ -82,7 +82,7 @@ module Validation =
             | [] -> Ok scenario
             | stName::tail -> AppError.createResult(DuplicateStepNameButDiffImpl(scenario.ScenarioName, stName))
 
-    let checkClientFactoryName (scenario: Contracts.Scenario) =
+    let checkClientFactoryName (scenario: Contracts.ScenarioArgs) =
         scenario.Steps
         |> Seq.cast<Step>
         |> Seq.choose(fun x -> x.ClientFactory)
@@ -176,11 +176,11 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioDuration = duration
       ScenarioOperation = operation }
 
-let createStepOrderIndex (scenario: Contracts.Scenario) =
+let createStepOrderIndex (scenario: Contracts.ScenarioArgs) =
     if List.isEmpty scenario.Steps then Dictionary<_,_>() // it's needed for case when scenario only init
     else scenario.Steps |> List.distinct |> List.mapi(fun i x -> x.StepName, i) |> Dict.ofSeq
 
-let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: Contracts.Scenario) =
+let createDefaultStepOrder (stepOrderIndex: Dictionary<string,int>) (scenario: Contracts.ScenarioArgs) =
     seq {
         for s in scenario.Steps do
             yield stepOrderIndex[s.StepName] }
@@ -194,7 +194,7 @@ let getStepOrder (scenario: Scenario) =
 
     | None -> scenario.DefaultStepOrder
 
-let createScenario (scn: Contracts.Scenario) = result {
+let createScenario (scn: Contracts.ScenarioArgs) = result {
     let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
     let! scenario = Validation.validate scn
     let stepOrderIndex = createStepOrderIndex scenario
@@ -208,6 +208,7 @@ let createScenario (scn: Contracts.Scenario) = result {
     return { ScenarioName = scenario.ScenarioName
              Init = scenario.Init
              Clean = scenario.Clean
+             Run = scenario.Run
              Steps = steps
              LoadTimeLine = timeline.LoadTimeLine
              WarmUpDuration = scenario.WarmUpDuration
@@ -222,7 +223,7 @@ let createScenario (scn: Contracts.Scenario) = result {
              IsInitialized = false }
 }
 
-let createScenarios (scenarios: Contracts.Scenario list) = result {
+let createScenarios (scenarios: Contracts.ScenarioArgs list) = result {
 
     let validate =
         Validation.checkDuplicateScenarioName
