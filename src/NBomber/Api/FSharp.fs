@@ -56,33 +56,13 @@ module Feed =
 [<RequireQualifiedAccess>]
 type Step =
 
-    static member run (name: string, context: IFlowContext, run: unit -> Task<FlowResponse<'T>>) = backgroundTask {
+    static member run (name: string, context: IFlowContext, run: unit -> Task<FlowResponse<'T>>) =
         let ctx = context :?> ScenarioContext
 
         if ctx.StopExecution then
-            return Domain.Step.emptyFail
+            Domain.Step.emptyFail |> Task.FromResult
         else
-            let startTime = ctx.Timer.Elapsed.TotalMilliseconds
-            try
-                let! response = run()
-                let endTime = ctx.Timer.Elapsed.TotalMilliseconds
-                let latency = endTime - startTime
-
-                let result = { StepName = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
-                ctx.StatsActor.Publish(AddStepResult result)
-                return response
-            with
-            | ex ->
-                let endTime = ctx.Timer.Elapsed.TotalMilliseconds
-                let latency = endTime - startTime
-
-                context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}, Step: {name}")
-
-                let error = FlowResponse.fail<'T>(ex, latencyMs = latency)
-                let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
-                ctx.StatsActor.Publish(AddStepResult result)
-                return error
-    }
+            Domain.Step.measure name ctx run
 
     static member private create
         (name: string,
@@ -163,7 +143,7 @@ module Scenario =
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    let create (name: string, run: IFlowContext -> Task): ScenarioArgs =
+    let create (name: string, run: IFlowContext -> Task<FlowResponse<obj>>): ScenarioArgs =
         { ScenarioName = name
           Init = None
           Clean = None

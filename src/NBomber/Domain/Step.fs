@@ -24,6 +24,30 @@ let emptyFail<'T> : FlowResponse<'T> =
       LatencyMs = 0
       Payload = None }
 
+let measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<FlowResponse<'T>>) = backgroundTask {
+    let startTime = ctx.Timer.Elapsed.TotalMilliseconds
+    try
+        let! response = run()
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let result = { StepName = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddStepResult result)
+        return response
+    with
+    | ex ->
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let context = ctx :> IFlowContext
+        context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}, Step: {name}")
+
+        let error = FlowResponse.fail<'T>(ex, latencyMs = latency)
+        let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddStepResult result)
+        return error
+}
+
 // let startTime = globalTimer.Elapsed.TotalMilliseconds
 //         try
 //             let responseTask = step.Value.Execute(step.Context)

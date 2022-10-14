@@ -6,13 +6,17 @@ open System.Collections.Generic
 open System.Diagnostics
 open System.IO
 open System.Text
+open System.Threading.Tasks
 
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Configuration
+open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.ScenarioContext
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Operator.Result
 open NBomber.Errors
@@ -296,3 +300,25 @@ let getMaxDuration (scenarios: Scenario list) =
 
 let getMaxWarmUpDuration (scenarios: Scenario list) =
     scenarios |> List.choose(fun x -> x.WarmUpDuration) |> List.max
+
+let measure (name: string) (ctx: ScenarioContext) (run: IFlowContext -> Task<FlowResponse<obj>>) = backgroundTask {
+    let startTime = ctx.Timer.Elapsed.TotalMilliseconds
+    try
+        let! response = run ctx
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let result = { StepName = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddStepResult result)
+    with
+    | ex ->
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let context = ctx :> IFlowContext
+        context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}")
+
+        let error = FlowResponse.fail(ex, latencyMs = latency)
+        let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddStepResult result)
+}

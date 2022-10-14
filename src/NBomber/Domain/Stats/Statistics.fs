@@ -180,6 +180,9 @@ module ScenarioStats =
 
         let stepStats = allStepsData |> Array.map(StepStats.create (TimeSpan.MinValue) "" 0 "" reportingInterval)
 
+        stepStats
+        |> Array.sortInPlaceBy(fun x -> if x.StepName = Constants.ScenarioGlobalInfo then 0 else 1)
+
         // let stepStats =
         //     scenario.Steps
         //     |> List.mapi(fun i st ->

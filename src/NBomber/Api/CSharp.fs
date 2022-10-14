@@ -124,7 +124,7 @@ type Scenario =
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    static member Create(name: string, run: Func<IFlowContext,Task>) =
+    static member Create(name: string, run: Func<IFlowContext,Task<FlowResponse<obj>>>) =
         FSharp.Scenario.create(name, run.Invoke)
 
     [<Extension>]

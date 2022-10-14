@@ -42,15 +42,14 @@ type ScenarioActor(scnCtx: ScenarioExecContext, scenarioInfo: ScenarioInfo) =
 
                     // _stepDep.Data.Clear()
 
-                    try
-                        if _scenario.Run.IsSome then
-                            do! _scenario.Run.Value(_scenarioCtx)
+                    if _scenario.Run.IsSome then
+                        do! Scenario.measure Constants.ScenarioGlobalInfo _scenarioCtx _scenario.Run.Value
 
                         // let stepOrder = Scenario.getStepOrder _scenario
                         // do! RunningStep.execSteps _stepDep _steps stepOrder
-                    with
-                    | ex ->
-                        _logger.Error(ex, $"Unhandled exception for Scenario: {_scenario.ScenarioName}")
+                    // with
+                    // | ex ->
+                    //     _logger.Error(ex, "Unhandled exception for Scenario: {0}", _scenario.ScenarioName)
                         // let response = Response.fail(statusCode = Constants.StepInternalClientErrorCode, error = ex.Message)
                         // let resp = { StepIndex = 0; ClientResponse = response; EndTimeMs = 0; LatencyMs = 0 }
                         // scnCtx.ScenarioStatsActor.Publish(AddResponse resp)

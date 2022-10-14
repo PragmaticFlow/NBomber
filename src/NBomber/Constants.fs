@@ -28,6 +28,8 @@ let DefaultTestName = "nbomber_default_test_name"
 let DefaultReportName = "nbomber_report"
 [<Literal>]
 let DefaultReportFolder = "./reports"
+[<Literal>]
+let ScenarioGlobalInfo = "global information"
 
 /// Default timeouts
 
