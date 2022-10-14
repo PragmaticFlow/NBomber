@@ -25,14 +25,12 @@
         <Compile Include="Extensions\Data.fs" />
         <Compile Include="Extensions\Internal.fs" />
         <Compile Include="Domain\Errors.fs" />
-        <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\LoadTimeLine.fs" />
         <Compile Include="Domain\Stats\StepStatsRawData.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
         <Compile Include="Domain\ScenarioContext.fs" />
-        <Compile Include="Domain\Feed.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
         <Compile Include="Domain\Concurrency\ScenarioActor.fs" />

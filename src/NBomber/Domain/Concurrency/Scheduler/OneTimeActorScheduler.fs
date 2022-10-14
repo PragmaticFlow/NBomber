@@ -4,7 +4,6 @@ open System
 
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
-open NBomber.Domain.Step
 open NBomber.Domain.ScenarioContext
 
 [<Struct>]
@@ -13,7 +12,7 @@ type SchedulerCommand =
     | RentActors of actorCount:int
 
 // scnCtx * actorPool * scheduledActorCount
-type SchedulerExec = ScenarioExecContext -> ScenarioActor list -> int -> ScenarioActor list
+type SchedulerExec = ScenarioContextArgs -> ScenarioActor list -> int -> ScenarioActor list
 
 // todo: add tests
 let schedule (actorPool: ScenarioActor list) (actorCount: int) =
@@ -27,7 +26,7 @@ let schedule (actorPool: ScenarioActor list) (actorCount: int) =
     else
         StartActors freeActors
 
-let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+let exec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
 
     let execSteps (actors: ScenarioActor list) =
         actors |> List.iter(fun x -> x.ExecSteps() |> ignore)
@@ -43,7 +42,7 @@ let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (schedule
         execSteps result.NewActors
         ScenarioActorPool.updatePool actorPool result.NewActors
 
-type OneTimeActorScheduler(scnCtx: ScenarioExecContext, exec: SchedulerExec) =
+type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
     let _lockObj = obj()
     let mutable _actorPool = List.empty<ScenarioActor>

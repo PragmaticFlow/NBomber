@@ -17,121 +17,22 @@ open NBomber.Contracts.Stats
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Errors
-open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.ScenarioContext
 open NBomber.DomainServices
-
-/// DataFeed helps inject test data into your load test. It represents a data source.
-[<RequireQualifiedAccess>]
-module Feed =
-
-    /// Creates Feed that picks constant value per Step copy.
-    /// Every Step copy will have unique constant value.
-    let createConstant (name) (data: 'T seq) =
-        Domain.Feed.constant(name, fun _ -> data)
-
-    /// Creates Feed (in lazy mode) that picks constant value per Step copy.
-    /// Every Step copy will have unique constant value.
-    let createConstantLazy (name) (getData: IBaseContext -> 'T seq) =
-        Domain.Feed.constant(name, getData)
-
-    /// Creates Feed that goes back to the top of the sequence once the end is reached.
-    let createCircular (name) (data: 'T seq) =
-        Domain.Feed.circular(name, fun _ -> data)
-
-    /// Creates Feed (in lazy mode) that goes back to the top of the sequence once the end is reached.
-    let createCircularLazy (name) (getData: IBaseContext -> 'T seq) =
-        Domain.Feed.circular(name, getData)
-
-    /// Creates Feed that randomly picks an item per Step invocation.
-    let createRandom (name) (data: 'T seq) =
-        Domain.Feed.random(name, fun _ -> data)
-
-    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
-    let createRandomLazy (name) (getData: IBaseContext -> 'T seq) =
-        Domain.Feed.random(name, getData)
 
 /// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]
 type Step =
 
-    static member run (name: string, context: IFlowContext, run: unit -> Task<FlowResponse<'T>>) =
+    /// Runs a step.
+    /// Step represents a single user action like login, logout, etc.
+    static member run (name: string, context: IScenarioContext, run: unit -> Task<Response<'T>>) =
         let ctx = context :?> ScenarioContext
 
         if ctx.StopIteration then
-            Domain.Step.emptyFail |> Task.FromResult
+            ResponseInternal.emptyFail |> Task.FromResult
         else
             Domain.Step.measure name ctx run
-
-    static member private create
-        (name: string,
-         execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: IClientFactory<'TClient>,
-         ?feed: IFeed<'TFeedItem>,
-         ?timeout: TimeSpan,
-         ?doNotTrack: bool,
-         ?isPause: bool) =
-
-        match clientFactory with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof clientFactory))
-        | None   -> ()
-
-        match feed with
-        | Some v -> if isNull(v :> obj) then raise(ArgumentNullException (nameof feed))
-        | None   -> ()
-
-        let factory =
-            clientFactory
-            |> Option.map(fun x -> x :?> IUntypedClientFactory)
-
-        { StepName = name
-          ClientFactory = factory
-          Execute = execute |> Domain.Step.StepContext.toUntypedExecute
-          Feed = feed |> Option.map Domain.Feed.toUntypedFeed
-          Timeout = timeout |> Option.defaultValue TimeSpan.Zero
-          DoNotTrack = defaultArg doNotTrack Constants.DefaultDoNotTrack
-          IsPause = defaultArg isPause false }
-          :> IStep
-
-    /// Creates Step.
-    /// Step represents a single user action like login, logout, etc.
-    static member create
-        (name: string,
-         execute: IStepContext<'TClient,'TFeedItem> -> Task<Response>,
-         ?clientFactory: IClientFactory<'TClient>,
-         ?feed: IFeed<'TFeedItem>,
-         ?timeout: TimeSpan,
-         ?doNotTrack: bool) =
-
-        Step.create(name, execute, ?clientFactory = clientFactory, ?feed = feed, ?timeout = timeout, ?doNotTrack = doNotTrack, isPause = false)
-
-    /// Creates pause step with specified duration in lazy mode.
-    /// It's useful when you want to fetch value from some configuration.
-    static member createPause (getDuration: unit -> TimeSpan) =
-        Step.create(
-            name = $"{Constants.StepPauseName}_{Guid.NewGuid()}",
-            execute = (fun _ -> backgroundTask {
-                do! Task.Delay(getDuration())
-                return Response.ok()
-            }),
-            doNotTrack = true,
-            isPause = true
-        )
-
-    /// Creates pause step in milliseconds in lazy mode.
-    /// It's useful when you want to fetch value from some configuration.
-    static member createPause (getDuration: unit -> int) =
-        let func = getDuration >> float >> TimeSpan.FromMilliseconds
-        Step.createPause(func)
-
-    /// Creates pause step with specified duration.
-    static member createPause (duration: TimeSpan) =
-        Step.createPause(fun () -> duration)
-
-    /// Creates pause step with specified duration in milliseconds.
-    static member createPause (milliseconds: int) =
-        Step.createPause(fun () -> milliseconds)
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
 /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
@@ -141,56 +42,38 @@ module Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
-    /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    let create (name: string, run: IFlowContext -> Task<FlowResponse<obj>>): ScenarioArgs =
+    let create (name: string, run: IScenarioContext -> Task<Response<obj>>): ScenarioProps =
         { ScenarioName = name
           Init = None
           Clean = None
           Run = Some run
-          Steps = List.empty
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
-          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          CustomStepOrder = None
-          StepInterception = None }
+          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)] }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
-    let withInit (initFunc: IScenarioContext -> Task<unit>) (scenario: ScenarioArgs) =
+    let withInit (initFunc: IScenarioInitContext -> Task<unit>) (scenario: ScenarioProps) =
         { scenario with Init = Some(fun token -> initFunc(token) :> Task) }
 
     /// Cleans scenario's resources.
-    let withClean (cleanFunc: IScenarioContext -> Task<unit>) (scenario: ScenarioArgs) =
+    let withClean (cleanFunc: IScenarioInitContext -> Task<unit>) (scenario: ScenarioProps) =
         { scenario with Clean = Some(fun token -> cleanFunc(token) :> Task) }
 
     /// Sets warm-up duration
     /// Warm-up will just simply start a scenario with a specified duration.
-    let withWarmUpDuration (duration: TimeSpan) (scenario: ScenarioArgs) =
+    let withWarmUpDuration (duration: TimeSpan) (scenario: ScenarioProps) =
         { scenario with WarmUpDuration = Some duration }
 
-    let withoutWarmUp (scenario: ScenarioArgs) =
+    let withoutWarmUp (scenario: ScenarioProps) =
         { scenario with WarmUpDuration = None }
 
     /// Sets load simulations.
     /// Default value is: KeepConstant(copies = 1, during = minutes 1)
     /// NBomber is always running simulations in sequential order that you defined them.
     /// All defined simulations are represent the whole Scenario duration.
-    let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: ScenarioArgs) =
+    let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: ScenarioProps) =
         { scenario with LoadSimulations = loadSimulations }
-
-    /// Sets custom steps order that will be used by NBomber Scenario executor.
-    /// By default, all steps are executing sequentially but you can inject your custom order.
-    /// getStepsOrder function will be invoked on every turn before steps list execution.
-    let withCustomStepOrder (getStepsOrder: unit -> string[]) (scenario: ScenarioArgs) =
-        { scenario with CustomStepOrder = Some getStepsOrder }
-
-    /// Sets step interception handler.
-    /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
-    /// By default, all steps are executing sequentially but you can inject your custom step interception to change default order per step iteration.
-    /// handler function will be invoked before each step.
-    /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
-    let withStepInterception (handler: IStepInterceptionContext voption -> string voption) (scenario: ScenarioArgs) =
-        { scenario with StepInterception = Some handler }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
@@ -198,12 +81,12 @@ module Scenario =
 module NBomberRunner =
 
     /// Registers scenario in NBomber environment.
-    let registerScenario (scenario: ScenarioArgs) =
+    let registerScenario (scenario: ScenarioProps) =
         { NBomberContext.empty with RegisteredScenarios = [scenario] }
 
     /// Registers scenarios in NBomber environment.
     /// Scenarios will be run in parallel.
-    let registerScenarios (scenarios: ScenarioArgs list) =
+    let registerScenarios (scenarios: ScenarioProps list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
     /// Sets target scenarios among all registered that will execute

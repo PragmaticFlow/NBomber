@@ -1,10 +1,8 @@
 namespace NBomber.Contracts
 
 open System
-
 open Serilog
 open Microsoft.Extensions.Configuration
-
 open NBomber
 open NBomber.Configuration
 open NBomber.Contracts.Stats
@@ -20,7 +18,7 @@ type ReportingContext = {
 type NBomberContext = {
     TestSuite: string
     TestName: string
-    RegisteredScenarios: ScenarioArgs list
+    RegisteredScenarios: ScenarioProps list
     NBomberConfig: NBomberConfig option
     InfraConfig: IConfiguration option
     CreateLoggerConfig: (unit -> LoggerConfiguration) option
@@ -56,7 +54,6 @@ type NBomberContext = {
 
 namespace NBomber.Contracts.Internal
 
-open System
 open CommandLine
 open NBomber.Configuration
 open NBomber.Contracts
@@ -75,28 +72,14 @@ type StepResult = {
     LatencyMs: float
 }
 
-type StepResponse = {
-    StepIndex: int
-    ClientResponse: Response
-    EndTimeMs: float
-    LatencyMs: float
-}
-
-// we keep ClientFactorySettings settings here instead of take them from ScenariosSettings
-// since after init (for case when the same ClientFactory assigned to several Scenarios)
-// factoryName = factoryName + scenarioName
-// and it's more convenient to prepare it for usage
-
 type SessionArgs = {
     TestInfo: TestInfo
     NBomberConfig: NBomberConfig
-    UpdatedClientFactorySettings: ClientFactorySetting list
 } with
 
     static member empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
         NBomberConfig = Unchecked.defaultof<_>
-        UpdatedClientFactorySettings = List.empty
     }
 
     member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
@@ -110,4 +93,3 @@ type SessionArgs = {
 
     member this.GetScenariosSettings() = this.NBomberConfig.GlobalSettings.Value.ScenariosSettings.Value
     member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.Value
-    member this.GetDefaultStepTimeout() = this.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs.Value |> TimeSpan.FromMilliseconds

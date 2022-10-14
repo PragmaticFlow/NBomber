@@ -4,7 +4,6 @@ open System
 
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
-open NBomber.Domain.Step
 open NBomber.Domain.ScenarioContext
 
 [<Struct>]
@@ -15,7 +14,7 @@ type SchedulerCommand =
     | StopScheduler
 
 // scnCtx * actorPool * scheduledActorCount
-type SchedulerExec = ScenarioExecContext -> ScenarioActor list -> int -> ScenarioActor list
+type SchedulerExec = ScenarioContextArgs -> ScenarioActor list -> int -> ScenarioActor list
 
 let removeFromScheduler scheduledActorsCount removeCount =
     let actorsCount = scheduledActorsCount - removeCount
@@ -29,7 +28,7 @@ let schedule workingActorCount scheduledActorCount =
     elif workingActorCount < scheduledActorCount then AddActors(scheduledActorCount - workingActorCount)
     else RemoveActor(workingActorCount - scheduledActorCount)
 
-let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+let exec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
     let workingActors = ScenarioActorPool.getWorkingActors actorPool
     match schedule workingActors.Length scheduledActorCount with
     | KeepWorking ->
@@ -52,7 +51,7 @@ let exec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (schedule
         ScenarioActorPool.stopActors actorPool
         actorPool
 
-type ConstantActorScheduler(scnCtx: ScenarioExecContext, exec: SchedulerExec) =
+type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
     let mutable _actorPool = List.empty<ScenarioActor>
     let mutable _scheduledActorCount = 0

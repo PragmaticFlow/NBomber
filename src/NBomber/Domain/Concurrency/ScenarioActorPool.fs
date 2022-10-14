@@ -10,7 +10,7 @@ type ActorPoolResult = {
     NewActors: ScenarioActor list
 }
 
-let createActors (scnCtx: ScenarioExecContext) count fromIndex =
+let createActors (scnCtx: ScenarioContextArgs) count fromIndex =
     let scenario = scnCtx.Scenario
     List.init count (fun i ->
         let actorIndex = fromIndex + i

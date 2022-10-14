@@ -18,7 +18,6 @@ open NBomber.Domain.Stats.StepStatsRawData
 
 type ActorMessage =
     | AddStepResult of StepResult
-    | AddResponse of StepResponse
     | AddFromAgent of ScenarioStats
     | StartUseTempBuffer
     | FlushTempBuffer
@@ -29,20 +28,20 @@ type State = {
     Logger: ILogger
     Scenario: Scenario
     ReportingInterval: TimeSpan
-    MergeStatsFn: (LoadSimulationStats -> ScenarioStats list -> ScenarioStats) option
-    AllStepsData: StepStatsRawData[]
-    mutable AllReportingStats: Map<TimeSpan,ScenarioStats>
-    mutable ReportingStepsData: StepStatsRawData[]
-    mutable ReportingAgentsStats: ScenarioStats list
-    mutable ReportingTempBuffer: StepResponse list
-    mutable UseReportingTempBuffer: bool
-    mutable FinalAgentsStats: ScenarioStats list
-    mutable ConsoleScenarioStats: ScenarioStats // need to display on console (we merge absolute request counts)
-
+    MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
     mutable FailCount: int
 
-    AllStepsResult: Dictionary<string,StepStatsRawData>
-    ReportingStepsResult: Dictionary<string,StepStatsRawData>
+    mutable ReportingStatsCache: Map<TimeSpan,ScenarioStats>
+
+    CoordinatorStepsResults: Dictionary<string,StepStatsRawData>
+    IntervalStepsResults: Dictionary<string,StepStatsRawData>
+    mutable ConsoleScenarioStats: ScenarioStats // need to display on console (we merge absolute request counts)
+
+    /// agents stats
+    mutable UseTempBuffer: bool
+    TempBuffer: ResizeArray<StepResult>
+    IntervalAgentsStats: ResizeArray<ScenarioStats>
+    FinalAgentsStats: ResizeArray<ScenarioStats>
 }
 
 let createState logger scenario reportingInterval mergeStatsFn = {
@@ -50,52 +49,51 @@ let createState logger scenario reportingInterval mergeStatsFn = {
     Scenario = scenario
     ReportingInterval = reportingInterval
     MergeStatsFn = mergeStatsFn
-    AllStepsData = Array.empty //Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-    ReportingStepsData = Array.empty //Array.init scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-    AllReportingStats = Map.empty
-    ReportingAgentsStats = List.empty
-    ReportingTempBuffer = List.empty
-    UseReportingTempBuffer = false
-    FinalAgentsStats = List.empty
-    ConsoleScenarioStats = ScenarioStats.empty scenario
     FailCount = 0
 
-    AllStepsResult = Dict.empty()
-    ReportingStepsResult = Dict.empty()
-    // ReportingTempBuffer
+    ReportingStatsCache = Map.empty
+
+    CoordinatorStepsResults = Dict.empty()
+    IntervalStepsResults = Dict.empty()
+    ConsoleScenarioStats = ScenarioStats.empty scenario
+
+    UseTempBuffer = false
+    TempBuffer = ResizeArray<_>()
+    IntervalAgentsStats = ResizeArray<_>()
+    FinalAgentsStats = ResizeArray<_>()
 }
 
-let addStepResult (state: State) (result: StepResult) =
-    if state.UseReportingTempBuffer then
-        ()
-        //state.ReportingTempBuffer <- resp :: state.ReportingTempBuffer
+let updateCoordinatorStats (state: State) (result: StepResult) =
+    if state.UseTempBuffer then
+        state.TempBuffer.Add result
     else
-        let data = state.AllStepsResult[result.StepName]
-        StepStatsRawData.addStepResult data result
-
-        let reportingData = state.ReportingStepsResult[result.StepName]
-        StepStatsRawData.addStepResult reportingData result
+        let rawStats = state.CoordinatorStepsResults[result.StepName]
+        StepStatsRawData.addStepResult rawStats result
 
         if result.ClientResponse.IsError then
             state.FailCount <- state.FailCount + 1
 
-let addResponse (state: State) (resp: StepResponse) =
-    if state.UseReportingTempBuffer then
-        state.ReportingTempBuffer <- resp :: state.ReportingTempBuffer
-    else
-        let allStData = state.AllStepsData[resp.StepIndex]
-        let intervalStData = state.ReportingStepsData[resp.StepIndex]
-        state.AllStepsData[resp.StepIndex] <- StepStatsRawData.addResponse allStData resp
-        state.ReportingStepsData[resp.StepIndex] <- StepStatsRawData.addResponse intervalStData resp
+let updateIntervalStats (state: State) (result: StepResult) =
+    let rawStats = state.IntervalStepsResults[result.StepName]
+    StepStatsRawData.addStepResult rawStats result
 
-        if resp.ClientResponse.IsError then
-            state.FailCount <- state.FailCount + 1
-    state
+let addStepResult (state: State) (result: StepResult) =
+    if state.CoordinatorStepsResults.ContainsKey result.StepName then
+        updateCoordinatorStats state result
+    else
+        state.CoordinatorStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
+        updateCoordinatorStats state result
+
+    if state.IntervalStepsResults.ContainsKey result.StepName then
+        updateIntervalStats state result
+    else
+        state.IntervalStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
+        updateIntervalStats state result
 
 let flushTempBuffer (state: State) =
-    state.UseReportingTempBuffer <- false
-    state.ReportingTempBuffer |> List.iter(addResponse state >> ignore)
-    state.ReportingTempBuffer <- List.empty
+    state.UseTempBuffer <- false
+    state.TempBuffer |> Seq.iter(addStepResult state)
+    state.TempBuffer.Clear()
     state
 
 let createReportingStats (state: State) (simulationStats) (duration) (stepsData) =
@@ -105,47 +103,29 @@ let createFinalStats (state: State) (simulationStats) (duration) (stepsData) =
     ScenarioStats.create state.Scenario stepsData simulationStats OperationType.Complete %duration duration
 
 let buildStats (state: State)
-               (stepsData: StepStatsRawData[])
-               (agentStats: ScenarioStats list)
+               (cordStepsData: StepStatsRawData[])
+               (agentStats: ResizeArray<ScenarioStats>)
                (simulationStats: LoadSimulationStats)
                (duration: TimeSpan)
                (isFinalStats: bool) =
 
     let cordStats =
         if isFinalStats then
-            stepsData |> createFinalStats state simulationStats duration
+            cordStepsData |> createFinalStats state simulationStats duration
         else
-            stepsData |> createReportingStats state simulationStats duration
+            cordStepsData |> createReportingStats state simulationStats duration
 
-    let allStats =
-        if state.Scenario.IsEnabled then cordStats :: agentStats
-        else agentStats
+    if state.Scenario.IsEnabled then
+        agentStats.Add cordStats
 
-    if allStats.Length > 0 then
+    if agentStats.Count > 0 then
         state.MergeStatsFn
-        |> Option.map(fun merge -> merge simulationStats allStats)
+        |> Option.map(fun merge -> merge simulationStats agentStats)
         |> Option.defaultValue cordStats
     else
         cordStats
 
 let mergeConsoleStats (latestReportingStats: ScenarioStats) (reportingStats: ScenarioStats) =
-
-    // let mergedStepSteps =
-    //     reportingStats.StepStats
-    //     |> Array.mapi(fun i x ->
-    //         let latestStep = latestReportingStats.StepStats[i]
-    //         let ok = { x.Ok.Request with Count = x.Ok.Request.Count + latestStep.Ok.Request.Count }
-    //         let fail = { x.Fail.Request with Count = x.Fail.Request.Count + latestStep.Fail.Request.Count }
-    //         let allBytes = { x.Ok.DataTransfer with AllBytes = x.Ok.DataTransfer.AllBytes + latestStep.Ok.DataTransfer.AllBytes }
-    //
-    //         let okData = { x.Ok with Request = ok; DataTransfer = allBytes }
-    //         let failData = { x.Fail with Request = fail }
-    //
-    //         { x with Ok = okData; Fail = failData }
-    //     )
-    //
-    // { reportingStats with StepStats = mergedStepSteps }
-
     { reportingStats with
         OkCount = reportingStats.OkCount + latestReportingStats.OkCount
         FailCount = reportingStats.FailCount + latestReportingStats.FailCount
@@ -153,24 +133,25 @@ let mergeConsoleStats (latestReportingStats: ScenarioStats) (reportingStats: Sce
         AllBytes = reportingStats.AllBytes + latestReportingStats.AllBytes }
 
 let addReportingStats (state: State) (reportingStats: ScenarioStats) =
-    state.AllReportingStats <- Map.add reportingStats.Duration reportingStats state.AllReportingStats
-    // reset reporting interval steps data
-    state.ReportingStepsData <- Array.empty //Array.init state.Scenario.Steps.Length (fun _ -> StepStatsRawData.createEmpty())
-    state.ReportingAgentsStats <- List.empty
+    state.ReportingStatsCache <- Map.add reportingStats.Duration reportingStats state.ReportingStatsCache
     state.ConsoleScenarioStats <- mergeConsoleStats state.ConsoleScenarioStats reportingStats
+
+    // reset reporting interval steps data
+    state.IntervalStepsResults.Clear()
+    state.IntervalAgentsStats.Clear()
+
     state
 
 let addStatsFromAgent (state: State) (agentStats: ScenarioStats) =
     if agentStats.CurrentOperation = OperationType.Bombing then
-        state.ReportingAgentsStats <- agentStats :: state.ReportingAgentsStats
+        state.IntervalAgentsStats.Add agentStats
     else
-        state.FinalAgentsStats <- agentStats :: state.FinalAgentsStats
-    state
+        state.FinalAgentsStats.Add agentStats
 
 type ScenarioStatsActor(logger: ILogger,
                         scenario: Scenario,
                         reportingInterval: TimeSpan,
-                        ?mergeStatsFn: LoadSimulationStats -> ScenarioStats list -> ScenarioStats) =
+                        ?mergeStatsFn: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) =
 
     let mutable _state = createState logger scenario reportingInterval mergeStatsFn
 
@@ -178,48 +159,39 @@ type ScenarioStatsActor(logger: ILogger,
         try
             match msg with
             | AddStepResult result ->
-                if _state.AllStepsResult.ContainsKey result.StepName then
-                    addStepResult _state result
-                else
-                    _state.AllStepsResult[result.StepName] <- StepStatsRawData.empty(result.StepName)
-                    _state.ReportingStepsResult[result.StepName] <- StepStatsRawData.empty(result.StepName)
-                    addStepResult _state result
-
-            | AddResponse response ->
-                _state <- addResponse _state response
+                addStepResult _state result
 
             | AddFromAgent agentStats ->
-                _state <- addStatsFromAgent _state agentStats
+                addStatsFromAgent _state agentStats
 
             | StartUseTempBuffer ->
-                _state.UseReportingTempBuffer <- true
+                _state.UseTempBuffer <- true
 
             | FlushTempBuffer ->
                 _state <- flushTempBuffer _state
 
             | BuildReportingStats (reply, simulationStats, duration) ->
                 let isFinalStats = false
+                let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
 
-                let reportingStats = _state.ReportingStepsResult.Values |> Seq.toArray
+                let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats duration isFinalStats
 
-                let stats = buildStats _state reportingStats _state.ReportingAgentsStats simulationStats duration isFinalStats
-                //let stats = buildStats _state _state.ReportingStepsData _state.ReportingAgentsStats simulationStats duration isFinalStats
                 _state <- addReportingStats _state stats
                 reply.TrySetResult(stats) |> ignore
 
             | GetFinalStats (reply, simulationStats, duration) ->
                 let isFinalStats = true
 
-                let allStats = _state.AllStepsResult.Values |> Seq.toArray
+                let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
 
-                let stats = buildStats _state allStats _state.FinalAgentsStats simulationStats duration isFinalStats
+                let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats duration isFinalStats
                 reply.TrySetResult(stats) |> ignore
         with
         | ex -> _state.Logger.Error $"{nameof ScenarioStatsActor} failed: {ex.ToString()}"
     )
 
     member _.FailCount = _state.FailCount
-    member _.AllRealtimeStats = _state.AllReportingStats
+    member _.AllRealtimeStats = _state.ReportingStatsCache
     member _.MergedReportingStats = _state.ConsoleScenarioStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
@@ -228,6 +200,6 @@ type ScenarioStatsActor(logger: ILogger,
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval)
 
-let createForCoordinator (mergeStats: LoadSimulationStats -> ScenarioStats list -> ScenarioStats)
+let createForCoordinator (mergeStats: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats)
                          (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval, mergeStats)

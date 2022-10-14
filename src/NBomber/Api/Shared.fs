@@ -1,31 +1,6 @@
 namespace NBomber
 
 open System
-open System.IO
-open System.Globalization
-open System.Runtime.CompilerServices
-
-open System.Text.Json
-open CsvHelper
-open NBomber.Extensions.Internal
-
-[<Extension>]
-type FeedData() =
-
-    [<CompiledName("FromCsv")>]
-    static member fromCsv<'T> (filePath: string) =
-        use reader = new StreamReader(filePath)
-        use csv = new CsvReader(reader, CultureInfo.InvariantCulture)
-        csv.GetRecords<'T>()
-        |> Seq.toArray
-
-    [<CompiledName("FromJson")>]
-    static member fromJson<'T> (filePath: string) =
-        filePath |> File.ReadAllText |> JsonSerializer.Deserialize<'T[]>
-
-    [<Extension; CompiledName("ShuffleData")>]
-    static member shuffleData (data: 'T seq) =
-        data |> Seq.toArray |> Array.shuffle
 
 [<AutoOpen>]
 module Time =

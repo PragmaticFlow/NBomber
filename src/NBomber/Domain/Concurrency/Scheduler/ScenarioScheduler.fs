@@ -11,7 +11,6 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
-open NBomber.Domain.Step
 open NBomber.Domain.ScenarioContext
 
 [<Struct>]
@@ -61,9 +60,9 @@ let schedule (getRandomValue: int -> int -> int) // min -> max -> result
         if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount); command]
         else [command]
 
-let emptyExec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
+let emptyExec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
 
-type ScenarioScheduler(scnCtx: ScenarioExecContext, scenarioClusterCount: int) =
+type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     let _log = scnCtx.Logger.ForContext<ScenarioScheduler>()
     let mutable _scenario = scnCtx.Scenario

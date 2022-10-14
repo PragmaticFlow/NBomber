@@ -1,10 +1,8 @@
 module internal NBomber.DomainServices.TestHost.WorkerPlugins
 
 open System.Threading.Tasks
-
 open Serilog
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
