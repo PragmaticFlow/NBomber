@@ -209,7 +209,10 @@ type ScenarioStatsActor(logger: ILogger,
 
             | GetFinalStats (reply, simulationStats, duration) ->
                 let isFinalStats = true
-                let stats = buildStats _state _state.AllStepsData _state.FinalAgentsStats simulationStats duration isFinalStats
+
+                let allStats = _state.AllStepsResult.Values |> Seq.toArray
+
+                let stats = buildStats _state allStats _state.FinalAgentsStats simulationStats duration isFinalStats
                 reply.TrySetResult(stats) |> ignore
         with
         | ex -> _state.Logger.Error $"{nameof ScenarioStatsActor} failed: {ex.ToString()}"

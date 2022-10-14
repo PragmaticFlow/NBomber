@@ -59,7 +59,7 @@ type Step =
     static member run (name: string, context: IFlowContext, run: unit -> Task<FlowResponse<'T>>) =
         let ctx = context :?> ScenarioContext
 
-        if ctx.StopExecution then
+        if ctx.StopIteration then
             Domain.Step.emptyFail |> Task.FromResult
         else
             Domain.Step.measure name ctx run

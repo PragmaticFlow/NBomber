@@ -39,8 +39,9 @@ let measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<FlowRespons
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 
+        ctx.StopIteration <- true
         let context = ctx :> IFlowContext
-        context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}, Step: {name}")
+        context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}, Step: {1}", context.ScenarioInfo.ScenarioName, name)
 
         let error = FlowResponse.fail<'T>(ex, latencyMs = latency)
         let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }

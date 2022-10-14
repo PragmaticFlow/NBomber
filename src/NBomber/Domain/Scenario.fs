@@ -316,7 +316,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IFlowContext -> Task<Flo
         let latency = endTime - startTime
 
         let context = ctx :> IFlowContext
-        context.Logger.Error(ex, $"Unhandled exception for Scenario: {context.ScenarioInfo.ScenarioName}")
+        context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
         let error = FlowResponse.fail(ex, latencyMs = latency)
         let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
