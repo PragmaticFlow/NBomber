@@ -64,31 +64,31 @@ let createState logger scenario reportingInterval mergeStatsFn = {
 }
 
 let updateCoordinatorStats (state: State) (result: StepResult) =
-    if state.UseTempBuffer then
-        state.TempBuffer.Add result
-    else
-        let rawStats = state.CoordinatorStepsResults[result.StepName]
-        StepStatsRawData.addStepResult rawStats result
-
-        if result.ClientResponse.IsError then
-            state.FailCount <- state.FailCount + 1
+    let rawStats = state.CoordinatorStepsResults[result.StepName]
+    StepStatsRawData.addStepResult rawStats result
 
 let updateIntervalStats (state: State) (result: StepResult) =
     let rawStats = state.IntervalStepsResults[result.StepName]
     StepStatsRawData.addStepResult rawStats result
 
 let addStepResult (state: State) (result: StepResult) =
-    if state.CoordinatorStepsResults.ContainsKey result.StepName then
-        updateCoordinatorStats state result
+    if state.UseTempBuffer then
+        state.TempBuffer.Add result
     else
-        state.CoordinatorStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
-        updateCoordinatorStats state result
+        if state.CoordinatorStepsResults.ContainsKey result.StepName then
+            updateCoordinatorStats state result
+        else
+            state.CoordinatorStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
+            updateCoordinatorStats state result
 
-    if state.IntervalStepsResults.ContainsKey result.StepName then
-        updateIntervalStats state result
-    else
-        state.IntervalStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
-        updateIntervalStats state result
+        if state.IntervalStepsResults.ContainsKey result.StepName then
+            updateIntervalStats state result
+        else
+            state.IntervalStepsResults[result.StepName] <- StepStatsRawData.empty result.StepName
+            updateIntervalStats state result
+
+        if result.ClientResponse.IsError then
+            state.FailCount <- state.FailCount + 1
 
 let flushTempBuffer (state: State) =
     state.UseTempBuffer <- false
