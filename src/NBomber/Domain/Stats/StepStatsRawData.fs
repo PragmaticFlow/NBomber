@@ -2,16 +2,14 @@ module internal NBomber.Domain.Stats.StepStatsRawData
 
 open System
 open System.Collections.Generic
-
 open HdrHistogram
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Data
 
 type RawStatusCodeStats = {
-    StatusCode: int
+    StatusCode: string
     IsError: bool
     Message: string
     mutable Count: int
@@ -29,7 +27,7 @@ type RawStepStats = {
     mutable AllBytes: int64
     LatencyHistogram: LongHistogram
     DataTransferHistogram: LongHistogram
-    StatusCodes: Dictionary<int,RawStatusCodeStats>
+    StatusCodes: Dictionary<string,RawStatusCodeStats>
 }
 
 type StepStatsRawData = {
@@ -52,7 +50,7 @@ let empty (stepName) =
         AllBytes = 0L
         LatencyHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
         DataTransferHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
-        StatusCodes = Dictionary<int,RawStatusCodeStats>()
+        StatusCodes = Dictionary<string,RawStatusCodeStats>()
     }
 
     { StepName = stepName
@@ -61,15 +59,13 @@ let empty (stepName) =
 
 let addStepResult (stData: StepStatsRawData) (result: StepResult) =
 
-    let updateStatusCodeStats (statuses: Dictionary<int,RawStatusCodeStats>, res: IResponse) =
-        let statusCode = res.StatusCode.Value
-        match statuses.TryGetValue statusCode with
-        | true, codeStats -> codeStats.Count <- codeStats.Count + 1
+    let updateStatusCodeStats (statuses: Dictionary<string,RawStatusCodeStats>, res: IResponse) =
+        match statuses.TryGetValue res.StatusCode with
+        | true, codeStats ->
+            codeStats.Count <- codeStats.Count + 1
+
         | false, _ ->
-            statuses[statusCode] <- { StatusCode = statusCode
-                                      IsError = res.IsError
-                                      Message = res.Message
-                                      Count = 1 }
+            statuses[res.StatusCode] <- { StatusCode = res.StatusCode; IsError = res.IsError; Message = res.Message; Count = 1 }
 
     let clientRes = result.ClientResponse
 
@@ -80,13 +76,13 @@ let addStepResult (stData: StepStatsRawData) (result: StepResult) =
 
     let stats =
         match clientRes.IsError with
-        | true when clientRes.StatusCode.HasValue ->
+        | true when not (String.IsNullOrEmpty clientRes.StatusCode) ->
             updateStatusCodeStats(stData.FailStats.StatusCodes, clientRes)
             stData.FailStats
 
         | true -> stData.FailStats
 
-        | false when clientRes.StatusCode.HasValue ->
+        | false when not (String.IsNullOrEmpty clientRes.StatusCode) ->
             updateStatusCodeStats(stData.OkStats.StatusCodes, clientRes)
             stData.OkStats
 

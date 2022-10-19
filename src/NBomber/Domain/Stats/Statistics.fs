@@ -2,10 +2,8 @@ module internal NBomber.Domain.Stats.Statistics
 
 open System
 open System.Collections.Generic
-
 open HdrHistogram
 open FSharp.UMX
-
 open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
@@ -75,7 +73,7 @@ module DataTransferStats =
 
 module StatusCodeStats =
 
-    let create (stats: Dictionary<int,RawStatusCodeStats>) =
+    let create (stats: Dictionary<string,RawStatusCodeStats>) =
         stats.Values
         |> Seq.map(fun x ->
             { StatusCodeStats.StatusCode = x.StatusCode
