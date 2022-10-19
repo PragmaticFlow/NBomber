@@ -30,7 +30,7 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
 
                     shouldRun <- runInfinite
             else
-                _logger.Error($"ExecSteps was invoked for already working actor with Scenario: {_scenario.ScenarioName}")
+                _logger.Fatal($"Unhandled exception: ExecSteps was invoked for already working actor with Scenario: {0}", _scenario.ScenarioName)
         finally
             _actorWorking <- false
     }

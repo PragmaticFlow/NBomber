@@ -65,8 +65,8 @@ type CommandLineArgs = {
     [<Option('t', "target", HelpText = "Target Scenarios")>] TargetScenarios: string seq
 }
 
-type StepResult = {
-    StepName: string
+type Measurement = {
+    Name: string
     ClientResponse: IResponse
     EndTimeMs: float
     LatencyMs: float

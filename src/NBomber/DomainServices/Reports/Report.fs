@@ -36,7 +36,7 @@ let build (logger: ILogger)
     logger.Verbose "Report.build"
 
     let simulations = targetScenarios |> getLoadSimulations
-    let errorsExist = sessionResult.FinalStats.ScenarioStats |> Array.exists(fun stats -> stats.FailCount > 0)
+    let errorsExist = sessionResult.FinalStats.ScenarioStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     { TxtReport = lazy (TxtReport.print logger sessionResult simulations)
       HtmlReport = lazy (HtmlReport.print logger sessionResult)

@@ -1,5 +1,6 @@
 module internal NBomber.DomainServices.TestHost.TestHostConsole
 
+open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -58,36 +59,30 @@ module LiveStatusTable =
         TableColumn("data transfer stats (KB)") |> table.AddColumn
 
     let private renderTable (table: Table) (scenariosStats: ScenarioStats list) =
-        let mutable rowIndex = 0
-        let updateOperation = table.Rows.Count > 0
+        table.Rows.Clear()
 
         for scnStats in scenariosStats do
             for stepStats in scnStats.StepStats do
                 let ok = stepStats.Ok
+                let fail = stepStats.Fail
                 let req = ok.Request
                 let lt = ok.Latency
                 let data = ok.DataTransfer
 
-                if updateOperation then
-                    table.UpdateCell(rowIndex, 2, $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}") |> ignore
-                    table.UpdateCell(rowIndex, 3, $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}") |> ignore
-                    table.UpdateCell(rowIndex, 4, $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB") |> ignore
-                    rowIndex <- rowIndex + 1
-                else
-                    table.AddRow(
-                        scnStats.ScenarioName,
-                        stepStats.StepName,
-                        $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
-                        $"ok: {Console.okColor req.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
-                        $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
-                    |> ignore
+                table.AddRow(
+                    scnStats.ScenarioName,
+                    stepStats.StepName,
+                    $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
+                    $"ok: {Console.okColor req.Count}, fail: {Console.errorColor fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
+                    $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
+                |> ignore
 
-    let display (appType: ApplicationType)
+    let display (dep: IGlobalDependency)
                 (cancelToken: CancellationToken)
                 (isWarmUp: bool)
                 (scnSchedulers: ScenarioScheduler list) =
 
-        if appType = ApplicationType.Console then
+        if dep.ApplicationType = ApplicationType.Console then
 
             let stopWatch = Stopwatch()
             let mutable refreshTableCounter = 0
@@ -97,6 +92,7 @@ module LiveStatusTable =
                 else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
 
             let table = buildTable ()
+            table.Caption <- TableTitle("real-time stats table")
 
             let liveTable = AnsiConsole.Live(table)
             liveTable.AutoClear <- false
@@ -111,20 +107,23 @@ module LiveStatusTable =
                         let currentTime = stopWatch.Elapsed
                         if currentTime < maxDuration && refreshTableCounter = 0 then
 
-                            let scenariosStats =
-                                scnSchedulers
-                                |> List.map(fun x -> x.MergedReportingStats)
-
+                            let scenariosStats = scnSchedulers |> List.map(fun x -> x.ConsoleScenarioStats)
                             renderTable table scenariosStats
 
                         table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+
                         ctx.Refresh()
                         do! Task.Delay(1_000, cancelToken)
 
                         refreshTableCounter <- refreshTableCounter + 1
-                        if refreshTableCounter = NBomber.Constants.ConsoleRefreshTableCounter then refreshTableCounter <- 0
+
+                        if refreshTableCounter = NBomber.Constants.ConsoleRefreshTableCounter then
+                            refreshTableCounter <- 0
                     with
-                    | _ -> ()
+                    | :? OperationCanceledException as ex -> ()
+                    | ex ->
+                        refreshTableCounter <- 1
+                        dep.Logger.Fatal(ex.ToString())
 
                 table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
                 ctx.Refresh()

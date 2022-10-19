@@ -6,6 +6,7 @@ open Serilog
 
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
+open NBomber.Domain.Stats.Statistics
 
 let private separator = ","
 
@@ -42,7 +43,10 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
                   dt.MinBytes |> toKb, dt.MeanBytes |> toKb, dt.MaxBytes |> toKb, dt.AllBytes |> toMb)
 
 let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
-    scnStats.StepStats
+    let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
+    let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
+
+    stepStats
     |> Array.map(fun stepStats -> getLine(scnStats.ScenarioName, scnStats.Duration, stepStats, testInfo))
     |> String.concat Environment.NewLine
 

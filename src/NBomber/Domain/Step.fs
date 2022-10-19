@@ -14,8 +14,8 @@ let measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Response<'T
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 
-        let result = { StepName = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
-        ctx.StatsActor.Publish(AddStepResult result)
+        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddMeasurement result)
         return response
     with
     | ex ->
@@ -27,7 +27,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Response<'T
         context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}, Step: {1}", context.ScenarioInfo.ScenarioName, name)
 
         let error = ResponseInternal.fail(ex)
-        let result = { StepName = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
-        ctx.StatsActor.Publish(AddStepResult result)
+        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddMeasurement result)
         return error
 }

@@ -12,6 +12,8 @@ open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
 open NBomber.Domain.Stats
+open NBomber.Domain.Stats.Statistics
+open NBomber.DomainServices.Reports
 
 module TxtTestInfo =
 
@@ -46,8 +48,8 @@ module TxtNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: {scnStats.ScenarioName}{Environment.NewLine}"
-        + $"  - ok count: {scnStats.OkCount}{Environment.NewLine}"
-        + $"  - fail count: {scnStats.FailCount}{Environment.NewLine}"
+        + $"  - ok count: {scnStats.Ok.Request.Count}{Environment.NewLine}"
+        + $"  - fail count: {scnStats.Fail.Request.Count}{Environment.NewLine}"
         + $"  - all data: {ReportHelper.printAllData string scnStats.AllBytes}{Environment.NewLine}"
         + $"  - duration: {scnStats.Duration}"
 
@@ -58,12 +60,15 @@ module TxtNodeStats =
 
         stepStats |> Seq.map print |> String.concatLines
 
-    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+    let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats string string string
 
         let table =
             if isOkStats then ConsoleTable("step", "ok stats")
             else ConsoleTable("step", "fail stats")
+
+        let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
+        let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
 
         stepStats
         |> Seq.mapi printStepStatsRow
@@ -81,12 +86,12 @@ module TxtNodeStats =
           simulations        |> TxtLoadSimulations.print |> String.appendNewLine
           scnStats.StepStats |> printStepStatsHeader
 
-          printStepStatsTable true scnStats.StepStats
+          printStepStatsTable true scnStats
 
           if Statistics.ScenarioStats.failStepStatsExist scnStats then
-              printStepStatsTable false scnStats.StepStats
+              printStepStatsTable false scnStats
 
-          if scnStats.StatusCodes.Length > 0 then
+          if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
               yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =

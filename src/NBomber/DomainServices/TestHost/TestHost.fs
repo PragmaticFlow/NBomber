@@ -92,7 +92,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             dep.ReportingSinks |> ReportingSinks.start _log
 
         use cancelToken = new CancellationTokenSource()
-        schedulers |> TestHostConsole.LiveStatusTable.display dep.ApplicationType cancelToken.Token isWarmUp
+        TestHostConsole.LiveStatusTable.display dep cancelToken.Token isWarmUp schedulers
 
         if reportingManager.IsSome then
             reportingManager.Value.Start()
@@ -100,7 +100,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         // waiting on all scenarios to finish
         let schedulersArray = schedulers |> List.toArray
         use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
-        schedulerTimer.Elapsed.Add(fun _ -> schedulersArray |> Array.Parallel.iter(fun x -> x.ExecScheduler()))
+        schedulerTimer.Elapsed.Add(fun _ ->
+            schedulersArray |> Array.Parallel.iter(fun x -> x.ExecScheduler())
+        )
 
         schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll

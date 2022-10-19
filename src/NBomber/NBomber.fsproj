@@ -27,7 +27,7 @@
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\LoadTimeLine.fs" />
-        <Compile Include="Domain\Stats\StepStatsRawData.fs" />
+        <Compile Include="Domain\Stats\RawMeasurementStats.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
         <Compile Include="Domain\ScenarioContext.fs" />

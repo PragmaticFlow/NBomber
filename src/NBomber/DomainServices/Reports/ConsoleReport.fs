@@ -8,9 +8,10 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
+open NBomber.Domain.Stats
+open NBomber.Domain.Stats.Statistics
 open NBomber.Infra
 
 module ConsoleTestInfo =
@@ -45,8 +46,8 @@ module ConsoleNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         [ Console.addLine $"scenario: {Console.okEscColor scnStats.ScenarioName}"
-          Console.addLine $"  - ok count: {Console.okEscColor scnStats.OkCount}"
-          Console.addLine $"  - fail count: {Console.errorEscColor scnStats.FailCount}"
+          Console.addLine $"  - ok count: {Console.okEscColor scnStats.Ok.Request.Count}"
+          Console.addLine $"  - fail count: {Console.errorEscColor scnStats.Fail.Request.Count}"
           Console.addLine $"  - all data: {ReportHelper.printAllData Console.okEscColor scnStats.AllBytes}"
           Console.addLine $"  - duration: {Console.okEscColor scnStats.Duration}" ]
 
@@ -58,9 +59,13 @@ module ConsoleNodeStats =
 
         stepStats |> Seq.map print |> Console.addList
 
-    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+    let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Console.okEscColor Console.errorEscColor Console.blueEscColor
         let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
+
+        let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
+        let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
+
         let rows = stepStats |> Seq.mapi(printStepStatsRow) |> List.concat
         Console.addTable headers rows
 
@@ -78,12 +83,12 @@ module ConsoleNodeStats =
           yield! printStepStatsHeader scnStats.StepStats
           Console.addLine String.Empty
 
-          printStepStatsTable true scnStats.StepStats
+          printStepStatsTable true scnStats
 
           if Statistics.ScenarioStats.failStepStatsExist scnStats then
-              printStepStatsTable false scnStats.StepStats
+              printStepStatsTable false scnStats
 
-          if scnStats.StatusCodes.Length > 0 then
+          if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
               Console.addLine String.Empty
               yield! printScenarioStatusCodes scnStats ]
 

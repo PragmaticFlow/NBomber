@@ -164,7 +164,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     member _.Working = _isWorking
     member _.Scenario = _scenario
     member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
-    member _.MergedReportingStats = scnCtx.ScenarioStatsActor.MergedReportingStats
+    member _.ConsoleScenarioStats = scnCtx.ScenarioStatsActor.ConsoleScenarioStats
 
     member _.Start() = start()
     member _.Stop() = stop()

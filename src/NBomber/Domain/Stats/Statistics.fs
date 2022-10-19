@@ -9,7 +9,7 @@ open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.StepStatsRawData
+open NBomber.Domain.Stats.RawMeasurementStats
 
 let roundDuration (duration: TimeSpan) =
     TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
@@ -29,7 +29,9 @@ module RequestStats =
 
         float requestCount / totalSec
 
-    let create (stats: RawStepStats) (executionTime: TimeSpan) =
+    let empty = { Count = 0; RPS = 0 }
+
+    let create (stats: RawItemStats) (executionTime: TimeSpan) =
         { Count = stats.RequestCount
           RPS = stats.RequestCount |> calcRPS(executionTime) |> Converter.round 1 }
 
@@ -37,7 +39,13 @@ module LatencyStats =
 
     let inline microSecToMs (x: 'T) = x |> float |> Converter.fromMicroSecToMs |> Converter.round(Constants.StatsRounding)
 
-    let create (stats: RawStepStats) =
+    let empty = {
+        MinMs = 0; MeanMs = 0; MaxMs = 0
+        Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev= 0
+        LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
+    }
+
+    let create (stats: RawItemStats) =
 
         let latencies =
             if stats.LatencyHistogram.TotalCount > 0 then ValueSome stats.LatencyHistogram
@@ -55,7 +63,13 @@ module LatencyStats =
 
 module DataTransferStats =
 
-    let create (stats: RawStepStats) =
+    let empty = {
+        MinBytes = 0; MeanBytes = 0; MaxBytes = 0
+        Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0
+        AllBytes = 0
+    }
+
+    let create (stats: RawItemStats) =
 
         let dataTransfer =
             if stats.DataTransferHistogram.TotalCount > 0L then ValueSome stats.DataTransferHistogram
@@ -71,6 +85,18 @@ module DataTransferStats =
           StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
           AllBytes  = stats.AllBytes }
 
+    let merge (stats: DataTransferStats seq) = {
+        MinBytes = stats |> Seq.map(fun x -> x.MinBytes) |> Seq.min
+        MeanBytes = stats |> Seq.map(fun x -> float x.MeanBytes) |> Seq.average |> int
+        MaxBytes = stats |> Seq.map(fun x -> x.MaxBytes) |> Seq.max
+        Percent50 = stats |> Seq.map(fun x -> float x.Percent50) |> Seq.average |> int
+        Percent75 = stats |> Seq.map(fun x -> float x.Percent75) |> Seq.average |> int
+        Percent95 = stats |> Seq.map(fun x -> float x.Percent95) |> Seq.average |> int
+        Percent99 = stats |> Seq.map(fun x -> float x.Percent99) |> Seq.average |> int
+        StdDev = stats |> Seq.map(fun x -> x.StdDev) |> Seq.average |> Converter.round(Constants.StatsRounding)
+        AllBytes = stats |> Seq.map(fun x -> x.AllBytes) |> Seq.sum
+    }
+
 module StatusCodeStats =
 
     let create (stats: Dictionary<string,RawStatusCodeStats>) =
@@ -83,38 +109,54 @@ module StatusCodeStats =
         )
         |> Seq.toArray
 
-    let merge (stats: StatusCodeStats[]): StatusCodeStats[] =
+    let merge (stats: StatusCodeStats seq) =
         stats
-        |> Array.groupBy(fun x -> x.StatusCode)
-        |> Array.sortBy(fun (code,codeStats) -> code)
-        |> Array.map(fun (code,codeStats) ->
-            { StatusCode = code
+        |> Seq.groupBy(fun x -> x.StatusCode)
+        |> Seq.sortBy(fun (code,codeStats) -> code)
+        |> Seq.map(fun (code,codeStats) ->
+            { StatusCodeStats.StatusCode = code
               IsError = codeStats |> Seq.head |> fun x -> x.IsError
               Message = codeStats |> Seq.head |> fun x -> x.Message
               Count = codeStats |> Seq.sumBy(fun x -> x.Count) }
         )
+        |> Seq.toArray
+
+module MeasurementStats =
+
+    let empty = {
+        Request = RequestStats.empty
+        Latency = LatencyStats.empty
+        DataTransfer = DataTransferStats.empty
+        StatusCodes = Array.empty
+    }
+
+    let create (raw: RawMeasurementStats) (duration: TimeSpan) =
+
+        let okStats = {
+            Request = RequestStats.create raw.OkStats duration
+            Latency = LatencyStats.create raw.OkStats
+            DataTransfer = DataTransferStats.create raw.OkStats
+            StatusCodes = StatusCodeStats.create raw.OkStats.StatusCodes
+        }
+
+        let failStats = {
+            Request = RequestStats.create raw.FailStats duration
+            Latency = LatencyStats.create raw.FailStats
+            DataTransfer = DataTransferStats.create raw.FailStats
+            StatusCodes = StatusCodeStats.create raw.FailStats.StatusCodes
+        }
+
+        struct (okStats, failStats)
 
 module StepStats =
 
     let create (stepTimeout: TimeSpan)
                (duration: TimeSpan)
-               (stepData: StepStatsRawData) =
+               (stepData: RawMeasurementStats) =
 
-        let okStats = {
-            Request = RequestStats.create stepData.OkStats duration
-            Latency = LatencyStats.create stepData.OkStats
-            DataTransfer = DataTransferStats.create stepData.OkStats
-            StatusCodes = StatusCodeStats.create stepData.OkStats.StatusCodes
-        }
+        let struct (okStats, failStats) = MeasurementStats.create stepData duration
 
-        let failStats = {
-            Request = RequestStats.create stepData.FailStats duration
-            Latency = LatencyStats.create stepData.FailStats
-            DataTransfer = DataTransferStats.create stepData.FailStats
-            StatusCodes = StatusCodeStats.create stepData.FailStats.StatusCodes
-        }
-
-        { StepName = stepData.StepName
+        { StepName = stepData.Name
           Ok = okStats
           Fail = failStats
           StepInfo = { Timeout = stepTimeout } }
@@ -122,7 +164,26 @@ module StepStats =
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
 
+    let extractGlobalInfoStep (scn: ScenarioStats) = {
+        StepName = Constants.ScenarioGlobalInfo
+        Ok = scn.Ok
+        Fail = scn.Fail
+        StepInfo = { Timeout = TimeSpan.Zero }
+    }
+
 module ScenarioStats =
+
+    let buildGlobalInfoStats (globalInfo: StepStats) (allStepStats: StepStats seq) =
+        let okDt = allStepStats |> Seq.map(fun x -> x.Ok.DataTransfer) |> DataTransferStats.merge
+        let failDt = allStepStats |> Seq.map(fun x -> x.Fail.DataTransfer) |> DataTransferStats.merge
+
+        let okStatus = allStepStats |> Seq.collect(fun x -> x.Ok.StatusCodes) |> StatusCodeStats.merge
+        let failStatus = allStepStats |> Seq.collect(fun x -> x.Fail.StatusCodes) |> StatusCodeStats.merge
+
+        let ok = { globalInfo.Ok with DataTransfer = okDt; StatusCodes = okStatus }
+        let fail = { globalInfo.Fail with DataTransfer = failDt; StatusCodes = failStatus }
+
+        struct (ok, fail)
 
     let empty (scenario: Scenario) =
 
@@ -131,49 +192,37 @@ module ScenarioStats =
 
         { ScenarioName = scenario.ScenarioName
           RequestCount = 0
-          OkCount = 0
-          FailCount = 0
           AllBytes = 0
+          Ok = MeasurementStats.empty
+          Fail = MeasurementStats.empty
           StepStats = Array.empty
-          LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
           LoadSimulationStats = simulationStats
-          StatusCodes = Array.empty
           CurrentOperation = OperationType.None
           Duration = TimeSpan.Zero }
 
     let create (scenarioName: string)
-               (allStepsData: StepStatsRawData[])
+               (rawStats: RawMeasurementStats[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
                (duration: TimeSpan<scenarioDuration>)
                (reportingInterval: TimeSpan) =
 
-        let okCount = allStepsData |> Array.sumBy(fun x -> x.OkStats.RequestCount)
-        let failCount = allStepsData |> Array.sumBy(fun x -> x.FailStats.RequestCount)
-        let allBytes = allStepsData |> Array.sumBy(fun x -> x.OkStats.AllBytes + x.FailStats.AllBytes)
+        let allStepStats = rawStats |> Seq.map(StepStats.create TimeSpan.MinValue reportingInterval)
+        let stepStats    = allStepStats |> Seq.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo) |> Seq.toArray
+        let globalInfo   = allStepStats |> Seq.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
-        let less800 = allStepsData |> Array.sumBy(fun x -> x.OkStats.LessOrEq800 + x.FailStats.LessOrEq800)
-        let more800Less1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.More800Less1200 + x.FailStats.More800Less1200)
-        let more1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.MoreOrEq1200 + x.FailStats.MoreOrEq1200)
-
-        let stepStats = allStepsData |> Array.map(StepStats.create TimeSpan.MinValue reportingInterval)
-
-        // reorder steps to have GlobalInfo on top
-        stepStats |> Array.sortInPlaceBy(fun x -> if x.StepName = Constants.ScenarioGlobalInfo then 0 else 1)
-
-        let okCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.OkStats.StatusCodes)
-        let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
-        let statusCodes = StatusCodeStats.merge (okCodes |> Array.append failCodes)
+        let struct (ok, fail) =
+            match globalInfo with
+            | Some v -> buildGlobalInfoStats v allStepStats
+            | None   -> MeasurementStats.empty, MeasurementStats.empty
 
         { ScenarioName = scenarioName
-          RequestCount = okCount + failCount
-          OkCount = okCount
-          FailCount = failCount
-          AllBytes = allBytes
+          RequestCount = ok.Request.Count + fail.Request.Count
+          AllBytes = ok.DataTransfer.AllBytes + fail.DataTransfer.AllBytes
+          Ok = ok
+          Fail = fail
           StepStats = stepStats
-          LatencyCount = { LessOrEq800 = less800; More800Less1200 = more800Less1200; MoreOrEq1200 = more1200 }
           LoadSimulationStats = simulationStats
-          StatusCodes = statusCodes
           CurrentOperation = currentOperation
           Duration = duration |> UMX.untag |> roundDuration }
 
@@ -187,11 +236,14 @@ module NodeStats =
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
             let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration |> roundDuration
+            let okCount = scnStats |> Array.sumBy(fun x -> x.Ok.Request.Count)
+            let failCount = scnStats |> Array.sumBy(fun x -> x.Fail.Request.Count)
+            let allBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
 
-            { RequestCount = scnStats |> Array.sumBy(fun x -> x.RequestCount)
-              OkCount = scnStats |> Array.sumBy(fun x -> x.OkCount)
-              FailCount = scnStats |> Array.sumBy(fun x -> x.FailCount)
-              AllBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
+            { RequestCount = okCount + failCount
+              OkCount = okCount
+              FailCount = failCount
+              AllBytes = allBytes
               ScenarioStats = scnStats
               PluginStats = Array.empty
               NodeInfo = nodeInfo

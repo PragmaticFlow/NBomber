@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Stats.StepStatsRawData
+module internal NBomber.Domain.Stats.RawMeasurementStats
 
 open System
 open System.Collections.Generic
@@ -15,7 +15,7 @@ type RawStatusCodeStats = {
     mutable Count: int
 }
 
-type RawStepStats = {
+type RawItemStats = {
     mutable MinMicroSec: int
     mutable MaxMicroSec: int
     mutable MinBytes: int
@@ -30,10 +30,10 @@ type RawStepStats = {
     StatusCodes: Dictionary<string,RawStatusCodeStats>
 }
 
-type StepStatsRawData = {
-    StepName: string
-    OkStats: RawStepStats
-    FailStats: RawStepStats
+type RawMeasurementStats = {
+    Name: string
+    OkStats: RawItemStats
+    FailStats: RawItemStats
 }
 
 let empty (stepName) =
@@ -53,11 +53,11 @@ let empty (stepName) =
         StatusCodes = Dictionary<string,RawStatusCodeStats>()
     }
 
-    { StepName = stepName
+    { Name = stepName
       OkStats = createStats()
       FailStats = createStats() }
 
-let addStepResult (stData: StepStatsRawData) (result: StepResult) =
+let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) =
 
     let updateStatusCodeStats (statuses: Dictionary<string,RawStatusCodeStats>, res: IResponse) =
         match statuses.TryGetValue res.StatusCode with
@@ -67,26 +67,26 @@ let addStepResult (stData: StepStatsRawData) (result: StepResult) =
         | false, _ ->
             statuses[res.StatusCode] <- { StatusCode = res.StatusCode; IsError = res.IsError; Message = res.Message; Count = 1 }
 
-    let clientRes = result.ClientResponse
+    let clientRes = measurement.ClientResponse
 
     // calc latency
     let latencyMs =
         if clientRes.LatencyMs > 0.0 then clientRes.LatencyMs
-        else result.LatencyMs
+        else measurement.LatencyMs
 
     let stats =
         match clientRes.IsError with
         | true when not (String.IsNullOrEmpty clientRes.StatusCode) ->
-            updateStatusCodeStats(stData.FailStats.StatusCodes, clientRes)
-            stData.FailStats
+            updateStatusCodeStats(rawStats.FailStats.StatusCodes, clientRes)
+            rawStats.FailStats
 
-        | true -> stData.FailStats
+        | true -> rawStats.FailStats
 
         | false when not (String.IsNullOrEmpty clientRes.StatusCode) ->
-            updateStatusCodeStats(stData.OkStats.StatusCodes, clientRes)
-            stData.OkStats
+            updateStatusCodeStats(rawStats.OkStats.StatusCodes, clientRes)
+            rawStats.OkStats
 
-        | false -> stData.OkStats
+        | false -> rawStats.OkStats
 
     stats.RequestCount <- stats.RequestCount + 1
 
