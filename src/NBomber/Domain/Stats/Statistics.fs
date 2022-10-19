@@ -149,7 +149,7 @@ module ScenarioStats =
           CurrentOperation = OperationType.None
           Duration = TimeSpan.Zero }
 
-    let create (scenario: Scenario)
+    let create (scenarioName: string)
                (allStepsData: StepStatsRawData[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
@@ -173,7 +173,7 @@ module ScenarioStats =
         let failCodes = allStepsData |> Array.collect(fun x -> StatusCodeStats.create x.FailStats.StatusCodes)
         let statusCodes = StatusCodeStats.merge (okCodes |> Array.append failCodes)
 
-        { ScenarioName = scenario.ScenarioName
+        { ScenarioName = scenarioName
           RequestCount = okCount + failCount
           OkCount = okCount
           FailCount = failCount

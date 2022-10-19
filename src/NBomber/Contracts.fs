@@ -46,7 +46,7 @@ type NBomberContext = {
             ReportingInterval = Constants.DefaultReportingInterval
         }
         WorkerPlugins = List.empty
-        EnableHintsAnalyzer = true
+        EnableHintsAnalyzer = false
         TargetScenarios = None
         DefaultStepTimeoutMs = Constants.DefaultStepTimeoutMs
         MaxFailCount = Constants.DefaultMaxFailCount

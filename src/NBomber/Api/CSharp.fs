@@ -150,7 +150,7 @@ type NBomberRunner =
 
     /// Enables or disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
-    /// The default value is true.
+    /// The default value is false.
     [<Extension>]
     static member EnableHintsAnalyzer(context: NBomberContext, enable: bool) =
         context |> FSharp.NBomberRunner.enableHintsAnalyzer enable

@@ -97,10 +97,10 @@ let flushTempBuffer (state: State) =
     state
 
 let createReportingStats (state: State) (simulationStats) (duration) (stepsData) =
-    ScenarioStats.create state.Scenario stepsData simulationStats OperationType.Bombing %duration state.ReportingInterval
+    ScenarioStats.create state.Scenario.ScenarioName stepsData simulationStats OperationType.Bombing %duration state.ReportingInterval
 
 let createFinalStats (state: State) (simulationStats) (duration) (stepsData) =
-    ScenarioStats.create state.Scenario stepsData simulationStats OperationType.Complete %duration duration
+    ScenarioStats.create state.Scenario.ScenarioName stepsData simulationStats OperationType.Complete %duration duration
 
 let buildStats (state: State)
                (cordStepsData: StepStatsRawData[])

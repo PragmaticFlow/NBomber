@@ -6,6 +6,7 @@ open FsToolkit.ErrorHandling
 open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
+open NBomber.Domain
 open NBomber.Domain.LoadTimeLine
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
@@ -21,7 +22,7 @@ let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: Node
     if useHintsAnalyzer then
         dep.WorkerPlugins
         |> WorkerPlugins.getHints
-        //|> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
+        |> List.append(HintsAnalyzer.analyzeNodeStats finalStats)
         |> List.toArray
     else
         Array.empty
