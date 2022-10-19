@@ -54,8 +54,6 @@ module ConsoleNodeStats =
         let print (stats) = seq {
             $"step: {Console.blueEscColor stats.StepName}"
             $"  - timeout: {Console.okEscColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
-            $"  - client factory: {Console.okEscColor stats.StepInfo.ClientFactoryName}, clients: {Console.okEscColor stats.StepInfo.ClientFactoryClientCount}"
-            $"  - data feed: {Console.okEscColor stats.StepInfo.FeedName}"
         }
 
         stepStats |> Seq.map print |> Console.addList

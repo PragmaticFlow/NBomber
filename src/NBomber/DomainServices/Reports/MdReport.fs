@@ -76,8 +76,6 @@ module MdNodeStats =
             document
             |> Document.addText $"step: {Md.printInlineCode stats.StepName}" |> Md.addNewLine
             |> Document.addText $"  - timeout: {Md.printInlineCode stats.StepInfo.Timeout.TotalMilliseconds} ms" |> Md.addNewLine
-            |> Document.addText $"  - client factory: {Md.printInlineCode stats.StepInfo.ClientFactoryName}, clients: {Md.printInlineCode stats.StepInfo.ClientFactoryClientCount}" |> Md.addNewLine
-            |> Document.addText $"  - data feed: {Md.printInlineCode stats.StepInfo.FeedName}" |> Md.addNewLine
 
         stepStats |> Seq.fold print document
 

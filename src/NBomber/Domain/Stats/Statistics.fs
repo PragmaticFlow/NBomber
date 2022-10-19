@@ -97,9 +97,6 @@ module StatusCodeStats =
 module StepStats =
 
     let create (stepTimeout: TimeSpan)
-               (clientFactoryName: string)
-               (clientFactoryClientCount: int)
-               (feedName: string)
                (duration: TimeSpan)
                (stepData: StepStatsRawData) =
 
@@ -120,10 +117,7 @@ module StepStats =
         { StepName = stepData.StepName
           Ok = okStats
           Fail = failStats
-          StepInfo = { Timeout = stepTimeout
-                       ClientFactoryName = clientFactoryName
-                       ClientFactoryClientCount = clientFactoryClientCount
-                       FeedName = feedName } }
+          StepInfo = { Timeout = stepTimeout } }
 
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
@@ -162,7 +156,7 @@ module ScenarioStats =
         let more800Less1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.More800Less1200 + x.FailStats.More800Less1200)
         let more1200 = allStepsData |> Array.sumBy(fun x -> x.OkStats.MoreOrEq1200 + x.FailStats.MoreOrEq1200)
 
-        let stepStats = allStepsData |> Array.map(StepStats.create (TimeSpan.MinValue) "" 0 "" reportingInterval)
+        let stepStats = allStepsData |> Array.map(StepStats.create TimeSpan.MinValue reportingInterval)
 
         // reorder steps to have GlobalInfo on top
         stepStats |> Array.sortInPlaceBy(fun x -> if x.StepName = Constants.ScenarioGlobalInfo then 0 else 1)
