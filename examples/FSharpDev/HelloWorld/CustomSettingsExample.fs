@@ -16,7 +16,7 @@ let run () =
 
     let mutable _customSettings = { TestField = 0; PauseMs = 0 }
 
-    let scenarioInit (context: IScenarioContext) = task {
+    let scenarioInit (context: IScenarioInitContext) = task {
         _customSettings <- context.CustomSettings.Get<CustomScenarioSettings>()
 
         context.Logger.Information(
@@ -39,9 +39,10 @@ let run () =
 
     let customPause = Step.createPause(fun () -> _customSettings.PauseMs)
 
-    Scenario.create "my_scenario" [step; customPause]
-    |> Scenario.withInit scenarioInit
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.loadConfig "./HelloWorld/config.json"
-    |> NBomberRunner.run
-    |> ignore
+    // Scenario.create "my_scenario" [step; customPause]
+    // |> Scenario.withInit scenarioInit
+    // |> NBomberRunner.registerScenario
+    // |> NBomberRunner.loadConfig "./HelloWorld/config.json"
+    // |> NBomberRunner.run
+    // |> ignore
+    ()

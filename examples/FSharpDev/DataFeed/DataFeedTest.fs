@@ -32,8 +32,9 @@ let run () =
         return Response.ok()
     })
 
-    Scenario.create "data_feed_scenario" [step]
-    |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.run
-    |> ignore
+    // Scenario.create "data_feed_scenario" [step]
+    // |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
+    // |> NBomberRunner.registerScenario
+    // |> NBomberRunner.run
+    // |> ignore
+    ()

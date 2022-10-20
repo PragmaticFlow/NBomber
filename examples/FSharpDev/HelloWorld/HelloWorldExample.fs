@@ -1,5 +1,6 @@
 module FSharpDev.HelloWorld.HelloWorldExample
 
+open System
 open System.Threading.Tasks
 open NBomber
 open NBomber.Contracts
@@ -7,19 +8,23 @@ open NBomber.FSharp
 
 let run () =
 
-    let step1 = Step.create("step_1", fun context -> task {
+    Scenario.create("flow", fun ctx -> task {
 
-        // you can do any logic here: go to http, websocket etc
-        do! Task.Delay(milliseconds 100)
-        return Response.ok() // this value will be passed as response for the next step
+        // let ex = Exception("dssadsa")
+        // let dd = FlowResponse.fail()
+        // let dd = FlowResponse.fail(ex)
+        // let dd = FlowResponse.fail("asdasd")
+
+        let! response1 = Step.run("step_1", ctx, fun () -> task {
+            return FlowResponse.ok("")
+        })
+
+        let! response1 = Step.run("step_1", ctx, fun () -> task {
+            return FlowResponse.fail("")
+        })
+
+        return FlowResponse.ok()
     })
-
-    let pause = Step.createPause(milliseconds 100)
-
-    // here you create scenario and define (default) step order
-    // you also can define them in opposite direction, like [step2; step1]
-    // or even repeat [step1; step1; step1; step2]
-    Scenario.create "hello_world_scenario" [step1]
     |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withTestSuite "example"

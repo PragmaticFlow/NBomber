@@ -16,11 +16,11 @@ public class CustomSettingsExample
 {
     static CustomScenarioSettings _customSettings = new CustomScenarioSettings();
 
-    static Task ScenarioInit(IScenarioContext context)
+    static Task ScenarioInit(IScenarioInitContext initContext)
     {
-        _customSettings = context.CustomSettings.Get<CustomScenarioSettings>();
+        _customSettings = initContext.CustomSettings.Get<CustomScenarioSettings>();
 
-        context.Logger.Information(
+        initContext.Logger.Information(
             "test init received CustomSettings.TestField '{TestField}'",
             _customSettings.TestField
         );
@@ -30,28 +30,28 @@ public class CustomSettingsExample
 
     public static void Run()
     {
-        var step = Step.Create("step", async context =>
-        {
-            await Task.Delay(TimeSpan.FromSeconds(0.1));
+        // var step = Step.Create("step", async context =>
+        // {
+        //     await Task.Delay(TimeSpan.FromSeconds(0.1));
+        //
+        //     context.Logger.Debug(
+        //         "step received CustomSettings.TestField '{TestField}'",
+        //         _customSettings.TestField
+        //     );
+        //
+        //     return Response.Ok(); // this value will be passed as response for the next step
+        // });
+        //
+        // var customPause = Step.CreatePause(() => _customSettings.PauseMs);
 
-            context.Logger.Debug(
-                "step received CustomSettings.TestField '{TestField}'",
-                _customSettings.TestField
-            );
-
-            return Response.Ok(); // this value will be passed as response for the next step
-        });
-
-        var customPause = Step.CreatePause(() => _customSettings.PauseMs);
-
-        var scenario = ScenarioBuilder
-            .CreateScenario("my_scenario", step, customPause)
-            .WithInit(ScenarioInit);
-
-        NBomberRunner
-            .RegisterScenarios(scenario)
-            .LoadConfig("./Features/config.json")
-            .Run();
+        // var scenario = ScenarioBuilder
+        //     .CreateScenario("my_scenario", step, customPause)
+        //     .WithInit(ScenarioInit);
+        //
+        // NBomberRunner
+        //     .RegisterScenarios(scenario)
+        //     .LoadConfig("./Features/config.json")
+        //     .Run();
     }
 }
 

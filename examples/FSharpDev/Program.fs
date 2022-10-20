@@ -9,11 +9,11 @@ open FSharpDev.HttpTests
 [<EntryPoint>]
 let main argv =
 
-    //HelloWorldExample.run()
+    HelloWorldExample.run()
     //CustomSettingsExample.run()
     //DataFeedTest.run()
     //SimpleHttpTest.run()
-    HttpClientFactoryExample.run()
+    //HttpClientFactoryExample.run()
     //MqttScenario.run()
 
     0 // return an integer exit code
