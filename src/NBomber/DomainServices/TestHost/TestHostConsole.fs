@@ -55,8 +55,9 @@ module LiveStatusTable =
         TableColumn("scenario") |> table.AddColumn |> ignore
         TableColumn("step") |> table.AddColumn |> ignore
         TableColumn("load simulation") |> table.AddColumn |> ignore
-        TableColumn("latency stats (ms)") |> table.AddColumn |> ignore
-        TableColumn("data transfer stats (KB)") |> table.AddColumn
+        TableColumn("ok latency (ms)") |> table.AddColumn |> ignore
+        TableColumn("fail latency (ms)") |> table.AddColumn |> ignore
+        TableColumn("ok data transfer (KB)") |> table.AddColumn
 
     let private renderTable (table: Table) (scenariosStats: ScenarioStats list) =
         table.Rows.Clear()
@@ -64,16 +65,20 @@ module LiveStatusTable =
         for scnStats in scenariosStats do
             for stepStats in scnStats.StepStats do
                 let ok = stepStats.Ok
-                let fail = stepStats.Fail
-                let req = ok.Request
-                let lt = ok.Latency
+                let okR = ok.Request
+                let okL = ok.Latency
                 let data = ok.DataTransfer
+
+                let fail = stepStats.Fail
+                let fR = fail.Request
+                let fL = fail.Latency
 
                 table.AddRow(
                     scnStats.ScenarioName,
                     stepStats.StepName,
                     $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
-                    $"ok: {Console.okColor req.Count}, fail: {Console.errorColor fail.Request.Count}, RPS: {Console.okColor req.RPS}, p50 = {Console.okColor lt.Percent50}, p99 = {Console.okColor lt.Percent99}",
+                    $"ok: {Console.okColor okR.Count}, RPS: {Console.okColor okR.RPS}, p50 = {Console.okColor okL.Percent50}, p99 = {Console.okColor okL.Percent99}",
+                    $"fail: {Console.errorColor fR.Count}, RPS: {Console.errorColor fR.RPS}, p50 = {Console.errorColor fL.Percent50}, p99 = {Console.errorColor fL.Percent99}",
                     $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
                 |> ignore
 
