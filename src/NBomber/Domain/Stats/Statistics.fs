@@ -222,8 +222,8 @@ module ScenarioStats =
           CurrentOperation = currentOperation
           Duration = duration |> UMX.untag |> roundDuration }
 
-    let failStepStatsExist (stats: ScenarioStats) =
-        stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
+    let failStatsExist (stats: ScenarioStats) =
+        stats.Fail.Request.Count > 0 || stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let calcAllBytes (stats: ScenarioStats) =
         stats.Ok.DataTransfer.AllBytes + stats.Fail.DataTransfer.AllBytes

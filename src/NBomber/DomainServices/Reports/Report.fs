@@ -2,17 +2,16 @@ module internal NBomber.DomainServices.Reports.Report
 
 open System
 open System.IO
-open System.Threading.Tasks
-
-open NBomber.Contracts
-open NBomber.Infra.Dependency
 open Serilog
 open Spectre.Console.Rendering
 
+open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.Statistics
 open NBomber.Infra
+open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
 type ReportsContent = {
@@ -21,7 +20,6 @@ type ReportsContent = {
     CsvReport: Lazy<string>
     MdReport: Lazy<string>
     ConsoleReport: Lazy<IRenderable list>
-    SessionFinishedWithErrors: bool
 }
 
 let getLoadSimulations (scenarios: Scenario list) =
@@ -36,14 +34,23 @@ let build (logger: ILogger)
     logger.Verbose "Report.build"
 
     let simulations = targetScenarios |> getLoadSimulations
-    let errorsExist = sessionResult.FinalStats.ScenarioStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
-    { TxtReport = lazy (TxtReport.print logger sessionResult simulations)
-      HtmlReport = lazy (HtmlReport.print logger sessionResult)
-      CsvReport = lazy (CsvReport.print logger sessionResult)
-      MdReport = lazy (MdReport.print logger sessionResult simulations)
-      ConsoleReport = lazy (ConsoleReport.print logger sessionResult simulations)
-      SessionFinishedWithErrors = errorsExist }
+    let scnStats =
+        sessionResult.FinalStats.ScenarioStats
+        |> Array.map(fun scn ->
+            let globalInfoStep = StepStats.extractGlobalInfoStep scn
+            let stepStats = scn.StepStats |> Array.append [| globalInfoStep |]
+            { scn with StepStats = stepStats }
+        )
+
+    let finalStats = { sessionResult.FinalStats with ScenarioStats = scnStats }
+    let newSessionResult = { sessionResult with FinalStats = finalStats }
+
+    { TxtReport = lazy (TxtReport.print logger newSessionResult simulations)
+      HtmlReport = lazy (HtmlReport.print logger newSessionResult)
+      CsvReport = lazy (CsvReport.print logger newSessionResult)
+      MdReport = lazy (MdReport.print logger newSessionResult simulations)
+      ConsoleReport = lazy (ConsoleReport.print logger newSessionResult simulations) }
 
 let saveToFolder (logger: ILogger, folder: string, fileName: string,
                   reportFormats: ReportFormat list, report: ReportsContent) =
@@ -79,9 +86,6 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             with
             | ex -> logger.Error(ex, "Could not save the report file {0}", x.FilePath)
         )
-
-        if report.SessionFinishedWithErrors then
-            logger.Warning("Test finished with errors, please check the log file")
 
         if reportFiles.Length > 0 then
             logger.Information("Reports saved in folder: {0}", DirectoryInfo(folder).FullName)

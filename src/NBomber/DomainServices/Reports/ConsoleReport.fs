@@ -10,7 +10,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
-open NBomber.Domain.Stats
 open NBomber.Domain.Stats.Statistics
 open NBomber.Infra
 
@@ -63,10 +62,7 @@ module ConsoleNodeStats =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Console.okEscColor Console.errorEscColor Console.blueEscColor
         let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
 
-        let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
-        let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
-
-        let rows = stepStats |> Seq.mapi(printStepStatsRow) |> List.concat
+        let rows = scnStats.StepStats |> Seq.mapi(printStepStatsRow) |> List.concat
         Console.addTable headers rows
 
     let private printScenarioStatusCodes (scnStats: ScenarioStats) =
@@ -85,7 +81,7 @@ module ConsoleNodeStats =
 
           printStepStatsTable true scnStats
 
-          if Statistics.ScenarioStats.failStepStatsExist scnStats then
+          if ScenarioStats.failStatsExist scnStats then
               printStepStatsTable false scnStats
 
           if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then

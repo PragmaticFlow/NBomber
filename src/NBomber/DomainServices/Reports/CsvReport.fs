@@ -43,10 +43,7 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
                   dt.MinBytes |> toKb, dt.MeanBytes |> toKb, dt.MaxBytes |> toKb, dt.AllBytes |> toMb)
 
 let private printSteps (testInfo: TestInfo) (scnStats: ScenarioStats) =
-    let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
-    let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
-
-    stepStats
+    scnStats.StepStats
     |> Array.map(fun stepStats -> getLine(scnStats.ScenarioName, scnStats.Duration, stepStats, testInfo))
     |> String.concat Environment.NewLine
 

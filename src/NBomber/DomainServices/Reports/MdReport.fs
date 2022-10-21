@@ -8,7 +8,6 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
 open NBomber.Domain.Stats.Statistics
 open NBomber.Extensions.Data
 
@@ -84,10 +83,7 @@ module MdNodeStats =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Md.printInlineCode Md.printInlineCode Md.printInlineCode
         let headers = if isOkStats then ["step"; "ok stats"] else ["step"; "fail stats"]
 
-        let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
-        let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
-
-        stepStats
+        scnStats.StepStats
         |> Seq.mapi printStepStatsRow
         |> List.concat
         |> fun rows -> document |> Document.addTable headers rows |> Md.addNewLine
@@ -107,7 +103,7 @@ module MdNodeStats =
         |> printStepStatsHeader scnStats.StepStats
         |> printStepStatsTable true scnStats
         |> fun doc ->
-            if Statistics.ScenarioStats.failStepStatsExist scnStats then
+            if ScenarioStats.failStatsExist scnStats then
                 doc |> printStepStatsTable false scnStats
             else
                 doc

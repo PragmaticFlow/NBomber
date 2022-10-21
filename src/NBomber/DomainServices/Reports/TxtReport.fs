@@ -11,7 +11,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
-open NBomber.Domain.Stats
 open NBomber.Domain.Stats.Statistics
 open NBomber.DomainServices.Reports
 
@@ -67,10 +66,7 @@ module TxtNodeStats =
             if isOkStats then ConsoleTable("step", "ok stats")
             else ConsoleTable("step", "fail stats")
 
-        let globalInfoStep = StepStats.extractGlobalInfoStep scnStats
-        let stepStats = scnStats.StepStats |> Array.append [| globalInfoStep |]
-
-        stepStats
+        scnStats.StepStats
         |> Seq.mapi printStepStatsRow
         |> Seq.concat
         |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
@@ -88,7 +84,7 @@ module TxtNodeStats =
 
           printStepStatsTable true scnStats
 
-          if Statistics.ScenarioStats.failStepStatsExist scnStats then
+          if ScenarioStats.failStatsExist scnStats then
               printStepStatsTable false scnStats
 
           if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
