@@ -3,6 +3,8 @@
 open System.IO
 open NBomber.Extensions.Internal
 
+exception ResetScenarioIteration
+
 type DomainError =
     | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn

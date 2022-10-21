@@ -48,7 +48,7 @@ module ConsoleNodeStats =
         [ Console.addLine $"scenario: {Console.okEscColor scnStats.ScenarioName}"
           Console.addLine $"  - ok count: {Console.okEscColor scnStats.Ok.Request.Count}"
           Console.addLine $"  - fail count: {Console.errorEscColor scnStats.Fail.Request.Count}"
-          Console.addLine $"  - all data: {ReportHelper.printAllData Console.okEscColor scnStats.AllBytes}"
+          Console.addLine $"  - all data: {ReportHelper.printAllData Console.okEscColor (ScenarioStats.calcAllBytes scnStats)}"
           Console.addLine $"  - duration: {Console.okEscColor scnStats.Duration}" ]
 
     let private printStepStatsHeader (stepStats: StepStats[]) =

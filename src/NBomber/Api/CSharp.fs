@@ -3,6 +3,7 @@
 #nowarn "3211"
 
 open System
+open System.Runtime.InteropServices
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open Serilog
@@ -58,6 +59,14 @@ type Scenario =
     [<Extension>]
     static member WithLoadSimulations(scenario: ScenarioProps, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
+
+    /// With this configuration, you can enable or disable Scenario iteration reset.
+    /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
+    /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
+    /// For such cases, you can disable scenario iteration reset.
+    /// The default value is true.
+    static member WithResetIterationOnFail(scenario: ScenarioProps, [<DefaultParameterValue(true)>]shouldReset: bool) =
+        scenario |> FSharp.Scenario.withResetIterationOnFail shouldReset
 
 [<Extension>]
 type NBomberRunner =

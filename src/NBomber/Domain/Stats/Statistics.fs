@@ -191,8 +191,6 @@ module ScenarioStats =
         let simulationStats = LoadTimeLine.createSimulationStats(simulation, 0, 0)
 
         { ScenarioName = scenario.ScenarioName
-          RequestCount = 0
-          AllBytes = 0
           Ok = MeasurementStats.empty
           Fail = MeasurementStats.empty
           StepStats = Array.empty
@@ -217,8 +215,6 @@ module ScenarioStats =
             | None   -> MeasurementStats.empty, MeasurementStats.empty
 
         { ScenarioName = scenarioName
-          RequestCount = ok.Request.Count + fail.Request.Count
-          AllBytes = ok.DataTransfer.AllBytes + fail.DataTransfer.AllBytes
           Ok = ok
           Fail = fail
           StepStats = stepStats
@@ -229,22 +225,18 @@ module ScenarioStats =
     let failStepStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
+    let calcAllBytes (stats: ScenarioStats) =
+        stats.Ok.DataTransfer.AllBytes + stats.Fail.DataTransfer.AllBytes
+
 module NodeStats =
 
     let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
         if Array.isEmpty scnStats then
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
-            let maxDuration = scnStats |> Array.maxBy(fun x -> x.Duration) |> fun scn -> scn.Duration |> roundDuration
-            let okCount = scnStats |> Array.sumBy(fun x -> x.Ok.Request.Count)
-            let failCount = scnStats |> Array.sumBy(fun x -> x.Fail.Request.Count)
-            let allBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
+            let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> roundDuration
 
-            { RequestCount = okCount + failCount
-              OkCount = okCount
-              FailCount = failCount
-              AllBytes = allBytes
-              ScenarioStats = scnStats
+            { ScenarioStats = scnStats
               PluginStats = Array.empty
               NodeInfo = nodeInfo
               TestInfo = testInfo

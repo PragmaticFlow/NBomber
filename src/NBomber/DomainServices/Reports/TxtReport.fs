@@ -50,7 +50,7 @@ module TxtNodeStats =
         $"scenario: {scnStats.ScenarioName}{Environment.NewLine}"
         + $"  - ok count: {scnStats.Ok.Request.Count}{Environment.NewLine}"
         + $"  - fail count: {scnStats.Fail.Request.Count}{Environment.NewLine}"
-        + $"  - all data: {ReportHelper.printAllData string scnStats.AllBytes}{Environment.NewLine}"
+        + $"  - all data: {ReportHelper.printAllData string (ScenarioStats.calcAllBytes scnStats)}{Environment.NewLine}"
         + $"  - duration: {scnStats.Duration}"
 
     let private printStepStatsHeader (stepStats: StepStats[]) =

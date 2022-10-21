@@ -24,9 +24,10 @@ type ScenarioContext(scenarioInfo, args: ScenarioContextArgs) =
     let _scnActor = args.ScenarioStatsActor
     let _timer = args.ScenarioTimer
     let _cancelToken = args.ScenarioCancellationToken.Token
+    let _resetIteration = args.Scenario.ResetIterationOnFail
     let mutable _invocationNumber = 0
 
-    member val StopIteration = false with get, set
+    member _.ResetIterationOnFail = _resetIteration
     member _.InvocationNumber = _invocationNumber
     member _.StatsActor = _scnActor
     member _.Timer = _timer

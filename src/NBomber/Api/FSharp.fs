@@ -26,13 +26,19 @@ type Step =
 
     /// Runs a step.
     /// Step represents a single user action like login, logout, etc.
-    static member run (name: string, context: IScenarioContext, run: unit -> Task<Response<'T>>) =
+    static member run (name: string, context: IScenarioContext, run: unit -> Task<Response<'T>>) = backgroundTask {
+
+        //todo: add validation on name <> Constants.ScenarioGlobalInfo
+
         let ctx = context :?> ScenarioContext
 
-        if ctx.StopIteration then
-            ResponseInternal.emptyFail |> Task.FromResult
+        let! response = Domain.Step.measure name ctx run
+
+        if response.IsError && ctx.ResetIterationOnFail then
+            return raise ResetScenarioIteration
         else
-            Domain.Step.measure name ctx run
+            return response
+    }
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
 /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
@@ -49,7 +55,8 @@ module Scenario =
           Clean = None
           Run = Some run
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
-          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)] }
+          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
+          ResetIterationOnFail = true }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -74,6 +81,14 @@ module Scenario =
     /// All defined simulations are represent the whole Scenario duration.
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: ScenarioProps) =
         { scenario with LoadSimulations = loadSimulations }
+
+    /// With this configuration, you can enable or disable Scenario iteration reset.
+    /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
+    /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
+    /// For such cases, you can disable scenario iteration reset.
+    /// The default value is true.
+    let withResetIterationOnFail (shouldReset: bool) (scenario: ScenarioProps) =
+        { scenario with ResetIterationOnFail = shouldReset }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.

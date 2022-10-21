@@ -68,7 +68,7 @@ module MdNodeStats =
         |> Document.addText $"scenario: {Md.printInlineCode scnStats.ScenarioName}" |> Md.addNewLine
         |> Document.addText $"  - ok count: {Md.printInlineCode scnStats.Ok.Request.Count}" |> Md.addNewLine
         |> Document.addText $"  - fail count: {Md.printInlineCode scnStats.Fail.Request.Count}" |> Md.addNewLine
-        |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode scnStats.AllBytes}" |> Md.addNewLine
+        |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode (ScenarioStats.calcAllBytes scnStats)}" |> Md.addNewLine
         |> Document.addText $"  - duration: {Md.printInlineCode scnStats.Duration}" |> Md.addNewLine
 
     let private printStepStatsHeader (stepStats: StepStats[]) (document: Document) =

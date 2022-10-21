@@ -100,7 +100,8 @@ let createScenario (scn: ScenarioProps) = result {
              ExecutedDuration = None
              CustomSettings = String.Empty
              IsEnabled = true
-             IsInitialized = false }
+             IsInitialized = false
+             ResetIterationOnFail = scn.ResetIterationOnFail }
 }
 
 let createScenarios (scenarios: ScenarioProps list) = result {
@@ -186,6 +187,14 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
     with
+    | :? ResetScenarioIteration ->
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let error = ResponseInternal.emptyFail
+        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddMeasurement result)
+
     | ex ->
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
@@ -193,7 +202,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let context = ctx :> IScenarioContext
         context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
-        let error = ResponseInternal.fail(ex)
+        let error = ResponseInternal.fail ex
         let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 }
