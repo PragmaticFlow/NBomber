@@ -27,15 +27,23 @@ let getLoadSimulations (scenarios: Scenario list) =
     |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadTimeLine |> List.map(fun x -> x.LoadSimulation))
     |> dict
 
-let build (logger: ILogger)
-          (sessionResult: NodeSessionResult)
-          (targetScenarios: Scenario list) =
+let appendGlobalInfoStep (sessionResult: NodeSessionResult) =
 
-    logger.Verbose "Report.build"
+    let timeLineHistory =
+        sessionResult.TimeLineHistory
+        |> Array.map(fun historyItem ->
 
-    let simulations = targetScenarios |> getLoadSimulations
+            let updatedScnStats =
+                historyItem.ScenarioStats
+                |> Array.map(fun scn ->
+                    let globalInfoStep = StepStats.extractGlobalInfoStep scn
+                    let stepStats = scn.StepStats |> Array.append [| globalInfoStep |]
+                    { scn with StepStats = stepStats })
 
-    let scnStats =
+            { historyItem with ScenarioStats = updatedScnStats }
+        )
+
+    let finalStats =
         sessionResult.FinalStats.ScenarioStats
         |> Array.map(fun scn ->
             let globalInfoStep = StepStats.extractGlobalInfoStep scn
@@ -43,8 +51,17 @@ let build (logger: ILogger)
             { scn with StepStats = stepStats }
         )
 
-    let finalStats = { sessionResult.FinalStats with ScenarioStats = scnStats }
-    let newSessionResult = { sessionResult with FinalStats = finalStats }
+    let finalStats = { sessionResult.FinalStats with ScenarioStats = finalStats }
+    { sessionResult with TimeLineHistory = timeLineHistory; FinalStats = finalStats }
+
+let build (logger: ILogger)
+          (sessionResult: NodeSessionResult)
+          (targetScenarios: Scenario list) =
+
+    logger.Verbose "Report.build"
+
+    let simulations = targetScenarios |> getLoadSimulations
+    let newSessionResult = appendGlobalInfoStep sessionResult
 
     { TxtReport = lazy (TxtReport.print logger newSessionResult simulations)
       HtmlReport = lazy (HtmlReport.print logger newSessionResult)

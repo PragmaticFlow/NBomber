@@ -69,10 +69,10 @@
     <!-- Scenarios Stats Template -->
     <script type="text/x-template" id="scenario-stats-template">
         <p class="note">
-            requests: <span class="text-primary">{{scenarioStats.RequestCount}}</span>,
-            ok requests: <span class="text-primary">{{scenarioStats.OkCount}}</span>,
-            fail requests: <span class="text-primary">{{scenarioStats.FailCount}}</span>,
-            all data: <span class="text-primary">{{toMb(scenarioStats.AllBytes)}}</span> MB
+            iterations: <span class="text-primary">{{getRequestCount(scenarioStats)}}</span>,
+            ok: <span class="text-success">{{scenarioStats.Ok.Request.Count}}</span>,
+            fail: <span class="text-danger">{{scenarioStats.Fail.Request.Count}}</span>,
+            all data: <span class="text-primary">{{toMb(getAllBytes(scenarioStats))}}</span> MB
         </p>
     </script>
 
@@ -84,7 +84,7 @@
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
                         <th></th>
-                        <th :colspan="(failStats || scenarioStats.FailCount > 0) ? 3 : 4">request number</th>
+                        <th colspan="4">request number</th>
                         <th colspan="4">latency, ms</th>
                         <th colspan="4">latency percentile, ms</th>
                         <th colspan="4">data transfer</th>
@@ -93,7 +93,7 @@
                         <th>step</th>
                         <th>all</th>
                         <th v-if="!failStats">&nbsp;&nbsp;&nbsp;ok&nbsp;&nbsp;&nbsp;</span></th>
-                        <th v-if="failStats || scenarioStats.FailCount === 0">failed</th>
+                        <th v-if="failStats">failed</th>
                         <th>RPS</th>
                         <th>min</th>
                         <th>mean</th>
@@ -114,7 +114,7 @@
                         <td><strong>{{stepStats.StepName}}</strong></td>
                         <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
                         <td v-if="!failStats">{{stepStats.Ok.Request.Count}}</td>
-                        <td v-if="failStats || scenarioStats.FailCount === 0">{{stepStats.Fail.Request.Count}}</td>
+                        <td v-if="failStats">{{stepStats.Fail.Request.Count}}</td>
                         <td>{{stepStats[statsName].Request.RPS}}</td>
                         <td>{{stepStats[statsName].Latency.MinMs}}</td>
                         <td>{{stepStats[statsName].Latency.MeanMs}}</td>
@@ -142,22 +142,22 @@
                 <thead class="mdb-color lighten-1 white-text">
                     <tr>
                         <th></th>
-                        <th :colspan="failStats ? 3 : 4">request number</th>
+                        <th colspan="4">request number</th>
                     </tr>
                     <tr>
                         <th>step</th>
                         <th>all</th>
                         <th v-if="!failStats">ok</th>
-                        <th v-if="failStats || scenarioStats.FailCount === 0">failed</th>
+                        <th v-if="failStats">failed</th>
                         <th>RPS</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(stepStats, index) in scenarioStats.StepStats" :key="`step-stats-${index}`">
                         <td><strong>{{stepStats.StepName}}</strong></td>
-                        <td>{{stepStats.Ok.Request.Count + stepStats.Fail.Request.Count}}</td>
+                        <td>{{getRequestCount(stepStats)}}</td>
                         <td v-if="!failStats">{{stepStats.Ok.Request.Count}}</td>
-                        <td v-if="failStats || scenarioStats.FailCount === 0">{{stepStats.Fail.Request.Count}}</td>
+                        <td v-if="failStats">{{stepStats.Fail.Request.Count}}</td>
                         <td>{{stepStats[statsName].Request.RPS}}</td>
                     </tr>
                 </tbody>
@@ -491,7 +491,7 @@
                                                     <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-table>
                                                 </div>
                                             </div>
-                                            <div class="row d-none d-lg-block" v-if="scenarioStats.FailCount > 0">
+                                            <div class="row d-none d-lg-block" v-if="isFailStatsExist(scenarioStats)">
                                                 <div class="col">
                                                     <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-table>
                                                 </div>
@@ -511,29 +511,25 @@
                                                     <scenario-stats-data-transfer-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-data-transfer-table>
                                                 </div>
                                             </div>
-                                            <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                            <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                                 <div class="col">
                                                     <scenario-stats-requests-number-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-requests-number-table>
                                                 </div>
                                             </div>
-                                            <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                            <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                                 <div class="col">
                                                     <scenario-stats-latency-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-latency-table>
                                                 </div>
                                             </div>
-                                            <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                            <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                                 <div class="col">
                                                     <scenario-stats-data-transfer-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-data-transfer-table>
                                                 </div>
                                             </div>
-                                            <div class="row" v-if="scenarioStats.StatusCodes && scenarioStats.StatusCodes.length">
+                                            <div class="row">
                                                 <div class="col">
                                                     <!-- TestSuite View / Status Codes Table -->
-                                                    <status-codes :status-codes="scenarioStats.StatusCodes"
-                                                                  :ok-count="scenarioStats.OkCount"
-                                                                  :fail-count="scenarioStats.FailCount"
-                                                                  :show-charts="showCharts">
-                                                    </status-codes>
+                                                    <status-codes :step-stats="scenarioStats.StepStats" :show-charts="showCharts"></status-codes>
                                                 </div>
                                             </div>
                                             <div v-show="showCharts">
@@ -604,7 +600,7 @@
                                                 <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-table>
                                             </div>
                                         </div>
-                                        <div class="row d-none d-lg-block" v-if="scenarioStats.FailCount > 0">
+                                        <div class="row d-none d-lg-block" v-if="isFailStatsExist(scenarioStats)">
                                             <div class="col">
                                                 <scenario-stats-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-table>
                                             </div>
@@ -624,28 +620,25 @@
                                                 <scenario-stats-data-transfer-table :scenario-stats="scenarioStats" :fail-stats="false"></scenario-stats-data-transfer-table>
                                             </div>
                                         </div>
-                                        <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                        <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                             <div class="col">
                                                 <scenario-stats-requests-number-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-requests-number-table>
                                             </div>
                                         </div>
-                                        <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                        <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                             <div class="col">
                                                 <scenario-stats-latency-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-latency-table>
                                             </div>
                                         </div>
-                                        <div class="row d-lg-none" v-if="scenarioStats.FailCount > 0">
+                                        <div class="row d-lg-none" v-if="isFailStatsExist(scenarioStats)">
                                             <div class="col">
                                                 <scenario-stats-data-transfer-table :scenario-stats="scenarioStats" :fail-stats="true"></scenario-stats-data-transfer-table>
                                             </div>
                                         </div>
-                                        <div class="row" v-if="scenarioStats.StatusCodes && scenarioStats.StatusCodes.length">
+                                        <div class="row">
                                             <div class="col">
                                                 <!-- Scenario View / Status Codes Table -->
-                                                <status-codes :status-codes="scenarioStats.StatusCodes"
-                                                              :ok-count="scenarioStats.OkCount"
-                                                              :fail-count="scenarioStats.FailCount">
-                                                </status-codes>
+                                                <status-codes :step-stats="scenarioStats.StepStats" :show-charts="showCharts"></status-codes>
                                             </div>
                                         </div>
                                         <lazy-load :loaded-views="loadedViews" :load-for-view="`scenario-${scenarioIndex}`">
@@ -686,7 +679,7 @@
                                                    data-placement="right"
                                                    :title="stepStats.StepName"
                                                    @click="selectView(`scenario-${scenarioIndex}-step-${stepIndex}`)">
-                                                    step #{{stepIndex + 1}}
+                                                    {{stepStats.StepName}}
                                                 </a>
                                             </div>
                                         </div>
@@ -706,19 +699,13 @@
 
                                         <div class="card custom step">
                                             <div class="card-header mdb-color darken-2 white-text">
-                                                <h6>
-                                                    step #{{stepIndex + 1}}: <span class="custom mdb-color darken-1 blue-text font-weight-bold">{{stepStats.StepName}}</span>
-                                                </h6>
+                                                <h6>{{stepStats.StepName}}</h6>
                                             </div>
                                             <div class="card-body">
-                                                <div class="row"
-                                                     v-if="stepStats.Ok.StatusCodes.length || stepStats.Fail.StatusCodes.length">
+                                                <div class="row">
                                                     <div class="col">
                                                         <!-- Step View / Status Codes Table -->
-                                                        <status-codes :status-codes="stepStats.Ok.StatusCodes.concat(stepStats.Fail.StatusCodes)"
-                                                                      :ok-count="stepStats.Ok.Request.Count"
-                                                                      :fail-count="stepStats.Fail.Request.Count">
-                                                        </status-codes>
+                                                        <status-codes :step-stats="[stepStats]" :show-charts="showCharts"></status-codes>
                                                     </div>
                                                 </div>
                                                 <lazy-load :loaded-views="loadedViews"

@@ -65,7 +65,8 @@ type Scenario =
     /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
     /// For such cases, you can disable scenario iteration reset.
     /// The default value is true.
-    static member WithResetIterationOnFail(scenario: ScenarioProps, [<DefaultParameterValue(true)>]shouldReset: bool) =
+    [<Extension>]
+    static member WithResetIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
         scenario |> FSharp.Scenario.withResetIterationOnFail shouldReset
 
 [<Extension>]
