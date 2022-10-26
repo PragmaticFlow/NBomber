@@ -1,4 +1,6 @@
-﻿using System;
+﻿namespace CSharpDev.Mqtt;
+
+using System;
 using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
@@ -7,9 +9,7 @@ using MQTTnet.Client.Options;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace CSharpDev.Mqtt;
-
-public class MqttScenario
+public class SimpleMqttTest
 {
     public void Run()
     {
@@ -73,7 +73,6 @@ public class MqttScenario
 
         NBomberRunner
             .RegisterScenarios(scenario)
-            .EnableHintsAnalyzer(false)
             .Run();
     }
 }

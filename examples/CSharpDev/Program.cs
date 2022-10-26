@@ -1,10 +1,7 @@
-﻿using System;
-using CSharpDev.DataFeed;
-using CSharpDev.Features;
+﻿using CSharpDev.Features.CustomSettings;
 using CSharpDev.HelloWorld;
-using CSharpDev.HttpTests;
+using CSharpDev.Http;
 using CSharpDev.Mqtt;
-using NBomber.CSharp;
 
 namespace CSharpDev
 {
@@ -12,21 +9,10 @@ namespace CSharpDev
     {
         static void Main(string[] args)
         {
-            // doNotTrack = true
-            // statusCode = string
-            // stepTimeout - https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/cancel-async-tasks-after-a-period-of-time
-            // scenarioTimeOut
-            // disableHintAnalizer on data transfer
-
-            SimpleHttpTest.Run();
-            //new MqttScenario().Run();
-
-            //HelloWorldExample.Run();
-            // ClientDistributionExample.Run();
-            // CustomStepExecControlExample.Run();
-            // DataFeedTest.Run();
-            // CustomReportingExample.Run();
-            // CustomSettingsExample.Run();
+            new HelloWorldExample().Run();
+            // new SimpleHttpTest().Run();
+            // new SimpleMqttTest().Run();
+            // new CustomSettingsExample().Run();
         }
     }
 }

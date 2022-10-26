@@ -13,13 +13,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Features\config.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+      <PackageReference Include="MQTTnet" Version="3.1.2" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MQTTnet" Version="3.1.2" />
+      <None Update="Features\CustomSettings\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
