@@ -84,9 +84,8 @@ module ConsoleNodeStats =
           if ScenarioStats.failStatsExist scnStats then
               printStepStatsTable false scnStats
 
-          if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
-              Console.addLine String.Empty
-              yield! printScenarioStatusCodes scnStats ]
+          Console.addLine String.Empty
+          yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         let scenarioStats =

@@ -85,18 +85,6 @@ module DataTransferStats =
           StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
           AllBytes  = stats.AllBytes }
 
-    let merge (stats: DataTransferStats seq) = {
-        MinBytes = stats |> Seq.map(fun x -> x.MinBytes) |> Seq.min
-        MeanBytes = stats |> Seq.map(fun x -> float x.MeanBytes) |> Seq.average |> int
-        MaxBytes = stats |> Seq.map(fun x -> x.MaxBytes) |> Seq.max
-        Percent50 = stats |> Seq.map(fun x -> float x.Percent50) |> Seq.average |> int
-        Percent75 = stats |> Seq.map(fun x -> float x.Percent75) |> Seq.average |> int
-        Percent95 = stats |> Seq.map(fun x -> float x.Percent95) |> Seq.average |> int
-        Percent99 = stats |> Seq.map(fun x -> float x.Percent99) |> Seq.average |> int
-        StdDev = stats |> Seq.map(fun x -> x.StdDev) |> Seq.average |> Converter.round(Constants.StatsRounding)
-        AllBytes = stats |> Seq.map(fun x -> x.AllBytes) |> Seq.sum
-    }
-
 module StatusCodeStats =
 
     let create (stats: Dictionary<string,RawStatusCodeStats>) =
@@ -173,17 +161,38 @@ module StepStats =
 
 module ScenarioStats =
 
-    let buildGlobalInfoStats (globalInfo: StepStats) (allStepStats: StepStats seq) =
-        let okDt = allStepStats |> Seq.map(fun x -> x.Ok.DataTransfer) |> DataTransferStats.merge
-        let failDt = allStepStats |> Seq.map(fun x -> x.Fail.DataTransfer) |> DataTransferStats.merge
+    module GlobalInfo =
 
-        let okStatus = allStepStats |> Seq.collect(fun x -> x.Ok.StatusCodes) |> StatusCodeStats.merge
-        let failStatus = allStepStats |> Seq.collect(fun x -> x.Fail.StatusCodes) |> StatusCodeStats.merge
+        let mergerDataStats (stats: DataTransferStats seq) = {
+            MinBytes = stats |> Seq.sumBy(fun x -> x.MinBytes)
+            MeanBytes = stats |> Seq.sumBy(fun x -> x.MeanBytes)
+            MaxBytes = stats |> Seq.sumBy(fun x -> x.MaxBytes)
+            Percent50 = stats |> Seq.sumBy(fun x -> x.Percent50)
+            Percent75 = stats |> Seq.sumBy(fun x -> x.Percent75)
+            Percent95 = stats |> Seq.sumBy(fun x -> x.Percent95)
+            Percent99 = stats |> Seq.sumBy(fun x -> x.Percent99)
+            StdDev = stats |> Seq.sumBy(fun x -> x.StdDev)
+            AllBytes = stats |> Seq.sumBy(fun x -> x.AllBytes)
+        }
 
-        let ok = { globalInfo.Ok with DataTransfer = okDt; StatusCodes = okStatus }
-        let fail = { globalInfo.Fail with DataTransfer = failDt; StatusCodes = failStatus }
+        let create (globalInfo: StepStats) (allStepStats: StepStats seq) =
+            let okDt = allStepStats |> Seq.map(fun x -> x.Ok.DataTransfer) |> mergerDataStats
+            let failDt = allStepStats |> Seq.map(fun x -> x.Fail.DataTransfer) |> mergerDataStats
 
-        struct (ok, fail)
+            let okStatus =
+                allStepStats
+                |> Seq.collect(fun x -> x.Ok.StatusCodes)
+                |> StatusCodeStats.merge
+
+            let failStatus =
+                allStepStats
+                |> Seq.collect(fun x -> x.Fail.StatusCodes)
+                |> StatusCodeStats.merge
+
+            let ok = { globalInfo.Ok with DataTransfer = okDt; StatusCodes = okStatus }
+            let fail = { globalInfo.Fail with DataTransfer = failDt; StatusCodes = failStatus }
+
+            struct (ok, fail)
 
     let empty (scenario: Scenario) =
 
@@ -211,7 +220,7 @@ module ScenarioStats =
 
         let struct (ok, fail) =
             match globalInfo with
-            | Some v -> buildGlobalInfoStats v allStepStats
+            | Some v -> GlobalInfo.create v allStepStats
             | None   -> MeasurementStats.empty, MeasurementStats.empty
 
         { ScenarioName = scenarioName
@@ -223,7 +232,7 @@ module ScenarioStats =
           Duration = duration |> UMX.untag |> roundDuration }
 
     let failStatsExist (stats: ScenarioStats) =
-        stats.Fail.Request.Count > 0 || stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
+        stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
 
     let calcAllBytes (stats: ScenarioStats) =
         stats.Ok.DataTransfer.AllBytes + stats.Fail.DataTransfer.AllBytes

@@ -87,8 +87,7 @@ module TxtNodeStats =
           if ScenarioStats.failStatsExist scnStats then
               printStepStatsTable false scnStats
 
-          if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
-              yield! printScenarioStatusCodes scnStats ]
+          yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats

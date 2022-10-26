@@ -89,11 +89,9 @@ module MdNodeStats =
         |> fun rows -> document |> Document.addTable headers rows |> Md.addNewLine
 
     let private printScenarioStatusCodeStats (scnStats: ScenarioStats) (document: Document) =
-        if scnStats.Ok.StatusCodes.Length > 0 || scnStats.Fail.StatusCodes.Length > 0 then
-            document
-            |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
-            |> MdStatusCodeStats.printStatusCodeTable scnStats
-        else document
+        document
+        |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
+        |> MdStatusCodeStats.printStatusCodeTable scnStats
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =
         document
