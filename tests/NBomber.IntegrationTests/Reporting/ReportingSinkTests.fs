@@ -18,30 +18,37 @@ open Tests
 //todo: test cluster stats
 
 let createScenarios () =
-    let step1 = Step.create("step 1", fun _ -> task {
-        do! Task.Delay(seconds 0.1)
-        return Response.ok()
-    })
-
-    let step2 = Step.create("step 2", fun _ -> task {
-        do! Task.Delay(seconds 0.2)
-        return Response.ok()
-    })
-
-    let step3 = Step.create("step 3", fun _ -> task {
-        do! Task.Delay(seconds 0.3)
-        return Response.ok()
-    })
 
     let scenario1 =
-        Scenario.create "plugin scenario 1" [step1; step2]
+        Scenario.create("plugin scenario 1", fun ctx -> task {
+
+            let! step1 = Step.run("step 1", ctx, fun () -> task {
+                do! Task.Delay(seconds 0.1)
+                return Response.ok()
+            })
+
+            let! step2 = Step.run("step 2", ctx, fun () -> task {
+                do! Task.Delay(seconds 0.2)
+                return Response.ok()
+            })
+
+            let! step3 = Step.run("step 3", ctx, fun () -> task {
+                do! Task.Delay(seconds 0.3)
+                return Response.ok()
+            })
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConstant(copies = 2, during = seconds 10)
         ]
 
     let scenario2 =
-        Scenario.create "plugin scenario 2" [step3]
+        Scenario.create("plugin scenario 2", fun ctx -> task {
+            do! Task.Delay(seconds 0.3)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [
             KeepConstant(copies = 2, during = seconds 10)
@@ -69,13 +76,11 @@ let ``SaveFinalStats should receive correct stats`` () =
             member _.Dispose() = ()
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "scenario_1" [okStep]
+        Scenario.create("scenario_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
@@ -91,13 +96,13 @@ let ``SaveFinalStats should receive correct stats`` () =
         test <@ nodeStats.Duration = seconds 30 @>
         test <@ nodeStats.ScenarioStats |> Array.filter(fun x -> x.CurrentOperation = OperationType.Complete) |> Array.length = 1 @>
 
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.OkCount > 0) @>
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats[0].Ok.Request.Count > 0) @>
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats[0].Ok.Request.RPS > 0.0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Ok.Request.Count > 0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Ok.Request.Count > 0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Ok.Request.RPS > 0.0) @>
 
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.FailCount = 0) @>
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats[0].Fail.Request.Count = 0) @>
-        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.StepStats[0].Fail.Request.RPS = 0.0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Fail.Request.Count = 0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Fail.Request.Count = 0) @>
+        test <@ nodeStats.ScenarioStats |> Array.forall(fun x -> x.Fail.Request.RPS = 0.0) @>
 
 [<Fact>]
 let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
@@ -122,22 +127,20 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
     let mutable delay = seconds 1
     let mutable size = 1000
 
-    let okStep = Step.create("ok step", timeout = seconds 5, execute = fun context -> task {
-        do! Task.Delay delay
-
-        if context.InvocationNumber = 5 then
-            delay <- milliseconds 500
-            size <- 500
-
-        if context.InvocationNumber = 15 then
-            delay <- milliseconds 100
-            size <- 100
-
-        return Response.ok(sizeBytes = size)
-    })
-
     let scenario1 =
-        Scenario.create "scenario_1" [okStep]
+        Scenario.create("scenario_1", fun ctx -> task {
+            do! Task.Delay delay
+
+            if ctx.InvocationNumber = 5 then
+                delay <- milliseconds 500
+                size <- 500
+
+            if ctx.InvocationNumber = 15 then
+                delay <- milliseconds 100
+                size <- 100
+
+            return Response.ok(sizeBytes = size)
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
@@ -152,16 +155,16 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         let first = _realtimeStats[0]
         let last = _realtimeStats[_realtimeStats.Count - 1]
 
-        test <@ first[0].StepStats[0].Ok.Latency.MaxMs > last[0].StepStats[0].Ok.Latency.MaxMs @>
-        test <@ first[0].StepStats[0].Ok.Latency.MaxMs >= 1000.0  @>
-        test <@ last[0].StepStats[0].Ok.Latency.MaxMs <= 1000.0  @>
+        test <@ first[0].Ok.Latency.MaxMs > last[0].Ok.Latency.MaxMs @>
+        test <@ first[0].Ok.Latency.MaxMs >= 1000.0  @>
+        test <@ last[0].Ok.Latency.MaxMs <= 1000.0  @>
 
-        test <@ first[0].StepStats[0].Ok.Request.RPS <= 1.0 @>
-        test <@ last[0].StepStats[0].Ok.Request.RPS <= 20.0 && last[0].StepStats[0].Ok.Request.RPS >= 5.0 @>
+        test <@ first[0].Ok.Request.RPS <= 1.0 @>
+        test <@ last[0].Ok.Request.RPS <= 20.0 && last[0].Ok.Request.RPS >= 5.0 @>
 
-        test <@ first[0].StepStats[0].Ok.DataTransfer.MaxBytes > last[0].StepStats[0].Ok.DataTransfer.MaxBytes @>
-        test <@ first[0].StepStats[0].Ok.DataTransfer.MaxBytes >= 1000  @>
-        test <@ last[0].StepStats[0].Ok.DataTransfer.MaxBytes <= 1000  @>
+        test <@ first[0].Ok.DataTransfer.MaxBytes > last[0].Ok.DataTransfer.MaxBytes @>
+        test <@ first[0].Ok.DataTransfer.MaxBytes >= 1000  @>
+        test <@ last[0].Ok.DataTransfer.MaxBytes <= 1000  @>
 
 [<Fact>]
 let ``SaveRealtimeStats should receive correct calculated stats for long running steps`` () =
@@ -183,18 +186,21 @@ let ``SaveRealtimeStats should receive correct calculated stats for long running
             member _.Dispose() = ()
     }
 
-    let fastStep = Step.create("fast_step", timeout = seconds 30, execute = fun context -> task {
-        do! Task.Delay(seconds 1)
-        return Response.ok()
-    })
-
-    let longStep = Step.create("long_step", timeout = seconds 60, execute = fun context -> task {
-        do! Task.Delay(seconds 30)
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "scenario_1" [fastStep; longStep]
+        Scenario.create("scenario_1", fun ctx -> task {
+
+            let! fastStep = Step.run("fast_step", ctx, fun () -> task {
+                do! Task.Delay(seconds 1)
+                return Response.ok()
+            })
+
+            let! fastStep = Step.run("long_step", ctx, fun () -> task {
+                do! Task.Delay(seconds 30)
+                return Response.ok()
+            })
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 20)]
 
@@ -205,10 +211,10 @@ let ``SaveRealtimeStats should receive correct calculated stats for long running
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let first = _realtimeStats.[0]
+        let first = _realtimeStats[0]
 
-        test <@ first.[0].StepStats.[0].Ok.Request.Count = 10 @>
-        test <@ first.[0].StepStats.[0].Ok.Request.RPS = 2 @>
+        test <@ first[0].StepStats[0].Ok.Request.Count = 10 @>
+        test <@ first[0].StepStats[0].Ok.Request.RPS = 2 @>
 
 [<Fact>]
 let ``SaveRealtimeStats should receive correct stats`` () =
@@ -231,13 +237,11 @@ let ``SaveRealtimeStats should receive correct stats`` () =
             member _.Dispose() = ()
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "scenario_1" [okStep]
+        Scenario.create("scenario_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 30)]
 
@@ -252,18 +256,18 @@ let ``SaveRealtimeStats should receive correct stats`` () =
 
         test <@ realtime.Length > 0 @>
         test <@ realtime |> Array.forall(fun x -> x.CurrentOperation = OperationType.Bombing) @>
-        test <@ realtime |> Array.forall(fun x -> x.OkCount > 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats[0].Ok.Request.Count > 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats[0].Ok.Request.RPS > 0.0) @>
-        test <@ realtime |> Array.forall(fun x -> x.FailCount = 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats[0].Fail.Request.Count = 0) @>
-        test <@ realtime |> Array.forall(fun x -> x.StepStats[0].Fail.Request.RPS = 0.0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Ok.Request.Count > 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Ok.Request.Count > 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Ok.Request.RPS > 0.0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Fail.Request.Count = 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Fail.Request.Count = 0) @>
+        test <@ realtime |> Array.forall(fun x -> x.Fail.Request.RPS = 0.0) @>
 
         test <@ finalStats.NodeInfo.CurrentOperation = OperationType.Complete @>
-        test <@ finalStats.ScenarioStats[0].StepStats[0].Ok.Request.Count > 0 @>
-        test <@ finalStats.ScenarioStats[0].StepStats[0].Ok.Request.RPS > 0.0 @>
-        test <@ finalStats.ScenarioStats[0].StepStats[0].Fail.Request.Count = 0 @>
-        test <@ finalStats.ScenarioStats[0].StepStats[0].Fail.Request.RPS = 0.0 @>
+        test <@ finalStats.ScenarioStats[0].Ok.Request.Count > 0 @>
+        test <@ finalStats.ScenarioStats[0].Ok.Request.RPS > 0.0 @>
+        test <@ finalStats.ScenarioStats[0].Fail.Request.Count = 0 @>
+        test <@ finalStats.ScenarioStats[0].Fail.Request.RPS = 0.0 @>
 
 [<Fact>]
 let ``WorkerPlugin stats should be passed to IReportingSink`` () =

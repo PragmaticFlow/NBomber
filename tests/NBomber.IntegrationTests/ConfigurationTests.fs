@@ -8,6 +8,7 @@ open Xunit
 open FSharp.Json
 open Swensen.Unquote
 
+open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.FSharp
@@ -61,7 +62,9 @@ module NBomberRunner =
 
         let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/config.json"
 
-        Scenario.create "scenario_1" []
+        Scenario.create("scenario_1", fun ctx -> task {
+            return Response.ok()
+        })
         |> NBomberRunner.registerScenario
         |> NBomberRunner.loadConfig url
         |> fun nbContext ->
@@ -74,7 +77,9 @@ module NBomberRunner =
             fun _ ->
                 let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber.Enterprise.Examples/main/examples/ClusterSimpleHttpDemo/coordinator-config.json"
 
-                Scenario.create "scenario_1" []
+                Scenario.create("scenario_1", fun ctx -> task {
+                    return Response.ok()
+                })
                 |> NBomberRunner.registerScenario
                 |> NBomberRunner.loadConfig url
                 |> ignore
@@ -101,7 +106,9 @@ module NBomberRunner =
 
         let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/infra-config.json"
 
-        Scenario.create "scenario_1" []
+        Scenario.create("scenario_1", fun ctx -> task {
+            return Response.ok()
+        })
         |> NBomberRunner.registerScenario
         |> NBomberRunner.loadInfraConfig url
         |> fun nbContext ->

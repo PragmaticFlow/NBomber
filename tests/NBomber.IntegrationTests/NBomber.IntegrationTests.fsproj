@@ -37,7 +37,6 @@
         <Compile Include="Concurrency\ConstantActorSchedulerTests.fs" />
         <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />
         <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
-        <Compile Include="ClientFactoryTests.fs" />
         <Compile Include="Reporting\CSVReportingTests.fs" />
         <Compile Include="Reporting\ReportingConfigurationTests.fs" />
         <Compile Include="Reporting\ReportingSinkTests.fs" />
@@ -58,8 +57,6 @@
         <Compile Include="ScenarioTests\InitCleanStopTests.fs" />
         <Compile Include="ScenarioTests\TestHostScenarioTests.fs" />
         <Compile Include="StepTests\BasicStepTests.fs" />
-        <Compile Include="StepTests\CustomStepOrderTests.fs" />
-        <Compile Include="StepTests\StepInterceptionTests.fs" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />

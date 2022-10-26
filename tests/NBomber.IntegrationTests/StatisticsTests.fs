@@ -18,43 +18,13 @@ open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Extensions.Data
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats
-open NBomber.Domain.Stats.StepStatsRawData
+open NBomber.Domain.Stats.Statistics
+open NBomber.Domain.Stats.RawMeasurementStats
 open NBomber.FSharp
 open Tests.TestHelper
 
 module ScenarioStatsTests =
-
-    let internal baseSteps = {
-        StepName = "name"
-        ClientFactory = None
-        Execute =
-          fun _ -> task { return Response.ok(sizeBytes = 100) }
-          |> Step.StepContext.toUntypedExecute
-        Feed = Some(Feed.createConstant "feed name" [ 1; 2 ])
-        Timeout = seconds 0
-        DoNotTrack = Constants.DefaultDoNotTrack
-        IsPause = false
-    }
-
-    let internal baseScenario = {
-        ScenarioName = "scenario name"
-        Init = None
-        Clean = None
-        Steps = [ baseSteps ]
-        LoadTimeLine = LoadTimeLine.Empty
-        WarmUpDuration = None
-        PlanedDuration = seconds 0
-        ExecutedDuration = None
-        CustomSettings = "settings"
-        DefaultStepOrder = Array.empty
-        StepOrderIndex = Dictionary<string, int>() // stepName * orderNumber
-        CustomStepOrder = None
-        StepInterception = None
-        IsEnabled = false
-        IsInitialized = false
-    }
 
     let internal baseRawStepStats ={
         MinMicroSec = Int32.MaxValue
@@ -72,10 +42,10 @@ module ScenarioStatsTests =
                 highestTrackableValue = Constants.MaxTrackableStepResponseSize,
                 numberOfSignificantValueDigits = 3
             )
-        StatusCodes = Dictionary<int, RawStatusCodeStats>()
+        StatusCodes = Dictionary<string, RawStatusCodeStats>()
     }
 
-    let internal baseStepStatsRawData = StepStatsRawData.createEmpty()
+    let internal baseStepStatsRawData = RawMeasurementStats.empty("step")
 
     let baseLoadSimulationStats = { SimulationName = "simulation name"; Value = 1 }
 
@@ -86,18 +56,18 @@ module ScenarioStatsTests =
         let okStats = { baseRawStepStats with RequestCount = okCount }
         let failStats = { baseRawStepStats with RequestCount = failCount }
 
-        let stepsData = { OkStats = okStats; FailStats = failStats }
+        let stepsData = { Name = Constants.ScenarioGlobalInfo; OkStats = okStats; FailStats = failStats }
 
         let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
+            ScenarioStats.create
+                "scenario"
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
                 (UMX.tag (seconds 1))
                 (seconds 1)
 
-        test <@ scenarioStats.RequestCount = okCount + failCount @>
+        test <@ scenarioStats.Ok.Request.Count + scenarioStats.Fail.Request.Count = okCount + failCount @>
 
     [<Property>]
     let ``ScenarioStats AllBytes should sum AllBytes of OkStats and FailStats from all steps``
@@ -106,56 +76,59 @@ module ScenarioStatsTests =
         let okStats = { baseRawStepStats with AllBytes = okAllBytes }
         let failStats = { baseRawStepStats with AllBytes = failAllBytes }
 
-        let stepsData = { OkStats = okStats; FailStats = failStats }
+        let stepsData = { Name = Constants.ScenarioGlobalInfo; OkStats = okStats; FailStats = failStats }
 
         let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
+            ScenarioStats.create
+                "scenario"
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
                 (UMX.tag (seconds 1))
                 (seconds 1)
 
-        test <@ scenarioStats.AllBytes = okAllBytes + failAllBytes @>
+        test <@ ScenarioStats.calcAllBytes scenarioStats = okAllBytes + failAllBytes @>
 
     [<Property>]
-    let ``ScenarioStats OkCount should sum of OkCount from all steps`` (okCount1: int, okCount2: int) =
+    let ``ScenarioStats OkCount should be separated from OkCount of steps`` (okCount1: int, okCount2: int) =
 
         let okStats1 = { baseRawStepStats with RequestCount = okCount1 }
         let okStats2 = { baseRawStepStats with RequestCount = okCount2 }
-        let stepsData1 = { baseStepStatsRawData with OkStats = okStats1 }
+        let stepsData1 = { baseStepStatsRawData with Name = Constants.ScenarioGlobalInfo; OkStats = okStats1 }
         let stepsData2 = { baseStepStatsRawData with OkStats = okStats2 }
 
         let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
+            ScenarioStats.create
+                "scenario"
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
                 (UMX.tag (seconds 1))
                 (seconds 1)
 
-        test <@ scenarioStats.OkCount = okCount1 + okCount2 @>
+        test <@ scenarioStats.Ok.Request.Count = okCount1 @>
+        test <@ scenarioStats.StepStats[0].Ok.Request.Count = okCount2 @>
 
     [<Property>]
-    let ``ScenarioStats FailCount should sum of FailCount from all steps`` (failCount1: int, failCount2: int) =
+    let ``ScenarioStats FailCount should be separated from FailCount of steps`` (failCount1: int, failCount2: int) =
 
         let okStats1 = { baseRawStepStats with RequestCount = failCount1 }
         let okStats2 = { baseRawStepStats with RequestCount = failCount2 }
-        let stepsData1 = { baseStepStatsRawData with FailStats = okStats1 }
+        let stepsData1 = { baseStepStatsRawData with Name = Constants.ScenarioGlobalInfo; FailStats = okStats1 }
         let stepsData2 = { baseStepStatsRawData with FailStats = okStats2 }
 
         let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
+            ScenarioStats.create
+                "scenario"
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
                 (UMX.tag (seconds 1))
                 (seconds 1)
 
-        test <@ scenarioStats.FailCount = failCount1 + failCount2 @>
+        test <@ scenarioStats.Fail.Request.Count = failCount1 @>
+        test <@ scenarioStats.StepStats[0].Fail.Request.Count = failCount2 @>
+
 
     [<Property>]
     let ``ScenarioStats LatencyCount should sum of LatencyCount from all steps fro Ok and Fail stats``
@@ -176,73 +149,24 @@ module ScenarioStatsTests =
         }
 
         let stepStatsRawData =
-            { baseStepStatsRawData with OkStats = okStats; FailStats = failStats }
+            { baseStepStatsRawData with Name = Constants.ScenarioGlobalInfo; OkStats = okStats; FailStats = failStats }
 
         let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
+            ScenarioStats.create
+                "scenario"
                 [| stepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
                 (UMX.tag (seconds 1))
                 (seconds 1)
 
-        test <@ scenarioStats.LatencyCount.LessOrEq800 = less800 * 2 @>
-        test <@ scenarioStats.LatencyCount.More800Less1200 = more800Less1200 * 2 @>
-        test <@ scenarioStats.LatencyCount.MoreOrEq1200 = more1200 * 2 @>
+        test <@ scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 = less800 @>
+        test <@ scenarioStats.Ok.Latency.LatencyCount.More800Less1200 = more800Less1200 @>
+        test <@ scenarioStats.Ok.Latency.LatencyCount.MoreOrEq1200 = more1200 @>
 
-    [<Fact>]
-    let ``ScenarioStats should not collect stats for steps market as DoNotTrack`` () =
-
-        let doNotTrackStep = { baseSteps with DoNotTrack = true }
-        let scenario = { baseScenario with Steps = [ doNotTrackStep ] }
-
-        let scenarioStats =
-            Statistics.ScenarioStats.create
-                scenario
-                [| baseStepStatsRawData |]
-                baseLoadSimulationStats
-                OperationType.Complete
-                (UMX.tag (seconds 1))
-                (seconds 1)
-
-        test <@ scenarioStats.StepStats.Length = 0 @>
-
-    [<Fact>]
-    let ``ScenarioStats StepInfo should should fallback on default values`` () =
-
-        let doNotTrackStep = { baseSteps with Feed = None }
-        let scenario = { baseScenario with Steps = [ doNotTrackStep ] }
-
-        let scenarioStats =
-            Statistics.ScenarioStats.create
-                scenario
-                [| baseStepStatsRawData |]
-                baseLoadSimulationStats
-                OperationType.Complete
-                (UMX.tag (seconds 1))
-                (seconds 1)
-
-        let stepStats = scenarioStats.StepStats[0]
-        test <@ stepStats.StepInfo.FeedName = "none" @>
-        test <@ stepStats.StepInfo.ClientFactoryName = "none" @>
-        test <@ stepStats.StepInfo.ClientFactoryClientCount = 0 @>
-
-    [<Fact>]
-    let ``ScenarioStats StepStats should be collected converted for all trackable steps`` () =
-
-        let scenarioStats =
-            Statistics.ScenarioStats.create
-                baseScenario
-                [| baseStepStatsRawData |]
-                baseLoadSimulationStats
-                OperationType.Complete
-                (UMX.tag (seconds 1))
-                (seconds 1)
-
-        let stepStats = scenarioStats.StepStats[0]
-        test <@ stepStats.StepName = baseSteps.StepName @>
-        test <@ stepStats.StepInfo.Timeout = baseSteps.Timeout @>
+        test <@ scenarioStats.Fail.Latency.LatencyCount.LessOrEq800 = less800 @>
+        test <@ scenarioStats.Fail.Latency.LatencyCount.More800Less1200 = more800Less1200 @>
+        test <@ scenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200 = more1200 @>
 
 module NodeStatsTests =
 
@@ -265,64 +189,67 @@ module NodeStatsTests =
     let baseLoadSimulationStats = { SimulationName = "simulation name"; Value = 1 }
 
     let baseScenarioStats = {
-          ScenarioName = "scenario name"
-          RequestCount = 1
-          OkCount = 1
-          FailCount = 1
-          AllBytes = 1
+          ScenarioStats.ScenarioName = "scenario name"
+          Ok = MeasurementStats.empty
+          Fail = MeasurementStats.empty
           StepStats = Array.empty
-          LatencyCount = baseLatencyCount
           LoadSimulationStats = baseLoadSimulationStats
-          StatusCodes = Array.empty
           CurrentOperation = OperationType.Complete
           Duration = TimeSpan.Zero
     }
 
-    [<Property>]
-    let ``NodeStats RequestCount should be sum of RequestCount of each scenario``
-        (requestCount1: int, requestCount2: int) =
+    // [<Property>]
+    // let ``NodeStats RequestCount should be sum of Ok + Fail of each scenario``
+    //     (okCount: int, failCount: int) =
+    //
+    //     let ok = { MeasurementStats.empty with Request = { Count = okCount; RPS = 0 } }
+    //     let fail = { MeasurementStats.empty with Request = { Count = failCount; RPS = 0 } }
+    //
+    //     let scenario1 = { baseScenarioStats with Ok = ok }
+    //     let scenario2 = { baseScenarioStats with Fail = fail }
+    //
+    //     let nodeStats =
+    //         NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
+    //
+    //     test <@ nodeStats.RequestCount = okCount + failCount @>
+    //     test <@ nodeStats.OkCount = okCount @>
+    //     test <@ nodeStats.FailCount = failCount @>
 
-        let scenario1 = { baseScenarioStats with RequestCount = requestCount1 }
+    // [<Property>]
+    // let ``NodeStats OkCount and FailCount should be sum of Ok and Fail of each scenario``
+    //     (okCount1: int, okCount2: int, failCount1: int, failCount2: int) =
+    //
+    //     let ok1 = { MeasurementStats.empty with Request = { Count = okCount1; RPS = 0 } }
+    //     let ok2 = { MeasurementStats.empty with Request = { Count = okCount2; RPS = 0 } }
+    //     let fail1 = { MeasurementStats.empty with Request = { Count = failCount1; RPS = 0 } }
+    //     let fail2 = { MeasurementStats.empty with Request = { Count = failCount2; RPS = 0 } }
+    //
+    //     let scenario1 = { baseScenarioStats with Ok = ok1; Fail = fail1 }
+    //     let scenario2 = { baseScenarioStats with Ok = ok2; Fail = fail2 }
+    //
+    //     let nodeStats =
+    //         NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
+    //
+    //     test <@ nodeStats.OkCount = okCount1 + okCount2 @>
+    //     test <@ nodeStats.FailCount = failCount1 + failCount2 @>
 
-        let scenario2 = { baseScenarioStats with RequestCount = requestCount2 }
-
-        let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
-
-        test <@ nodeStats.RequestCount = requestCount1 + requestCount2 @>
-
-    [<Property>]
-    let ``NodeStats OkCount should be sum of OkCount of each scenario`` (okCount1: int, okCount2: int) =
-
-        let scenario1 = { baseScenarioStats with OkCount = okCount1 }
-        let scenario2 = { baseScenarioStats with OkCount = okCount2 }
-
-        let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
-
-        test <@ nodeStats.OkCount = okCount1 + okCount2 @>
-
-    [<Property>]
-    let ``NodeStats FailCount should be sum of FailCount of each scenario`` (failCount1: int, failCount2: int) =
-
-        let scenario1 = { baseScenarioStats with FailCount = failCount1 }
-        let scenario2 = { baseScenarioStats with FailCount = failCount2 }
-
-        let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
-
-        test <@ nodeStats.FailCount = failCount1 + failCount2 @>
-
-    [<Property>]
-    let ``NodeStats AllBytes should be sum of AllBytes of each scenario`` (allBytes1: int64, allBytes2: int64) =
-
-        let scenario1 = { baseScenarioStats with AllBytes = allBytes1 }
-        let scenario2 = { baseScenarioStats with AllBytes = allBytes2 }
-
-        let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
-
-        test <@ nodeStats.AllBytes = allBytes1 + allBytes2 @>
+    // [<Property>]
+    // let ``NodeStats AllBytes should be sum of AllBytes of each scenario`` (allBytes1: int64, allBytes2: int64, allBytes3: int64) =
+    //
+    //     let scn1 =
+    //         { baseScenarioStats with Ok = { baseScenarioStats.Ok with DataTransfer = { baseScenarioStats.Ok.DataTransfer with AllBytes = allBytes1 } } }
+    //
+    //     let scn2 =
+    //         { baseScenarioStats with Ok = { baseScenarioStats.Ok with DataTransfer = { baseScenarioStats.Ok.DataTransfer with AllBytes = allBytes2 } } }
+    //
+    //     let scn3 =
+    //         { baseScenarioStats with Fail = { baseScenarioStats.Fail with DataTransfer = { baseScenarioStats.Fail.DataTransfer with AllBytes = allBytes3 } } }
+    //
+    //
+    //     let nodeStats =
+    //         NodeStats.create baseTestInfo baseNodeInfo [| scn1; scn2; scn3 |]
+    //
+    //     test <@ nodeStats.AllBytes = allBytes1 + allBytes2 + allBytes3 @>
 
     [<Fact>]
     let ``NodeStats Duration should be duration of the longest scenario`` () =
@@ -330,110 +257,106 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with Duration = seconds 20 }
 
         let nodeStats =
-            Statistics.NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
+            NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
 
         test <@ nodeStats.Duration = seconds 20 @>
 
-    [<Fact>]
-    let ``NodeStats should be calculated during test execution`` () =
-
-        let okStep = Step.create("ok step", timeout = seconds 2, execute = fun _ -> task {
-            do! Task.Delay(milliseconds 500)
-            return Response.ok(sizeBytes = 100)
-        })
-
-        let failStep = Step.create("fail step", timeout = seconds 2, execute = fun _ -> task {
-            do! Task.Delay(milliseconds 500)
-            return Response.fail(error = "reason", statusCode = 10, sizeBytes = 10)
-        })
-
-        let okScenario =
-            Scenario.create "realtime stats ok scenario" [ okStep ]
-            |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
-
-        let failScenario =
-            Scenario.create "realtime stats fail scenario" [ failStep ]
-            |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
-
-        NBomberRunner.registerScenarios [ okScenario; failScenario ]
-        |> NBomberRunner.withoutReports
-        |> NBomberRunner.run
-        |> Result.getOk
-        |> fun stats ->
-            let sc0 = stats.ScenarioStats[0]
-            let sc1 = stats.ScenarioStats[1]
-            test <@ stats.Duration = seconds 10 @>
-
-            test <@ stats.RequestCount >= 20 && stats.RequestCount <= 40 @>
-
-            test <@ stats.OkCount >= 10 && stats.OkCount <= 20 @>
-            test <@ stats.FailCount >= 10 && stats.FailCount <= 20 @>
-            test <@ stats.AllBytes = sc0.AllBytes + sc1.AllBytes @>
+    // [<Fact>]
+    // let ``NodeStats should be calculated during test execution`` () =
+    //
+    //     let okScenario =
+    //         Scenario.create("realtime stats ok scenario", fun ctx -> task {
+    //             do! Task.Delay(milliseconds 500)
+    //             return Response.ok(sizeBytes = 100)
+    //         })
+    //         |> Scenario.withoutWarmUp
+    //         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+    //
+    //     let failScenario =
+    //         Scenario.create("realtime stats fail scenario", fun ctx -> task {
+    //             do! Task.Delay(milliseconds 500)
+    //             return Response.fail(error = "reason", statusCode = "10", sizeBytes = 10)
+    //         })
+    //         |> Scenario.withoutWarmUp
+    //         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+    //
+    //     NBomberRunner.registerScenarios [okScenario; failScenario]
+    //     |> NBomberRunner.withoutReports
+    //     |> NBomberRunner.run
+    //     |> Result.getOk
+    //     |> fun stats ->
+    //         let sc0 = stats.ScenarioStats[0]
+    //         let sc1 = stats.ScenarioStats[1]
+    //         test <@ stats.Duration = seconds 10 @>
+    //
+    //         test <@ stats.RequestCount >= 20 && stats.RequestCount <= 40 @>
+    //
+    //         test <@ stats.OkCount >= 10 && stats.OkCount <= 20 @>
+    //         test <@ stats.FailCount >= 10 && stats.FailCount <= 20 @>
+    //         test <@ stats.AllBytes = sc0.Ok.DataTransfer.AllBytes + sc1.Fail.DataTransfer.AllBytes @>
 
 module StepStatsRawData =
 
     [<Property>]
-    let ``addResponse should take client response latency if it set`` (isClient: bool, latencyMs: uint32) =
+    let ``addStepResult should take client response latency if it set`` (isClient: bool, latencyMs: uint32) =
 
-        let emptyData = StepStatsRawData.createEmpty()
+        let emptyData = RawMeasurementStats.empty("step_name")
         let clientResMs = if isClient then float latencyMs else 0.0
         let stepResMs = 42.0
 
         let clientResponse = {
-            StatusCode = Nullable()
+            StatusCode = ""
             IsError = false
             Message = ""
             SizeBytes = 10
             LatencyMs = clientResMs
-            Payload = null
+            Payload = None
         }
 
-        let stepResponse = {
-            StepIndex = 0
+        let stepResult = {
+            Name = "step_name"
             ClientResponse = clientResponse
             EndTimeMs = Double.MaxValue
             LatencyMs = stepResMs
         }
 
-        let data = StepStatsRawData.addResponse emptyData stepResponse
+        RawMeasurementStats.addMeasurement emptyData stepResult
 
         let realMin = if clientResMs > 0.0 then clientResMs else stepResMs
 
         let min =
-            data.OkStats.MinMicroSec
+            emptyData.OkStats.MinMicroSec
             |> float
             |> Converter.fromMicroSecToMs
 
         test <@ min = realMin @>
 
     [<Property>]
-    let ``addResponse should properly calc latency count`` (latencies: uint32 list) =
+    let ``addStepResult should properly calc latency count`` (latencies: uint32 list) =
 
-        let mutable data = StepStatsRawData.createEmpty()
+        let data = RawMeasurementStats.empty("step_name")
 
         let latencies = latencies |> List.filter(fun x -> x > 0u)
 
         latencies
         |> List.iter(fun latency ->
             let clientResponse = {
-                StatusCode = Nullable()
+                StatusCode = ""
                 IsError = false
                 Message = ""
                 SizeBytes = 10
                 LatencyMs = float latency
-                Payload = null
+                Payload = None
             }
 
             let stepResponse = {
-                StepIndex = 0
+                Name = "step_name"
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = 0.0
             }
 
-            data <- StepStatsRawData.addResponse data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse
         )
 
         let lessOrEq800 = latencies |> Seq.filter(fun x -> x <= 800u) |> Seq.length
@@ -445,9 +368,9 @@ module StepStatsRawData =
         test <@ data.OkStats.MoreOrEq1200 = moreOrEq1200 @>
 
     [<Property>]
-    let ``addResponse should properly handle OkStats and FailStats`` (latencies: (bool * uint32) list) =
+    let ``addStepResult should properly handle OkStats and FailStats`` (latencies: (bool * uint32) list) =
 
-        let mutable data = StepStatsRawData.createEmpty()
+        let data = RawMeasurementStats.empty("step_name")
 
         let latencies =
             latencies
@@ -457,22 +380,22 @@ module StepStatsRawData =
         latencies
         |> Seq.iter(fun (isOk, latency) ->
             let clientResponse = {
-                StatusCode = Nullable()
+                StatusCode = ""
                 IsError = not isOk
                 Message = ""
                 SizeBytes = 10
                 LatencyMs = 0.0
-                Payload = null
+                Payload = None
             }
 
             let stepResponse = { // only stepResponse latency will be included
-                StepIndex = 0
+                Name = "step_name"
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = latency |> float
             }
 
-            data <- StepStatsRawData.addResponse data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse
         )
 
         // calc OkStats
@@ -513,9 +436,9 @@ module StepStatsRawData =
         test <@ failMax = failMaxStats @>
 
     [<Property>]
-    let ``addResponse should properly calc response sizes`` (responseSizes: (bool * uint32) list) =
+    let ``addStepResult should properly calc response sizes`` (responseSizes: (bool * uint32) list) =
 
-        let mutable data = StepStatsRawData.createEmpty()
+        let data = RawMeasurementStats.empty("step")
 
         let responseSizes =
             responseSizes
@@ -525,22 +448,22 @@ module StepStatsRawData =
         responseSizes
         |> Seq.iter(fun (isOk, resSize) ->
             let clientResponse = {
-                StatusCode = Nullable()
+                StatusCode = ""
                 IsError = not isOk
                 Message = ""
                 SizeBytes = resSize
                 LatencyMs = 1.0
-                Payload = null
+                Payload = None
             }
 
             let stepResponse = {
-                StepIndex = 0
+                Name = "step"
                 ClientResponse = clientResponse
                 EndTimeMs = Double.MaxValue
                 LatencyMs = 0.0
             }
 
-            data <- StepStatsRawData.addResponse data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse
         )
 
         // calc OkStatsData
@@ -576,20 +499,23 @@ module StepStatsRawData =
 [<Fact>]
 let ``NodeStats should be calculated properly`` () =
 
-    let okStep = Step.create("ok step", timeout = seconds 2, execute = fun _ -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.ok(sizeBytes = 100)
-    })
-
-    let failStep = Step.create("fail step 1",timeout = seconds 2, execute = fun _ -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
-    })
-
     let scenario =
-        Scenario.create "realtime stats scenario" [ okStep; failStep ]
+        Scenario.create("realtime stats scenario", fun ctx -> task {
+
+            let! okStep = Step.run("ok step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 500)
+                return Response.ok(sizeBytes = 100)
+            })
+
+            let! failStep = Step.run("fail step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 500)
+                return Response.fail(error = "reason 1", statusCode = "10", sizeBytes = 10)
+            })
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [ KeepConstant(copies = 1, during = seconds 10) ]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
 
     NBomberRunner.registerScenarios [ scenario ]
     |> NBomberRunner.withoutReports
@@ -597,34 +523,37 @@ let ``NodeStats should be calculated properly`` () =
     |> Result.getOk
     |> fun stats ->
         let scnStats = stats.ScenarioStats[0]
-        let st1 = scnStats.StepStats[0]
-        let st2 = scnStats.StepStats[1]
+        let okStep = scnStats.GetStepStats("ok step")
+        let failStep = scnStats.GetStepStats("fail step")
 
-        test <@ st1.Ok.Request.Count >= 5 && st1.Ok.Request.Count <= 10 @>
+        test <@ okStep.Ok.Request.Count >= 5 && okStep.Ok.Request.Count <= 10 @>
 
-        test <@ st1.Ok.DataTransfer.MinBytes = 100 @>
-        test <@ st1.Fail.Request.Count = 0 @>
+        test <@ okStep.Ok.DataTransfer.MinBytes = 100 @>
+        test <@ okStep.Fail.Request.Count = 0 @>
 
-        test <@ st2.Fail.Request.Count >= 5 && st2.Fail.Request.Count <= 10 @>
+        test <@ failStep.Fail.Request.Count >= 5 && failStep.Fail.Request.Count <= 10 @>
 
-        test <@ st2.Fail.DataTransfer.MinBytes = 10 @>
-        test <@ st2.Ok.Request.Count = 0 @>
+        test <@ failStep.Fail.DataTransfer.MinBytes = 10 @>
+        test <@ failStep.Ok.Request.Count = 0 @>
 
 [<Fact>]
 let ``NodeStats ReportFiles should contain report content`` () =
 
-    let okStep = Step.create("ok step", timeout = seconds 2, execute = fun context -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.ok(sizeBytes = 100)
-    })
-
-    let failStep = Step.create("fail step 1", timeout = seconds 2, execute = fun context -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.fail(error = "reason 1", statusCode = 10, sizeBytes = 10)
-    })
-
     let scenario =
-        Scenario.create "realtime stats scenario" [okStep; failStep]
+        Scenario.create("realtime stats scenario", fun ctx -> task {
+
+            let! okStep = Step.run("ok step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 500)
+                return Response.ok(sizeBytes = 100)
+            })
+
+            let! failStep = Step.run("fail step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 500)
+                return Response.fail(error = "reason 1", statusCode = "10", sizeBytes = 10)
+            })
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
 
@@ -641,46 +570,49 @@ let ``NodeStats ReportFiles should contain report content`` () =
 [<Fact>]
 let ``status codes should be calculated properly`` () =
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok(statusCode = 10)
-    })
-
-    let okStepNoStatus = Step.create("ok step no status", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    let failStep = Step.create("fail step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.fail(statusCode = -10)
-    })
-
     let scenario =
-        Scenario.create "realtime stats scenario" [ okStep; okStepNoStatus; failStep ]
+        Scenario.create("realtime stats scenario", fun ctx -> task {
+
+            let! okStep = Step.run("ok step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 100)
+                return Response.ok(statusCode = "10")
+            })
+
+            let! okStepNoStatus = Step.run("ok step no status", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 100)
+                return Response.ok()
+            })
+
+            let! failStep = Step.run("fail step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 100)
+                return Response.fail(statusCode = "-10")
+            })
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [ KeepConstant(copies = 2, during = seconds 10) ]
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
 
     NBomberRunner.registerScenarios [ scenario ]
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        let allCodes = stats.ScenarioStats[0].StatusCodes
-        let okStCodes = stats.ScenarioStats[0].StepStats[0].Ok.StatusCodes
-        let okNoStatusStCodes = stats.ScenarioStats[0].StepStats[1].Ok.StatusCodes
-        let failStCodes = stats.ScenarioStats[0].StepStats[2].Fail.StatusCodes
+        let allCodes = stats.ScenarioStats[0].Ok.StatusCodes |> Array.append(stats.ScenarioStats[0].Fail.StatusCodes)
+        let okStCodes = stats.ScenarioStats[0].GetStepStats("ok step").Ok.StatusCodes
+        let okNoStatusStCodes = stats.ScenarioStats[0].GetStepStats("ok step no status").Ok.StatusCodes
+        let failStCodes = stats.ScenarioStats[0].GetStepStats("fail step").Fail.StatusCodes
 
         test <@ allCodes
-               |> Seq.find(fun x -> x.StatusCode = 10 || x.StatusCode = -10)
+               |> Seq.find(fun x -> x.StatusCode = "10" || x.StatusCode = "-10")
                |> fun x -> x.Count > 10 @>
 
         test <@ okStCodes
-               |> Seq.find(fun x -> x.StatusCode = 10)
+               |> Seq.find(fun x -> x.StatusCode = "10")
                |> fun error -> error.Count > 10 @>
 
         test <@ failStCodes
-               |> Seq.find(fun x -> x.StatusCode = -10)
+               |> Seq.find(fun x -> x.StatusCode = "-10")
                |> fun error -> error.Count > 10 @>
 
         test <@ Array.isEmpty okNoStatusStCodes @>
@@ -689,9 +621,9 @@ let ``status codes should be calculated properly`` () =
 let ``StatusCodeStats merge function returns sorted results`` () =
 
     let stats: StatusCodeStats[] = [|
-       { StatusCode = 50; IsError = false; Message = String.Empty; Count = 1 }
-       { StatusCode = 80; IsError = false; Message = String.Empty; Count = 1 }
-       { StatusCode = 10; IsError = false; Message = String.Empty; Count = 1 }
+       { StatusCode = "50"; IsError = false; Message = String.Empty; Count = 1 }
+       { StatusCode = "80"; IsError = false; Message = String.Empty; Count = 1 }
+       { StatusCode = "10"; IsError = false; Message = String.Empty; Count = 1 }
     |]
 
     let result =
@@ -699,4 +631,4 @@ let ``StatusCodeStats merge function returns sorted results`` () =
         |> Statistics.StatusCodeStats.merge
         |> Array.map(fun x -> x.StatusCode)
 
-    test <@ [| 10; 50; 80 |] = result @>
+    test <@ [| "10"; "50"; "80" |] = result @>

@@ -13,14 +13,11 @@ open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
+open NBomber.Domain.Stats.Statistics
 open NBomber.Infra
 open NBomber.FSharp
 
 let baseNodeStats = {
-    RequestCount = 0
-    OkCount = 0
-    FailCount = 0
-    AllBytes = 0
     ScenarioStats = Array.empty
     PluginStats = Array.empty
     NodeInfo = NodeInfo.init None
@@ -30,10 +27,13 @@ let baseNodeStats = {
 }
 
 let baseScnStats = {
-    ScenarioName = "scenario"; RequestCount = 0; OkCount = 0; FailCount = 0;
-    AllBytes = 0; StepStats = Array.empty; LatencyCount = { LessOrEq800 = 0; More800Less1200 = 0; MoreOrEq1200 = 0 }
+    ScenarioName = "scenario"
+    Ok = MeasurementStats.empty
+    Fail = MeasurementStats.empty
+    StepStats = Array.empty
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
-    StatusCodes = Array.empty; CurrentOperation = OperationType.None; Duration = TimeSpan.MinValue
+    CurrentOperation = OperationType.None
+    Duration = TimeSpan.MinValue
 }
 
 let baseStepStats = {
@@ -58,9 +58,6 @@ let baseStepStats = {
     }
     StepInfo = {
         Timeout = seconds 1
-        ClientFactoryName = "none"
-        ClientFactoryClientCount = 0
-        FeedName = "none"
     }
 }
 
@@ -69,7 +66,7 @@ let ``analyzeNodeStats should return hint for case when DataTransfer.MinBytes = 
 
     let req = { baseStepStats.Ok.Request with RPS = 1.0 }
     let dt = { baseStepStats.Ok.DataTransfer with MinBytes = int minBytes }
-    let sc = { StatusCode = 200
+    let sc = { StatusCode = "200"
                IsError = false
                Message = "Success"
                Count = 1 }
@@ -83,30 +80,26 @@ let ``analyzeNodeStats should return hint for case when DataTransfer.MinBytes = 
     | e -> failwith "analyzer finished with error"
 
 [<Fact>]
-let ``HintsAnalyzer should be enable by default`` () =
+let ``HintsAnalyzer should be disabled by default`` () =
 
-    let step1 = Step.create("same_name", fun ctx -> task {
+    Scenario.create("test", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
-
-    Scenario.create "test" [step1]
     |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
     |> fun result ->
-        test <@ result.Hints |> Seq.exists(fun x -> x.Hint.Contains("Step: 'same_name' in Scenario: 'test' didn't track data transfer.")) @>
+        test <@ result.Hints |> Seq.isEmpty @>
 
 [<Fact>]
 let ``disableHintsAnalyzer should disable hints`` () =
 
-    let step1 = Step.create("same_name", fun ctx -> task {
+    Scenario.create("test", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
-
-    Scenario.create "test" [step1]
     |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.enableHintsAnalyzer false

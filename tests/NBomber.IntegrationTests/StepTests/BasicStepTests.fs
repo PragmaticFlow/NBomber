@@ -14,36 +14,28 @@ open NBomber.Contracts.Stats
 open NBomber.FSharp
 open NBomber.Extensions.Internal
 
-[<Property>]
-let ``Ok(payload: byte[]) should calculate SizeBytes automatically`` (payload: byte[]) =
-    let response = Response.ok(payload)
-
-    let actual = {| Size = response.SizeBytes |}
-
-    if isNull payload then
-        test <@ 0 = actual.Size @>
-    else
-        test <@ payload.Length = actual.Size @>
-
 [<Fact>]
 let ``Response Ok and Fail should be properly count`` () =
 
     let mutable okCnt = 0
     let mutable failCnt = 0
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        okCnt <- okCnt + 1
+    Scenario.create("count test", fun ctx -> task {
+
+        let! ok = Step.run("ok step", ctx, fun () -> task {
+            do! Task.Delay(milliseconds 100)
+            okCnt <- okCnt + 1
+            return Response.ok()
+        })
+
+        let! fail = Step.run("fail step", ctx, fun () -> task {
+            do! Task.Delay(milliseconds 100)
+            failCnt <- failCnt + 1
+            return Response.fail()
+        })
+
         return Response.ok()
     })
-
-    let failStep = Step.create("fail step", fun _ -> task {
-        do! Task.Delay(milliseconds 100)
-        failCnt <- failCnt + 1
-        return Response.fail()
-    })
-
-    Scenario.create "count test" [okStep; failStep]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 2)]
     |> NBomberRunner.registerScenario
@@ -51,9 +43,8 @@ let ``Response Ok and Fail should be properly count`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let allStepStats = nodeStats.ScenarioStats |> Seq.collect(fun x -> x.StepStats)
-        let okSt = allStepStats |> Seq.find(fun x -> x.StepName = "ok step")
-        let failSt = allStepStats |> Seq.find(fun x -> x.StepName = "fail step")
+        let okSt = nodeStats.ScenarioStats[0].GetStepStats("ok step")
+        let failSt = nodeStats.ScenarioStats[0].GetStepStats("fail step")
 
         test <@ okSt.Ok.Request.Count >= 5 && okSt.Ok.Request.Count <= 10 @>
         test <@ okSt.Fail.Request.Count = 0 @>
@@ -64,12 +55,10 @@ let ``Response Ok and Fail should be properly count`` () =
 [<Trait("CI", "disable")>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
-    let pullStep = Step.create("pull step", fun _ -> task {
+    Scenario.create("latency count test", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(sizeBytes = 1000)
     })
-
-    Scenario.create "latency count test" [pullStep]
     |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
@@ -77,9 +66,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let stats = nodeStats.ScenarioStats
-                    |> Seq.collect(fun x -> x.StepStats)
-                    |> Seq.find(fun x -> x.StepName = "pull step")
+        let stats = nodeStats.ScenarioStats[0]
 
         test <@ stats.Ok.Request.RPS >= 8.0 @>
         test <@ stats.Ok.Request.RPS <= 10.0 @>
@@ -89,222 +76,92 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ stats.Ok.DataTransfer.MinBytes = 1000 @>
         test <@ stats.Ok.DataTransfer.AllBytes >= 90_000L && stats.Ok.DataTransfer.AllBytes <= 100_000L @>
 
-[<Fact>]
-let ``can be duplicated to introduce repeatable behaviour`` () =
+// [<Fact>]
+// let ``can be duplicated to introduce repeatable behaviour`` () =
+//
+//     let mutable repeatCounter = 0
+//
+//     let repeatStep = Step.create("repeat_step", fun context -> task {
+//         do! Task.Delay(milliseconds 100)
+//         let number = context.GetPreviousStepResponse<int>()
+//
+//         if number = 1 then repeatCounter <- repeatCounter + 1
+//
+//         return Response.ok(number + 1)
+//     })
+//
+//     Scenario.create "latency count test" [repeatStep; repeatStep]
+//     |> Scenario.withoutWarmUp
+//     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+//     |> NBomberRunner.registerScenario
+//     |> NBomberRunner.withoutReports
+//     |> NBomberRunner.run
+//     |> ignore
+//
+//     test <@ repeatCounter > 5 @>
 
-    let mutable repeatCounter = 0
+// [<Fact>]
+// let ``StepContext Data should store any payload data from latest step.Response`` () =
+//
+//     let step1 = Step.create("step 1", fun context -> task {
+//         do! Task.Delay(milliseconds 100)
+//         return Response.ok(context.InvocationNumber)
+//     })
+//
+//     let step2 = Step.create("step 2", fun context -> task {
+//         let prevStepRes = context.GetPreviousStepResponse<int>()
+//         if prevStepRes <> context.InvocationNumber then return Response.fail()
+//         else return Response.ok()
+//     })
+//
+//     Scenario.create "test context.Data" [step1; step2]
+//     |> Scenario.withoutWarmUp
+//     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+//     |> NBomberRunner.registerScenario
+//     |> NBomberRunner.withoutReports
+//     |> NBomberRunner.run
+//     |> Result.getOk
+//     |> fun stats -> test <@ stats.OkCount > 0 @>
 
-    let repeatStep = Step.create("repeat_step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        let number = context.GetPreviousStepResponse<int>()
-
-        if number = 1 then repeatCounter <- repeatCounter + 1
-
-        return Response.ok(number + 1)
-    })
-
-    Scenario.create "latency count test" [repeatStep; repeatStep]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
-    |> ignore
-
-    test <@ repeatCounter > 5 @>
-
-[<Fact>]
-let ``StepContext Data should store any payload data from latest step.Response`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok(context.InvocationNumber)
-    })
-
-    let step2 = Step.create("step 2", fun context -> task {
-        let prevStepRes = context.GetPreviousStepResponse<int>()
-        if prevStepRes <> context.InvocationNumber then return Response.fail()
-        else return Response.ok()
-    })
-
-    Scenario.create "test context.Data" [step1; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
-    |> Result.getOk
-    |> fun stats -> test <@ stats.OkCount > 0 @>
-
-[<Fact>]
-let ``Step with DoNotTrack = true should has empty stats and not be printed`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    }, doNotTrack = true)
-
-    Scenario.create "test context.Data" [step1; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.runWithResult Seq.empty
-    |> Result.getOk
-    |> fun result ->
-        test <@ result.FinalStats.ScenarioStats.Length = 1 @>
-        test <@ result.FinalStats.ScenarioStats
-                |> Seq.collect(fun x -> x.StepStats)
-                |> Seq.tryFind(fun x -> x.StepName = "step 2")
-                |> Option.isNone @>
-
-[<Fact>]
-let ``createPause should work correctly and not printed in statistics`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    // pause here longer than default timeout
-    let pause2sec = Step.createPause(seconds 2)
-
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    Scenario.create "test context.Data" [step1; pause2sec; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.runWithResult Seq.empty
-    |> Result.getOk
-    |> fun result ->
-        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
-        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
-
-        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
-        test <@ step1Stats.Ok.Request.Count > 0 @>
-        test <@ step2Stats.Ok.Request.Count > 0 @>
-
-[<Fact>]
-let ``step should support multiple pause instances`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    // pause here longer than default timeout
-    let pause1 = Step.createPause(milliseconds 100)
-    let pause2 = Step.createPause(milliseconds 100)
-
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    Scenario.create "test context.Data" [step1; pause1; pause2; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.runWithResult Seq.empty
-    |> Result.getOk
-    |> fun result ->
-        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
-        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
-
-        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
-        test <@ step1Stats.Ok.Request.Count > 0 @>
-        test <@ step2Stats.Ok.Request.Count > 0 @>
-
-[<Fact>]
-let ``createPause should support reuse`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    // pause here longer than default timeout
-    let pause = Step.createPause(milliseconds 100)
-
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    let step3 = Step.create("step 3", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    Scenario.create "test context.Data" [step1; pause; step2; pause; step3]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.runWithResult Seq.empty
-    |> Result.getOk
-    |> fun result ->
-        let step1Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 1"
-        let step2Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 2"
-        let step3Stats = result.FinalStats.ScenarioStats[0] |> ScenarioStats.getStepStats "step 3"
-
-        test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 3 @>
-        test <@ step1Stats.Ok.Request.Count > 0 @>
-        test <@ step2Stats.Ok.Request.Count > 0 @>
-        test <@ step3Stats.Ok.Request.Count > 0 @>
-
-[<Fact>]
-let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
-
-    let step1 = Step.create("step 1", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.ok()
-    })
-
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.ok()
-    })
-
-    let scenario1 =
-        Scenario.create "scenario 1" [step1; step2]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-
-    let scenario2 =
-        Scenario.create "scenario 2" [step2; step1]
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-
-    let result =
-        NBomberRunner.registerScenarios [scenario1; scenario2]
-        |> NBomberRunner.withoutReports
-        |> NBomberRunner.runWithResult Seq.empty
-        |> Result.getOk
-
-    test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
-    test <@ result.FinalStats.ScenarioStats[1].StepStats.Length = 2 @>
+// [<Fact>]
+// let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
+//
+//     let step1 = Step.create("step 1", fun context -> task {
+//         do! Task.Delay(milliseconds 100)
+//         return Response.ok()
+//     })
+//
+//     let step2 = Step.create("step 2", fun context -> task {
+//         do! Task.Delay(milliseconds 500)
+//         return Response.ok()
+//     })
+//
+//     let scenario1 =
+//         Scenario.create "scenario 1" [step1; step2]
+//         |> Scenario.withoutWarmUp
+//         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+//
+//     let scenario2 =
+//         Scenario.create "scenario 2" [step2; step1]
+//         |> Scenario.withoutWarmUp
+//         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+//
+//     let result =
+//         NBomberRunner.registerScenarios [scenario1; scenario2]
+//         |> NBomberRunner.withoutReports
+//         |> NBomberRunner.runWithResult Seq.empty
+//         |> Result.getOk
+//
+//     test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
+//     test <@ result.FinalStats.ScenarioStats[1].StepStats.Length = 2 @>
 
 [<Fact>]
 let ``NBomber shouldn't stop execution scenario if too many failed results on a warm-up`` () =
 
-    let step = Step.create("step", fun context -> task {
+    Scenario.create("scenario", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.fail()
     })
-
-    Scenario.create "scenario" [step]
     |> Scenario.withWarmUpDuration(seconds 5)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
@@ -316,12 +173,10 @@ let ``NBomber shouldn't stop execution scenario if too many failed results on a 
 [<Fact>]
 let ``NBomber should allow to set custom response latency and handle it properly`` () =
 
-    let step = Step.create("step", fun context -> task {
+    Scenario.create("scenario", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok(latencyMs = 2_000.0) // set custom latency
     })
-
-    Scenario.create "scenario" [step]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
@@ -329,13 +184,11 @@ let ``NBomber should allow to set custom response latency and handle it properly
     |> NBomberRunner.run
     |> Result.getOk
     |> fun nodeStats ->
-        let st = nodeStats.ScenarioStats
-                 |> Seq.collect(fun x -> x.StepStats)
-                 |> Seq.find(fun x -> x.StepName = "step")
+        let scnStats = nodeStats.ScenarioStats[0]
 
-        test <@ st.Ok.Request.Count > 5 @>
-        test <@ st.Ok.Request.RPS >= 7.0 @>
-        test <@ st.Ok.Latency.MinMs <= 2_001.0 @>
+        test <@ scnStats.Ok.Request.Count > 5 @>
+        test <@ scnStats.Ok.Request.RPS >= 7.0 @>
+        test <@ scnStats.Ok.Latency.MinMs <= 2_001.0 @>
 
 [<Fact>]
 let ``context StopTest should stop all scenarios`` () =
@@ -343,23 +196,29 @@ let ``context StopTest should stop all scenarios`` () =
     let mutable counter = 0
     let duration = seconds 42
 
-    let okStep = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        counter <- counter + 1
-
-        if counter >= 30 then
-            context.StopCurrentTest(reason = "custom reason")
-
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "test_youtube_1" [okStep]
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter <- counter + 1
+
+            if counter >= 30 then
+                ctx.StopCurrentTest(reason = "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     let scenario2 =
-        Scenario.create "test_youtube_2" [okStep]
+        Scenario.create("test_youtube_2", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter <- counter + 1
+
+            if counter >= 30 then
+                ctx.StopCurrentTest(reason = "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
@@ -377,13 +236,11 @@ let ``NBomber should reset step invocation number after warm-up`` () =
 
     let mutable counter = 0
 
-    let step = Step.create("step", fun context -> task {
+    Scenario.create("scenario", fun ctx -> task {
         do! Task.Delay(seconds 1)
-        counter <- context.InvocationNumber
+        counter <- ctx.InvocationNumber
         return Response.ok()
     })
-
-    Scenario.create "scenario" [step]
     |> Scenario.withWarmUpDuration(seconds 10)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
@@ -399,15 +256,13 @@ let ``NBomber should handle invocation number per step following shared-nothing 
 
     let data = Dictionary<int,int>()
 
-    let step = Step.create("step", timeout = seconds 2, execute = fun context -> task {
-        do! Task.Delay(seconds 1, context.CancellationToken)
+    Scenario.create("scenario", fun ctx -> task {
+        do! Task.Delay(seconds 1, ctx.CancellationToken)
 
-        data[context.ScenarioInfo.ThreadNumber] <- context.InvocationNumber
+        data[ctx.ScenarioInfo.ThreadNumber] <- ctx.InvocationNumber
 
         return Response.ok()
     })
-
-    Scenario.create "scenario" [step]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 10, during = seconds 10)]
     |> NBomberRunner.registerScenario
@@ -424,90 +279,116 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     test <@ maxNumber >= 5 && maxNumber <= 11 @>
 
 [<Fact>]
-let ``StepContext Data should be cleared after each iteration`` () =
+let ``NBomber by default should reset scenario iteration on step fail`` () =
 
-    let step1 = Step.create("step 1", fun context -> task {
-        if context.Data.Count = 0 then return Response.ok()
-        else return Response.fail()
-    })
+    let mutable step3Invoked = false
 
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(100)
-        context.Data.Add(nameof(context.InvocationNumber), context.InvocationNumber)
-        return Response.ok();
-    })
+    Scenario.create("scenario", fun ctx -> task {
 
-    Scenario.create "test context.Data" [step1; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
-    |> Result.getOk
-    |> fun stats -> test <@ stats.FailCount = 0 @>
+        let! step1 = Step.run("step1", ctx, fun () -> task {
+            return Response.ok()
+        })
 
-[<Fact>]
-let ``Response Payload should be cleared from StepContext Data after each iteration`` () =
+        let! step2 = Step.run("step2", ctx, fun () -> task {
+            return Response.fail()
+        })
 
-    let step1 = Step.create("step 1", fun context -> task {
-        let subject = context.GetPreviousStepResponse<int>()
-        if Unchecked.defaultof<int> = subject then return Response.ok()
-        else return Response.fail()
-    })
+        let! step3 = Step.run("step3", ctx, fun () -> task {
+            step3Invoked <- true // this step should not be invoked
+            return Response.ok()
+        })
 
-    let step2 = Step.create("step 2", fun context -> task {
-        do! Task.Delay(100)
-        return Response.ok(context.InvocationNumber);
-    })
-
-    Scenario.create "test context.Data" [step1; step2]
-    |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-    |> NBomberRunner.registerScenario
-    |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
-    |> Result.getOk
-    |> fun stats -> test <@ stats.FailCount = 0 @>
-
-[<Fact>]
-let ``create should check feed on null and throw NRE`` () =
-    Assert.Throws(
-        typeof<NullReferenceException>,
-        fun _ -> let nullFeed = Unchecked.defaultof<_>()
-                 Step.create("null_feed", feed = nullFeed, execute = fun context -> task { return Response.ok() })
-                 |> ignore
-    )
-
-[<Fact>]
-let ``create should check clientFactory on null and throw NRE`` () =
-    Assert.Throws(
-        typeof<NullReferenceException>,
-        fun _ -> let nullFactory = Unchecked.defaultof<_>()
-                 Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
-                 |> ignore
-    )
-
-[<Fact>]
-let ``create should allow set step timeout`` () =
-
-    let step1 = Step.create("step 1", timeout = milliseconds 500, execute = fun context -> task {
-        do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
-
-    let step2 = Step.create("step 2", timeout = milliseconds 500, execute = fun context -> task {
-        do! Task.Delay(600)
-        return Response.ok()
-    })
-
-    Scenario.create "timeout tests" [step1; step2]
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        test <@ stats.ScenarioStats[0].GetStepStats("step 1").Fail.Request.Count = 0 @>
-        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.Request.Count > 0 @>
-        test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>
+        test <@ step3Invoked = false @>
+        test <@ stats.ScenarioStats[0].Ok.Request.Count = 0 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count = stats.ScenarioStats[0].GetStepStats("step2").Fail.Request.Count @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step1").Ok.Request.Count > 0 @>
+
+[<Fact>]
+let ``withResetIterationOnFail should allow to configure reset = false`` () =
+
+    let mutable step3Invoked = false
+
+    Scenario.create("scenario", fun ctx -> task {
+
+        let! step1 = Step.run("step1", ctx, fun () -> task {
+            return Response.ok()
+        })
+
+        let! step2 = Step.run("step2", ctx, fun () -> task {
+            return Response.fail()
+        })
+
+        let! step3 = Step.run("step3", ctx, fun () -> task {
+            step3Invoked <- true // this step should be invoked
+            return Response.ok()
+        })
+
+        return Response.ok()
+    })
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+    |> Scenario.withResetIterationOnFail false
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ step3Invoked = true @>
+        test <@ stats.ScenarioStats[0].Ok.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count = 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step1").Ok.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step2").Fail.Request.Count > 0 @>
+        test <@ stats.ScenarioStats[0].GetStepStats("step3").Ok.Request.Count > 0 @>
+
+// [<Fact>]
+// let ``create should check feed on null and throw NRE`` () =
+//     Assert.Throws(
+//         typeof<NullReferenceException>,
+//         fun _ -> let nullFeed = Unchecked.defaultof<_>()
+//                  Step.create("null_feed", feed = nullFeed, execute = fun context -> task { return Response.ok() })
+//                  |> ignore
+//     )
+
+// [<Fact>]
+// let ``create should check clientFactory on null and throw NRE`` () =
+//     Assert.Throws(
+//         typeof<NullReferenceException>,
+//         fun _ -> let nullFactory = Unchecked.defaultof<_>()
+//                  Step.create("null_feed", clientFactory = nullFactory, execute = fun context -> task { return Response.ok() })
+//                  |> ignore
+//     )
+
+// [<Fact>]
+// let ``create should allow set step timeout`` () =
+//
+//     let step1 = Step.create("step 1", timeout = milliseconds 500, execute = fun context -> task {
+//         do! Task.Delay(milliseconds 100)
+//         return Response.ok()
+//     })
+//
+//     let step2 = Step.create("step 2", timeout = milliseconds 500, execute = fun context -> task {
+//         do! Task.Delay(600)
+//         return Response.ok()
+//     })
+//
+//     Scenario.create "timeout tests" [step1; step2]
+//     |> Scenario.withoutWarmUp
+//     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
+//     |> NBomberRunner.registerScenario
+//     |> NBomberRunner.withoutReports
+//     |> NBomberRunner.run
+//     |> Result.getOk
+//     |> fun stats ->
+//         test <@ stats.ScenarioStats[0].GetStepStats("step 1").Fail.Request.Count = 0 @>
+//         test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.Request.Count > 0 @>
+//         test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>

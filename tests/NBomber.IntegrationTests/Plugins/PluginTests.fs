@@ -20,33 +20,40 @@ open NBomber.FSharp
 module internal PluginTestHelper =
 
     let createScenarios () =
-        let step1 = Step.create("step 1", fun _ -> task {
-            do! Task.Delay(TimeSpan.FromSeconds(0.1))
-            return Response.ok()
-        })
-
-        let step2 = Step.create("step 2", fun _ -> task {
-            do! Task.Delay(TimeSpan.FromSeconds(0.2))
-            return Response.ok()
-        })
-
-        let step3 = Step.create("step 3", fun _ -> task {
-            do! Task.Delay(TimeSpan.FromSeconds(0.3))
-            return Response.ok()
-        })
 
         let scenario1 =
-            Scenario.create "plugin scenario 1" [step1; step2]
+            Scenario.create("plugin scenario 1", fun ctx -> task {
+
+                let! step1 = Step.run("step 1", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.1)
+                    return Response.ok()
+                })
+
+                let! step2 = Step.run("step 2", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.2)
+                    return Response.ok()
+                })
+
+                let! step3 = Step.run("step 3", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.3)
+                    return Response.ok()
+                })
+
+                return Response.ok()
+            })
             |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 10.0)
+                KeepConstant(copies = 2, during = seconds 10)
             ]
 
         let scenario2 =
-            Scenario.create "plugin scenario 2" [step3]
+            Scenario.create("plugin scenario 2", fun ctx -> task {
+                do! Task.Delay(seconds 0.3)
+                return Response.ok()
+            })
             |> Scenario.withoutWarmUp
             |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = TimeSpan.FromSeconds 10.0)
+                KeepConstant(copies = 2, during = seconds 10)
             ]
 
         [scenario1; scenario2]
@@ -218,8 +225,9 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
             member _.Dispose() = ()
     }
 
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    Scenario.create "1" [step1]
+    Scenario.create("1", fun ctx -> task {
+        return Response.ok()
+    })
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
     |> NBomberRunner.registerScenario
@@ -247,8 +255,9 @@ let ``PluginStats should return empty data set in case of internal exception`` (
             member _.Dispose() = ()
     }
 
-    let step1 = Step.create("step 1", fun _ -> Task.FromResult(Response.ok()))
-    Scenario.create "1" [step1]
+    Scenario.create("1", fun ctx -> task {
+        return Response.ok()
+    })
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
     |> NBomberRunner.registerScenario

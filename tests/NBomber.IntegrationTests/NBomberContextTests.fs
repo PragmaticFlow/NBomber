@@ -26,7 +26,6 @@ let baseGlobalSettings = {
     ReportFormats = None
     ReportingInterval = None
     EnableHintsAnalyzer = None
-    DefaultStepTimeoutMs = None
     MaxFailCount = None
 }
 
@@ -34,12 +33,14 @@ let baseScenarioSetting = {
     ScenarioName = "test_scenario"
     WarmUpDuration = None
     LoadSimulationsSettings = None
-    ClientFactorySettings = None
     CustomSettings = None
 }
 
-let failStep = Step.create("fail step", fun _ -> Response.fail() |> Task.singleton)
-let baseScenario = Scenario.create "1" [failStep] |> Scenario.withoutWarmUp
+let baseScenario =
+    Scenario.create("1", fun ctx -> task {
+        return Response.fail()
+    })
+    |> Scenario.withoutWarmUp
 
 let config = {
     TestSuite = Some Constants.DefaultTestSuite
@@ -169,27 +170,6 @@ let ``getTestName should return from Config, if empty then from TestContext``
         let testSuite = NBomberContext.getTestName(context)
         test <@ testSuite = context.TestName @>
 
-[<Property>]
-let ``getClientFactorySettings should return from Config with updated poolName, if empty then empty result``
-    (poolNameGenerated: string, configValue: int option) =
-
-    match configValue with
-    | Some value ->
-        let poolSettings = { FactoryName = poolNameGenerated; ClientCount = value }
-        let scnSettings = { baseScenarioSetting with ClientFactorySettings = Some [poolSettings] }
-        let glSettings = { baseGlobalSettings with ScenariosSettings = Some [scnSettings] }
-        let config = { config with GlobalSettings = Some glSettings }
-        let ctx = { context with NBomberConfig = Some config }
-        let result = NBomberContext.getClientFactorySettings ctx
-
-        test <@ result.Head.ClientCount = poolSettings.ClientCount @>
-        test <@ result.Head.FactoryName = Domain.ClientFactory.createFullName poolSettings.FactoryName scnSettings.ScenarioName @>
-        test <@ result.Head.FactoryName <> poolSettings.FactoryName @>
-
-    | None ->
-        let result = NBomberContext.getClientFactorySettings context
-        test <@ result = List.empty @>
-
 [<Fact>]
 let ``getReportingInterval should return fail if interval is smaller than min value`` () =
 
@@ -274,7 +254,6 @@ let ``createSessionArgs should properly create args with default values`` () =
     |> fun sessionArgs ->
         test <@ context.NBomberConfig.IsNone @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.IsSome @>
-        test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.DefaultStepTimeoutMs = Some Constants.DefaultStepTimeoutMs @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFileName.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFolder.IsSome @>
         test <@ sessionArgs.NBomberConfig.GlobalSettings.Value.ReportFormats.IsSome @>

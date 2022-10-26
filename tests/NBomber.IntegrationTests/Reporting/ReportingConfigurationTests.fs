@@ -28,13 +28,11 @@ let ``JSON config settings for ReportFileName and ReportFolder should be properl
     if Directory.Exists "./my_custom_reports" then
         Directory.Delete("./my_custom_reports", recursive = true)
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(seconds 1)
-        return Response.ok()
-    })
-
     let scenario =
-        Scenario.create "test" [okStep]
+        Scenario.create("test", fun ctx -> task {
+            do! Task.Delay(seconds 1)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 
@@ -64,13 +62,11 @@ let ``withReportFileName and withReportFolder should be properly handled`` () =
     if Directory.Exists "./my_reports_2" then
         Directory.Delete("./my_reports_2", recursive = true)
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(seconds 1)
-        return Response.ok()
-    })
-
     let scenario =
-        Scenario.create "test" [okStep]
+        Scenario.create("test", fun ctx -> task {
+            do! Task.Delay(seconds 1)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 
@@ -104,13 +100,11 @@ let ``withoutReports should not print report files`` () =
             .MinimumLevel.Is(LogEventLevel.Verbose)
             .WriteTo.Sink(inMemorySink)
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(seconds 1)
-        return Response.ok()
-    })
-
     let scenario =
-        Scenario.create "test" [okStep]
+        Scenario.create("test", fun ctx -> task {
+            do! Task.Delay(seconds 1)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 
@@ -142,13 +136,11 @@ let ``withoutReports should not save report files`` () =
     if Directory.Exists "./no-reports/1" then
         Directory.Delete("./no-reports/1", recursive = true)
 
-    let okStep = Step.create("ok step", fun _ -> task {
-        do! Task.Delay(seconds 1)
-        return Response.ok()
-    })
-
     let scenario =
-        Scenario.create "test" [okStep]
+        Scenario.create("test", fun ctx -> task {
+            do! Task.Delay(seconds 1)
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(copies = 5, during = seconds 5)]
 

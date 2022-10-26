@@ -35,12 +35,10 @@ let ``TestClean should be invoked only once and not fail runner`` () =
         failwith "exception was not handled"
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    Scenario.create("withTestClean test", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
-
-    Scenario.create "withTestClean test" [okStep]
     |> Scenario.withClean testClean
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
@@ -54,22 +52,16 @@ let ``TestClean should be invoked only once and not fail runner`` () =
 [<Fact>]
 let ``TestInit should propagate CustomSettings from config.json`` () =
 
-    let mutable scnContext: IScenarioContext option = None
+    let mutable scnContext: IScenarioInitContext option = None
 
     let testInit = fun context -> task {
         scnContext <- Some context
     }
 
-    let okStep = Step.create("ok step", fun _ -> task {
+    Scenario.create("test_youtube", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
-
-    let pause = Step.createPause(fun () ->
-        scnContext.Value.CustomSettings.Get<TestCustomSettings>().PauseMs
-    )
-
-    Scenario.create "test_youtube" [okStep; pause]
     |> Scenario.withInit testInit
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 2)]
@@ -90,23 +82,29 @@ let ``should be stopped via StepContext.StopScenario`` () =
     let mutable counter = 0
     let duration = seconds 15
 
-    let okStep = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        counter <- counter + 1
-
-        if counter = 30 then
-            context.StopScenario("test_youtube_1", "custom reason")
-
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "test_youtube_1" [okStep]
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter <- counter + 1
+
+            if counter = 30 then
+                ctx.StopScenario("test_youtube_1", "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
     let scenario2 =
-        Scenario.create "test_youtube_2" [okStep]
+        Scenario.create("test_youtube_2", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter <- counter + 1
+
+            if counter = 30 then
+                ctx.StopScenario("test_youtube_1", "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
 
@@ -132,33 +130,29 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
     let mutable counter2 = 0
     let duration = seconds 60
 
-    let step1 = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        counter1 <- counter1 + 1
-
-        if counter1 = 30 then
-            context.StopScenario("test_youtube_1", "custom reason")
-
-        return Response.ok()
-    })
-
-    let step2 = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        counter2 <- counter2 + 1
-
-        if counter2 = 60 then
-            context.StopScenario("test_youtube_2", "custom reason")
-
-        return Response.ok()
-    })
-
     let scenario1 =
-        Scenario.create "test_youtube_1" [step1]
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter1 <- counter1 + 1
+
+            if counter1 = 30 then
+                ctx.StopScenario("test_youtube_1", "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(1, duration)]
 
     let scenario2 =
-        Scenario.create "test_youtube_2" [step2]
+        Scenario.create("test_youtube_2", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            counter2 <- counter2 + 1
+
+            if counter2 = 60 then
+                ctx.StopScenario("test_youtube_2", "custom reason")
+
+            return Response.ok()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(1, duration)]
 
@@ -176,13 +170,11 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
 let ``Test execution should be stopped if too many errors`` () =
     let duration = seconds 60
 
-    let step1 = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 100)
-        return Response.fail()
-    })
-
     let scenario1 =
-        Scenario.create "test_youtube_1" [step1]
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            return Response.fail()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [KeepConstant(100, duration)]
 
@@ -191,20 +183,18 @@ let ``Test execution should be stopped if too many errors`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        test <@ stats.FailCount >= Constants.DefaultMaxFailCount @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count >= Constants.DefaultMaxFailCount @>
 
 [<Fact>]
 let ``withMaxFailCount should configure MaxFailCount`` () =
     let duration = seconds 60
     let maxFailCount = 1
 
-    let step1 = Step.create("ok step", fun context -> task {
-        do! Task.Delay(milliseconds 500)
-        return Response.fail()
-    })
-
     let scenario1 =
-        Scenario.create "test_youtube_1" [step1]
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(milliseconds 500)
+            return Response.fail()
+        })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [InjectPerSec(1, duration)]
 
@@ -214,5 +204,32 @@ let ``withMaxFailCount should configure MaxFailCount`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        test <@ stats.FailCount <> Constants.DefaultMaxFailCount @>
-        test <@ stats.FailCount = 2 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count <> Constants.DefaultMaxFailCount @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count = 2 @>
+
+[<Fact>]
+let ``MaxFailCount should be tracked only for scenarios failures, not steps failures`` () =
+    let duration = seconds 2
+    let maxFailCount = 1
+
+    let scenario1 =
+        Scenario.create("test_youtube_1", fun ctx -> task {
+
+            let! fail = Step.run("fail_step", ctx, fun () -> task {
+                do! Task.Delay(milliseconds 10)
+                return Response.fail() // we return fail but this fail should not be count as scenario FailCount
+            })
+
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withResetIterationOnFail false
+        |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
+
+    NBomberRunner.registerScenarios [scenario1]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.withMaxFailCount maxFailCount
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        test <@ stats.ScenarioStats[0].Fail.Request.Count = 0 @>
