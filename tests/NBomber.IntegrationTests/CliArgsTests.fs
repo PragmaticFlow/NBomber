@@ -10,12 +10,8 @@ open NBomber.Contracts
 open NBomber.Domain
 open NBomber.FSharp
 
-let okStep = Step.create("ok step", fun _ -> task {
-    return Response.ok()
-})
-
-let scenario = Scenario.create "scenario" [okStep] |> Scenario.withoutWarmUp
-let scenario2 = Scenario.create "scenario2" [okStep] |> Scenario.withoutWarmUp
+let scenario = Scenario.create("scenario", fun ctx -> task { return Response.ok() })  |> Scenario.withoutWarmUp
+let scenario2 = Scenario.create("scenario2", fun ctx -> task { return Response.ok() }) |> Scenario.withoutWarmUp
 
 [<Theory>]
 [<InlineData("-c")>]

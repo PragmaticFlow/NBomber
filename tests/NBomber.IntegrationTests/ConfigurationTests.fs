@@ -8,6 +8,7 @@ open Xunit
 open FSharp.Json
 open Swensen.Unquote
 
+open NBomber.Contracts
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.FSharp
@@ -59,9 +60,11 @@ module NBomberRunner =
     [<Fact>]
     let ``loadConfig should support load config via HTTP URL`` () =
 
-        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/config.json"
+        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/tests/NBomber.IntegrationTests/Configuration/test_config.json"
 
-        Scenario.create "scenario_1" []
+        Scenario.create("scenario_1", fun ctx -> task {
+            return Response.ok()
+        })
         |> NBomberRunner.registerScenario
         |> NBomberRunner.loadConfig url
         |> fun nbContext ->
@@ -74,7 +77,9 @@ module NBomberRunner =
             fun _ ->
                 let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber.Enterprise.Examples/main/examples/ClusterSimpleHttpDemo/coordinator-config.json"
 
-                Scenario.create "scenario_1" []
+                Scenario.create("scenario_1", fun ctx -> task {
+                    return Response.ok()
+                })
                 |> NBomberRunner.registerScenario
                 |> NBomberRunner.loadConfig url
                 |> ignore
@@ -99,11 +104,13 @@ module NBomberRunner =
     [<Fact>]
     let ``loadInfraConfig should support load config via HTTP URL`` () =
 
-        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/examples/CSharpProd/HttpTests/Configs/infra-config.json"
+        let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/tests/NBomber.IntegrationTests/Configuration/infra_config.json"
 
-        Scenario.create "scenario_1" []
+        Scenario.create("scenario_1", fun ctx -> task {
+            return Response.ok()
+        })
         |> NBomberRunner.registerScenario
         |> NBomberRunner.loadInfraConfig url
         |> fun nbContext ->
             test <@ nbContext.InfraConfig.IsSome @>
-            test <@ not (String.IsNullOrEmpty(nbContext.InfraConfig.Value.GetSection("PingPlugin:Ttl").Value)) @>
+            test <@ nbContext.InfraConfig.Value.GetSection("Serilog:MinimumLevel").Value = "Debug" @>

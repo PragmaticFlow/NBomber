@@ -1,7 +1,7 @@
-﻿using System;
-using CSharpDev.DataFeed;
-using CSharpDev.Features;
+﻿using CSharpDev.Features.CustomSettings;
 using CSharpDev.HelloWorld;
+using CSharpDev.Http;
+using CSharpDev.Mqtt;
 
 namespace CSharpDev
 {
@@ -9,12 +9,10 @@ namespace CSharpDev
     {
         static void Main(string[] args)
         {
-            HelloWorldExample.Run();
-            // ClientDistributionExample.Run();
-            // CustomStepExecControlExample.Run();
-            // DataFeedTest.Run();
-            // CustomReportingExample.Run();
-            // CustomSettingsExample.Run();
+            new HelloWorldExample().Run();
+            // new SimpleHttpTest().Run();
+            // new SimpleMqttTest().Run();
+            // new CustomSettingsExample().Run();
         }
     }
 }

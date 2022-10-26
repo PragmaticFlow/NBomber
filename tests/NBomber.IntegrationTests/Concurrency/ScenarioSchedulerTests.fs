@@ -195,10 +195,12 @@ let ``schedule should correctly handle RampScenariosPerSec``
     let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
     commands
     |> List.iter(function
-        | InjectOneTimeActors scheduled  -> test <@ scheduled <> 0 @>
+        | InjectOneTimeActors scheduled  ->
+            test <@ scheduled <> 0 @>
 
-        | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
-                                            commandCount := 2
+        | RemoveConstantActors scheduled ->
+            test <@ scheduled <> 0 @>
+            commandCount := 2
 
         | _ -> failwith "invalid command"
     )
@@ -209,18 +211,16 @@ let ``schedule should correctly handle RampScenariosPerSec``
 [<Trait("CI", "disable")>]
 let ``should run InjectOneTimeActors correctly`` () =
 
-    let step = Step.create("step_1", fun context -> task {
-        return Response.ok(42)
+    Scenario.create("hello_world_scenario", fun ctx -> task {
+        return Response.ok()
     })
-
-    Scenario.create "hello_world_scenario" [step]
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [InjectPerSec(rate = 1, during = seconds 20)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.map(fun nodeStats ->
-        let reqCount = nodeStats.RequestCount
+        let reqCount = nodeStats.ScenarioStats[0].Ok.Request.Count
         test <@ reqCount >= 20 && reqCount <= 21 @>
     )
     |> Result.mapError(failwith)

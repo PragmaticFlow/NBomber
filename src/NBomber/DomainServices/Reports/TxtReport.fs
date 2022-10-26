@@ -11,7 +11,8 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
-open NBomber.Domain.Stats
+open NBomber.Domain.Stats.Statistics
+open NBomber.DomainServices.Reports
 
 module TxtTestInfo =
 
@@ -46,28 +47,26 @@ module TxtNodeStats =
 
     let private printScenarioHeader (scnStats: ScenarioStats) =
         $"scenario: {scnStats.ScenarioName}{Environment.NewLine}"
-        + $"  - ok count: {scnStats.OkCount}{Environment.NewLine}"
-        + $"  - fail count: {scnStats.FailCount}{Environment.NewLine}"
-        + $"  - all data: {ReportHelper.printAllData string scnStats.AllBytes}{Environment.NewLine}"
+        + $"  - ok count: {scnStats.Ok.Request.Count}{Environment.NewLine}"
+        + $"  - fail count: {scnStats.Fail.Request.Count}{Environment.NewLine}"
+        + $"  - all data: {ReportHelper.printAllData string (ScenarioStats.calcAllBytes scnStats)}{Environment.NewLine}"
         + $"  - duration: {scnStats.Duration}"
 
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) =
             $"step: {stats.StepName}{Environment.NewLine}"
             + $"  - timeout: {stats.StepInfo.Timeout.TotalMilliseconds} ms{Environment.NewLine}"
-            + $"  - client factory: {stats.StepInfo.ClientFactoryName}, clients: {stats.StepInfo.ClientFactoryClientCount}{Environment.NewLine}"
-            + $"  - data feed: {stats.StepInfo.FeedName}{Environment.NewLine}"
 
         stepStats |> Seq.map print |> String.concatLines
 
-    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) =
+    let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats string string string
 
         let table =
             if isOkStats then ConsoleTable("step", "ok stats")
             else ConsoleTable("step", "fail stats")
 
-        stepStats
+        scnStats.StepStats
         |> Seq.mapi printStepStatsRow
         |> Seq.concat
         |> Seq.iter(fun row -> table.AddRow(row[0], row[1]) |> ignore)
@@ -83,13 +82,12 @@ module TxtNodeStats =
           simulations        |> TxtLoadSimulations.print |> String.appendNewLine
           scnStats.StepStats |> printStepStatsHeader
 
-          printStepStatsTable true scnStats.StepStats
+          printStepStatsTable true scnStats
 
-          if Statistics.ScenarioStats.failStepStatsExist scnStats then
-              printStepStatsTable false scnStats.StepStats
+          if ScenarioStats.failStatsExist scnStats then
+              printStepStatsTable false scnStats
 
-          if scnStats.StatusCodes.Length > 0 then
-              yield! printScenarioStatusCodes scnStats ]
+          yield! printScenarioStatusCodes scnStats ]
 
     let printNodeStats (stats: NodeStats) (loadSimulations: IDictionary<string, LoadSimulation list>) =
         stats.ScenarioStats

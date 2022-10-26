@@ -5,16 +5,10 @@ open FSharp.Json
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
-type ClientFactorySetting = {
-    FactoryName: string
-    ClientCount: int
-}
-
 type ScenarioSetting = {
     ScenarioName: string
     WarmUpDuration: TimeSpan option
     LoadSimulationsSettings: LoadSimulation list option
-    ClientFactorySettings: ClientFactorySetting list option
     [<JsonField(AsJson = true)>] CustomSettings: string option
 }
 
@@ -25,7 +19,6 @@ type GlobalSettings = {
     ReportFormats: ReportFormat list option
     ReportingInterval: TimeSpan option
     EnableHintsAnalyzer: bool option
-    DefaultStepTimeoutMs: int option
     MaxFailCount: int option
 }
 

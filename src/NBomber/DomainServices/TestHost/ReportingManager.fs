@@ -2,9 +2,7 @@ module internal NBomber.DomainServices.TestHost.ReportingManager
 
 open System
 open System.Threading.Tasks
-
 open FsToolkit.ErrorHandling
-
 open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal

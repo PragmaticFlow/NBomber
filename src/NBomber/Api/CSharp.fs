@@ -3,146 +3,53 @@
 #nowarn "3211"
 
 open System
+open System.Runtime.InteropServices
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
-open System.Runtime.InteropServices
-
 open Serilog
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
-/// DataFeed helps inject test data into your load test. It represents a data source.
-type Feed =
-
-    /// Creates Feed that picks constant value per Step copy.
-    /// Every Step copy will have unique constant value.
-    static member CreateConstant (name, data: 'T seq) =
-        FSharp.Feed.createConstant name data
-
-    /// Creates Feed (in lazy mode) that picks constant value per Step copy.
-    /// Every Step copy will have unique constant value.
-    static member CreateConstantLazy (name, getData: Func<IBaseContext,'T seq>) =
-        FSharp.Feed.createConstantLazy name getData.Invoke
-
-    /// Creates Feed that goes back to the top of the sequence once the end is reached.
-    static member CreateCircular (name, data: 'T seq) =
-        FSharp.Feed.createCircular name data
-
-    /// Creates Feed (in lazy mode) that goes back to the top of the sequence once the end is reached.
-    static member CreateCircularLazy (name, getData: Func<IBaseContext,'T seq>) =
-        FSharp.Feed.createCircularLazy name getData.Invoke
-
-    /// Creates Feed that randomly picks an item per Step invocation.
-    static member CreateRandom (name, data: 'T seq) =
-        FSharp.Feed.createRandom name data
-
-    /// Creates Feed (in lazy mode) that randomly picks an item per Step invocation.
-    static member CreateRandomLazy (name, getData: Func<IBaseContext,'T seq>) =
-        FSharp.Feed.createRandomLazy name getData.Invoke
-
 /// Step represents a single user action like login, logout, etc.
 type Step =
 
-    /// Creates Step.
+    /// Runs a step.
     /// Step represents a single user action like login, logout, etc.
-    static member Create
-        (name: string,
-         clientFactory: IClientFactory<'TClient>,
-         feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<'TClient,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
-
-        let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, clientFactory, feed, ?timeout = timeout, doNotTrack = doNotTrack)
-
-    /// Creates Step.
-    /// Step represents a single user action like login, logout, etc.
-    static member Create
-        (name: string,
-         clientFactory: IClientFactory<'TClient>,
-         execute: Func<IStepContext<'TClient,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
-
-        let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, clientFactory, ?timeout = timeout, doNotTrack = doNotTrack)
-
-    /// Creates Step.
-    /// Step represents a single user action like login, logout, etc.
-    static member Create
-        (name: string,
-         feed: IFeed<'TFeedItem>,
-         execute: Func<IStepContext<unit,'TFeedItem>,Task<Response>>,
-         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
-
-        let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, feed = feed, ?timeout = timeout, doNotTrack = doNotTrack)
-
-    /// Creates Step.
-    /// Step represents a single user action like login, logout, etc.
-    static member Create
-        (name: string,
-         execute: Func<IStepContext<unit,unit>,Task<Response>>,
-         [<Optional;DefaultParameterValue(null)>] timeout: Nullable<TimeSpan>,
-         [<Optional;DefaultParameterValue(Constants.DefaultDoNotTrack)>] doNotTrack: bool) =
-
-        let timeout = Option.ofNullable timeout
-        FSharp.Step.create(name, execute.Invoke, ?timeout = timeout, doNotTrack = doNotTrack)
-
-    /// Creates pause step with specified duration.
-    static member CreatePause(duration: TimeSpan) =
-        FSharp.Step.createPause(duration)
-
-    /// Creates pause step with specified duration in milliseconds.
-    static member CreatePause(milliseconds: int) =
-        FSharp.Step.createPause(milliseconds)
-
-    /// Creates pause step with specified duration in lazy mode.
-    /// It's useful when you want to fetch value from some configuration.
-    static member CreatePause(getDuration: Func<TimeSpan>) =
-        FSharp.Step.createPause(getDuration.Invoke)
-
-    /// Creates pause step in milliseconds in lazy mode.
-    /// It's useful when you want to fetch value from some configuration.
-    static member CreatePause(getDuration: Func<int>) =
-        FSharp.Step.createPause(getDuration.Invoke)
+    static member Run(name: string, context: IScenarioContext, run: Func<Task<Response<'T>>>) =
+        FSharp.Step.run(name, context, run.Invoke)
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
 /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
 /// You should think about Scenario as a system thread.
 [<Extension>]
-type ScenarioBuilder =
+type Scenario =
 
     /// Creates scenario with steps which will be executed sequentially.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
-    /// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
     /// You should think about Scenario as a system thread.
-    static member CreateScenario(name: string, [<ParamArray>]steps: IStep[]) =
-        FSharp.Scenario.create name (Seq.toList steps)
+    static member Create(name: string, run: Func<IScenarioContext,Task<Response<obj>>>) =
+        FSharp.Scenario.create(name, run.Invoke)
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
     [<Extension>]
-    static member WithInit(scenario: Scenario, initFunc: Func<IScenarioContext,Task>) =
+    static member WithInit(scenario: ScenarioProps, initFunc: Func<IScenarioInitContext,Task>) =
         { scenario with Init = Some initFunc.Invoke }
 
     /// Cleans scenario's resources.
     [<Extension>]
-    static member WithClean(scenario: Scenario, cleanFunc: Func<IScenarioContext,Task>) =
+    static member WithClean(scenario: ScenarioProps, cleanFunc: Func<IScenarioInitContext,Task>) =
         { scenario with Clean = Some cleanFunc.Invoke }
 
     /// Sets warm-up duration
     /// Warm-up will just simply start a scenario with a specified duration.
     [<Extension>]
-    static member WithWarmUpDuration(scenario: Scenario, duration: TimeSpan) =
+    static member WithWarmUpDuration(scenario: ScenarioProps, duration: TimeSpan) =
         scenario |> FSharp.Scenario.withWarmUpDuration(duration)
 
     [<Extension>]
-    static member WithoutWarmUp(scenario: Scenario) =
+    static member WithoutWarmUp(scenario: ScenarioProps) =
         scenario |> FSharp.Scenario.withoutWarmUp
 
     /// Sets load simulations.
@@ -150,31 +57,24 @@ type ScenarioBuilder =
     /// NBomber is always running simulations in sequential order that you defined them.
     /// All defined simulations are represent the whole Scenario duration.
     [<Extension>]
-    static member WithLoadSimulations(scenario: Scenario, [<ParamArray>]loadSimulations: LoadSimulation[]) =
+    static member WithLoadSimulations(scenario: ScenarioProps, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
-    /// Sets custom steps order that will be used by NBomber Scenario executor.
-    /// By default, all steps are executing sequentially but you can inject your custom order.
-    /// getStepsOrder function will be invoked on every turn before steps list execution.
+    /// With this configuration, you can enable or disable Scenario iteration reset.
+    /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
+    /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
+    /// For such cases, you can disable scenario iteration reset.
+    /// The default value is true.
     [<Extension>]
-    static member WithCustomStepOrder(scenario: Scenario, getStepsOrder: Func<string[]>) =
-        scenario |> FSharp.Scenario.withCustomStepOrder(getStepsOrder.Invoke)
-
-    /// Sets step interception handler.
-    /// It introduces more granular execution control of your steps than you can achieve with CustomStepOrder.
-    /// By default, all steps are executing sequentially but you can inject your custom step interception to change default order per step iteration.
-    /// handler function will be invoked before each step.
-    /// You can think about interception handler like a callback before step invocation where you can specify what step should be invoked.
-    [<Extension>]
-    static member WithStepInterception(scenario: Scenario, handler: Func<IStepInterceptionContext voption, string voption>) =
-        scenario |> FSharp.Scenario.withStepInterception(handler.Invoke)
+    static member WithResetIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
+        scenario |> FSharp.Scenario.withResetIterationOnFail shouldReset
 
 [<Extension>]
 type NBomberRunner =
 
     /// Registers scenarios in NBomber environment.
     /// Scenarios will be run in parallel.
-    static member RegisterScenarios([<ParamArray>]scenarios: Scenario[]) =
+    static member RegisterScenarios([<ParamArray>]scenarios: ScenarioProps[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     /// Sets target scenarios among all registered that will execute
@@ -260,7 +160,7 @@ type NBomberRunner =
 
     /// Enables or disables hints analyzer.
     /// Hints analyzer - analyze node stats to provide some hints in case of finding wrong usage or some other issue.
-    /// The default value is true.
+    /// The default value is false.
     [<Extension>]
     static member EnableHintsAnalyzer(context: NBomberContext, enable: bool) =
         context |> FSharp.NBomberRunner.enableHintsAnalyzer enable
@@ -329,8 +229,12 @@ type Simulation =
     static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
         LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
 
-type ValueOption =
+[<Extension>]
+type OptionExtensions =
 
-    static member Some(value: 'T) = ValueSome value
-    static member None() = ValueNone
+    [<Extension>]
+    static member IsSome (option: Option<'T>) = option.IsSome
+
+    [<Extension>]
+    static member IsNone (option: Option<'T>) = option.IsNone
 

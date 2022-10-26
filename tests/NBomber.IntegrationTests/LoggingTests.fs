@@ -9,17 +9,12 @@ open Serilog.Sinks.InMemory
 open Xunit
 open Swensen.Unquote
 
+open NBomber
 open NBomber.Contracts
 open NBomber.FSharp
 
 [<Fact>]
 let ``set min logger level should work correctly`` () =
-
-    let step = Step.create("step", fun context -> task {
-        do! Task.Delay(TimeSpan.FromSeconds 0.1)
-        context.Logger.Information("this message should not be printed")
-        return Response.ok()
-    })
 
     let inMemorySink1 = new InMemorySink()
     let inMemorySink2 = new InMemorySink()
@@ -34,14 +29,22 @@ let ``set min logger level should work correctly`` () =
             .MinimumLevel.Is(LogEventLevel.Verbose)
             .WriteTo.Sink(inMemorySink2)
 
-    Scenario.create "scenario1" [step]
+    Scenario.create("scenario1", fun ctx -> task {
+        do! Task.Delay(seconds 0.1)
+        ctx.Logger.Information "this message should not be printed"
+        return Response.ok()
+    })
     |> Scenario.withLoadSimulations [KeepConstant(1, TimeSpan.FromSeconds 3.0)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig1
     |> NBomberRunner.run
     |> ignore
 
-    Scenario.create "scenario2" [step]
+    Scenario.create("scenario2", fun ctx -> task {
+        do! Task.Delay(seconds 0.1)
+        ctx.Logger.Information "this message should not be printed"
+        return Response.ok()
+    })
     |> Scenario.withLoadSimulations [KeepConstant(1, TimeSpan.FromSeconds 3.0)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig2

@@ -165,6 +165,9 @@ module internal Internal =
                 d.Add(k,v)
             d
 
+        let inline empty<'K,'V when 'K : equality>() =
+            Dictionary<'K,'V>()
+
 namespace NBomber.Extensions.Operator
 
 module internal Result =

@@ -14,15 +14,17 @@ open NBomber.Contracts
 open NBomber.FSharp
 open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
-open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Concurrency
-open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
 open NBomber.Extensions.Internal
 
 let internal baseScenario =
-    Scenario.create "test_scn" [Step.createPause(milliseconds 100)]
-    |> Scenario.withLoadSimulations [KeepConstant(100, seconds 2)]
+    Scenario.create("test_scn", fun ctx -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+    |> Scenario.withLoadSimulations [KeepConstant(100, seconds 30)]
     |> List.singleton
     |> Scenario.createScenarios
     |> Result.getOk

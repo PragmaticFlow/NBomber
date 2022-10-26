@@ -6,6 +6,7 @@ open Serilog
 
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
+open NBomber.Domain.Stats.Statistics
 
 let private separator = ","
 

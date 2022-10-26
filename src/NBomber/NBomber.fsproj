@@ -25,13 +25,12 @@
         <Compile Include="Extensions\Data.fs" />
         <Compile Include="Extensions\Internal.fs" />
         <Compile Include="Domain\Errors.fs" />
-        <Compile Include="Domain\ClientFactory.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
         <Compile Include="Domain\LoadTimeLine.fs" />
-        <Compile Include="Domain\Stats\StepStatsRawData.fs" />
+        <Compile Include="Domain\Stats\RawMeasurementStats.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
-        <Compile Include="Domain\Feed.fs" />
+        <Compile Include="Domain\ScenarioContext.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
         <Compile Include="Domain\Concurrency\ScenarioActor.fs" />
@@ -70,7 +69,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[3.1.0]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />

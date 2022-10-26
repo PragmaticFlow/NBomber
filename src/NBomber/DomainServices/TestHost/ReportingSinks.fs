@@ -2,7 +2,6 @@ module internal NBomber.DomainServices.TestHost.ReportingSinks
 
 open Serilog
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats

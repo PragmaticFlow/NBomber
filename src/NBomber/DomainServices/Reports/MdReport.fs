@@ -8,7 +8,7 @@ open Serilog
 
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Domain.Stats
+open NBomber.Domain.Stats.Statistics
 open NBomber.Extensions.Data
 
 type Document = Document.Document
@@ -65,9 +65,9 @@ module MdNodeStats =
     let private printScenarioHeader (scnStats: ScenarioStats) (document: Document) =
         document
         |> Document.addText $"scenario: {Md.printInlineCode scnStats.ScenarioName}" |> Md.addNewLine
-        |> Document.addText $"  - ok count: {Md.printInlineCode scnStats.OkCount}" |> Md.addNewLine
-        |> Document.addText $"  - fail count: {Md.printInlineCode scnStats.FailCount}" |> Md.addNewLine
-        |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode scnStats.AllBytes}" |> Md.addNewLine
+        |> Document.addText $"  - ok count: {Md.printInlineCode scnStats.Ok.Request.Count}" |> Md.addNewLine
+        |> Document.addText $"  - fail count: {Md.printInlineCode scnStats.Fail.Request.Count}" |> Md.addNewLine
+        |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode (ScenarioStats.calcAllBytes scnStats)}" |> Md.addNewLine
         |> Document.addText $"  - duration: {Md.printInlineCode scnStats.Duration}" |> Md.addNewLine
 
     let private printStepStatsHeader (stepStats: StepStats[]) (document: Document) =
@@ -76,25 +76,22 @@ module MdNodeStats =
             document
             |> Document.addText $"step: {Md.printInlineCode stats.StepName}" |> Md.addNewLine
             |> Document.addText $"  - timeout: {Md.printInlineCode stats.StepInfo.Timeout.TotalMilliseconds} ms" |> Md.addNewLine
-            |> Document.addText $"  - client factory: {Md.printInlineCode stats.StepInfo.ClientFactoryName}, clients: {Md.printInlineCode stats.StepInfo.ClientFactoryClientCount}" |> Md.addNewLine
-            |> Document.addText $"  - data feed: {Md.printInlineCode stats.StepInfo.FeedName}" |> Md.addNewLine
 
         stepStats |> Seq.fold print document
 
-    let private printStepStatsTable (isOkStats: bool) (stepStats: StepStats[]) (document: Document) =
+    let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) (document: Document) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Md.printInlineCode Md.printInlineCode Md.printInlineCode
         let headers = if isOkStats then ["step"; "ok stats"] else ["step"; "fail stats"]
-        stepStats
+
+        scnStats.StepStats
         |> Seq.mapi printStepStatsRow
         |> List.concat
         |> fun rows -> document |> Document.addTable headers rows |> Md.addNewLine
 
     let private printScenarioStatusCodeStats (scnStats: ScenarioStats) (document: Document) =
-        if scnStats.StatusCodes.Length > 0 then
-            document
-            |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
-            |> MdStatusCodeStats.printStatusCodeTable scnStats
-        else document
+        document
+        |> MdStatusCodeStats.printScenarioHeader scnStats.ScenarioName
+        |> MdStatusCodeStats.printStatusCodeTable scnStats
 
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) (document: Document) =
         document
@@ -102,10 +99,10 @@ module MdNodeStats =
         |> printScenarioHeader scnStats
         |> MdLoadSimulations.print simulations
         |> printStepStatsHeader scnStats.StepStats
-        |> printStepStatsTable true scnStats.StepStats
+        |> printStepStatsTable true scnStats
         |> fun doc ->
-            if Statistics.ScenarioStats.failStepStatsExist scnStats then
-                doc |> printStepStatsTable false scnStats.StepStats
+            if ScenarioStats.failStatsExist scnStats then
+                doc |> printStepStatsTable false scnStats
             else
                 doc
         |> printScenarioStatusCodeStats scnStats

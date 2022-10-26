@@ -11,7 +11,7 @@ open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
 open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
-open NBomber.Domain.Step
+open NBomber.Domain.ScenarioContext
 
 [<Struct>]
 type SchedulerCommand =
@@ -60,9 +60,9 @@ let schedule (getRandomValue: int -> int -> int) // min -> max -> result
         if constWorkingActorCount > 0 then [RemoveConstantActors(constWorkingActorCount); command]
         else [command]
 
-let emptyExec (scnCtx: ScenarioExecContext) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
+let emptyExec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (scheduledActorCount: int) = actorPool
 
-type ScenarioScheduler(scnCtx: ScenarioExecContext, scenarioClusterCount: int) =
+type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     let _log = scnCtx.Logger.ForContext<ScenarioScheduler>()
     let mutable _scenario = scnCtx.Scenario
@@ -124,9 +124,9 @@ type ScenarioScheduler(scnCtx: ScenarioExecContext, scenarioClusterCount: int) =
             _oneTimeScheduler.Stop()
 
     let execScheduler () =
-        if _isWorking && scnCtx.ScenarioStatsActor.FailCount > scnCtx.MaxFailCount then
+        if _isWorking && scnCtx.ScenarioStatsActor.ScenarioFailCount > scnCtx.MaxFailCount then
             stop()
-            scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.FailCount}' fails.")
+            scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
         elif _isWorking then
             let currentTime = scnCtx.ScenarioTimer.Elapsed
@@ -164,7 +164,7 @@ type ScenarioScheduler(scnCtx: ScenarioExecContext, scenarioClusterCount: int) =
     member _.Working = _isWorking
     member _.Scenario = _scenario
     member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
-    member _.MergedReportingStats = scnCtx.ScenarioStatsActor.MergedReportingStats
+    member _.ConsoleScenarioStats = scnCtx.ScenarioStatsActor.ConsoleScenarioStats
 
     member _.Start() = start()
     member _.Stop() = stop()

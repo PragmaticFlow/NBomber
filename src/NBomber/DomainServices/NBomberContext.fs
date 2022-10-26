@@ -16,7 +16,7 @@ open NBomber.Domain
 
 module Validation =
 
-    let checkAvailableTargets (regScenarios: Scenario list) (targetScenarios: string list) =
+    let checkAvailableTargets (regScenarios: ScenarioProps list) (targetScenarios: string list) =
         let allScenarios = regScenarios |> List.map(fun x -> x.ScenarioName)
         let notFoundScenarios = targetScenarios |> List.except allScenarios
 
@@ -105,16 +105,6 @@ let getEnableHintAnalyzer (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.EnableHintsAnalyzer
 
-let getDefaultStepTimeoutMs (context: NBomberContext) =
-    let tryGetFromConfig (ctx: NBomberContext) = option {
-        let! config = ctx.NBomberConfig
-        let! settings = config.GlobalSettings
-        return! settings.DefaultStepTimeoutMs
-    }
-    context
-    |> tryGetFromConfig
-    |> Option.defaultValue context.DefaultStepTimeoutMs
-
 let getMaxFailCount (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
@@ -172,29 +162,6 @@ let getUseHintsAnalyzer (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.EnableHintsAnalyzer
 
-let getClientFactorySettings (context: NBomberContext) =
-    let tryGetFromConfig (ctx: NBomberContext) = option {
-        let! config = ctx.NBomberConfig
-        let! settings = config.GlobalSettings
-        let! scnSettings = settings.ScenariosSettings
-
-        return scnSettings |> List.collect(fun scn ->
-            option {
-                let! factorySettings = scn.ClientFactorySettings
-                return
-                    factorySettings
-                    |> List.map(fun factorySetting ->
-                        let newName = ClientFactory.createFullName factorySetting.FactoryName scn.ScenarioName
-                        { factorySetting with FactoryName = newName }
-                    )
-            }
-            |> Option.defaultValue List.empty
-        )
-    }
-    context
-    |> tryGetFromConfig
-    |> Option.defaultValue List.empty
-
 let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
     result {
         let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets context.RegisteredScenarios
@@ -203,9 +170,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let reportFormats      = context |> getReportFormats
         let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
-        let clientFactorySettings = context |> getClientFactorySettings
         let enableHintsAnalyzer = context |> getEnableHintAnalyzer
-        let stepTimeout = context |> getDefaultStepTimeoutMs
         let maxFailCount = context |> getMaxFailCount
 
         let nbConfig = {
@@ -219,16 +184,11 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFormats = Some reportFormats
                 ReportingInterval = Some reportingInterval
                 EnableHintsAnalyzer = Some enableHintsAnalyzer
-                DefaultStepTimeoutMs = Some stepTimeout
                 MaxFailCount = Some maxFailCount
             }
         }
 
-        return {
-            TestInfo = testInfo
-            NBomberConfig = nbConfig
-            UpdatedClientFactorySettings = clientFactorySettings
-        }
+        return { TestInfo = testInfo; NBomberConfig = nbConfig }
     }
     |> Result.mapError AppError.create
 

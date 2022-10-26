@@ -1,7 +1,6 @@
 module internal NBomber.DomainServices.NBomberRunner
 
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats

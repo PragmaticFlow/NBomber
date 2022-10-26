@@ -3,6 +3,8 @@
 open System.IO
 open NBomber.Extensions.Internal
 
+exception ResetScenarioIteration
+
 type DomainError =
     | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn
@@ -12,25 +14,16 @@ type ValidationError =
     | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
 
     // ScenarioValidation errors
+    | EmptyScenarioName
+    | DuplicateScenarioName of scenarioNames:string list
+    | DuplicateScenarioNamesInConfig of scenarioNames:string list
+
+    // ReportingValidation errors
     | EmptyReportName
     | InvalidReportName
     | EmptyReportFolderPath
     | InvalidReportFolderPath
-    | EmptyScenarioName
-    | DuplicateScenarioName of scenarioNames:string list
-    | EmptyStepName         of scenarioName:string
-    | EmptySteps            of scenarioName:string
-    | CurrentTargetGroupNotMatched  of currentTargetGroup:string
-    | TargetGroupsAreNotFound       of notFoundTargetGroups:string[]
-    | SessionIsWrong
     | ReportingIntervalSmallerThanMin
-    | InvalidClientFactoryName of factoryName:string
-    | DuplicateClientFactoryName of factoryName:string
-    | MultipleClientFactoryAssign of factoryNames:string list
-    | DuplicateStepNameButDiffImpl of scenarioName:string * stepName:string
-
-    // ScenarioSettings
-    | DuplicateScenarioNamesInConfig of scenarioNames:string list
 
     // ConcurrencyScheduler
     | SimulationIsSmallerThanMin of simulation:string
@@ -72,33 +65,8 @@ type AppError =
         | DuplicateScenarioName scenarioNames ->
             $"Scenario names are not unique: '{String.concatWithComma scenarioNames}'"
 
-        | EmptyStepName scenarioName -> $"Step names are empty in Scenario: '{scenarioName}'"
-        | EmptySteps scenarioName -> $"Scenario: '{scenarioName}' has no steps"
-
-        | CurrentTargetGroupNotMatched currentTargetGroup ->
-            $"The current target group not matched, current target group is: '{currentTargetGroup}'"
-
-        | TargetGroupsAreNotFound notFoundGroups ->
-            notFoundGroups
-            |> String.concatWithComma
-            |> sprintf "Target groups are not found: '%s'"
-
-        | SessionIsWrong -> "Session is wrong"
-
         | ReportingIntervalSmallerThanMin ->
             $"ReportingInterval should be bigger than min value: '{int Constants.MinReportingInterval.TotalSeconds}'"
-
-        | InvalidClientFactoryName factoryName ->
-            $"Client factory: '{factoryName}' contains not allowed symbol '@'"
-
-        | DuplicateClientFactoryName factoryName ->
-            $"Client factory: '{factoryName}' contains duplicated name. The client factory name should be unique across all registered scenarios."
-
-        | MultipleClientFactoryAssign factories ->
-            $"Client factories: '{String.concatWithComma factories}' assigned to multiple scenarios. The client factory instance should be assigned to only one scenario."
-
-        | DuplicateStepNameButDiffImpl (scenarioName, stepName) ->
-            $"Scenario: '{scenarioName}' contains steps that has duplicate name and different implementations: '{stepName}'. You registered several steps with the same name but different implementations"
 
         | SimulationIsSmallerThanMin simulation ->
             sprintf "Simulation duration: '%A' is smaller than min value: '%s'" simulation (Constants.MinSimulationDuration.ToString("hh\:mm\:ss"))

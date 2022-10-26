@@ -2,6 +2,10 @@ const toKb = bytes => +(bytes / 1024.0).toFixed(3);
 
 const toMb = bytes => +(bytes / 1024.0 / 1024.0).toFixed(4);
 
+const getRequestCount = stats => stats.Ok.Request.Count + stats.Fail.Request.Count
+const getAllBytes = stats => stats.Ok.DataTransfer.AllBytes + stats.Fail.DataTransfer.AllBytes
+const isFailStatsExist = scenarioStats => scenarioStats.StepStats.some(x => x.Fail.Request.Count > 0)
+
 const initApp = (appContainer, viewModel) => {
     // Chart data utilities
     const createScenarioData = (timeLineHistory, scenarioName) =>
@@ -189,39 +193,44 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('status-codes', {
-        props: ['statusCodes', 'okCount', 'failCount', 'show-charts'],
+        props: ['stepStats', 'showCharts'],
         template: '#status-codes-template',
         data: function() {
-            const okStatusCodes = this.statusCodes.filter(x => !x.IsError);
-            const failStatusCodes = this.statusCodes.filter(x => x.IsError);
-            const okStatusCodesCount = okStatusCodes.reduce((acc, val) => acc + val.Count, 0);
-            const failStatusCodesCount = failStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const allOkStatuses = this.stepStats.flatMap(x => x.Ok.StatusCodes);
+            const allFailStatuses = this.stepStats.flatMap(x => x.Fail.StatusCodes);
+
+            const okReqCount = this.stepStats.reduce((acc, val) => acc + val.Ok.Request.Count, 0);
+            const failReqCount = this.stepStats.reduce((acc, val) => acc + val.Fail.Request.Count, 0);
+
+            const okStatusCodesCount = allOkStatuses.reduce((acc, val) => acc + val.Count, 0);
+            const failStatusCodesCount = allFailStatuses.reduce((acc, val) => acc + val.Count, 0);
+
             const okNotAvailableStatusCodes = [];
             const failNotAvailableStatusCodes = [];
 
-            if (okStatusCodesCount < this.okCount) {
+            if (okReqCount > okStatusCodesCount) {
                 okNotAvailableStatusCodes.push({
                     StatusCode: 'ok (no status)',
                     IsError: false,
                     Message: '',
-                    Count: this.okCount - okStatusCodesCount
+                    Count: okReqCount - okStatusCodesCount
                 })
             }
 
-            if (failStatusCodesCount < this.failCount) {
+            if (failReqCount > failStatusCodesCount) {
                 failNotAvailableStatusCodes.push({
                     StatusCode: 'fail (no status)',
                     IsError: true,
                     Message: '',
-                    Count: this.failCount - failStatusCodesCount
+                    Count: failReqCount - failStatusCodesCount
                 })
             }
 
             const allStatusCodes =
                 okNotAvailableStatusCodes
-                    .concat(okStatusCodes)
+                    .concat(allOkStatuses)
                     .concat(failNotAvailableStatusCodes)
-                    .concat(failStatusCodes);
+                    .concat(allFailStatuses);
 
             return {
                 allStatusCodes
@@ -261,8 +270,8 @@ const initApp = (appContainer, viewModel) => {
             return {
                 data: [
                     ['name', 'value'],
-                    [titles.series.ok,  this.scenarioStats.OkCount],
-                    [titles.series.failed, this.scenarioStats.FailCount]
+                    [titles.series.ok,  this.scenarioStats.Ok.Request.Count],
+                    [titles.series.failed, this.scenarioStats.Fail.Request.Count]
                 ],
                 options: {
                     title : titles.charts.scenarioRequests,
@@ -297,13 +306,18 @@ const initApp = (appContainer, viewModel) => {
         props: ['scenarioStats'],
         template: '<chart class="chart chart-scenario-latency-indicators" :data="data" :options="options" type="ColumnChart"></chart>',
         data: function() {
+            const lessOrEq800 = this.scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 + this.scenarioStats.Fail.Latency.LatencyCount.LessOrEq800
+            const more800Less1200 = this.scenarioStats.Ok.Latency.LatencyCount.More800Less1200 + this.scenarioStats.Fail.Latency.LatencyCount.More800Less1200
+            const moreOrEq1200 = this.scenarioStats.Ok.Latency.LatencyCount.MoreOrEq1200 + this.scenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200
+            const count = this.scenarioStats.Ok.Request.Count + this.scenarioStats.Fail.Request.Count
+
             return {
                 data: [
                     ['name', 'value', { role: 'style' }],
-                    [titles.series.latency.low, this.scenarioStats.LatencyCount.LessOrEq800, theme.colors.stats.latency.low],
-                    [titles.series.latency.medium, this.scenarioStats.LatencyCount.More800Less1200, theme.colors.stats.latency.medium],
-                    [titles.series.latency.high, this.scenarioStats.LatencyCount.MoreOrEq1200, theme.colors.stats.latency.high],
-                    [titles.series.failed, this.scenarioStats.FailCount, theme.colors.stats.failedCount]
+                    [titles.series.latency.low, lessOrEq800, theme.colors.stats.latency.low],
+                    [titles.series.latency.medium, more800Less1200, theme.colors.stats.latency.medium],
+                    [titles.series.latency.high, moreOrEq1200, theme.colors.stats.latency.high],
+                    [titles.series.failed, count, theme.colors.stats.failedCount]
                 ],
                 options: {
                     title : titles.charts.latencyIndicators,
@@ -330,11 +344,10 @@ const initApp = (appContainer, viewModel) => {
             const timeLineHistory = createScenarioData(this.timeLineHistory, this.scenarioName);
             const rows = timeLineHistory
                 .map((t, i) => {
-                    let latencyCount = t.ScenarioStats.LatencyCount;
-
-                    Object.entries(latencyCount).forEach(([key, value]) => {
-                        latencyCount[key] = value;
-                    });
+                    let latencyCount = t.ScenarioStats.Ok.Latency.LatencyCount;
+                    latencyCount.LessOrEq800 += t.ScenarioStats.Fail.Latency.LatencyCount.LessOrEq800;
+                    latencyCount.More800Less1200 += t.ScenarioStats.Fail.Latency.LatencyCount.More800Less1200;
+                    latencyCount.MoreOrEq1200 += t.ScenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200;
 
                     const result = [
                         t.Duration,
@@ -363,7 +376,6 @@ const initApp = (appContainer, viewModel) => {
                     seriesType: 'bars',
                     isStacked: true,
                     series: {
-                        0: {type: 'line', targetAxisIndex: 1},
                         1: {color: theme.colors.stats.latency.low},
                         2: {color: theme.colors.stats.latency.medium},
                         3: {color: theme.colors.stats.latency.high},
@@ -424,8 +436,6 @@ const initApp = (appContainer, viewModel) => {
             const header = [[
                 titles.axisX.duration,
                 titles.series.loadSimulation,
-                titles.series.latency.min,
-                titles.series.latency.max,
                 titles.series.latency.percentile50,
                 titles.series.latency.percentile75,
                 titles.series.latency.percentile99
@@ -436,8 +446,6 @@ const initApp = (appContainer, viewModel) => {
                     .map(x => [
                         x.Duration,
                         x.ScenarioStats.LoadSimulationStats.Value,
-                        x.StepStats.Ok.Latency.MinMs,
-                        x.StepStats.Ok.Latency.MaxMs,
                         x.StepStats.Ok.Latency.Percent50,
                         x.StepStats.Ok.Latency.Percent75,
                         x.StepStats.Ok.Latency.Percent99
@@ -476,8 +484,6 @@ const initApp = (appContainer, viewModel) => {
             const header = [[
                 titles.axisX.duration,
                 titles.series.loadSimulation,
-                titles.series.data.min,
-                titles.series.data.max,
                 titles.series.data.percentile50,
                 titles.series.data.percentile75,
                 titles.series.data.percentile99
@@ -488,8 +494,6 @@ const initApp = (appContainer, viewModel) => {
                     .map(x => [
                         x.Duration,
                         x.ScenarioStats.LoadSimulationStats.Value,
-                        toKb(x.StepStats.Ok.DataTransfer.MinBytes),
-                        toKb(x.StepStats.Ok.DataTransfer.MaxBytes),
                         toKb(x.StepStats.Ok.DataTransfer.Percent50),
                         toKb(x.StepStats.Ok.DataTransfer.Percent75),
                         toKb(x.StepStats.Ok.DataTransfer.Percent99)

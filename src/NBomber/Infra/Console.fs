@@ -30,7 +30,9 @@ let addLine (text: string) =
     Markup($"{text}{Environment.NewLine}") :> IRenderable
 
 let addLogo (logo: string) =
-    FigletText(logo) :> IRenderable
+    let text = FigletText(logo)
+    text.Color <- Color.Red
+    text :> IRenderable
 
 let addHeader (header: string) =
     let rule = Rule(header)

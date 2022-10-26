@@ -28,6 +28,8 @@ let DefaultTestName = "nbomber_default_test_name"
 let DefaultReportName = "nbomber_report"
 [<Literal>]
 let DefaultReportFolder = "./reports"
+[<Literal>]
+let ScenarioGlobalInfo = "global information"
 
 /// Default timeouts
 
@@ -50,7 +52,7 @@ let SchedulerTickIntervalMs = 1_000.0
 [<Literal>]
 let ReportingTimerCompleteMs = 3_000
 [<Literal>]
-let ConsoleRefreshTableCounter = 10
+let ConsoleRefreshTableCounter = 13
 [<Literal>]
 let MaxClientInitFailCount = 5
 

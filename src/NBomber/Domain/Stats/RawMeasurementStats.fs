@@ -1,23 +1,21 @@
-module internal NBomber.Domain.Stats.StepStatsRawData
+module internal NBomber.Domain.Stats.RawMeasurementStats
 
 open System
 open System.Collections.Generic
-
 open HdrHistogram
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Data
 
 type RawStatusCodeStats = {
-    StatusCode: int
+    StatusCode: string
     IsError: bool
     Message: string
     mutable Count: int
 }
 
-type RawStepStats = {
+type RawItemStats = {
     mutable MinMicroSec: int
     mutable MaxMicroSec: int
     mutable MinBytes: int
@@ -29,15 +27,16 @@ type RawStepStats = {
     mutable AllBytes: int64
     LatencyHistogram: LongHistogram
     DataTransferHistogram: LongHistogram
-    StatusCodes: Dictionary<int,RawStatusCodeStats>
+    StatusCodes: Dictionary<string,RawStatusCodeStats>
 }
 
-type StepStatsRawData = {
-    OkStats: RawStepStats
-    FailStats: RawStepStats
+type RawMeasurementStats = {
+    Name: string
+    OkStats: RawItemStats
+    FailStats: RawItemStats
 }
 
-let createEmpty () =
+let empty (stepName) =
 
     let createStats () = {
         MinMicroSec = Int32.MaxValue
@@ -51,44 +50,43 @@ let createEmpty () =
         AllBytes = 0L
         LatencyHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepLatency, numberOfSignificantValueDigits = 3)
         DataTransferHistogram = LongHistogram(highestTrackableValue = Constants.MaxTrackableStepResponseSize, numberOfSignificantValueDigits = 3)
-        StatusCodes = Dictionary<int,RawStatusCodeStats>()
+        StatusCodes = Dictionary<string,RawStatusCodeStats>()
     }
 
-    { OkStats = createStats()
+    { Name = stepName
+      OkStats = createStats()
       FailStats = createStats() }
 
-let addResponse (stData: StepStatsRawData) (response: StepResponse) =
+let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) =
 
-    let updateStatusCodeStats (statuses: Dictionary<int,RawStatusCodeStats>, res: Response) =
-        let statusCode = res.StatusCode.Value
-        match statuses.TryGetValue statusCode with
-        | true, codeStats -> codeStats.Count <- codeStats.Count + 1
+    let updateStatusCodeStats (statuses: Dictionary<string,RawStatusCodeStats>, res: IResponse) =
+        match statuses.TryGetValue res.StatusCode with
+        | true, codeStats ->
+            codeStats.Count <- codeStats.Count + 1
+
         | false, _ ->
-            statuses[statusCode] <- { StatusCode = statusCode
-                                      IsError = res.IsError
-                                      Message = res.Message
-                                      Count = 1 }
+            statuses[res.StatusCode] <- { StatusCode = res.StatusCode; IsError = res.IsError; Message = res.Message; Count = 1 }
 
-    let clientRes = response.ClientResponse
+    let clientRes = measurement.ClientResponse
 
     // calc latency
     let latencyMs =
         if clientRes.LatencyMs > 0.0 then clientRes.LatencyMs
-        else response.LatencyMs
+        else measurement.LatencyMs
 
     let stats =
         match clientRes.IsError with
-        | true when clientRes.StatusCode.HasValue ->
-            updateStatusCodeStats(stData.FailStats.StatusCodes, clientRes)
-            stData.FailStats
+        | true when not (String.IsNullOrEmpty clientRes.StatusCode) ->
+            updateStatusCodeStats(rawStats.FailStats.StatusCodes, clientRes)
+            rawStats.FailStats
 
-        | true -> stData.FailStats
+        | true -> rawStats.FailStats
 
-        | false when clientRes.StatusCode.HasValue ->
-            updateStatusCodeStats(stData.OkStats.StatusCodes, clientRes)
-            stData.OkStats
+        | false when not (String.IsNullOrEmpty clientRes.StatusCode) ->
+            updateStatusCodeStats(rawStats.OkStats.StatusCodes, clientRes)
+            rawStats.OkStats
 
-        | false -> stData.OkStats
+        | false -> rawStats.OkStats
 
     stats.RequestCount <- stats.RequestCount + 1
 
@@ -119,5 +117,3 @@ let addResponse (stData: StepStatsRawData) (response: StepResponse) =
 
             if clientRes.SizeBytes > stats.MaxBytes then
                 stats.MaxBytes <- clientRes.SizeBytes
-
-    stData
