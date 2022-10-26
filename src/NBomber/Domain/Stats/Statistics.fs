@@ -205,7 +205,7 @@ module ScenarioStats =
                (duration: TimeSpan<scenarioDuration>)
                (reportingInterval: TimeSpan) =
 
-        let allStepStats = rawStats |> Seq.map(StepStats.create TimeSpan.MinValue reportingInterval)
+        let allStepStats = rawStats |> Seq.map(StepStats.create TimeSpan.Zero reportingInterval)
         let stepStats    = allStepStats |> Seq.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo) |> Seq.toArray
         let globalInfo   = allStepStats |> Seq.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
