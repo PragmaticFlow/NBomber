@@ -9,6 +9,7 @@ open System.Threading.Tasks.Dataflow
 open FSharp.UMX
 open Serilog
 
+open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
@@ -29,7 +30,8 @@ type State = {
     Scenario: Scenario
     ReportingInterval: TimeSpan
     MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
-    mutable FailCount: int
+    mutable ScenarioFailCount: int
+    StepsOrder: Dictionary<string, int>
 
     mutable ReportingStatsCache: Map<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>
@@ -48,11 +50,15 @@ let createState logger scenario reportingInterval mergeStatsFn =
     let globalInfoStep = StepStats.extractGlobalInfoStep emptyScnStats
     let consoleStats = { emptyScnStats with StepStats = emptyScnStats.StepStats |> Array.append [|globalInfoStep|] }
 
+    let stepsOrder = Dict.empty()
+    stepsOrder[Constants.ScenarioGlobalInfo] <- 0
+
     { Logger = logger
       Scenario = scenario
       ReportingInterval = reportingInterval
       MergeStatsFn = mergeStatsFn
-      FailCount = 0
+      ScenarioFailCount = 0
+      StepsOrder = stepsOrder
 
       ReportingStatsCache = Map.empty
 
@@ -81,6 +87,10 @@ let addMeasurement (state: State) (measurement: Measurement) =
             updateCoordinatorStats state measurement
         else
             state.CoordinatorStepsResults[measurement.Name] <- RawMeasurementStats.empty measurement.Name
+
+            if not (state.StepsOrder.ContainsKey measurement.Name) then
+                state.StepsOrder[measurement.Name] <- state.StepsOrder.Count
+
             updateCoordinatorStats state measurement
 
         if state.IntervalStepsResults.ContainsKey measurement.Name then
@@ -89,8 +99,8 @@ let addMeasurement (state: State) (measurement: Measurement) =
             state.IntervalStepsResults[measurement.Name] <- RawMeasurementStats.empty measurement.Name
             updateIntervalStats state measurement
 
-        if measurement.ClientResponse.IsError then
-            state.FailCount <- state.FailCount + 1
+        if measurement.ClientResponse.IsError && measurement.Name = Constants.ScenarioGlobalInfo then
+            state.ScenarioFailCount <- state.ScenarioFailCount + 1
 
 let flushTempBuffer (state: State) =
     state.UseTempBuffer <- false
@@ -109,6 +119,8 @@ let buildStats (state: State)
                (simulationStats: LoadSimulationStats)
                (duration: TimeSpan)
                (isFinalStats: bool) =
+
+    cordRawStats |> Array.sortInPlaceBy(fun x -> state.StepsOrder[x.Name])
 
     let cordStats =
         if isFinalStats then
@@ -210,7 +222,7 @@ type ScenarioStatsActor(logger: ILogger,
         | ex -> _state.Logger.Fatal $"Unhandled exception: {nameof ScenarioStatsActor} failed: {ex.ToString()}"
     )
 
-    member _.FailCount = _state.FailCount
+    member _.ScenarioFailCount = _state.ScenarioFailCount
     member _.AllRealtimeStats = _state.ReportingStatsCache
     member _.ConsoleScenarioStats = _state.ConsoleScenarioStats
 

@@ -124,9 +124,9 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             _oneTimeScheduler.Stop()
 
     let execScheduler () =
-        if _isWorking && scnCtx.ScenarioStatsActor.FailCount > scnCtx.MaxFailCount then
+        if _isWorking && scnCtx.ScenarioStatsActor.ScenarioFailCount > scnCtx.MaxFailCount then
             stop()
-            scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.FailCount}' fails.")
+            scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
         elif _isWorking then
             let currentTime = scnCtx.ScenarioTimer.Elapsed
