@@ -10,6 +10,9 @@ namespace CSharpDev
         static void Main(string[] args)
         {
             new HelloWorldExample().Run();
+            // new ScenarioWithSteps().Run();
+            // new ParallelScenarios().Run();
+
             // new SimpleHttpTest().Run();
             // new SimpleMqttTest().Run();
             // new CustomSettingsExample().Run();

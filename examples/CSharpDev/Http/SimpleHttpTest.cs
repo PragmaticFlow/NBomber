@@ -1,9 +1,9 @@
-namespace CSharpDev.Http;
-
 using System;
 using System.Net.Http;
 using NBomber.Contracts;
 using NBomber.CSharp;
+
+namespace CSharpDev.Http;
 
 public class SimpleHttpTest
 {
