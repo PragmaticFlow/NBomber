@@ -53,7 +53,6 @@ module ConsoleNodeStats =
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) = seq {
             $"step: {Console.blueEscColor stats.StepName}"
-            $"  - timeout: {Console.okEscColor stats.StepInfo.Timeout.TotalMilliseconds} ms"
         }
 
         stepStats |> Seq.map print |> Console.addList

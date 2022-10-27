@@ -26,7 +26,6 @@ type NBomberContext = {
     WorkerPlugins: IWorkerPlugin list
     EnableHintsAnalyzer: bool
     TargetScenarios: string list option
-    DefaultStepTimeoutMs: int
     MaxFailCount: int
 } with
 
@@ -48,7 +47,6 @@ type NBomberContext = {
         WorkerPlugins = List.empty
         EnableHintsAnalyzer = false
         TargetScenarios = None
-        DefaultStepTimeoutMs = Constants.DefaultStepTimeoutMs
         MaxFailCount = Constants.DefaultMaxFailCount
     }
 

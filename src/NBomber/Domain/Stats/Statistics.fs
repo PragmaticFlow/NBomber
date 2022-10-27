@@ -138,16 +138,14 @@ module MeasurementStats =
 
 module StepStats =
 
-    let create (stepTimeout: TimeSpan)
-               (duration: TimeSpan)
+    let create (duration: TimeSpan)
                (stepData: RawMeasurementStats) =
 
         let struct (okStats, failStats) = MeasurementStats.create stepData duration
 
         { StepName = stepData.Name
           Ok = okStats
-          Fail = failStats
-          StepInfo = { Timeout = stepTimeout } }
+          Fail = failStats }
 
     let getAllRequestCount (stats: StepStats) =
         stats.Ok.Request.Count + stats.Fail.Request.Count
@@ -156,7 +154,6 @@ module StepStats =
         StepName = Constants.ScenarioGlobalInfo
         Ok = scn.Ok
         Fail = scn.Fail
-        StepInfo = { Timeout = TimeSpan.Zero }
     }
 
 module ScenarioStats =
@@ -214,7 +211,7 @@ module ScenarioStats =
                (duration: TimeSpan<scenarioDuration>)
                (reportingInterval: TimeSpan) =
 
-        let allStepStats = rawStats |> Seq.map(StepStats.create TimeSpan.Zero reportingInterval)
+        let allStepStats = rawStats |> Seq.map(StepStats.create reportingInterval)
         let stepStats    = allStepStats |> Seq.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo) |> Seq.toArray
         let globalInfo   = allStepStats |> Seq.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 

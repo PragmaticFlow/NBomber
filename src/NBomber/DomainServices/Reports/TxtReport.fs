@@ -55,7 +55,6 @@ module TxtNodeStats =
     let private printStepStatsHeader (stepStats: StepStats[]) =
         let print (stats) =
             $"step: {stats.StepName}{Environment.NewLine}"
-            + $"  - timeout: {stats.StepInfo.Timeout.TotalMilliseconds} ms{Environment.NewLine}"
 
         stepStats |> Seq.map print |> String.concatLines
 

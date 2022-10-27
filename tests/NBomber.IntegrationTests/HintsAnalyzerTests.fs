@@ -56,9 +56,6 @@ let baseStepStats = {
                          Percent50 = 0; Percent75 = 0; Percent95 = 0; Percent99 = 0; StdDev = 0.0; AllBytes = 0 }
         StatusCodes = Array.empty
     }
-    StepInfo = {
-        Timeout = seconds 1
-    }
 }
 
 [<Property>]

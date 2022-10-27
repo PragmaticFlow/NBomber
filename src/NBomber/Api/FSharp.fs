@@ -216,12 +216,6 @@ module NBomberRunner =
     let enableHintsAnalyzer (enable: bool) (context: NBomberContext) =
         { context with EnableHintsAnalyzer = enable }
 
-    /// Sets and overrides the global default step timeout.
-    /// This value will be applied for steps that have not set timeout.
-    /// By default DefaultStepTimeout = 5 second
-    let withDefaultStepTimeout (timeout: TimeSpan) (context: NBomberContext) =
-        { context with DefaultStepTimeoutMs = int timeout.TotalMilliseconds }
-
     /// Sets and overrides the default max fail count.
     /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
     /// By default MaxFailCount = 5_000
