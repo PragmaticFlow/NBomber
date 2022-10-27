@@ -12,6 +12,7 @@ namespace CSharpDev
             new HelloWorldExample().Run();
             // new ScenarioWithSteps().Run();
             // new ParallelScenarios().Run();
+            // new ScenarioWithTimeout().Run();
 
             // new SimpleHttpTest().Run();
             // new SimpleMqttTest().Run();
