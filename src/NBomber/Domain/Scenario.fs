@@ -2,7 +2,6 @@
 module internal NBomber.Domain.Scenario
 
 open System
-open System.Collections.Generic
 open System.Diagnostics
 open System.IO
 open System.Text
@@ -18,7 +17,6 @@ open NBomber.Configuration
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.ScenarioContext
 open NBomber.Extensions.Internal
-open NBomber.Extensions.Operator.Result
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
 
@@ -195,6 +193,17 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
+    | :? OperationCanceledException as ex ->
+        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let latency = endTime - startTime
+
+        let context = ctx :> IScenarioContext
+        context.Logger.Fatal(ex, $"Operation timeout for Scenario : {0}", context.ScenarioInfo.ScenarioName)
+
+        let error = Response.fail(error = "operation timeout", statusCode = Constants.TimeoutStatusCode)
+        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        ctx.StatsActor.Publish(AddMeasurement result)
+
     | ex ->
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
@@ -202,7 +211,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let context = ctx :> IScenarioContext
         context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
-        let error = ResponseInternal.fail ex
+        let error = Response.fail(ex, statusCode = Constants.UnhandledExceptionCode)
         let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 }

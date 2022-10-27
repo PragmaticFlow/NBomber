@@ -59,11 +59,9 @@ let MaxClientInitFailCount = 5
 /// Default status codes
 
 [<Literal>]
-let TimeoutStatusCode = -100
+let TimeoutStatusCode = "-100"
 [<Literal>]
-let StepUnhandledErrorCode = -101
-[<Literal>]
-let StepInternalClientErrorCode = -102
+let UnhandledExceptionCode = "-101"
 
 let EmptyInfraConfig = ConfigurationBuilder().Build() :> IConfiguration
 

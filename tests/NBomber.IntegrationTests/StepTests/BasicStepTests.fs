@@ -2,6 +2,7 @@
 
 open System
 open System.Collections.Generic
+open System.Threading
 open System.Threading.Tasks
 
 open FsCheck.Xunit
@@ -349,6 +350,135 @@ let ``withResetIterationOnFail should allow to configure reset = false`` () =
         test <@ stats.ScenarioStats[0].GetStepStats("step1").Ok.Request.Count > 0 @>
         test <@ stats.ScenarioStats[0].GetStepStats("step2").Fail.Request.Count > 0 @>
         test <@ stats.ScenarioStats[0].GetStepStats("step3").Ok.Request.Count > 0 @>
+
+[<Fact>]
+let ``operation timeout should be tracked properly`` () =
+
+    let scn1 =
+        Scenario.create("scenario_1", fun ctx -> task {
+
+            let! step1 = Step.run("step1", ctx, fun () -> task {
+                use timeout = new CancellationTokenSource()
+                timeout.CancelAfter 50
+
+                do! Task.Delay(100, timeout.Token)
+
+                return Response.ok()
+            })
+
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+
+    let scn2 =
+        Scenario.create("scenario_2", fun ctx -> task {
+            use timeout = new CancellationTokenSource()
+            timeout.CancelAfter 50
+
+            do! Task.Delay(100, timeout.Token)
+
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let scn1Stats = stats.GetScenarioStats("scenario_1")
+        let scn2Stats = stats.GetScenarioStats("scenario_2")
+
+        test <@ scn1Stats.Fail.StatusCodes[0].IsError @>
+        test <@ scn1Stats.Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>
+        test <@ scn1Stats.Fail.StatusCodes[0].Count = scn1Stats.Fail.Request.Count @>
+
+        test <@ scn2Stats.Fail.StatusCodes[0].IsError @>
+        test <@ scn2Stats.Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>
+        test <@ scn2Stats.Fail.StatusCodes[0].Count = scn2Stats.Fail.Request.Count @>
+
+[<Fact>]
+let ``unhandled exceptions should have a proper status code`` () =
+
+    let scn1 =
+        Scenario.create("scenario_1", fun ctx -> task {
+
+            let! step1 = Step.run("step1", ctx, fun () -> task {
+
+                do! Task.Delay 100
+
+                failwith "my exception"
+
+                return Response.ok()
+            })
+
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+
+    let scn2 =
+        Scenario.create("scenario_2", fun ctx -> task {
+
+            do! Task.Delay 100
+
+            failwith "my exception"
+
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+
+    NBomberRunner.registerScenarios [scn1; scn2]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let scn1Stats = stats.GetScenarioStats("scenario_1")
+        let scn2Stats = stats.GetScenarioStats("scenario_2")
+
+        test <@ scn1Stats.Fail.StatusCodes[0].IsError @>
+        test <@ scn1Stats.Fail.StatusCodes[0].StatusCode = Constants.UnhandledExceptionCode @>
+        test <@ scn1Stats.Fail.StatusCodes[0].Count = scn1Stats.Fail.Request.Count @>
+        test <@ scn1Stats.Fail.StatusCodes[0].Message = "my exception" @>
+
+        test <@ scn2Stats.Fail.StatusCodes[0].IsError @>
+        test <@ scn2Stats.Fail.StatusCodes[0].StatusCode = Constants.UnhandledExceptionCode @>
+        test <@ scn2Stats.Fail.StatusCodes[0].Count = scn2Stats.Fail.Request.Count @>
+        test <@ scn1Stats.Fail.StatusCodes[0].Message = "my exception" @>
+
+[<Fact>]
+let ``Response Ok message should be presented in status codes`` () =
+
+    Scenario.create("scenario", fun ctx -> task {
+
+        let! step = Step.run("step", ctx, fun () -> task {
+            do! Task.Delay 100
+            return Response.ok(statusCode = "200", message = "my message 1")
+        })
+
+        return Response.ok(statusCode = "300", message = "my message 2")
+    })
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let scnStats = stats.GetScenarioStats("scenario")
+
+        test <@ scnStats.Ok.StatusCodes[0].IsError = false @>
+        test <@ scnStats.Ok.StatusCodes[0].StatusCode = "200" @>
+        test <@ scnStats.Ok.StatusCodes[0].Count = scnStats.StepStats[0].Ok.Request.Count @>
+        test <@ scnStats.Ok.StatusCodes[0].Message = "my message 1" @>
+
+        test <@ scnStats.Ok.StatusCodes[1].IsError = false @>
+        test <@ scnStats.Ok.StatusCodes[1].StatusCode = "300" @>
+        test <@ scnStats.Ok.StatusCodes[1].Count = scnStats.Ok.Request.Count @>
+        test <@ scnStats.Ok.StatusCodes[1].Message = "my message 2" @>
 
 // [<Fact>]
 // let ``create should check feed on null and throw NRE`` () =
