@@ -23,7 +23,6 @@ type ScenarioContext(scenarioInfo, args: ScenarioContextArgs) =
     let _logger = args.Logger
     let _scnActor = args.ScenarioStatsActor
     let _timer = args.ScenarioTimer
-    let _cancelToken = args.ScenarioCancellationToken.Token
     let _resetIteration = args.Scenario.ResetIterationOnFail
     let mutable _invocationNumber = 0
 
@@ -36,7 +35,6 @@ type ScenarioContext(scenarioInfo, args: ScenarioContextArgs) =
         _invocationNumber <- _invocationNumber + 1
 
     interface IScenarioContext with
-        member this.CancellationToken = _cancelToken
         member this.InvocationNumber = _invocationNumber
         member this.Logger = _logger
         member this.ScenarioInfo = scenarioInfo

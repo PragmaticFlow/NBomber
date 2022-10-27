@@ -27,7 +27,7 @@ public class SimpleMqttTest
                     .WithClientId($"client_{ctx.ScenarioInfo.ThreadId}")
                     .Build();
 
-                var result = await mqttClient.ConnectAsync(clientOptions, ctx.CancellationToken);
+                var result = await mqttClient.ConnectAsync(clientOptions);
                 return result.ResultCode == MqttClientConnectResultCode.Success
                     ? Response.Ok()
                     : Response.Fail(
@@ -54,7 +54,7 @@ public class SimpleMqttTest
 
             await Step.Run("receive", ctx, async () =>
             {
-                await promise.Task.WaitAsync(ctx.CancellationToken);
+                await promise.Task;
                 return Response.Ok();
             });
 

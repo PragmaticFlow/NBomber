@@ -258,7 +258,7 @@ let ``NBomber should handle invocation number per step following shared-nothing 
     let data = Dictionary<int,int>()
 
     Scenario.create("scenario", fun ctx -> task {
-        do! Task.Delay(seconds 1, ctx.CancellationToken)
+        do! Task.Delay(seconds 1)
 
         data[ctx.ScenarioInfo.ThreadNumber] <- ctx.InvocationNumber
 
