@@ -32,23 +32,37 @@ let internal ``check that EmptyScenario should fail if it has no Init and no Cle
 
 [<Fact>]
 let ``check that EmptyScenario should be ok if it has no Init but Clean function exist`` () =
+
+    let mutable cleanInvoked = false
+
     Scenario.empty "my_empty_scenario"
-    |> Scenario.withClean(fun _ -> task { return () })
+    |> Scenario.withClean(fun _ -> task {
+        cleanInvoked <- true
+        return ()
+    })
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
-    |> ignore
+    |> fun stats ->
+        test <@ cleanInvoked @>
 
 [<Fact>]
 let ``check that EmptyScenario should be ok if it has no Clean but Init function exist`` () =
+
+    let mutable initInvoked = false
+
     Scenario.empty "my_empty_scenario"
-    |> Scenario.withInit(fun _ -> task { return () })
+    |> Scenario.withInit(fun _ -> task {
+        initInvoked <- true
+        return ()
+    })
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
     |> Result.getOk
-    |> ignore
+    |> fun stats ->
+        test <@ initInvoked @>
 
 [<Fact>]
 let ``check that EmptyScenario is not available in FinalStats`` () =

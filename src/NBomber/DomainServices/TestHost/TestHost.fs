@@ -18,7 +18,6 @@ open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Step
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
@@ -253,12 +252,16 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         // start bombing
         let bombingSchedulers = this.CreateScenarioSchedulers(initializedScenarios, ScenarioOperation.Bombing)
-        use reportingManager = ReportingManager.create dep bombingSchedulers sessionArgs
-        do! this.StartBombing(bombingSchedulers, reportingManager)
 
-        // gets final stats
-        _log.Information "Calculating final statistics..."
-        return! reportingManager.GetSessionResult(getCurrentNodeInfo())
+        if bombingSchedulers.Length > 0 then
+            use reportingManager = ReportingManager.create dep bombingSchedulers sessionArgs
+            do! this.StartBombing(bombingSchedulers, reportingManager)
+
+            // gets final stats
+            _log.Information "Calculating final statistics..."
+            return! reportingManager.GetSessionResult(getCurrentNodeInfo())
+        else
+            return NodeSessionResult.empty
     }
 
     member _.Dispose() =
