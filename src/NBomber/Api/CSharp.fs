@@ -25,11 +25,17 @@ type Step =
 [<Extension>]
 type Scenario =
 
-    /// Creates scenario with steps which will be executed sequentially.
+    /// Creates scenario.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// You should think about Scenario as a system thread.
     static member Create(name: string, run: Func<IScenarioContext,Task<Response<obj>>>) =
         FSharp.Scenario.create(name, run.Invoke)
+
+    /// Creates empty scenario.
+    /// An empty scenario is useful when you want to create the scenario to do only initialization or cleaning and execute it separately.
+    /// The need for this can be when you have a few scenarios with the same init logic, and you want to run this init logic only once.
+    static member Empty(name: string) =
+        FSharp.Scenario.empty name
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.

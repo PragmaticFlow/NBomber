@@ -96,41 +96,6 @@ let ``checkDuplicateName should return fail if scenario has duplicate name`` () 
     | Error _ -> ()
     | _       -> failwith ""
 
-// [<Fact>]
-// let ``check that scenario should fail if it has no steps and no init and no clean`` () =
-//     Scenario.create"1" []
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.run
-//     |> Result.getError
-//     |> ignore
-
-// [<Fact>]
-// let ``check that scenario should be ok if it has no steps but clean function exist`` () =
-//     Scenario.create "1" []
-//     |> Scenario.withClean(fun _ -> task { return () })
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.run
-//     |> Result.getOk
-//     |> ignore
-
-// [<Fact>]
-// let ``check that scenario should be ok if it has no steps but init function exist`` () =
-//     Scenario.create "1" []
-//     |> Scenario.withInit(fun _ -> task { return () })
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.run
-//     |> Result.getOk
-//     |> ignore
-
 [<Fact>]
 let ``ScenarioSettings should be validated on duplicates `` () =
 

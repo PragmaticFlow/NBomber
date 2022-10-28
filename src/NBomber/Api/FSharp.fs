@@ -46,15 +46,27 @@ type Step =
 [<RequireQualifiedAccess>]
 module Scenario =
 
-    /// Creates scenario with steps which will be executed sequentially.
+    /// Creates scenario.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// You should think about Scenario as a system thread.
-    let create (name: string, run: IScenarioContext -> Task<Response<obj>>): ScenarioProps =
+    let create (name: string, run: IScenarioContext -> Task<Response<obj>>) : ScenarioProps =
         { ScenarioName = name
           Init = None
           Clean = None
           Run = Some run
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
+          LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
+          ResetIterationOnFail = true }
+
+    /// Creates empty scenario.
+    /// An empty scenario is useful when you want to create the scenario to do only initialization or cleaning and execute it separately.
+    /// The need for this can be when you have a few scenarios with the same init logic, and you want to run this init logic only once.
+    let empty (name: string) : ScenarioProps =
+        { ScenarioName = name
+          Init = None
+          Clean = None
+          Run = None
+          WarmUpDuration = None
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           ResetIterationOnFail = true }
 

@@ -2,7 +2,6 @@
 module internal NBomber.Domain.Scenario
 
 open System
-open System.Diagnostics
 open System.IO
 open System.Text
 open System.Threading.Tasks
@@ -14,41 +13,34 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Configuration
-open NBomber.Domain.Stats.ScenarioStatsActor
-open NBomber.Domain.ScenarioContext
 open NBomber.Extensions.Internal
+open NBomber.Extensions.Operator.Result
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
+open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.ScenarioContext
 
 module Validation =
 
-    let checkEmptyScenarioName (scenario: Contracts.ScenarioProps) =
+    let checkEmptyScenarioName (scenario: ScenarioProps) =
         if String.IsNullOrWhiteSpace scenario.ScenarioName then AppError.createResult EmptyScenarioName
         else Ok scenario
 
-    let checkDuplicateScenarioName (scenarios: Contracts.ScenarioProps list) =
+    let checkDuplicateScenarioName (scenarios: ScenarioProps list) =
         let duplicates = scenarios |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
         if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
         else Ok scenarios
 
-    // let checkInitOnlyScenario (scenario: Contracts.ScenarioArgs) =
-    //     if scenario.Run.IsNone then
-    //         // for init only scenario we can have scenario with 0 steps
-    //         if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
-    //         else AppError.createResult(EmptySteps scenario.ScenarioName)
-    //     else Ok scenario
+    let checkInitOnlyScenario (scenario: ScenarioProps) =
+        if scenario.Run.IsNone then
+            if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
+            else AppError.createResult(EmptyScenarioWithEmptyInitAndClean scenario.ScenarioName)
+
+        else Ok scenario
 
     let validate =
         checkEmptyScenarioName
-        // >=> checkInitOnlyScenario
-
-// module Feed =
-//
-//     let filterDistinctFeeds (scenarios: Scenario list) =
-//         scenarios
-//         |> List.collect(fun x -> x.Steps)
-//         |> List.choose(fun x -> x.Feed)
-//         |> List.distinctBy id
+        >=> checkInitOnlyScenario
 
 module ScenarioInitContext =
 
@@ -137,12 +129,6 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
 
-    // let updateStepTimeout (defaultStepTimeout: TimeSpan) (step: Step) =
-    //     if step.Timeout = TimeSpan.Zero then
-    //         { step with Timeout = defaultStepTimeout }
-    //     else
-    //         step
-
     scenarios
     |> List.map(fun scn ->
         settings
@@ -153,7 +139,6 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         |> Option.map updateScenario
         |> Option.defaultValue scn
     )
-    //|> List.map(fun scn -> { scn with Steps = scn.Steps |> List.map(updateStepTimeout defaultStepTimeout) })
 
 let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
     if executedDuration < scenario.PlanedDuration then
@@ -167,7 +152,10 @@ let getExecutedDuration (scenario: Scenario) =
 let defaultClusterCount = fun _ -> 1
 
 let getScenariosForWarmUp (scenarios: Scenario list) =
-    scenarios |> List.filter(fun x -> x.WarmUpDuration.IsSome)
+    scenarios |> List.filter(fun x -> x.Run.IsSome && x.WarmUpDuration.IsSome)
+
+let getScenariosForBombing (scenarios: Scenario list) =
+    scenarios |> List.filter(fun x -> x.Run.IsSome)
 
 let getMaxDuration (scenarios: Scenario list) =
     scenarios |> List.map(fun x -> x.PlanedDuration) |> List.max

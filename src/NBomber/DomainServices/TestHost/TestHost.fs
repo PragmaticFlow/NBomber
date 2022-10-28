@@ -77,7 +77,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             new ScenarioScheduler(scnDep, count)
 
         _currentSchedulers |> List.iter(fun x -> x.Stop())
-        targetScenarios |> List.map createScheduler
+        targetScenarios |> Scenario.getScenariosForBombing |> List.map createScheduler
 
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())

@@ -17,6 +17,7 @@ type ValidationError =
     | EmptyScenarioName
     | DuplicateScenarioName of scenarioNames:string list
     | DuplicateScenarioNamesInConfig of scenarioNames:string list
+    | EmptyScenarioWithEmptyInitAndClean of scenarioName:string
 
     // ReportingValidation errors
     | EmptyReportName
@@ -82,6 +83,9 @@ type AppError =
 
         | DuplicateScenarioNamesInConfig scenarioNames ->
             $"Scenario names are not unique in JSON config: '{String.concatWithComma scenarioNames}'"
+
+        | EmptyScenarioWithEmptyInitAndClean name ->
+            $"Empty scenario: '{name}' has no Init and Clean functions defined. The empty scenario should have at least Init or Clean functions defined."
 
     static member toString (error: AppError) =
         match error with
