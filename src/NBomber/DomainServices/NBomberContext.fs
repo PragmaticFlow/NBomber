@@ -195,9 +195,8 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
 let createScenarios (context: NBomberContext) =
     context.RegisteredScenarios |> Scenario.createScenarios
 
-let createBaseContext (testInfo) (getNodeInfo: unit -> NodeInfo) (token) (logger) =
+let createBaseContext (testInfo) (getNodeInfo: unit -> NodeInfo) (logger) =
     { new IBaseContext with
         member _.TestInfo = testInfo
         member _.GetNodeInfo() = getNodeInfo()
-        member _.CancellationToken = token
         member _.Logger = logger }

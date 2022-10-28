@@ -27,8 +27,6 @@ open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.TestHost.ReportingManager
 
-//todo: add _globalCancelToken.Cancel() + timeout for init and clean + configurable operation timeout
-
 type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as this =
 
     let _log = dep.Logger.ForContext<TestHost>()
@@ -89,8 +87,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             dep.WorkerPlugins |> WorkerPlugins.start _log
             dep.ReportingSinks |> ReportingSinks.start _log
 
-        use cancelToken = new CancellationTokenSource()
-        TestHostConsole.LiveStatusTable.display dep cancelToken.Token isWarmUp schedulers
+        use consoleCancelToken = new CancellationTokenSource()
+        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
 
         if reportingManager.IsSome then
             reportingManager.Value.Start()
@@ -104,7 +102,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
-        cancelToken.Cancel()
+        consoleCancelToken.Cancel()
         schedulerTimer.Stop()
 
         if not isWarmUp then
@@ -118,9 +116,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             do! dep.ReportingSinks |> ReportingSinks.stop _log
     }
 
-    let startInit (consoleStatus: StatusContext option) (cancelToken: CancellationToken) (sessionArgs: SessionArgs) = taskResult {
+    let startInit (consoleStatus: StatusContext option) (sessionArgs: SessionArgs) = taskResult {
 
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo _log
 
         do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
         do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
@@ -130,10 +128,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
     let startClean (sessionArgs: SessionArgs)
                    (consoleStatus: StatusContext option)
-                   (cancelToken: CancellationToken)
                    (scenarios: Scenario list) =
 
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo cancelToken _log
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo _log
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         TestHostScenario.cleanScenarios dep consoleStatus baseContext enabledScenarios
 
@@ -152,19 +149,16 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _log.Information "Starting init..."
 
         TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
-            use cancelToken = new CancellationTokenSource()
-            match! startInit consoleStatus cancelToken.Token sessionArgs with
+            match! startInit consoleStatus sessionArgs with
             | Ok initializedScenarios ->
                 _log.Information "Init finished"
-                cancelToken.Cancel()
-                _targetScenarios <- initializedScenarios
-                _sessionArgs <- sessionArgs
+                _targetScenarios  <- initializedScenarios
+                _sessionArgs      <- sessionArgs
                 _currentOperation <- OperationType.None
                 return Ok _targetScenarios
 
             | Error appError ->
                 _log.Error "Init failed"
-                cancelToken.Cancel()
                 _currentOperation <- OperationType.Stop
                 return AppError.createResult appError
         })
@@ -215,10 +209,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 _log.Information "Stopping scenarios..."
 
             TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
-                use cancelToken = new CancellationTokenSource()
                 stopSchedulers _currentSchedulers
 
-                do! startClean _sessionArgs consoleStatus cancelToken.Token _targetScenarios
+                do! startClean _sessionArgs consoleStatus _targetScenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None

@@ -49,7 +49,6 @@ module ScenarioInitContext =
             member _.TestInfo = context.TestInfo
             member _.NodeInfo = context.GetNodeInfo()
             member _.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
-            member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger
     }
 
@@ -66,7 +65,6 @@ module ScenarioInitContext =
             member _.TestInfo = context.TestInfo
             member _.NodeInfo = context.NodeInfo
             member _.CustomSettings = parseCustomSettings(customSettings)
-            member _.CancellationToken = context.CancellationToken
             member _.Logger = context.Logger }
 
 let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int, operation: ScenarioOperation) =
