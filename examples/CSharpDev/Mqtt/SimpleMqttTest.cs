@@ -19,7 +19,7 @@ public class SimpleMqttTest
             var topic = $"/clients/{ctx.ScenarioInfo.ThreadId}";
             var promise = new TaskCompletionSource<MqttApplicationMessage>();
 
-            await Step.Run("connect", ctx, async () =>
+            var connect = await Step.Run("connect", ctx, async () =>
             {
                 var clientOptions = new MqttClientOptionsBuilder()
                     .WithWebSocketServer("ws://localhost:8083/mqtt")
@@ -34,7 +34,7 @@ public class SimpleMqttTest
                         $"MQTT connection code is: {result.ResultCode}, reason: {result.ReasonString}");
             });
 
-            await Step.Run("subscribe", ctx, async () =>
+            var subscribe = await Step.Run("subscribe", ctx, async () =>
             {
                 mqttClient.UseApplicationMessageReceivedHandler(msg =>
                 {
@@ -46,19 +46,19 @@ public class SimpleMqttTest
                 return Response.Ok();
             });
 
-            await Step.Run("publish", ctx, async () =>
+            var publish = await Step.Run("publish", ctx, async () =>
             {
                 await mqttClient.PublishAsync(topic, "hello world msg");
                 return Response.Ok();
             });
 
-            await Step.Run("receive", ctx, async () =>
+            var receive = await Step.Run("receive", ctx, async () =>
             {
                 await promise.Task;
                 return Response.Ok();
             });
 
-            await Step.Run("disconnect", ctx, async () =>
+            var disconnect = await Step.Run("disconnect", ctx, async () =>
             {
                 await mqttClient.DisconnectAsync();
                 return Response.Ok();
@@ -68,7 +68,7 @@ public class SimpleMqttTest
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.KeepConstant(1, TimeSpan.FromMinutes(3))
+            Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner

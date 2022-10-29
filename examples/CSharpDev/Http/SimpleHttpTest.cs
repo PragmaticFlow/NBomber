@@ -20,7 +20,7 @@ public class SimpleHttpTest
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.KeepConstant(1, TimeSpan.FromMinutes(0.1))
+            Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner
