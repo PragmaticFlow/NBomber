@@ -186,7 +186,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let context = ctx :> IScenarioContext
         context.Logger.Fatal(ex, $"Operation timeout for Scenario : {0}", context.ScenarioInfo.ScenarioName)
 
-        let error = Response.fail(error = "operation timeout", statusCode = Constants.TimeoutStatusCode)
+        let error = Response.fail(message = "operation timeout", statusCode = Constants.TimeoutStatusCode)
         let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 

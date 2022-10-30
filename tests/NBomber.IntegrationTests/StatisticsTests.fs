@@ -509,7 +509,7 @@ let ``NodeStats should be calculated properly`` () =
 
             let! failStep = Step.run("fail step", ctx, fun () -> task {
                 do! Task.Delay(milliseconds 500)
-                return Response.fail(error = "reason 1", statusCode = "10", sizeBytes = 10)
+                return Response.fail(message = "reason 1", statusCode = "10", sizeBytes = 10)
             })
 
             return Response.ok()
@@ -549,7 +549,7 @@ let ``NodeStats ReportFiles should contain report content`` () =
 
             let! failStep = Step.run("fail step", ctx, fun () -> task {
                 do! Task.Delay(milliseconds 500)
-                return Response.fail(error = "reason 1", statusCode = "10", sizeBytes = 10)
+                return Response.fail(message = "reason 1", statusCode = "10", sizeBytes = 10)
             })
 
             return Response.ok()

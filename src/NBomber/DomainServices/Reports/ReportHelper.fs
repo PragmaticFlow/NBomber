@@ -91,7 +91,7 @@ module StatusCodesStats =
 
         let failStatusCodes =
             scnStats.Fail.StatusCodes
-            |> Seq.map(fun x -> [okColor x.StatusCode; string x.Count; errorColor x.Message])
+            |> Seq.map(fun x -> [errorColor x.StatusCode; string x.Count; errorColor x.Message])
             |> Seq.toList
 
         let okReqCount   = scnStats.StepStats |> Seq.sumBy(fun x -> x.Ok.Request.Count)

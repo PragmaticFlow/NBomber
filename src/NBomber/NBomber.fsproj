@@ -69,12 +69,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta3]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta4]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />
         <PackageReference Include="FuncyDown" Version="1.3.0" />
-        <PackageReference Include="HdrHistogram" Version="2.5.0" />        
+        <PackageReference Include="HdrHistogram" Version="2.5.0" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
         <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
@@ -91,4 +91,5 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
     </ItemGroup>
+
 </Project>
