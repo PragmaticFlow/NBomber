@@ -196,8 +196,9 @@ const initApp = (appContainer, viewModel) => {
         props: ['stepStats', 'showCharts'],
         template: '#status-codes-template',
         data: function() {
-            const allOkStatuses = this.stepStats.flatMap(x => x.Ok.StatusCodes);
-            const allFailStatuses = this.stepStats.flatMap(x => x.Fail.StatusCodes);
+            const globalInfo = this.stepStats.find(x => x.StepName === 'global information');
+            const allOkStatuses = globalInfo.Ok.StatusCodes;
+            const allFailStatuses = globalInfo.Fail.StatusCodes;
 
             const okReqCount = this.stepStats.reduce((acc, val) => acc + val.Ok.Request.Count, 0);
             const failReqCount = this.stepStats.reduce((acc, val) => acc + val.Fail.Request.Count, 0);

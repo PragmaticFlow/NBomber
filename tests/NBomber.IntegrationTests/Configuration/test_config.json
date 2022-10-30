@@ -23,7 +23,9 @@
               "TargetHost": "localhost",
               "MsgSizeInBytes": 1000,
               "PauseMs": 100
-          }
+          },
+
+          "MaxFailCount": 500
       }
     ],
 
@@ -33,7 +35,6 @@
     "ReportFormats": ["Html", "Txt"],
     "ReportingInterval": "00:00:30",
     "EnableHintsAnalyzer": false,
-    "DefaultStepTimeoutMs" : 200,
-    "MaxFailCount": 500
+    "DefaultStepTimeoutMs" : 200
   }
 }

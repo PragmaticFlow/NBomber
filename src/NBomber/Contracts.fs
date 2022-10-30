@@ -26,7 +26,6 @@ type NBomberContext = {
     WorkerPlugins: IWorkerPlugin list
     EnableHintsAnalyzer: bool
     TargetScenarios: string list option
-    MaxFailCount: int
 } with
 
     [<CompiledName("Empty")>]
@@ -47,7 +46,6 @@ type NBomberContext = {
         WorkerPlugins = List.empty
         EnableHintsAnalyzer = false
         TargetScenarios = None
-        MaxFailCount = Constants.DefaultMaxFailCount
     }
 
 namespace NBomber.Contracts.Internal
@@ -83,7 +81,6 @@ type SessionArgs = {
     member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
     member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
     member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
-    member this.GetMaxFailCount() = this.NBomberConfig.GlobalSettings.Value.MaxFailCount.Value
 
     member this.SetTargetScenarios(targetScenarios) =
         let nbConfig = { this.NBomberConfig with TargetScenarios = Some targetScenarios }

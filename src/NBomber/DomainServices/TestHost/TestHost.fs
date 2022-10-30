@@ -68,7 +68,6 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 ScenarioOperation = operation
                 ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
                 ExecStopCommand = execStopCommand
-                MaxFailCount = _sessionArgs.GetMaxFailCount()
             }
             let count = getScenarioClusterCount scn.ScenarioName
             new ScenarioScheduler(scnDep, count)

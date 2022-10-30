@@ -76,20 +76,21 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
 
 let createScenario (scn: ScenarioProps) = result {
     let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
-    let! scenario = Validation.validate scn
+    let! scnProps = Validation.validate scn
 
-    return { ScenarioName = scenario.ScenarioName
-             Init = scenario.Init
-             Clean = scenario.Clean
-             Run = scenario.Run
+    return { ScenarioName = scnProps.ScenarioName
+             Init = scnProps.Init
+             Clean = scnProps.Clean
+             Run = scnProps.Run
              LoadTimeLine = timeline.LoadTimeLine
-             WarmUpDuration = scenario.WarmUpDuration
+             WarmUpDuration = scnProps.WarmUpDuration
              PlanedDuration = timeline.ScenarioDuration
              ExecutedDuration = None
              CustomSettings = String.Empty
              IsEnabled = true
              IsInitialized = false
-             ResetIterationOnFail = scn.ResetIterationOnFail }
+             ResetIterationOnFail = scnProps.ResetIterationOnFail
+             MaxFailCount = scnProps.MaxFailCount }
 }
 
 let createScenarios (scenarios: ScenarioProps list) = result {
@@ -125,13 +126,14 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         { scenario with LoadTimeLine = timeLine.LoadTimeLine
                         WarmUpDuration = settings.WarmUpDuration
                         PlanedDuration = timeLine.ScenarioDuration
-                        CustomSettings = settings.CustomSettings |> Option.defaultValue "" }
+                        CustomSettings = settings.CustomSettings |> Option.defaultValue ""
+                        MaxFailCount = settings.MaxFailCount |> Option.defaultValue Constants.ScenarioMaxFailCount }
 
     scenarios
     |> List.map(fun scn ->
         settings
-        |> List.tryPick(fun x ->
-            if x.ScenarioName = scn.ScenarioName then Some(scn, x)
+        |> List.tryPick(fun setting ->
+            if setting.ScenarioName = scn.ScenarioName then Some(scn, setting)
             else None
         )
         |> Option.map updateScenario

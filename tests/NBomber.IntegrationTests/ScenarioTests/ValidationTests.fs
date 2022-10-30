@@ -29,6 +29,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
         WarmUpDuration = Some warmUp1
         LoadSimulationsSettings = Some [LoadSimulation.KeepConstant(10, duration1)]
         CustomSettings = Some "some data"
+        MaxFailCount = Some Constants.ScenarioMaxFailCount
     }
 
     let originalScenarios =
@@ -58,6 +59,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
         WarmUpDuration = Some warmUp1
         LoadSimulationsSettings = Some [LoadSimulation.RampConstant(5, duration1)]
         CustomSettings = None
+        MaxFailCount = Some Constants.ScenarioMaxFailCount
     }
 
     let scenario =

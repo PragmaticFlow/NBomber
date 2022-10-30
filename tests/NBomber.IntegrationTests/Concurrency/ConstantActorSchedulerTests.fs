@@ -40,7 +40,6 @@ let internal baseScnDep = {
     ScenarioOperation = ScenarioOperation.Bombing
     ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
-    MaxFailCount = Constants.DefaultMaxFailCount
 }
 
 [<Fact>]

@@ -26,7 +26,6 @@ let baseGlobalSettings = {
     ReportFormats = None
     ReportingInterval = None
     EnableHintsAnalyzer = None
-    MaxFailCount = None
 }
 
 let baseScenarioSetting = {
@@ -34,6 +33,7 @@ let baseScenarioSetting = {
     WarmUpDuration = None
     LoadSimulationsSettings = None
     CustomSettings = None
+    MaxFailCount = None
 }
 
 let baseScenario =

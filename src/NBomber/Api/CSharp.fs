@@ -75,6 +75,13 @@ type Scenario =
     static member WithResetIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
         scenario |> FSharp.Scenario.withResetIterationOnFail shouldReset
 
+    /// Sets and overrides the default max fail count.
+    /// When a scenario reaches max fail count, NBomber will stop the whole load test.
+    /// By default MaxFailCount = 5_000
+    [<Extension>]
+    static member WithMaxFailCount(scenario: ScenarioProps, failCount: int) =
+        scenario |> FSharp.Scenario.withMaxFailCount failCount
+
 [<Extension>]
 type NBomberRunner =
 
@@ -170,13 +177,6 @@ type NBomberRunner =
     [<Extension>]
     static member EnableHintsAnalyzer(context: NBomberContext, enable: bool) =
         context |> FSharp.NBomberRunner.enableHintsAnalyzer enable
-
-    /// Sets and overrides the default max fail count.
-    /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
-    /// By default MaxFailCount = 5_000
-    [<Extension>]
-    static member WithMaxFailCount(context: NBomberContext, failCount: int) =
-        context |> FSharp.NBomberRunner.withMaxFailCount failCount
 
     [<Extension>]
     static member Run(context: NBomberContext) =

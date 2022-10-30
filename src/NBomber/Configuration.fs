@@ -10,6 +10,7 @@ type ScenarioSetting = {
     WarmUpDuration: TimeSpan option
     LoadSimulationsSettings: LoadSimulation list option
     [<JsonField(AsJson = true)>] CustomSettings: string option
+    MaxFailCount: int option
 }
 
 type GlobalSettings = {
@@ -19,7 +20,6 @@ type GlobalSettings = {
     ReportFormats: ReportFormat list option
     ReportingInterval: TimeSpan option
     EnableHintsAnalyzer: bool option
-    MaxFailCount: int option
 }
 
 type NBomberConfig = {

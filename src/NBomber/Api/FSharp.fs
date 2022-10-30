@@ -56,7 +56,8 @@ module Scenario =
           Run = Some run
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          ResetIterationOnFail = true }
+          ResetIterationOnFail = true
+          MaxFailCount = Constants.ScenarioMaxFailCount }
 
     /// Creates empty scenario.
     /// An empty scenario is useful when you want to create the scenario to do only initialization or cleaning and execute it separately.
@@ -68,7 +69,8 @@ module Scenario =
           Run = None
           WarmUpDuration = None
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          ResetIterationOnFail = true }
+          ResetIterationOnFail = true
+          MaxFailCount = Constants.ScenarioMaxFailCount }
 
     /// Initializes scenario.
     /// You can use it to for example to prepare your target system or to parse and apply configuration.
@@ -101,6 +103,12 @@ module Scenario =
     /// The default value is true.
     let withResetIterationOnFail (shouldReset: bool) (scenario: ScenarioProps) =
         { scenario with ResetIterationOnFail = shouldReset }
+
+    /// Sets and overrides the default max fail count.
+    /// When a scenario reaches max fail count, NBomber will stop the whole load test.
+    /// By default MaxFailCount = 5_000
+    let withMaxFailCount (failCount: int) (scenario: ScenarioProps) =
+        { scenario with MaxFailCount = failCount }
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
@@ -227,12 +235,6 @@ module NBomberRunner =
     /// The default value is false.
     let enableHintsAnalyzer (enable: bool) (context: NBomberContext) =
         { context with EnableHintsAnalyzer = enable }
-
-    /// Sets and overrides the default max fail count.
-    /// In case of any scenario is reaching max fail count, then NBomber will stop the whole load test.
-    /// By default MaxFailCount = 5_000
-    let withMaxFailCount (failCount: int) (context: NBomberContext) =
-        { context with MaxFailCount = failCount }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
 

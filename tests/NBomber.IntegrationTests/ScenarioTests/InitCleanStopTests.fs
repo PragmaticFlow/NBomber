@@ -183,7 +183,7 @@ let ``Test execution should be stopped if too many errors`` () =
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        test <@ stats.ScenarioStats[0].Fail.Request.Count >= Constants.DefaultMaxFailCount @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count >= Constants.ScenarioMaxFailCount @>
 
 [<Fact>]
 let ``withMaxFailCount should configure MaxFailCount`` () =
@@ -197,14 +197,14 @@ let ``withMaxFailCount should configure MaxFailCount`` () =
         })
         |> Scenario.withoutWarmUp
         |> Scenario.withLoadSimulations [InjectPerSec(1, duration)]
+        |> Scenario.withMaxFailCount maxFailCount
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withoutReports
-    |> NBomberRunner.withMaxFailCount maxFailCount
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->
-        test <@ stats.ScenarioStats[0].Fail.Request.Count <> Constants.DefaultMaxFailCount @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count <> Constants.ScenarioMaxFailCount @>
         test <@ stats.ScenarioStats[0].Fail.Request.Count = 2 @>
 
 [<Fact>]
@@ -225,10 +225,10 @@ let ``MaxFailCount should be tracked only for scenarios failures, not steps fail
         |> Scenario.withoutWarmUp
         |> Scenario.withResetIterationOnFail false
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
+        |> Scenario.withMaxFailCount maxFailCount
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withoutReports
-    |> NBomberRunner.withMaxFailCount maxFailCount
     |> NBomberRunner.run
     |> Result.getOk
     |> fun stats ->

@@ -2,9 +2,7 @@
 
 open System
 open System.IO
-
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Extensions.Internal
 open NBomber.Configuration
@@ -105,16 +103,6 @@ let getEnableHintAnalyzer (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.EnableHintsAnalyzer
 
-let getMaxFailCount (context: NBomberContext) =
-    let tryGetFromConfig (ctx: NBomberContext) = option {
-        let! config = ctx.NBomberConfig
-        let! settings = config.GlobalSettings
-        return! settings.MaxFailCount
-    }
-    context
-    |> tryGetFromConfig
-    |> Option.defaultValue context.MaxFailCount
-
 let private getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
@@ -171,7 +159,6 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let! reportingInterval = context |> getReportingInterval
         let! scenariosSettings  = context |> getScenariosSettings scenarios
         let enableHintsAnalyzer = context |> getEnableHintAnalyzer
-        let maxFailCount = context |> getMaxFailCount
 
         let nbConfig = {
             TestSuite = Some testInfo.TestSuite
@@ -184,7 +171,6 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFormats = Some reportFormats
                 ReportingInterval = Some reportingInterval
                 EnableHintsAnalyzer = Some enableHintsAnalyzer
-                MaxFailCount = Some maxFailCount
             }
         }
 

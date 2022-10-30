@@ -69,7 +69,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta4]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta5]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />

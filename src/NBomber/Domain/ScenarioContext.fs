@@ -15,7 +15,6 @@ type ScenarioContextArgs = {
     ScenarioOperation: ScenarioOperation
     ScenarioStatsActor: ScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
-    MaxFailCount: int
 }
 
 type ScenarioContext(scenarioInfo, args: ScenarioContextArgs) =
