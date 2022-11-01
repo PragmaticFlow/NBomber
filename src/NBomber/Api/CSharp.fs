@@ -11,6 +11,94 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
+type Response() =
+
+    static let _okEmpty = { StatusCode = ""; IsError = false; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
+    static let _failEmpty = { StatusCode = ""; IsError = true; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
+
+    static member Ok() = _okEmpty
+    static member Fail() = _failEmpty
+
+    static member Ok(
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<obj> =
+
+        { StatusCode = statusCode
+          IsError = false
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = None }
+
+    static member Ok<'T>(
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
+
+        { StatusCode = statusCode
+          IsError = false
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = None }
+
+    static member Ok<'T>(
+        payload: 'T,
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
+
+        { StatusCode = statusCode
+          IsError = false
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = Some payload }
+
+    static member Fail(
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<obj> =
+
+        { StatusCode = statusCode
+          IsError = true
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = None }
+
+    static member Fail<'T>(
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
+
+        { StatusCode = statusCode
+          IsError = true
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = None }
+
+    static member Fail<'T>(
+        payload: 'T,
+        [<Optional;DefaultParameterValue("")>] statusCode: string,
+        [<Optional;DefaultParameterValue("")>] message: string,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
+
+        { StatusCode = statusCode
+          IsError = true
+          SizeBytes = sizeBytes
+          Message = if isNull message then String.Empty else message
+          LatencyMs = latencyMs
+          Payload = Some payload }
+
 /// Step represents a single user action like login, logout, etc.
 type Step =
 

@@ -4,7 +4,6 @@ using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Options;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.Mqtt;
@@ -31,7 +30,9 @@ public class SimpleMqttTest
                 return result.ResultCode == MqttClientConnectResultCode.Success
                     ? Response.Ok()
                     : Response.Fail(
-                        $"MQTT connection code is: {result.ResultCode}, reason: {result.ReasonString}");
+                        statusCode: MqttClientConnectResultCode.Success.ToString(),
+                        message: $"MQTT connection code is: {result.ResultCode}, reason: {result.ReasonString}"
+                    );
             });
 
             var subscribe = await Step.Run("subscribe", ctx, async () =>

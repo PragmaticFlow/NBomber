@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.HelloWorld;
@@ -16,7 +15,7 @@ public class HelloWorldExample
             // NBomber will measure how much time it takes to execute your logic
             await Task.Delay(1000);
 
-            return Response.Ok(statusCode: "200", sizeBytes: 1000);
+            return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(

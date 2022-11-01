@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.HelloWorld;
@@ -18,11 +17,13 @@ public class ScenarioWithInit
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(10)))
         .WithInit(context =>
         {
+            // You can do here any initialization logic: populate the database, etc.
             context.Logger.Information("MY INIT");
             return Task.CompletedTask;
         })
         .WithClean(context =>
         {
+            // You can do here any cleaning logic: clearing the database, etc.
             context.Logger.Information("MY CLEAN");
             return Task.CompletedTask;
         });

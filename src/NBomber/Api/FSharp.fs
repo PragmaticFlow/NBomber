@@ -20,6 +20,42 @@ open NBomber.Errors
 open NBomber.Domain.ScenarioContext
 open NBomber.DomainServices
 
+type Response() =
+
+    static let _okEmpty = { StatusCode = ""; IsError = false; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
+    static let _failEmpty = { StatusCode = ""; IsError = true; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
+
+    static member ok () = _okEmpty
+    static member fail () = _failEmpty
+
+    static member ok<'T>(
+        ?payload: 'T,
+        ?statusCode: string,
+        ?sizeBytes: int,
+        ?message: string,
+        ?latencyMs: float) =
+
+        { StatusCode = statusCode |> Option.defaultValue ""
+          IsError = false
+          SizeBytes = sizeBytes |> Option.defaultValue 0
+          Message = message |> Option.defaultValue ""
+          LatencyMs = latencyMs |> Option.defaultValue 0
+          Payload = payload }
+
+    static member fail<'T>(
+        ?statusCode: string,
+        ?message: string,
+        ?payload: 'T,
+        ?sizeBytes: int,
+        ?latencyMs: float) =
+
+        { StatusCode = statusCode |> Option.defaultValue ""
+          IsError = true
+          SizeBytes = sizeBytes |> Option.defaultValue 0
+          Message = message |> Option.defaultValue ""
+          LatencyMs = latencyMs |> Option.defaultValue 0
+          Payload = payload }
+
 /// Step represents a single user action like login, logout, etc.
 [<RequireQualifiedAccess>]
 type Step =

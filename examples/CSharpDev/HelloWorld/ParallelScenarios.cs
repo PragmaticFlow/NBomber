@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.HelloWorld;
@@ -12,7 +11,7 @@ public class ParallelScenarios
         var scenario1 = Scenario.Create("scenario_1", async context =>
         {
             await Task.Delay(1000);
-            return Response.Ok(statusCode: "300", sizeBytes: 1000);
+            return Response.Ok(statusCode: "200", sizeBytes: 1000);
         })
         .WithoutWarmUp()
         .WithLoadSimulations(

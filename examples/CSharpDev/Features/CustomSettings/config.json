@@ -8,7 +8,7 @@
         "ScenariosSettings": [
             {
                 "ScenarioName": "my_scenario",
-                "WarmUpDuration": "00:00:00",
+                "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
                     { "RampConstant": [10, "00:00:05"] },
@@ -25,7 +25,7 @@
         ],
 
         "ReportFileName": "my_report_name",
-        "ReportFolder": "./my_reports",
+        "ReportFolder": "./reports",
         "ReportFormats": [ "Html", "Md", "Txt", "Csv" ]
     }
 }

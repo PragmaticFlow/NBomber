@@ -188,8 +188,8 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let context = ctx :> IScenarioContext
         context.Logger.Fatal(ex, $"Operation timeout for Scenario : {0}", context.ScenarioInfo.ScenarioName)
 
-        let error = Response.fail(message = "operation timeout", statusCode = Constants.TimeoutStatusCode)
-        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        let response = ResponseInternal.failTimeout
+        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
     | ex ->
@@ -199,7 +199,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let context = ctx :> IScenarioContext
         context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
-        let error = Response.fail(ex, statusCode = Constants.UnhandledExceptionCode)
-        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        let response = ResponseInternal.failUnhandled ex
+        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 }

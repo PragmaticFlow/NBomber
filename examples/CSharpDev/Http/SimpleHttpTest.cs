@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.Http;
@@ -15,8 +14,8 @@ public class SimpleHttpTest
         {
             var httpResponse = await httpClient.GetAsync("https://nbomber.com");
             return httpResponse.IsSuccessStatusCode
-                ? Response.Ok()
-                : Response.Fail();
+                ? Response.Ok(statusCode: httpResponse.StatusCode.ToString())
+                : Response.Fail(statusCode: httpResponse.StatusCode.ToString());
         })
         .WithoutWarmUp()
         .WithLoadSimulations(

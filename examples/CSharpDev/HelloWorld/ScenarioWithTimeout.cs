@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NBomber.Contracts;
 using NBomber.CSharp;
 
 namespace CSharpDev.HelloWorld;

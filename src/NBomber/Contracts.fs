@@ -50,7 +50,9 @@ type NBomberContext = {
 
 namespace NBomber.Contracts.Internal
 
+open System
 open CommandLine
+open NBomber
 open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -88,3 +90,29 @@ type SessionArgs = {
 
     member this.GetScenariosSettings() = this.NBomberConfig.GlobalSettings.Value.ScenariosSettings.Value
     member this.GetUseHintsAnalyzer() = this.NBomberConfig.GlobalSettings.Value.EnableHintsAnalyzer.Value
+
+module internal ResponseInternal =
+
+    let emptyFail<'T> : Response<'T> =
+        { StatusCode = ""
+          IsError = true
+          SizeBytes = 0
+          Message = String.Empty
+          LatencyMs = 0
+          Payload = None }
+
+    let failUnhandled<'T> (ex: Exception) : Response<'T> =
+        { StatusCode = Constants.UnhandledExceptionCode
+          IsError = true
+          SizeBytes = 0
+          LatencyMs = 0
+          Message = ex.Message
+          Payload = None }
+
+    let failTimeout<'T> : Response<'T> =
+        { StatusCode = Constants.TimeoutStatusCode
+          IsError = true
+          SizeBytes = 0
+          LatencyMs = 0
+          Message = "operation timeout"
+          Payload = None }
