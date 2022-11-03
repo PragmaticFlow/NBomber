@@ -310,7 +310,7 @@ const initApp = (appContainer, viewModel) => {
             const lessOrEq800 = this.scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 + this.scenarioStats.Fail.Latency.LatencyCount.LessOrEq800
             const more800Less1200 = this.scenarioStats.Ok.Latency.LatencyCount.More800Less1200 + this.scenarioStats.Fail.Latency.LatencyCount.More800Less1200
             const moreOrEq1200 = this.scenarioStats.Ok.Latency.LatencyCount.MoreOrEq1200 + this.scenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200
-            const count = this.scenarioStats.Ok.Request.Count + this.scenarioStats.Fail.Request.Count
+            const count = this.scenarioStats.Fail.Request.Count
 
             return {
                 data: [
