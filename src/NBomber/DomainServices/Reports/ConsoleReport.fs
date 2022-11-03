@@ -50,13 +50,6 @@ module ConsoleNodeStats =
           Console.addLine $"  - all data: {ReportHelper.printAllData Console.okEscColor (ScenarioStats.calcAllBytes scnStats)}"
           Console.addLine $"  - duration: {Console.okEscColor scnStats.Duration}" ]
 
-    let private printStepStatsHeader (stepStats: StepStats[]) =
-        let print (stats) = seq {
-            $"step: {Console.blueEscColor stats.StepName}"
-        }
-
-        stepStats |> Seq.map print |> Console.addList
-
     let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Console.okEscColor Console.errorEscColor Console.blueEscColor
         let headers = ["step"; if isOkStats then "ok stats" else "fail stats"]
@@ -73,9 +66,6 @@ module ConsoleNodeStats =
           Console.addLine String.Empty
 
           yield! ConsoleLoadSimulations.print simulations
-          Console.addLine String.Empty
-
-          yield! printStepStatsHeader scnStats.StepStats
           Console.addLine String.Empty
 
           printStepStatsTable true scnStats

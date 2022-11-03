@@ -52,12 +52,6 @@ module TxtNodeStats =
         + $"  - all data: {ReportHelper.printAllData string (ScenarioStats.calcAllBytes scnStats)}{Environment.NewLine}"
         + $"  - duration: {scnStats.Duration}"
 
-    let private printStepStatsHeader (stepStats: StepStats[]) =
-        let print (stats) =
-            $"step: {stats.StepName}{Environment.NewLine}"
-
-        stepStats |> Seq.map print |> String.concatLines
-
     let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats string string string
 
@@ -79,7 +73,6 @@ module TxtNodeStats =
     let private printScenarioStats (scnStats: ScenarioStats) (simulations: LoadSimulation list) =
         [ scnStats           |> printScenarioHeader      |> String.appendNewLine
           simulations        |> TxtLoadSimulations.print |> String.appendNewLine
-          scnStats.StepStats |> printStepStatsHeader
 
           printStepStatsTable true scnStats
 

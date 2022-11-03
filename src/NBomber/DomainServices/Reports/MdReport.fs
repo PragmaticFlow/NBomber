@@ -70,14 +70,6 @@ module MdNodeStats =
         |> Document.addText $"  - all data: {ReportHelper.printAllData Md.printInlineCode (ScenarioStats.calcAllBytes scnStats)}" |> Md.addNewLine
         |> Document.addText $"  - duration: {Md.printInlineCode scnStats.Duration}" |> Md.addNewLine
 
-    let private printStepStatsHeader (stepStats: StepStats[]) (document: Document) =
-
-        let print (document: Document) (stats: StepStats) =
-            document
-            |> Document.addText $"step: {Md.printInlineCode stats.StepName}" |> Md.addNewLine
-
-        stepStats |> Seq.fold print document
-
     let private printStepStatsTable (isOkStats: bool) (scnStats: ScenarioStats) (document: Document) =
         let printStepStatsRow = ReportHelper.StepStats.printStepStatsRow isOkStats Md.printInlineCode Md.printInlineCode Md.printInlineCode
         let headers = if isOkStats then ["step"; "ok stats"] else ["step"; "fail stats"]
@@ -97,7 +89,6 @@ module MdNodeStats =
         |> Md.printHeader "scenario stats"
         |> printScenarioHeader scnStats
         |> MdLoadSimulations.print simulations
-        |> printStepStatsHeader scnStats.StepStats
         |> printStepStatsTable true scnStats
         |> fun doc ->
             if ScenarioStats.failStatsExist scnStats then
