@@ -185,9 +185,6 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 
-        let context = ctx :> IScenarioContext
-        context.Logger.Fatal(ex, $"Operation timeout for Scenario : {0}", context.ScenarioInfo.ScenarioName)
-
         let response = ResponseInternal.failTimeout
         let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
