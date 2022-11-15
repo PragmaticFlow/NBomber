@@ -32,6 +32,7 @@ type State = {
     MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
     mutable ScenarioFailCount: int
     StepsOrder: Dictionary<string, int>
+    GlobalInfoDataSize: ResizeArray<int>
 
     mutable ReportingStatsCache: Map<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>
@@ -59,6 +60,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
       MergeStatsFn = mergeStatsFn
       ScenarioFailCount = 0
       StepsOrder = stepsOrder
+      GlobalInfoDataSize = ResizeArray<_>()
 
       ReportingStatsCache = Map.empty
 
@@ -79,10 +81,20 @@ let updateIntervalStats (state: State) (measurement: Measurement) =
     let rawStats = state.IntervalStepsResults[measurement.Name]
     RawMeasurementStats.addMeasurement rawStats measurement
 
+let updateGlobalInfoDataSize (state: State) (measurement: Measurement) =
+    if state.GlobalInfoDataSize.Count > 0 && measurement.Name = Constants.ScenarioGlobalInfo then
+        measurement.ClientResponse.SizeBytes <- (state.GlobalInfoDataSize |> Seq.sum) + measurement.ClientResponse.SizeBytes
+        state.GlobalInfoDataSize.Clear()
+
+    elif measurement.ClientResponse.SizeBytes > 0 then
+        state.GlobalInfoDataSize.Add measurement.ClientResponse.SizeBytes
+
 let addMeasurement (state: State) (measurement: Measurement) =
     if state.UseTempBuffer then
         state.TempBuffer.Add measurement
     else
+        updateGlobalInfoDataSize state measurement
+
         if state.CoordinatorStepsResults.ContainsKey measurement.Name then
             updateCoordinatorStats state measurement
         else

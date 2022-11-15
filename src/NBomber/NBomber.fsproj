@@ -69,7 +69,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta7]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta8]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />
@@ -90,6 +90,6 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>    
+    </ItemGroup>
 
 </Project>

@@ -107,3 +107,43 @@ let ``BuildReportingStats should preserver Steps order at which steps arrived`` 
     |> List.iteri(fun i stName ->
         test <@ stName = scnStats.StepStats[i].StepName @>
     )
+
+[<Fact>]
+let ``DataTransfer should be calculated properly for Global Step Info`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
+
+    for i in [1 .. 100] do
+        let stepSmall = { Name = "step_small"; ClientResponse = Response.ok(sizeBytes = 1); EndTimeMs = float 100; LatencyMs = 100 }
+        statsActor.Publish(AddMeasurement stepSmall)
+
+    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); EndTimeMs = float 100; LatencyMs = 100 }
+    statsActor.Publish(AddMeasurement stepBig)
+
+    let stepGlobal = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(sizeBytes = 5); EndTimeMs = float 100; LatencyMs = 100 }
+    statsActor.Publish(AddMeasurement stepGlobal)
+
+    let reply = TaskCompletionSource<ScenarioStats>()
+    let simulation = { SimulationName = ""; Value = 9 }
+    statsActor.Publish(BuildReportingStats(reply, simulation, seconds 10))
+    let scnStats = reply.Task.Result
+
+    // GlobalInfoDataSize stats should be cleared
+    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); EndTimeMs = float 100; LatencyMs = 100 }
+    statsActor.Publish(AddMeasurement stepBig)
+
+    let reply = TaskCompletionSource<ScenarioStats>()
+    statsActor.Publish(BuildReportingStats(reply, simulation, seconds 10))
+    let scnStats2 = reply.Task.Result
+
+    // 100 (step_small) + 1000 (step_big) + 5 (global_info)
+    test <@ scnStats.AllBytes = 1105 @>
+    test <@ scnStats.Ok.DataTransfer.AllBytes = 1105 @>
+    test <@ scnStats.Fail.DataTransfer.AllBytes = 0 @>
+    test <@ scnStats.Ok.DataTransfer.Percent99 = 1105 @>
+    test <@ scnStats.GetStepStats("step_small").Ok.DataTransfer.AllBytes = 100 @>
+    test <@ scnStats.GetStepStats("step_big").Ok.DataTransfer.AllBytes = 1000 @>
+
+    test <@ scnStats2.Ok.DataTransfer.AllBytes = 0 @>
+    test <@ scnStats2.AllBytes = 1000 @>

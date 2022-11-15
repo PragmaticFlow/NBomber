@@ -160,21 +160,7 @@ module ScenarioStats =
 
     module GlobalInfo =
 
-        let mergerDataStats (stats: DataTransferStats seq) = {
-            MinBytes = stats |> Seq.sumBy(fun x -> x.MinBytes)
-            MeanBytes = stats |> Seq.sumBy(fun x -> x.MeanBytes)
-            MaxBytes = stats |> Seq.sumBy(fun x -> x.MaxBytes)
-            Percent50 = stats |> Seq.sumBy(fun x -> x.Percent50)
-            Percent75 = stats |> Seq.sumBy(fun x -> x.Percent75)
-            Percent95 = stats |> Seq.sumBy(fun x -> x.Percent95)
-            Percent99 = stats |> Seq.sumBy(fun x -> x.Percent99)
-            StdDev = stats |> Seq.sumBy(fun x -> x.StdDev)
-            AllBytes = stats |> Seq.sumBy(fun x -> x.AllBytes)
-        }
-
         let create (globalInfo: StepStats) (allStepStats: StepStats seq) =
-            let okDt = allStepStats |> Seq.map(fun x -> x.Ok.DataTransfer) |> mergerDataStats
-            let failDt = allStepStats |> Seq.map(fun x -> x.Fail.DataTransfer) |> mergerDataStats
 
             let okStatus =
                 allStepStats
@@ -186,8 +172,8 @@ module ScenarioStats =
                 |> Seq.collect(fun x -> x.Fail.StatusCodes)
                 |> StatusCodeStats.merge
 
-            let ok = { globalInfo.Ok with DataTransfer = okDt; StatusCodes = okStatus }
-            let fail = { globalInfo.Fail with DataTransfer = failDt; StatusCodes = failStatus }
+            let ok = { globalInfo.Ok with StatusCodes = okStatus }
+            let fail = { globalInfo.Fail with StatusCodes = failStatus }
 
             struct (ok, fail)
 
@@ -202,6 +188,10 @@ module ScenarioStats =
           StepStats = Array.empty
           LoadSimulationStats = simulationStats
           CurrentOperation = OperationType.None
+          AllRequestCount = 0
+          AllOkCount = 0
+          AllFailCount = 0
+          AllBytes = 0
           Duration = TimeSpan.Zero }
 
     let create (scenarioName: string)
@@ -215,10 +205,20 @@ module ScenarioStats =
         let stepStats    = allStepStats |> Seq.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo) |> Seq.toArray
         let globalInfo   = allStepStats |> Seq.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
+        let allOkCount = allStepStats |> Seq.sumBy(fun x -> x.Ok.Request.Count)
+        let allFailCount = allStepStats |> Seq.sumBy(fun x -> x.Fail.Request.Count)
+        let allReqCount = allOkCount + allFailCount
+
         let struct (ok, fail) =
             match globalInfo with
             | Some v -> GlobalInfo.create v allStepStats
             | None   -> MeasurementStats.empty, MeasurementStats.empty
+
+        let allBytes =
+            if globalInfo.IsSome then
+                ok.DataTransfer.AllBytes + fail.DataTransfer.AllBytes
+            else
+                allStepStats |> Seq.sumBy(fun x -> x.Ok.DataTransfer.AllBytes + x.Fail.DataTransfer.AllBytes)
 
         { ScenarioName = scenarioName
           Ok = ok
@@ -226,6 +226,10 @@ module ScenarioStats =
           StepStats = stepStats
           LoadSimulationStats = simulationStats
           CurrentOperation = currentOperation
+          AllRequestCount = allReqCount
+          AllOkCount = allOkCount
+          AllFailCount = allFailCount
+          AllBytes = allBytes
           Duration = duration |> UMX.untag |> roundDuration }
 
     let failStatsExist (stats: ScenarioStats) =
@@ -241,10 +245,18 @@ module NodeStats =
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
             let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> roundDuration
+            let okCount = scnStats |> Seq.sumBy(fun x -> x.AllOkCount)
+            let failCount = scnStats |> Seq.sumBy(fun x -> x.AllFailCount)
+            let requestCount = okCount + failCount
+            let allBytes = scnStats |> Seq.sumBy(fun x -> x.AllBytes)
 
             { ScenarioStats = scnStats
               PluginStats = Array.empty
               NodeInfo = nodeInfo
               TestInfo = testInfo
               ReportFiles = Array.empty
+              AllRequestCount = requestCount
+              AllOkCount = okCount
+              AllFailCount = failCount
+              AllBytes = allBytes
               Duration = maxDuration }
