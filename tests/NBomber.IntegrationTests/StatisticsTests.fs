@@ -195,6 +195,10 @@ module NodeStatsTests =
           StepStats = Array.empty
           LoadSimulationStats = baseLoadSimulationStats
           CurrentOperation = OperationType.Complete
+          AllRequestCount = 0
+          AllOkCount = 0
+          AllFailCount = 0
+          AllBytes = 0
           Duration = TimeSpan.Zero
     }
 

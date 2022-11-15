@@ -33,6 +33,10 @@ let baseScnStats = {
     StepStats = Array.empty
     LoadSimulationStats = { SimulationName = ""; Value = 0 }
     CurrentOperation = OperationType.None
+    AllRequestCount = 0
+    AllOkCount = 0
+    AllFailCount = 0
+    AllBytes = 0
     Duration = TimeSpan.MinValue
 }
 
