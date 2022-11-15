@@ -245,10 +245,18 @@ module NodeStats =
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
             let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> roundDuration
+            let okCount = scnStats |> Seq.sumBy(fun x -> x.AllOkCount)
+            let failCount = scnStats |> Seq.sumBy(fun x -> x.AllFailCount)
+            let requestCount = okCount + failCount
+            let allBytes = scnStats |> Seq.sumBy(fun x -> x.AllBytes)
 
             { ScenarioStats = scnStats
               PluginStats = Array.empty
               NodeInfo = nodeInfo
               TestInfo = testInfo
               ReportFiles = Array.empty
+              AllRequestCount = requestCount
+              AllOkCount = okCount
+              AllFailCount = failCount
+              AllBytes = allBytes
               Duration = maxDuration }
