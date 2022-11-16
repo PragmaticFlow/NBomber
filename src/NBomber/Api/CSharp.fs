@@ -10,14 +10,12 @@ open Serilog
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 
-type Response() =
+type Response =
 
-    static let _okEmpty = { StatusCode = ""; IsError = false; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
-    static let _failEmpty = { StatusCode = ""; IsError = true; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
-
-    static member Ok() = _okEmpty
-    static member Fail() = _failEmpty
+    static member Ok() = ResponseInternal.okEmpty
+    static member Fail() = ResponseInternal.failEmpty<obj>
 
     static member Ok(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
@@ -28,8 +26,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = false
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = None }
 
     static member Ok<'T>(
@@ -41,8 +39,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = false
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = None }
 
     static member Ok<'T>(
@@ -55,8 +53,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = false
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = Some payload }
 
     static member Fail(
@@ -68,8 +66,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = true
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = None }
 
     static member Fail<'T>(
@@ -81,8 +79,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = true
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = None }
 
     static member Fail<'T>(
@@ -95,8 +93,8 @@ type Response() =
         { StatusCode = statusCode
           IsError = true
           SizeBytes = sizeBytes
-          Message = if isNull message then String.Empty else message
           LatencyMs = latencyMs
+          Message = if isNull message then String.Empty else message
           Payload = Some payload }
 
 /// Step represents a single user action like login, logout, etc.
@@ -116,7 +114,7 @@ type Scenario =
     /// Creates scenario.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// You should think about Scenario as a system thread.
-    static member Create(name: string, run: Func<IScenarioContext,Task<Response<obj>>>) =
+    static member Create(name: string, run: Func<IScenarioContext,Task<IResponse>>) =
         FSharp.Scenario.create(name, run.Invoke)
 
     /// Creates empty scenario.

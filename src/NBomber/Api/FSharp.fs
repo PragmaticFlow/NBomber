@@ -12,21 +12,18 @@ open Microsoft.Extensions.Configuration
 
 open NBomber
 open NBomber.Contracts
-open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Extensions.Internal
 open NBomber.Errors
 open NBomber.Domain.ScenarioContext
 open NBomber.DomainServices
 
-type Response() =
+type Response =
 
-    static let _okEmpty = { StatusCode = ""; IsError = false; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
-    static let _failEmpty = { StatusCode = ""; IsError = true; SizeBytes = 0; Message = ""; LatencyMs = 0; Payload = None }
-
-    static member ok () = _okEmpty
-    static member fail () = _failEmpty
+    static member ok () = ResponseInternal.okEmpty
+    static member fail () = ResponseInternal.failEmpty<obj>
 
     static member ok<'T>(
         ?payload: 'T,
@@ -38,8 +35,8 @@ type Response() =
         { StatusCode = statusCode |> Option.defaultValue ""
           IsError = false
           SizeBytes = sizeBytes |> Option.defaultValue 0
-          Message = message |> Option.defaultValue ""
           LatencyMs = latencyMs |> Option.defaultValue 0
+          Message = message |> Option.defaultValue ""
           Payload = payload }
 
     static member fail<'T>(
@@ -52,8 +49,8 @@ type Response() =
         { StatusCode = statusCode |> Option.defaultValue ""
           IsError = true
           SizeBytes = sizeBytes |> Option.defaultValue 0
-          Message = message |> Option.defaultValue ""
           LatencyMs = latencyMs |> Option.defaultValue 0
+          Message = message |> Option.defaultValue ""
           Payload = payload }
 
 /// Step represents a single user action like login, logout, etc.
@@ -85,11 +82,17 @@ module Scenario =
     /// Creates scenario.
     /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
     /// You should think about Scenario as a system thread.
-    let create (name: string, run: IScenarioContext -> Task<Response<obj>>) : ScenarioProps =
+    let create (name: string, run: IScenarioContext -> Task<#IResponse>) : ScenarioProps =
+
+        let typedRun =
+            fun ctx ->
+                run ctx
+                |> Task.map(fun x -> x :> IResponse)
+
         { ScenarioName = name
           Init = None
           Clean = None
-          Run = Some run
+          Run = Some typedRun
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
           ResetIterationOnFail = true

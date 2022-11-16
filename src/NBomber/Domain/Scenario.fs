@@ -163,7 +163,7 @@ let getMaxDuration (scenarios: Scenario list) =
 let getMaxWarmUpDuration (scenarios: Scenario list) =
     scenarios |> List.choose(fun x -> x.WarmUpDuration) |> List.max
 
-let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<Response<obj>>) = backgroundTask {
+let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
     let startTime = ctx.Timer.Elapsed.TotalMilliseconds
     try
         let! response = run ctx
@@ -177,7 +177,7 @@ let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 
-        let error = ResponseInternal.emptyFail
+        let error = ResponseInternal.failEmpty
         let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 

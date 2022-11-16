@@ -31,7 +31,7 @@ type Scenario = {
     ScenarioName: string
     Init: (IScenarioInitContext -> Task) option
     Clean: (IScenarioInitContext -> Task) option
-    Run: (IScenarioContext -> Task<Response<obj>>) option
+    Run: (IScenarioContext -> Task<IResponse>) option
     LoadTimeLine: LoadTimeLine
     WarmUpDuration: TimeSpan option
     PlanedDuration: TimeSpan

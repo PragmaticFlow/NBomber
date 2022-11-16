@@ -93,26 +93,14 @@ type SessionArgs = {
 
 module internal ResponseInternal =
 
-    let emptyFail<'T> : Response<'T> =
-        { StatusCode = ""
-          IsError = true
-          SizeBytes = 0
-          Message = String.Empty
-          LatencyMs = 0
-          Payload = None }
+    let okEmpty : Response<obj> =
+        { StatusCode = ""; IsError = false; SizeBytes = 0; LatencyMs = 0; Message = ""; Payload = None }
+
+    let failEmpty<'T> : Response<'T> =
+        { StatusCode = ""; IsError = true; SizeBytes = 0; LatencyMs = 0; Message = ""; Payload = None }
 
     let failUnhandled<'T> (ex: Exception) : Response<'T> =
-        { StatusCode = Constants.UnhandledExceptionCode
-          IsError = true
-          SizeBytes = 0
-          LatencyMs = 0
-          Message = ex.Message
-          Payload = None }
+        { StatusCode = Constants.UnhandledExceptionCode; IsError = true; SizeBytes = 0; LatencyMs = 0; Message = ex.Message; Payload = None }
 
     let failTimeout<'T> : Response<'T> =
-        { StatusCode = Constants.TimeoutStatusCode
-          IsError = true
-          SizeBytes = 0
-          LatencyMs = 0
-          Message = "operation timeout"
-          Payload = None }
+        { StatusCode = Constants.TimeoutStatusCode; IsError = true; SizeBytes = 0; LatencyMs = 0; Message = Constants.OperationTimeoutMessage; Payload = None }

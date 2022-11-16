@@ -58,6 +58,9 @@ let MaxClientInitFailCount = 5
 /// Default status codes
 
 [<Literal>]
+let OperationTimeoutMessage = "operation timeout"
+
+[<Literal>]
 let TimeoutStatusCode = "-100"
 [<Literal>]
 let UnhandledExceptionCode = "-101"
