@@ -1,9 +1,8 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
 
-namespace CSharpDev.Features.CustomSettings;
+namespace CSharpProd.Features.CustomSettings;
 
 public class CustomScenarioSettings
 {

@@ -1,8 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using NBomber.CSharp;
 
-namespace CSharpDev.HelloWorld;
+namespace CSharpProd.HelloWorld;
 
 public class HelloWorldExample
 {

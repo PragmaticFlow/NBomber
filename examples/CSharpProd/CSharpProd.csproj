@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NBomber" Version="4.0.0-beta6" />
+        <PackageReference Include="NBomber.Http" Version="4.0.0-beta2" />
+        <PackageReference Include="MQTTnet" Version="3.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Features\CustomSettings\config.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\RealtimeReporting" />
+    </ItemGroup>
+
+</Project>

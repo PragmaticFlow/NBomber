@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Options;
 using NBomber.CSharp;
 
-namespace CSharpDev.Mqtt;
+namespace CSharpProd.MQTT;
 
 public class SimpleMqttTest
 {

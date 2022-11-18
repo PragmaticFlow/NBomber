@@ -1,25 +1,19 @@
-﻿using CSharpDev.Features.CustomSettings;
-using CSharpDev.HelloWorld;
-using CSharpDev.Http;
-using CSharpDev.Mqtt;
+﻿using System;
+using System.Threading.Tasks;
+using NBomber.CSharp;
 
-namespace CSharpDev
+var scenario = Scenario.Create("hello_world_scenario", async context =>
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            new HelloWorldExample().Run();
-            // new ScenarioWithInit().Run();
-            // new ScenarioWithSteps().Run();
-            // new ParallelScenarios().Run();
-            // new ScenarioWithTimeout().Run();
-            // new ScenarioWithStepRetry().Run();
-            // new EmptyScenario().Run();
+    await Task.Delay(1000);
 
-            // new SimpleHttpTest().Run();
-            // new SimpleMqttTest().Run();
-            // new CustomSettingsExample().Run();
-        }
-    }
-}
+    return Response.Ok();
+})
+.WithoutWarmUp()
+.WithLoadSimulations(
+    Simulation.RampConstant(copies: 50, during: TimeSpan.FromMinutes(1)),
+    Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
+);
+
+NBomberRunner
+    .RegisterScenarios(scenario)
+    .Run();
