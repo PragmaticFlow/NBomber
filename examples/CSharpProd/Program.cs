@@ -6,10 +6,10 @@ using CSharpProd.MQTT;
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-// new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
-new StepsShareData().Run();
+// new StepsShareData().Run();
 // new ParallelScenarios().Run();
 // new ScenarioWithTimeout().Run();
 // new ScenarioWithStepRetry().Run();
@@ -20,6 +20,7 @@ new StepsShareData().Run();
 // ----------------
 // new SimpleHttpExample().Run();
 // new SequentialHttpSteps().Run();
+// new HttpResponseValidation().Run();
 
 // ----------------
 // ----- MQTT -----
