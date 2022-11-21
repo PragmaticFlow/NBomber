@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NBomber.Benchmarks", "performance\NBomber.Benchmarks\NBomber.Benchmarks.fsproj", "{60140186-F81E-4C62-ACD9-1A327D297399}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBomber.CSharpImpl", "performance\NBomber.CSharpImpl\NBomber.CSharpImpl.csproj", "{C4632132-9C00-4A87-A235-F7A830F5853E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{60140186-F81E-4C62-ACD9-1A327D297399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60140186-F81E-4C62-ACD9-1A327D297399}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60140186-F81E-4C62-ACD9-1A327D297399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4632132-9C00-4A87-A235-F7A830F5853E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4632132-9C00-4A87-A235-F7A830F5853E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4632132-9C00-4A87-A235-F7A830F5853E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4632132-9C00-4A87-A235-F7A830F5853E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

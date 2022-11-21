@@ -3,6 +3,7 @@ namespace NBomber.Benchmarks.Actors
 open System.Threading.Tasks
 open System.Threading.Tasks.Dataflow
 open BenchmarkDotNet.Attributes
+open NBomber.CSharpImpl
 
 type ActorMessage =
     | Inc
@@ -26,7 +27,7 @@ type ActorState =
 type ActorsBenchmark() as this =
 
     //[<Params(100_000, 1_000_000, 10_000_000)>]
-    [<Params(1_00_000)>]
+    [<Params(50_000)>]
     member val ThreadIteration = 0 with get, set
 
     [<Params(10)>]
@@ -49,6 +50,38 @@ type ActorsBenchmark() as this =
         tcs.Task.Wait()
 
     [<Benchmark>]
+    member _.ChannelActorPly() =
+        let actor = ChannelActorPly<ActorState, ActorMessage>(ActorState.init(), ActorState.handle)
+
+        [| 1..this.ThreadCount |]
+        |> Array.Parallel.iter (fun _ ->
+            for i = 0 to this.ThreadIteration do
+                let isAdd = i % 2 = 0
+                if isAdd then actor.Publish(ActorMessage.Inc)
+                else actor.Publish(ActorMessage.Dec)
+        )
+
+        let tcs = TaskCompletionSource<int>()
+        actor.Publish(ActorMessage.GetValue tcs)
+        tcs.Task.Wait()
+
+    [<Benchmark>]
+    member _.ChannelActorCSharp() =
+        let actor = ChannelActorCSharp<ActorState, ActorMessage>(ActorState.init(), ActorState.handle)
+
+        [| 1..this.ThreadCount |]
+        |> Array.Parallel.iter (fun _ ->
+            for i = 0 to this.ThreadIteration do
+                let isAdd = i % 2 = 0
+                if isAdd then actor.Publish(ActorMessage.Inc)
+                else actor.Publish(ActorMessage.Dec)
+        )
+
+        let tcs = TaskCompletionSource<int>()
+        actor.Publish(ActorMessage.GetValue tcs)
+        tcs.Task.Wait()
+
+    //[<Benchmark>]
     member _.FastActor() =
         let actor = Actor.FastActor<ActorState, ActorMessage>(ActorState.init(), ActorState.handle)
 
@@ -64,12 +97,15 @@ type ActorsBenchmark() as this =
         actor.Publish(ActorMessage.GetValue tcs)
         tcs.Task.Wait()
 
-    [<Benchmark>]
+    //[<Benchmark>]
     member _.TPLDataFlow() =
         let mutable state = ActorState.init()
 
         let actor = ActionBlock(fun msg ->
-            state <- ActorState.handle state msg
+            backgroundTask {
+                state <- ActorState.handle state msg
+            }
+            :> Task
         )
 
         [| 1..this.ThreadCount |]
@@ -84,7 +120,7 @@ type ActorsBenchmark() as this =
         actor.Post(ActorMessage.GetValue tcs) |> ignore
         tcs.Task.Wait()
 
-    [<Benchmark>]
+    //[<Benchmark>]
     member _.MailBox() =
         let mutable state = ActorState.init()
 

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,7 +16,13 @@
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
       <PackageReference Include="FSharpx.Collections" Version="2.1.2" />
+      <PackageReference Include="Ply" Version="0.3.1" />
       <PackageReference Include="Streams" Version="0.5.0" />
+      <PackageReference Update="FSharp.Core" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\NBomber.CSharpImpl\NBomber.CSharpImpl.csproj" />
     </ItemGroup>
 
 </Project>
