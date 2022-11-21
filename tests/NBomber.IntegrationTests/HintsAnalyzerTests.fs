@@ -123,4 +123,4 @@ let ``analyzeNodeStats should return hints for case when StatusCodes are not pro
 
     let hints = HintsAnalyzer.analyzeNodeStats nodeStats
 
-    test<@ hints.Length > 0 @>
+    test <@ hints.Length > 0 @>

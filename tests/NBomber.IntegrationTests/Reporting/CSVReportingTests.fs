@@ -75,4 +75,4 @@ let ``CSV report should be formatted properly`` () =
     csvRows
     |> Seq.map(String.split [|","|])
     |> Seq.map Array.length
-    |> fun a -> test<@ Seq.max a = Seq.min a @> // compare columns count
+    |> fun a -> test <@ Seq.max a = Seq.min a @> // compare columns count

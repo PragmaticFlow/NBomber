@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
@@ -72,6 +72,6 @@
         <PackageReference Include="FsCheck" Version="2.16.4" />
         <PackageReference Include="FsCheck.Xunit" Version="2.16.4" />
         <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-        <PackageReference Update="FSharp.Core" Version="6.0.5" />
+        <PackageReference Update="FSharp.Core" Version="7.0.0" />
     </ItemGroup>
 </Project>
