@@ -3,8 +3,8 @@
 open System
 open System.Collections.Generic
 open System.Runtime.CompilerServices
+open System.Threading.Channels
 open System.Threading.Tasks
-open System.Threading.Tasks.Dataflow
 
 open FSharp.UMX
 open Serilog
@@ -82,9 +82,11 @@ let updateIntervalStats (state: State) (measurement: Measurement) =
     RawMeasurementStats.addMeasurement rawStats measurement
 
 let updateGlobalInfoDataSize (state: State) (measurement: Measurement) =
-    if state.GlobalInfoDataSize.Count > 0 && measurement.Name = Constants.ScenarioGlobalInfo then
-        measurement.ClientResponse.SizeBytes <- (state.GlobalInfoDataSize |> Seq.sum) + measurement.ClientResponse.SizeBytes
-        state.GlobalInfoDataSize.Clear()
+    if measurement.Name = Constants.ScenarioGlobalInfo then
+
+        if state.GlobalInfoDataSize.Count > 0 then
+            measurement.ClientResponse.SizeBytes <- (state.GlobalInfoDataSize |> Seq.sum) + measurement.ClientResponse.SizeBytes
+            state.GlobalInfoDataSize.Clear()
 
     elif measurement.ClientResponse.SizeBytes > 0 then
         state.GlobalInfoDataSize.Add measurement.ClientResponse.SizeBytes
@@ -198,48 +200,54 @@ type ScenarioStatsActor(logger: ILogger,
                         ?mergeStatsFn: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) =
 
     let mutable _state = createState logger scenario reportingInterval mergeStatsFn
+    let mutable _stop = false
+    let _channel = Channel.CreateUnbounded<ActorMessage>()
 
-    let _actor = ActionBlock(fun msg ->
+    let loop () = backgroundTask {
         try
-            match msg with
-            | AddMeasurement result ->
-                addMeasurement _state result
+            while not _stop do
+                match! _channel.Reader.ReadAsync() with
+                | AddMeasurement result ->
+                    addMeasurement _state result
 
-            | AddFromAgent agentStats ->
-                addStatsFromAgent _state agentStats
+                | AddFromAgent agentStats ->
+                    addStatsFromAgent _state agentStats
 
-            | StartUseTempBuffer ->
-                _state.UseTempBuffer <- true
+                | StartUseTempBuffer ->
+                    _state.UseTempBuffer <- true
 
-            | FlushTempBuffer ->
-                flushTempBuffer _state
+                | FlushTempBuffer ->
+                    flushTempBuffer _state
 
-            | BuildReportingStats (reply, simulationStats, duration) ->
-                let isFinalStats = false
-                let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
+                | BuildReportingStats (reply, simulationStats, duration) ->
+                    let isFinalStats = false
+                    let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
 
-                let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats duration isFinalStats
+                    let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats duration isFinalStats
 
-                addReportingStats _state stats
-                reply.TrySetResult(stats) |> ignore
+                    addReportingStats _state stats
+                    reply.TrySetResult(stats) |> ignore
 
-            | GetFinalStats (reply, simulationStats, duration) ->
-                let isFinalStats = true
+                | GetFinalStats (reply, simulationStats, duration) ->
+                    let isFinalStats = true
 
-                let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
+                    let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
 
-                let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats duration isFinalStats
-                reply.TrySetResult(stats) |> ignore
+                    let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats duration isFinalStats
+                    reply.TrySetResult(stats) |> ignore
         with
         | ex -> _state.Logger.Fatal $"Unhandled exception: {nameof ScenarioStatsActor} failed: {ex.ToString()}"
-    )
+    }
+
+    do
+        loop() |> ignore
 
     member _.ScenarioFailCount = _state.ScenarioFailCount
     member _.AllRealtimeStats = _state.ReportingStatsCache
     member _.ConsoleScenarioStats = _state.ConsoleScenarioStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    member _.Publish(msg) = _actor.Post(msg) |> ignore
+    member _.Publish(msg) = _channel.Writer.TryWrite(msg) |> ignore
 
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval)

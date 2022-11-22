@@ -56,11 +56,11 @@ let ``Response Ok and Fail should be properly count`` () =
 [<Trait("CI", "disable")>]
 let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
-    Scenario.create("latency count test", fun ctx -> task {
+    Scenario.create("latency count test", fun ctx -> backgroundTask {
         do! Task.Delay(milliseconds 100)
         return Response.ok(sizeBytes = 1000)
     })
-    |> Scenario.withWarmUpDuration(TimeSpan.FromSeconds 1.0)
+    |> Scenario.withWarmUpDuration(seconds 2)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
@@ -68,14 +68,15 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
     |> Result.getOk
     |> fun nodeStats ->
         let stats = nodeStats.ScenarioStats[0]
+        let ok = stats.Ok
 
-        test <@ stats.Ok.Request.RPS >= 8.0 @>
-        test <@ stats.Ok.Request.RPS <= 10.0 @>
-        test <@ stats.Ok.Latency.MinMs <= 103.0 @>
-        test <@ stats.Ok.Latency.MeanMs <= 110.0 @>
-        test <@ stats.Ok.Latency.MaxMs <= 120.0 @>
-        test <@ stats.Ok.DataTransfer.MinBytes = 1000 @>
-        test <@ stats.Ok.DataTransfer.AllBytes >= 90_000L && stats.Ok.DataTransfer.AllBytes <= 100_000L @>
+        test <@ ok.Request.RPS >= 8.0 @>
+        test <@ ok.Request.RPS <= 10.0 @>
+        test <@ ok.Latency.MinMs <= 103.0 @>
+        test <@ ok.Latency.MeanMs <= 111.0 @>
+        test <@ ok.Latency.MaxMs <= 125.0 @>
+        test <@ ok.DataTransfer.MinBytes = 1000 @>
+        test <@ ok.DataTransfer.AllBytes >= 90_000L && ok.DataTransfer.AllBytes <= 100_000L @>
 
 // [<Fact>]
 // let ``can be duplicated to introduce repeatable behaviour`` () =

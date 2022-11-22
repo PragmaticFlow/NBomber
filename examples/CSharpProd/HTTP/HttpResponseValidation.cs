@@ -6,7 +6,7 @@ namespace CSharpProd.HTTP;
 
 public class JsonResponse
 {
-    public string Fact { get; set; }
+    public string? Fact { get; set; }
     public int Length { get; set; }
 }
 
@@ -29,7 +29,7 @@ public class HttpResponseValidation
 
             // var body = await response.Payload.Value.Content.ReadAsStringAsync();
             var body = await response.Payload.Value.Content.ReadFromJsonAsync<JsonResponse>();
-            if (body.Length > 11111)
+            if (body?.Length > 11111)
                 return Response.Fail(statusCode: "small length", sizeBytes: response.SizeBytes);
 
             return response;

@@ -113,6 +113,10 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
             do! dep.WorkerPlugins |> WorkerPlugins.stop _log
             do! dep.ReportingSinks |> ReportingSinks.stop _log
+
+        if isWarmUp then
+            GC.Collect()
+            do! Task.Delay 1_000
     }
 
     let startInit (consoleStatus: StatusContext option) (sessionArgs: SessionArgs) = taskResult {

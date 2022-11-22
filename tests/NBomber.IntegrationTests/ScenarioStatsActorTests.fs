@@ -8,7 +8,6 @@ open Xunit
 open Swensen.Unquote
 
 open NBomber
-open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal

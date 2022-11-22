@@ -58,4 +58,4 @@ let run (context: NBomberContext) =
         error |> AppError.toString |> Serilog.Log.Error
         error
     )
-    |> fun task -> task.Result
+    |> fun task -> task.GetAwaiter().GetResult()
