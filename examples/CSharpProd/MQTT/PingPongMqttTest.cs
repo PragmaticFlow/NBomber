@@ -6,11 +6,11 @@ using NBomber.CSharp;
 
 namespace CSharpProd.MQTT;
 
-public class SimpleMqttTest
+public class PingPongMqttTest
 {
     public void Run()
     {
-        var scenario = Scenario.Create("mqtt_scenario", async ctx =>
+        var scenario = Scenario.Create("ping_pong_mqtt_scenario", async ctx =>
         {
             using var mqttClient = new MqttFactory().CreateMqttClient();
             var topic = $"/clients/{ctx.ScenarioInfo.ThreadId}";
