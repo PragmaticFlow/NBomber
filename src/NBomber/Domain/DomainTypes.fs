@@ -1,12 +1,7 @@
 module internal NBomber.Domain.DomainTypes
 
 open System
-open System.Collections.Generic
-open System.Threading
 open System.Threading.Tasks
-
-open Serilog
-
 open NBomber.Contracts
 
 type SessionId = string

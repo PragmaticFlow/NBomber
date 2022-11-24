@@ -6,6 +6,7 @@ open System.Runtime.CompilerServices
 open System.Threading.Channels
 open System.Threading.Tasks
 
+open FSharp.Control.Tasks
 open FSharp.UMX
 open Serilog
 
@@ -203,7 +204,7 @@ type ScenarioStatsActor(logger: ILogger,
     let mutable _stop = false
     let _channel = Channel.CreateUnbounded<ActorMessage>()
 
-    let loop () = backgroundTask {
+    let loop () = vtask {
         try
             while not _stop do
                 match! _channel.Reader.ReadAsync() with
