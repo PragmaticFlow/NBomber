@@ -160,7 +160,7 @@ module ScenarioStats =
 
     module GlobalInfo =
 
-        let create (globalInfo: StepStats) (allStepStats: StepStats seq) =
+        let create (globalInfo: StepStats) (allStepStats: StepStats[]) =
 
             let okStatus =
                 allStepStats
@@ -201,12 +201,12 @@ module ScenarioStats =
                (duration: TimeSpan<scenarioDuration>)
                (reportingInterval: TimeSpan) =
 
-        let allStepStats = rawStats |> Seq.map(StepStats.create reportingInterval)
-        let stepStats    = allStepStats |> Seq.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo) |> Seq.toArray
-        let globalInfo   = allStepStats |> Seq.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
+        let allStepStats = rawStats |> Array.map(StepStats.create reportingInterval)
+        let stepStats    = allStepStats |> Array.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo)
+        let globalInfo   = allStepStats |> Array.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
-        let allOkCount = allStepStats |> Seq.sumBy(fun x -> x.Ok.Request.Count)
-        let allFailCount = allStepStats |> Seq.sumBy(fun x -> x.Fail.Request.Count)
+        let allOkCount = allStepStats |> Array.sumBy(fun x -> x.Ok.Request.Count)
+        let allFailCount = allStepStats |> Array.sumBy(fun x -> x.Fail.Request.Count)
         let allReqCount = allOkCount + allFailCount
 
         let struct (ok, fail) =
@@ -218,7 +218,7 @@ module ScenarioStats =
             if globalInfo.IsSome then
                 ok.DataTransfer.AllBytes + fail.DataTransfer.AllBytes
             else
-                allStepStats |> Seq.sumBy(fun x -> x.Ok.DataTransfer.AllBytes + x.Fail.DataTransfer.AllBytes)
+                allStepStats |> Array.sumBy(fun x -> x.Ok.DataTransfer.AllBytes + x.Fail.DataTransfer.AllBytes)
 
         { ScenarioName = scenarioName
           Ok = ok
@@ -245,10 +245,10 @@ module NodeStats =
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
             let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> roundDuration
-            let okCount = scnStats |> Seq.sumBy(fun x -> x.AllOkCount)
-            let failCount = scnStats |> Seq.sumBy(fun x -> x.AllFailCount)
+            let okCount = scnStats |> Array.sumBy(fun x -> x.AllOkCount)
+            let failCount = scnStats |> Array.sumBy(fun x -> x.AllFailCount)
             let requestCount = okCount + failCount
-            let allBytes = scnStats |> Seq.sumBy(fun x -> x.AllBytes)
+            let allBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
 
             { ScenarioStats = scnStats
               PluginStats = Array.empty
