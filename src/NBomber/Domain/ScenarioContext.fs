@@ -32,7 +32,7 @@ type ScenarioContext(scenarioInfo, args: ScenarioContextArgs) =
     member _.StatsActor = _scnActor
     member _.Timer = _timer
 
-    member _.PrepareNextIteration() =
+    member inline _.PrepareNextIteration() =
         _invocationNumber <- _invocationNumber + 1
         _data.Clear()
 

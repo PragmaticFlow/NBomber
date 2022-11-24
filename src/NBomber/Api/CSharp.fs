@@ -14,10 +14,13 @@ open NBomber.Contracts.Internal
 
 type Response =
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member Ok() = ResponseInternal.okEmpty
+
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member Fail() = ResponseInternal.failEmpty<obj>
 
-    static member Ok(
+    static member inline Ok(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -30,7 +33,7 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member Ok<'T>(
+    static member inline Ok<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -43,7 +46,7 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member Ok<'T>(
+    static member inline Ok<'T>(
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -57,7 +60,7 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = Some payload }
 
-    static member Fail(
+    static member inline Fail(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -70,7 +73,7 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member Fail<'T>(
+    static member inline Fail<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -83,7 +86,7 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member Fail<'T>(
+    static member inline Fail<'T>(
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -102,7 +105,7 @@ type Step =
 
     /// Runs a step.
     /// Step represents a single user action like login, logout, etc.
-    static member Run(name: string, context: IScenarioContext, run: Func<Task<Response<'T>>>) =
+    static member inline Run(name: string, context: IScenarioContext, run: Func<Task<Response<'T>>>) =
         FSharp.Step.run(name, context, run.Invoke)
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.

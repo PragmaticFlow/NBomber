@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Runtime
+open System.Runtime.CompilerServices
 open System.Threading.Tasks
 
 open Serilog
@@ -22,10 +23,13 @@ open NBomber.DomainServices
 
 type Response =
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member ok () = ResponseInternal.okEmpty
+
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member fail () = ResponseInternal.failEmpty<obj>
 
-    static member ok<'T>(
+    static member inline ok<'T>(
         ?payload: 'T,
         ?statusCode: string,
         ?sizeBytes: int,
@@ -39,7 +43,7 @@ type Response =
           Message = message |> Option.defaultValue ""
           Payload = payload }
 
-    static member fail<'T>(
+    static member inline fail<'T>(
         ?statusCode: string,
         ?message: string,
         ?payload: 'T,
