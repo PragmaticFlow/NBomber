@@ -23,18 +23,18 @@ let rentActors (createActors: int -> int -> ScenarioActor list) // count -> from
                (actorPool: ScenarioActor list)
                (actorCount: int) =
 
-    let freeActors =
+    let notWorkingActors =
         actorPool
         |> List.filter(fun x -> not x.Working)
         |> List.truncate actorCount
 
-    if freeActors.Length < actorCount then
-        let createCount = actorCount - freeActors.Length
+    if notWorkingActors.Length < actorCount then
+        let createCount = actorCount - notWorkingActors.Length
         let fromIndex = actorPool.Length
         let newActors = createActors createCount fromIndex
-        { ActorsFromPool = freeActors; NewActors = newActors }
+        { ActorsFromPool = notWorkingActors; NewActors = newActors }
     else
-        { ActorsFromPool = freeActors; NewActors = List.empty }
+        { ActorsFromPool = notWorkingActors; NewActors = List.empty }
 
 let stopActors (actorPool: ScenarioActor list) =
     actorPool |> List.iter(fun x -> x.Stop())

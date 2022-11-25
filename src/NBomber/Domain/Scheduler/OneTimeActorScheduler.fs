@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
+module internal NBomber.Domain.Scheduler.OneTimeActorScheduler
 
 open System
 

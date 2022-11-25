@@ -11,7 +11,7 @@ open FsToolkit.ErrorHandling
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.FSharp
 
 let getRandomValue minRate maxRate = 42

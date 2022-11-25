@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+module internal NBomber.Domain.Scheduler.ScenarioScheduler
 
 open System
 open System.Threading.Tasks
@@ -9,8 +9,8 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Concurrency.ScenarioActor
-open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
-open NBomber.Domain.Concurrency.Scheduler.OneTimeActorScheduler
+open NBomber.Domain.Scheduler.ConstantActorScheduler
+open NBomber.Domain.Scheduler.OneTimeActorScheduler
 open NBomber.Domain.ScenarioContext
 
 [<Struct>]

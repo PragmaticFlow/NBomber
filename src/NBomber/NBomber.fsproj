@@ -33,12 +33,12 @@
         <Compile Include="Domain\ScenarioContext.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
+        <Compile Include="Domain\HintsAnalyzer.fs" />
         <Compile Include="Domain\Concurrency\ScenarioActor.fs" />
         <Compile Include="Domain\Concurrency\ScenarioActorPool.fs" />
-        <Compile Include="Domain\Concurrency\Scheduler\ConstantActorScheduler.fs" />
-        <Compile Include="Domain\Concurrency\Scheduler\OneTimeActorScheduler.fs" />
-        <Compile Include="Domain\Concurrency\Scheduler\ScenarioScheduler.fs" />
-        <Compile Include="Domain\HintsAnalyzer.fs" />
+        <Compile Include="Domain\Scheduler\ConstantActorScheduler.fs" />
+        <Compile Include="Domain\Scheduler\OneTimeActorScheduler.fs" />
+        <Compile Include="Domain\Scheduler\ScenarioScheduler.fs" />
         <Compile Include="Infra\Console.fs" />
         <Compile Include="Infra\Dependency.fs" />
         <Compile Include="DomainServices\NBomberContext.fs" />

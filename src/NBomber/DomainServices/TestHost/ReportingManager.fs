@@ -9,7 +9,7 @@ open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.LoadTimeLine
 open NBomber.Domain.Stats.Statistics
-open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency
 
 type IReportingManager =

@@ -21,7 +21,7 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
-open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.Infra.Dependency
 open NBomber.DomainServices

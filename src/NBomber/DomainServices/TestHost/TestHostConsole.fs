@@ -14,7 +14,7 @@ open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Concurrency.Scheduler.ScenarioScheduler
+open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.Infra.Dependency
 

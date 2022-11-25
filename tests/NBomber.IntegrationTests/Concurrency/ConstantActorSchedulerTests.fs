@@ -16,7 +16,7 @@ open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Concurrency
-open NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
+open NBomber.Domain.Scheduler.ConstantActorScheduler
 open NBomber.Extensions.Internal
 
 let internal baseScenario =

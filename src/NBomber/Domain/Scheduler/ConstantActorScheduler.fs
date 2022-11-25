@@ -1,4 +1,4 @@
-module internal NBomber.Domain.Concurrency.Scheduler.ConstantActorScheduler
+module internal NBomber.Domain.Scheduler.ConstantActorScheduler
 
 open System
 
