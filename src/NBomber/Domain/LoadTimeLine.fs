@@ -2,9 +2,8 @@
 module internal NBomber.Domain.LoadTimeLine
 
 open System
-
+open System.Collections.Generic
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -56,12 +55,12 @@ module Validation =
 
 module TimeLineHistory =
 
-    let create (schedulersRealtimeStats: Map<TimeSpan,ScenarioStats> seq) =
+    let create (schedulersRealtimeStats: IReadOnlyDictionary<TimeSpan,ScenarioStats> seq) =
         schedulersRealtimeStats
-        |> Seq.collect(fun stats -> stats |> Map.toList)
-        |> Seq.groupBy(fun (duration, _) -> duration)
-        |> Seq.map(fun (duration, stats) ->
-            let data = stats |> Seq.map snd |> Seq.toArray
+        |> Seq.collect id
+        |> Seq.groupBy(fun x -> x.Key)
+        |> Seq.map(fun (duration, scnStats) ->
+            let data = scnStats |> Seq.map(fun item ->  item.Value) |> Seq.toArray
             { ScenarioStats = data; Duration = duration }
         )
         |> Seq.sortBy(fun x -> x.Duration)

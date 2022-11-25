@@ -10,17 +10,17 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
 
     let _logger = scnCtx.Logger.ForContext<ScenarioActor>()
     let _scenario = scnCtx.Scenario
-    let mutable _actorWorking = false
+    let mutable _working = false
 
     let _scenarioCtx = ScenarioContext(scenarioInfo, scnCtx)
 
     let execSteps (runInfinite: bool) = backgroundTask {
         try
-            if not _actorWorking then
+            if not _working then
                 let mutable shouldRun = true
-                _actorWorking <- true
+                _working <- true
 
-                while shouldRun && _actorWorking
+                while shouldRun && _working
                     && not scnCtx.ScenarioCancellationToken.IsCancellationRequested
                     && _scenario.PlanedDuration.TotalMilliseconds > scnCtx.ScenarioTimer.Elapsed.TotalMilliseconds do
 
@@ -32,13 +32,13 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
             else
                 _logger.Fatal($"Unhandled exception: ExecSteps was invoked for already working actor with Scenario: {0}", _scenario.ScenarioName)
         finally
-            _actorWorking <- false
+            _working <- false
     }
 
     member _.ScenarioStatsActor = scnCtx.ScenarioStatsActor
     member _.ScenarioInfo = scenarioInfo
-    member _.Working = _actorWorking
+    member _.Working = _working
 
     member _.ExecSteps() = execSteps false
     member _.RunInfinite() = execSteps true
-    member _.Stop() = _actorWorking <- false
+    member _.Stop() = _working <- false

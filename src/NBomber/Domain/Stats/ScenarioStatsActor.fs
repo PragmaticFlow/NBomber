@@ -35,7 +35,7 @@ type State = {
     StepsOrder: Dictionary<string, int>
     GlobalInfoDataSize: ResizeArray<int>
 
-    mutable ReportingStatsCache: Map<TimeSpan,ScenarioStats>
+    ReportingStatsCache: Dictionary<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>
     IntervalStepsResults: Dictionary<string,RawMeasurementStats>
     mutable ConsoleScenarioStats: ScenarioStats // need to display on console (we merge absolute request counts)
@@ -63,7 +63,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
       StepsOrder = stepsOrder
       GlobalInfoDataSize = ResizeArray<_>()
 
-      ReportingStatsCache = Map.empty
+      ReportingStatsCache = Dict.empty()
 
       CoordinatorStepsResults = Dict.empty()
       IntervalStepsResults = Dict.empty()
@@ -182,7 +182,7 @@ let mergeConsoleStats (consoleStats: ScenarioStats) (reportingStats: ScenarioSta
     { reportingStats with StepStats = updatedSteps }
 
 let addReportingStats (state: State) (reportingStats: ScenarioStats) =
-    state.ReportingStatsCache <- Map.add reportingStats.Duration reportingStats state.ReportingStatsCache
+    state.ReportingStatsCache[reportingStats.Duration] <- reportingStats
     state.ConsoleScenarioStats <- mergeConsoleStats state.ConsoleScenarioStats reportingStats
 
     // reset reporting interval steps data
@@ -244,7 +244,7 @@ type ScenarioStatsActor(logger: ILogger,
         loop() |> ignore
 
     member _.ScenarioFailCount = _state.ScenarioFailCount
-    member _.AllRealtimeStats = _state.ReportingStatsCache
+    member _.AllRealtimeStats = _state.ReportingStatsCache :> IReadOnlyDictionary<_,_>
     member _.ConsoleScenarioStats = _state.ConsoleScenarioStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

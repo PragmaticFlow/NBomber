@@ -238,7 +238,14 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         createScenarioSchedulers scenarios operation getScenarioClusterCount createStatsActor
 
     member _.GetRealtimeStats(duration) =
-        _currentSchedulers |> List.map(fun x -> x.AllRealtimeStats.TryFind duration) |> Option.sequence
+        _currentSchedulers
+        |> List.map(fun x ->
+            if x.AllRealtimeStats.ContainsKey duration then
+                Some x.AllRealtimeStats[duration]
+            else
+                None
+        )
+        |> Option.sequence
 
     member _.RunSession(sessionArgs: SessionArgs) = taskResult {
         let! initializedScenarios = this.StartInit sessionArgs
