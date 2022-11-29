@@ -20,7 +20,8 @@ type Response =
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member Fail() = ResponseInternal.failEmpty<obj>
 
-    static member inline Ok(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Ok(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -33,7 +34,8 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member inline Ok<'T>(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Ok<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -46,7 +48,8 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member inline Ok<'T>(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Ok<'T>(
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -60,7 +63,8 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = Some payload }
 
-    static member inline Fail(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Fail(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -73,7 +77,8 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member inline Fail<'T>(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Fail<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
@@ -86,7 +91,8 @@ type Response =
           Message = if isNull message then String.Empty else message
           Payload = None }
 
-    static member inline Fail<'T>(
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Fail<'T>(
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
@@ -105,7 +111,8 @@ type Step =
 
     /// Runs a step.
     /// Step represents a single user action like login, logout, etc.
-    static member inline Run(name: string, context: IScenarioContext, run: Func<Task<Response<'T>>>) =
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    static member Run(name: string, context: IScenarioContext, run: Func<Task<Response<'T>>>) =
         FSharp.Step.run(name, context, run.Invoke)
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
@@ -291,8 +298,8 @@ type Simulation =
     /// Injects a given number of scenario copies (threads) with a linear ramp over a given duration.
     /// Every single scenario copy will iterate while the specified duration.
     /// Use it for ramp up and rump down.
-    static member RampConstant(copies: int, during: TimeSpan) =
-        LoadSimulation.RampConstant(copies, during)
+    static member RampingConstant(copies: int, during: TimeSpan) =
+        LoadSimulation.RampingConstant(copies, during)
 
     /// A fixed number of scenario copies (threads) executes as many iterations as possible for a specified amount of time.
     /// Every single scenario copy will iterate while the specified duration.
@@ -302,20 +309,20 @@ type Simulation =
 
     /// Injects a given number of scenario copies (threads) per 1 sec from the current rate to target rate during a given duration.
     /// Every single scenario copy will run only once.
-    static member RampPerSec(rate: int, during: TimeSpan) =
-        LoadSimulation.RampPerSec(rate, during)
+    static member RampingInject(rate: int, interval: TimeSpan, during: TimeSpan) =
+        LoadSimulation.RampingInject(rate, interval, during)
 
     /// Injects a given number of scenario copies (threads) per 1 sec during a given duration.
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a constant rate of requests without being affected by the performance of the system under test.
-    static member InjectPerSec(rate: int, during: TimeSpan) =
-        LoadSimulation.InjectPerSec(rate, during)
+    static member Inject(rate: int, interval: TimeSpan, during: TimeSpan) =
+        LoadSimulation.Inject(rate, interval, during)
 
     /// Injects a random number of scenario copies (threads) per 1 sec during a given duration.
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
-    static member InjectPerSecRandom(minRate:int, maxRate:int, during:TimeSpan) =
-        LoadSimulation.InjectPerSecRandom(minRate, maxRate, during)
+    static member InjectRandom(minRate:int, maxRate:int, interval: TimeSpan, during:TimeSpan) =
+        LoadSimulation.InjectRandom(minRate, maxRate, interval, during)
 
 [<Extension>]
 type OptionExtensions =

@@ -163,7 +163,7 @@ let getMaxDuration (scenarios: Scenario list) =
 let getMaxWarmUpDuration (scenarios: Scenario list) =
     scenarios |> List.choose(fun x -> x.WarmUpDuration) |> List.max
 
-let measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
+let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
     let startTime = ctx.Timer.Elapsed.TotalMilliseconds
     try
         let! response = run ctx

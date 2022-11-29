@@ -63,6 +63,7 @@ type Step =
 
     /// Runs a step.
     /// Step represents a single user action like login, logout, etc.
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member run (name: string, context: IScenarioContext, run: unit -> Task<Response<'T>>) = backgroundTask {
 
         //todo: add validation on name <> Constants.ScenarioGlobalInfo

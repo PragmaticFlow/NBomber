@@ -8,7 +8,7 @@ open NBomber.Contracts.Internal
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats.ScenarioStatsActor
 
-let measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Response<'T>>) = backgroundTask {
+let inline measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Response<'T>>) = backgroundTask {
     let startTime = ctx.Timer.Elapsed.TotalMilliseconds
     try
         let! response = run()
