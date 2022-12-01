@@ -1,18 +1,15 @@
 ﻿module Tests.Scenario.EmptyScenarioTests
 
 open System.Threading.Tasks
-
 open Xunit
 open Swensen.Unquote
-
 open NBomber
+open NBomber.Errors
 open NBomber.FSharp
 open NBomber.Extensions.Internal
-open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
-open NBomber.Domain.DomainTypes
 
 [<Fact>]
 let internal ``check that EmptyScenario should fail if it has no Init and no Clean`` () =
@@ -22,10 +19,9 @@ let internal ``check that EmptyScenario should fail if it has no Init and no Cle
     |> NBomberRunner.runWithResult []
     |> Result.getError
     |> function
-        | Errors.Validation error ->
-
+        | Scenario error ->
             match error with
-            | Errors.EmptyScenarioWithEmptyInitAndClean _ -> ()
+            | EmptyScenarioWithEmptyInitAndClean _ -> ()
             | _ -> failwith "invalid error type"
 
         | _ -> failwith "invalid error type"

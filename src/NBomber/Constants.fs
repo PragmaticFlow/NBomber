@@ -33,21 +33,17 @@ let ScenarioGlobalInfo = "global information"
 
 /// Default timeouts
 
-let DefaultSimulationDuration = TimeSpan.FromMinutes 1.0
-let MinSimulationDuration = TimeSpan.FromSeconds 1.0
-let MaxSimulationDuration = TimeSpan.FromDays 10.0
-let DefaultWarmUpDuration = TimeSpan.FromSeconds 30.0
-let MinReportingInterval = TimeSpan.FromSeconds 5.0
-let DefaultReportingInterval = TimeSpan.FromSeconds 10.0
-let GetPluginStatsTimeout = TimeSpan.FromSeconds 5.0
+let DefaultSimulationDuration = TimeSpan.FromMinutes 1
+let MinSimulationDuration = TimeSpan.FromSeconds 1
+let DefaultWarmUpDuration = TimeSpan.FromSeconds 30
+let MinReportingInterval = TimeSpan.FromSeconds 5
+let DefaultReportingInterval = TimeSpan.FromSeconds 10
+let GetPluginStatsTimeout = TimeSpan.FromSeconds 5
+let DefaultSchedulerTickInterval = TimeSpan.FromSeconds 1
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue
 
-[<Literal>]
-let SchedulerTimerDriftMs = 10.0
-[<Literal>]
-let SchedulerTickIntervalMs = 1_000.0
 [<Literal>]
 let ReportingTimerCompleteMs = 3_000
 [<Literal>]

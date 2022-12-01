@@ -23,24 +23,25 @@ open NBomber.Domain.ScenarioContext
 module Validation =
 
     let checkEmptyScenarioName (scenario: ScenarioProps) =
-        if String.IsNullOrWhiteSpace scenario.ScenarioName then AppError.createResult EmptyScenarioName
+        if String.IsNullOrWhiteSpace scenario.ScenarioName then Error EmptyScenarioName
         else Ok scenario
 
     let checkDuplicateScenarioName (scenarios: ScenarioProps list) =
         let duplicates = scenarios |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
-        if duplicates.Length > 0 then AppError.createResult(DuplicateScenarioName duplicates)
+        if duplicates.Length > 0 then Error (DuplicateScenarioName duplicates)
         else Ok scenarios
 
     let checkInitOnlyScenario (scenario: ScenarioProps) =
         if scenario.Run.IsNone then
             if scenario.Init.IsSome || scenario.Clean.IsSome then Ok scenario
-            else AppError.createResult(EmptyScenarioWithEmptyInitAndClean scenario.ScenarioName)
+            else Error (EmptyScenarioWithEmptyInitAndClean scenario.ScenarioName)
 
         else Ok scenario
 
     let validate =
         checkEmptyScenarioName
         >=> checkInitOnlyScenario
+        >> Result.mapError AppError.create
 
 module ScenarioInitContext =
 
@@ -75,16 +76,16 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioOperation = operation }
 
 let createScenario (scn: ScenarioProps) = result {
-    let! timeline = scn.LoadSimulations |> LoadTimeLine.createWithDuration
+    let! simulationsResult = scn.LoadSimulations |> LoadSimulation.create
     let! scnProps = Validation.validate scn
 
     return { ScenarioName = scnProps.ScenarioName
              Init = scnProps.Init
              Clean = scnProps.Clean
              Run = scnProps.Run
-             LoadTimeLine = timeline.LoadTimeLine
+             LoadSimulations = simulationsResult.LoadSimulations
              WarmUpDuration = scnProps.WarmUpDuration
-             PlanedDuration = timeline.ScenarioDuration
+             PlanedDuration = simulationsResult.ScenarioDuration
              ExecutedDuration = None
              CustomSettings = String.Empty
              IsEnabled = true
@@ -94,11 +95,9 @@ let createScenario (scn: ScenarioProps) = result {
 }
 
 let createScenarios (scenarios: ScenarioProps list) = result {
-
-    let validate =
-        Validation.checkDuplicateScenarioName
-
-    let! vScns = validate scenarios
+    let! vScns =
+        Validation.checkDuplicateScenarioName scenarios
+        |> Result.mapError AppError.create
 
     return! vScns
             |> List.map createScenario
@@ -118,12 +117,12 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
             match settings.LoadSimulationsSettings with
             | Some simulation ->
                 simulation
-                |> LoadTimeLine.createWithDuration
+                |> LoadSimulation.create
                 |> Result.getOk
 
-            | None -> {| LoadTimeLine = scenario.LoadTimeLine; ScenarioDuration = scenario.PlanedDuration |}
+            | None -> {| LoadSimulations = scenario.LoadSimulations; ScenarioDuration = scenario.PlanedDuration |}
 
-        { scenario with LoadTimeLine = timeLine.LoadTimeLine
+        { scenario with LoadSimulations = timeLine.LoadSimulations
                         WarmUpDuration = settings.WarmUpDuration
                         PlanedDuration = timeLine.ScenarioDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
@@ -140,7 +139,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
         |> Option.defaultValue scn
     )
 
-let setExecutedDuration (scenario: Scenario, executedDuration: TimeSpan) =
+let setExecutedDuration (scenario: Scenario) (executedDuration: TimeSpan) =
     if executedDuration < scenario.PlanedDuration then
         { scenario with ExecutedDuration = Some executedDuration }
     else

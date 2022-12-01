@@ -64,19 +64,19 @@ module LoadSimulation =
 
     let print (okColor: obj -> string) (simulation: LoadSimulation) =
 
-        let name = LoadTimeLine.getSimulationName simulation
+        let name = LoadSimulation.getSimulationName simulation
 
         match simulation with
-        | RampConstant (copies, during)
+        | RampingConstant (copies, during)
         | KeepConstant (copies, during) ->
             printLine okColor name ["copies", copies; "during", during]
 
-        | RampPerSec (rate, during)
-        | InjectPerSec (rate, during) ->
-            printLine okColor name ["rate", rate; "during", during]
+        | RampingInject (rate, interval, during)
+        | Inject (rate, interval, during) ->
+            printLine okColor name ["rate", rate; "interval", interval; "during", during]
 
-        | InjectPerSecRandom (minRate, maxRate, during) ->
-            printLine okColor name ["minRate", minRate; "maxRate", maxRate; "during", during]
+        | InjectRandom (minRate, maxRate, interval, during) ->
+            printLine okColor name ["minRate", minRate; "maxRate", maxRate; "interval", interval; "during", during]
 
 module StatusCodesStats =
 

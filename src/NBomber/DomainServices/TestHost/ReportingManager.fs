@@ -7,7 +7,7 @@ open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 open NBomber.Domain
-open NBomber.Domain.LoadTimeLine
+open NBomber.Domain.LoadSimulation
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra.Dependency

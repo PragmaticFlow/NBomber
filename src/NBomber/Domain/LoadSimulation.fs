@@ -1,0 +1,184 @@
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module internal NBomber.Domain.LoadSimulation
+
+open System
+open System.Collections.Generic
+open System.Runtime.CompilerServices
+open FsToolkit.ErrorHandling
+open NBomber
+open NBomber.Contracts
+open NBomber.Contracts.Stats
+open NBomber.Extensions.Internal
+open NBomber.Errors
+open NBomber.Domain.DomainTypes
+
+module Validation =
+
+    let private validateSimulation (simulation: Contracts.LoadSimulation) = result {
+        let checkCopies copies =
+            if copies < 0 then
+                Error (CopiesCountIsNegative simulation)
+            else
+                Ok copies
+
+        let checkRate rate =
+            if rate < 0 then
+                Error (RateIsNegative simulation)
+            else
+                Ok rate
+
+        let checkInterval interval duration =
+            if interval >= duration then
+                Error (IntervalIsBiggerThanDuration simulation)
+            else
+                Ok interval
+
+        let checkDuration duration =
+            if duration < Constants.MinSimulationDuration then
+                Error (DurationIsSmallerThanMin simulation)
+            else
+                Ok duration
+
+        match simulation with
+        | RampingConstant (copies, duration)
+        | KeepConstant (copies, duration) ->
+            let! _ = checkCopies copies
+            let! _ = checkDuration duration
+            return simulation
+
+        | RampingInject (rate, interval, duration)
+        | Inject (rate, interval, duration) ->
+            let! _ = checkRate rate
+            let! _ = checkInterval interval duration
+            let! _ = checkDuration duration
+            return simulation
+
+        | InjectRandom (minRate, maxRate, interval, duration) ->
+            let! _ = checkRate minRate
+            let! _ = checkRate maxRate
+            let! _ = checkInterval interval duration
+            let! _ = checkDuration duration
+            return simulation
+    }
+
+    let private validateOnEmpty (simulations: Contracts.LoadSimulation list) =
+        if List.isEmpty simulations then
+            Error EmptySimulationsList
+        else
+            Ok simulations
+
+    let validate (simulations: Contracts.LoadSimulation list) = result {
+        let _ = validateOnEmpty simulations
+
+        return!
+            simulations
+            |> Seq.map validateSimulation
+            |> Result.sequence
+            |> Result.mapError Seq.head
+    }
+
+let private createSimulation (startTime) (prevCopiesCount) (simulation: Contracts.LoadSimulation) =
+    match simulation with
+    | RampingConstant (copiesCount, duration)
+    | KeepConstant (copiesCount, duration) ->
+        let endTime = startTime + duration
+        { Value = simulation
+          StartTime = startTime
+          EndTime = endTime
+          PrevActorCount = prevCopiesCount }
+
+    | RampingInject (_, _, duration)
+    | Inject (_, _, duration) ->
+        let endTime = startTime + duration
+        { StartTime = startTime
+          EndTime = endTime
+          PrevActorCount = 0
+          Value = simulation }
+
+    | InjectRandom (_, _, _, duration) ->
+        let endTime = startTime + duration
+        { StartTime = startTime
+          EndTime = endTime
+          PrevActorCount = 0
+          Value = simulation }
+
+let create (simulations: Contracts.LoadSimulation list) =
+
+    let getConstantCopiesCount simulation =
+        match simulation with
+        | RampingConstant (copies, _)
+        | KeepConstant (copies, _) -> copies
+        | _ -> 0
+
+    result {
+        let! all = Validation.validate simulations
+
+        let initState = createSimulation TimeSpan.Zero 0 (KeepConstant(0, TimeSpan.FromSeconds 0))
+
+        let simulations =
+            all
+            |> List.scan(fun prevState sim ->
+                let prevCopiesCount = getConstantCopiesCount prevState.Value
+                createSimulation prevState.EndTime prevCopiesCount sim) initState
+
+            |> List.filter(fun x -> x.EndTime > TimeSpan.Zero)
+
+        let endSegment = simulations |> List.last
+        return {| LoadSimulations = simulations; ScenarioDuration = endSegment.EndTime |}
+    }
+    |> Result.mapError AppError.create
+
+let inline getSimulationInterval simulation =
+    match simulation with
+    | RampingConstant (copies, during)      -> struct (Constants.DefaultSchedulerTickInterval, during)
+    | KeepConstant (copies, during)         -> struct (Constants.DefaultSchedulerTickInterval, during)
+    | RampingInject (_, interval, during)   -> struct (interval, during)
+    | Inject (rate, interval, during)       -> struct (interval, during)
+    | InjectRandom (_, _, interval, during) -> struct (interval, during)
+
+let inline getSimulationName simulation =
+    match simulation with
+    | RampingConstant _ -> "ramping_constant"
+    | KeepConstant _    -> "keep_constant"
+    | RampingInject _   -> "ramping_inject"
+    | Inject _          -> "inject"
+    | InjectRandom _    -> "inject_random"
+
+[<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+let calcTimeProgress (currentTime: TimeSpan) (duration: TimeSpan) =
+    let result = currentTime.TotalMilliseconds / duration.TotalMilliseconds * 100.0
+    let progress = int(Math.Round(result, 0, MidpointRounding.AwayFromZero))
+    // correction
+    if progress > 100 then 100
+    else progress
+
+let inline createSimulationStats simulation constantActorCount onetimeActorCount =
+    let value =
+        match simulation with
+        | RampingConstant _ -> constantActorCount
+        | KeepConstant _    -> constantActorCount
+        | RampingInject _   -> onetimeActorCount
+        | Inject _          -> onetimeActorCount
+        | InjectRandom _    -> onetimeActorCount
+
+    { SimulationName = getSimulationName simulation; Value = value }
+
+module TimeLineHistory =
+
+    let create (schedulersRealtimeStats: IReadOnlyDictionary<TimeSpan,ScenarioStats> seq) =
+        schedulersRealtimeStats
+        |> Seq.collect id
+        |> Seq.groupBy(fun x -> x.Key)
+        |> Seq.map(fun (duration, scnStats) ->
+            let data = scnStats |> Seq.map(fun item ->  item.Value) |> Seq.toArray
+            { ScenarioStats = data; Duration = duration }
+        )
+        |> Seq.sortBy(fun x -> x.Duration)
+        |> Seq.toArray
+
+module TimeLineHistoryRecord =
+
+    let create (scnStats: ScenarioStats[]) = {
+        Duration = scnStats[0].Duration
+        ScenarioStats = scnStats
+    }

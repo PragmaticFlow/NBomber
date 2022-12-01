@@ -1,13 +1,9 @@
 module Tests.Concurrency.ScenarioScheduler
 
 open System
-
 open Swensen.Unquote
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open FsToolkit.ErrorHandling
-
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain.DomainTypes
@@ -25,197 +21,125 @@ let getRandomValue minRate maxRate = 42
 [<InlineData(1_000, 100, 99, 109)>]  // ramp-down
 [<InlineData(1_000, 100, 100, 100)>] // ramp-down
 [<InlineData(1_000, 100, 2, 982)>]   // ramp-down
-let ``schedule should correctly handle ramp-up or ramp-down for RampScenariosPerSec``
-    (prevSegmentCopiesCount: int, copiesCount: int, timeProgress: int, result: int) =
+[<InlineData(1_000, 0, 100, 0)>]   // ramp-down
+let ``schedule should correctly handle ramp-up or ramp-down for RampingInject``
+    (prevCopiesCount: int, rate: int, timeProgress: int, result: int) =
 
     let constWorkingActorCount = 0
 
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = prevSegmentCopiesCount
-        LoadSimulation = RampPerSec(copiesCount, TimeSpan.MinValue)
+    let simulation = {
+        Value = RampingInject(rate, TimeSpan.Zero, TimeSpan.Zero)
+        StartTime = TimeSpan.Zero
+        EndTime = TimeSpan.Zero
+        PrevActorCount = prevCopiesCount
     }
 
-    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
-    | InjectOneTimeActors count -> test <@ count = result @>
-    | _                         -> failwith "invalid command"
+    let struct (command, copiesCount) =
+        schedule getRandomValue simulation timeProgress constWorkingActorCount
+
+    match command with
+    | SchedulerCommand.InjectOneTimeActors -> test <@ copiesCount = result @>
+    | _                                    -> failwith "invalid command"
+
+[<Theory>]
+[<InlineData(100, 200, 50, 200)>] // inject
+[<InlineData(0, 100, 99, 100)>]   // inject
+[<InlineData(70, 100, 1, 100)>]   // inject
+[<InlineData(70, 0, 100, 0)>]     // inject
+let ``schedule should correctly handle Inject``
+    (prevCopiesCount: int, rate: int, timeProgress: int, result: int) =
+
+    let constWorkingActorCount = 0
+
+    let simulation = {
+        Value = Inject(rate, TimeSpan.Zero, TimeSpan.Zero)
+        StartTime = TimeSpan.Zero
+        EndTime = TimeSpan.Zero
+        PrevActorCount = prevCopiesCount
+    }
+
+    let struct (command, copiesCount) =
+        schedule getRandomValue simulation timeProgress constWorkingActorCount
+
+    match command with
+    | SchedulerCommand.InjectOneTimeActors -> test <@ copiesCount = result @>
+    | _                                    -> failwith "invalid command"
 
 [<Theory>]
 [<InlineData(0, 20, 0, 3, 1)>]       // ramp-up
 [<InlineData(0, 100, 50, 51, 1)>]    // ramp-up
 [<InlineData(100, 200, 130, 31, 1)>] // ramp-up
 [<InlineData(0, 100, 90, 95, 5)>]    // ramp-up
-let ``schedule should correctly handle ramp-up for RampConcurrentScenarios``
-    (prevSegmentCopiesCount: int, copiesCount: int, constWorkingActorCount: int, timeProgress: int, result: int) =
+let ``schedule should correctly handle ramp-up for RampingConstant``
+    (prevCopiesCount: int, copiesCount: int, currentWorkingActorCount: int, timeProgress: int, result: int) =
 
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = prevSegmentCopiesCount
-        LoadSimulation = RampConstant(copiesCount, TimeSpan.MinValue)
+    let simulation = {
+        Value = RampingConstant(copiesCount, TimeSpan.Zero)
+        StartTime = TimeSpan.Zero
+        EndTime = TimeSpan.Zero
+        PrevActorCount = prevCopiesCount
     }
 
-    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
-    | AddConstantActors count -> test <@ count = result @>
-    | _                       -> failwith "invalid command"
+    let struct (command, copiesCount) =
+        schedule getRandomValue simulation timeProgress currentWorkingActorCount
+
+    match command with
+    | SchedulerCommand.AddConstantActors -> test <@ copiesCount = result @>
+    | _                                  -> failwith "invalid command"
 
 [<Theory>]
 [<InlineData(100, 0, 50, 51, 1)>]    // ramp-down
 [<InlineData(200, 100, 170, 31, 1)>] // ramp-down
 [<InlineData(100, 0, 10, 95, 5)>]    // ramp-down
-let ``schedule should correctly handle ramp-down for RampConcurrentScenarios``
-    (prevSegmentCopiesCount: int, copiesCount: int, constWorkingActorCount: int, timeProgress: int, result: int) =
+let ``schedule should correctly handle ramp-down for RampingConstant``
+    (prevCopiesCount: int, copiesCount: int, currentWorkingActorCount: int, timeProgress: int, result: int) =
 
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = prevSegmentCopiesCount
-        LoadSimulation = RampConstant(copiesCount, TimeSpan.MinValue)
+    let simulation = {
+        Value = RampingConstant(copiesCount, TimeSpan.Zero)
+        StartTime = TimeSpan.Zero
+        EndTime = TimeSpan.Zero
+        PrevActorCount = prevCopiesCount
     }
 
-    match (schedule getRandomValue timeSegment timeProgress constWorkingActorCount).Head with
-    | RemoveConstantActors count -> test <@ count = result @>
-    | _                          -> failwith "invalid command"
+    let struct (command, copiesCount) =
+        schedule getRandomValue simulation timeProgress currentWorkingActorCount
 
-[<Property>]
-let ``schedule should correctly handle KeepConcurrentScenarios``
-    (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
+    match command with
+    | SchedulerCommand.RemoveConstantActors -> test <@ copiesCount = result @>
+    | _                                     -> failwith "invalid command"
 
-    // condition
-    copiesCount > 0u ==> lazy
+[<Theory>]
+[<InlineData(0, 20, 0, 1, 20)>]   // keep-constant add actors
+[<InlineData(0, 20, 0, 8, 20)>]   // keep-constant add actors
+[<InlineData(20, 20, 20, 1, 0)>]  // do nothing
+[<InlineData(20, 10, 20, 1, 10)>] // keep-constant remove actors
+let ``schedule should correctly handle KeepConstant``
+    (prevCopiesCount: int, copiesCount: int, currentWorkingActorCount: int, timeProgress: int, result: int) =
 
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = int prevSegmentCopiesCount
-        LoadSimulation = KeepConstant(int copiesCount, TimeSpan.MinValue)
+    let simulation = {
+        Value = KeepConstant(copiesCount, TimeSpan.Zero)
+        StartTime = TimeSpan.Zero
+        EndTime = TimeSpan.Zero
+        PrevActorCount = prevCopiesCount
     }
 
-    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
-    commands
-    |> List.iter(function
-        | AddConstantActors scheduled    -> test <@ scheduled <> 0 @>
-                                            test <@ scheduled + int constWorkingActorCount = int copiesCount @>
+    let struct (command, copiesCount) =
+        schedule getRandomValue simulation timeProgress currentWorkingActorCount
 
-        | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
-                                            test <@ int constWorkingActorCount - scheduled = int copiesCount @>
-
-        | DoNothing                      -> test <@ copiesCount = constWorkingActorCount @>
-
-        | _ -> failwith "invalid command"
-    )
-
-    test <@ commands.Length = 1 @>
-
-[<Property>]
-let ``schedule should correctly handle InjectScenariosPerSec``
-    (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
-
-    // condition
-    copiesCount > 0u ==> lazy
-
-    let commandCount = ref 1 // for some reason F# doesn't compile mutable commandCount with FsCheck(==> lazy)
-
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = int prevSegmentCopiesCount
-        LoadSimulation = InjectPerSec(int copiesCount, TimeSpan.MinValue)
-    }
-
-    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
-    commands
-    |> List.iter(function
-        | InjectOneTimeActors scheduled  -> test <@ scheduled <> 0 @>
-
-        | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
-                                            commandCount := 2
-
-        | _ -> failwith "invalid command"
-    )
-
-    test <@ commands.Length = commandCount.Value @>
-
-[<Property>]
-let ``schedule should correctly handle InjectScenariosPerSecRandom``
-    (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
-
-    // condition
-    copiesCount > 0u ==> lazy
-
-    let commandCount = ref 1 // for some reason F# doesn't compile mutable commandCount with FsCheck(==> lazy)
-
-    let getRandomValue minRate maxRate =
-        Random().Next(minRate, maxRate)
-
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = int prevSegmentCopiesCount
-        LoadSimulation = InjectPerSecRandom(5, 10, TimeSpan.MinValue)
-    }
-
-    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
-    commands
-    |> List.iter(function
-        | InjectOneTimeActors scheduled  -> test <@ scheduled >= 5 && scheduled <= 10 @>
-
-        | RemoveConstantActors scheduled -> test <@ scheduled <> 0 @>
-                                            commandCount := 2
-
-        | _ -> failwith "invalid command"
-    )
-
-    test <@ commands.Length = commandCount.Value @>
-
-[<Property>]
-let ``schedule should correctly handle RampScenariosPerSec``
-    (prevSegmentCopiesCount: uint32, copiesCount: uint32, constWorkingActorCount: uint32, timeProgress: uint32) =
-
-    // condition
-    (copiesCount > 5u && timeProgress > 10u && timeProgress <= 100u) ==> lazy
-
-    let commandCount = ref 1 // for some reason F# doesn't compile mutable commandCount with FsCheck(==> lazy)
-
-    let timeSegment = {
-        StartTime = TimeSpan.MinValue
-        EndTime = TimeSpan.MinValue
-        Duration = TimeSpan.MinValue
-        PrevSegmentCopiesCount = int prevSegmentCopiesCount
-        LoadSimulation = RampPerSec(int copiesCount, TimeSpan.MinValue)
-    }
-
-    let commands = schedule getRandomValue timeSegment (int timeProgress) (int constWorkingActorCount)
-    commands
-    |> List.iter(function
-        | InjectOneTimeActors scheduled  ->
-            test <@ scheduled <> 0 @>
-
-        | RemoveConstantActors scheduled ->
-            test <@ scheduled <> 0 @>
-            commandCount := 2
-
-        | _ -> failwith "invalid command"
-    )
-
-    test <@ commands.Length = commandCount.Value @>
+    match command with
+    | SchedulerCommand.AddConstantActors    -> test <@ copiesCount = result @>
+    | SchedulerCommand.DoNothing            -> test <@ copiesCount = 0 @>
+    | SchedulerCommand.RemoveConstantActors -> test <@ copiesCount = result @>
+    | _                                     -> failwith "invalid command"
 
 [<Fact>]
 [<Trait("CI", "disable")>]
-let ``should run InjectOneTimeActors correctly`` () =
-
+let ``should run Inject correctly`` () =
     Scenario.create("hello_world_scenario", fun ctx -> task {
         return Response.ok()
     })
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [InjectPerSec(rate = 1, during = seconds 20)]
+    |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 20)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
@@ -223,5 +147,5 @@ let ``should run InjectOneTimeActors correctly`` () =
         let reqCount = nodeStats.ScenarioStats[0].Ok.Request.Count
         test <@ reqCount >= 20 && reqCount <= 21 @>
     )
-    |> Result.mapError(failwith)
+    |> Result.mapError failwith
     |> ignore

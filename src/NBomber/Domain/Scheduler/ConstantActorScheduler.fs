@@ -1,7 +1,6 @@
 module internal NBomber.Domain.Scheduler.ConstantActorScheduler
 
 open System
-
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.ScenarioContext

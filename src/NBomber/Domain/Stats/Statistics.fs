@@ -179,8 +179,8 @@ module ScenarioStats =
 
     let empty (scenario: Scenario) =
 
-        let simulation = scenario.LoadTimeLine.Head.LoadSimulation
-        let simulationStats = LoadTimeLine.createSimulationStats(simulation, 0, 0)
+        let simulation = scenario.LoadSimulations.Head.Value
+        let simulationStats = LoadSimulation.createSimulationStats simulation 0 0
 
         { ScenarioName = scenario.ScenarioName
           Ok = MeasurementStats.empty

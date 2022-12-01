@@ -9,10 +9,10 @@
           "WarmUpDuration": "00:00:02",
 
           "LoadSimulationsSettings": [
-              { "RampConstant": [2, "00:00:02"] },
+              { "RampingConstant": [2, "00:00:02"] },
               { "KeepConstant": [2, "00:00:02"] },
-              { "RampPerSec": [2, "00:00:02"] },
-              { "InjectPerSec": [2, "00:00:02"] }
+              { "RampingInject": [2, "00:00:01", "00:00:02"] },
+              { "Inject": [2, "00:00:01", "00:00:02"] }
           ],
 
           "ClientFactorySettings": [

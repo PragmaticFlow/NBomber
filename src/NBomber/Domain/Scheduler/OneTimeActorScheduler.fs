@@ -1,7 +1,6 @@
 module internal NBomber.Domain.Scheduler.OneTimeActorScheduler
 
 open System
-
 open NBomber.Domain.Concurrency
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.ScenarioContext
@@ -44,7 +43,6 @@ let exec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (schedule
 
 type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
-    let _lockObj = obj()
     let mutable _actorPool = List.empty<ScenarioActor>
     let mutable _scheduledActorCount = 0
 
@@ -54,10 +52,8 @@ type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     member _.AvailableActors = _actorPool
 
     member _.InjectActors(count) =
-        lock _lockObj (fun _ ->
-            _scheduledActorCount <- count
-            _actorPool <- exec scnCtx _actorPool _scheduledActorCount
-        )
+        _scheduledActorCount <- count
+        _actorPool <- exec scnCtx _actorPool _scheduledActorCount
 
     member _.Stop() = stop()
 

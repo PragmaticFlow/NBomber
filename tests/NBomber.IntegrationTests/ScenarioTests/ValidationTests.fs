@@ -1,16 +1,12 @@
 ﻿module Tests.Scenario.ValidationTests
 
-open System.Threading.Tasks
-
 open Xunit
 open Swensen.Unquote
-
 open NBomber
 open NBomber.FSharp
 open NBomber.Extensions.Internal
 open NBomber.Configuration
 open NBomber.Contracts
-open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
@@ -34,7 +30,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
 
     let originalScenarios =
         [Scenario.create(scnName2, fun ctx -> task { return Response.ok() })
-        |> Scenario.withLoadSimulations [RampConstant(500, duration2)] ]
+        |> Scenario.withLoadSimulations [RampingConstant(500, duration2)] ]
         |> Scenario.createScenarios
         |> Result.getOk
 
@@ -57,7 +53,7 @@ let ``applyScenariosSettings() should skip applying settings when scenario name 
     let settings = {
         ScenarioName = scnName1
         WarmUpDuration = Some warmUp1
-        LoadSimulationsSettings = Some [LoadSimulation.RampConstant(5, duration1)]
+        LoadSimulationsSettings = Some [LoadSimulation.RampingConstant(5, duration1)]
         CustomSettings = None
         MaxFailCount = Some Constants.ScenarioMaxFailCount
     }

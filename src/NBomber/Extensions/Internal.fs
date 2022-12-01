@@ -68,7 +68,7 @@ module internal Internal =
         let getOk (result) =
             match result with
             | Ok v    -> v
-            | Error _ -> failwith "result is error"
+            | Error e -> failwith "result is error"
 
         let getError (result) =
             match result with
