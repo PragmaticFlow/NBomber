@@ -1,13 +1,9 @@
 ﻿module Tests.Scenario.InitCleanStopTests
 
 open System.Threading.Tasks
-
-open Serilog
-open Serilog.Sinks.InMemory
 open Swensen.Unquote
 open Xunit
 open Microsoft.Extensions.Configuration
-
 open NBomber
 open NBomber.FSharp
 open NBomber.Extensions.Internal
@@ -196,7 +192,7 @@ let ``withMaxFailCount should configure MaxFailCount`` () =
             return Response.fail()
         })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [InjectPerSec(1, duration)]
+        |> Scenario.withLoadSimulations [Inject(1, seconds 1, duration)]
         |> Scenario.withMaxFailCount maxFailCount
 
     NBomberRunner.registerScenarios [scenario1]
@@ -205,7 +201,7 @@ let ``withMaxFailCount should configure MaxFailCount`` () =
     |> Result.getOk
     |> fun stats ->
         test <@ stats.ScenarioStats[0].Fail.Request.Count <> Constants.ScenarioMaxFailCount @>
-        test <@ stats.ScenarioStats[0].Fail.Request.Count = 2 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count = 1 @>
 
 [<Fact>]
 let ``MaxFailCount should be tracked only for scenarios failures, not steps failures`` () =

@@ -93,16 +93,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             reportingManager.Value.Start()
 
         // waiting on all scenarios to finish
-        let schedulersArray = schedulers |> List.toArray
-        use schedulerTimer = new System.Timers.Timer(Constants.SchedulerTickIntervalMs)
-        schedulerTimer.Elapsed.Add(fun _ ->
-            schedulersArray |> Array.Parallel.iter(fun x -> x.ExecScheduler())
-        )
-
-        schedulerTimer.Start()
         do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
         consoleCancelToken.Cancel()
-        schedulerTimer.Stop()
 
         if not isWarmUp then
             // wait on final metrics and reporting tick

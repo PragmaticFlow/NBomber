@@ -12,6 +12,7 @@
         <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
         <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
@@ -26,7 +27,7 @@
         <Compile Include="Extensions\Internal.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
-        <Compile Include="Domain\LoadTimeLine.fs" />
+        <Compile Include="Domain\LoadSimulation.fs" />
         <Compile Include="Domain\Stats\RawMeasurementStats.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
@@ -69,7 +70,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta10]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta11]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FSharp.UMX" Version="1.1.0" />
@@ -80,8 +81,8 @@
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
-        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />        
-        <PackageReference Update="FSharp.Core" Version="7.0.0" />        
+        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />
+        <PackageReference Update="FSharp.Core" Version="7.0.0" />
         <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>

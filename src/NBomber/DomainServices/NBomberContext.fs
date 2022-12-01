@@ -20,7 +20,7 @@ module Validation =
 
         if List.isEmpty allScenarios then Error EmptyRegisterScenarios
         elif List.isEmpty notFoundScenarios then Ok targetScenarios
-        else Error <| TargetScenariosNotFound(notFoundScenarios, allScenarios)
+        else Error (TargetScenariosNotFound(notFoundScenarios, allScenarios))
 
     let checkReportName (name) =
         if String.IsNullOrWhiteSpace(name) then Error EmptyReportName
@@ -38,7 +38,7 @@ module Validation =
 
     let checkDuplicateScenarioSettings (settings: ScenarioSetting list) =
         let duplicates = settings |> Seq.map(fun x -> x.ScenarioName) |> String.filterDuplicates |> Seq.toList
-        if duplicates.Length > 0 then Error(DuplicateScenarioNamesInConfig duplicates)
+        if duplicates.Length > 0 then Error (DuplicateScenarioNamesInConfig duplicates)
         else Ok settings
 
 let getTestSuite (context: NBomberContext) =
@@ -152,12 +152,12 @@ let getUseHintsAnalyzer (context: NBomberContext) =
 
 let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list) (context: NBomberContext) =
     result {
-        let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets context.RegisteredScenarios
-        let! reportName        = context |> getReportFileNameOrDefault DateTime.UtcNow |> Validation.checkReportName
-        let! reportFolder      = context |> getReportFolderOrDefault testInfo.SessionId |> Validation.checkReportFolder
+        let! targetScenarios   = context |> getTargetScenarios |> Validation.checkAvailableTargets(context.RegisteredScenarios) |> Result.mapError(AppError.create)
+        let! reportName        = context |> getReportFileNameOrDefault(DateTime.UtcNow) |> Validation.checkReportName |> Result.mapError(AppError.create)
+        let! reportFolder      = context |> getReportFolderOrDefault(testInfo.SessionId) |> Validation.checkReportFolder |> Result.mapError(AppError.create)
         let reportFormats      = context |> getReportFormats
-        let! reportingInterval = context |> getReportingInterval
-        let! scenariosSettings  = context |> getScenariosSettings scenarios
+        let! reportingInterval = context |> getReportingInterval |> Result.mapError(AppError.create)
+        let! scenariosSettings  = context |> getScenariosSettings(scenarios) |> Result.mapError(AppError.create)
         let enableHintsAnalyzer = context |> getEnableHintAnalyzer
 
         let nbConfig = {
@@ -176,7 +176,6 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
 
         return { TestInfo = testInfo; NBomberConfig = nbConfig }
     }
-    |> Result.mapError AppError.create
 
 let createScenarios (context: NBomberContext) =
     context.RegisteredScenarios |> Scenario.createScenarios

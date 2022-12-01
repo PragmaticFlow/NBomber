@@ -24,7 +24,7 @@ type ReportsContent = {
 
 let getLoadSimulations (scenarios: Scenario list) =
     scenarios
-    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadTimeLine |> List.map(fun x -> x.LoadSimulation))
+    |> Seq.map(fun scn -> scn.ScenarioName, scn.LoadSimulations |> List.map(fun x -> x.Value))
     |> dict
 
 let appendGlobalInfoStep (sessionResult: NodeSessionResult) =

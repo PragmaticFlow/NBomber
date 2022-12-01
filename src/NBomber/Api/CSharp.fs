@@ -307,18 +307,18 @@ type Simulation =
     static member KeepConstant(copies: int, during: TimeSpan) =
         LoadSimulation.KeepConstant(copies, during)
 
-    /// Injects a given number of scenario copies (threads) per 1 sec from the current rate to target rate during a given duration.
+    /// Injects a given number of scenario copies (threads) from the current rate to the target rate during a given duration.
     /// Every single scenario copy will run only once.
     static member RampingInject(rate: int, interval: TimeSpan, during: TimeSpan) =
         LoadSimulation.RampingInject(rate, interval, during)
 
-    /// Injects a given number of scenario copies (threads) per 1 sec during a given duration.
+    /// Injects a given number of scenario copies (threads) during a given duration.
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a constant rate of requests without being affected by the performance of the system under test.
     static member Inject(rate: int, interval: TimeSpan, during: TimeSpan) =
         LoadSimulation.Inject(rate, interval, during)
 
-    /// Injects a random number of scenario copies (threads) per 1 sec during a given duration.
+    /// Injects a random number of scenario copies (threads) during a given duration.
     /// Every single scenario copy will run only once.
     /// Use it when you want to maintain a random rate of requests without being affected by the performance of the system under test.
     static member InjectRandom(minRate:int, maxRate:int, interval: TimeSpan, during:TimeSpan) =

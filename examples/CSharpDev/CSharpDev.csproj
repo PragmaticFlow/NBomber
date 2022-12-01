@@ -9,11 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
+        <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MQTTnet" Version="3.1.2" />
+        <PackageReference Include="Ply" Version="0.3.1"/>
     </ItemGroup>
 
 </Project>

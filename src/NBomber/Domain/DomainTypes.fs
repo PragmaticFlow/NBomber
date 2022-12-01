@@ -2,6 +2,7 @@ module internal NBomber.Domain.DomainTypes
 
 open System
 open System.Threading.Tasks
+open NBomber
 open NBomber.Contracts
 
 type SessionId = string
@@ -12,22 +13,19 @@ type StopCommand =
     | StopScenario of scenarioName:string * reason:string
     | StopTest of reason:string
 
-type LoadTimeSegment = {
+type LoadSimulation = {
+    Value: Contracts.LoadSimulation
     StartTime: TimeSpan
     EndTime: TimeSpan
-    Duration: TimeSpan
-    PrevSegmentCopiesCount: int
-    LoadSimulation: LoadSimulation
+    PrevActorCount: int
 }
-
-type LoadTimeLine = LoadTimeSegment list
 
 type Scenario = {
     ScenarioName: string
     Init: (IScenarioInitContext -> Task) option
     Clean: (IScenarioInitContext -> Task) option
     Run: (IScenarioContext -> Task<IResponse>) option
-    LoadTimeLine: LoadTimeLine
+    LoadSimulations: LoadSimulation list
     WarmUpDuration: TimeSpan option
     PlanedDuration: TimeSpan
     ExecutedDuration: TimeSpan option

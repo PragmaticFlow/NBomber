@@ -33,7 +33,7 @@
         <Compile Include="ScenarioStatsActorTests.fs" />
         <Compile Include="StatisticsTests.fs" />
         <Compile Include="ConfigurationTests.fs" />
-        <Compile Include="LoadTimeLineTests.fs" />
+        <Compile Include="LoadSimulationTests.fs" />
         <Compile Include="Concurrency\ConstantActorSchedulerTests.fs" />
         <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />
         <Compile Include="Concurrency\ScenarioSchedulerTests.fs" />
@@ -55,7 +55,6 @@
         <Compile Include="ScenarioTests\ValidationTests.fs" />
         <Compile Include="ScenarioTests\WarmUpTests.fs" />
         <Compile Include="ScenarioTests\InitCleanStopTests.fs" />
-        <Compile Include="ScenarioTests\TestHostScenarioTests.fs" />
         <Compile Include="ScenarioTests\EmptyScenarioTests.fs" />
         <Compile Include="StepTests\BasicStepTests.fs" />
     </ItemGroup>

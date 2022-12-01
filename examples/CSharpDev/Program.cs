@@ -22,7 +22,7 @@ var scenario = Scenario.Create("hello_world_scenario", async context =>
 })
 .WithoutWarmUp()
 .WithLoadSimulations(
-    Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(10))
+    Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(15))
 );
 
 NBomberRunner
