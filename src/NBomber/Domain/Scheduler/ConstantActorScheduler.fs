@@ -12,38 +12,41 @@ type SchedulerCommand =
     | RemoveActor of removeCount:int
     | StopScheduler
 
-// scnCtx * actorPool * scheduledActorCount
-type SchedulerExec = ScenarioContextArgs -> ScenarioActor list -> int -> ScenarioActor list
+/// (createActors: count -> fromIndex -> ScenarioActor[]) * actorPool * scheduledActorCount
+type SchedulerExec = (int -> int -> ScenarioActor[]) -> ResizeArray<ScenarioActor> -> int -> ResizeArray<ScenarioActor>
 
-let removeFromScheduler scheduledActorsCount removeCount =
+let inline removeFromScheduler scheduledActorsCount removeCount =
     let actorsCount = scheduledActorsCount - removeCount
     if actorsCount < 0 then 0
     else actorsCount
 
 // todo: add tests
-let schedule workingActorCount scheduledActorCount =
+let inline schedule workingActorCount scheduledActorCount =
     if scheduledActorCount = 0 then StopScheduler
     elif workingActorCount = scheduledActorCount then KeepWorking
     elif workingActorCount < scheduledActorCount then AddActors(scheduledActorCount - workingActorCount)
     else RemoveActor(workingActorCount - scheduledActorCount)
 
-let exec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (scheduledActorCount: int) =
+let inline exec
+    (createActors: int -> int -> ScenarioActor[])
+    (actorPool: ResizeArray<ScenarioActor>)
+    (scheduledActorCount: int) =
+
     let workingActors = ScenarioActorPool.getWorkingActors actorPool
-    match schedule workingActors.Length scheduledActorCount with
+    match schedule (Seq.length workingActors) scheduledActorCount with
     | KeepWorking ->
         actorPool
 
     | AddActors count ->
-        let result = ScenarioActorPool.rentActors (ScenarioActorPool.createActors scnCtx) actorPool count
-        let newActorPool = ScenarioActorPool.updatePool actorPool result.NewActors
-        result.ActorsFromPool |> List.iter(fun x -> x.RunInfinite() |> ignore)
-        result.NewActors|> List.iter(fun x -> x.RunInfinite() |> ignore)
-        newActorPool
+        let result = ScenarioActorPool.rentActors createActors actorPool count
+        result.ActorsFromPool |> Array.iter(fun x -> x.RunInfinite() |> ignore)
+        result.NewActors |> Array.iter(fun x -> x.RunInfinite() |> ignore)
+        ScenarioActorPool.updatePool actorPool result.NewActors
 
     | RemoveActor count ->
         workingActors
-        |> List.take count
-        |> List.iter(fun x -> x.Stop())
+        |> Seq.take count
+        |> Seq.iter(fun x -> x.Stop())
         actorPool
 
     | StopScheduler ->
@@ -52,8 +55,9 @@ let exec (scnCtx: ScenarioContextArgs) (actorPool: ScenarioActor list) (schedule
 
 type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
-    let mutable _actorPool = List.empty<ScenarioActor>
+    let mutable _actorPool = ResizeArray<ScenarioActor>()
     let mutable _scheduledActorCount = 0
+    let createActors = ScenarioActorPool.createActors scnCtx
 
     let stop () = ScenarioActorPool.stopActors _actorPool
 
@@ -62,13 +66,17 @@ type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
     member _.AddActors(count) =
         _scheduledActorCount <- _scheduledActorCount + count
-        _actorPool <- exec scnCtx _actorPool _scheduledActorCount
+        _actorPool <- exec createActors _actorPool _scheduledActorCount
 
     member _.RemoveActors(count) =
         _scheduledActorCount <- removeFromScheduler _scheduledActorCount count
-        _actorPool <- exec scnCtx _actorPool _scheduledActorCount
+        _actorPool <- exec createActors _actorPool _scheduledActorCount
 
     member _.Stop() = stop()
 
     interface IDisposable with
         member _.Dispose() = stop()
+
+module Test =
+
+    let exec createActors actorPool scheduledActorCount = exec createActors actorPool scheduledActorCount

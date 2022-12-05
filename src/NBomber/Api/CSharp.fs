@@ -324,6 +324,10 @@ type Simulation =
     static member InjectRandom(minRate:int, maxRate:int, interval: TimeSpan, during:TimeSpan) =
         LoadSimulation.InjectRandom(minRate, maxRate, interval, during)
 
+    /// Pause for a given duration
+    static member Pause(during:TimeSpan) =
+        LoadSimulation.Pause during
+
 [<Extension>]
 type OptionExtensions =
 

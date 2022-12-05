@@ -10,7 +10,7 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 [<Fact>]
-let ``create should correctly calculate and order time within timeline`` () =
+let ``create should correctly calculate and order simulation within timeline`` () =
     result {
         let simulations = [
             RampingConstant(10, seconds 20)
@@ -19,22 +19,18 @@ let ``create should correctly calculate and order time within timeline`` () =
             KeepConstant(1000, seconds 80)
         ]
 
-        let! result = LoadSimulation.create simulations
+        let! loadSimulations = LoadSimulation.create simulations
+        let planedDuration = LoadSimulation.getPlanedDuration loadSimulations
 
-        let first =
-            result.LoadSimulations
-            |> List.head
+        let first = loadSimulations |> List.head
+        let last = loadSimulations |> List.last
 
-        let last =
-            result.LoadSimulations
-            |> List.last
+        let ascendingOrderByTime = loadSimulations |> List.sortBy(fun x -> x.EndTime)
 
-        let ascendingOrderByTime = result.LoadSimulations |> List.sortBy(fun x -> x.EndTime)
-
-        test <@ result.LoadSimulations.Length = simulations.Length  @>
+        test <@ loadSimulations.Length = simulations.Length  @>
         test <@ first.StartTime <= last.EndTime @>
-        test <@ result.ScenarioDuration = last.EndTime @>
-        test <@ result.LoadSimulations = ascendingOrderByTime @>
+        test <@ planedDuration = last.EndTime @>
+        test <@ loadSimulations = ascendingOrderByTime @>
         test <@ first.PrevActorCount = 0 @>
         test <@ last.PrevActorCount = 30 @>
     }

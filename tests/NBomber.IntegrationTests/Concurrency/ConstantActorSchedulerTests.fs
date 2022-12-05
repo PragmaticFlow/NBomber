@@ -16,6 +16,7 @@ open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Concurrency
+open NBomber.Domain.Scheduler
 open NBomber.Domain.Scheduler.ConstantActorScheduler
 open NBomber.Extensions.Internal
 
@@ -44,53 +45,53 @@ let internal baseScnDep = {
 
 [<Fact>]
 let ``AddActors should start actors if there is no actors`` () =
-    use scheduler = new ConstantActorScheduler(baseScnDep, exec)
+    use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.AddActors(5)
     Task.Delay(milliseconds 10).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ initCount = 0 @>
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 5 @>
+    test <@ Seq.length workingActors = 5 @>
 
 [<Fact>]
 let ``AddActors should start actors to run forever until the finish of scenario duration`` () =
-    use scheduler = new ConstantActorScheduler(baseScnDep, exec)
+    use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     scheduler.AddActors(5)
     Task.Delay(milliseconds 10).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 5 @>
-    test <@ scheduler.AvailableActors.Length = 5 @>
+    test <@ Seq.length workingActors = 5 @>
+    test <@ scheduler.AvailableActors.Count = 5 @>
 
 [<Fact>]
 let ``RemoveActors should stop some actors and keep them in actor pool`` () =
-    use scheduler = new ConstantActorScheduler(baseScnDep, exec)
+    use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     scheduler.AddActors(10)
     Task.Delay(milliseconds 10).Wait()
     scheduler.RemoveActors(5)
     Task.Delay(seconds 2).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 5 @>
-    test <@ scheduler.AvailableActors.Length = 10 @>
+    test <@ Seq.length workingActors = 5 @>
+    test <@ scheduler.AvailableActors.Count = 10 @>
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new ConstantActorScheduler(baseScnDep, exec)
+    use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     scheduler.AddActors(5)
     Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
     Task.Delay(seconds 2).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 0 @>
-    test <@ scheduler.AvailableActors.Length = 5 @>
+    test <@ Seq.length workingActors = 0 @>
+    test <@ scheduler.AvailableActors.Count = 5 @>

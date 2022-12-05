@@ -28,7 +28,7 @@ module Validation =
                 Ok rate
 
         let checkInterval interval duration =
-            if interval >= duration then
+            if interval > duration then
                 Error (IntervalIsBiggerThanDuration simulation)
             else
                 Ok interval
@@ -59,6 +59,10 @@ module Validation =
             let! _ = checkInterval interval duration
             let! _ = checkDuration duration
             return simulation
+
+        | Pause duration ->
+            let! _ = checkDuration duration
+            return simulation
     }
 
     let private validateOnEmpty (simulations: Contracts.LoadSimulation list) =
@@ -79,12 +83,13 @@ module Validation =
 
 let private createSimulation (startTime) (prevCopiesCount) (simulation: Contracts.LoadSimulation) =
     match simulation with
-    | RampingConstant (copiesCount, duration)
-    | KeepConstant (copiesCount, duration) ->
+    | RampingConstant (_, duration)
+    | KeepConstant (_, duration) ->
         let endTime = startTime + duration
         { Value = simulation
           StartTime = startTime
           EndTime = endTime
+          Duration = duration
           PrevActorCount = prevCopiesCount }
 
     | RampingInject (_, _, duration)
@@ -92,15 +97,30 @@ let private createSimulation (startTime) (prevCopiesCount) (simulation: Contract
         let endTime = startTime + duration
         { StartTime = startTime
           EndTime = endTime
-          PrevActorCount = 0
+          Duration = duration
+          PrevActorCount = prevCopiesCount
           Value = simulation }
 
     | InjectRandom (_, _, _, duration) ->
         let endTime = startTime + duration
         { StartTime = startTime
           EndTime = endTime
+          Duration = duration
           PrevActorCount = 0
           Value = simulation }
+
+    | Pause duration ->
+        let endTime = startTime + duration
+        { StartTime = startTime
+          EndTime = endTime
+          Duration = duration
+          PrevActorCount = prevCopiesCount
+          Value = simulation }
+
+let getPlanedDuration (simulations: LoadSimulation list) =
+    simulations
+    |> List.map(fun x -> x.Duration)
+    |> List.fold(fun st v -> st + v) TimeSpan.Zero
 
 let create (simulations: Contracts.LoadSimulation list) =
 
@@ -112,29 +132,28 @@ let create (simulations: Contracts.LoadSimulation list) =
 
     result {
         let! all = Validation.validate simulations
-
         let initState = createSimulation TimeSpan.Zero 0 (KeepConstant(0, TimeSpan.FromSeconds 0))
 
         let simulations =
             all
-            |> List.scan(fun prevState sim ->
+            |> List.scan(fun prevState simulation ->
                 let prevCopiesCount = getConstantCopiesCount prevState.Value
-                createSimulation prevState.EndTime prevCopiesCount sim) initState
+                createSimulation prevState.EndTime prevCopiesCount simulation) initState
 
             |> List.filter(fun x -> x.EndTime > TimeSpan.Zero)
 
-        let endSegment = simulations |> List.last
-        return {| LoadSimulations = simulations; ScenarioDuration = endSegment.EndTime |}
+        return simulations
     }
     |> Result.mapError AppError.create
 
 let inline getSimulationInterval simulation =
     match simulation with
-    | RampingConstant (copies, during)      -> struct (Constants.DefaultSchedulerTickInterval, during)
-    | KeepConstant (copies, during)         -> struct (Constants.DefaultSchedulerTickInterval, during)
-    | RampingInject (_, interval, during)   -> struct (interval, during)
-    | Inject (rate, interval, during)       -> struct (interval, during)
-    | InjectRandom (_, _, interval, during) -> struct (interval, during)
+    | RampingConstant (copies, during)      -> during
+    | KeepConstant (copies, during)         -> during
+    | RampingInject (_, interval, during)   -> interval
+    | Inject (rate, interval, during)       -> interval
+    | InjectRandom (_, _, interval, during) -> interval
+    | Pause during                          -> during
 
 let inline getSimulationName simulation =
     match simulation with
@@ -143,6 +162,7 @@ let inline getSimulationName simulation =
     | RampingInject _   -> "ramping_inject"
     | Inject _          -> "inject"
     | InjectRandom _    -> "inject_random"
+    | Pause _           -> "pause"
 
 [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
 let calcTimeProgress (currentTime: TimeSpan) (duration: TimeSpan) =
@@ -160,6 +180,7 @@ let inline createSimulationStats simulation constantActorCount onetimeActorCount
         | RampingInject _   -> onetimeActorCount
         | Inject _          -> onetimeActorCount
         | InjectRandom _    -> onetimeActorCount
+        | Pause _           -> 0
 
     { SimulationName = getSimulationName simulation; Value = value }
 

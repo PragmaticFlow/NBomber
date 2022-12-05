@@ -7,7 +7,6 @@ open NBomber.Contracts
 
 type SessionId = string
 type ScenarioName = string
-[<Measure>] type scenarioDuration
 
 type StopCommand =
     | StopScenario of scenarioName:string * reason:string
@@ -17,6 +16,7 @@ type LoadSimulation = {
     Value: Contracts.LoadSimulation
     StartTime: TimeSpan
     EndTime: TimeSpan
+    Duration: TimeSpan
     PrevActorCount: int
 }
 

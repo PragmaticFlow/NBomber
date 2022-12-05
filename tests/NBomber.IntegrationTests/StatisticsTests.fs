@@ -5,7 +5,6 @@ open System.IO
 open System.Collections.Generic
 open System.Threading.Tasks
 
-open FSharp.UMX
 open FsCheck.Xunit
 open HdrHistogram
 open Xunit
@@ -64,8 +63,9 @@ module ScenarioStatsTests =
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (UMX.tag (seconds 1))
                 (seconds 1)
+                (seconds 1)
+                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Request.Count + scenarioStats.Fail.Request.Count = okCount + failCount @>
 
@@ -84,8 +84,9 @@ module ScenarioStatsTests =
                 [| stepsData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (UMX.tag (seconds 1))
                 (seconds 1)
+                (seconds 1)
+                TimeSpan.Zero
 
         test <@ ScenarioStats.calcAllBytes scenarioStats = okAllBytes + failAllBytes @>
 
@@ -103,8 +104,9 @@ module ScenarioStatsTests =
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (UMX.tag (seconds 1))
                 (seconds 1)
+                (seconds 1)
+                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Request.Count = okCount1 @>
         test <@ scenarioStats.StepStats[0].Ok.Request.Count = okCount2 @>
@@ -123,8 +125,9 @@ module ScenarioStatsTests =
                 [| stepsData1; stepsData2 |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (UMX.tag (seconds 1))
                 (seconds 1)
+                (seconds 1)
+                TimeSpan.Zero
 
         test <@ scenarioStats.Fail.Request.Count = failCount1 @>
         test <@ scenarioStats.StepStats[0].Fail.Request.Count = failCount2 @>
@@ -157,8 +160,9 @@ module ScenarioStatsTests =
                 [| stepStatsRawData |]
                 baseLoadSimulationStats
                 OperationType.Complete
-                (UMX.tag (seconds 1))
                 (seconds 1)
+                (seconds 1)
+                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 = less800 @>
         test <@ scenarioStats.Ok.Latency.LatencyCount.More800Less1200 = more800Less1200 @>
@@ -598,3 +602,29 @@ let ``StatusCodeStats merge function returns sorted results`` () =
         |> Array.map(fun x -> x.StatusCode)
 
     test <@ [| "10"; "50"; "80" |] = result @>
+
+[<Fact>]
+let ``Stats should be calculated without Pause simulation`` () =
+
+    let scenario =
+        Scenario.create("realtime stats scenario", fun ctx -> task {
+            do! Task.Delay(milliseconds 100)
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withLoadSimulations [
+            Pause(during = seconds 10)
+            Inject(rate = 100, interval = seconds 1, during = seconds 1)
+        ]
+
+    NBomberRunner.registerScenarios [ scenario ]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let ok = stats.GetScenarioStats("realtime stats scenario").Ok
+        let duration = stats.GetScenarioStats("realtime stats scenario").Duration
+
+        test <@ ok.Request.RPS = 100 @>
+        test <@ ok.Request.Count = 100 @>
+        test <@ duration = seconds 11 @> // inject (1 sec) + pause (10 sec)

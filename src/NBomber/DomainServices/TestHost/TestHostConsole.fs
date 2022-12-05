@@ -63,6 +63,11 @@ module LiveStatusTable =
         table.Rows.Clear()
 
         for scnStats in scenariosStats do
+
+            let simulation =
+                if scnStats.LoadSimulationStats.SimulationName = "pause" then "pause"
+                else $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}"
+
             for stepStats in scnStats.StepStats do
                 let ok = stepStats.Ok
                 let okR = ok.Request
@@ -76,7 +81,7 @@ module LiveStatusTable =
                 table.AddRow(
                     scnStats.ScenarioName,
                     stepStats.StepName,
-                    $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}",
+                    simulation,
                     $"ok: {Console.okColor okR.Count}, RPS: {Console.okColor okR.RPS}, p50 = {Console.okColor okL.Percent50}, p99 = {Console.okColor okL.Percent99}",
                     $"fail: {Console.errorColor fR.Count}, RPS: {Console.errorColor fR.RPS}, p50 = {Console.errorColor fL.Percent50}, p99 = {Console.errorColor fL.Percent99}",
                     $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
