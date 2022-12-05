@@ -5,9 +5,6 @@
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
-    </ItemGroup>
-    <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
         <Compile Include="TestHelper.fs" />
         <Compile Include="ExtensionsTests.fs" />
@@ -59,7 +56,7 @@
         <Compile Include="StepTests\BasicStepTests.fs" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />        
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageReference Include="Ply" Version="0.3.1" />
         <PackageReference Include="Serilog.Sinks.InMemory" Version="0.6.0" />
         <PackageReference Include="Serilog.Sinks.InMemory.Assertions" Version="0.6.0" />
@@ -73,5 +70,8 @@
         <PackageReference Include="FsCheck.Xunit" Version="2.16.4" />
         <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
         <PackageReference Update="FSharp.Core" Version="7.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
     </ItemGroup>
 </Project>

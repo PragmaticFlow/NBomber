@@ -16,6 +16,7 @@ open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Concurrency
+open NBomber.Domain.Scheduler
 open NBomber.Domain.Scheduler.OneTimeActorScheduler
 open NBomber.Extensions.Internal
 
@@ -44,37 +45,37 @@ let internal baseScnDep = {
 
 [<Fact>]
 let ``InjectActors should start actors if there is no actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
     let initCount = scheduler.ScheduledActorCount
     scheduler.InjectActors(5)
     Task.Delay(milliseconds 10).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ initCount = 0 @>
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 5 @>
+    test <@ Seq.length workingActors = 5 @>
 
 [<Fact>]
 let ``InjectActors should execute actors once until next turn`` () =
-    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
     scheduler.InjectActors(5)
     Task.Delay(seconds 2).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 0 @>
+    test <@ Seq.length workingActors = 0 @>
 
 [<Fact>]
 let ``Stop should stop all working actors`` () =
-    use scheduler = new OneTimeActorScheduler(baseScnDep, exec)
+    use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
     scheduler.InjectActors(5)
     Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
     Task.Delay(seconds 2).Wait()
-    let workingActors = ScenarioActorPool.getWorkingActors scheduler.AvailableActors
+    let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
     test <@ scheduler.ScheduledActorCount = 5 @>
-    test <@ workingActors.Length = 0 @>
+    test <@ Seq.length workingActors = 0 @>

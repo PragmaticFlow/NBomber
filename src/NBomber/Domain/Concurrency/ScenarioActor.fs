@@ -1,5 +1,6 @@
 module internal NBomber.Domain.Concurrency.ScenarioActor
 
+open System.Threading.Tasks
 open NBomber
 open NBomber.Contracts
 open NBomber.Domain
@@ -10,6 +11,7 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
 
     let _logger = scnCtx.Logger.ForContext<ScenarioActor>()
     let _scenario = scnCtx.Scenario
+    let _cancelToken = scnCtx.ScenarioCancellationToken.Token
     let mutable _working = false
 
     let _scenarioCtx = ScenarioContext(scenarioInfo, scnCtx)
@@ -19,10 +21,9 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
             if not _working then
                 let mutable shouldRun = true
                 _working <- true
+                do! Task.Yield()
 
-                while shouldRun && _working
-                    && not scnCtx.ScenarioCancellationToken.IsCancellationRequested
-                    && _scenario.PlanedDuration.TotalMilliseconds > scnCtx.ScenarioTimer.Elapsed.TotalMilliseconds do
+                while shouldRun && _working && not _cancelToken.IsCancellationRequested do
 
                     if _scenario.Run.IsSome then
                         _scenarioCtx.PrepareNextIteration()

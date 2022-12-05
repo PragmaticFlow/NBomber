@@ -94,11 +94,6 @@ let ``should be stopped via StepContext.StopScenario`` () =
     let scenario2 =
         Scenario.create("test_youtube_2", fun ctx -> task {
             do! Task.Delay(milliseconds 100)
-            counter <- counter + 1
-
-            if counter = 30 then
-                ctx.StopScenario("test_youtube_1", "custom reason")
-
             return Response.ok()
         })
         |> Scenario.withoutWarmUp

@@ -3,7 +3,6 @@ module internal NBomber.Domain.Stats.Statistics
 open System
 open System.Collections.Generic
 open HdrHistogram
-open FSharp.UMX
 open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Data
@@ -198,10 +197,12 @@ module ScenarioStats =
                (rawStats: RawMeasurementStats[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
-               (duration: TimeSpan<scenarioDuration>)
-               (reportingInterval: TimeSpan) =
+               (executedDuration: TimeSpan)
+               (reportingInterval: TimeSpan)
+               (pause: TimeSpan) =
 
-        let allStepStats = rawStats |> Array.map(StepStats.create reportingInterval)
+        let execOnlyDuration = reportingInterval - pause
+        let allStepStats = rawStats |> Array.map(StepStats.create execOnlyDuration)
         let stepStats    = allStepStats |> Array.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo)
         let globalInfo   = allStepStats |> Array.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
@@ -230,7 +231,7 @@ module ScenarioStats =
           AllOkCount = allOkCount
           AllFailCount = allFailCount
           AllBytes = allBytes
-          Duration = duration |> UMX.untag |> roundDuration }
+          Duration = roundDuration executedDuration }
 
     let failStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)

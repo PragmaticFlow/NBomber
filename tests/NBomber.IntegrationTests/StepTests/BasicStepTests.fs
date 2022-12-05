@@ -102,61 +102,6 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 //
 //     test <@ repeatCounter > 5 @>
 
-// [<Fact>]
-// let ``StepContext Data should store any payload data from latest step.Response`` () =
-//
-//     let step1 = Step.create("step 1", fun context -> task {
-//         do! Task.Delay(milliseconds 100)
-//         return Response.ok(context.InvocationNumber)
-//     })
-//
-//     let step2 = Step.create("step 2", fun context -> task {
-//         let prevStepRes = context.GetPreviousStepResponse<int>()
-//         if prevStepRes <> context.InvocationNumber then return Response.fail()
-//         else return Response.ok()
-//     })
-//
-//     Scenario.create "test context.Data" [step1; step2]
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.run
-//     |> Result.getOk
-//     |> fun stats -> test <@ stats.OkCount > 0 @>
-
-// [<Fact>]
-// let ``NBomber should support to run and share the same step within one scenario and within several scenarios`` () =
-//
-//     let step1 = Step.create("step 1", fun context -> task {
-//         do! Task.Delay(milliseconds 100)
-//         return Response.ok()
-//     })
-//
-//     let step2 = Step.create("step 2", fun context -> task {
-//         do! Task.Delay(milliseconds 500)
-//         return Response.ok()
-//     })
-//
-//     let scenario1 =
-//         Scenario.create "scenario 1" [step1; step2]
-//         |> Scenario.withoutWarmUp
-//         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-//
-//     let scenario2 =
-//         Scenario.create "scenario 2" [step2; step1]
-//         |> Scenario.withoutWarmUp
-//         |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
-//
-//     let result =
-//         NBomberRunner.registerScenarios [scenario1; scenario2]
-//         |> NBomberRunner.withoutReports
-//         |> NBomberRunner.runWithResult Seq.empty
-//         |> Result.getOk
-//
-//     test <@ result.FinalStats.ScenarioStats[0].StepStats.Length = 2 @>
-//     test <@ result.FinalStats.ScenarioStats[1].StepStats.Length = 2 @>
-
 [<Fact>]
 let ``NBomber shouldn't stop execution scenario if too many failed results on a warm-up`` () =
 

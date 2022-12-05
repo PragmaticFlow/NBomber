@@ -78,6 +78,9 @@ module LoadSimulation =
         | InjectRandom (minRate, maxRate, interval, during) ->
             printLine okColor name ["minRate", minRate; "maxRate", maxRate; "interval", interval; "during", during]
 
+        | Pause during ->
+            printLine okColor name ["during", during]
+
 module StatusCodesStats =
 
     let createTableRows (okColor: obj -> string)

@@ -76,16 +76,17 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioOperation = operation }
 
 let createScenario (scn: ScenarioProps) = result {
-    let! simulationsResult = scn.LoadSimulations |> LoadSimulation.create
-    let! scnProps = Validation.validate scn
+    let! scnProps      = Validation.validate scn
+    let! simulations   = LoadSimulation.create scn.LoadSimulations
+    let planedDuration = LoadSimulation.getPlanedDuration simulations
 
     return { ScenarioName = scnProps.ScenarioName
              Init = scnProps.Init
              Clean = scnProps.Clean
              Run = scnProps.Run
-             LoadSimulations = simulationsResult.LoadSimulations
+             LoadSimulations = simulations
              WarmUpDuration = scnProps.WarmUpDuration
-             PlanedDuration = simulationsResult.ScenarioDuration
+             PlanedDuration = planedDuration
              ExecutedDuration = None
              CustomSettings = String.Empty
              IsEnabled = true
@@ -113,18 +114,20 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
 
     let updateScenario (scenario: Scenario, settings: ScenarioSetting) =
 
-        let timeLine =
+        let simulations =
             match settings.LoadSimulationsSettings with
             | Some simulation ->
                 simulation
                 |> LoadSimulation.create
                 |> Result.getOk
 
-            | None -> {| LoadSimulations = scenario.LoadSimulations; ScenarioDuration = scenario.PlanedDuration |}
+            | None -> scenario.LoadSimulations
 
-        { scenario with LoadSimulations = timeLine.LoadSimulations
+        let planedDuration = LoadSimulation.getPlanedDuration simulations
+
+        { scenario with LoadSimulations = simulations
                         WarmUpDuration = settings.WarmUpDuration
-                        PlanedDuration = timeLine.ScenarioDuration
+                        PlanedDuration = planedDuration
                         CustomSettings = settings.CustomSettings |> Option.defaultValue ""
                         MaxFailCount = settings.MaxFailCount |> Option.defaultValue Constants.ScenarioMaxFailCount }
 

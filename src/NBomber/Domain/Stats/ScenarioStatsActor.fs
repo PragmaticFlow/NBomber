@@ -7,7 +7,6 @@ open System.Threading.Channels
 open System.Threading.Tasks
 
 open FSharp.Control.Tasks
-open FSharp.UMX
 open Serilog
 
 open NBomber
@@ -23,8 +22,8 @@ type ActorMessage =
     | AddFromAgent of ScenarioStats
     | StartUseTempBuffer
     | FlushTempBuffer
-    | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
-    | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * duration:TimeSpan
+    | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan
+    | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan * pause:TimeSpan
 
 type State = {
     Logger: ILogger
@@ -122,26 +121,31 @@ let flushTempBuffer (state: State) =
     state.TempBuffer |> Seq.iter(addMeasurement state)
     state.TempBuffer.Clear()
 
-let createReportingStats (state: State) (simulationStats) (duration) (rawStats) =
-    ScenarioStats.create state.Scenario.ScenarioName rawStats simulationStats OperationType.Bombing %duration state.ReportingInterval
+let createReportingStats (state: State) simulationStats executedDuration pause rawStats =
+    ScenarioStats.create
+        state.Scenario.ScenarioName rawStats simulationStats OperationType.Bombing executedDuration
+        state.ReportingInterval pause
 
-let createFinalStats (state: State) (simulationStats) (duration) (rawStats) =
-    ScenarioStats.create state.Scenario.ScenarioName rawStats simulationStats OperationType.Complete %duration duration
+let createFinalStats (state: State) simulationStats executedDuration pause rawStats =
+    ScenarioStats.create
+        state.Scenario.ScenarioName rawStats simulationStats OperationType.Complete executedDuration
+        executedDuration pause
 
 let buildStats (state: State)
                (cordRawStats: RawMeasurementStats[])
                (agentStats: ResizeArray<ScenarioStats>)
                (simulationStats: LoadSimulationStats)
-               (duration: TimeSpan)
+               (executedDuration: TimeSpan)
+               (pause: TimeSpan)
                (isFinalStats: bool) =
 
     cordRawStats |> Array.sortInPlaceBy(fun x -> state.StepsOrder[x.Name])
 
     let cordStats =
         if isFinalStats then
-            cordRawStats |> createFinalStats state simulationStats duration
+            cordRawStats |> createFinalStats state simulationStats executedDuration pause
         else
-            cordRawStats |> createReportingStats state simulationStats duration
+            cordRawStats |> createReportingStats state simulationStats executedDuration pause
 
     if state.Scenario.IsEnabled then
         agentStats.Add cordStats
@@ -220,21 +224,22 @@ type ScenarioStatsActor(logger: ILogger,
                 | FlushTempBuffer ->
                     flushTempBuffer _state
 
-                | BuildReportingStats (reply, simulationStats, duration) ->
+                | BuildReportingStats (reply, simulationStats, executedDuration) ->
                     let isFinalStats = false
+                    let pause = TimeSpan.Zero
                     let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
 
-                    let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats duration isFinalStats
+                    let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats executedDuration pause isFinalStats
 
                     addReportingStats _state stats
                     reply.TrySetResult(stats) |> ignore
 
-                | GetFinalStats (reply, simulationStats, duration) ->
+                | GetFinalStats (reply, simulationStats, executedDuration, pause) ->
                     let isFinalStats = true
 
                     let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
 
-                    let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats duration isFinalStats
+                    let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats executedDuration pause isFinalStats
                     reply.TrySetResult(stats) |> ignore
         with
         | ex -> _state.Logger.Fatal $"Unhandled exception: {nameof ScenarioStatsActor} failed: {ex.ToString()}"
