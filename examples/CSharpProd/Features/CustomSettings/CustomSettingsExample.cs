@@ -34,6 +34,7 @@ public class CustomSettingsExample
 
             var step = await Step.Run("step", context, async () =>
             {
+                await Task.Delay(1_000);
                 context.Logger.Debug("step received CustomSettings.TestField '{0}'", _customSettings.TestField);
                 return Response.Ok();
             });

@@ -6,7 +6,7 @@ namespace CSharpProd.HTTP;
 
 public class JsonResponse
 {
-    public string? Fact { get; set; }
+    public string Fact { get; set; }
     public int Length { get; set; }
 }
 

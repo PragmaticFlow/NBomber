@@ -40,7 +40,7 @@ public class LoadTestExample
             return Response.Ok();
         })
         .WithoutWarmUp()
-        .WithLoadSimulations(Simulation.InjectPerSec(10, TimeSpan.FromSeconds(10)));
+        .WithLoadSimulations(Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10)));
 
         var result = NBomberRunner
             .RegisterScenarios(scenario)

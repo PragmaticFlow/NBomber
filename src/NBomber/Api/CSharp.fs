@@ -187,6 +187,7 @@ type NBomberRunner =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
     /// Sets target scenarios among all registered that will execute
+    [<Extension>]
     static member WithTargetScenarios(context: NBomberContext, [<ParamArray>]scenarioNames: string[]) =
         let names = scenarioNames |> Seq.toList
         context |> FSharp.NBomberRunner.withTargetScenarios(names)

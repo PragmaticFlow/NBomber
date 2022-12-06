@@ -4,12 +4,11 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber" Version="4.0.0-beta6" />
-        <PackageReference Include="NBomber.Http" Version="4.0.0-beta2" />
+        <PackageReference Include="NBomber" Version="4.0.0-beta7" />
+        <PackageReference Include="NBomber.Http" Version="4.0.0-beta3" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
     </ItemGroup>
 

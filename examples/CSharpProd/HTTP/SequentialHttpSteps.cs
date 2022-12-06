@@ -38,7 +38,7 @@ public class SequentialHttpSteps
             return Response.Ok();
         })
         .WithoutWarmUp()
-        .WithLoadSimulations(Simulation.InjectPerSec(100, TimeSpan.FromSeconds(30)));
+        .WithLoadSimulations(Simulation.Inject(rate: 100, interval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30)));
 
         NBomberRunner
             .RegisterScenarios(scenario)

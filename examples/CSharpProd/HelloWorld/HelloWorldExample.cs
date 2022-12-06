@@ -17,7 +17,7 @@ public class HelloWorldExample
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.RampConstant(copies: 50, during: TimeSpan.FromMinutes(1)),
+            Simulation.RampingConstant(copies: 50, during: TimeSpan.FromSeconds(30)),
             Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
         );
 

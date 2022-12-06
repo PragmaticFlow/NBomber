@@ -1,11 +1,13 @@
 ﻿using NBomber.CSharp;
 
-namespace CSharpProd.HelloWorld;
+namespace CSharpProd.HelloWorld.LoadSimulation;
 
 public class ParallelScenarios
 {
     public void Run()
     {
+        // In this example, we will register and execute 2 scenarios in parallel.
+
         var scenario1 = Scenario.Create("scenario_1", async context =>
         {
             await Task.Delay(1000);
@@ -18,22 +20,25 @@ public class ParallelScenarios
 
         var scenario2 = Scenario.Create("scenario_2", async context =>
         {
-            var step1 = await Step.Run("step_1", context, async () =>
-            {
-                await Task.Delay(1000);
-                return Response.Ok(payload: "step_1 response", sizeBytes: 1000);
-            });
-
-            return Response.Ok(statusCode: "200");
+            await Task.Delay(1000);
+            return Response.Ok(statusCode: "203");
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.RampConstant(copies: 50, during: TimeSpan.FromMinutes(1)),
+            Simulation.RampingConstant(copies: 50, during: TimeSpan.FromSeconds(30)),
             Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner
             .RegisterScenarios(scenario1, scenario2) // here, we register two scenarios that will run in parallel
+
+            // by default all registered scenarios will be executed in parallel
+            // but it can be controlled via NBomberRunner.WithTargetScenario(string[]) API method
+            // or JSON config: TargetScenarios: string[]
+            // or CLI args: --target=scenario_2
+
+            //.WithTargetScenario("scenario_2")
+
             .Run();
     }
 }

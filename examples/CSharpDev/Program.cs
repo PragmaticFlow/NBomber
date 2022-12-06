@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NBomber.CSharp;
 
-var scenario = Scenario.Create("hello_world_scenario", async context =>
+var scenario = Scenario.Create("my scenario", async context =>
 {
     var step1 = await Step.Run("step_1", context, async () =>
     {
@@ -22,9 +22,11 @@ var scenario = Scenario.Create("hello_world_scenario", async context =>
 })
 .WithoutWarmUp()
 .WithLoadSimulations(
-    Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(15))
+    Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(20)),
+    Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
 );
 
 NBomberRunner
     .RegisterScenarios(scenario)
+    .WithReportingInterval(TimeSpan.FromSeconds(5))
     .Run();
