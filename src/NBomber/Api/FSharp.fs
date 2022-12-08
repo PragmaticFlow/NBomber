@@ -58,7 +58,6 @@ type Response =
           Payload = payload }
 
 /// Step represents a single user action like login, logout, etc.
-[<RequireQualifiedAccess>]
 type Step =
 
     /// Runs a step.
@@ -79,9 +78,7 @@ type Step =
     }
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
-/// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
 /// You should think about Scenario as a system thread.
-[<RequireQualifiedAccess>]
 module Scenario =
 
     /// Creates scenario.
@@ -156,7 +153,6 @@ module Scenario =
 
 /// NBomberRunner is responsible for registering and running scenarios.
 /// Also it provides configuration points related to infrastructure, reporting, loading plugins.
-[<RequireQualifiedAccess>]
 module NBomberRunner =
 
     /// Registers scenario in NBomber environment.

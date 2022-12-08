@@ -116,7 +116,6 @@ type Step =
         FSharp.Step.run(name, context, run.Invoke)
 
 /// Scenario is basically a workflow that virtual users will follow. It helps you organize steps into user actions.
-/// Scenarios are always running in parallel (it's opposite to steps that run sequentially).
 /// You should think about Scenario as a system thread.
 [<Extension>]
 type Scenario =
