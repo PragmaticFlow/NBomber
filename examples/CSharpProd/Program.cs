@@ -1,4 +1,5 @@
-﻿using CSharpProd.Features.CustomSettings;
+﻿using CSharpProd.Features;
+using CSharpProd.Features.CustomSettings;
 using CSharpProd.HelloWorld;
 using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
@@ -21,6 +22,12 @@ new HelloWorldExample().Run();
 // new ScenarioWithStepRetry().Run();
 // new EmptyScenario().Run();
 
+// ------------------
+// ---- Features ----
+// ------------------
+// new DataFeedExample().Run();
+// new CustomSettingsExample().Run();
+
 // ----------------
 // ----- HTTP -----
 // ----------------
@@ -32,10 +39,3 @@ new HelloWorldExample().Run();
 // ----- MQTT -----
 // ----------------
 // new PingPongMqttTest().Run();
-
-// ------------------
-// ---- Features ----
-// ------------------
-// new CustomSettingsExample().Run();
-
-
