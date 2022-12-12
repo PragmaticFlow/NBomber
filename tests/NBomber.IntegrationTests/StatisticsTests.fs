@@ -15,7 +15,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
-open NBomber.Extensions.Data
 open NBomber.Domain
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.Statistics
@@ -297,7 +296,7 @@ module StepStatsRawData =
         let min =
             emptyData.OkStats.MinMicroSec
             |> float
-            |> Converter.fromMicroSecToMs
+            |> NBomber.Converter.fromMicroSecToMs
 
         test <@ min = realMin @>
 
@@ -390,10 +389,10 @@ module StepStatsRawData =
 
         let failMinStats = if failCount > 0 then failLatencies |> Seq.map snd |> Seq.min else 0.0
         let failMaxStats = if failCount > 0 then failLatencies |> Seq.map snd |> Seq.max else 0.0
-        let okMin = if okCount > 0 then data.OkStats.MinMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
-        let okMax = if okCount > 0 then data.OkStats.MaxMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
-        let failMin = if failCount > 0 then data.FailStats.MinMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
-        let failMax = if failCount > 0 then data.FailStats.MaxMicroSec |> float |> Converter.fromMicroSecToMs else 0.0
+        let okMin = if okCount > 0 then data.OkStats.MinMicroSec |> float |> NBomber.Converter.fromMicroSecToMs else 0.0
+        let okMax = if okCount > 0 then data.OkStats.MaxMicroSec |> float |> NBomber.Converter.fromMicroSecToMs else 0.0
+        let failMin = if failCount > 0 then data.FailStats.MinMicroSec |> float |> NBomber.Converter.fromMicroSecToMs else 0.0
+        let failMax = if failCount > 0 then data.FailStats.MaxMicroSec |> float |> NBomber.Converter.fromMicroSecToMs else 0.0
 
         test <@ data.OkStats.RequestCount = okCount @>
         test <@ data.OkStats.LessOrEq800 = okLessOrEq800 @>

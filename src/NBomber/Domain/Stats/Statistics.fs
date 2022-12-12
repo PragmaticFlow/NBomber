@@ -5,13 +5,10 @@ open System.Collections.Generic
 open HdrHistogram
 open NBomber
 open NBomber.Contracts.Stats
-open NBomber.Extensions.Data
+open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.RawMeasurementStats
-
-let roundDuration (duration: TimeSpan) =
-    TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
 
 module Histogram =
 
@@ -231,7 +228,7 @@ module ScenarioStats =
           AllOkCount = allOkCount
           AllFailCount = allFailCount
           AllBytes = allBytes
-          Duration = roundDuration executedDuration }
+          Duration = Converter.roundDuration executedDuration }
 
     let failStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
@@ -245,7 +242,7 @@ module NodeStats =
         if Array.isEmpty scnStats then
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
-            let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> roundDuration
+            let maxDuration = scnStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> Converter.roundDuration
             let okCount = scnStats |> Array.sumBy(fun x -> x.AllOkCount)
             let failCount = scnStats |> Array.sumBy(fun x -> x.AllFailCount)
             let requestCount = okCount + failCount

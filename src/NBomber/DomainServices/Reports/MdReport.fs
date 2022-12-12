@@ -9,7 +9,7 @@ open Serilog
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain.Stats.Statistics
-open NBomber.Extensions.Data
+open NBomber.Extensions.DataSet
 
 type Document = Document.Document
 

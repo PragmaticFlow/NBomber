@@ -1,12 +1,9 @@
 module internal NBomber.DomainServices.Reports.CsvReport
 
 open System
-
 open Serilog
-
 open NBomber.Contracts.Stats
-open NBomber.Extensions.Data
-open NBomber.Domain.Stats.Statistics
+open NBomber.Extensions.Internal
 
 let private separator = ","
 

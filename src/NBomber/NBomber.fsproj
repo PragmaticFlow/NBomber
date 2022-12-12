@@ -23,7 +23,7 @@
         <Compile Include="Constants.fs" />
         <Compile Include="Configuration.fs" />
         <Compile Include="Contracts.fs" />
-        <Compile Include="Extensions\Data.fs" />
+        <Compile Include="Extensions\DataSet.fs" />
         <Compile Include="Extensions\Internal.fs" />
         <Compile Include="Domain\Errors.fs" />
         <Compile Include="Domain\DomainTypes.fs" />
@@ -72,7 +72,6 @@
     <ItemGroup>
         <PackageReference Include="NBomber.Contracts" Version="[4.0.0-beta12]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="CsvHelper" Version="27.2.1" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.13.0" />
         <PackageReference Include="FuncyDown" Version="1.3.0" />
         <PackageReference Include="HdrHistogram" Version="2.5.0" />
@@ -91,6 +90,6 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>    
+    </ItemGroup>
 
 </Project>

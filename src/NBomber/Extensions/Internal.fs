@@ -11,6 +11,21 @@ open FsToolkit.ErrorHandling
 
 module internal Internal =
 
+    module Converter =
+
+        let inline fromMicroSecToMs (microSec: float) = (microSec / 1000.0)
+
+        let inline fromMsToMicroSec (ms: float) = (ms * 1000.0) |> int
+
+        let inline fromBytesToKb (bytes) = Math.Round(float bytes / 1024.0, 3)
+
+        let inline fromBytesToMb (bytes) = Math.Round(decimal bytes / 1024.0M / 1024.0M, 1)
+
+        let inline round (digits: int) (value: float) = Math.Round(value, digits)
+
+        let inline roundDuration (duration: TimeSpan) =
+            TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
+
     type Operation =
 
         static member retry (retryCount: int, getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {

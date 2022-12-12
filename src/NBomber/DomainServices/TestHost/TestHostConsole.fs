@@ -4,13 +4,10 @@ open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-
 open FsToolkit.ErrorHandling
 open Spectre.Console
-
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Extensions.Data
 open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes

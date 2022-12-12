@@ -1,6 +1,26 @@
 namespace NBomber
 
 open System
+open System.Runtime.CompilerServices
+open NBomber.Extensions.Internal
+
+module Converter =
+
+    [<CompiledName("FromMicroSecToMs")>]
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    let fromMicroSecToMs (microSec: float) = Converter.fromMicroSecToMs microSec
+
+    [<CompiledName("FromMsToMicroSec")>]
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    let fromMsToMicroSec (ms: float) = Converter.fromMsToMicroSec ms
+
+    [<CompiledName("FromBytesToKb")>]
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    let fromBytesToKb (bytes) = Converter.fromBytesToKb bytes
+
+    [<CompiledName("FromBytesToMb")>]
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    let fromBytesToMb (bytes) = Converter.fromBytesToMb bytes
 
 [<AutoOpen>]
 module Time =

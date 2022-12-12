@@ -6,7 +6,7 @@ open HdrHistogram
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Internal
-open NBomber.Extensions.Data
+open NBomber.Extensions.Internal
 
 type RawStatusCodeStats = {
     StatusCode: string

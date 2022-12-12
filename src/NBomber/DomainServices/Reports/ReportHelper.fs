@@ -3,10 +3,9 @@ module internal NBomber.DomainServices.Reports.ReportHelper
 open System
 open NBomber.Contracts
 open NBomber.Contracts.Stats
-open NBomber.Extensions.Data
-open NBomber.Domain.Stats
-open NBomber.Domain
 open NBomber.Extensions.Internal
+open NBomber.Domain
+open NBomber.Domain.Stats
 
 let printDataKb (highlightTxt: obj -> string) (bytes: int) =
     $"{bytes |> Converter.fromBytesToKb |> highlightTxt} KB"
