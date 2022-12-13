@@ -239,7 +239,7 @@ module NodeStatsTests =
                 return Response.ok(sizeBytes = 100)
             })
             |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+            |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 0.5, during = seconds 10)]
 
         let failScenario =
             Scenario.create("fail scenario", fun ctx -> task {
@@ -247,7 +247,7 @@ module NodeStatsTests =
                 return Response.fail(statusCode = "10", sizeBytes = 10, message = "reason")
             })
             |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+            |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 0.5, during = seconds 10)]
 
         NBomberRunner.registerScenarios [okScenario; failScenario]
         |> NBomberRunner.withoutReports
@@ -258,10 +258,10 @@ module NodeStatsTests =
             let sc1 = stats.GetScenarioStats("fail scenario")
             test <@ stats.Duration = seconds 10 @>
 
-            test <@ stats.AllRequestCount >= 20 && stats.AllRequestCount <= 40 @>
+            test <@ stats.AllRequestCount = 40 @>
 
-            test <@ stats.AllOkCount >= 10 && stats.AllOkCount <= 20 @>
-            test <@ stats.AllFailCount >= 10 && stats.AllFailCount <= 20 @>
+            test <@ stats.AllOkCount = 20 @>
+            test <@ stats.AllFailCount = 20 @>
             test <@ stats.AllBytes = sc0.Ok.DataTransfer.AllBytes + sc1.Fail.DataTransfer.AllBytes @>
 
 module StepStatsRawData =
