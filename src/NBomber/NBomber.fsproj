@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>4.0.0-beta7</Version>
+        <Version>4.0.0-beta8</Version>
         <Copyright>NBomber@2022</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -16,7 +16,9 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageReleaseNotes>- added live status update for console</PackageReleaseNotes>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageReleaseNotes>- added ClientPool
+- fxed bug with wrong data size calculation for GlobalStep info</PackageReleaseNotes>        
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
