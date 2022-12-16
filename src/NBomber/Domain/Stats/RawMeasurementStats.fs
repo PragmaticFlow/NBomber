@@ -57,7 +57,7 @@ let empty (stepName) =
       OkStats = createStats()
       FailStats = createStats() }
 
-let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) =
+let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) (finalDataSize) =
 
     let updateStatusCodeStats (statuses: Dictionary<string,RawStatusCodeStats>, res: IResponse) =
         match statuses.TryGetValue res.StatusCode with
@@ -108,12 +108,12 @@ let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) =
         elif latencyMs >= 1200.0 then stats.MoreOrEq1200 <- stats.MoreOrEq1200 + 1
 
         // add data transfer
-        if clientRes.SizeBytes > 0 then
-            stats.AllBytes <- stats.AllBytes + int64 clientRes.SizeBytes
-            stats.DataTransferHistogram.RecordValue(int64 clientRes.SizeBytes)
+        if finalDataSize > 0 then
+            stats.AllBytes <- stats.AllBytes + int64 finalDataSize
+            stats.DataTransferHistogram.RecordValue(int64 finalDataSize)
 
-            if clientRes.SizeBytes < stats.MinBytes then
-                stats.MinBytes <- clientRes.SizeBytes
+            if finalDataSize < stats.MinBytes then
+                stats.MinBytes <- finalDataSize
 
-            if clientRes.SizeBytes > stats.MaxBytes then
-                stats.MaxBytes <- clientRes.SizeBytes
+            if finalDataSize > stats.MaxBytes then
+                stats.MaxBytes <- finalDataSize

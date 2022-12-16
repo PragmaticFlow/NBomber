@@ -73,45 +73,48 @@ let createState logger scenario reportingInterval mergeStatsFn =
       IntervalAgentsStats = ResizeArray<_>()
       FinalAgentsStats = ResizeArray<_>() }
 
-let updateCoordinatorStats (state: State) (measurement: Measurement) =
-    let rawStats = state.CoordinatorStepsResults[measurement.Name]
-    RawMeasurementStats.addMeasurement rawStats measurement
-
-let updateIntervalStats (state: State) (measurement: Measurement) =
-    let rawStats = state.IntervalStepsResults[measurement.Name]
-    RawMeasurementStats.addMeasurement rawStats measurement
-
 let updateGlobalInfoDataSize (state: State) (measurement: Measurement) =
-    if measurement.Name = Constants.ScenarioGlobalInfo then
-
-        if state.GlobalInfoDataSize.Count > 0 then
-            measurement.ClientResponse.SizeBytes <- (state.GlobalInfoDataSize |> Seq.sum) + measurement.ClientResponse.SizeBytes
-            state.GlobalInfoDataSize.Clear()
-
-    elif measurement.ClientResponse.SizeBytes > 0 then
+    if measurement.Name <> Constants.ScenarioGlobalInfo && measurement.ClientResponse.SizeBytes > 0 then
         state.GlobalInfoDataSize.Add measurement.ClientResponse.SizeBytes
+
+let calcFinalDataSize (state: State) (measurement: Measurement) =
+    if measurement.Name = Constants.ScenarioGlobalInfo && state.GlobalInfoDataSize.Count > 0 then
+        let sizeBytes = (state.GlobalInfoDataSize |> Seq.sum) + measurement.ClientResponse.SizeBytes
+        state.GlobalInfoDataSize.Clear()
+        sizeBytes
+    else
+        measurement.ClientResponse.SizeBytes
+
+let updateCoordinatorStats (state: State) (measurement: Measurement) (finalDataSize) =
+    let rawStats = state.CoordinatorStepsResults[measurement.Name]
+    RawMeasurementStats.addMeasurement rawStats measurement finalDataSize
+
+let updateIntervalStats (state: State) (measurement: Measurement) (finalDataSize) =
+    let rawStats = state.IntervalStepsResults[measurement.Name]
+    RawMeasurementStats.addMeasurement rawStats measurement finalDataSize
 
 let addMeasurement (state: State) (measurement: Measurement) =
     if state.UseTempBuffer then
         state.TempBuffer.Add measurement
     else
         updateGlobalInfoDataSize state measurement
+        let finalDataSize = calcFinalDataSize state measurement
 
         if state.CoordinatorStepsResults.ContainsKey measurement.Name then
-            updateCoordinatorStats state measurement
+            updateCoordinatorStats state measurement finalDataSize
         else
             state.CoordinatorStepsResults[measurement.Name] <- RawMeasurementStats.empty measurement.Name
 
             if not (state.StepsOrder.ContainsKey measurement.Name) then
                 state.StepsOrder[measurement.Name] <- state.StepsOrder.Count
 
-            updateCoordinatorStats state measurement
+            updateCoordinatorStats state measurement finalDataSize
 
         if state.IntervalStepsResults.ContainsKey measurement.Name then
-            updateIntervalStats state measurement
+            updateIntervalStats state measurement finalDataSize
         else
             state.IntervalStepsResults[measurement.Name] <- RawMeasurementStats.empty measurement.Name
-            updateIntervalStats state measurement
+            updateIntervalStats state measurement finalDataSize
 
         if measurement.ClientResponse.IsError && measurement.Name = Constants.ScenarioGlobalInfo then
             state.ScenarioFailCount <- state.ScenarioFailCount + 1

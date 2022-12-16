@@ -289,7 +289,7 @@ module StepStatsRawData =
             LatencyMs = stepResMs
         }
 
-        RawMeasurementStats.addMeasurement emptyData stepResult
+        RawMeasurementStats.addMeasurement emptyData stepResult 10
 
         let realMin = if clientResMs > 0.0 then clientResMs else stepResMs
 
@@ -325,7 +325,7 @@ module StepStatsRawData =
                 LatencyMs = 0.0
             }
 
-            RawMeasurementStats.addMeasurement data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse 10
         )
 
         let lessOrEq800 = latencies |> Seq.filter(fun x -> x <= 800u) |> Seq.length
@@ -364,7 +364,7 @@ module StepStatsRawData =
                 LatencyMs = latency |> float
             }
 
-            RawMeasurementStats.addMeasurement data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse 10
         )
 
         // calc OkStats
@@ -432,7 +432,7 @@ module StepStatsRawData =
                 LatencyMs = 0.0
             }
 
-            RawMeasurementStats.addMeasurement data stepResponse
+            RawMeasurementStats.addMeasurement data stepResponse resSize
         )
 
         // calc OkStatsData
