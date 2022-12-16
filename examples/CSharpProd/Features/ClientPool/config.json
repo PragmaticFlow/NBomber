@@ -1,0 +1,24 @@
+{
+    "TestSuite": "example",
+    "TestName": "custom_settings",
+
+    "TargetScenarios": ["scenario"],
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "scenario",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [1, "00:00:10"] }
+                ],
+
+                "CustomSettings": {
+                    "MqttServerUrl": "ws://localhost:8083/mqtt",
+                    "ClientCount": 10,
+                    "MsgSizeBytes": 100
+                }
+            }
+        ]
+    }
+}

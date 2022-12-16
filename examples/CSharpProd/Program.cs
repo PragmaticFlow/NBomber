@@ -27,6 +27,7 @@ new HelloWorldExample().Run();
 // ------------------
 // new DataFeedExample().Run();
 // new CustomSettingsExample().Run();
+// new ClientPoolExample().Run();
 
 // ----------------
 // ----- HTTP -----
