@@ -31,7 +31,7 @@ let private getLine (scenarioName: string, duration: TimeSpan, stats: StepStats,
     let lt = stats.Ok.Latency
     let dt = stats.Ok.DataTransfer
 
-    String.Format(format,
+    String.Format(System.Globalization.CultureInfo.InvariantCulture, format,
                   testInfo.TestSuite, testInfo.TestName,
                   scenarioName, duration, stats.StepName,
                   reqCount, okCount, failCount,
