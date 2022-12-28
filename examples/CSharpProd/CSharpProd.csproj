@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber" Version="4.0.0-beta8" />
+        <PackageReference Include="NBomber" Version="4.0.0-beta10" />
         <PackageReference Include="NBomber.Data" Version="4.0.0-beta" />
         <PackageReference Include="NBomber.Http" Version="4.0.0-beta3" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
