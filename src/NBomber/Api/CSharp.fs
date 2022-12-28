@@ -161,7 +161,7 @@ type Scenario =
     static member WithLoadSimulations(scenario: ScenarioProps, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
-    /// With this configuration, you can enable or disable Scenario iteration reset.
+    /// This method allows enabling or disabling the reset of Scenario iteration in case of step failure.
     /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
     /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
     /// For such cases, you can disable scenario iteration reset.

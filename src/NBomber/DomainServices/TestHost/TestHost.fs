@@ -37,22 +37,14 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     let mutable _targetScenarios = List.empty<Scenario>
     let mutable _sessionArgs = SessionArgs.empty
     let mutable _currentOperation = OperationType.None
-    let _defaultNodeInfo = NodeInfo.init None
+    let mutable _nodeInfo = { NodeInfo.init None with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
 
     let getCurrentNodeInfo () =
-        { _defaultNodeInfo with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
-
-    let execStopCommand (command: StopCommand) =
-        match command with
-        | StopScenario (scenarioName, reason) ->
-            _currentSchedulers
-            |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
-            |> Option.iter(fun sch ->
-                sch.Stop()
-                _log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
-            )
-
-        | StopTest reason -> this.StopScenarios(reason) |> ignore
+        if _nodeInfo.CurrentOperation = _currentOperation then
+            _nodeInfo
+        else
+            _nodeInfo <- { _nodeInfo with CurrentOperation = _currentOperation }
+            _nodeInfo
 
     let createScenarioSchedulers (targetScenarios: Scenario list)
                                  (operation: ScenarioOperation)
@@ -67,7 +59,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 ScenarioTimer = Stopwatch()
                 ScenarioOperation = operation
                 ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
-                ExecStopCommand = execStopCommand
+                ExecStopCommand = this.ExecStopCommand
+                TestInfo = _sessionArgs.TestInfo
+                GetNodeInfo = getCurrentNodeInfo
             }
             let count = getScenarioClusterCount scn.ScenarioName
             new ScenarioScheduler(scnDep, count)
@@ -190,11 +184,24 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _log.Information "Starting bombing..."
         do! startScenarios schedulers (Some reportingManager)
 
-        do! this.StopScenarios()
+        do! this.StopAllScenarios()
         _currentOperation <- OperationType.Complete
     }
 
-    member _.StopScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) =
+    abstract member ExecStopCommand: command:StopCommand -> unit
+    default _.ExecStopCommand(command) =
+        match command with
+        | StopScenario (scenarioName, reason) ->
+            _currentSchedulers
+            |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
+            |> Option.iter(fun sch ->
+                sch.Stop()
+                _log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
+            )
+
+        | StopTest reason -> this.StopAllScenarios(reason) |> ignore
+
+    member _.StopAllScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) =
         if _currentOperation <> OperationType.Stop && not _stopped then
             _currentOperation <- OperationType.Stop
 
@@ -262,7 +269,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     member _.Dispose() =
         if not _disposed then
             _disposed <- true
-            this.StopScenarios().Wait()
+            this.StopAllScenarios().Wait()
 
             for sink in dep.ReportingSinks do
                 use _ = sink

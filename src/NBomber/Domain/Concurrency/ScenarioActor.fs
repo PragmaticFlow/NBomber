@@ -14,7 +14,7 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
     let _cancelToken = scnCtx.ScenarioCancellationToken.Token
     let mutable _working = false
 
-    let _scenarioCtx = ScenarioContext(scenarioInfo, scnCtx)
+    let _scenarioCtx = ScenarioContext(scnCtx, scenarioInfo)
 
     let execSteps (runInfinite: bool) = backgroundTask {
         try

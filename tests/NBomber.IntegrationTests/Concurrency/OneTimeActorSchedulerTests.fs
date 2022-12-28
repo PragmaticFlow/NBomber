@@ -11,6 +11,7 @@ open FsToolkit.ErrorHandling
 
 open NBomber
 open NBomber.Contracts
+open NBomber.Contracts.Stats
 open NBomber.FSharp
 open NBomber.Domain
 open NBomber.Domain.Stats.ScenarioStatsActor
@@ -41,6 +42,8 @@ let internal baseScnDep = {
     ScenarioOperation = ScenarioOperation.Bombing
     ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
+    TestInfo = TestInfo.empty
+    GetNodeInfo = fun () -> NodeInfo.empty
 }
 
 [<Fact>]
