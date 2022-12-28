@@ -18,7 +18,7 @@ public class CustomScenarioSettings
     public int MsgSizeBytes { get; set; }
 }
 
-public class ClientPoolExample
+public class ClientPoolMqttExample
 {
     public void Run()
     {
@@ -26,7 +26,7 @@ public class ClientPoolExample
         var responsePromises = new ConcurrentDictionary<IMqttClient, TaskCompletionSource<MqttApplicationMessage>>();
         var message = Array.Empty<byte>();
 
-        var scenario = Scenario.Create("scenario", async ctx =>
+        var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
             var client = clientPool.GetClient(ctx.ScenarioInfo);
             var promise = responsePromises[client];
@@ -54,8 +54,11 @@ public class ClientPoolExample
 
             var mqttFactory = new MqttFactory();
 
+            var counter = 0;
             for (var i = 0; i < config.ClientCount; i++)
             {
+                counter++;
+
                 var client = mqttFactory.CreateMqttClient();
                 var clientOptions = new MqttClientOptionsBuilder()
                     .WithWebSocketServer(config.MqttServerUrl)
@@ -83,6 +86,12 @@ public class ClientPoolExample
                 }
                 else
                     throw new Exception("client can't connect to the MQTT broker");
+
+                if (counter == 10)
+                {
+                    counter = 0;
+                    await Task.Delay(500);
+                }
             }
         })
         .WithClean(context =>

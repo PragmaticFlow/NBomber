@@ -3,6 +3,7 @@ using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Options;
 using NBomber.CSharp;
+using NBomber.Data;
 
 namespace CSharpProd.MQTT;
 
@@ -10,6 +11,8 @@ public class PingPongMqttTest
 {
     public void Run()
     {
+        var payload = Data.GenerateRandomBytes(200);
+
         var scenario = Scenario.Create("ping_pong_mqtt_scenario", async ctx =>
         {
             using var mqttClient = new MqttFactory().CreateMqttClient();
@@ -47,14 +50,14 @@ public class PingPongMqttTest
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
-                await mqttClient.PublishAsync(topic, "hello world msg");
-                return Response.Ok();
+                await mqttClient.PublishAsync(topic, payload);
+                return Response.Ok(sizeBytes: payload.Length);
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
             {
-                await promise.Task;
-                return Response.Ok();
+                var msg = await promise.Task;
+                return Response.Ok(sizeBytes: msg.Payload.Length);
             });
 
             var disconnect = await Step.Run("disconnect", ctx, async () =>

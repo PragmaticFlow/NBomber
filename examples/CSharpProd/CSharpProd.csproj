@@ -26,10 +26,9 @@
         <None Update="Features\ClientPool\config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Features\CliArgs\config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Features\RealtimeReporting" />
-    </ItemGroup>    
 
 </Project>

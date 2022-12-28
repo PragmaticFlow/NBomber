@@ -29,10 +29,12 @@ public class EmptyScenario
         var initDbScn = Scenario.Empty("populate_database_scenario")
             .WithInit(async context =>
             {
+                // here we can populate our DB
                 await Task.Delay(5000);
             })
             .WithClean(async context =>
             {
+                // here we can do a cleanup for our DB
                 await Task.Delay(5000);
             });
 

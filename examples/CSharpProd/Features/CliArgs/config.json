@@ -1,0 +1,26 @@
+{
+    "TestSuite": "example",
+    "TestName": "custom_settings",
+
+    "TargetScenarios": ["scenario_3"],
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "scenario_3",
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "RampingConstant": [10, "00:00:05"] },
+                    { "KeepConstant": [10, "00:00:05"] },
+                    { "RampingInject": [20, "00:00:01", "00:00:05"] },
+                    { "Inject": [20, "00:00:01", "00:00:05"] }
+                ]
+            }
+        ],
+
+        "ReportFileName": "my_report_name",
+        "ReportFolder": "./reports",
+        "ReportFormats": [ "Html", "Md", "Txt", "Csv" ]
+    }
+}
