@@ -98,3 +98,27 @@ let ``Stop should stop all working actors`` () =
     test <@ scheduler.ScheduledActorCount = 5 @>
     test <@ Seq.length workingActors = 0 @>
     test <@ scheduler.AvailableActors.Count = 5 @>
+
+[<Fact>]
+let ``RampingConstant should work correctly`` () =
+
+    Scenario.create("scenario", fun ctx -> task {
+
+        let! step = Step.run("step", ctx, fun () -> task {
+            do! Task.Delay(milliseconds 100)
+            return Response.ok()
+        })
+
+        return Response.ok()
+    })
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [RampingConstant(copies = 10, during = seconds 5)]
+    |> NBomberRunner.registerScenario
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun nodeStats ->
+        let stats = nodeStats.ScenarioStats[0]
+
+        test <@ stats.AllRequestCount > 0 @>
+        test <@ stats.Ok.Request.Count > 0 @>
