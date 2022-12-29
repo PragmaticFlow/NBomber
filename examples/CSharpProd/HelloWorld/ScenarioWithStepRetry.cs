@@ -34,7 +34,7 @@ public class ScenarioWithStepRetry
 
             return Response.Ok();
         })
-        .WithResetIterationOnFail(false) // the iteration should continue even when step returns fail
+        .WithRestartIterationOnFail(false) // the iteration should continue even when step returns fail
         .WithoutWarmUp()
         .WithLoadSimulations(
             Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30))
