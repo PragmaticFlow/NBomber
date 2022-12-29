@@ -167,8 +167,8 @@ type Scenario =
     /// For such cases, you can disable auto restart of Scenario iteration.
     /// The default value is true.
     [<Extension>]
-    static member WithRestartIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
-        scenario |> FSharp.Scenario.withRestartIterationOnFail shouldReset
+    static member WithRestartIterationOnFail(scenario: ScenarioProps, shouldRestart: bool) =
+        scenario |> FSharp.Scenario.withRestartIterationOnFail shouldRestart
 
     /// Sets and overrides the default max fail count.
     /// When a scenario reaches max fail count, NBomber will stop the whole load test.
