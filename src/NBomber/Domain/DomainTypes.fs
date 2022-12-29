@@ -32,6 +32,6 @@ type Scenario = {
     CustomSettings: string
     IsEnabled: bool // used for stats in the cluster mode
     IsInitialized: bool
-    ResetIterationOnFail: bool
+    RestartIterationOnFail: bool
     MaxFailCount: int
 }

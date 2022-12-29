@@ -91,7 +91,7 @@ let createScenario (scn: ScenarioProps) = result {
              CustomSettings = String.Empty
              IsEnabled = true
              IsInitialized = false
-             ResetIterationOnFail = scnProps.ResetIterationOnFail
+             RestartIterationOnFail = scnProps.RestartIterationOnFail
              MaxFailCount = scnProps.MaxFailCount }
 }
 
@@ -175,7 +175,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext 
         let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
     with
-    | :? ResetScenarioIteration ->
+    | :? RestartScenarioIteration ->
         let endTime = ctx.Timer.Elapsed.TotalMilliseconds
         let latency = endTime - startTime
 

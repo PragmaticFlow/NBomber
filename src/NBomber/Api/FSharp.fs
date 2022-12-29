@@ -71,8 +71,8 @@ type Step =
 
         let! response = Domain.Step.measure name ctx run
 
-        if response.IsError && ctx.ResetIterationOnFail then
-            return raise ResetScenarioIteration
+        if response.IsError && ctx.RestartIterationOnFail then
+            return raise RestartScenarioIteration
         else
             return response
     }
@@ -97,7 +97,7 @@ module Scenario =
           Run = Some typedRun
           WarmUpDuration = Some Constants.DefaultWarmUpDuration
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          ResetIterationOnFail = true
+          RestartIterationOnFail = true
           MaxFailCount = Constants.ScenarioMaxFailCount }
 
     /// Creates empty scenario.
@@ -110,7 +110,7 @@ module Scenario =
           Run = None
           WarmUpDuration = None
           LoadSimulations = [LoadSimulation.KeepConstant(copies = Constants.DefaultCopiesCount, during = Constants.DefaultSimulationDuration)]
-          ResetIterationOnFail = true
+          RestartIterationOnFail = true
           MaxFailCount = Constants.ScenarioMaxFailCount }
 
     /// Initializes scenario.
@@ -137,13 +137,13 @@ module Scenario =
     let withLoadSimulations (loadSimulations: LoadSimulation list) (scenario: ScenarioProps) =
         { scenario with LoadSimulations = loadSimulations }
 
-    /// This method allows enabling or disabling the reset of Scenario iteration in case of step failure.
-    /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
+    /// This method allows enabling or disabling the restart of Scenario iteration in case of step failure.
+    /// By default, on fail Step response, NBomber will restart the current Scenario iteration.
     /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
-    /// For such cases, you can disable scenario iteration reset.
+    /// For such cases, you can disable auto restart of Scenario iteration.
     /// The default value is true.
-    let withResetIterationOnFail (shouldReset: bool) (scenario: ScenarioProps) =
-        { scenario with ResetIterationOnFail = shouldReset }
+    let withRestartIterationOnFail (shouldRestart: bool) (scenario: ScenarioProps) =
+        { scenario with RestartIterationOnFail = shouldRestart }
 
     /// Sets and overrides the default max fail count.
     /// When a scenario reaches max fail count, NBomber will stop the whole load test.

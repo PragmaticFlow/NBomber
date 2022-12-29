@@ -161,14 +161,14 @@ type Scenario =
     static member WithLoadSimulations(scenario: ScenarioProps, [<ParamArray>]loadSimulations: LoadSimulation[]) =
         scenario |> FSharp.Scenario.withLoadSimulations(Seq.toList loadSimulations)
 
-    /// This method allows enabling or disabling the reset of Scenario iteration in case of step failure.
-    /// By default, on fail Step response, NBomber will reset the current Scenario iteration.
+    /// This method allows enabling or disabling the restart of Scenario iteration in case of step failure.
+    /// By default, on fail Step response, NBomber will restart the current Scenario iteration.
     /// Sometimes, you would like to handle failed steps differently: retry, ignore or use a fallback.
-    /// For such cases, you can disable scenario iteration reset.
+    /// For such cases, you can disable auto restart of Scenario iteration.
     /// The default value is true.
     [<Extension>]
-    static member WithResetIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
-        scenario |> FSharp.Scenario.withResetIterationOnFail shouldReset
+    static member WithRestartIterationOnFail(scenario: ScenarioProps, shouldReset: bool) =
+        scenario |> FSharp.Scenario.withRestartIterationOnFail shouldReset
 
     /// Sets and overrides the default max fail count.
     /// When a scenario reaches max fail count, NBomber will stop the whole load test.

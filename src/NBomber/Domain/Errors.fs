@@ -4,7 +4,7 @@ open System.IO
 open NBomber.Contracts
 open NBomber.Extensions.Internal
 
-exception ResetScenarioIteration
+exception RestartScenarioIteration
 
 type ScenarioError =
     | EmptyRegisterScenarios

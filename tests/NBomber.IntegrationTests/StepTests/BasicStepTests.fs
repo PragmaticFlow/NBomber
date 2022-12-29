@@ -261,7 +261,7 @@ let ``NBomber by default should reset scenario iteration on step fail`` () =
         test <@ stats.ScenarioStats[0].GetStepStats("step1").Ok.Request.Count > 0 @>
 
 [<Fact>]
-let ``withResetIterationOnFail should allow to configure reset = false`` () =
+let ``withRestartIterationOnFail should allow to configure reset = false`` () =
 
     let mutable step3Invoked = false
 
@@ -284,7 +284,7 @@ let ``withResetIterationOnFail should allow to configure reset = false`` () =
     })
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
-    |> Scenario.withResetIterationOnFail false
+    |> Scenario.withRestartIterationOnFail false
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run

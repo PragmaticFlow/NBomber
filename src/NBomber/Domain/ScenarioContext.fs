@@ -26,12 +26,12 @@ type ScenarioContext(args: ScenarioContextArgs, scenarioInfo) =
     let _logger = args.Logger
     let _scnActor = args.ScenarioStatsActor
     let _timer = args.ScenarioTimer
-    let _resetIteration = args.Scenario.ResetIterationOnFail
+    let _restartIteration = args.Scenario.RestartIterationOnFail
     let _testInfo = args.TestInfo
     let _data = Dictionary<string,obj>()
     let mutable _invocationNumber = 0
 
-    member _.ResetIterationOnFail = _resetIteration
+    member _.RestartIterationOnFail = _restartIteration
     member _.InvocationNumber = _invocationNumber
     member _.StatsActor = _scnActor
     member _.Timer = _timer

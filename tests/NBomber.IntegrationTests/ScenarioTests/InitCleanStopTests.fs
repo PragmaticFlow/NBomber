@@ -214,7 +214,7 @@ let ``MaxFailCount should be tracked only for scenarios failures, not steps fail
             return Response.ok()
         })
         |> Scenario.withoutWarmUp
-        |> Scenario.withResetIterationOnFail false
+        |> Scenario.withRestartIterationOnFail false
         |> Scenario.withLoadSimulations [KeepConstant(10, duration)]
         |> Scenario.withMaxFailCount maxFailCount
 
