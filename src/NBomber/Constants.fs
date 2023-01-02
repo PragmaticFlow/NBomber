@@ -5,7 +5,7 @@ open Microsoft.Extensions.Configuration
 open NBomber.Contracts.Stats
 
 [<Literal>]
-let Logo = "NBomber"
+let Logo = "NBomber 4"
 [<Literal>]
 let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
 

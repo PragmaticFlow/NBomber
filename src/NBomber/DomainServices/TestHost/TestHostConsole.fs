@@ -13,35 +13,34 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
-open NBomber.Infra.Dependency
 
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
     |> List.map(fun x -> x.ScenarioName)
-    |> fun targets -> dep.Logger.Information("Target scenarios: {TargetScenarios}", String.concatWithComma targets)
+    |> fun targets -> dep.LogInfo("Target scenarios: {0}", String.concatWithComma targets)
 
 let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusContext option -> Task<'T>) =
     if dep.ApplicationType = ApplicationType.Console then
         let status = AnsiConsole.Status()
         status.StartAsync(msg, fun ctx -> runAction (Some ctx))
     else
-        dep.Logger.Information msg
+        dep.LogInfo msg
         runAction None
 
 let printContextInfo (dep: IGlobalDependency) =
-    dep.Logger.Verbose("NBomberConfig: {NBomberConfig}", $"%A{dep.NBomberConfig}")
+    dep.Logger.Verbose("NBomberConfig: {0}", $"%A{dep.NBomberConfig}")
 
     if dep.WorkerPlugins.IsEmpty then
-        dep.Logger.Information "Plugins: no plugins were loaded"
+        dep.LogInfo "Plugins: no plugins were loaded"
     else
         dep.WorkerPlugins
-        |> List.iter(fun plugin -> dep.Logger.Information("Plugin loaded: {PluginName}", plugin.PluginName))
+        |> List.iter(fun plugin -> dep.LogInfo("Plugin loaded: {0}", plugin.PluginName) )
 
     if dep.ReportingSinks.IsEmpty then
-        dep.Logger.Information "Reporting sinks: no reporting sinks were loaded"
+        dep.LogInfo "Reporting sinks: no reporting sinks were loaded"
     else
         dep.ReportingSinks
-        |> List.iter(fun sink -> dep.Logger.Information("Reporting sink loaded: {SinkName}", sink.SinkName))
+        |> List.iter(fun sink -> dep.LogInfo("Reporting sink loaded: {0}", sink.SinkName))
 
 module LiveStatusTable =
 

@@ -3,6 +3,7 @@ namespace NBomber.Infra
 open System
 open System.IO
 open System.Reflection
+open System.Runtime.CompilerServices
 open System.Runtime.Versioning
 
 open Microsoft.Extensions.Configuration
@@ -14,6 +15,55 @@ open NBomber.Configuration
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 
+type internal IGlobalDependency =
+    abstract ApplicationType: ApplicationType
+    abstract NodeType: NodeType
+    abstract NBomberConfig: NBomberConfig option
+    abstract InfraConfig: IConfiguration option
+    abstract CreateLoggerConfig: (unit -> LoggerConfiguration) option
+    abstract Logger: ILogger
+    abstract ConsoleLogger: ILogger
+    abstract ReportingSinks: IReportingSink list
+    abstract WorkerPlugins: IWorkerPlugin list
+
+[<Extension>]
+type internal LogExt =
+
+    [<Extension>]
+    static member LogInfo(dep: IGlobalDependency, msg) =
+        dep.ConsoleLogger.Information msg
+        dep.Logger.Information msg
+
+    [<Extension>]
+    static member LogInfo(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Information(msg, propertyValues)
+        dep.Logger.Information(msg, propertyValues)
+
+    [<Extension>]
+    static member LogWarn(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Warning(msg, propertyValues)
+        dep.Logger.Warning(msg, propertyValues)
+
+    [<Extension>]
+    static member LogWarn(dep: IGlobalDependency, ex: exn, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Warning(ex, msg, propertyValues)
+        dep.Logger.Warning(ex, msg, propertyValues)
+
+    [<Extension>]
+    static member LogError(dep: IGlobalDependency, msg) =
+        dep.ConsoleLogger.Error msg
+        dep.Logger.Error msg
+
+    [<Extension>]
+    static member LogError(dep: IGlobalDependency, ex: exn, msg) =
+        dep.ConsoleLogger.Error(ex, msg)
+        dep.Logger.Error(ex, msg)
+
+    [<Extension>]
+    static member LogError(dep: IGlobalDependency, ex: exn, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Error(ex, msg, propertyValues)
+        dep.Logger.Error(ex, msg, propertyValues)
+
 module internal Logger =
 
     type LoggerInitSettings = {
@@ -22,6 +72,12 @@ module internal Logger =
         NodeType: NodeType
         AgentGroup: string
     }
+
+    let createConsoleLogger () =
+        let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        let config = LoggerConfiguration()
+        config.WriteTo.SpectreConsole(outputTemplate, minLevel = LogEventLevel.Information) |> ignore
+        config.CreateLogger() :> ILogger
 
     let create (logSettings: LoggerInitSettings)
                (infraConfig: IConfiguration option)
@@ -34,32 +90,23 @@ module internal Logger =
             with
             | ex -> ()
 
-        let attachFileLogger (config: LoggerConfiguration) =
-
-            cleanFolder logSettings.Folder
-
+        let attachDefaultFileLogger (config: LoggerConfiguration) =
             config.WriteTo.File(
                 path = $"{logSettings.Folder}/nbomber-log-.txt",
                 outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval = RollingInterval.Day
             )
 
-        let attachAnsiConsoleLogger (config: LoggerConfiguration) =
-            config.WriteTo.Logger(fun lc ->
-                let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
-                lc.WriteTo.SpectreConsole(outputTemplate, minLevel = LogEventLevel.Information)
-                  .Filter.ByIncludingOnly(fun event -> event.Level = LogEventLevel.Information
-                                                       || event.Level = LogEventLevel.Warning
-                                                       || event.Level = LogEventLevel.Error)
-                |> ignore
-            )
-
+        cleanFolder logSettings.Folder
         let testInfo = logSettings.TestInfo
 
         let loggerConfig =
             createLoggerConfig
             |> Option.map(fun tryGet -> tryGet())
-            |> Option.defaultValue(LoggerConfiguration().MinimumLevel.Debug())
+            |> Option.defaultValue(
+                LoggerConfiguration().MinimumLevel.Debug()
+                |> attachDefaultFileLogger
+            )
             |> fun config -> config.Enrich.WithProperty(nameof testInfo.SessionId, testInfo.SessionId)
                                    .Enrich.WithProperty(nameof testInfo.TestSuite, testInfo.TestSuite)
                                    .Enrich.WithProperty(nameof testInfo.TestName, testInfo.TestName)
@@ -67,12 +114,36 @@ module internal Logger =
                                    .Enrich.WithProperty(nameof testInfo.ClusterId, testInfo.ClusterId)
                                    .Enrich.WithProperty(nameof logSettings.AgentGroup, logSettings.AgentGroup)
                                    .Enrich.WithThreadId()
-            |> attachFileLogger
-            |> attachAnsiConsoleLogger
 
         match infraConfig with
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger
         | None      -> loggerConfig.CreateLogger() :> ILogger
+
+module internal Dependency =
+
+    open Logger
+
+    let createSessionId () =
+        let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
+        let guid = Guid.NewGuid().GetHashCode().ToString("x")
+        $"{date}_session_{guid}"
+
+    let create (appType: ApplicationType) (logSettings: LoggerInitSettings) (context: NBomberContext) =
+
+        let consoleLogger = createConsoleLogger()
+        let logger = Logger.create logSettings context.InfraConfig context.CreateLoggerConfig
+        Log.Logger <- logger
+
+        { new IGlobalDependency with
+            member _.ApplicationType = appType
+            member _.NodeType = logSettings.NodeType
+            member _.NBomberConfig = context.NBomberConfig
+            member _.InfraConfig = context.InfraConfig
+            member _.CreateLoggerConfig = context.CreateLoggerConfig
+            member _.Logger = logger
+            member _.ConsoleLogger = consoleLogger
+            member _.ReportingSinks = context.Reporting.Sinks
+            member _.WorkerPlugins = context.WorkerPlugins }
 
 module internal ResourceManager =
 
@@ -116,37 +187,3 @@ module internal NodeInfo =
             else ApplicationType.Console
         with
         | _ -> ApplicationType.Process
-
-module internal Dependency =
-
-    open Logger
-
-    type IGlobalDependency =
-        abstract ApplicationType: ApplicationType
-        abstract NodeType: NodeType
-        abstract NBomberConfig: NBomberConfig option
-        abstract InfraConfig: IConfiguration option
-        abstract CreateLoggerConfig: (unit -> LoggerConfiguration) option
-        abstract Logger: ILogger
-        abstract ReportingSinks: IReportingSink list
-        abstract WorkerPlugins: IWorkerPlugin list
-
-    let createSessionId () =
-        let date = DateTime.UtcNow.ToString("yyyy-MM-dd_HH.mm.ff")
-        let guid = Guid.NewGuid().GetHashCode().ToString("x")
-        $"{date}_session_{guid}"
-
-    let create (appType: ApplicationType) (logSettings: LoggerInitSettings) (context: NBomberContext) =
-
-        let logger = Logger.create logSettings context.InfraConfig context.CreateLoggerConfig
-        Log.Logger <- logger
-
-        { new IGlobalDependency with
-            member _.ApplicationType = appType
-            member _.NodeType = logSettings.NodeType
-            member _.NBomberConfig = context.NBomberConfig
-            member _.InfraConfig = context.InfraConfig
-            member _.CreateLoggerConfig = context.CreateLoggerConfig
-            member _.Logger = logger
-            member _.ReportingSinks = context.Reporting.Sinks
-            member _.WorkerPlugins = context.WorkerPlugins }

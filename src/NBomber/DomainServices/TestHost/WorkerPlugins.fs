@@ -1,40 +1,39 @@
 module internal NBomber.DomainServices.TestHost.WorkerPlugins
 
 open System.Threading.Tasks
-open Serilog
 open FsToolkit.ErrorHandling
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Extensions.Internal
-open NBomber.Infra.Dependency
+open NBomber.Infra
 
 //todo: add Polly for timout and retry logic, using cancel token
-let init (dep: IGlobalDependency) (context: IBaseContext) (plugins: IWorkerPlugin list) = taskResult {
+let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
     try
-        for plugin in plugins do
-            dep.Logger.Information("Start init plugin: {PluginName}", plugin.PluginName)
+        for plugin in dep.WorkerPlugins do
+            dep.LogInfo("Start init plugin: {0}", plugin.PluginName)
             do! plugin.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
-let start (logger: ILogger) (plugins: IWorkerPlugin list) =
-    for plugin in plugins do
+let start (dep: IGlobalDependency) =
+    for plugin in dep.WorkerPlugins do
         try
             plugin.Start() |> ignore
         with
-        | ex -> logger.Warning(ex, "Failed to start plugin: {PluginName}", plugin.PluginName)
+        | ex -> dep.LogWarn(ex, "Failed to start plugin: {0}", plugin.PluginName)
 
 //todo: add Polly for timout and retry logic, using cancel token
-let stop (logger: ILogger) (plugins: IWorkerPlugin list) = backgroundTask {
-    for plugin in plugins do
+let stop (dep: IGlobalDependency) = backgroundTask {
+    for plugin in dep.WorkerPlugins do
         try
-            logger.Information("Stop plugin: {PluginName}", plugin.PluginName)
+            dep.LogInfo("Stop plugin: {0}", plugin.PluginName)
             do! plugin.Stop()
         with
-        | ex -> logger.Warning(ex, "Failed to stop plugin: {PluginName}", plugin.PluginName)
+        | ex -> dep.LogWarn(ex, "Failed to stop plugin: {0}", plugin.PluginName)
 }
 
 let getHints (plugins: IWorkerPlugin list) =
@@ -45,21 +44,21 @@ let getHints (plugins: IWorkerPlugin list) =
     )
     |> Seq.toList
 
-let getStats (logger: ILogger) (plugins: IWorkerPlugin list) (stats: NodeStats) = backgroundTask {
+let getStats (dep: IGlobalDependency) (stats: NodeStats) = backgroundTask {
     try
         let pluginStatusesTask =
-            plugins
+            dep.WorkerPlugins
             |> List.map(fun plugin -> plugin.GetStats stats)
             |> Task.WhenAll
 
         let! finishedTask = Task.WhenAny(pluginStatusesTask, Task.Delay(Constants.GetPluginStatsTimeout))
         if finishedTask.Id = pluginStatusesTask.Id then return pluginStatusesTask.Result
         else
-            logger.Error("Getting plugin stats failed with the timeout error")
+            dep.LogWarn "Getting plugin stats failed with the timeout error"
             return Array.empty
     with
     | ex ->
-        logger.Error("Getting plugin stats failed: {0}", ex.ToString())
+        dep.LogWarn(ex, "Getting plugin stats failed")
         return Array.empty
 }
 
