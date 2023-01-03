@@ -4,14 +4,18 @@ open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
+
 open FsToolkit.ErrorHandling
 open Spectre.Console
+
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Scheduler.ScenarioScheduler
+open NBomber.DomainServices.Reports
 open NBomber.Infra
 
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
@@ -27,7 +31,10 @@ let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusConte
         dep.LogInfo msg
         runAction None
 
-let printContextInfo (dep: IGlobalDependency) =
+let printContextInfo (dep: IGlobalDependency) (sessionArgs: SessionArgs) =
+    let reportsFolder = ReportHelper.getFullReportsFolderPath sessionArgs
+    dep.LogInfo("Reports folder: {0}", reportsFolder)
+
     dep.Logger.Verbose("NBomberConfig: {0}", $"%A{dep.NBomberConfig}")
 
     if dep.WorkerPlugins.IsEmpty then

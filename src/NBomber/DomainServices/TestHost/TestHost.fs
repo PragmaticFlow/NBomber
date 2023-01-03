@@ -130,7 +130,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _stopped <- false
         _currentOperation <- OperationType.Init
 
-        TestHostConsole.printContextInfo dep
+        TestHostConsole.printContextInfo dep sessionArgs
         dep.LogInfo "Starting init..."
 
         TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {

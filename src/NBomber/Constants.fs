@@ -27,7 +27,7 @@ let DefaultTestName = "nbomber_default_test_name"
 [<Literal>]
 let DefaultReportName = "nbomber_report"
 [<Literal>]
-let DefaultReportFolder = "./reports"
+let DefaultReportFolder = "reports"
 [<Literal>]
 let ScenarioGlobalInfo = "global information"
 

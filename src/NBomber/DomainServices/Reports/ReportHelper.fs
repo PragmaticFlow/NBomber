@@ -2,6 +2,7 @@ module internal NBomber.DomainServices.Reports.ReportHelper
 
 open System
 open NBomber.Contracts
+open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 open NBomber.Domain
@@ -12,6 +13,12 @@ let printDataKb (highlightTxt: obj -> string) (bytes: int) =
 
 let printAllData (highlightTxt: obj -> string) (bytes: int64) =
     $"{bytes |> Converter.fromBytesToMb |> highlightTxt} MB"
+
+let getFullReportsFolderPath (sessionArgs: SessionArgs) =
+    let strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location
+    let strWorkPath = System.IO.Path.GetDirectoryName strExeFilePath
+    let reportFolder = sessionArgs.GetReportFolder()
+    System.IO.Path.Combine(strWorkPath, reportFolder)
 
 module StepStats =
 
