@@ -10,7 +10,7 @@ open NBomber.Domain
 open NBomber.Domain.LoadSimulation
 open NBomber.Domain.Stats.Statistics
 open NBomber.Domain.Scheduler.ScenarioScheduler
-open NBomber.Infra.Dependency
+open NBomber.Infra
 
 type IReportingManager =
     inherit IDisposable
@@ -39,7 +39,7 @@ let getFinalStats (dep: IGlobalDependency)
 
     let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats
 
-    let! pluginStats = WorkerPlugins.getStats dep.Logger dep.WorkerPlugins nodeStats
+    let! pluginStats = WorkerPlugins.getStats dep nodeStats
     return { nodeStats with PluginStats = pluginStats }
 }
 

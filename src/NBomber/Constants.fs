@@ -5,7 +5,7 @@ open Microsoft.Extensions.Configuration
 open NBomber.Contracts.Stats
 
 [<Literal>]
-let Logo = "NBomber"
+let Logo = "NBomber 4"
 [<Literal>]
 let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
 
@@ -27,7 +27,7 @@ let DefaultTestName = "nbomber_default_test_name"
 [<Literal>]
 let DefaultReportName = "nbomber_report"
 [<Literal>]
-let DefaultReportFolder = "./reports"
+let DefaultReportFolder = "reports"
 [<Literal>]
 let ScenarioGlobalInfo = "global information"
 

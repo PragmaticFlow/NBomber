@@ -34,7 +34,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Resp
         let latency = endTime - startTime
 
         let context = ctx :> IScenarioContext
-        context.Logger.Fatal(ex, $"Unhandled exception for Scenario: {0}, Step: {1}", context.ScenarioInfo.ScenarioName, name)
+        context.Logger.Error(ex, $"Unhandled exception for Scenario: {0}, Step: {1}", context.ScenarioInfo.ScenarioName, name)
 
         let response = ResponseInternal.failUnhandled ex
         let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }

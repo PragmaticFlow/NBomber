@@ -8,7 +8,6 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Errors
 open NBomber.Infra
-open NBomber.Infra.Dependency
 
 let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) =
     regScenarios
@@ -26,7 +25,7 @@ let initEnabledScenarios (dep: IGlobalDependency)
         try
             for scn in enabledScenarios do
                 if scn.Init.IsSome then
-                    dep.Logger.Information("Start init scenario: {Scenario}", scn.ScenarioName)
+                    dep.LogInfo("Start init scenario: {0}", scn.ScenarioName)
 
                     if consoleStatus.IsSome then
                         consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
@@ -70,7 +69,7 @@ let cleanScenarios (dep: IGlobalDependency)
 
     for scn in enabledScenarios do
         if scn.Clean.IsSome then
-            dep.Logger.Information("Start cleaning scenario: {0}", scn.ScenarioName)
+            dep.LogInfo("Start cleaning scenario: {0}", scn.ScenarioName)
 
             if consoleStatus.IsSome then
                 consoleStatus.Value.Status <- $"Cleaning scenario: {Console.okColor scn.ScenarioName}"
@@ -80,5 +79,5 @@ let cleanScenarios (dep: IGlobalDependency)
             try
                 do! scn.Clean.Value context
             with
-            | ex -> dep.Logger.Warning(ex, "Cleaning scenario failed: {0}", scn.ScenarioName)
+            | ex -> dep.LogWarn(ex, "Cleaning scenario failed: {0}", scn.ScenarioName)
 }

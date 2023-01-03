@@ -11,7 +11,6 @@ open NBomber.Extensions.Internal
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.Statistics
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.DomainServices
 
 type ReportsContent = {
@@ -69,7 +68,7 @@ let build (logger: ILogger)
       MdReport = lazy (MdReport.print logger newSessionResult simulations)
       ConsoleReport = lazy (ConsoleReport.print logger newSessionResult simulations) }
 
-let saveToFolder (logger: ILogger, folder: string, fileName: string,
+let saveToFolder (dep: IGlobalDependency, folder: string, fileName: string,
                   reportFormats: ReportFormat list, report: ReportsContent) =
     try
         Directory.CreateDirectory(folder) |> ignore
@@ -101,16 +100,17 @@ let saveToFolder (logger: ILogger, folder: string, fileName: string,
             try
                 File.WriteAllText(x.FilePath, x.ReportContent)
             with
-            | ex -> logger.Error(ex, "Could not save the report file {0}", x.FilePath)
+            | ex -> dep.LogError(ex, "Could not save the report file {0}", x.FilePath)
         )
 
         if reportFiles.Length > 0 then
-            logger.Information("Reports saved in folder: {0}", DirectoryInfo(folder).FullName)
+            dep.LogInfo("Reports saved in folder: {0}", DirectoryInfo(folder).FullName)
 
         reportFiles
     with
-    | ex -> logger.Error(ex, "Report.save failed")
-            Array.empty
+    | ex ->
+        dep.LogError(ex, "Report.save failed")
+        Array.empty
 
 let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (report: ReportsContent) =
 
@@ -121,7 +121,7 @@ let save (dep: IGlobalDependency) (context: NBomberContext) (stats: NodeStats) (
     report.ConsoleReport.Value |> List.iter Console.render
 
     if formats.Length > 0 then
-        let reportFiles = saveToFolder(dep.Logger, folder, fileName, formats, report)
+        let reportFiles = saveToFolder(dep, folder, fileName, formats, report)
         { stats with ReportFiles = reportFiles }
     else
         stats

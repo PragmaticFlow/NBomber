@@ -6,7 +6,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.Infra.Logger
 open NBomber.DomainServices.Reports
 open NBomber.DomainServices.TestHost
@@ -15,8 +14,8 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
     taskResult {
         Constants.Logo |> Console.addLogo |> Console.render
 
-        dep.Logger.Information(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
-        dep.Logger.Information "NBomber started as single node"
+        dep.LogInfo(Constants.NBomberWelcomeText, nodeInfo.NBomberVersion, testInfo.SessionId)
+        dep.LogInfo "NBomber started as single node"
 
         let! scenarios = context |> NBomberContext.createScenarios
         let! sessionArgs = context |> NBomberContext.createSessionArgs testInfo scenarios
@@ -52,10 +51,11 @@ let run (context: NBomberContext) =
         AgentGroup = ""
     }
 
-    Dependency.create appType logSettings context
-    |> runSession testInfo nodeInfo context
+    let dep = Dependency.create appType logSettings context
+
+    runSession testInfo nodeInfo context dep
     |> TaskResult.mapError(fun error ->
-        error |> AppError.toString |> Serilog.Log.Error
+        error |> AppError.toString |> dep.LogError
         error
     )
     |> fun task -> task.GetAwaiter().GetResult()

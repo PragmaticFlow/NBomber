@@ -15,7 +15,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
-open NBomber.Errors
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.ScenarioContext
@@ -23,15 +22,12 @@ open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.DomainServices
 open NBomber.DomainServices.TestHost.ReportingManager
 
 type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as this =
 
-    let _log = dep.Logger.ForContext<TestHost>()
     let mutable _currentSchedulers = List.empty<ScenarioScheduler>
-
     let mutable _stopped = false
     let mutable _disposed = false
     let mutable _targetScenarios = List.empty<Scenario>
@@ -53,12 +49,12 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         let createScheduler (scn: Scenario) =
             let scnDep = {
-                Logger = _log
+                Logger = dep.Logger
                 Scenario = scn
                 ScenarioCancellationToken = new CancellationTokenSource()
                 ScenarioTimer = Stopwatch()
                 ScenarioOperation = operation
-                ScenarioStatsActor = createStatsActor _log scn (_sessionArgs.GetReportingInterval())
+                ScenarioStatsActor = createStatsActor dep.Logger scn (_sessionArgs.GetReportingInterval())
                 ExecStopCommand = this.ExecStopCommand
                 TestInfo = _sessionArgs.TestInfo
                 GetNodeInfo = getCurrentNodeInfo
@@ -77,8 +73,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         let isWarmUp = reportingManager.IsNone
 
         if not isWarmUp then
-            dep.WorkerPlugins |> WorkerPlugins.start _log
-            dep.ReportingSinks |> ReportingSinks.start _log
+            WorkerPlugins.start dep
+            ReportingSinks.start dep
 
         use consoleCancelToken = new CancellationTokenSource()
         TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
@@ -97,8 +93,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             // waiting (in case of cluster) on all raw stats
             do! reportingManager.Value.Stop()
 
-            do! dep.WorkerPlugins |> WorkerPlugins.stop _log
-            do! dep.ReportingSinks |> ReportingSinks.stop _log
+            do! WorkerPlugins.stop dep
+            do! ReportingSinks.stop dep
 
         if isWarmUp then
             GC.Collect()
@@ -107,10 +103,10 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
     let startInit (consoleStatus: StatusContext option) (sessionArgs: SessionArgs) = taskResult {
 
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo _log
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo dep.Logger
 
-        do! dep.WorkerPlugins |> WorkerPlugins.init dep baseContext
-        do! dep.ReportingSinks |> ReportingSinks.init dep baseContext
+        do! WorkerPlugins.init dep baseContext
+        do! ReportingSinks.init dep baseContext
 
         return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
     }
@@ -119,7 +115,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                    (consoleStatus: StatusContext option)
                    (scenarios: Scenario list) =
 
-        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo _log
+        let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo dep.Logger
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
         TestHostScenario.cleanScenarios dep consoleStatus baseContext enabledScenarios
 
@@ -134,22 +130,24 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _stopped <- false
         _currentOperation <- OperationType.Init
 
-        TestHostConsole.printContextInfo dep
-        _log.Information "Starting init..."
+        TestHostConsole.printContextInfo dep sessionArgs
+        dep.LogInfo "Starting init..."
 
         TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
-            match! startInit consoleStatus sessionArgs with
+            let! initResult = startInit consoleStatus sessionArgs
+            match initResult with
             | Ok initializedScenarios ->
-                _log.Information "Init finished"
+                dep.LogInfo "Init finished"
+
                 _targetScenarios  <- initializedScenarios
                 _sessionArgs      <- sessionArgs
                 _currentOperation <- OperationType.None
+
                 return Ok _targetScenarios
 
-            | Error appError ->
-                _log.Error "Init failed"
+            | Error _ ->
                 _currentOperation <- OperationType.Stop
-                return AppError.createResult appError
+                return initResult
         })
 
     member _.StartWarmUp(scenarios: Scenario list, ?getScenarioClusterCount: ScenarioName -> int) = backgroundTask {
@@ -159,14 +157,14 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         let warmupScenarios = Scenario.getScenariosForWarmUp scenarios
         if warmupScenarios.Length > 0 then
 
-            _log.Information "Starting warm up..."
+            dep.LogInfo "Starting warm up..."
 
             let warmUpSchedulers = this.CreateScenarioSchedulers(
                 warmupScenarios, ScenarioOperation.WarmUp, ?getScenarioClusterCount = getScenarioClusterCount
             )
 
             let names = warmupScenarios |> Seq.map(fun x -> x.ScenarioName) |> String.concatWithComma
-            _log.Verbose $"Warm up for scenarios: [{names}]"
+            dep.Logger.Verbose $"Warm up for scenarios: [{names}]"
 
             _currentSchedulers <- warmUpSchedulers
 
@@ -181,7 +179,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _currentOperation <- OperationType.Bombing
         _currentSchedulers <- schedulers
 
-        _log.Information "Starting bombing..."
+        dep.LogInfo "Starting bombing..."
         do! startScenarios schedulers (Some reportingManager)
 
         do! this.StopAllScenarios()
@@ -196,7 +194,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
             |> Option.iter(fun sch ->
                 sch.Stop()
-                _log.Warning("Stopping scenario early: {ScenarioName}, reason: {StopReason}", sch.Scenario.ScenarioName, reason)
+                dep.LogWarn("Stopping scenario early: {0}, reason: {1}", sch.Scenario.ScenarioName, reason)
             )
 
         | StopTest reason -> this.StopAllScenarios(reason) |> ignore
@@ -206,9 +204,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             _currentOperation <- OperationType.Stop
 
             if not(String.IsNullOrEmpty reason) then
-                _log.Warning("Stopping test early: {StopReason}", reason)
+                dep.LogWarn("Stopping test early: {0}", reason)
             else
-                _log.Information "Stopping scenarios..."
+                dep.LogInfo "Stopping scenarios..."
 
             TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 stopSchedulers _currentSchedulers
@@ -260,7 +258,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             do! this.StartBombing(bombingSchedulers, reportingManager)
 
             // gets final stats
-            _log.Information "Calculating final statistics..."
+            dep.LogInfo "Calculating final statistics..."
             return! reportingManager.GetSessionResult(getCurrentNodeInfo())
         else
             return NodeSessionResult.empty
@@ -278,8 +276,6 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             for plugin in dep.WorkerPlugins do
                 use _ = plugin
                 ()
-
-            _log.Verbose $"{nameof TestHost} disposed"
 
     interface IDisposable with
         member _.Dispose() = this.Dispose()
