@@ -264,7 +264,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             return NodeSessionResult.empty
     }
 
-    member _.Dispose() =
+    member _.Destroy() =
         if not _disposed then
             _disposed <- true
             this.StopAllScenarios().Wait()
@@ -278,4 +278,4 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 ()
 
     interface IDisposable with
-        member _.Dispose() = this.Dispose()
+        member _.Dispose() = this.Destroy()

@@ -145,6 +145,18 @@ module internal Dependency =
             member _.ReportingSinks = context.Reporting.Sinks
             member _.WorkerPlugins = context.WorkerPlugins }
 
+    let withNewLogger (dep: IGlobalDependency) (logger: ILogger) =
+        { new IGlobalDependency with
+            member _.ApplicationType = dep.ApplicationType
+            member _.NodeType = dep.NodeType
+            member _.NBomberConfig = dep.NBomberConfig
+            member _.InfraConfig = dep.InfraConfig
+            member _.CreateLoggerConfig = dep.CreateLoggerConfig
+            member _.Logger = logger
+            member _.ConsoleLogger = dep.ConsoleLogger
+            member _.ReportingSinks = dep.ReportingSinks
+            member _.WorkerPlugins = dep.WorkerPlugins }
+
 module internal ResourceManager =
 
     let readResource (name) =
