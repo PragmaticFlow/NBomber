@@ -20,8 +20,13 @@ open NBomber.Infra
 
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
-    |> List.map(fun x -> x.ScenarioName)
+    |> Seq.map(fun x -> x.ScenarioName)
     |> fun targets -> dep.LogInfo("Target scenarios: {0}", String.concatWithComma targets)
+
+let printWarmUpScenarios (dep: IGlobalDependency) (warmUpScns: Scenario list) =
+    warmUpScns
+    |> Seq.map(fun x -> x.ScenarioName)
+    |> fun targets -> dep.LogInfo("Warm up for scenarios: {0}", String.concatWithComma targets)
 
 let displayStatus (dep: IGlobalDependency) (msg: string) (runAction: StatusContext option -> Task<'T>) =
     if dep.ApplicationType = ApplicationType.Console then
@@ -90,6 +95,12 @@ module LiveStatusTable =
                     $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
                 |> ignore
 
+    let private getMaxScnDuration (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
+        if isWarmUp then
+            scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
+        else
+            scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
+
     let display (dep: IGlobalDependency)
                 (cancelToken: CancellationToken)
                 (isWarmUp: bool)
@@ -100,9 +111,7 @@ module LiveStatusTable =
             let stopWatch = Stopwatch()
             let mutable refreshTableCounter = 0
 
-            let maxDuration =
-                if isWarmUp then scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
-                else scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
+            let maxDuration = getMaxScnDuration isWarmUp scnSchedulers
 
             let table = buildTable ()
             table.Caption <- TableTitle("real-time stats table")

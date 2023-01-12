@@ -2,6 +2,7 @@ namespace Tests.TestHelper
 
 open System
 open System.Data
+open System.Threading.Tasks
 
 open Serilog
 open Serilog.Sinks.InMemory
@@ -10,9 +11,9 @@ open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Infra
-open NBomber.Infra.Dependency
 open NBomber.Infra.Logger
 open NBomber.DomainServices
+open NBomber.FSharp
 
 module internal Dependency =
 
@@ -134,3 +135,44 @@ module internal PluginStatisticsHelper =
         pluginStats.Tables.Add(createTable("PluginStatistics1"))
         pluginStats.Tables.Add(createTable("PluginStatistics2"))
         pluginStats
+
+module internal PluginTestHelper =
+
+    let createScenarios () =
+
+        let scenario1 =
+            Scenario.create("scenario 1", fun ctx -> task {
+
+                let! step1 = Step.run("step 1", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.1)
+                    return Response.ok()
+                })
+
+                let! step2 = Step.run("step 2", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.2)
+                    return Response.ok()
+                })
+
+                let! step3 = Step.run("step 3", ctx, fun () -> task {
+                    do! Task.Delay(seconds 0.3)
+                    return Response.ok()
+                })
+
+                return Response.ok()
+            })
+            |> Scenario.withWarmUpDuration(seconds 2)
+            |> Scenario.withLoadSimulations [
+                KeepConstant(copies = 2, during = seconds 10)
+            ]
+
+        let scenario2 =
+            Scenario.create("scenario 2", fun ctx -> task {
+                do! Task.Delay(seconds 0.3)
+                return Response.ok()
+            })
+            |> Scenario.withWarmUpDuration(seconds 2)
+            |> Scenario.withLoadSimulations [
+                KeepConstant(copies = 2, during = seconds 10)
+            ]
+
+        [scenario1; scenario2]

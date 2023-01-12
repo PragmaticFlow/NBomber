@@ -16,76 +16,50 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.FSharp
-
-module internal PluginTestHelper =
-
-    let createScenarios () =
-
-        let scenario1 =
-            Scenario.create("plugin scenario 1", fun ctx -> task {
-
-                let! step1 = Step.run("step 1", ctx, fun () -> task {
-                    do! Task.Delay(seconds 0.1)
-                    return Response.ok()
-                })
-
-                let! step2 = Step.run("step 2", ctx, fun () -> task {
-                    do! Task.Delay(seconds 0.2)
-                    return Response.ok()
-                })
-
-                let! step3 = Step.run("step 3", ctx, fun () -> task {
-                    do! Task.Delay(seconds 0.3)
-                    return Response.ok()
-                })
-
-                return Response.ok()
-            })
-            |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = seconds 10)
-            ]
-
-        let scenario2 =
-            Scenario.create("plugin scenario 2", fun ctx -> task {
-                do! Task.Delay(seconds 0.3)
-                return Response.ok()
-            })
-            |> Scenario.withoutWarmUp
-            |> Scenario.withLoadSimulations [
-                KeepConstant(copies = 2, during = seconds 10)
-            ]
-
-        [scenario1; scenario2]
+open Tests.TestHelper
 
 [<Fact>]
-let ``Init should be invoked once`` () =
+let ``WorkerPlugin Init, Start, Stop should be invoked once for Warmup and once for Bombing`` () =
 
+    let mutable invocationOrder = List.empty
     let scenarios = PluginTestHelper.createScenarios()
-    let mutable pluginInitInvokedCounter = 0
 
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
 
             member _.Init(_, _) =
-                pluginInitInvokedCounter <- pluginInitInvokedCounter + 1
+                invocationOrder <- "init" :: invocationOrder
                 Task.CompletedTask
 
-            member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = Task.FromResult(new DataSet())
-            member _.GetHints() = Array.empty
-            member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
+            member _.Start() =
+                invocationOrder <- "start" :: invocationOrder
+                Task.CompletedTask
+
+            member _.GetStats(_) =
+                invocationOrder <- "get_stats" :: invocationOrder
+                Task.FromResult(new DataSet())
+
+            member _.GetHints() =
+                invocationOrder <- "get_hints" :: invocationOrder
+                Array.empty
+
+            member _.Stop() =
+                invocationOrder <- "stop" :: invocationOrder
+                Task.CompletedTask
+
+            member _.Dispose() =
+                invocationOrder <- "dispose" :: invocationOrder
     }
 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
+    |> NBomberRunner.enableHintsAnalyzer true
     |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
+    |> Result.mapError failwith
     |> ignore
 
-    test <@ pluginInitInvokedCounter = 1 @>
+    test <@ List.rev invocationOrder = ["init"; "start"; "stop"; "start"; "stop"; "get_stats"; "get_hints"; "dispose"] @>
 
 [<Fact>]
 let ``StartTest should be invoked once`` () =

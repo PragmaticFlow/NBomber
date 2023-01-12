@@ -68,33 +68,26 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())
 
-    let startScenarios (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager option) = backgroundTask {
-
-        let isWarmUp = reportingManager.IsNone
-
-        if not isWarmUp then
-            WorkerPlugins.start dep
-            ReportingSinks.start dep
+    let startScenarios (isWarmUp) (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager) = backgroundTask {
+        WorkerPlugins.start dep
+        ReportingSinks.start dep
 
         use consoleCancelToken = new CancellationTokenSource()
         TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
 
-        if reportingManager.IsSome then
-            reportingManager.Value.Start()
+        reportingManager.Start()
 
         // waiting on all scenarios to finish
-        do! schedulers |> List.map(fun x -> x.Start()) |> Task.WhenAll
+        do! schedulers |> Seq.map(fun x -> x.Start()) |> Task.WhenAll
         consoleCancelToken.Cancel()
 
-        if not isWarmUp then
-            // wait on final metrics and reporting tick
-            do! Task.Delay Constants.ReportingTimerCompleteMs
+        // wait on final metrics and reporting tick
+        do! Task.Delay Constants.ReportingTimerCompleteMs
 
-            // waiting (in case of cluster) on all raw stats
-            do! reportingManager.Value.Stop()
-
-            do! WorkerPlugins.stop dep
-            do! ReportingSinks.stop dep
+        // waiting (in case of cluster) on all raw stats
+        do! reportingManager.Stop()
+        do! WorkerPlugins.stop dep
+        do! ReportingSinks.stop dep
 
         if isWarmUp then
             GC.Collect()
@@ -150,26 +143,17 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 return initResult
         })
 
-    member _.StartWarmUp(scenarios: Scenario list, ?getScenarioClusterCount: ScenarioName -> int) = backgroundTask {
+    member _.StartWarmUp(scenarios: Scenario list, schedulers: ScenarioScheduler list, reportingManager: IReportingManager) = backgroundTask {
         _stopped <- false
         _currentOperation <- OperationType.WarmUp
+        _currentSchedulers <- schedulers
 
-        let warmupScenarios = Scenario.getScenariosForWarmUp scenarios
-        if warmupScenarios.Length > 0 then
+        dep.LogInfo "Starting warm up..."
+        TestHostConsole.printWarmUpScenarios dep scenarios
 
-            dep.LogInfo "Starting warm up..."
-
-            let warmUpSchedulers = this.CreateScenarioSchedulers(
-                warmupScenarios, ScenarioOperation.WarmUp, ?getScenarioClusterCount = getScenarioClusterCount
-            )
-
-            let names = warmupScenarios |> Seq.map(fun x -> x.ScenarioName) |> String.concatWithComma
-            dep.Logger.Verbose $"Warm up for scenarios: [{names}]"
-
-            _currentSchedulers <- warmUpSchedulers
-
-            do! startScenarios warmUpSchedulers None
-            stopSchedulers warmUpSchedulers
+        let isWarmUp = true
+        do! startScenarios isWarmUp schedulers reportingManager
+        stopSchedulers schedulers
 
         _currentOperation <- OperationType.None
     }
@@ -180,7 +164,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _currentSchedulers <- schedulers
 
         dep.LogInfo "Starting bombing..."
-        do! startScenarios schedulers (Some reportingManager)
+        let isWarmUp = false
+        do! startScenarios isWarmUp schedulers reportingManager
 
         do! this.StopAllScenarios()
         _currentOperation <- OperationType.Complete
@@ -248,11 +233,14 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         let! initializedScenarios = this.StartInit sessionArgs
 
         // start warm up
-        do! this.StartWarmUp initializedScenarios
+        let warmupScenarios = Scenario.getScenariosForWarmUp initializedScenarios
+        if warmupScenarios.Length > 0 then
+            let warmupSchedulers = this.CreateScenarioSchedulers(warmupScenarios, ScenarioOperation.WarmUp)
+            use reportingManager = ReportingManager.create dep warmupSchedulers sessionArgs
+            do! this.StartWarmUp(warmupScenarios, warmupSchedulers, reportingManager)
 
         // start bombing
         let bombingSchedulers = this.CreateScenarioSchedulers(initializedScenarios, ScenarioOperation.Bombing)
-
         if bombingSchedulers.Length > 0 then
             use reportingManager = ReportingManager.create dep bombingSchedulers sessionArgs
             do! this.StartBombing(bombingSchedulers, reportingManager)

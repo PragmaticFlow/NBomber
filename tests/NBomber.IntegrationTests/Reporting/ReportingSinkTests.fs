@@ -11,50 +11,11 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
 open NBomber.FSharp
-open Tests
+open Tests.TestHelper
 
 //todo: test that multiply sink will be invoked correctly
 //todo: test that stop timer stops sending metrics in case when stopping is still executing
 //todo: test cluster stats
-
-let createScenarios () =
-
-    let scenario1 =
-        Scenario.create("plugin scenario 1", fun ctx -> task {
-
-            let! step1 = Step.run("step 1", ctx, fun () -> task {
-                do! Task.Delay(seconds 0.1)
-                return Response.ok()
-            })
-
-            let! step2 = Step.run("step 2", ctx, fun () -> task {
-                do! Task.Delay(seconds 0.2)
-                return Response.ok()
-            })
-
-            let! step3 = Step.run("step 3", ctx, fun () -> task {
-                do! Task.Delay(seconds 0.3)
-                return Response.ok()
-            })
-
-            return Response.ok()
-        })
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 2, during = seconds 10)
-        ]
-
-    let scenario2 =
-        Scenario.create("plugin scenario 2", fun ctx -> task {
-            do! Task.Delay(seconds 0.3)
-            return Response.ok()
-        })
-        |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [
-            KeepConstant(copies = 2, during = seconds 10)
-        ]
-
-    [scenario1; scenario2]
 
 [<Fact>]
 let ``SaveFinalStats should receive correct stats`` () =
@@ -270,9 +231,9 @@ let ``SaveRealtimeStats should receive correct stats`` () =
         test <@ finalStats.ScenarioStats[0].Fail.Request.RPS = 0.0 @>
 
 [<Fact>]
-let ``WorkerPlugin stats should be passed to IReportingSink`` () =
+let ``WorkerPlugin stats should be passed to IReportingSink SaveFinalStats`` () =
 
-    let scenarios = createScenarios()
+    let scenarios = PluginTestHelper.createScenarios()
     let mutable _nodeStats = NodeStats.empty
 
     let plugin = {
@@ -280,7 +241,7 @@ let ``WorkerPlugin stats should be passed to IReportingSink`` () =
             member _.PluginName = "TestPlugin"
             member _.Init(_, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = TestHelper.PluginStatisticsHelper.createPluginStats() |> Task.FromResult
+            member _.GetStats(_) = PluginStatisticsHelper.createPluginStats() |> Task.FromResult
             member _.GetHints() = Array.empty
             member _.Stop() = Task.CompletedTask
             member _.Dispose() = ()
@@ -320,4 +281,48 @@ let ``WorkerPlugin stats should be passed to IReportingSink`` () =
     test <@ table1.Rows.Count > 0 @>
     test <@ table2.Columns.Count > 0 @>
     test <@ table2.Rows.Count > 0 @>
+
+[<Fact>]
+let ``ReportingSink Init, Start, Stop should be invoked once for Warmup and once for Bombing`` () =
+
+    let mutable invocationOrder = List.empty
+    let mutable saveRealtimeStatsCounter = 0
+    let scenarios = PluginTestHelper.createScenarios()
+
+    let reportingSink = {
+        new IReportingSink with
+            member _.SinkName = "TestSink"
+
+            member _.Init(_, _) =
+                invocationOrder <- "init" :: invocationOrder
+                Task.CompletedTask
+
+            member _.Start() =
+                invocationOrder <- "start" :: invocationOrder
+                Task.CompletedTask
+
+            member _.SaveRealtimeStats(_) =
+                saveRealtimeStatsCounter <- saveRealtimeStatsCounter + 1
+                Task.CompletedTask
+
+            member _.SaveFinalStats(stats) =
+                invocationOrder <- "save_final_stats" :: invocationOrder
+                Task.CompletedTask
+
+            member _.Stop() =
+                invocationOrder <- "stop" :: invocationOrder
+                Task.CompletedTask
+
+            member _.Dispose() =
+                invocationOrder <- "dispose" :: invocationOrder
+    }
+
+    NBomberRunner.registerScenarios scenarios
+    |> NBomberRunner.withReportingSinks [reportingSink]
+    |> NBomberRunner.enableHintsAnalyzer true
+    |> NBomberRunner.run
+    |> Result.mapError failwith
+    |> ignore
+
+    test <@ List.rev invocationOrder = ["init"; "start"; "stop"; "start"; "stop"; "save_final_stats"; "dispose"] @>
 
