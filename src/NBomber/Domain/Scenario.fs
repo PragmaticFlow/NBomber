@@ -38,10 +38,22 @@ module Validation =
 
         else Ok scenario
 
-    let validate =
-        checkEmptyScenarioName
-        >=> checkInitOnlyScenario
-        >> Result.mapError AppError.create
+    let checkWarmupDuration (scnDuration: TimeSpan) (scenario: ScenarioProps) =
+        match scenario.WarmUpDuration with
+        | Some warmUpDuration ->
+            if scnDuration < warmUpDuration then
+                Error (WarmUpDurationIsBiggerScnDuration(scenario.ScenarioName, warmUpDuration, scnDuration))
+            else
+                Ok scenario
+
+        | None -> Ok scenario
+
+    let validate (scenario: ScenarioProps) (scnDuration: TimeSpan) =
+        scenario
+        |> checkEmptyScenarioName
+        |> Result.bind checkInitOnlyScenario
+        |> Result.bind (checkWarmupDuration scnDuration)
+        |> Result.mapError AppError.create
 
 module ScenarioInitContext =
 
@@ -76,9 +88,9 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioOperation = operation }
 
 let createScenario (scn: ScenarioProps) = result {
-    let! scnProps      = Validation.validate scn
     let! simulations   = LoadSimulation.create scn.LoadSimulations
     let planedDuration = LoadSimulation.getPlanedDuration simulations
+    let! scnProps      = Validation.validate scn planedDuration
 
     return { ScenarioName = scnProps.ScenarioName
              Init = scnProps.Init

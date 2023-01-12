@@ -12,6 +12,7 @@ open NBomber.FSharp
 open NBomber.Extensions.Internal
 open NBomber.Contracts
 open NBomber.Contracts.Stats
+open NBomber.Errors
 open NBomber.Domain
 
 [<Fact>]
@@ -117,3 +118,26 @@ let ``withWarmUpDuration should run warmup only for specified scenarios`` () =
     test <@ warmupStep2 = false @>
     test <@ bombingStep1 = true @>
     test <@ bombingStep2 = true @>
+
+[<Fact>]
+let ``warm-up duration should be equal or smaller that scenario's duration`` () =
+
+    let scn =
+        Scenario.create("1", fun ctx -> task {
+            do! Task.Delay(seconds 0.5)
+            return Response.ok()
+        })
+        |> Scenario.withWarmUpDuration(seconds 5) // we set bigger duration than the scnDuration
+        |> Scenario.withLoadSimulations [KeepConstant(1, seconds 2)]
+
+    NBomberRunner.registerScenarios [scn]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.runWithResult []
+    |> Result.getError
+    |> function
+        | Scenario error ->
+            match error with
+            | WarmUpDurationIsBiggerScnDuration _ -> ()
+            | _ -> failwith "invalid error type"
+
+        | _ -> failwith "invalid error type"

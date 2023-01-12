@@ -1,5 +1,6 @@
 ﻿module internal NBomber.Errors
 
+open System
 open System.IO
 open NBomber.Contracts
 open NBomber.Extensions.Internal
@@ -15,6 +16,7 @@ type ScenarioError =
     | TargetScenariosNotFound of notFoundScenarios:string list * regScenarios:string list
     | InitScenarioError  of ex:exn
     | CleanScenarioError of ex:exn
+    | WarmUpDurationIsBiggerScnDuration of scnName:string * warmUpDuration:TimeSpan * scnDuration:TimeSpan
 
 type ReportError =
     | EmptyReportName
@@ -70,6 +72,9 @@ type AppError =
 
         | InitScenarioError ex  -> $"Init scenario error: '{ex.ToString()}'"
         | CleanScenarioError ex -> $"Clean scenario error: '{ex.ToString()}'"
+
+        | WarmUpDurationIsBiggerScnDuration (scnName, warmUpDuration, scnDuration) ->
+            $"Scenario '{scnName}' has a warm-up duration '{warmUpDuration}' that is bigger than the actual scenario's duration '{scnDuration}'. It should be equal or smaller but not bigger."
 
     static member toString (error: ReportError) =
         match error with
