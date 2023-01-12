@@ -324,5 +324,6 @@ let ``ReportingSink Init, Start, Stop should be invoked once for Warmup and once
     |> Result.mapError failwith
     |> ignore
 
+    test <@ saveRealtimeStatsCounter > 0 @>
     test <@ List.rev invocationOrder = ["init"; "start"; "stop"; "start"; "stop"; "save_final_stats"; "dispose"] @>
 

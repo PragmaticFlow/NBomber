@@ -62,37 +62,7 @@ let ``WorkerPlugin Init, Start, Stop should be invoked once for Warmup and once 
     test <@ List.rev invocationOrder = ["init"; "start"; "stop"; "start"; "stop"; "get_stats"; "get_hints"; "dispose"] @>
 
 [<Fact>]
-let ``StartTest should be invoked once`` () =
-
-    let scenarios = PluginTestHelper.createScenarios()
-    let mutable pluginStartTestInvokedCounter = 0
-
-    let plugin = {
-        new IWorkerPlugin with
-            member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = Task.CompletedTask
-
-            member _.Start() =
-                pluginStartTestInvokedCounter <- pluginStartTestInvokedCounter + 1
-                Task.CompletedTask
-
-            member _.GetHints() = Array.empty
-            member _.GetStats(_) = Task.FromResult(new DataSet())
-            member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
-    }
-
-    NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withWorkerPlugins [plugin]
-    |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
-    |> ignore
-
-    test <@ pluginStartTestInvokedCounter = 1 @>
-
-
-[<Fact>]
-let ``StartTest should be invoked with infra config`` () =
+let ``Init should be invoked with infra config`` () =
 
     let scenarios = PluginTestHelper.createScenarios()
     let mutable pluginConfig = Unchecked.defaultof<_>
@@ -122,62 +92,6 @@ let ``StartTest should be invoked with infra config`` () =
     let serilogConfig = pluginConfig.GetSection("Serilog")
 
     test <@ isNull serilogConfig = false @>
-
-[<Fact>]
-let ``GetStats should be invoked only one time when final stats fetching`` () =
-
-    let scenarios = PluginTestHelper.createScenarios()
-    let mutable pluginGetStatsInvokedCounter = 0
-
-    let plugin = {
-        new IWorkerPlugin with
-            member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = Task.CompletedTask
-            member _.Start() = Task.CompletedTask
-
-            member _.GetStats(stats) =
-                pluginGetStatsInvokedCounter <- pluginGetStatsInvokedCounter + 1
-                Task.FromResult(new DataSet())
-
-            member _.GetHints() = Array.empty
-            member _.Stop() = Task.CompletedTask
-            member _.Dispose() = ()
-    }
-
-    NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withWorkerPlugins [plugin]
-    |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
-    |> ignore
-
-    test <@ pluginGetStatsInvokedCounter = 1 @>
-
-[<Fact>]
-let ``StopTest should be invoked once`` () =
-
-    let scenarios = PluginTestHelper.createScenarios()
-    let mutable pluginFinishTestInvokedCounter = 0
-
-    let plugin = {
-        new IWorkerPlugin with
-            member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = Task.CompletedTask
-            member _.Start() = Task.CompletedTask
-            member _.GetStats(_) = Task.FromResult(new DataSet())
-            member _.GetHints() = Array.empty
-            member _.Stop() =
-                pluginFinishTestInvokedCounter <- pluginFinishTestInvokedCounter + 1
-                Task.CompletedTask
-            member _.Dispose() = ()
-    }
-
-    NBomberRunner.registerScenarios scenarios
-    |> NBomberRunner.withWorkerPlugins [plugin]
-    |> NBomberRunner.run
-    |> Result.mapError(fun x -> failwith x)
-    |> ignore
-
-    test <@ pluginFinishTestInvokedCounter = 1 @>
 
 [<Fact>]
 let ``PluginStats should return empty data set in case of execution timeout`` () =

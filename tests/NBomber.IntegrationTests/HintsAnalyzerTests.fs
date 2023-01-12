@@ -92,6 +92,7 @@ let ``HintsAnalyzer should be disabled by default`` () =
         return Response.ok()
     })
     |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
+    |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.runWithResult Seq.empty
     |> Result.getOk
@@ -106,6 +107,7 @@ let ``disableHintsAnalyzer should disable hints`` () =
         return Response.ok()
     })
     |> Scenario.withLoadSimulations [LoadSimulation.KeepConstant(1, seconds 1)]
+    |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.enableHintsAnalyzer false
     |> NBomberRunner.runWithResult Seq.empty

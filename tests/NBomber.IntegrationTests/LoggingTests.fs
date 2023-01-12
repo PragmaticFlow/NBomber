@@ -35,6 +35,7 @@ let ``set min logger level should work correctly`` () =
         return Response.ok()
     })
     |> Scenario.withLoadSimulations [KeepConstant(1, TimeSpan.FromSeconds 3.0)]
+    |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig1
     |> NBomberRunner.run
@@ -46,6 +47,7 @@ let ``set min logger level should work correctly`` () =
         return Response.ok()
     })
     |> Scenario.withLoadSimulations [KeepConstant(1, TimeSpan.FromSeconds 3.0)]
+    |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig2
     |> NBomberRunner.run

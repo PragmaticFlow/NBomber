@@ -32,7 +32,7 @@ let ``Warmup should have no effect on stats`` () =
 
         return Response.ok()
     })
-    |> Scenario.withWarmUpDuration(seconds 3)
+    |> Scenario.withWarmUpDuration(seconds 1)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 1)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports

@@ -18,7 +18,7 @@ let ``applyScenariosSettings() should override initial settings if the scenario 
     let duration1 = seconds 50
 
     let scnName2 = "scenario_1"
-    let duration2 = seconds 5
+    let duration2 = seconds 80
 
     let settings = {
         ScenarioName = scnName1
@@ -106,26 +106,3 @@ let ``ScenarioSettings should be validated on duplicates `` () =
     |> NBomberRunner.run
     |> Result.getError
     |> fun error -> test <@ error.Contains("Scenario names are not unique in JSON config") @>
-
-// [<Fact>]
-// let ``withStepTimeout should set step timeout`` () =
-//
-//     let step1 = Step.create("step_1", timeout = seconds 2, execute = fun context -> task {
-//         do! Task.Delay(seconds 4)
-//         return Response.ok()
-//     })
-//
-//     Scenario.create "1" [step1]
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(1, seconds 10)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.run
-//     |> Result.getOk
-//     |> NodeStats.getScenarioStats "1"
-//     |> ScenarioStats.getStepStats "step_1"
-//     |> fun stepsStats ->
-//         test <@ stepsStats.Ok.Request.Count = 0 @>
-//         test <@ stepsStats.Fail.Request.Count > 0 @>
-//         test <@ stepsStats.Fail.StatusCodes[0].StatusCode = NBomber.Constants.TimeoutStatusCode @>
-//         test <@ stepsStats.Fail.StatusCodes[0].Count = stepsStats.Fail.Request.Count @>

@@ -23,6 +23,7 @@ let ``withTargetScenarios should run only specified scenarios`` () =
         })
         |> Scenario.withInit(fun _ -> task { scn1Started <- true })
         |> Scenario.withLoadSimulations [KeepConstant(1, seconds 1)]
+        |> Scenario.withoutWarmUp
 
     let scn2 =
         Scenario.create("scn_2", fun ctx -> task {
@@ -31,6 +32,7 @@ let ``withTargetScenarios should run only specified scenarios`` () =
         })
         |> Scenario.withInit(fun _ -> task { scn2Started <- true })
         |> Scenario.withLoadSimulations [KeepConstant(1, seconds 1)]
+        |> Scenario.withoutWarmUp
 
     NBomberRunner.registerScenarios [scn1; scn2]
     |> NBomberRunner.withTargetScenarios ["scn_2"]
@@ -39,32 +41,3 @@ let ``withTargetScenarios should run only specified scenarios`` () =
 
     test <@ scn1Started = false @>
     test <@ scn2Started @>
-
-// [<Fact>]
-// let ``withDefaultStepTimeout should overrides default step timeout`` () =
-//
-//     Scenario.create("timeout tests", fun ctx -> task {
-//
-//         let! st = Step.run("step 1", ctx, fun () -> task {
-//             do! Task.Delay(milliseconds 100)
-//             return Response.ok()
-//         })
-//
-//         let! st = Step.run("step 2", ctx, fun () -> task {
-//             do! Task.Delay(milliseconds 600)
-//             return Response.ok()
-//         })
-//
-//         return Response.ok()
-//     })
-//     |> Scenario.withoutWarmUp
-//     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 5)]
-//     |> NBomberRunner.registerScenario
-//     |> NBomberRunner.withoutReports
-//     |> NBomberRunner.withDefaultStepTimeout(milliseconds 500)
-//     |> NBomberRunner.run
-//     |> Result.getOk
-//     |> fun stats ->
-//         test <@ stats.ScenarioStats[0].GetStepStats("step 1").Fail.Request.Count = 0 @>
-//         test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.Request.Count > 0 @>
-//         test <@ stats.ScenarioStats[0].GetStepStats("step 2").Fail.StatusCodes[0].StatusCode = Constants.TimeoutStatusCode @>
