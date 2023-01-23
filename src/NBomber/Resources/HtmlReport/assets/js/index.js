@@ -307,9 +307,9 @@ const initApp = (appContainer, viewModel) => {
         props: ['scenarioStats'],
         template: '<chart class="chart chart-scenario-latency-indicators" :data="data" :options="options" type="ColumnChart"></chart>',
         data: function() {
-            const lessOrEq800 = this.scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 + this.scenarioStats.Fail.Latency.LatencyCount.LessOrEq800
-            const more800Less1200 = this.scenarioStats.Ok.Latency.LatencyCount.More800Less1200 + this.scenarioStats.Fail.Latency.LatencyCount.More800Less1200
-            const moreOrEq1200 = this.scenarioStats.Ok.Latency.LatencyCount.MoreOrEq1200 + this.scenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200
+            const lessOrEq800 = this.scenarioStats.Ok.Latency.LatencyCount.LessOrEq800
+            const more800Less1200 = this.scenarioStats.Ok.Latency.LatencyCount.More800Less1200
+            const moreOrEq1200 = this.scenarioStats.Ok.Latency.LatencyCount.MoreOrEq1200
             const count = this.scenarioStats.Fail.Request.Count
 
             return {
@@ -345,10 +345,7 @@ const initApp = (appContainer, viewModel) => {
             const timeLineHistory = createScenarioData(this.timeLineHistory, this.scenarioName);
             const rows = timeLineHistory
                 .map((t, i) => {
-                    let latencyCount = t.ScenarioStats.Ok.Latency.LatencyCount;
-                    latencyCount.LessOrEq800 += t.ScenarioStats.Fail.Latency.LatencyCount.LessOrEq800;
-                    latencyCount.More800Less1200 += t.ScenarioStats.Fail.Latency.LatencyCount.More800Less1200;
-                    latencyCount.MoreOrEq1200 += t.ScenarioStats.Fail.Latency.LatencyCount.MoreOrEq1200;
+                    let latencyCount = t.ScenarioStats.Ok.Latency.LatencyCount;                    
 
                     const result = [
                         t.Duration,
