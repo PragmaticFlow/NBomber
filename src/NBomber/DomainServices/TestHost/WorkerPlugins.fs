@@ -29,8 +29,7 @@ let start (dep: IGlobalDependency) =
 //todo: add Polly for timout and retry logic, using cancel token
 let stop (dep: IGlobalDependency) = backgroundTask {
     for plugin in dep.WorkerPlugins do
-        try
-            dep.LogInfo("Stop plugin: {0}", plugin.PluginName)
+        try            
             do! plugin.Stop()
         with
         | ex -> dep.LogWarn(ex, "Failed to stop plugin: {0}", plugin.PluginName)

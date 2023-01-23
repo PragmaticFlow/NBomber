@@ -31,8 +31,7 @@ let start (dep: IGlobalDependency) =
 let stop (dep: IGlobalDependency) = backgroundTask {
     if dep.NodeType <> NodeType.Agent then
         for sink in dep.ReportingSinks do
-            try
-                dep.LogInfo("Stop reporting sink: {0}", sink.SinkName)
+            try                
                 do! sink.Stop()
             with
             | ex -> dep.LogWarn(ex, "Failed to stop reporting sink: {0}", sink.SinkName)
