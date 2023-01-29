@@ -484,7 +484,7 @@ let ``NodeStats should be calculated properly`` () =
             return Response.ok()
         })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
+        |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 5)]
 
     NBomberRunner.registerScenarios [ scenario ]
     |> NBomberRunner.withoutReports
@@ -495,12 +495,14 @@ let ``NodeStats should be calculated properly`` () =
         let okStep = scnStats.GetStepStats("ok step")
         let failStep = scnStats.GetStepStats("fail step")
 
-        test <@ okStep.Ok.Request.Count >= 5 && okStep.Ok.Request.Count <= 10 @>
+        test <@ okStep.Ok.Request.Count = 5 @>
+        test <@ okStep.Ok.Request.RPS = 1 @>
 
         test <@ okStep.Ok.DataTransfer.MinBytes = 100 @>
         test <@ okStep.Fail.Request.Count = 0 @>
 
-        test <@ failStep.Fail.Request.Count >= 5 && failStep.Fail.Request.Count <= 10 @>
+        test <@ failStep.Fail.Request.Count = 5 @>
+        test <@ failStep.Fail.Request.RPS = 1 @>
 
         test <@ failStep.Fail.DataTransfer.MinBytes = 10 @>
         test <@ failStep.Ok.Request.Count = 0 @>
