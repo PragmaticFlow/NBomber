@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>4.0.0-rc.1</Version>
+        <Version>4.0.0-rc.2</Version>
         <Copyright>NBomber@2022</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -16,9 +16,7 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <PackageReleaseNotes>- added Dedicated Console Logger
-- added Console Live Stats table for warm up phase</PackageReleaseNotes>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>        
         <Title>NBomber</Title>
     </PropertyGroup>
     <ItemGroup>
@@ -73,7 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-rc1]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.0.0-rc2]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.13.0" />
         <PackageReference Include="FuncyDown" Version="1.3.0" />
