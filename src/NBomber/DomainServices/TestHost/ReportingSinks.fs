@@ -10,31 +10,31 @@ open NBomber.Infra
 
 //todo: add Polly for timout and retry logic, using cancel token
 let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
-    if dep.NodeType <> NodeType.Agent then
-        try
-            for sink in dep.ReportingSinks do
-                dep.LogInfo("Start init reporting sink: {0}", sink.SinkName)
-                do! sink.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
-        with
-        | ex -> return! AppError.createResult(InitScenarioError ex)
+    // we need to init ReportingSink for Coordinator and Agents
+    try
+        for sink in dep.ReportingSinks do
+            dep.LogInfo("Start init reporting sink: {0}", sink.SinkName)
+            do! sink.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
+    with
+    | ex -> return! AppError.createResult(InitScenarioError ex)
 }
 
 let start (dep: IGlobalDependency) =
-    if dep.NodeType <> NodeType.Agent then
-        for sink in dep.ReportingSinks do
-            try
-                sink.Start() |> ignore
-            with
-            | ex -> dep.LogWarn(ex, "Failed to start reporting sink: {0}", sink.SinkName)
+    // we need to write Start event metric for Coordinator and Agents
+    for sink in dep.ReportingSinks do 
+        try
+            sink.Start() |> ignore
+        with
+        | ex -> dep.LogWarn(ex, "Failed to start reporting sink: {0}", sink.SinkName)
 
 //todo: add Polly for timout and retry logic, using cancel token
 let stop (dep: IGlobalDependency) = backgroundTask {
-    if dep.NodeType <> NodeType.Agent then
-        for sink in dep.ReportingSinks do
-            try                
-                do! sink.Stop()
-            with
-            | ex -> dep.LogWarn(ex, "Failed to stop reporting sink: {0}", sink.SinkName)
+    // we need to write Stop event metric for Coordinator and Agents
+    for sink in dep.ReportingSinks do
+        try                
+            do! sink.Stop()
+        with
+        | ex -> dep.LogWarn(ex, "Failed to stop reporting sink: {0}", sink.SinkName)
 }
 
 let saveRealtimeStats (dep: IGlobalDependency) (stats: ScenarioStats[]) = backgroundTask {

@@ -20,15 +20,15 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         let! scenarios = context |> NBomberContext.createScenarios
         let! sessionArgs = context |> NBomberContext.createSessionArgs testInfo scenarios
         use testHost = new TestHost(dep, scenarios)
-        let! result = testHost.RunSession(sessionArgs)
+        let! sessionResult = testHost.RunSession(sessionArgs)
 
         let finalStats =
-            Report.build dep.Logger result testHost.TargetScenarios
-            |> Report.save dep context result.FinalStats
+            Report.build dep.Logger sessionResult testHost.TargetScenarios
+            |> Report.save dep context sessionResult.FinalStats
 
         do! ReportingSinks.saveFinalStats dep finalStats
 
-        return { result with FinalStats = finalStats }
+        return { sessionResult with FinalStats = finalStats }
     }
 
 let run (context: NBomberContext) =
