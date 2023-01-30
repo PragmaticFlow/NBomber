@@ -7,9 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber" Version="4.0.0-rc.1" />
+        <PackageReference Include="NBomber" Version="4.0.0-rc.2" />
         <PackageReference Include="NBomber.Data" Version="4.0.0-beta" />
-        <PackageReference Include="NBomber.Http" Version="4.0.0-beta3" />
+        <PackageReference Include="NBomber.Http" Version="4.0.0-beta3" />        
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="4.0.0-beta" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
     </ItemGroup>
 
@@ -29,6 +30,9 @@
         <None Update="Features\CliArgs\config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
+        <None Update="Features\RealtimeReporting\InfluxDb\infra-config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>    
 
 </Project>

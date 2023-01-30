@@ -4,7 +4,7 @@
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
         <Version>4.0.0-rc.2</Version>
-        <Copyright>NBomber@2022</Copyright>
+        <Copyright>NBomber@2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>

@@ -437,7 +437,7 @@ module NBomberRunner =
     /// <example>
     /// <code>
     /// Example:
-    /// --config=config.json --infra=infra_config.json --target=scenario_1 --cluster-id=my_cluster --devCluster=true --license=MY_LICENSE_KEY
+    /// --config=config.json --infra=infra_config.json --target=scenario_1
     /// </code>
     /// </example>
     let runWithArgs (args) (context: NBomberContext) =

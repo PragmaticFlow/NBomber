@@ -1,6 +1,7 @@
 ﻿using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
 using CSharpProd.Features.CustomSettings;
+using CSharpProd.Features.RealtimeReporting.InfluxDB;
 using CSharpProd.HelloWorld;
 using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
@@ -30,6 +31,7 @@ new HelloWorldExample().Run();
 // new CustomSettingsExample().Run();
 // new ClientPoolMqttExample().Run();
 // new CliArgsExample().Run();
+// new InfluxDBReportingExample().Run();
 
 // ----------------
 // ----- HTTP -----

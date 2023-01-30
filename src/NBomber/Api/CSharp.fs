@@ -403,7 +403,7 @@ type NBomberRunner =
     /// <example>
     /// <code>
     /// Example:
-    /// --config=config.json --infra=infra_config.json --target=scenario_1 --cluster-id=my_cluster --devCluster=true --license=MY_LICENSE_KEY
+    /// --config=config.json --infra=infra_config.json --target=scenario_1
     /// </code>
     /// </example>
     [<Extension>]
@@ -412,6 +412,8 @@ type NBomberRunner =
         | Ok stats  -> stats
         | Error msg -> failwith msg
 
+/// Represents Load Simulation.
+/// Load Simulation allows configuring parallelism and workload profiles.
 type Simulation =
 
     /// <summary>
