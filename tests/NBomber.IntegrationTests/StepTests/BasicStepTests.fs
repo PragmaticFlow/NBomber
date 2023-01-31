@@ -38,7 +38,7 @@ let ``Response Ok and Fail should be properly count`` () =
         return Response.ok()
     })
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 2)]
+    |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 2)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
@@ -47,10 +47,13 @@ let ``Response Ok and Fail should be properly count`` () =
         let okSt = nodeStats.ScenarioStats[0].GetStepStats("ok step")
         let failSt = nodeStats.ScenarioStats[0].GetStepStats("fail step")
 
-        test <@ okSt.Ok.Request.Count >= 5 && okSt.Ok.Request.Count <= 10 @>
+        test <@ okSt.Ok.Request.Count = 2 @>
         test <@ okSt.Fail.Request.Count = 0 @>
         test <@ failSt.Ok.Request.Count = 0 @>
-        test <@ failSt.Fail.Request.Count > 5 && failSt.Fail.Request.Count <= 10 @>
+        test <@ failSt.Fail.Request.Count = 2 @>
+        
+        test <@ nodeStats.ScenarioStats[0].Ok.Request.Count = 0 @>
+        test <@ nodeStats.ScenarioStats[0].Fail.Request.Count = 2 @>
 
 [<Fact>]
 [<Trait("CI", "disable")>]
