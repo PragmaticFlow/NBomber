@@ -54,6 +54,7 @@ let ``Operation retryDuring should work correctly`` () =
     let duration = seconds 5
     let retryDelay = milliseconds 100
     let mutable counter1 = 0
+    let mutable counter2 = 0
     let stopwatch = Stopwatch()
 
     // simulate Ok case
@@ -70,15 +71,31 @@ let ``Operation retryDuring should work correctly`` () =
     let stw1Time = stopwatch.Elapsed // should be < 2sec
 
     // simulate Error case
-    stopwatch.Start()
+    stopwatch.Restart()
     let result2 = Operation.retryDuring(duration, retryDelay, fun () -> backgroundTask {
         return Error ""
     })
     result2.Wait()
     stopwatch.Stop()
     let stw2Time = stopwatch.Elapsed // should be ~= 5sec
+    
+    // simulate EarlyReturn case    
+    let result3 = Operation.retryDuring(duration, retryDelay,
+        getResult = fun () -> backgroundTask {
+            counter2 <- counter2 + 1
+            return Error 5
+        },
+        shouldRetry = function
+            | Ok _ -> false
+            | Error value when value = 5 -> false // should return early
+            | Error _ -> true            
+    )    
+    result3.Wait()
+    
+    let stw2Time = stopwatch.Elapsed // should be ~= 5sec
 
     test <@ Result.isOk result1.Result @>
     test <@ Result.isError result2.Result @>
     test <@ stw1Time < seconds 2 @>
     test <@ stw2Time >= seconds 5 @>
+    test <@ counter2 = 1 @>

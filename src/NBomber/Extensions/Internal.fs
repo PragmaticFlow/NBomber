@@ -42,13 +42,24 @@ module internal Internal =
             return result
         }
 
-        static member retryDuring (duration: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =
+        static member retryDuring (duration: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =            
             Operation.retryDuring(duration, None, getResult)
 
-        static member retryDuring (duration: TimeSpan, retryDelay: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =
-            Operation.retryDuring(duration, Some retryDelay, getResult)
+        static member retryDuring (duration: TimeSpan,
+                                   retryDelay: TimeSpan,
+                                   getResult: unit -> Task<Result<'T,'E>>,
+                                   ?shouldRetry: Result<'T,'E> -> bool) =
+            
+            Operation.retryDuring(duration, Some retryDelay, getResult, ?shouldRetry = shouldRetry)
 
-        static member private retryDuring (duration: TimeSpan, retryDelay: TimeSpan option, getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
+        static member private retryDuring (duration: TimeSpan,
+                                           retryDelay: TimeSpan option,
+                                           getResult: unit -> Task<Result<'T,'E>>,
+                                           ?shouldRetry: Result<'T,'E> -> bool) = backgroundTask {            
+            let shouldContinue =
+                shouldRetry
+                |> Option.defaultValue(fun _ -> true)
+            
             let stopwatch = Stopwatch()
             stopwatch.Start()
 
@@ -56,7 +67,9 @@ module internal Internal =
             let! r = getResult()
             result <- r
 
-            while Result.isError result && stopwatch.Elapsed < duration do
+            while Result.isError result
+                  && shouldContinue result
+                  && stopwatch.Elapsed < duration do
 
                 if retryDelay.IsSome then
                     do! Task.Delay retryDelay.Value
