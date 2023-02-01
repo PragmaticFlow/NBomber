@@ -529,7 +529,10 @@
                                             <div class="row">
                                                 <div class="col">
                                                     <!-- TestSuite View / Status Codes Table -->
-                                                    <status-codes :step-stats="scenarioStats.StepStats" :show-charts="showCharts"></status-codes>
+                                                    <status-codes :step-stats="scenarioStats.StepStats.find(x => x.StepName === 'global information')"
+                                                                  :all-request-count="scenarioStats.AllRequestCount"
+                                                                  :show-charts="showCharts">                                                        
+                                                    </status-codes>
                                                 </div>
                                             </div>
                                             <div v-show="showCharts">
@@ -638,7 +641,10 @@
                                         <div class="row">
                                             <div class="col">
                                                 <!-- Scenario View / Status Codes Table -->
-                                                <status-codes :step-stats="scenarioStats.StepStats" :show-charts="showCharts"></status-codes>
+                                                <status-codes :step-stats="scenarioStats.StepStats.find(x => x.StepName === 'global information')"
+                                                              :all-request-count="scenarioStats.AllRequestCount"
+                                                              :show-charts="showCharts">                                                    
+                                                </status-codes>
                                             </div>
                                         </div>
                                         <lazy-load :loaded-views="loadedViews" :load-for-view="`scenario-${scenarioIndex}`">
@@ -705,7 +711,10 @@
                                                 <div class="row">
                                                     <div class="col">
                                                         <!-- Step View / Status Codes Table -->
-                                                        <status-codes :step-stats="[stepStats]" :show-charts="showCharts"></status-codes>
+                                                        <status-codes :step-stats="stepStats" 
+                                                                      :all-request-count="stepStats.StepName === 'global information' ? scenarioStats.AllRequestCount : stepStats.Ok.Request.Count + stepStats.Fail.Request.Count"
+                                                                      :show-charts="showCharts">                                                            
+                                                        </status-codes>
                                                     </div>
                                                 </div>
                                                 <lazy-load :loaded-views="loadedViews"

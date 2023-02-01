@@ -193,49 +193,40 @@ const initApp = (appContainer, viewModel) => {
     });
 
     Vue.component('status-codes', {
-        props: ['stepStats', 'showCharts'],
+        props: ['stepStats', 'allRequestCount', 'showCharts'],
         template: '#status-codes-template',
         data: function() {
-            const globalInfo = this.stepStats.find(x => x.StepName === 'global information');
-            const allOkStatuses = globalInfo.Ok.StatusCodes;
-            const allFailStatuses = globalInfo.Fail.StatusCodes;
+            const okStatusCodes = this.stepStats.Ok.StatusCodes;
+            const failStatusCodes = this.stepStats.Fail.StatusCodes;
 
-            const okReqCount = this.stepStats.reduce((acc, val) => acc + val.Ok.Request.Count, 0);
-            const failReqCount = this.stepStats.reduce((acc, val) => acc + val.Fail.Request.Count, 0);
+            const okStatusCount = okStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            const failStatusCount = failStatusCodes.reduce((acc, val) => acc + val.Count, 0);
+            
+            const noStatusCount = this.allRequestCount - (okStatusCount + failStatusCount);
 
-            const okStatusCodesCount = allOkStatuses.reduce((acc, val) => acc + val.Count, 0);
-            const failStatusCodesCount = allFailStatuses.reduce((acc, val) => acc + val.Count, 0);
-
-            const okNotAvailableStatusCodes = [];
-            const failNotAvailableStatusCodes = [];
-
-            if (okReqCount > okStatusCodesCount) {
-                okNotAvailableStatusCodes.push({
-                    StatusCode: 'ok (no status)',
+            if (noStatusCount > 0)
+            {
+                const noStatusCodes = [{
+                    StatusCode: 'no status',
                     IsError: false,
                     Message: '',
-                    Count: okReqCount - okStatusCodesCount
-                })
-            }
+                    Count: noStatusCount                    
+                }];
+                
+                const allStatusCodes = okStatusCodes.concat(failStatusCodes).concat(noStatusCodes);
 
-            if (failReqCount > failStatusCodesCount) {
-                failNotAvailableStatusCodes.push({
-                    StatusCode: 'fail (no status)',
-                    IsError: true,
-                    Message: '',
-                    Count: failReqCount - failStatusCodesCount
-                })
+                return {
+                    allStatusCodes
+                }
             }
+            else
+            {
+                const allStatusCodes = okStatusCodes.concat(failStatusCodes);
 
-            const allStatusCodes =
-                okNotAvailableStatusCodes
-                    .concat(allOkStatuses)
-                    .concat(failNotAvailableStatusCodes)
-                    .concat(allFailStatuses);
-
-            return {
-                allStatusCodes
-            }
+                return {
+                    allStatusCodes
+                }
+            }            
         }
     });
 

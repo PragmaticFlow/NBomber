@@ -102,26 +102,12 @@ module StatusCodesStats =
             scnStats.Fail.StatusCodes
             |> Seq.map(fun x -> [errorColor x.StatusCode; string x.Count; errorColor x.Message])
             |> Seq.toList
-
-        let okReqCount   = scnStats.StepStats |> Seq.sumBy(fun x -> x.Ok.Request.Count)
-        let failReqCount = scnStats.StepStats |> Seq.sumBy(fun x -> x.Fail.Request.Count)
-
-        let okStatusCodesCount = scnStats.Ok.StatusCodes |> Seq.sumBy(fun x -> x.Count)
-        let failStatusCodesCount = scnStats.Fail.StatusCodes |> Seq.sumBy(fun x -> x.Count)
-
-        let okNotAvailableStatusCodes =
-            if okReqCount > okStatusCodesCount then
-                [okColor "ok (no status)"; string(okReqCount - okStatusCodesCount); String.Empty]
-                |> List.singleton
-            else
-                List.Empty
-
-        let failNotAvailableStatusCodes =
-            if failReqCount > failStatusCodesCount then
-                [errorColor "fail (no status)"; string(failReqCount - failStatusCodesCount); String.Empty]
-                |> List.singleton
-            else
-                List.Empty
-
-        // all status codes
-        okNotAvailableStatusCodes @ okStatusCodes @ failNotAvailableStatusCodes @ failStatusCodes
+        
+        let okStatusCount = scnStats.Ok.StatusCodes |> Seq.sumBy(fun x -> x.Count)
+        let failStatusCount = scnStats.Fail.StatusCodes |> Seq.sumBy(fun x -> x.Count)
+        let noStatusCount = scnStats.AllRequestCount - (okStatusCount + failStatusCount)  
+        
+        if noStatusCount > 0 then            
+            okStatusCodes @ failStatusCodes @ [ [okColor "no status"; string noStatusCount; ""] ]
+        else
+            okStatusCodes @ failStatusCodes

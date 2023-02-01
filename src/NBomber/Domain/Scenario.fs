@@ -14,7 +14,6 @@ open NBomber.Contracts
 open NBomber.Contracts.Internal
 open NBomber.Configuration
 open NBomber.Extensions.Internal
-open NBomber.Extensions.Operator.Result
 open NBomber.Errors
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Stats.ScenarioStatsActor
