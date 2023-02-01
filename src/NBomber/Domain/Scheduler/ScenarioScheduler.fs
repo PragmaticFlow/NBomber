@@ -63,7 +63,7 @@ let inline schedule
         if currentConstActorCount > 0 then RemoveConstantActors, currentConstActorCount
         else DoNothing, 0
 
-let inline scheduleCleanPrevSimulation simulation currentConstActorCount : struct (SchedulerCommand * int) =
+let inline scheduleCleanPrevSimulation (simulation) (currentConstActorCount) : struct (SchedulerCommand * int) =
     if currentConstActorCount > 0 then
         match simulation.Value with
         | RampingConstant _ -> DoNothing, 0
@@ -187,6 +187,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 with
                 | _ -> ()  // operation cancel
 
+            // update pauseDuration to calculate correctly RPS
             match simulation.Value with
             | Pause duration -> _pauseDuration <- _pauseDuration + duration
             | _              -> ()

@@ -124,20 +124,25 @@ let getPlanedDuration (simulations: LoadSimulation list) =
 
 let create (simulations: Contracts.LoadSimulation list) =
 
-    let getConstantCopiesCount simulation =
+    let getPrevCopiesCount (simulation) =
         match simulation with
         | RampingConstant (copies, _)
         | KeepConstant (copies, _) -> copies
-        | _ -> 0
+        
+        | RampingInject (rate, _, _) 
+        | Inject (rate, _, _) -> rate        
+        
+        | InjectRandom (_, maxRate, _, _) -> maxRate
+        | Pause _ -> 0
 
     result {
         let! all = Validation.validate simulations
-        let initState = createSimulation TimeSpan.Zero 0 (KeepConstant(0, TimeSpan.FromSeconds 0))
+        let initState = createSimulation TimeSpan.Zero 0 (KeepConstant(0, TimeSpan.Zero))
 
         let simulations =
             all
             |> List.scan(fun prevState simulation ->
-                let prevCopiesCount = getConstantCopiesCount prevState.Value
+                let prevCopiesCount = getPrevCopiesCount prevState.Value
                 createSimulation prevState.EndTime prevCopiesCount simulation) initState
 
             |> List.filter(fun x -> x.EndTime > TimeSpan.Zero)
