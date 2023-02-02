@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>4.0.0</Version>
+        <Version>4.0.1</Version>
         <Copyright>NBomber@2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -17,7 +17,9 @@
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>        
-        <Title>NBomber</Title>
+        <Title>NBomber</Title>        
+        <PackageReleaseNotes>- fixed issue with rendering status codes for HTML report
+- fixed bug with incorrect handing for ramping down via RampingInject</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
