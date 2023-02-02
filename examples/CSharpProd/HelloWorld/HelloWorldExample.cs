@@ -17,8 +17,9 @@ public class HelloWorldExample
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.RampingConstant(copies: 50, during: TimeSpan.FromSeconds(30)),
-            Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
+            Simulation.RampingInject(rate: 150, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)), // rump-up to rate 150
+            Simulation.Inject(rate: 150, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)),        // keep injecting with rate 150
+            Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))    // rump-down to rate 0
         );
 
         NBomberRunner
