@@ -15,6 +15,7 @@ new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
+// new LoggerExample().Run();
 
 // new ParallelScenarios().Run();
 // new ScenarioInjectRate().Run();
