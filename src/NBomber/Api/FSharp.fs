@@ -196,7 +196,9 @@ module Scenario =
     /// <summary>
     /// This function overrides the default value of MaxFailCount for Scenario.
     /// MaxFailCount is incremented on every failure or failed Response.
-    /// When a scenario reaches MaxFailCount, NBomber will stop the whole load test.    
+    /// When a scenario reaches MaxFailCount, NBomber will stop the whole load test.
+    /// In the case of cluster mode, MaxFailCount is tracked per each NBomber instance exclusively.
+    /// It doesn't aggregate across the cluster. So if on any NBomber node MaxFailCount is reached, NBomber will stop the whole load test. 
     /// </summary>
     /// <param name="maxFailCount">The default value is 5_000.</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>

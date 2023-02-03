@@ -103,7 +103,7 @@ module internal Logger =
         let loggerConfig =
             createLoggerConfig
             |> Option.map(fun tryGet -> tryGet())
-            |> Option.defaultValue(
+            |> Option.defaultWith(fun () ->
                 LoggerConfiguration().MinimumLevel.Debug()
                 |> attachDefaultFileLogger
             )
