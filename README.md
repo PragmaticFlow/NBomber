@@ -6,76 +6,55 @@
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 [![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Very simple load testing framework for Pull and Push scenarios. It's 100% written in F# and targeting .NET Core and full .NET Framework.
+NBomber is a modern and flexible load-testing framework for Pull and Push scenarios, designed to test any system regardless of a protocol (HTTP/WebSockets/AMQP, etc) or a semantic model (Pull/Push).
 
-### Project Support
-We appreciate every little donation. If everyone we've ever helped gave back just small donation a month, we'd be able to bring you NBomber for years and years to come.
-If you or your company are using NBomber and willing to help keep the project sustainable, please donate via [Patreon](https://www.patreon.com/nbomber).
+NBomber is free, developer-centric, and extensible.
+Using NBomber, you can test the reliability and performance of your systems and catch performance regressions and problems earlier. 
+NBomber will help you to build resilient and performant applications that scale.
 
-### How to install
-To install NBomber via NuGet, run this command in NuGet package manager console:
-```code
-PM> Install-Package NBomber
-```
-
-### Documentation
-Documentation is located [here](https://nbomber.com/docs/overview/).
-
-### Run test scenario
-![how to run a scenario gif](https://nbomber.com/assets/images/nbomber_v2_console-6a596abc247223cefefa397c62e620f4.gif)
-
-### View report
-![view report](https://raw.githubusercontent.com/PragmaticFlow/NBomber/dev/assets/nbomber_report.jpg)
-
-### Analyze trends
-![analyze trends](https://github.com/PragmaticFlow/NBomber/blob/dev/assets/influx_trends.png)
+### Links
+- [Main web page](https://nbomber.com/)
+- [Documentation](https://nbomber.com/docs/getting-started/overview/)
+- [Chat](https://gitter.im/nbomber/community)
+- [Patreon](https://www.patreon.com/nbomber) - We appreciate every little donation. If everyone we've ever helped gave back just small donation a month, we'd be able to bring you NBomber for years and years to come.
+  If you or your company are using NBomber and willing to help keep the project sustainable, please donate via [Patreon](https://www.patreon.com/nbomber).
 
 ### Why we build NBomber and what you can do with it?
-
-1. The main reason behind NBomber is to provide a **lightweight** framework for writing load tests which you can use to test literally **any** system and simulate **any** production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API.
-2. Another goal is to provide building blocks to validate your POC (proof of concept) projects by applying any complex load distribution.
-3. With NBomber you can test any PULL or PUSH system (HTTP, WebSockets, GraphQl, gRPC, SQL Database, MongoDb, Redis etc).
+The main reason behind NBomber is to provide a lightweight framework for writing load tests which you can use to test literally any system and simulate any production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API.
+Another goal is to provide building blocks to validate your POC (proof of concept) projects by applying any complex load distribution.
+With NBomber you can test any PULL or PUSH system (HTTP, WebSockets, GraphQl, gRPC, SQL Databse, MongoDb, Redis etc).
+With NBomber you can convert some of your integration tests to load tests easily.
 
 NBomber as a modern framework provides:
 - Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL)
 - Zero dependencies on semantic model (Pull/Push)
 - Very flexible configuration and dead simple API
 - Cluster support
-- Reporting sinks
+- Real-time reporting
 - CI/CD integration
 - Plugins/extensions support
 - Data feed support
 
 ### What makes it very simple?
-NBomber is a foundation of building blocks which you can use to describe your test scenario, run it and get reports.
-
-```fsharp
-// FSharp example
-
-let step = Step.create("step", fun context -> task {
-
-    // you can do any logic here: go to http, websocket etc
-    do! Task.Delay(seconds 1)
-    return Response.Ok()
-})
-
-Scenario.create "scenario" [step]
-|> NBomberRunner.registerScenario
-|> NBomberRunner.run
-```
+One of the design goals of NBomber is to keep API as minimal as possible.
+Because of this, NBomber focuses on fully utilizing programming language(C#/F#) constructs instead of reinventing a new DSL that should be learned.
+In other words, if you want to write a for loop, you don't need to learn a DSL for this.
 
 ```csharp
-// CSharp example
-
-var step = Step.Create("step", async context =>
+var scenario = Scenario.Create("hello_world_scenario", async context =>
 {
-    // you can do any logic here: go to http, websocket etc
+    // you can define and execute any logic here,
+    // for example: send http request, SQL query etc
+    // NBomber will measure how much time it takes to execute your logic
+    await Task.Delay(1_000);
 
-    await Task.Delay(TimeSpan.FromSeconds(1));
     return Response.Ok();
-});
-
-var scenario = ScenarioBuilder.CreateScenario("scenario", step);
+})
+.WithLoadSimulations(
+    Simulation.Inject(rate: 10,
+                      interval: TimeSpan.FromSeconds(1),
+                      during: TimeSpan.FromSeconds(30))
+);
 
 NBomberRunner
     .RegisterScenarios(scenario)
@@ -85,7 +64,6 @@ NBomberRunner
 ### Examples
 |Language|Example|
 |--|--|
-| F# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/FSharpProd) |
 | C# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpProd) |
 
 ### Contributing
