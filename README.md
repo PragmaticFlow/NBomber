@@ -15,6 +15,7 @@ NBomber will help you to build resilient and performant applications that scale.
 ### Links
 - [Main web page](https://nbomber.com/)
 - [Documentation](https://nbomber.com/docs/getting-started/overview/)
+- [Roadmap](https://nbomber.com/docs/getting-started/roadmap)
 - [Chat](https://gitter.im/nbomber/community)
 - [Patreon](https://www.patreon.com/nbomber) - We appreciate every little donation. If everyone we've ever helped gave back just small donation a month, we'd be able to bring you NBomber for years and years to come.
   If you or your company are using NBomber and willing to help keep the project sustainable, please donate via [Patreon](https://www.patreon.com/nbomber).
@@ -62,9 +63,10 @@ NBomberRunner
 ```
 
 ### Examples
-|Language|Example|
+|Type|Language
 |--|--|
-| C# | [link](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpProd) |
+| [NBomber](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpProd) | C# |
+| [NBomber Enterprise](https://github.com/PragmaticFlow/NBomber.Enterprise.Examples) | C# |
 
 ### Contributing
 Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.

@@ -2,7 +2,10 @@
   "TestSuite": "gitter.io",
   "TestName": "test http api",
 
-  "GlobalSettings": {
+  "TargetScenarios": ["test_youtube"],
+
+  "GlobalSettings": {    
+    
     "ScenariosSettings": [
       {
           "ScenarioName": "test_youtube",
@@ -13,11 +16,7 @@
               { "KeepConstant": [2, "00:00:02"] },
               { "RampingInject": [2, "00:00:01", "00:00:02"] },
               { "Inject": [2, "00:00:01", "00:00:02"] }
-          ],
-
-          "ClientFactorySettings": [
-              { "FactoryName": "test_factory", "ClientCount": 100 }
-          ],
+          ],          
 
           "CustomSettings": {
               "TargetHost": "localhost",
@@ -28,13 +27,11 @@
           "MaxFailCount": 500
       }
     ],
-
-    "TargetScenarios": [ "test_youtube" ],
+    
     "ReportFileName": "custom_report_name",
     "ReportFolder": "./my_reports",
     "ReportFormats": ["Html", "Txt"],
     "ReportingInterval": "00:00:30",
-    "EnableHintsAnalyzer": false,
-    "DefaultStepTimeoutMs" : 200
+    "EnableHintsAnalyzer": false
   }
 }
