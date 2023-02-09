@@ -1,0 +1,39 @@
+{
+    "TargetScenarios": [ "initDB", "get_by_id", "update", "read_modify_write" ],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "initDB",
+
+                "CustomSettings": {
+                    "UserCount": 10000,
+                    "InsertBulcSize": 500
+                }
+            },
+            {
+                "ScenarioName": "get_by_id",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 10, "00:00:30" ] }
+                ]
+
+            },
+            {
+                "ScenarioName": "update",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 10, "00:00:30" ] }
+                ]
+            },
+            {
+                "ScenarioName": "read_modify_write",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 10, "00:00:30" ] }
+                ]
+            }
+        ]
+    }
+}

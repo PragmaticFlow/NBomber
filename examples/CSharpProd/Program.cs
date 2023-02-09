@@ -1,4 +1,5 @@
-﻿using CSharpProd.Features;
+using CSharpProd.Db.LiteDB;
+using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
 using CSharpProd.Features.CustomSettings;
 using CSharpProd.Features.RealtimeReporting.CustomReportingSink;
@@ -11,7 +12,7 @@ using CSharpProd.MQTT;
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -48,3 +49,8 @@ new HelloWorldExample().Run();
 // ----------------
 // new PingPongMqttTest().Run();
 // new ClientPoolMqttExample().Run();
+
+// ----------------
+// ----- Db -------
+// ----------------
+new LiteDBExample().Run();
