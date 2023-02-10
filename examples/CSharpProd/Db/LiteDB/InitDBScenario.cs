@@ -16,6 +16,7 @@ namespace MyLoadTest
         public int UserCount { get; set; }
         public int InsertBulcSize { get; set; }
     }
+
     internal class InitDBScenario
     {
         private LiteDatabase _db = null;
@@ -79,7 +80,7 @@ namespace MyLoadTest
                                  .RuleFor(u => u.VehicleModel, f => f.Vehicle.Model())
                                  .RuleFor(u => u.VehicleType, f => f.Vehicle.Type())
                                  .RuleFor(u => u.Vin, f => f.Vehicle.Vin())
-                                 .RuleFor(u => u.PetsNumber, f => f.Random.Number(0, 4))
+                                 .RuleFor(u => u.PetsCount, f => f.Random.Number(0, 4))
                                  .RuleFor(u => u.Created, f => createdDateTime)
                                  .RuleFor(u => u.Updated, f => createdDateTime);
 
@@ -103,12 +104,13 @@ namespace MyLoadTest
                     _db.Dispose();
                     return Task.CompletedTask;
                 });
-        } 
+        }
+
         private int CalculateRecordSize(ILiteCollection<User> collection)
         {
-            var randomUserForeSize = Collection.FindById(1);
+            var randomUserForeSize = collection.FindById(1);
             var bsonMapper = new BsonMapper();
-            var doc = bsonMapper.ToDocument<User>(randomUserForeSize);
+            var doc = bsonMapper.ToDocument(randomUserForeSize);
             
             return BsonSerializer.Serialize(doc).Length;
         }

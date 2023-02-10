@@ -40,7 +40,7 @@ namespace CSharpProd.Db.LiteDB
                 var randomId = random.Next(1, initDBScn.DBSettings.UserCount);
                 var randomUser = initDBScn.Collection.FindById(new BsonValue(randomId));
 
-                randomUser.PetsNumber++;
+                randomUser.PetsCount++;
                 randomUser.Updated = DateTime.UtcNow;
 
                 initDBScn.Collection.Upsert(randomUser);

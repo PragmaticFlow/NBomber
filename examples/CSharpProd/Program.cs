@@ -12,7 +12,7 @@ using CSharpProd.MQTT;
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-//new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -53,4 +53,4 @@ using CSharpProd.MQTT;
 // ----------------
 // ----- Db -------
 // ----------------
-new LiteDBExample().Run();
+// new LiteDBExample().Run();

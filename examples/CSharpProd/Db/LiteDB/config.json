@@ -18,7 +18,6 @@
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [ 10, "00:00:30" ] }
                 ]
-
             },
             {
                 "ScenarioName": "update",

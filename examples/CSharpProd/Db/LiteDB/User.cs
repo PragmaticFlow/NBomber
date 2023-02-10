@@ -6,6 +6,7 @@ namespace MyLoadTest
         Male,
         Female
     }
+
     public class User
     {
         public int _id { get; set; }
@@ -35,7 +36,7 @@ namespace MyLoadTest
         public string VehicleModel { get; set; }
         public string VehicleType { get; set; }
         public string Vin { get; set; }   
-        public int PetsNumber { get; set; }
+        public int PetsCount { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
     }
