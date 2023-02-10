@@ -1,5 +1,6 @@
 ﻿module Tests.Scenario.InitCleanStopTests
 
+open System
 open System.Threading.Tasks
 open Swensen.Unquote
 open Xunit
@@ -156,6 +157,40 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
         let youtube2Steps = nodeStats.ScenarioStats |> Seq.find(fun x -> x.ScenarioName = "test_youtube_2")
         test <@ youtube1Steps.Duration < duration @>
         test <@ youtube2Steps.Duration < duration @>
+
+[<Fact>]
+let ``withClean should provide scenario execution duration via context.ScenarioInfo`` () =    
+    let duration = seconds 60
+    let mutable plannedDuration = TimeSpan.Zero
+    let mutable executionDuration = TimeSpan.Zero
+
+    let scenario1 =
+        Scenario.create("test_youtube_1", fun ctx -> task {
+            do! Task.Delay(seconds 1)
+            
+            if ctx.InvocationNumber > 2 then
+                ctx.StopCurrentTest("no reason")
+            
+            return Response.ok()
+        })
+        |> Scenario.withoutWarmUp
+        |> Scenario.withInit(fun ctx -> task {
+            plannedDuration <- ctx.ScenarioInfo.ScenarioDuration
+        })
+        |> Scenario.withClean(fun ctx -> task {
+            executionDuration <- ctx.ScenarioInfo.ScenarioDuration            
+        })
+        |> Scenario.withLoadSimulations [KeepConstant(1, seconds 60)]
+
+    NBomberRunner.registerScenarios [scenario1]
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.getOk
+    |> fun stats ->
+        let executionSeconds = executionDuration.Seconds
+        test <@ plannedDuration = duration @>
+        test <@ stats.ScenarioStats[0].Duration.Seconds = executionSeconds @>
+        test <@ stats.ScenarioStats[0].Duration < duration @>
 
 [<Fact>]
 let ``Test execution should be stopped if too many errors`` () =

@@ -24,10 +24,12 @@ let initEnabledScenarios (dep: IGlobalDependency)
             if scn.Init.IsSome then
                 dep.LogInfo("Start init scenario: {0}", scn.ScenarioName)
 
+                let scnInfo = Scenario.createScenarioInfo(scn.ScenarioName, scn.PlanedDuration, 0, ScenarioOperation.Init)
+                
                 let initScnContext =
                     sessionArgs.ScenarioPartitions.TryFind scn.ScenarioName
                     |> Option.defaultValue ScenarioPartition.empty
-                    |> Scenario.ScenarioInitContext.create baseContext scn.CustomSettings
+                    |> Scenario.ScenarioInitContext.create scnInfo baseContext scn.CustomSettings
                 
                 if consoleStatus.IsSome then
                     consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
@@ -74,11 +76,14 @@ let cleanScenarios (dep: IGlobalDependency)
             if consoleStatus.IsSome then
                 consoleStatus.Value.Status <- $"Cleaning scenario: {Console.okColor scn.ScenarioName}"
                 consoleStatus.Value.Refresh()
+                
+            let duration = Scenario.getExecutedDuration scn                
+            let scnInfo = Scenario.createScenarioInfo(scn.ScenarioName, duration, 0, ScenarioOperation.Clean)                
 
             let initScnContext =
                 sessionArgs.ScenarioPartitions.TryFind scn.ScenarioName
                 |> Option.defaultValue ScenarioPartition.empty
-                |> Scenario.ScenarioInitContext.create baseContext scn.CustomSettings            
+                |> Scenario.ScenarioInitContext.create scnInfo baseContext scn.CustomSettings            
             
             try
                 do! scn.Clean.Value initScnContext

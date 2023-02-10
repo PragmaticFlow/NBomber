@@ -196,7 +196,11 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 stopSchedulers _currentSchedulers
 
-                do! startClean consoleStatus _sessionArgs _targetScenarios
+                // we use Scenarios from Schedulers because scenario.ExecutedDuration will be available
+                let finishedScenarios = _currentSchedulers |> List.map(fun x -> x.Scenario)
+                let scenarios = Scenario.updatedExecutedDuration _targetScenarios finishedScenarios
+                
+                do! startClean consoleStatus _sessionArgs scenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None

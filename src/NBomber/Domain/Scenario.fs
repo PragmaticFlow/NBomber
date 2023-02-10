@@ -56,7 +56,7 @@ module Validation =
 
 module ScenarioInitContext =
 
-    let create (context: IBaseContext) (customSettings: string) (partition: ScenarioPartition) = 
+    let create (scnInfo: ScenarioInfo) (context: IBaseContext) (customSettings: string) (partition: ScenarioPartition) = 
         
         let parseCustomSettings (settings: string) =
             try
@@ -67,6 +67,7 @@ module ScenarioInitContext =
         
         { new IScenarioInitContext with            
             member _.TestInfo = context.TestInfo
+            member _.ScenarioInfo = scnInfo
             member _.NodeInfo = context.GetNodeInfo()
             member _.CustomSettings = parseCustomSettings customSettings
             member _.Logger = context.Logger
@@ -154,6 +155,14 @@ let setExecutedDuration (scenario: Scenario) (executedDuration: TimeSpan) =
 
 let getExecutedDuration (scenario: Scenario) =
     scenario.ExecutedDuration |> Option.defaultValue scenario.PlanedDuration
+
+let updatedExecutedDuration (targetScenarios: Scenario list) (finishedScenarios: Scenario list) =    
+    targetScenarios
+    |> List.map(fun scn ->
+        finishedScenarios
+        |> List.tryFind(fun x -> x.ScenarioName = scn.ScenarioName)                        
+        |> Option.defaultValue scn
+    )
 
 let defaultClusterCount = fun _ -> 1
 
