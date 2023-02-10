@@ -56,28 +56,21 @@ module Validation =
 
 module ScenarioInitContext =
 
-    let create (context: IBaseContext) = {
-        new IScenarioInitContext with
-            member _.TestInfo = context.TestInfo
-            member _.NodeInfo = context.GetNodeInfo()
-            member _.CustomSettings = ConfigurationBuilder().Build() :> IConfiguration
-            member _.Logger = context.Logger
-    }
-
-    let setCustomSettings (context: IScenarioInitContext) (customSettings: string) =
-
+    let create (context: IBaseContext) (customSettings: string) (partition: ScenarioPartition) = 
+        
         let parseCustomSettings (settings: string) =
             try
                 let stream = new MemoryStream(settings |> Encoding.UTF8.GetBytes)
                 ConfigurationBuilder().AddJsonStream(stream).Build() :> IConfiguration
             with
             | _ -> ConfigurationBuilder().Build() :> IConfiguration
-
-        { new IScenarioInitContext with
+        
+        { new IScenarioInitContext with            
             member _.TestInfo = context.TestInfo
-            member _.NodeInfo = context.NodeInfo
-            member _.CustomSettings = parseCustomSettings(customSettings)
-            member _.Logger = context.Logger }
+            member _.NodeInfo = context.GetNodeInfo()
+            member _.CustomSettings = parseCustomSettings customSettings
+            member _.Logger = context.Logger
+            member _.ScenarioPartition = partition }
 
 let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: int, operation: ScenarioOperation) =
     { ThreadId = $"{scenarioName}_{threadNumber}"

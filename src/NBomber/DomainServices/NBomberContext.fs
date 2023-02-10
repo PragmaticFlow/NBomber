@@ -174,7 +174,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
             }
         }
 
-        return { TestInfo = testInfo; NBomberConfig = nbConfig }
+        return { TestInfo = testInfo; NBomberConfig = nbConfig; ScenarioPartitions = Map.empty }
     }
 
 let createScenarios (context: NBomberContext) =

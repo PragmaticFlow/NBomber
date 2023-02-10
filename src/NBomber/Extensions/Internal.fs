@@ -187,13 +187,13 @@ module internal Internal =
 
     module Dict =
 
-        let ofSeq (src: seq<'a*'b>) =
-            let d = new Dictionary<'a, 'b>()
+        let ofSeq<'K,'V when 'K : equality> (src: seq<'K*'V>) =
+            let d = Dictionary<_, _>()
             for (k,v) in src do
                 d.Add(k,v)
             d
 
-        let inline empty<'K,'V when 'K : equality>() =
+        let empty<'K,'V when 'K : equality>() =
             Dictionary<'K,'V>()
 
 namespace NBomber.Extensions.Operator

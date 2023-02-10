@@ -104,13 +104,13 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
     }
 
-    let startClean (sessionArgs: SessionArgs)
-                   (consoleStatus: StatusContext option)
+    let startClean (consoleStatus: StatusContext option)
+                   (sessionArgs: SessionArgs)
                    (scenarios: Scenario list) =
 
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo dep.Logger
         let enabledScenarios = scenarios |> List.filter(fun x -> x.IsEnabled)
-        TestHostScenario.cleanScenarios dep consoleStatus baseContext enabledScenarios
+        TestHostScenario.cleanScenarios dep consoleStatus baseContext sessionArgs enabledScenarios
 
     member _.SessionArgs = _sessionArgs
     member _.CurrentOperation = _currentOperation
@@ -196,7 +196,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 stopSchedulers _currentSchedulers
 
-                do! startClean _sessionArgs consoleStatus _targetScenarios
+                do! startClean consoleStatus _sessionArgs _targetScenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None

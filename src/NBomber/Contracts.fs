@@ -73,11 +73,13 @@ type Measurement = {
 type SessionArgs = {
     TestInfo: TestInfo
     NBomberConfig: NBomberConfig
+    ScenarioPartitions: Map<string,ScenarioPartition> // ScenarioName * ScenarioPartition 
 } with
 
     static member empty = {
         TestInfo = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
         NBomberConfig = Unchecked.defaultof<_>
+        ScenarioPartitions = Map.empty
     }
 
     member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value

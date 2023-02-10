@@ -17,27 +17,28 @@ let getTargetScenarios (sessionArgs: SessionArgs) (regScenarios: Scenario list) 
 let initEnabledScenarios (dep: IGlobalDependency)
                          (consoleStatus: StatusContext option)
                          (baseContext: IBaseContext)
-                         (enabledScenarios: Scenario list) =
+                         (sessionArgs: SessionArgs)
+                         (enabledScenarios: Scenario list) = backgroundTask {    
+    try 
+        for scn in enabledScenarios do
+            if scn.Init.IsSome then
+                dep.LogInfo("Start init scenario: {0}", scn.ScenarioName)
 
-    let defaultScnContext = Scenario.ScenarioInitContext.create baseContext
+                let initScnContext =
+                    sessionArgs.ScenarioPartitions.TryFind scn.ScenarioName
+                    |> Option.defaultValue ScenarioPartition.empty
+                    |> Scenario.ScenarioInitContext.create baseContext scn.CustomSettings
+                
+                if consoleStatus.IsSome then
+                    consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
+                    consoleStatus.Value.Refresh()
+                
+                do! scn.Init.Value initScnContext
 
-    backgroundTask {
-        try
-            for scn in enabledScenarios do
-                if scn.Init.IsSome then
-                    dep.LogInfo("Start init scenario: {0}", scn.ScenarioName)
-
-                    if consoleStatus.IsSome then
-                        consoleStatus.Value.Status <- $"Initializing scenario: {Console.okColor scn.ScenarioName}"
-                        consoleStatus.Value.Refresh()
-
-                    let scnContext = Scenario.ScenarioInitContext.setCustomSettings defaultScnContext scn.CustomSettings
-                    do! scn.Init.Value scnContext
-
-            return Ok()
-        with
-        | ex -> return AppError.createResult(InitScenarioError ex)
-    }
+        return Ok()
+    with
+    | ex -> return AppError.createResult(InitScenarioError ex)
+}
 
 let initScenarios (dep: IGlobalDependency)
                   (consoleStatus: StatusContext option)
@@ -51,7 +52,7 @@ let initScenarios (dep: IGlobalDependency)
         TestHostConsole.printTargetScenarios dep enabledScenarios
 
         do! enabledScenarios
-            |> initEnabledScenarios dep consoleStatus baseContext
+            |> initEnabledScenarios dep consoleStatus baseContext sessionArgs
 
         return
             targetScenarios
@@ -63,9 +64,8 @@ let initScenarios (dep: IGlobalDependency)
 let cleanScenarios (dep: IGlobalDependency)
                    (consoleStatus: StatusContext option)
                    (baseContext: IBaseContext)
-                   (enabledScenarios: Scenario list) = backgroundTask {
-
-    let defaultScnContext = Scenario.ScenarioInitContext.create baseContext
+                   (sessionArgs: SessionArgs)
+                   (enabledScenarios: Scenario list) = backgroundTask {    
 
     for scn in enabledScenarios do
         if scn.Clean.IsSome then
@@ -75,9 +75,13 @@ let cleanScenarios (dep: IGlobalDependency)
                 consoleStatus.Value.Status <- $"Cleaning scenario: {Console.okColor scn.ScenarioName}"
                 consoleStatus.Value.Refresh()
 
-            let context = Scenario.ScenarioInitContext.setCustomSettings defaultScnContext scn.CustomSettings
+            let initScnContext =
+                sessionArgs.ScenarioPartitions.TryFind scn.ScenarioName
+                |> Option.defaultValue ScenarioPartition.empty
+                |> Scenario.ScenarioInitContext.create baseContext scn.CustomSettings            
+            
             try
-                do! scn.Clean.Value context
+                do! scn.Clean.Value initScnContext
             with
             | ex -> dep.LogWarn(ex, "Cleaning scenario failed: {0}", scn.ScenarioName)
 }
