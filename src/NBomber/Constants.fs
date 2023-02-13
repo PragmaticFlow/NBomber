@@ -7,7 +7,7 @@ open NBomber.Contracts.Stats
 [<Literal>]
 let Logo = "NBomber 4"
 [<Literal>]
-let NBomberWelcomeText = "NBomber {0} Started a new session: {1}"
+let NBomberWelcomeText = "NBomber {0} started a new session: {1}"
 
 [<Literal>]
 let DefaultCopiesCount = 1
