@@ -1,13 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
+using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 
 namespace CSharpProd.Features.CustomSettings;
 
 public class CustomScenarioSettings
 {
-    public int TestField { get; set; }
-    public int PauseMs { get; set; }
+    public int MyTestField { get; set; }
+    public int MyPauseMs { get; set; }
 }
 
 public class CustomSettingsExample
@@ -19,8 +20,8 @@ public class CustomSettingsExample
         _customSettings = initContext.CustomSettings.Get<CustomScenarioSettings>();
 
         initContext.Logger.Information(
-            "test init received CustomSettings.TestField '{TestField}'",
-            _customSettings.TestField
+            "test init received CustomSettings.MyTestField '{0}'",
+            _customSettings.MyTestField
         );
 
         return Task.CompletedTask;
@@ -30,23 +31,33 @@ public class CustomSettingsExample
     {
         var scenario = Scenario.Create("my_scenario", async context =>
         {
-            await Task.Delay(_customSettings.PauseMs);
+            await Task.Delay(_customSettings.MyPauseMs);
 
             var step = await Step.Run("step", context, async () =>
             {
                 await Task.Delay(1_000);
-                context.Logger.Debug("step received CustomSettings.TestField '{0}'", _customSettings.TestField);
+                context.Logger.Debug("step received CustomSettings.MyTestField '{0}'", _customSettings.MyTestField);
                 return Response.Ok();
             });
 
             return Response.Ok();
         })
         .WithInit(Init)
-        .WithoutWarmUp();
+        .WithLoadSimulations(Simulation.Inject(rate: 50, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)))
+        .WithWarmUpDuration(TimeSpan.FromSeconds(10))
+        .WithMaxFailCount(1_000);
 
         NBomberRunner
             .RegisterScenarios(scenario)
             .LoadConfig("./Features/CustomSettings/config.json")
+            .WithTestSuite("my test suite")
+            .WithTestName("my test name")
+            .WithTargetScenarios("my_scenario")
+            .WithReportFileName("my_report")
+            .WithReportFolder("report_folder")
+            .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
+            .WithReportingInterval(TimeSpan.FromSeconds(10))
+            .EnableHintsAnalyzer(true)
             .Run();
     }
 }

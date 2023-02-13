@@ -1,4 +1,4 @@
-using CSharpProd.Db.LiteDB;
+using CSharpProd.DB.LiteDB;
 using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
 using CSharpProd.Features.CustomSettings;

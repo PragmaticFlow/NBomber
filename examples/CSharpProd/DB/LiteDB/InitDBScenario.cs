@@ -3,13 +3,8 @@ using LiteDB;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MyLoadTest
+namespace CSharpProd.DB.LiteDB
 {
     public class LiteDBCustomSettings
     {
@@ -19,10 +14,9 @@ namespace MyLoadTest
 
     internal class InitDBScenario
     {
-        private LiteDatabase _db = null;
-
+        public LiteDatabase Db { get; private set; }
         public ILiteCollection<User> Collection { get; private set; }
-        public int RecordBiteSize { get; private set; }
+        public int RecordSizeBytes { get; private set; }
         public LiteDBCustomSettings DBSettings { get; private set;}
 
         public ScenarioProps Create()
@@ -33,12 +27,12 @@ namespace MyLoadTest
                 {
                     DBSettings = context.CustomSettings.Get<LiteDBCustomSettings>();
 
-                    _db = new LiteDatabase("UsersRegister.db");
+                    Db = new LiteDatabase("UsersRegister.db");
 
-                    Collection = _db.GetCollection<User>("users");
+                    Collection = Db.GetCollection<User>("users");
                     var collectionCount = Collection.Count();
 
-                    if (DBSettings.UserCount >= collectionCount)
+                    if (DBSettings.UserCount > collectionCount)
                     {
                         var lastUser = Collection.Query().OrderByDescending(c => c._id).FirstOrDefault();
                         var maxId = 0;
@@ -95,13 +89,14 @@ namespace MyLoadTest
                             Collection.Insert(listOfUser);
                     }
             
-                    RecordBiteSize = CalculateRecordSize(Collection);
+                    RecordSizeBytes = CalculateRecordSize(Collection);
                 
                     return Task.CompletedTask;
                 })
                 .WithClean(context =>
                 {
-                    _db.Dispose();
+                    Db.Checkpoint();
+                    Db.Dispose();
                     return Task.CompletedTask;
                 });
         }

@@ -1,5 +1,4 @@
-
-namespace MyLoadTest
+namespace CSharpProd.DB.LiteDB
 {
     public enum Gender
     {

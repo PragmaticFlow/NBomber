@@ -1,5 +1,5 @@
 {
-    "TargetScenarios": [ "initDB", "get_by_id", "update", "read_modify_write", "conditional_query" ],
+    "TargetScenarios": [ "initDB", "checkpointDB", "get_by_id", "read_modify_write" ],
 
     "GlobalSettings": {
 
@@ -8,36 +8,43 @@
                 "ScenarioName": "initDB",
 
                 "CustomSettings": {
-                    "UserCount": 10000,
-                    "InsertBulcSize": 500
+                    "UserCount": 500000,
+                    "InsertBulcSize": 2000
                 }
+            },
+            {
+                "ScenarioName": "checkpointDB",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 1, "00:03:00" ] }
+                ]
             },
             {
                 "ScenarioName": "get_by_id",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 10, "00:00:30" ] }
+                    { "KeepConstant": [ 10, "00:03:00" ] }
                 ]
             },
             {
                 "ScenarioName": "update",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 10, "00:00:30" ] }
+                    { "KeepConstant": [ 1, "00:03:00" ] }
                 ]
             },
             {
                 "ScenarioName": "read_modify_write",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 10, "00:00:30" ] }
+                    { "KeepConstant": [ 1, "00:03:00" ] }
                 ]
             },
             {
                 "ScenarioName": "conditional_query",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 10, "00:00:30" ] }
+                    { "KeepConstant": [ 1, "00:03:00" ] }
                 ]
             }
         ]

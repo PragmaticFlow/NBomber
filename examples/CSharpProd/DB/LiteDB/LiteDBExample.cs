@@ -1,14 +1,8 @@
 using Bogus;
 using LiteDB;
-using MyLoadTest;
 using NBomber.CSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CSharpProd.Db.LiteDB
+namespace CSharpProd.DB.LiteDB
 {
     public class LiteDBExample
     {
@@ -22,7 +16,7 @@ namespace CSharpProd.Db.LiteDB
                 var randomId = random.Next(1, initDBScn.DBSettings.UserCount);
                 var randomUser = initDBScn.Collection.FindById(new BsonValue(randomId));
 
-                return Response.Ok(sizeBytes: initDBScn.RecordBiteSize);
+                return Response.Ok(sizeBytes: initDBScn.RecordSizeBytes);
             });
 
             var update = Scenario.Create("update", async context =>
@@ -32,7 +26,7 @@ namespace CSharpProd.Db.LiteDB
                 var randomUser = initDBScn.Collection.FindById(new BsonValue(randomId));
                 var num = initDBScn.Collection.UpdateMany("{Age:$.Age+1, Updated:NOW_UTC()}", $"_id = {randomId}");
 
-                return Response.Ok(sizeBytes: initDBScn.RecordBiteSize);
+                return Response.Ok(sizeBytes: initDBScn.RecordSizeBytes);
             });
 
             var readModifyWrite = Scenario.Create("read_modify_write", async context =>
@@ -45,7 +39,7 @@ namespace CSharpProd.Db.LiteDB
 
                 initDBScn.Collection.Upsert(randomUser);
 
-                return Response.Ok(sizeBytes: initDBScn.RecordBiteSize * 2);
+                return Response.Ok(sizeBytes: initDBScn.RecordSizeBytes * 2);
             });
 
             var faker = new Faker();
@@ -57,11 +51,18 @@ namespace CSharpProd.Db.LiteDB
                     .Limit(10)
                     .ToList();
 
-                return Response.Ok(sizeBytes: initDBScn.RecordBiteSize * listOfRandomUser.Count);
+                return Response.Ok(sizeBytes: initDBScn.RecordSizeBytes * listOfRandomUser.Count);
+            });
+            
+            var checkpointDB = Scenario.Create("checkpointDB", async context =>
+            {
+                await Task.Delay(5_000);
+                initDBScn.Db.Checkpoint();
+                return Response.Ok();
             });
 
             NBomberRunner
-                .RegisterScenarios(initDBScn.Create(), getById, update, readModifyWrite, conditionalQuery)
+                .RegisterScenarios(initDBScn.Create(), checkpointDB, getById, update, readModifyWrite, conditionalQuery)
                 .LoadConfig("Db/LiteDB/config.json")
                 .Run();
         }

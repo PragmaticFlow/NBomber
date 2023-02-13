@@ -18,14 +18,18 @@
                 ],
 
                 "CustomSettings": {
-                    "TestField": 1,
-                    "PauseMs": 200
-                }
+                    "MyTestField": 1,
+                    "MyPauseMs": 200
+                },
+
+                "MaxFailCount": 500
             }
         ],
 
-        "ReportFileName": "my_report_name",
-        "ReportFolder": "./reports",
-        "ReportFormats": [ "Html", "Md", "Txt", "Csv" ]
+        "ReportFileName": "my_custom_report_name",
+        "ReportFolder": "./my_reports",
+        "ReportFormats": ["Html", "Txt"],
+        "ReportingInterval": "00:00:30",
+        "EnableHintsAnalyzer": false
     }
 }
