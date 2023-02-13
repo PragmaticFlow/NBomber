@@ -2,13 +2,10 @@
 
 open System
 open System.Collections.Generic
+open System.Collections.Concurrent
 open System.Runtime.CompilerServices
-open System.Threading.Channels
 open System.Threading.Tasks
-
-open FSharp.Control.Tasks
 open Serilog
-
 open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
@@ -208,42 +205,48 @@ type ScenarioStatsActor(logger: ILogger,
                         ?mergeStatsFn: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) =
 
     let mutable _state = createState logger scenario reportingInterval mergeStatsFn
-    let mutable _stop = false
-    let _channel = Channel.CreateUnbounded<ActorMessage>()
+    let mutable _stop = false    
+    
+    let _queue = ConcurrentQueue<ActorMessage>()
 
-    let loop () = vtask {
+    let loop () = backgroundTask {
         try
             while not _stop do
-                match! _channel.Reader.ReadAsync() with
-                | AddMeasurement result ->
-                    addMeasurement _state result
+                match _queue.TryDequeue() with
+                | true, msg ->
+                    
+                    match msg with
+                    | AddMeasurement result ->
+                        addMeasurement _state result
 
-                | AddFromAgent agentStats ->
-                    addStatsFromAgent _state agentStats
+                    | AddFromAgent agentStats ->
+                        addStatsFromAgent _state agentStats
 
-                | StartUseTempBuffer ->
-                    _state.UseTempBuffer <- true
+                    | StartUseTempBuffer ->
+                        _state.UseTempBuffer <- true
 
-                | FlushTempBuffer ->
-                    flushTempBuffer _state
+                    | FlushTempBuffer ->
+                        flushTempBuffer _state
 
-                | BuildReportingStats (reply, simulationStats, executedDuration) ->
-                    let isFinalStats = false
-                    let pause = TimeSpan.Zero
-                    let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
+                    | BuildReportingStats (reply, simulationStats, executedDuration) ->
+                        let isFinalStats = false
+                        let pause = TimeSpan.Zero
+                        let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
 
-                    let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats executedDuration pause isFinalStats
+                        let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats executedDuration pause isFinalStats
 
-                    addReportingStats _state stats
-                    reply.TrySetResult(stats) |> ignore
+                        addReportingStats _state stats
+                        reply.TrySetResult(stats) |> ignore
 
-                | GetFinalStats (reply, simulationStats, executedDuration, pause) ->
-                    let isFinalStats = true
+                    | GetFinalStats (reply, simulationStats, executedDuration, pause) ->
+                        let isFinalStats = true
 
-                    let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
+                        let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
 
-                    let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats executedDuration pause isFinalStats
-                    reply.TrySetResult(stats) |> ignore
+                        let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats executedDuration pause isFinalStats
+                        reply.TrySetResult(stats) |> ignore
+                
+                | _ -> do! Task.Delay 100
         with
         | ex -> _state.Logger.Fatal $"Unhandled exception: {nameof ScenarioStatsActor} failed: {ex.ToString()}"
     }
@@ -256,7 +259,7 @@ type ScenarioStatsActor(logger: ILogger,
     member _.ConsoleScenarioStats = _state.ConsoleScenarioStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    member _.Publish(msg) = _channel.Writer.TryWrite(msg) |> ignore
+    member _.Publish(msg) = _queue.Enqueue msg
 
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
     ScenarioStatsActor(logger, scenario, reportingInterval)
