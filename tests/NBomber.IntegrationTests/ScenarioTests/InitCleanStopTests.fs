@@ -259,3 +259,39 @@ let ``MaxFailCount should be tracked only for scenarios failures, not steps fail
     |> Result.getOk
     |> fun stats ->
         test <@ stats.ScenarioStats[0].Fail.Request.Count = 0 @>
+        
+[<Fact>]
+let ``withInit should stop the test in case of error`` () =    
+    
+    Scenario.create("test_youtube", fun ctx -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+    |> Scenario.withInit(fun ctx -> task {
+        failwith "my error"
+    }) 
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 2)]
+    |> NBomberRunner.registerScenario    
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> function        
+        | Error error when error.Contains "Init scenario error" -> ()
+        | _ -> failwith "error"
+
+[<Fact>]
+let ``withClean should not stop test in case of error`` () =
+    
+    Scenario.create("test_youtube", fun ctx -> task {
+        do! Task.Delay(milliseconds 100)
+        return Response.ok()
+    })
+    |> Scenario.withClean(fun ctx -> task {
+        failwith "my error"
+    }) 
+    |> Scenario.withoutWarmUp
+    |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
+    |> NBomberRunner.registerScenario    
+    |> NBomberRunner.withoutReports
+    |> NBomberRunner.run
+    |> Result.isOk            

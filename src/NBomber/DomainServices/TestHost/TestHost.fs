@@ -139,7 +139,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 return Ok _targetScenarios
 
             | Error _ ->
-                _currentOperation <- OperationType.Stop
+                _currentOperation <- OperationType.Error
                 return initResult
         })
 
