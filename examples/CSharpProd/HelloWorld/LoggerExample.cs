@@ -1,5 +1,6 @@
 ﻿using NBomber.CSharp;
 using Serilog;
+using Serilog.Events;
 
 namespace CSharpProd.HelloWorld;
 
@@ -11,7 +12,7 @@ public class LoggerExample
         {
             await Task.Delay(1000);
             
-            context.Logger.Debug("my log message: {0}", context.InvocationNumber);
+            context.Logger.Verbose("my log message: {0}", context.InvocationNumber);
 
             return Response.Ok();
         })
@@ -22,14 +23,21 @@ public class LoggerExample
 
     NBomberRunner
         .RegisterScenarios(scenario)
+        
+        // option 1
+        .WithMinimumLogLevel(LogEventLevel.Verbose)
+        
+        // option 2
+        
         // .WithLoggerConfig(() => 
         //     new LoggerConfiguration()
         //         .MinimumLevel.Verbose()
         //         .WriteTo.File(
-        //             path: $"my_folder/my-log.txt",
+        //             path: "my-log.txt",
         //             outputTemplate:
         //             "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [ThreadId:{ThreadId}] {Message:lj}{NewLine}{Exception}",
         //             rollingInterval: RollingInterval.Day)
+        //             // buffered: true
         // )
         .Run();
     }

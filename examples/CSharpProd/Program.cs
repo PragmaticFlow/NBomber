@@ -2,6 +2,7 @@ using CSharpProd.DB.LiteDB;
 using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
 using CSharpProd.Features.CustomSettings;
+using CSharpProd.Features.ElasticsearchLogger;
 using CSharpProd.Features.RealtimeReporting.CustomReportingSink;
 using CSharpProd.Features.RealtimeReporting.InfluxDB;
 using CSharpProd.HelloWorld;
@@ -36,6 +37,7 @@ new HelloWorldExample().Run();
 // new CliArgsExample().Run();
 // new InfluxDBReportingExample().Run();
 // new CustomReportingExample().Run();
+// new ElasticsearchExample().Run();
 
 // ----------------
 // ----- HTTP -----
