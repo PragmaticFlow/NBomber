@@ -146,7 +146,9 @@ type Scenario =
 
     /// <summary>
     /// Initializes scenario and all its dependencies.
-    /// You can use it to prepare your target system, populate the database, or read and apply the JSON configuration for your scenario.     
+    /// You can use it to prepare your target system, populate the database, or read and apply the JSON configuration for your scenario.
+    /// Scenario init will be invoked before warm-up and bombing phases.
+    /// If Scenario init throws an exception, the NBomber load test will stop the execution. 
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="initFunc">Represent lambda function that will be invoked to start Scenario initialization.
@@ -157,7 +159,9 @@ type Scenario =
 
     /// <summary>
     /// Cleans scenario's resources and all its dependencies.
-    /// This method should be used to clean the scenario's resources after the test finishes.            
+    /// This method should be used to clean the scenario's resources after the test finishes.
+    /// Scenario clean will be invoked after warm-up and bombing phases.
+    /// If Scenario clean throws an exception, the NBomber logs it and continues execution. 
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="cleanFunc">Represent lambda function that will be invoked to start Scenario cleaning.
