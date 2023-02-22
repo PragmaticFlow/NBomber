@@ -79,9 +79,7 @@ module internal Logger =
         config.WriteTo.SpectreConsole(outputTemplate, minLevel = LogEventLevel.Information) |> ignore
         config.CreateLogger() :> ILogger
 
-    let create (logSettings: LoggerInitSettings)
-               (infraConfig: IConfiguration option)
-               (createLoggerConfig: (unit -> LoggerConfiguration) option) =
+    let create (logSettings: LoggerInitSettings) (context: NBomberContext) =
 
         let cleanFolder (folder) =
             try
@@ -101,10 +99,14 @@ module internal Logger =
         let testInfo = logSettings.TestInfo
 
         let loggerConfig =
-            createLoggerConfig
+            context.CreateLoggerConfig
             |> Option.map(fun tryGet -> tryGet())
             |> Option.defaultWith(fun () ->
-                LoggerConfiguration().MinimumLevel.Debug()
+                let logLevel =
+                    context.MinimumLogLevel
+                    |> Option.defaultValue LogEventLevel.Debug                
+                
+                LoggerConfiguration().MinimumLevel.Is logLevel
                 |> attachDefaultFileLogger
             )
             |> fun config -> config.Enrich.WithProperty(nameof testInfo.SessionId, testInfo.SessionId)
@@ -115,7 +117,7 @@ module internal Logger =
                                    .Enrich.WithProperty(nameof logSettings.AgentGroup, logSettings.AgentGroup)
                                    .Enrich.WithThreadId()
 
-        match infraConfig with
+        match context.InfraConfig with
         | Some path -> loggerConfig.ReadFrom.Configuration(path).CreateLogger() :> ILogger
         | None      -> loggerConfig.CreateLogger() :> ILogger
 
@@ -131,7 +133,7 @@ module internal Dependency =
     let create (appType: ApplicationType) (logSettings: LoggerInitSettings) (context: NBomberContext) =
 
         let consoleLogger = createConsoleLogger()
-        let logger = Logger.create logSettings context.InfraConfig context.CreateLoggerConfig
+        let logger = Logger.create logSettings context
         Log.Logger <- logger
 
         { new IGlobalDependency with

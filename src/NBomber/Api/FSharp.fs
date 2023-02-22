@@ -7,6 +7,7 @@ open System.Runtime.CompilerServices
 open System.Threading.Tasks
 
 open Serilog
+open Serilog.Events
 open CommandLine
 open FsToolkit.ErrorHandling
 open Microsoft.Extensions.Configuration
@@ -360,6 +361,14 @@ module NBomberRunner =
 
         { context with InfraConfig = Some config }
 
+    /// <summary>
+    /// Sets minimum log level.
+    /// </summary>
+    /// <param name="level">The default value is Debug</param>
+    /// <param name="context">NBomberContext</param>
+    let withMinimumLogLevel (level: LogEventLevel) (context: NBomberContext) =
+        { context with MinimumLogLevel = Some level }        
+    
     /// <summary>
     /// Sets logger configuration.
     /// Make sure that you always return a new instance of LoggerConfiguration.

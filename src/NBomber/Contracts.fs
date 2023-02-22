@@ -2,6 +2,7 @@ namespace NBomber.Contracts
 
 open System
 open Serilog
+open Serilog.Events
 open Microsoft.Extensions.Configuration
 open NBomber
 open NBomber.Configuration
@@ -26,6 +27,7 @@ type NBomberContext = {
     WorkerPlugins: IWorkerPlugin list
     EnableHintsAnalyzer: bool
     TargetScenarios: string list option
+    MinimumLogLevel: LogEventLevel option
 } with
 
     [<CompiledName("Empty")>]
@@ -46,6 +48,7 @@ type NBomberContext = {
         WorkerPlugins = List.empty
         EnableHintsAnalyzer = false
         TargetScenarios = None
+        MinimumLogLevel = None
     }
 
 namespace NBomber.Contracts.Internal

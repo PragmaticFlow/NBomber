@@ -7,6 +7,7 @@ open System.Runtime.InteropServices
 open System.Threading.Tasks
 open System.Runtime.CompilerServices
 open Serilog
+open Serilog.Events
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -365,8 +366,17 @@ type NBomberRunner =
     /// </example>
     [<Extension>]
     static member LoadInfraConfig(context: NBomberContext, path: string) =
-        context |> FSharp.NBomberRunner.loadInfraConfig(path)
+        context |> FSharp.NBomberRunner.loadInfraConfig path
 
+    /// <summary>
+    /// Sets minimum log level.
+    /// </summary>
+    /// <param name="context">NBomberContext</param>
+    /// <param name="level">The default value is Debug</param>
+    [<Extension>]
+    static member WithMinimumLogLevel(context: NBomberContext, level: LogEventLevel) =
+        context |> FSharp.NBomberRunner.withMinimumLogLevel level
+    
     /// <summary>
     /// Sets logger configuration.
     /// Make sure that you always return a new instance of LoggerConfiguration.
