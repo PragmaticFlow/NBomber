@@ -9,7 +9,7 @@ namespace CSharpProd.DB.LiteDB
     public class LiteDBCustomSettings
     {
         public int UserCount { get; set; }
-        public int InsertBulcSize { get; set; }
+        public int InsertBulkSize { get; set; }
     }
 
     internal class InitDBScenario
@@ -79,7 +79,7 @@ namespace CSharpProd.DB.LiteDB
                                  .RuleFor(u => u.Updated, f => createdDateTime);
 
                             listOfUser.Add(fakeUser);
-                            if (i % DBSettings.InsertBulcSize == 0)
+                            if (i % DBSettings.InsertBulkSize == 0)
                             {
                                 Collection.Insert(listOfUser);
                                 listOfUser.Clear();

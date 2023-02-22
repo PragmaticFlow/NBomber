@@ -9,7 +9,7 @@
 
                 "CustomSettings": {
                     "UserCount": 500000,
-                    "InsertBulcSize": 2000
+                    "InsertBulkSize": 2000
                 }
             },
             {
