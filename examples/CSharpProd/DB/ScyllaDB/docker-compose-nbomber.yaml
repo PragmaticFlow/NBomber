@@ -1,0 +1,18 @@
+﻿version: '3.9'
+
+services:
+  nbomber:
+    image: "antyadev/nbomber:v1.0.6"
+    networks:
+      - scylla-network    
+    deploy:
+      replicas: 1      
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - "node.labels.TAG==scylla-master"
+            
+networks:
+  scylla-network:
+    external: true            

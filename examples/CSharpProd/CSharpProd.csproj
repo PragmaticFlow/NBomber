@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Bogus" Version="34.0.2" />
+        <PackageReference Include="CassandraCSharpDriver" Version="3.19.1" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
         <PackageReference Include="NBomber" Version="4.1.0-beta.0" />
         <PackageReference Include="NBomber.Data" Version="4.0.0" />
@@ -36,6 +37,9 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Features\RealtimeReporting\InfluxDb\infra-config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="DB\ScyllaDB\config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>    

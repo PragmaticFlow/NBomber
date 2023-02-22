@@ -1,0 +1,8 @@
+﻿version: '3.9'
+
+services:
+  scylla-master:
+    image: "scylladb/scylla:5.1.5"
+    command: --smp=1 --memory=1G --developer-mode=1    
+    ports:
+      - "9042:9042"

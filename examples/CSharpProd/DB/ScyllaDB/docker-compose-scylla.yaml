@@ -1,0 +1,30 @@
+﻿version: '3.9'
+
+services:
+  scylla-master:
+    image: "scylladb/scylla:5.1.5"
+    command: --smp=1 --memory=1G --developer-mode=1
+    networks:
+      - scylla-network
+    ports:
+      - "9042:9042"
+    deploy:      
+      mode: global
+      placement:
+        constraints:
+          - "node.labels.TAG==scylla-master"
+    
+#  scylla-seed:
+#    image: "scylladb/scylla:5.1.5"
+#    command: --smp=1 --memory=1G --developer-mode=1 --seeds=scylla-master
+#    networks:
+#      - scylla-network
+#    deploy:
+#      mode: global
+#      placement:
+#        constraints:
+#          - "node.labels.TAG==scylla-master"
+            
+networks:
+  scylla-network: 
+    external: true

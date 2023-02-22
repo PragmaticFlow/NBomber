@@ -1,0 +1,50 @@
+{
+    "TargetScenarios": [ "initDB", "read_modify_write" ],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "initDB",
+
+                "CustomSettings": {
+                    "ConnectionString": "localhost",                    
+                    "UserCount": 500000,
+                    "UserRecordSizeBytes": 1000,
+                    "InsertBulkSize": 500,
+                    "KeySpace": "myspace",
+                    "ReplicationFactor": 2,
+                    "ShouldPopulateDB": true
+                }
+            },            
+            {
+                "ScenarioName": "get_by_id",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 1000, "00:01:00" ] }
+                ]
+            },
+            {
+                "ScenarioName": "read_modify_write",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 1000, "00:01:00" ] }
+                ]
+            },
+            {
+                "ScenarioName": "update",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 1, "00:03:00" ] }
+                ]
+            },            
+            {
+                "ScenarioName": "conditional_query",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 1, "00:03:00" ] }
+                ]
+            }
+        ]
+    }
+}
