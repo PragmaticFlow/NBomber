@@ -45,6 +45,7 @@ new HelloWorldExample().Run();
 // new SimpleHttpExample().Run();
 // new SequentialHttpSteps().Run();
 // new HttpResponseValidation().Run();
+// new HttpClientArgsExample().Run();
 
 // ----------------
 // ----- MQTT -----
