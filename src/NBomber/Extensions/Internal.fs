@@ -2,9 +2,7 @@ namespace NBomber.Extensions
 
 open System
 open System.Collections.Generic
-open System.Diagnostics
 open System.Text
-open System.Threading.Tasks
 
 open FSharp.Json
 open FsToolkit.ErrorHandling
@@ -24,62 +22,7 @@ module internal Internal =
         let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
         let inline roundDuration (duration: TimeSpan) =
-            TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
-
-    type Operation =
-
-        static member retry (retryCount: int, getResult: unit -> Task<Result<'T,'E>>) = backgroundTask {
-            let mutable counter = 1
-            let mutable result = Unchecked.defaultof<_>
-            let! r = getResult()
-            result <- r
-
-            while Result.isError result && counter < retryCount do
-                counter <- counter + 1
-                let! r = getResult()
-                result <- r
-
-            return result
-        }
-
-        static member retryDuring (duration: TimeSpan, getResult: unit -> Task<Result<'T,'E>>) =            
-            Operation.retryDuring(duration, None, getResult)
-
-        static member retryDuring (duration: TimeSpan,
-                                   retryDelay: TimeSpan,
-                                   getResult: unit -> Task<Result<'T,'E>>,
-                                   ?shouldRetry: Result<'T,'E> -> bool) =
-            
-            Operation.retryDuring(duration, Some retryDelay, getResult, ?shouldRetry = shouldRetry)
-
-        static member private retryDuring (duration: TimeSpan,
-                                           retryDelay: TimeSpan option,
-                                           getResult: unit -> Task<Result<'T,'E>>,
-                                           ?shouldRetry: Result<'T,'E> -> bool) = backgroundTask {            
-            let shouldContinue =
-                shouldRetry
-                |> Option.defaultValue(fun _ -> true)
-            
-            let stopwatch = Stopwatch()
-            stopwatch.Start()
-
-            let mutable result = Unchecked.defaultof<_>
-            let! r = getResult()
-            result <- r
-
-            while Result.isError result
-                  && shouldContinue result
-                  && stopwatch.Elapsed < duration do
-
-                if retryDelay.IsSome then
-                    do! Task.Delay retryDelay.Value
-
-                let! r = getResult()
-                result <- r
-
-            stopwatch.Stop()
-            return result
-        }
+            TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)    
 
     module JsonExt =
 

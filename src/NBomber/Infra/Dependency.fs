@@ -28,41 +28,100 @@ type internal IGlobalDependency =
 
 [<Extension>]
 type internal LogExt =
-
+        
     [<Extension>]
     static member LogInfo(dep: IGlobalDependency, msg) =
         dep.ConsoleLogger.Information msg
-        dep.Logger.Information msg
-
+        dep.Logger.Information msg 
+    
     [<Extension>]
     static member LogInfo(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
         dep.ConsoleLogger.Information(msg, propertyValues)
         dep.Logger.Information(msg, propertyValues)
-
+    
+    [<Extension>]
+    static member LogWarn(dep: IGlobalDependency, msg) =
+        dep.ConsoleLogger.Warning msg
+        dep.Logger.Warning msg
+        
     [<Extension>]
     static member LogWarn(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
         dep.ConsoleLogger.Warning(msg, propertyValues)
-        dep.Logger.Warning(msg, propertyValues)
-
+        dep.Logger.Warning(msg, propertyValues)        
+        
+    [<Extension>]
+    static member LogWarn(dep: IGlobalDependency, ex: exn, msg) =        
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Warning(ex, msg)
+        else
+            dep.ConsoleLogger.Warning(msg)
+            
+        dep.Logger.Warning(ex, msg)
+        
     [<Extension>]
     static member LogWarn(dep: IGlobalDependency, ex: exn, msg, [<ParamArray>]propertyValues: obj[]) =
-        dep.ConsoleLogger.Warning(ex, msg, propertyValues)
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Warning(ex, msg, propertyValues)
+        else
+            dep.ConsoleLogger.Warning(msg, propertyValues)            
+        
         dep.Logger.Warning(ex, msg, propertyValues)
-
+        
     [<Extension>]
     static member LogError(dep: IGlobalDependency, msg) =
         dep.ConsoleLogger.Error msg
         dep.Logger.Error msg
-
+        
+    [<Extension>]
+    static member LogError(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Error(msg, propertyValues)
+        dep.Logger.Error(msg, propertyValues)        
+        
     [<Extension>]
     static member LogError(dep: IGlobalDependency, ex: exn, msg) =
-        dep.ConsoleLogger.Error(ex, msg)
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Error(ex, msg)
+        else
+            dep.ConsoleLogger.Error msg
+        
         dep.Logger.Error(ex, msg)
-
+        
     [<Extension>]
     static member LogError(dep: IGlobalDependency, ex: exn, msg, [<ParamArray>]propertyValues: obj[]) =
-        dep.ConsoleLogger.Error(ex, msg, propertyValues)
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Error(ex, msg, propertyValues)
+        else
+            dep.ConsoleLogger.Error(msg, propertyValues)
+        
         dep.Logger.Error(ex, msg, propertyValues)
+    
+    [<Extension>]
+    static member LogFatal(dep: IGlobalDependency, msg) =
+        dep.ConsoleLogger.Fatal msg
+        dep.Logger.Fatal msg
+        
+    [<Extension>]
+    static member LogFatal(dep: IGlobalDependency, msg, [<ParamArray>]propertyValues: obj[]) =
+        dep.ConsoleLogger.Fatal(msg, propertyValues)
+        dep.Logger.Fatal(msg, propertyValues)        
+        
+    [<Extension>]
+    static member LogFatal(dep: IGlobalDependency, ex: exn, msg) =
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Fatal(ex, msg)
+        else
+            dep.ConsoleLogger.Fatal msg        
+        
+        dep.Logger.Fatal(ex, msg)
+        
+    [<Extension>]
+    static member LogFatal(dep: IGlobalDependency, ex: exn, msg, [<ParamArray>]propertyValues: obj[]) =
+        if dep.Logger.IsEnabled LogEventLevel.Verbose then
+            dep.ConsoleLogger.Fatal(ex, msg, propertyValues)
+        else
+            dep.ConsoleLogger.Fatal(msg, propertyValues)
+        
+        dep.Logger.Fatal(ex, msg, propertyValues)
 
 module internal Logger =
 
