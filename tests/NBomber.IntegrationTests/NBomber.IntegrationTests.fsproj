@@ -7,7 +7,6 @@
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
         <Compile Include="TestHelper.fs" />
-        <Compile Include="ExtensionsTests.fs" />
         <Content Include="Configuration\scenario_init_only_config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
