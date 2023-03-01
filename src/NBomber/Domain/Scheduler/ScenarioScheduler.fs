@@ -20,6 +20,14 @@ type SchedulerCommand =
     | InjectOneTimeActors
     | DoNothing
 
+let inline calcTimeDrift (startInterval: TimeSpan) (endInterval: TimeSpan) (simulationInterval: TimeSpan) =
+    let realDuration = endInterval - startInterval
+    
+    if realDuration > simulationInterval then
+        realDuration - simulationInterval
+    else
+        TimeSpan.Zero    
+
 let inline calcScheduleByTime
     (copiesCount: int)
     (prevSegmentCopiesCount: int)
@@ -71,7 +79,7 @@ let inline scheduleCleanPrevSimulation (simulation) (currentConstActorCount) : s
         | RampingInject _
         | Inject _
         | InjectRandom _
-        | Pause _           -> RemoveConstantActors, currentConstActorCount
+        | Pause _ -> RemoveConstantActors, currentConstActorCount
     else
         DoNothing, 0
 
@@ -89,6 +97,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     let mutable _cachedSimulationStats = Unchecked.defaultof<LoadSimulationStats>
     let mutable _pauseDuration = TimeSpan.Zero
     let mutable _isWorking = false
+    let _scnTimer = scnCtx.ScenarioTimer
 
     let _constantScheduler =
         if _scenario.IsEnabled then new ConstantActorScheduler(scnCtx, ConstantActorScheduler.exec)
@@ -139,16 +148,16 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                     scnCtx.ScenarioCancellationToken.Cancel()
                     Scenario.setExecutedDuration _scenario _scenario.PlanedDuration
                 else
-                    Scenario.setExecutedDuration _scenario scnCtx.ScenarioTimer.Elapsed
+                    Scenario.setExecutedDuration _scenario _scnTimer.Elapsed
 
             _constantScheduler.Stop()
             _oneTimeScheduler.Stop()
-            scnCtx.ScenarioTimer.Stop()
+            _scnTimer.Stop()
             _warmupTimer.Stop()
 
     let start () = backgroundTask {
         _isWorking <- true
-        scnCtx.ScenarioTimer.Start()
+        _scnTimer.Start()
         let mutable currentTime = TimeSpan.Zero
 
         for simulation in _scenario.LoadSimulations do
@@ -164,12 +173,14 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             | RemoveConstantActors -> _constantScheduler.RemoveActors copiesCount
             | _ -> ()
 
-            let interval = LoadSimulation.getSimulationInterval simulation.Value
+            let simulationInterval = LoadSimulation.getSimulationInterval simulation.Value            
+            let mutable intervalDrift = TimeSpan.Zero
 
             while _isWorking && currentTime < simulation.Duration && not _cancelToken.IsCancellationRequested do
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
                     scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
+                let startInterval = _scnTimer.Elapsed
                 let timeProgress = LoadSimulation.calcTimeProgress currentTime simulation.Duration
 
                 let struct (command, copiesCount) =
@@ -182,8 +193,12 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 | DoNothing            -> ()
 
                 try
-                    do! Task.Delay(interval, _cancelToken)
-                    currentTime <- currentTime + interval
+                    do! Task.Delay(simulationInterval - intervalDrift, _cancelToken)
+                    
+                    let endInterval = _scnTimer.Elapsed                    
+                    intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval
+                    
+                    currentTime <- currentTime + simulationInterval
                 with
                 | _ -> ()  // operation cancel
 
@@ -227,3 +242,4 @@ module Test =
 
     let schedule getRandomValue simulation timeProgress currentConstActorCount = schedule getRandomValue simulation timeProgress currentConstActorCount
     let scheduleCleanPrevSimulation simulation currentConstActorCount = scheduleCleanPrevSimulation simulation currentConstActorCount
+    let calcTimeDrift startInterval endInterval simulationInterval = calcTimeDrift startInterval endInterval simulationInterval

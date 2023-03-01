@@ -25,10 +25,11 @@
         <Content Include="Configuration\infra_config.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Compile Include="ConfigurationTests.fs" />
+        <Compile Include="ExtensionsTests.fs" />
         <Compile Include="NBomberContextTests.fs" />
         <Compile Include="ScenarioStatsActorTests.fs" />
         <Compile Include="StatisticsTests.fs" />
-        <Compile Include="ConfigurationTests.fs" />
         <Compile Include="LoadSimulationTests.fs" />
         <Compile Include="Concurrency\ConstantActorSchedulerTests.fs" />
         <Compile Include="Concurrency\OneTimeActorSchedulerTests.fs" />

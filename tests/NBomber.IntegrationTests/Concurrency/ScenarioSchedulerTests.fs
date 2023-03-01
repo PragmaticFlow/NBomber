@@ -204,3 +204,20 @@ let ``should run Inject correctly`` () =
     )
     |> Result.mapError failwith
     |> ignore
+    
+[<Theory>]
+[<InlineData(0, 10, 5, 5)>]
+[<InlineData(10, 20, 9, 1)>]
+[<InlineData(0, 10, 10, 0)>]
+[<InlineData(0, 10, 12, 0)>]
+let ``calcTimeDrift should correctly calculate time drift for simulation interval``
+    (startInterval: int, endInterval: int, simulationInterval: int, timeDrift: int) =
+
+    let sInterval = TimeSpan.FromSeconds startInterval
+    let eInterval = TimeSpan.FromSeconds endInterval
+    let msInterval = TimeSpan.FromSeconds simulationInterval
+    let tDrift = TimeSpan.FromSeconds timeDrift
+    
+    let result = ScenarioScheduler.Test.calcTimeDrift sInterval eInterval msInterval
+    
+    test <@ result = tDrift @>
