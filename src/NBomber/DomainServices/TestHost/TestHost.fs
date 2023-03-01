@@ -253,7 +253,9 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             dep.LogInfo "Calculating final statistics..."
             return! reportingManager.GetSessionResult(getCurrentNodeInfo())
         else
-            return NodeSessionResult.empty
+            let emptyResult = NodeSessionResult.empty            
+            let finalStats = { emptyResult.FinalStats with TestInfo = sessionArgs.TestInfo }
+            return { emptyResult with FinalStats = finalStats }
     }
 
     member _.Destroy() =
