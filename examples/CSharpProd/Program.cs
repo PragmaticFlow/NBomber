@@ -1,4 +1,5 @@
 using CSharpProd.DB.LiteDB;
+using CSharpProd.DB.SQLiteDB;
 using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
 using CSharpProd.Features.CustomSettings;
@@ -9,6 +10,7 @@ using CSharpProd.HelloWorld;
 using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
 using CSharpProd.MQTT;
+using SQLLiteLoadTest;
 
 // -------------------------------
 // -----Hello World examples -----
@@ -57,3 +59,4 @@ new HelloWorldExample().Run();
 // ----- Db -------
 // ----------------
 // new LiteDBExample().Run();
+// new SQLiteDBExample().Run();
