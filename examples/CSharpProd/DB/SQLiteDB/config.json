@@ -1,0 +1,66 @@
+{
+  "TargetScenarios": [ "initDB", "get_by_id", "read_modify_write" ],
+
+  "GlobalSettings": {
+
+    "ScenariosSettings": [
+      {
+        "ScenarioName": "initDB",
+
+        "CustomSettings": {
+          "UserCount": 50000,
+          "InsertBulkSize": 500,
+          "ConnectionString": "Data Source=UsersRegisterSQLite.db"
+        }
+      },
+      {
+        "ScenarioName": "get_by_id",
+
+        "LoadSimulationsSettings": [
+          { "KeepConstant": [ 3, "00:03:00" ] }
+        ],
+
+        "CustomSettings": {
+          "ConnectionString": "Data Source=UsersRegisterSQLite.db",
+          "ConnectionCount": 3
+        }
+      },
+      {
+        "ScenarioName": "update",
+
+        "LoadSimulationsSettings": [
+          { "KeepConstant": [ 1, "00:00:30" ] }
+        ],
+
+        "CustomSettings": {
+          "ConnectionString": "Data Source=UsersRegisterSQLite.db",
+          "ConnectionCount": 1
+        }
+      },
+      {
+        "ScenarioName": "read_modify_write",
+
+        "LoadSimulationsSettings": [
+          { "KeepConstant": [ 1, "00:03:00" ] }
+        ],
+
+        "CustomSettings": {
+          "ConnectionString": "Data Source=UsersRegisterSQLite.db",
+          "ConnectionCount": 1
+        }
+      },
+      {
+        "ScenarioName": "conditional_query",
+
+        "LoadSimulationsSettings": [
+          { "KeepConstant": [ 10, "00:00:30" ] }
+        ],
+
+        "CustomSettings": {
+          "ConnectionString": "Data Source=UsersRegisterSQLite.db",
+          "ConnectionCount": 1
+        }
+      }
+    ]
+  }
+}
