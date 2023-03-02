@@ -10,7 +10,7 @@ namespace CSharpProd.DB.SQLiteDB
     public class SQLiteDBCustomSettings
     {
         public int UserCount { get; set; }
-        public int InsertBulcSize { get; set; }
+        public int InsertBulkSize { get; set; }
         public string ConnectionString { get; set; }    
     }
 
@@ -88,7 +88,7 @@ namespace CSharpProd.DB.SQLiteDB
                                 .RuleFor(u => u.Updated, f => createdDateTime);
 
                             listOfUser.Add(fakeUser);
-                            if (i % DBSettings.InsertBulcSize == 0)
+                            if (i % DBSettings.InsertBulkSize == 0)
                             {
                                 Connection.Insert(listOfUser);
                                 listOfUser.Clear();

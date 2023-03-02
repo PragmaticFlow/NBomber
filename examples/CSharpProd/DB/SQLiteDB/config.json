@@ -9,7 +9,7 @@
 
         "CustomSettings": {
           "UserCount": 50000,
-          "InsertBulcSize": 500,
+          "InsertBulkSize": 500,
           "ConnectionString": "Data Source=UsersRegisterSQLite.db"
         }
       },
