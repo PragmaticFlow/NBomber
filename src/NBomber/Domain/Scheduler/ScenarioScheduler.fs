@@ -182,7 +182,8 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                   && not testHostCancelToken.IsCancellationRequested do
                 
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
-                    scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
+                    stop()
+                    scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")                                        
 
                 let startInterval = _scnTimer.Elapsed
                 let timeProgress = LoadSimulation.calcTimeProgress currentTime simulation.Duration
@@ -197,7 +198,11 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 | DoNothing            -> ()
 
                 try
-                    do! Task.Delay(simulationInterval - intervalDrift, _scnCancelToken)
+                    let interval = simulationInterval - intervalDrift
+                    if interval > TimeSpan.Zero then
+                        do! Task.Delay(interval, _scnCancelToken)
+                    else
+                        do! Task.Delay(simulationInterval, _scnCancelToken)
                     
                     let endInterval = _scnTimer.Elapsed                    
                     intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval

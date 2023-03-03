@@ -34,6 +34,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     let mutable _sessionArgs = SessionArgs.empty
     let mutable _currentOperation = OperationType.None
     let mutable _nodeInfo = { NodeInfo.init None with NodeType = dep.NodeType; CurrentOperation = _currentOperation }
+    let mutable _currentBombingTask = Task.FromResult()
 
     let getCurrentNodeInfo () =
         if _nodeInfo.CurrentOperation = _currentOperation then
@@ -68,7 +69,10 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.iter(fun x -> x.Stop())
 
-    let startScenarios (isWarmUp) (schedulers: ScenarioScheduler list) (reportingManager: IReportingManager) = backgroundTask {
+    let startScenarios (isWarmUp: bool)
+                       (schedulers: ScenarioScheduler list)
+                       (reportingManager: IReportingManager) = backgroundTask {
+        
         WorkerPlugins.start dep
         ReportingSinks.start dep
 
@@ -155,7 +159,8 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         TestHostConsole.printWarmUpScenarios dep scenarios
 
         let isWarmUp = true
-        do! startScenarios isWarmUp schedulers reportingManager
+        _currentBombingTask <- startScenarios isWarmUp schedulers reportingManager
+        do! _currentBombingTask
         stopSchedulers schedulers
 
         _currentOperation <- OperationType.None
@@ -168,9 +173,10 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         dep.LogInfo "Starting bombing..."
         let isWarmUp = false
-        do! startScenarios isWarmUp schedulers reportingManager
-
-        do! this.StopAllScenarios()
+        _currentBombingTask <- startScenarios isWarmUp schedulers reportingManager
+        do! _currentBombingTask
+        do! this.StopTest()
+        
         _currentOperation <- OperationType.Complete
     }
 
@@ -178,38 +184,44 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     default _.ExecStopCommand(command) =
         match command with
         | StopScenario (scenarioName, reason) ->
-            _currentSchedulers
-            |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
-            |> Option.iter(fun sch ->
-                sch.Stop()
-                dep.LogWarn("Stopping scenario early: {0}, reason: {1}", sch.Scenario.ScenarioName, reason)
-            )
+            this.StopScenario(scenarioName, reason)
 
-        | StopTest reason -> this.StopAllScenarios(reason) |> ignore
+        | StopTest reason ->            
+            this.StopTest reason
+            |> ignore
 
-    member _.StopAllScenarios([<Optional;DefaultParameterValue("":string)>]reason: string) =
+    member _.StopScenario(scenarioName, reason) =
+        _currentSchedulers
+        |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
+        |> Option.iter(fun sch ->
+            sch.Stop()
+            dep.LogWarn("Stopping scenario early: {0}, reason: {1}", sch.Scenario.ScenarioName, reason)
+        )        
+    
+    member _.StopTest([<Optional;DefaultParameterValue("":string)>]reason: string) = backgroundTask {
         if _currentOperation <> OperationType.Stop && not _stopped then
-            _currentOperation <- OperationType.Stop
-
+            _currentOperation <- OperationType.Stop            
+            
+            stopSchedulers _currentSchedulers
+            
             if not(String.IsNullOrEmpty reason) then
                 dep.LogWarn("Stopping test early: {0}", reason)
             else
                 dep.LogInfo "Stopping scenarios..."
-
-            TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
-                stopSchedulers _currentSchedulers
-
-                // we use Scenarios from Schedulers because scenario.ExecutedDuration will be available
-                let finishedScenarios = _currentSchedulers |> List.map(fun x -> x.Scenario)
-                let scenarios = Scenario.updatedExecutedDuration _targetScenarios finishedScenarios
-                
+                        
+            do! _currentBombingTask
+            
+            // we use Scenarios from Schedulers because scenario.ExecutedDuration will be available
+            let finishedScenarios = _currentSchedulers |> List.map(fun x -> x.Scenario)
+            let scenarios = Scenario.updatedExecutedDuration _targetScenarios finishedScenarios
+            
+            do! TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 do! startClean consoleStatus _sessionArgs scenarios
 
                 _stopped <- true
                 _currentOperation <- OperationType.None
             })
-        else
-            Task.FromResult()
+    }
 
     member _.CreateScenarioSchedulers(scenarios: Scenario list,
                                       operation: ScenarioOperation,
@@ -264,7 +276,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     member _.Destroy() =
         if not _disposed then
             _disposed <- true
-            this.StopAllScenarios().Wait()
+            this.StopTest().Wait()
 
             for sink in dep.ReportingSinks do
                 use _ = sink
