@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.Scheduler.ScenarioScheduler
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open System.Timers
 open NBomber.Contracts
@@ -90,7 +91,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     let _log = scnCtx.Logger.ForContext<ScenarioScheduler>()
     let _randomGen = Random()
     let _statsActor = scnCtx.ScenarioStatsActor
-    let _cancelToken = scnCtx.ScenarioCancellationToken.Token
+    let _scnCancelToken = scnCtx.ScenarioCancellationToken.Token
     let mutable _scenario = scnCtx.Scenario
     let mutable _warmupTimer = new Timer()
     let mutable _currentSimulation = _scenario.LoadSimulations.Head
@@ -155,7 +156,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             _scnTimer.Stop()
             _warmupTimer.Stop()
 
-    let start () = backgroundTask {
+    let start (testHostCancelToken: CancellationToken) = backgroundTask {
         _isWorking <- true
         _scnTimer.Start()
         let mutable currentTime = TimeSpan.Zero
@@ -176,7 +177,10 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             let simulationInterval = LoadSimulation.getSimulationInterval simulation.Value            
             let mutable intervalDrift = TimeSpan.Zero
 
-            while _isWorking && currentTime < simulation.Duration && not _cancelToken.IsCancellationRequested do
+            while _isWorking && currentTime < simulation.Duration
+                  && not _scnCancelToken.IsCancellationRequested
+                  && not testHostCancelToken.IsCancellationRequested do
+                
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
                     scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
@@ -193,7 +197,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 | DoNothing            -> ()
 
                 try
-                    do! Task.Delay(simulationInterval - intervalDrift, _cancelToken)
+                    do! Task.Delay(simulationInterval - intervalDrift, _scnCancelToken)
                     
                     let endInterval = _scnTimer.Elapsed                    
                     intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval
@@ -215,13 +219,13 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
     member _.ConsoleScenarioStats = scnCtx.ScenarioStatsActor.ConsoleScenarioStats
 
-    member _.Start() =
+    member _.Start(bombingCancelToken) =
         if scnCtx.ScenarioOperation = ScenarioOperation.WarmUp && _scenario.WarmUpDuration.IsSome then
             _warmupTimer <- new Timer(_scenario.WarmUpDuration.Value.TotalMilliseconds)
             _warmupTimer.Elapsed.Add(fun _ -> stop())
             _warmupTimer.Start()
 
-        start() :> Task
+        start(bombingCancelToken) :> Task
 
     member _.Stop() =
         scnCtx.ScenarioCancellationToken.Cancel()
