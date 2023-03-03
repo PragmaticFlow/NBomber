@@ -198,7 +198,11 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 | DoNothing            -> ()
 
                 try
-                    do! Task.Delay(simulationInterval - intervalDrift, _scnCancelToken)
+                    let interval = simulationInterval - intervalDrift
+                    if interval > TimeSpan.Zero then
+                        do! Task.Delay(interval, _scnCancelToken)
+                    else
+                        do! Task.Delay(simulationInterval, _scnCancelToken)
                     
                     let endInterval = _scnTimer.Elapsed                    
                     intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval
