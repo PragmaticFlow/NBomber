@@ -172,11 +172,11 @@ let getScenariosForWarmUp (scenarios: Scenario list) =
 let getScenariosForBombing (scenarios: Scenario list) =
     scenarios |> List.filter(fun x -> x.Run.IsSome)
 
-let getMaxDuration (scenarios: Scenario list) =
-    scenarios |> List.map(fun x -> x.PlanedDuration) |> List.max
+let getMaxDuration (scenarios: Scenario seq) =
+    scenarios |> Seq.map(fun x -> x.PlanedDuration) |> Seq.max
 
-let getMaxWarmUpDuration (scenarios: Scenario list) =
-    scenarios |> List.choose(fun x -> x.WarmUpDuration) |> List.max
+let getMaxWarmUpDuration (scenarios: Scenario seq) =
+    scenarios |> Seq.choose(fun x -> x.WarmUpDuration) |> Seq.max
 
 let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
     let startTime = ctx.Timer.Elapsed.TotalMilliseconds
