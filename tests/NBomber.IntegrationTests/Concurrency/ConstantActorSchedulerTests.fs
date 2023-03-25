@@ -1,5 +1,6 @@
 module Tests.Concurrency.ConstantActorScheduler
 
+open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -51,7 +52,7 @@ let ``AddActors should start actors if there is no actors`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     let initCount = scheduler.ScheduledActorCount
-    scheduler.AddActors(5)
+    scheduler.AddActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
@@ -63,7 +64,7 @@ let ``AddActors should start actors if there is no actors`` () =
 let ``AddActors should start actors to run forever until the finish of scenario duration`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
-    scheduler.AddActors(5)
+    scheduler.AddActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
@@ -75,7 +76,7 @@ let ``AddActors should start actors to run forever until the finish of scenario 
 let ``RemoveActors should stop some actors and keep them in actor pool`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
-    scheduler.AddActors(10)
+    scheduler.AddActors(10, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     scheduler.RemoveActors(5)
     Task.Delay(seconds 2).Wait()
@@ -89,7 +90,7 @@ let ``RemoveActors should stop some actors and keep them in actor pool`` () =
 let ``Stop should stop all working actors`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
-    scheduler.AddActors(5)
+    scheduler.AddActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
     Task.Delay(seconds 2).Wait()

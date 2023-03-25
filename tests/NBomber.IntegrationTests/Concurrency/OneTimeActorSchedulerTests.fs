@@ -1,5 +1,6 @@
 module Tests.Concurrency.OneTimeActorScheduler
 
+open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -51,7 +52,7 @@ let ``InjectActors should start actors if there is no actors`` () =
     use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
     let initCount = scheduler.ScheduledActorCount
-    scheduler.InjectActors(5)
+    scheduler.InjectActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
@@ -63,7 +64,7 @@ let ``InjectActors should start actors if there is no actors`` () =
 let ``InjectActors should execute actors once until next turn`` () =
     use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
-    scheduler.InjectActors(5)
+    scheduler.InjectActors(5, TimeSpan.Zero)
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
@@ -74,7 +75,7 @@ let ``InjectActors should execute actors once until next turn`` () =
 let ``Stop should stop all working actors`` () =
     use scheduler = new OneTimeActorScheduler(baseScnDep, OneTimeActorScheduler.Test.exec)
 
-    scheduler.InjectActors(5)
+    scheduler.InjectActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
     scheduler.Stop()
     Task.Delay(seconds 2).Wait()

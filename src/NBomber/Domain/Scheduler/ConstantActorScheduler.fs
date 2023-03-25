@@ -12,8 +12,8 @@ type SchedulerCommand =
     | RemoveActor of removeCount:int
     | StopScheduler
 
-/// (createActors: count -> fromIndex -> ScenarioActor[]) * actorPool * scheduledActorCount
-type SchedulerExec = (int -> int -> ScenarioActor[]) -> ResizeArray<ScenarioActor> -> int -> ResizeArray<ScenarioActor>
+/// (createActors: count -> fromIndex -> ScenarioActor[]) (actorPool) (scheduledActorCount) (injectInterval)
+type SchedulerExec = (int -> int -> ScenarioActor[]) -> ResizeArray<ScenarioActor> -> int -> TimeSpan -> ResizeArray<ScenarioActor>
 
 let inline removeFromScheduler scheduledActorsCount removeCount =
     let actorsCount = scheduledActorsCount - removeCount
@@ -30,7 +30,8 @@ let inline schedule workingActorCount scheduledActorCount =
 let inline exec
     (createActors: int -> int -> ScenarioActor[])
     (actorPool: ResizeArray<ScenarioActor>)
-    (scheduledActorCount: int) =
+    (scheduledActorCount: int)
+    (injectInterval: TimeSpan) =
 
     let workingActors = ScenarioActorPool.getWorkingActors actorPool
     match schedule (Seq.length workingActors) scheduledActorCount with
@@ -39,8 +40,10 @@ let inline exec
 
     | AddActors count ->
         let result = ScenarioActorPool.rentActors createActors actorPool count
-        result.ActorsFromPool |> Array.iter(fun x -> x.RunInfinite() |> ignore)
-        result.NewActors |> Array.iter(fun x -> x.RunInfinite() |> ignore)
+        
+        result.ActorsFromPool |> Array.iter(fun x -> x.RunInfinite(injectInterval) |> ignore)
+        result.NewActors |> Array.iter(fun x -> x.RunInfinite(injectInterval) |> ignore)
+        
         ScenarioActorPool.updatePool actorPool result.NewActors
 
     | RemoveActor count ->
@@ -64,13 +67,13 @@ type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool
 
-    member _.AddActors(count) =
+    member _.AddActors(count, injectInterval) =
         _scheduledActorCount <- _scheduledActorCount + count
-        _actorPool <- exec createActors _actorPool _scheduledActorCount
+        _actorPool           <- exec createActors _actorPool _scheduledActorCount injectInterval
 
     member _.RemoveActors(count) =
         _scheduledActorCount <- removeFromScheduler _scheduledActorCount count
-        _actorPool <- exec createActors _actorPool _scheduledActorCount
+        _actorPool           <- exec createActors _actorPool _scheduledActorCount TimeSpan.Zero
 
     member _.Stop() = stop()
 
@@ -79,4 +82,4 @@ type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
 
 module Test =
 
-    let exec createActors actorPool scheduledActorCount = exec createActors actorPool scheduledActorCount
+    let exec createActors actorPool scheduledActorCount injectInterval = exec createActors actorPool scheduledActorCount injectInterval
