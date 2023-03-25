@@ -10,8 +10,8 @@ type SchedulerCommand =
     | StartActors of actors:ScenarioActor[]
     | RentActors of actorCount:int
 
-/// (createActors: count -> fromIndex -> ScenarioActor[]) * actorPool * scheduledActorCount
-type SchedulerExec = (int -> int -> ScenarioActor[]) -> ResizeArray<ScenarioActor> -> int -> ResizeArray<ScenarioActor>
+/// (createActors: count -> fromIndex -> ScenarioActor[]) (actorPool) (scheduledActorCount) (injectInterval)
+type SchedulerExec = (int -> int -> ScenarioActor[]) -> ResizeArray<ScenarioActor> -> int -> TimeSpan -> ResizeArray<ScenarioActor>
 
 // todo: add tests
 let inline schedule (actorPool: ScenarioActor seq) (actorCount: int) =
@@ -29,10 +29,11 @@ let inline schedule (actorPool: ScenarioActor seq) (actorCount: int) =
 let inline exec
     (createActors: int -> int -> ScenarioActor[])
     (actorPool: ResizeArray<ScenarioActor>)
-    (scheduledActorCount: int) =
+    (scheduledActorCount: int)
+    (injectInterval: TimeSpan) =
 
     let inline execSteps (actors: ScenarioActor[]) =
-        actors |> Array.iter(fun x -> x.ExecSteps() |> ignore)
+        actors |> Array.iter(fun x -> x.ExecSteps(injectInterval) |> ignore)
 
     match schedule actorPool scheduledActorCount with
     | StartActors actors ->
@@ -41,8 +42,10 @@ let inline exec
 
     | RentActors actorCount ->
         let result = ScenarioActorPool.rentActors createActors actorPool actorCount
+        
         execSteps result.ActorsFromPool
         execSteps result.NewActors
+        
         ScenarioActorPool.updatePool actorPool result.NewActors
 
 type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
@@ -56,9 +59,9 @@ type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool
 
-    member _.InjectActors(count) =
+    member _.InjectActors(count, injectInterval) =        
         _scheduledActorCount <- count
-        _actorPool <- exec createActors _actorPool _scheduledActorCount
+        _actorPool           <- exec createActors _actorPool _scheduledActorCount injectInterval
 
     member _.Stop() = stop()
 

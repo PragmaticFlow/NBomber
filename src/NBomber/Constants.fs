@@ -39,7 +39,7 @@ let DefaultWarmUpDuration = TimeSpan.FromSeconds 30
 let MinReportingInterval = TimeSpan.FromSeconds 5
 let DefaultReportingInterval = TimeSpan.FromSeconds 10
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5
-let DefaultSchedulerTickInterval = TimeSpan.FromSeconds 1
+let OneSecond = TimeSpan.FromSeconds 1
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue

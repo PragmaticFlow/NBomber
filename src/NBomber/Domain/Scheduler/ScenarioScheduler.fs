@@ -84,11 +84,10 @@ let inline scheduleCleanPrevSimulation (simulation) (currentConstActorCount) : s
     else
         DoNothing, 0
 
-let private emptyExec (createActors: int -> int -> ScenarioActor[]) (actorPool: ResizeArray<ScenarioActor>) (scheduledActorCount: int) = actorPool
+let private emptyExec (createActors: int -> int -> ScenarioActor[]) (actorPool: ResizeArray<ScenarioActor>) (scheduledActorCount: int) (injectInterval: TimeSpan) = actorPool
 
 type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
-
-    let _log = scnCtx.Logger.ForContext<ScenarioScheduler>()
+    
     let _randomGen = Random()
     let _statsActor = scnCtx.ScenarioStatsActor
     let _scnCancelToken = scnCtx.ScenarioCancellationToken.Token
@@ -192,16 +191,16 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                     schedule getRandomValue simulation timeProgress _constantScheduler.ScheduledActorCount
 
                 match command with
-                | AddConstantActors    -> _constantScheduler.AddActors copiesCount
+                | AddConstantActors    -> _constantScheduler.AddActors(copiesCount, simulationInterval)
                 | RemoveConstantActors -> _constantScheduler.RemoveActors copiesCount
-                | InjectOneTimeActors  -> _oneTimeScheduler.InjectActors copiesCount
+                | InjectOneTimeActors  -> _oneTimeScheduler.InjectActors(copiesCount, simulationInterval)
                 | DoNothing            -> ()
 
                 try
                     let interval = simulationInterval - intervalDrift
-                    if interval > TimeSpan.Zero then
+                    if interval > TimeSpan.Zero then                        
                         do! Task.Delay(interval, _scnCancelToken)
-                    else
+                    else                        
                         do! Task.Delay(simulationInterval, _scnCancelToken)
                     
                     let endInterval = _scnTimer.Elapsed                    

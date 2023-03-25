@@ -1,5 +1,6 @@
 module internal NBomber.Domain.Concurrency.ScenarioActor
 
+open System
 open System.Threading.Tasks
 open NBomber
 open NBomber.Contracts
@@ -11,17 +12,19 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
 
     let _logger = scnCtx.Logger.ForContext<ScenarioActor>()
     let _scenario = scnCtx.Scenario
+    let _randomizer = Random()
     let _cancelToken = scnCtx.ScenarioCancellationToken.Token
     let mutable _working = false
 
     let _scenarioCtx = ScenarioContext(scnCtx, scenarioInfo)
 
-    let execSteps (runInfinite: bool) = backgroundTask {
+    let execSteps (startDelay: int) (runInfinite: bool) = backgroundTask {
         try
             if not _working then
                 let mutable shouldRun = true
                 _working <- true
-                do! Task.Yield()
+                
+                do! Task.Delay startDelay
 
                 while shouldRun && _working && not _cancelToken.IsCancellationRequested do
 
@@ -35,11 +38,18 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
         finally
             _working <- false
     }
-
+    
     member _.ScenarioStatsActor = scnCtx.ScenarioStatsActor
     member _.ScenarioInfo = scenarioInfo
     member _.Working = _working
-
-    member _.ExecSteps() = execSteps false
-    member _.RunInfinite() = execSteps true
-    member _.Stop() = _working <- false
+     
+    member _.ExecSteps(injectInterval: TimeSpan) =
+        let startDelay = _randomizer.Next(0, int injectInterval.TotalMilliseconds)
+        execSteps startDelay false
+        
+    member _.RunInfinite(injectInterval: TimeSpan) =
+        let startDelay = _randomizer.Next(0, int injectInterval.TotalMilliseconds)
+        execSteps startDelay true
+        
+    member _.Stop() =
+        _working <- false

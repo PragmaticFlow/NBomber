@@ -153,12 +153,12 @@ let create (simulations: Contracts.LoadSimulation list) =
 
 let inline getSimulationInterval simulation =
     match simulation with
-    | RampingConstant (copies, during)      -> Constants.DefaultSchedulerTickInterval
-    | KeepConstant (copies, during)         -> Constants.DefaultSchedulerTickInterval
+    | RampingConstant (copies, during)      -> Constants.OneSecond
+    | KeepConstant (copies, during)         -> Constants.OneSecond
     | RampingInject (_, interval, during)   -> interval
     | Inject (rate, interval, during)       -> interval
     | InjectRandom (_, _, interval, during) -> interval
-    | Pause during                          -> Constants.DefaultSchedulerTickInterval
+    | Pause during                          -> Constants.OneSecond
 
 let inline getSimulationName simulation =
     match simulation with
