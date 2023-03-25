@@ -58,4 +58,7 @@ let run (context: NBomberContext) =
         error |> AppError.toString |> dep.LogError
         error
     )
-    |> fun task -> task.GetAwaiter().GetResult()
+    |> fun task ->
+        let result = task.GetAwaiter().GetResult()
+        Dependency.dispose dep
+        result
