@@ -189,6 +189,13 @@ module internal Dependency =
         let guid = Guid.NewGuid().GetHashCode().ToString("x")
         $"{date}_session_{guid}"
 
+    let private disposeLogger (logger: ILogger) =
+        if logger :? IDisposable then
+            (logger :?> IDisposable).Dispose()    
+    
+    let dispose (dep: IGlobalDependency) =
+        disposeLogger dep.Logger                
+    
     let create (appType: ApplicationType) (logSettings: LoggerInitSettings) (context: NBomberContext) =
 
         let consoleLogger = createConsoleLogger()
@@ -206,7 +213,9 @@ module internal Dependency =
             member _.ReportingSinks = context.Reporting.Sinks
             member _.WorkerPlugins = context.WorkerPlugins }
 
-    let withNewLogger (dep: IGlobalDependency) (logger: ILogger) =
+    let withNewLogger (dep: IGlobalDependency) (logger: ILogger) =        
+        disposeLogger dep.Logger
+        
         { new IGlobalDependency with
             member _.ApplicationType = dep.ApplicationType
             member _.NodeType = dep.NodeType
