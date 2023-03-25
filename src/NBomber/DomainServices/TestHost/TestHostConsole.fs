@@ -97,9 +97,9 @@ module LiveStatusTable =
 
     let private getMaxScnDuration (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
         if isWarmUp then
-            scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
+            scnSchedulers |> Seq.map(fun x -> x.Scenario) |> Scenario.getMaxWarmUpDuration
         else
-            scnSchedulers |> List.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
+            scnSchedulers |> Seq.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
 
     let display (dep: IGlobalDependency)
                 (cancelToken: CancellationToken)
@@ -132,14 +132,15 @@ module LiveStatusTable =
                             let scenariosStats = scnSchedulers |> List.map(fun x -> x.ConsoleScenarioStats)
                             renderTable table scenariosStats
 
-                        table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
-
-                        ctx.Refresh()
+                        if currentTime <= maxDuration then
+                            table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                            ctx.Refresh()
+                            
                         do! Task.Delay(1_000, cancelToken)
 
                         refreshTableCounter <- refreshTableCounter + 1
 
-                        if refreshTableCounter = NBomber.Constants.ConsoleRefreshTableCounter then
+                        if refreshTableCounter >= NBomber.Constants.ConsoleRefreshTableCounter then
                             refreshTableCounter <- 0
                     with
                     | :? OperationCanceledException as ex -> ()
