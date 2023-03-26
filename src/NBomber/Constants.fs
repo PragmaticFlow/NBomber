@@ -50,6 +50,8 @@ let ReportingTimerCompleteMs = 3_000
 let ConsoleRefreshTableCounter = 13
 [<Literal>]
 let MaxClientInitFailCount = 5
+[<Literal>]
+let MaxWaitWorkingActorsSec = 60
 
 /// Default status codes
 

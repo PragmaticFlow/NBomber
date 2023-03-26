@@ -77,7 +77,7 @@ let ``Stop should stop all working actors`` () =
 
     scheduler.InjectActors(5, TimeSpan.Zero)
     Task.Delay(milliseconds 10).Wait()
-    scheduler.Stop()
+    scheduler.AskToStop()
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 

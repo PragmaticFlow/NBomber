@@ -49,11 +49,11 @@ let inline exec
     | RemoveActor count ->
         workingActors
         |> Seq.take count
-        |> Seq.iter(fun x -> x.Stop())
+        |> Seq.iter(fun x -> x.AskToStop())
         actorPool
 
     | StopScheduler ->
-        ScenarioActorPool.stopActors actorPool
+        ScenarioActorPool.askToStop actorPool
         actorPool
 
 type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
@@ -62,7 +62,8 @@ type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     let mutable _scheduledActorCount = 0
     let createActors = ScenarioActorPool.createActors scnCtx
 
-    let stop () = ScenarioActorPool.stopActors _actorPool
+    let askToStop () =
+        ScenarioActorPool.askToStop _actorPool
 
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool
@@ -75,10 +76,10 @@ type ConstantActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
         _scheduledActorCount <- removeFromScheduler _scheduledActorCount count
         _actorPool           <- exec createActors _actorPool _scheduledActorCount TimeSpan.Zero
 
-    member _.Stop() = stop()
+    member _.AskToStop() = askToStop()
 
     interface IDisposable with
-        member _.Dispose() = stop()
+        member _.Dispose() = askToStop()
 
 module Test =
 

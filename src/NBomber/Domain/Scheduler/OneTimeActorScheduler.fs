@@ -54,7 +54,8 @@ type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     let mutable _scheduledActorCount = 0
     let createActors = ScenarioActorPool.createActors scnCtx
 
-    let stop () = ScenarioActorPool.stopActors _actorPool
+    let askToStop () =
+        ScenarioActorPool.askToStop _actorPool
 
     member _.ScheduledActorCount = _scheduledActorCount
     member _.AvailableActors = _actorPool
@@ -63,10 +64,10 @@ type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
         _scheduledActorCount <- count
         _actorPool           <- exec createActors _actorPool _scheduledActorCount injectInterval
 
-    member _.Stop() = stop()
+    member _.AskToStop() = askToStop()
 
     interface IDisposable with
-        member _.Dispose() = stop()
+        member _.Dispose() = askToStop()
 
 module Test =
 

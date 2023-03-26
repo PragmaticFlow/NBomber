@@ -77,7 +77,7 @@ let ``RemoveActors should stop some actors and keep them in actor pool`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     scheduler.AddActors(10, TimeSpan.Zero)
-    Task.Delay(milliseconds 10).Wait()
+    Task.Delay(seconds 2).Wait()
     scheduler.RemoveActors(5)
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
@@ -91,8 +91,8 @@ let ``Stop should stop all working actors`` () =
     use scheduler = new ConstantActorScheduler(baseScnDep, ConstantActorScheduler.Test.exec)
 
     scheduler.AddActors(5, TimeSpan.Zero)
-    Task.Delay(milliseconds 10).Wait()
-    scheduler.Stop()
+    Task.Delay(seconds 2).Wait()
+    scheduler.AskToStop()    
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 

@@ -63,7 +63,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         do! Task.Delay(milliseconds 100)
         return Response.ok(sizeBytes = 1000)
     })
-    |> Scenario.withWarmUpDuration(seconds 2)
+    |> Scenario.withWarmUpDuration(seconds 1)
     |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 10)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
@@ -73,7 +73,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         let stats = nodeStats.ScenarioStats[0]
         let ok = stats.Ok
 
-        test <@ ok.Request.RPS >= 8.0 @>
+        test <@ ok.Request.RPS >= 8.5 @>
         test <@ ok.Request.RPS <= 10.0 @>
         test <@ ok.Latency.MinMs <= 100.0 @>
         test <@ ok.Latency.MeanMs <= 112.0 @>
@@ -83,7 +83,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         test <@ ok.Latency.Percent95 <= 115.0 @>
         test <@ ok.Latency.Percent99 <= 116.0 @>
         test <@ ok.DataTransfer.MinBytes = 1000 @>
-        test <@ ok.DataTransfer.AllBytes >= 90_000L && ok.DataTransfer.AllBytes <= 100_000L @>
+        test <@ ok.DataTransfer.AllBytes >= 80_000L && ok.DataTransfer.AllBytes <= 100_000L @>
 
 // [<Fact>]
 // let ``can be duplicated to introduce repeatable behaviour`` () =

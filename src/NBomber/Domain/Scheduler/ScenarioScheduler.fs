@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
+open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Domain
@@ -150,8 +151,8 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 else
                     Scenario.setExecutedDuration _scenario _scnTimer.Elapsed
 
-            _constantScheduler.Stop()
-            _oneTimeScheduler.Stop()
+            _constantScheduler.AskToStop()
+            _oneTimeScheduler.AskToStop()
             _scnTimer.Stop()
             _warmupTimer.Stop()
 
@@ -218,6 +219,24 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
         stop()
     }
 
+    let getWorkingActorCount () =
+        _constantScheduler.AvailableActors
+        |> Seq.append _oneTimeScheduler.AvailableActors
+        |> Concurrency.ScenarioActorPool.getWorkingActors
+        |> Seq.length
+    
+    let waitOnWorkingActors () = backgroundTask {
+        let mutable counter = 0
+        
+        while counter < Constants.MaxWaitWorkingActorsSec do
+            let actorsCount = getWorkingActorCount()            
+            if actorsCount > 0 then
+                do! Task.Delay Constants.OneSecond
+                counter <- counter + 1
+            else
+                counter <- Constants.MaxWaitWorkingActorsSec
+    }
+    
     member _.Working = _isWorking
     member _.Scenario = _scenario
     member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
@@ -234,6 +253,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     member _.Stop() =
         scnCtx.ScenarioCancellationToken.Cancel()
         stop()
+        waitOnWorkingActors() :> Task
 
     member _.AddStatsFromAgent(stats) = scnCtx.ScenarioStatsActor.Publish(AddFromAgent stats)
     member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
