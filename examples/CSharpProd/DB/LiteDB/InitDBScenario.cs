@@ -16,7 +16,7 @@ namespace CSharpProd.DB.LiteDB
     {
         public LiteDatabase Db { get; private set; }
         public ILiteCollection<User> Collection { get; private set; }
-        public int RecordSizeBytes { get; private set; }
+        public long RecordSizeBytes { get; private set; }
         public LiteDBCustomSettings DBSettings { get; private set;}
 
         public ScenarioProps Create()

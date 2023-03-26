@@ -1,4 +1,4 @@
-﻿namespace NBomber.CSharp
+namespace NBomber.CSharp
 
 #nowarn "3211"
 
@@ -24,7 +24,7 @@ type Response =
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member Ok(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<obj> =
 
@@ -38,7 +38,7 @@ type Response =
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     static member Ok<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
 
@@ -53,7 +53,7 @@ type Response =
     static member Ok<'T>(
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue("")>] message: string,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
 
@@ -68,7 +68,7 @@ type Response =
     static member Fail(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<obj> =
 
         { StatusCode = statusCode
@@ -82,7 +82,7 @@ type Response =
     static member Fail<'T>(
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
 
         { StatusCode = statusCode
@@ -97,7 +97,7 @@ type Response =
         payload: 'T,
         [<Optional;DefaultParameterValue("")>] statusCode: string,
         [<Optional;DefaultParameterValue("")>] message: string,
-        [<Optional;DefaultParameterValue(0)>] sizeBytes: int,
+        [<Optional;DefaultParameterValue(0)>] sizeBytes: int64,
         [<Optional;DefaultParameterValue(0.0)>] latencyMs: float) : Response<'T> =
 
         { StatusCode = statusCode

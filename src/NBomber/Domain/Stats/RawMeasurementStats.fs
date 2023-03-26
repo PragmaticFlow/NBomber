@@ -18,8 +18,8 @@ type RawStatusCodeStats = {
 type RawItemStats = {
     mutable MinMicroSec: int
     mutable MaxMicroSec: int
-    mutable MinBytes: int
-    mutable MaxBytes: int
+    mutable MinBytes: int64
+    mutable MaxBytes: int64
     mutable RequestCount: int
     mutable LessOrEq800: int
     mutable More800Less1200: int
@@ -41,7 +41,7 @@ let empty (stepName) =
     let createStats () = {
         MinMicroSec = Int32.MaxValue
         MaxMicroSec = 0
-        MinBytes = Int32.MaxValue
+        MinBytes = Int64.MaxValue
         MaxBytes = 0
         RequestCount = 0
         LessOrEq800 = 0
@@ -57,7 +57,7 @@ let empty (stepName) =
       OkStats = createStats()
       FailStats = createStats() }
 
-let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) (finalDataSize) =
+let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) (finalDataSize: int64) =
 
     let updateStatusCodeStats (statuses: Dictionary<string,RawStatusCodeStats>, res: IResponse) =
         match statuses.TryGetValue res.StatusCode with
@@ -109,8 +109,8 @@ let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) (f
 
         // add data transfer
         if finalDataSize > 0 then
-            stats.AllBytes <- stats.AllBytes + int64 finalDataSize
-            stats.DataTransferHistogram.RecordValue(int64 finalDataSize)
+            stats.AllBytes <- stats.AllBytes + finalDataSize
+            stats.DataTransferHistogram.RecordValue(finalDataSize)
 
             if finalDataSize < stats.MinBytes then
                 stats.MinBytes <- finalDataSize

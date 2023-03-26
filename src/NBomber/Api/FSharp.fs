@@ -1,4 +1,4 @@
-﻿namespace NBomber.FSharp
+namespace NBomber.FSharp
 
 open System
 open System.IO
@@ -33,7 +33,7 @@ type Response =
     static member inline ok<'T>(
         ?payload: 'T,
         ?statusCode: string,
-        ?sizeBytes: int,
+        ?sizeBytes: int64,
         ?message: string,
         ?latencyMs: float) =
 
@@ -48,7 +48,7 @@ type Response =
         ?statusCode: string,
         ?message: string,
         ?payload: 'T,
-        ?sizeBytes: int,
+        ?sizeBytes: int64,
         ?latencyMs: float) =
 
         { StatusCode = statusCode |> Option.defaultValue ""
