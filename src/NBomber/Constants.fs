@@ -40,12 +40,11 @@ let MinReportingInterval = TimeSpan.FromSeconds 5
 let DefaultReportingInterval = TimeSpan.FromSeconds 10
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5
 let OneSecond = TimeSpan.FromSeconds 1
+let ReportingManagerStartDelay = TimeSpan.FromSeconds 5
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = int64 Int32.MaxValue
 
-[<Literal>]
-let ReportingTimerCompleteMs = 3_000
 [<Literal>]
 let ConsoleRefreshTableCounter = 13
 [<Literal>]

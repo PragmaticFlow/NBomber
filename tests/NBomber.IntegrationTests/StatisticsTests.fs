@@ -285,8 +285,8 @@ module StepStatsRawData =
         let stepResult = {
             Name = "step_name"
             ClientResponse = clientResponse
-            EndTimeMs = Double.MaxValue
-            LatencyMs = stepResMs
+            StartTime = TimeSpan.Zero            
+            Latency = milliseconds stepResMs
         }
 
         RawMeasurementStats.addMeasurement emptyData stepResult 10
@@ -321,8 +321,8 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step_name"
                 ClientResponse = clientResponse
-                EndTimeMs = Double.MaxValue
-                LatencyMs = 0.0
+                StartTime = TimeSpan.Zero                
+                Latency = seconds 0
             }
 
             RawMeasurementStats.addMeasurement data stepResponse 10
@@ -353,15 +353,15 @@ module StepStatsRawData =
                 IsError = not isOk
                 Message = ""
                 SizeBytes = 10
-                LatencyMs = 0.0
+                LatencyMs = 0
                 Payload = None
             }
 
             let stepResponse = { // only stepResponse latency will be included
                 Name = "step_name"
                 ClientResponse = clientResponse
-                EndTimeMs = Double.MaxValue
-                LatencyMs = latency |> float
+                StartTime = TimeSpan.Zero                
+                Latency = milliseconds latency
             }
 
             RawMeasurementStats.addMeasurement data stepResponse 10
@@ -428,8 +428,8 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step"
                 ClientResponse = clientResponse
-                EndTimeMs = Double.MaxValue
-                LatencyMs = 0.0
+                StartTime = TimeSpan.Zero                
+                Latency = seconds 0
             }
 
             RawMeasurementStats.addMeasurement data stepResponse resSize

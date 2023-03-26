@@ -93,7 +93,7 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
             do! Task.Delay delay
 
             if ctx.InvocationNumber = 5 then
-                delay <- milliseconds 500
+                delay <- milliseconds 300
                 size <- 500
 
             if ctx.InvocationNumber = 15 then
@@ -120,8 +120,8 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         test <@ first[0].Ok.Latency.MaxMs > 1000.0  @>
         test <@ last[0].Ok.Latency.MaxMs <= 1000.0  @>
         
-        test <@ first[0].Ok.Request.Count < 5 @>
-        test <@ first[0].Ok.Request.RPS < 1.0 @>
+        test <@ first[0].Ok.Request.Count = 5 @>
+        test <@ first[0].Ok.Request.RPS = 1.0 @>
         
         test <@ last[0].Ok.Request.Count = 5 @>
         test <@ last[0].Ok.Request.RPS = 1.0 @>        

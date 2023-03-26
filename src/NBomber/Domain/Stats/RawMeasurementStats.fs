@@ -72,7 +72,7 @@ let addMeasurement (rawStats: RawMeasurementStats) (measurement: Measurement) (f
     // calc latency
     let latencyMs =
         if clientRes.LatencyMs > 0.0 then clientRes.LatencyMs
-        else measurement.LatencyMs
+        else measurement.Latency.TotalMilliseconds
 
     let stats =
         match clientRes.IsError with

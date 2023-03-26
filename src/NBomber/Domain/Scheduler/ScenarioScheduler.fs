@@ -116,7 +116,6 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     let prepareForRealtimeStats () =
         _cachedSimulationStats <- getCurrentSimulationStats()
-        _statsActor.Publish StartUseTempBuffer
 
     let buildRealtimeStats (duration: TimeSpan) =
         let simulationStats = getCurrentSimulationStats()
@@ -126,8 +125,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        _statsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))
-        _statsActor.Publish FlushTempBuffer
+        _statsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))        
         reply.Task
 
     let getFinalStats () =
