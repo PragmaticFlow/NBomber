@@ -30,7 +30,7 @@ let inline rentActors
         |> Seq.truncate actorCount
         |> Seq.toArray
 
-    let notWorkingCount = Seq.length notWorkingActors
+    let notWorkingCount = Array.length notWorkingActors
 
     if notWorkingCount < actorCount then
         let createCount = actorCount - notWorkingCount
@@ -40,8 +40,8 @@ let inline rentActors
     else
         { ActorsFromPool = notWorkingActors; NewActors = Array.empty }
 
-let inline stopActors (actorPool: ScenarioActor seq) =
-    actorPool |> Seq.iter(fun x -> x.Stop())
+let inline askToStop (actorPool: ScenarioActor seq) =
+    actorPool |> Seq.iter(fun x -> x.AskToStop())
 
 let inline getWorkingActors (actorPool: ScenarioActor seq) =
     actorPool |> Seq.filter(fun x -> x.Working)

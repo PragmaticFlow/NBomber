@@ -63,12 +63,12 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             let count = getScenarioClusterCount scn.ScenarioName
             new ScenarioScheduler(scnDep, count)
 
-        _currentSchedulers |> List.iter(fun x -> x.Stop())
+        _currentSchedulers |> List.iter(fun x -> x.Stop() |> ignore)
         targetScenarios |> Scenario.getScenariosForBombing |> List.map createScheduler
 
     let stopSchedulers (schedulers: ScenarioScheduler list) =
-        schedulers |> List.iter(fun x -> x.Stop())
-
+        schedulers |> List.map(fun x -> x.Stop())
+    
     let startScenarios (isWarmUp: bool)
                        (schedulers: ScenarioScheduler list)
                        (reportingManager: IReportingManager) = backgroundTask {
@@ -161,7 +161,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         let isWarmUp = true
         _currentBombingTask <- startScenarios isWarmUp schedulers reportingManager
         do! _currentBombingTask
-        stopSchedulers schedulers
+        do! Task.WhenAll(stopSchedulers schedulers)
 
         _currentOperation <- OperationType.None
     }
@@ -202,7 +202,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         if _currentOperation <> OperationType.Stop && not _stopped then
             _currentOperation <- OperationType.Stop            
             
-            stopSchedulers _currentSchedulers
+            do! Task.WhenAll(stopSchedulers _currentSchedulers)
             
             if not(String.IsNullOrEmpty reason) then
                 dep.LogWarn("Stopping test early: {0}", reason)

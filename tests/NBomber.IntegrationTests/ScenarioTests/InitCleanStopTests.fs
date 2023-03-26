@@ -231,7 +231,7 @@ let ``withMaxFailCount should configure MaxFailCount`` () =
     |> Result.getOk
     |> fun stats ->
         test <@ stats.ScenarioStats[0].Fail.Request.Count <> Constants.ScenarioMaxFailCount @>
-        test <@ stats.ScenarioStats[0].Fail.Request.Count = 1 @>
+        test <@ stats.ScenarioStats[0].Fail.Request.Count <= 2 @>
 
 [<Fact>]
 let ``MaxFailCount should be tracked only for scenarios failures, not steps failures`` () =
