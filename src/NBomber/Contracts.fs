@@ -69,8 +69,8 @@ type CommandLineArgs = {
 type Measurement = {
     Name: string
     ClientResponse: IResponse
-    EndTimeMs: float
-    LatencyMs: float
+    StartTime: TimeSpan    
+    Latency: TimeSpan
 }
 
 type SessionArgs = {

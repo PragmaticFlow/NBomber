@@ -3,6 +3,7 @@ module internal NBomber.DomainServices.TestHost.ReportingManager
 open System
 open System.Threading.Tasks
 open FsToolkit.ErrorHandling
+open NBomber
 open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
@@ -14,7 +15,7 @@ open NBomber.Infra
 
 type IReportingManager =
     inherit IDisposable
-    abstract Start: unit -> unit
+    abstract Start: unit -> Task<unit>
     abstract Stop: unit -> Task<unit>
     abstract GetSessionResult: NodeInfo -> Task<NodeSessionResult>
 
@@ -65,16 +66,19 @@ type ReportingManager(dep: IGlobalDependency,
                       sessionArgs: SessionArgs) =
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
-    let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
+    let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)    
+    let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
     let mutable _curDuration = TimeSpan.Zero
-    let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max |> fun duration -> duration.Add(TimeSpan.FromSeconds 2)
 
     let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
 
-    let start () =
+    let start () = backgroundTask {
+        do! Task.Delay Constants.ReportingManagerStartDelay
         _buildRealtimeStatsTimer.Start()
+    }
 
     let stop () = backgroundTask {
+        do! Task.Delay Constants.ReportingManagerStartDelay
         _buildRealtimeStatsTimer.Stop()
     }
 

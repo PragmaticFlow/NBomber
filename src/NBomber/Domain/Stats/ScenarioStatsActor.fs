@@ -6,6 +6,7 @@ open System.Collections.Concurrent
 open System.Runtime.CompilerServices
 open System.Threading.Tasks
 open Serilog
+
 open NBomber
 open NBomber.Contracts.Stats
 open NBomber.Contracts.Internal
@@ -17,8 +18,6 @@ open NBomber.Domain.Stats.RawMeasurementStats
 type ActorMessage =
     | AddMeasurement of Measurement
     | AddFromAgent of ScenarioStats
-    | StartUseTempBuffer
-    | FlushTempBuffer
     | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan
     | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan * pause:TimeSpan
 
@@ -26,6 +25,7 @@ type State = {
     Logger: ILogger
     Scenario: Scenario
     ReportingInterval: TimeSpan
+    mutable AcceptMaxStartTime: TimeSpan
     MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
     mutable ScenarioFailCount: int
     StepsOrder: Dictionary<string, int>
@@ -54,6 +54,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
     { Logger = logger
       Scenario = scenario
       ReportingInterval = reportingInterval
+      AcceptMaxStartTime = reportingInterval
       MergeStatsFn = mergeStatsFn
       ScenarioFailCount = 0
       StepsOrder = stepsOrder
@@ -65,7 +66,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
       IntervalStepsResults = Dict.empty()
       ConsoleScenarioStats = consoleStats
 
-      UseTempBuffer = false
+      UseTempBuffer = true
       TempBuffer = ResizeArray<_>()
       IntervalAgentsStats = ResizeArray<_>()
       FinalAgentsStats = ResizeArray<_>() }
@@ -91,7 +92,7 @@ let updateIntervalStats (state: State) (measurement: Measurement) (finalDataSize
     RawMeasurementStats.addMeasurement rawStats measurement finalDataSize
 
 let addMeasurement (state: State) (measurement: Measurement) =
-    if state.UseTempBuffer then
+    if state.UseTempBuffer && measurement.StartTime > state.AcceptMaxStartTime then
         state.TempBuffer.Add measurement
     else
         updateGlobalInfoDataSize state measurement
@@ -120,6 +121,7 @@ let flushTempBuffer (state: State) =
     state.UseTempBuffer <- false
     state.TempBuffer |> Seq.iter(addMeasurement state)
     state.TempBuffer.Clear()
+    state.UseTempBuffer <- true
 
 let createReportingStats (state: State) simulationStats executedDuration pause rawStats =
     ScenarioStats.create
@@ -192,6 +194,7 @@ let addReportingStats (state: State) (reportingStats: ScenarioStats) =
     // reset reporting interval steps data
     state.IntervalStepsResults.Clear()
     state.IntervalAgentsStats.Clear()
+    state.AcceptMaxStartTime <- state.AcceptMaxStartTime + state.ReportingInterval
 
 let addStatsFromAgent (state: State) (agentStats: ScenarioStats) =
     if agentStats.CurrentOperation = OperationType.Bombing then
@@ -205,8 +208,8 @@ type ScenarioStatsActor(logger: ILogger,
                         ?mergeStatsFn: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) =
 
     let mutable _state = createState logger scenario reportingInterval mergeStatsFn
-    let mutable _stop = false    
-    
+    let mutable _stop = false
+
     let _queue = ConcurrentQueue<ActorMessage>()
 
     let loop () = backgroundTask {
@@ -214,19 +217,13 @@ type ScenarioStatsActor(logger: ILogger,
             while not _stop do
                 match _queue.TryDequeue() with
                 | true, msg ->
-                    
+
                     match msg with
                     | AddMeasurement result ->
                         addMeasurement _state result
 
                     | AddFromAgent agentStats ->
                         addStatsFromAgent _state agentStats
-
-                    | StartUseTempBuffer ->
-                        _state.UseTempBuffer <- true
-
-                    | FlushTempBuffer ->
-                        flushTempBuffer _state
 
                     | BuildReportingStats (reply, simulationStats, executedDuration) ->
                         let isFinalStats = false
@@ -236,16 +233,18 @@ type ScenarioStatsActor(logger: ILogger,
                         let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats executedDuration pause isFinalStats
 
                         addReportingStats _state stats
+                        flushTempBuffer _state
                         reply.TrySetResult(stats) |> ignore
 
                     | GetFinalStats (reply, simulationStats, executedDuration, pause) ->
                         let isFinalStats = true
+                        flushTempBuffer _state
 
                         let cordStats = _state.CoordinatorStepsResults.Values |> Seq.toArray
 
                         let stats = buildStats _state cordStats _state.FinalAgentsStats simulationStats executedDuration pause isFinalStats
                         reply.TrySetResult(stats) |> ignore
-                
+
                 | _ -> do! Task.Delay 100
         with
         | ex -> _state.Logger.Fatal $"Unhandled exception: {nameof ScenarioStatsActor} failed: {ex.ToString()}"

@@ -79,17 +79,16 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         use consoleCancelToken = new CancellationTokenSource()
         let maxDuration = schedulers |> Seq.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
         
-        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
-        reportingManager.Start()
+        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers        
 
-        // waiting on all scenarios to finish        
+        // start scenarios        
         let bombingTask = schedulers |> Seq.map(fun x -> x.Start(consoleCancelToken.Token)) |> Task.WhenAll
-        consoleCancelToken.CancelAfter maxDuration
+        consoleCancelToken.CancelAfter maxDuration        
+                
+        // waiting on all scenarios to finish
+        reportingManager.Start() |> ignore   
         do! bombingTask
-        consoleCancelToken.Cancel()
-
-        // wait on final metrics and reporting tick
-        do! Task.Delay Constants.ReportingTimerCompleteMs
+        consoleCancelToken.Cancel()        
 
         // waiting (in case of cluster) on all raw stats
         do! reportingManager.Stop()

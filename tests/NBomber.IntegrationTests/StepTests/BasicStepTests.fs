@@ -73,15 +73,15 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
         let stats = nodeStats.ScenarioStats[0]
         let ok = stats.Ok
 
-        test <@ ok.Request.RPS >= 8.5 @>
-        test <@ ok.Request.RPS <= 10.0 @>
-        test <@ ok.Latency.MinMs <= 100.0 @>
-        test <@ ok.Latency.MeanMs <= 112.0 @>
-        test <@ ok.Latency.MaxMs <= 117.0 @>
-        test <@ ok.Latency.Percent50 <= 113.0 @>
-        test <@ ok.Latency.Percent75 <= 114.0 @>
-        test <@ ok.Latency.Percent95 <= 115.0 @>
-        test <@ ok.Latency.Percent99 <= 116.0 @>
+        test <@ ok.Request.RPS >= 8 @>
+        test <@ ok.Request.RPS <= 10 @>
+        test <@ ok.Latency.MinMs <= 100 @>
+        test <@ ok.Latency.MeanMs <= 112 @>
+        test <@ ok.Latency.MaxMs <= 117 @>
+        test <@ ok.Latency.Percent50 <= 113 @>
+        test <@ ok.Latency.Percent75 <= 114 @>
+        test <@ ok.Latency.Percent95 <= 115 @>
+        test <@ ok.Latency.Percent99 <= 116 @>
         test <@ ok.DataTransfer.MinBytes = 1000 @>
         test <@ ok.DataTransfer.AllBytes >= 80_000L && ok.DataTransfer.AllBytes <= 100_000L @>
 

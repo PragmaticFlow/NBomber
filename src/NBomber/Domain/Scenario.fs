@@ -179,39 +179,39 @@ let getMaxWarmUpDuration (scenarios: Scenario seq) =
     scenarios |> Seq.choose(fun x -> x.WarmUpDuration) |> Seq.max
 
 let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
-    let startTime = ctx.Timer.Elapsed.TotalMilliseconds
+    let startTime = ctx.Timer.Elapsed
     try
         let! response = run ctx
-        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
-        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
     with
     | :? RestartScenarioIteration ->
-        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
         let error = ResponseInternal.failEmpty
-        let result = { Name = name; ClientResponse = error; EndTimeMs = endTime; LatencyMs = latency }
+        let result = { Name = name; ClientResponse = error; StartTime = startTime; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
     | :? OperationCanceledException as ex ->
-        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
         let response = ResponseInternal.failTimeout
-        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
     | ex ->
-        let endTime = ctx.Timer.Elapsed.TotalMilliseconds
+        let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
         let context = ctx :> IScenarioContext
         context.Logger.Error(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
         let response = ResponseInternal.failUnhandled ex
-        let result = { Name = name; ClientResponse = response; EndTimeMs = endTime; LatencyMs = latency }
+        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 }
