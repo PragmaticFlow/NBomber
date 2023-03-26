@@ -31,7 +31,7 @@ let runSession (testInfo: TestInfo) (nodeInfo: NodeInfo) (context: NBomberContex
         return { sessionResult with FinalStats = finalStats }
     }
 
-let run (context: NBomberContext) =
+let run (disposeLogger: bool) (context: NBomberContext) =
 
     let testInfo = {
         SessionId = Dependency.createSessionId()
@@ -59,6 +59,6 @@ let run (context: NBomberContext) =
         error
     )
     |> fun task ->
-        let result = task.GetAwaiter().GetResult()
-        Dependency.dispose dep
+        let result = task.GetAwaiter().GetResult()        
+        if disposeLogger then Dependency.dispose dep
         result

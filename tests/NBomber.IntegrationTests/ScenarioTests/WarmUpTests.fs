@@ -51,7 +51,6 @@ let ``Warmup should have no effect on stats`` () =
 let ``withoutWarmUp should hide the warmup info on the console`` () =
 
     let mutable warmupRun = false
-
     let inMemorySink = new InMemorySink()
 
     Scenario.create("1", fun ctx -> task {
@@ -66,7 +65,7 @@ let ``withoutWarmUp should hide the warmup info on the console`` () =
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig(fun () -> LoggerConfiguration().WriteTo.Sink(inMemorySink))
     |> NBomberRunner.withoutReports
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> ignore
 
     test <@ warmupRun = false @>

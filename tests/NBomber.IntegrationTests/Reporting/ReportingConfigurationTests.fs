@@ -111,7 +111,7 @@ let ``withoutReports should not print report files`` () =
     NBomberRunner.registerScenarios [scenario]
     |> NBomberRunner.withoutReports
     |> NBomberRunner.withLoggerConfig createLoggerConfig
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> ignore
 
     let logEvents = inMemorySink.LogEvents |> Seq.toList

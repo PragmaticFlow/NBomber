@@ -121,7 +121,7 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig loggerConfig
     |> NBomberRunner.withWorkerPlugins [timeoutPlugin]
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> Result.getOk
     |> fun nodeStats ->
         test <@ Array.isEmpty nodeStats.PluginStats @>
@@ -151,7 +151,7 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig loggerConfig
     |> NBomberRunner.withWorkerPlugins [exceptionPlugin]
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> Result.getOk
     |> fun nodeStats ->
         test <@ Array.isEmpty nodeStats.PluginStats @>

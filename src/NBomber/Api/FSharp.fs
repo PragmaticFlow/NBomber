@@ -429,13 +429,19 @@ module NBomberRunner =
 
         | _ -> context
 
-    let internal runWithResult (args) (context: NBomberContext) =
+    let internal runWithResult (args: string seq) (context: NBomberContext) =
         GCSettings.LatencyMode <- GCLatencyMode.SustainedLowLatency
-
+        
+        let disposeLogger = true
+        
         if Seq.isEmpty args then
-            NBomberRunner.run context
+            NBomberRunner.run disposeLogger context
+            
+        elif args |> String.contains "disposeLogger=false" then
+            context |> executeCliArgs args |> NBomberRunner.run(false)
+            
         else
-            context |> executeCliArgs args |> NBomberRunner.run
+            context |> executeCliArgs args |> NBomberRunner.run(disposeLogger)
 
     /// Runs scenarios.
     let run (context: NBomberContext) =

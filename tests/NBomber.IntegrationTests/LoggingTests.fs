@@ -38,7 +38,7 @@ let ``set min logger level should work correctly`` () =
     |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig1
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> ignore
 
     Scenario.create("scenario2", fun ctx -> task {
@@ -50,7 +50,7 @@ let ``set min logger level should work correctly`` () =
     |> Scenario.withoutWarmUp
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withLoggerConfig createLoggerConfig2
-    |> NBomberRunner.run
+    |> NBomberRunner.runWithArgs ["disposeLogger=false"]
     |> ignore
 
     let scenario1LogPrinted =

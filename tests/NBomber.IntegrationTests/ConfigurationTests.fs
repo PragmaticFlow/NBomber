@@ -75,7 +75,7 @@ module NBomberRunner =
         Assert.Throws(
             typeof<Exception>,
             fun _ ->
-                let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber.Enterprise.Examples/main/examples/ClusterSimpleHttpDemo/coordinator-config.json"
+                let url = "https://raw.githubusercontent.com/PragmaticFlow/NBomber.Enterprise.Examples/main/examples/ClusterSimpleHttpDemo/local/coordinator-config.json"
 
                 Scenario.create("scenario_1", fun ctx -> task {
                     return Response.ok()
