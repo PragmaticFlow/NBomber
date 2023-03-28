@@ -31,9 +31,9 @@ let ``AllRealtimeStats should contain cached realtime stats`` () =
 
     for i in [1..10] do
         let result1 = { Name = "step_name"; ClientResponse = Response.ok()
-                        StartTime = TimeSpan.Zero; Latency = seconds i }
+                        CurrentTimeBucket = TimeSpan.Zero; Latency = seconds i }
         let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok()
-                        StartTime = TimeSpan.Zero; Latency = seconds i }
+                        CurrentTimeBucket = TimeSpan.Zero; Latency = seconds i }
         statsActor.Publish(AddMeasurement result1)
         statsActor.Publish(AddMeasurement result2)
 
@@ -57,16 +57,16 @@ let ``TempBuffer should work correctly`` () =
     // add metrics that match the current reporting bucket
     let startTime = seconds 1
     for i in [1..5] do
-        let result1 = { Name = "step_name"; ClientResponse = Response.ok(); StartTime = startTime; Latency = seconds i }
-        let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); StartTime = startTime; Latency = seconds i }
+        let result1 = { Name = "step_name"; ClientResponse = Response.ok(); CurrentTimeBucket = startTime; Latency = seconds i }
+        let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); CurrentTimeBucket = startTime; Latency = seconds i }
         statsActor.Publish(AddMeasurement result1)
         statsActor.Publish(AddMeasurement result2)
 
     // add metrics that StartTime is bigger than the current reporting bucket
     let startTime = seconds 6
     for i in [1..10] do
-        let result1 = { Name = "step_name"; ClientResponse = Response.ok(); StartTime = startTime; Latency = seconds i }
-        let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); StartTime = startTime; Latency = seconds i }
+        let result1 = { Name = "step_name"; ClientResponse = Response.ok(); CurrentTimeBucket = startTime; Latency = seconds i }
+        let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); CurrentTimeBucket = startTime; Latency = seconds i }
         statsActor.Publish(AddMeasurement result1)
         statsActor.Publish(AddMeasurement result2)
 
@@ -98,10 +98,10 @@ let ``BuildReportingStats should preserver Steps order at which steps arrived`` 
         |> List.map fst
 
     for stName in stepNames do
-        let measurement = { Name = stName; ClientResponse = Response.ok(); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+        let measurement = { Name = stName; ClientResponse = Response.ok(); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
         statsActor.Publish(AddMeasurement measurement)
 
-    let globalStep = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+    let globalStep = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
     statsActor.Publish(AddMeasurement globalStep)
 
     let reply = TaskCompletionSource<ScenarioStats>()
@@ -121,13 +121,13 @@ let ``DataTransfer should be calculated properly for Global Step Info`` () =
     let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     for i in [1 .. 100] do
-        let stepSmall = { Name = "step_small"; ClientResponse = Response.ok(sizeBytes = 1); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+        let stepSmall = { Name = "step_small"; ClientResponse = Response.ok(sizeBytes = 1); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
         statsActor.Publish(AddMeasurement stepSmall)
 
-    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
     statsActor.Publish(AddMeasurement stepBig)
 
-    let stepGlobal = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(sizeBytes = 5); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+    let stepGlobal = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok(sizeBytes = 5); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
     statsActor.Publish(AddMeasurement stepGlobal)
 
     let reply = TaskCompletionSource<ScenarioStats>()
@@ -136,7 +136,7 @@ let ``DataTransfer should be calculated properly for Global Step Info`` () =
     let scnStats = reply.Task.Result
 
     // GlobalInfoDataSize stats should be cleared
-    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); StartTime = TimeSpan.Zero; Latency = seconds 100 }
+    let stepBig = { Name = "step_big"; ClientResponse = Response.ok(sizeBytes = 1000); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }
     statsActor.Publish(AddMeasurement stepBig)
 
     let reply = TaskCompletionSource<ScenarioStats>()

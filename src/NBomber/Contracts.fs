@@ -69,14 +69,14 @@ type CommandLineArgs = {
 type Measurement = {
     Name: string
     ClientResponse: IResponse
-    StartTime: TimeSpan    
+    CurrentTimeBucket: TimeSpan
     Latency: TimeSpan
 }
 
 type SessionArgs = {
     TestInfo: TestInfo
     NBomberConfig: NBomberConfig
-    ScenarioPartitions: Map<string,ScenarioPartition> // ScenarioName * ScenarioPartition 
+    ScenarioPartitions: Map<string,ScenarioPartition> // ScenarioName * ScenarioPartition
 } with
 
     static member empty = {

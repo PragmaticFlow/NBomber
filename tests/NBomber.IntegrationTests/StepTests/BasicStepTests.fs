@@ -51,7 +51,7 @@ let ``Response Ok and Fail should be properly count`` () =
         test <@ okSt.Fail.Request.Count = 0 @>
         test <@ failSt.Ok.Request.Count = 0 @>
         test <@ failSt.Fail.Request.Count = 2 @>
-        
+
         test <@ nodeStats.ScenarioStats[0].Ok.Request.Count = 0 @>
         test <@ nodeStats.ScenarioStats[0].Fail.Request.Count = 2 @>
 
@@ -75,7 +75,7 @@ let ``Min/Mean/Max/RPS/DataTransfer should be properly count`` () =
 
         test <@ ok.Request.RPS >= 8 @>
         test <@ ok.Request.RPS <= 10 @>
-        test <@ ok.Latency.MinMs <= 100 @>
+        test <@ ok.Latency.MinMs <= 110 && ok.Latency.MinMs >= 99 @>
         test <@ ok.Latency.MeanMs <= 112 @>
         test <@ ok.Latency.MaxMs <= 117 @>
         test <@ ok.Latency.Percent50 <= 113 @>

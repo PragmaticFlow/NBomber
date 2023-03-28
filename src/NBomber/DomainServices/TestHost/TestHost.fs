@@ -53,12 +53,12 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
                 Logger = dep.Logger
                 Scenario = scn
                 ScenarioCancellationToken = new CancellationTokenSource()
-                ScenarioTimer = Stopwatch()
                 ScenarioOperation = operation
                 ScenarioStatsActor = createStatsActor dep.Logger scn (_sessionArgs.GetReportingInterval())
                 ExecStopCommand = this.ExecStopCommand
                 TestInfo = _sessionArgs.TestInfo
                 GetNodeInfo = getCurrentNodeInfo
+                CurrentTimeBucket = TimeSpan.Zero
             }
             let count = getScenarioClusterCount scn.ScenarioName
             new ScenarioScheduler(scnDep, count)
@@ -68,27 +68,27 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
     let stopSchedulers (schedulers: ScenarioScheduler list) =
         schedulers |> List.map(fun x -> x.Stop())
-    
+
     let startScenarios (isWarmUp: bool)
                        (schedulers: ScenarioScheduler list)
                        (reportingManager: IReportingManager) = backgroundTask {
-        
+
         WorkerPlugins.start dep
         ReportingSinks.start dep
 
         use consoleCancelToken = new CancellationTokenSource()
         let maxDuration = schedulers |> Seq.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
-        
-        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers        
 
-        // start scenarios        
+        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
+
+        // start scenarios
         let bombingTask = schedulers |> Seq.map(fun x -> x.Start(consoleCancelToken.Token)) |> Task.WhenAll
-        consoleCancelToken.CancelAfter maxDuration        
-                
+        consoleCancelToken.CancelAfter maxDuration
+
         // waiting on all scenarios to finish
-        reportingManager.Start() |> ignore   
+        reportingManager.Start() |> ignore
         do! bombingTask
-        consoleCancelToken.Cancel()        
+        consoleCancelToken.Cancel()
 
         // waiting (in case of cluster) on all raw stats
         do! reportingManager.Stop()
@@ -175,7 +175,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _currentBombingTask <- startScenarios isWarmUp schedulers reportingManager
         do! _currentBombingTask
         do! this.StopTest()
-        
+
         _currentOperation <- OperationType.Complete
     }
 
@@ -185,7 +185,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         | StopScenario (scenarioName, reason) ->
             this.StopScenario(scenarioName, reason)
 
-        | StopTest reason ->            
+        | StopTest reason ->
             this.StopTest reason
             |> ignore
 
@@ -193,27 +193,27 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         _currentSchedulers
         |> List.tryFind(fun sch -> sch.Working && sch.Scenario.ScenarioName = scenarioName)
         |> Option.iter(fun sch ->
-            sch.Stop()
+            sch.Stop() |> ignore
             dep.LogWarn("Stopping scenario early: {0}, reason: {1}", sch.Scenario.ScenarioName, reason)
-        )        
-    
+        )
+
     member _.StopTest([<Optional;DefaultParameterValue("":string)>]reason: string) = backgroundTask {
         if _currentOperation <> OperationType.Stop && not _stopped then
-            _currentOperation <- OperationType.Stop            
-            
+            _currentOperation <- OperationType.Stop
+
             do! Task.WhenAll(stopSchedulers _currentSchedulers)
-            
+
             if not(String.IsNullOrEmpty reason) then
                 dep.LogWarn("Stopping test early: {0}", reason)
             else
                 dep.LogInfo "Stopping scenarios..."
-                        
+
             do! _currentBombingTask
-            
+
             // we use Scenarios from Schedulers because scenario.ExecutedDuration will be available
             let finishedScenarios = _currentSchedulers |> List.map(fun x -> x.Scenario)
             let scenarios = Scenario.updatedExecutedDuration _targetScenarios finishedScenarios
-            
+
             do! TestHostConsole.displayStatus dep "Cleaning scenarios..." (fun consoleStatus -> backgroundTask {
                 do! startClean consoleStatus _sessionArgs scenarios
 
@@ -267,7 +267,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             dep.LogInfo "Calculating final statistics..."
             return! reportingManager.GetSessionResult(getCurrentNodeInfo())
         else
-            let emptyResult = NodeSessionResult.empty            
+            let emptyResult = NodeSessionResult.empty
             let finalStats = { emptyResult.FinalStats with TestInfo = sessionArgs.TestInfo }
             return { emptyResult with FinalStats = finalStats }
     }

@@ -1,7 +1,6 @@
 module Tests.Concurrency.ConstantActorScheduler
 
 open System
-open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
@@ -39,12 +38,12 @@ let internal baseScnDep = {
     Logger = logger
     Scenario = baseScenario
     ScenarioCancellationToken = new CancellationTokenSource()
-    ScenarioTimer = Stopwatch()
     ScenarioOperation = ScenarioOperation.Bombing
     ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
     TestInfo = TestInfo.empty
     GetNodeInfo = fun () -> NodeInfo.empty
+    CurrentTimeBucket = TimeSpan.Zero
 }
 
 [<Fact>]
@@ -92,7 +91,7 @@ let ``Stop should stop all working actors`` () =
 
     scheduler.AddActors(5, TimeSpan.Zero)
     Task.Delay(seconds 2).Wait()
-    scheduler.AskToStop()    
+    scheduler.AskToStop()
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 
