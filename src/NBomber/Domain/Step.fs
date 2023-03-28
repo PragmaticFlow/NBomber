@@ -9,13 +9,16 @@ open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats.ScenarioStatsActor
 
 let inline measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Response<'T>>) = backgroundTask {
+
+    let timeBucket = ctx.CurrentTimeBucket
     let startTime = ctx.Timer.Elapsed
+
     try
         let! response = run()
         let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
         return response
     with
@@ -24,7 +27,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Resp
         let latency = endTime - startTime
 
         let response = ResponseInternal.failTimeout
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
 
         ctx.StatsActor.Publish(AddMeasurement result)
         return response
@@ -37,7 +40,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: unit -> Task<Resp
         context.Logger.Error(ex, $"Unhandled exception for Scenario: {0}, Step: {1}", context.ScenarioInfo.ScenarioName, name)
 
         let response = ResponseInternal.failUnhandled ex
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
 
         ctx.StatsActor.Publish(AddMeasurement result)
         return response

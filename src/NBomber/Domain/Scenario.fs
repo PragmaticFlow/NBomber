@@ -56,16 +56,16 @@ module Validation =
 
 module ScenarioInitContext =
 
-    let create (scnInfo: ScenarioInfo) (context: IBaseContext) (customSettings: string) (partition: ScenarioPartition) = 
-        
+    let create (scnInfo: ScenarioInfo) (context: IBaseContext) (customSettings: string) (partition: ScenarioPartition) =
+
         let parseCustomSettings (settings: string) =
             try
                 let stream = new MemoryStream(settings |> Encoding.UTF8.GetBytes)
                 ConfigurationBuilder().AddJsonStream(stream).Build() :> IConfiguration
             with
             | _ -> ConfigurationBuilder().Build() :> IConfiguration
-        
-        { new IScenarioInitContext with            
+
+        { new IScenarioInitContext with
             member _.TestInfo = context.TestInfo
             member _.ScenarioInfo = scnInfo
             member _.NodeInfo = context.GetNodeInfo()
@@ -156,11 +156,11 @@ let setExecutedDuration (scenario: Scenario) (executedDuration: TimeSpan) =
 let getExecutedDuration (scenario: Scenario) =
     scenario.ExecutedDuration |> Option.defaultValue scenario.PlanedDuration
 
-let updatedExecutedDuration (targetScenarios: Scenario list) (finishedScenarios: Scenario list) =    
+let updatedExecutedDuration (targetScenarios: Scenario list) (finishedScenarios: Scenario list) =
     targetScenarios
     |> List.map(fun scn ->
         finishedScenarios
-        |> List.tryFind(fun x -> x.ScenarioName = scn.ScenarioName)                        
+        |> List.tryFind(fun x -> x.ScenarioName = scn.ScenarioName)
         |> Option.defaultValue scn
     )
 
@@ -178,14 +178,19 @@ let getMaxDuration (scenarios: Scenario seq) =
 let getMaxWarmUpDuration (scenarios: Scenario seq) =
     scenarios |> Seq.choose(fun x -> x.WarmUpDuration) |> Seq.max
 
-let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
+let inline measure (name: string)
+                   (ctx: ScenarioContext)
+                   (timeBucket: TimeSpan)
+                   (run: IScenarioContext -> Task<IResponse>) = backgroundTask {
+
     let startTime = ctx.Timer.Elapsed
+
     try
         let! response = run ctx
         let endTime = ctx.Timer.Elapsed
         let latency = endTime - startTime
 
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
     with
     | :? RestartScenarioIteration ->
@@ -193,7 +198,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext 
         let latency = endTime - startTime
 
         let error = ResponseInternal.failEmpty
-        let result = { Name = name; ClientResponse = error; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = error; CurrentTimeBucket = timeBucket; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
     | :? OperationCanceledException as ex ->
@@ -201,7 +206,7 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext 
         let latency = endTime - startTime
 
         let response = ResponseInternal.failTimeout
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 
     | ex ->
@@ -212,6 +217,6 @@ let inline measure (name: string) (ctx: ScenarioContext) (run: IScenarioContext 
         context.Logger.Error(ex, $"Unhandled exception for Scenario: {0}", context.ScenarioInfo.ScenarioName)
 
         let response = ResponseInternal.failUnhandled ex
-        let result = { Name = name; ClientResponse = response; StartTime = startTime; Latency = latency }
+        let result = { Name = name; ClientResponse = response; CurrentTimeBucket = timeBucket; Latency = latency }
         ctx.StatsActor.Publish(AddMeasurement result)
 }

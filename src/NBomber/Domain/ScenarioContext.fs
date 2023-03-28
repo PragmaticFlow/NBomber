@@ -1,5 +1,6 @@
 ﻿module internal NBomber.Domain.ScenarioContext
 
+open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.Threading
@@ -13,19 +14,18 @@ type ScenarioContextArgs = {
     Logger: ILogger
     Scenario: Scenario
     ScenarioCancellationToken: CancellationTokenSource
-    ScenarioTimer: Stopwatch
     ScenarioOperation: ScenarioOperation
     ScenarioStatsActor: ScenarioStatsActor
     ExecStopCommand: StopCommand -> unit
     TestInfo: TestInfo
     GetNodeInfo: unit -> NodeInfo
+    mutable CurrentTimeBucket: TimeSpan
 }
 
-type ScenarioContext(args: ScenarioContextArgs, scenarioInfo) =
+type ScenarioContext(args: ScenarioContextArgs, sw: Stopwatch, scenarioInfo) =
 
     let _logger = args.Logger
     let _scnActor = args.ScenarioStatsActor
-    let _timer = args.ScenarioTimer
     let _restartIteration = args.Scenario.RestartIterationOnFail
     let _testInfo = args.TestInfo
     let _data = Dictionary<string,obj>()
@@ -34,7 +34,8 @@ type ScenarioContext(args: ScenarioContextArgs, scenarioInfo) =
     member _.RestartIterationOnFail = _restartIteration
     member _.InvocationNumber = _invocationNumber
     member _.StatsActor = _scnActor
-    member _.Timer = _timer
+    member _.Timer = sw
+    member _.CurrentTimeBucket = args.CurrentTimeBucket
 
     member inline _.PrepareNextIteration() =
         _invocationNumber <- _invocationNumber + 1

@@ -1,7 +1,6 @@
 module Tests.Concurrency.OneTimeActorScheduler
 
 open System
-open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 
@@ -39,12 +38,12 @@ let internal baseScnDep = {
     Logger = logger
     Scenario = baseScenario
     ScenarioCancellationToken = new CancellationTokenSource()
-    ScenarioTimer = Stopwatch()
     ScenarioOperation = ScenarioOperation.Bombing
     ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
     TestInfo = TestInfo.empty
     GetNodeInfo = fun () -> NodeInfo.empty
+    CurrentTimeBucket = TimeSpan.Zero
 }
 
 [<Fact>]

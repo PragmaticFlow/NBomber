@@ -25,7 +25,7 @@ type State = {
     Logger: ILogger
     Scenario: Scenario
     ReportingInterval: TimeSpan
-    mutable AcceptMaxStartTime: TimeSpan
+    mutable AcceptMaxTimeBucket: TimeSpan
     MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
     mutable ScenarioFailCount: int
     StepsOrder: Dictionary<string, int>
@@ -54,7 +54,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
     { Logger = logger
       Scenario = scenario
       ReportingInterval = reportingInterval
-      AcceptMaxStartTime = reportingInterval
+      AcceptMaxTimeBucket = reportingInterval
       MergeStatsFn = mergeStatsFn
       ScenarioFailCount = 0
       StepsOrder = stepsOrder
@@ -92,7 +92,7 @@ let updateIntervalStats (state: State) (measurement: Measurement) (finalDataSize
     RawMeasurementStats.addMeasurement rawStats measurement finalDataSize
 
 let addMeasurement (state: State) (measurement: Measurement) =
-    if state.UseTempBuffer && measurement.StartTime > state.AcceptMaxStartTime then
+    if state.UseTempBuffer && measurement.CurrentTimeBucket >= state.AcceptMaxTimeBucket then
         state.TempBuffer.Add measurement
     else
         updateGlobalInfoDataSize state measurement
@@ -194,7 +194,7 @@ let addReportingStats (state: State) (reportingStats: ScenarioStats) =
     // reset reporting interval steps data
     state.IntervalStepsResults.Clear()
     state.IntervalAgentsStats.Clear()
-    state.AcceptMaxStartTime <- state.AcceptMaxStartTime + state.ReportingInterval
+    state.AcceptMaxTimeBucket <- state.AcceptMaxTimeBucket + state.ReportingInterval
 
 let addStatsFromAgent (state: State) (agentStats: ScenarioStats) =
     if agentStats.CurrentOperation = OperationType.Bombing then

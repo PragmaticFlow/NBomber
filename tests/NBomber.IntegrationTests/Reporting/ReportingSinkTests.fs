@@ -85,25 +85,16 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
             member _.Dispose() = ()
     }
 
-    let mutable delay = milliseconds 1100
+    let mutable delay = milliseconds 500
     let mutable size = 1000
 
     let scenario1 =
         Scenario.create("scenario_1", fun ctx -> task {
             do! Task.Delay delay
-
-            if ctx.InvocationNumber = 5 then
-                delay <- milliseconds 300
-                size <- 500
-
-            if ctx.InvocationNumber = 15 then
-                delay <- milliseconds 100
-                size <- 100
-
             return Response.ok(sizeBytes = size)
         })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 30)]
+        |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 15)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withoutReports
@@ -116,19 +107,18 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         let first = _realtimeStats[0]
         let last = _realtimeStats[_realtimeStats.Count - 1]
 
-        test <@ first[0].Ok.Latency.MaxMs > last[0].Ok.Latency.MaxMs @>
-        test <@ first[0].Ok.Latency.MaxMs > 1000.0  @>
-        test <@ last[0].Ok.Latency.MaxMs <= 1000.0  @>
-        
-        test <@ first[0].Ok.Request.Count = 5 @>
-        test <@ first[0].Ok.Request.RPS = 1.0 @>
-        
-        test <@ last[0].Ok.Request.Count = 5 @>
-        test <@ last[0].Ok.Request.RPS = 1.0 @>        
+        test <@ _realtimeStats.Count = 3 @>
 
-        test <@ first[0].Ok.DataTransfer.MaxBytes > last[0].Ok.DataTransfer.MaxBytes @>
-        test <@ first[0].Ok.DataTransfer.MaxBytes >= 1000  @>
-        test <@ last[0].Ok.DataTransfer.MaxBytes <= 1000  @>
+        test <@ first[0].Ok.Latency.MaxMs < 1000 && first[0].Ok.Latency.MaxMs > 500 @>
+        test <@ last[0].Ok.Latency.MaxMs < 1000  @>
+
+        test <@ first[0].Ok.Request.Count = 5 @>
+        test <@ first[0].Ok.Request.RPS = 1 @>
+
+        test <@ last[0].Ok.Request.Count = 5 @>
+        test <@ last[0].Ok.Request.RPS = 1 @>
+
+        test <@ first[0].Ok.DataTransfer.MaxBytes = last[0].Ok.DataTransfer.MaxBytes @>
 
 [<Fact>]
 let ``SaveRealtimeStats should receive correct calculated stats for long running steps`` () =

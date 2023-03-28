@@ -1,6 +1,7 @@
 ﻿module internal NBomber.Domain.Scheduler.ScenarioScheduler
 
 open System
+open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
@@ -24,11 +25,11 @@ type SchedulerCommand =
 
 let inline calcTimeDrift (startInterval: TimeSpan) (endInterval: TimeSpan) (simulationInterval: TimeSpan) =
     let realDuration = endInterval - startInterval
-    
+
     if realDuration > simulationInterval then
         realDuration - simulationInterval
     else
-        TimeSpan.Zero    
+        TimeSpan.Zero
 
 let inline calcScheduleByTime
     (copiesCount: int)
@@ -88,17 +89,18 @@ let inline scheduleCleanPrevSimulation (simulation) (currentConstActorCount) : s
 let private emptyExec (createActors: int -> int -> ScenarioActor[]) (actorPool: ResizeArray<ScenarioActor>) (scheduledActorCount: int) (injectInterval: TimeSpan) = actorPool
 
 type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
-    
+
     let _randomGen = Random()
     let _statsActor = scnCtx.ScenarioStatsActor
     let _scnCancelToken = scnCtx.ScenarioCancellationToken.Token
+    let _scnTimer = Stopwatch()
+
     let mutable _scenario = scnCtx.Scenario
     let mutable _warmupTimer = new Timer()
     let mutable _currentSimulation = _scenario.LoadSimulations.Head
     let mutable _cachedSimulationStats = Unchecked.defaultof<LoadSimulationStats>
     let mutable _pauseDuration = TimeSpan.Zero
     let mutable _isWorking = false
-    let _scnTimer = scnCtx.ScenarioTimer
 
     let _constantScheduler =
         if _scenario.IsEnabled then new ConstantActorScheduler(scnCtx, ConstantActorScheduler.exec)
@@ -125,7 +127,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     let commitRealtimeStats (duration) =
         let reply = TaskCompletionSource<ScenarioStats>()
-        _statsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))        
+        _statsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))
         reply.Task
 
     let getFinalStats () =
@@ -172,16 +174,16 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             | RemoveConstantActors -> _constantScheduler.RemoveActors copiesCount
             | _ -> ()
 
-            let simulationInterval = LoadSimulation.getSimulationInterval simulation.Value            
+            let simulationInterval = LoadSimulation.getSimulationInterval simulation.Value
             let mutable intervalDrift = TimeSpan.Zero
 
             while _isWorking && currentTime < simulation.Duration
                   && not _scnCancelToken.IsCancellationRequested
                   && not testHostCancelToken.IsCancellationRequested do
-                
+
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
                     stop()
-                    scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")                                        
+                    scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
                 let startInterval = _scnTimer.Elapsed
                 let timeProgress = LoadSimulation.calcTimeProgress currentTime simulation.Duration
@@ -197,15 +199,16 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
                 try
                     let interval = simulationInterval - intervalDrift
-                    if interval > TimeSpan.Zero then                        
+                    if interval > TimeSpan.Zero then
                         do! Task.Delay(interval, _scnCancelToken)
-                    else                        
+                    else
                         do! Task.Delay(simulationInterval, _scnCancelToken)
-                    
-                    let endInterval = _scnTimer.Elapsed                    
+
+                    let endInterval = _scnTimer.Elapsed
                     intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval
-                    
+
                     currentTime <- currentTime + simulationInterval
+                    scnCtx.CurrentTimeBucket <- scnCtx.CurrentTimeBucket + simulationInterval
                 with
                 | _ -> ()  // operation cancel
 
@@ -222,19 +225,19 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
         |> Seq.append _oneTimeScheduler.AvailableActors
         |> Concurrency.ScenarioActorPool.getWorkingActors
         |> Seq.length
-    
+
     let waitOnWorkingActors () = backgroundTask {
         let mutable counter = 0
-        
+
         while counter < Constants.MaxWaitWorkingActorsSec do
-            let actorsCount = getWorkingActorCount()            
+            let actorsCount = getWorkingActorCount()
             if actorsCount > 0 then
                 do! Task.Delay Constants.OneSecond
                 counter <- counter + 1
             else
                 counter <- Constants.MaxWaitWorkingActorsSec
     }
-    
+
     member _.Working = _isWorking
     member _.Scenario = _scenario
     member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats

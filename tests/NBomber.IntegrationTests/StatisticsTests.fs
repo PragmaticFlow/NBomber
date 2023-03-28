@@ -285,7 +285,7 @@ module StepStatsRawData =
         let stepResult = {
             Name = "step_name"
             ClientResponse = clientResponse
-            StartTime = TimeSpan.Zero            
+            CurrentTimeBucket = TimeSpan.Zero            
             Latency = milliseconds stepResMs
         }
 
@@ -321,7 +321,7 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step_name"
                 ClientResponse = clientResponse
-                StartTime = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero                
                 Latency = seconds 0
             }
 
@@ -360,7 +360,7 @@ module StepStatsRawData =
             let stepResponse = { // only stepResponse latency will be included
                 Name = "step_name"
                 ClientResponse = clientResponse
-                StartTime = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero                
                 Latency = milliseconds latency
             }
 
@@ -428,7 +428,7 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step"
                 ClientResponse = clientResponse
-                StartTime = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero                
                 Latency = seconds 0
             }
 
