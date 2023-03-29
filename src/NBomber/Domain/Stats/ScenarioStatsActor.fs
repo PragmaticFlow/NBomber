@@ -31,7 +31,7 @@ type State = {
     StepsOrder: Dictionary<string, int>
     GlobalInfoDataSize: ResizeArray<int>
 
-    ReportingStatsCache: Dictionary<TimeSpan,ScenarioStats>
+    ReportingStatsCache: ConcurrentDictionary<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>
     IntervalStepsResults: Dictionary<string,RawMeasurementStats>
     mutable ConsoleScenarioStats: ScenarioStats // need to display on console (we merge absolute request counts)
@@ -60,7 +60,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
       StepsOrder = stepsOrder
       GlobalInfoDataSize = ResizeArray<_>()
 
-      ReportingStatsCache = Dict.empty()
+      ReportingStatsCache = ConcurrentDictionary<_,_>()
 
       CoordinatorStepsResults = Dict.empty()
       IntervalStepsResults = Dict.empty()
