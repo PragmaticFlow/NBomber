@@ -2,8 +2,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
-        <Company>NBomber</Company>        
-        <Version>4.1.1-beta.0</Version>
+        <Company>NBomber</Company>
+        <Version>4.1.1-beta.1</Version>
         <Copyright>NBomber@2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -16,8 +16,8 @@
         <Description>Modern and flexible load testing framework for Pull and Push scenarios, designed to test any system regardless a protocol (HTTP/WebSockets/AMQP etc) or a semantic model (Pull/Push).</Description>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>        
-        <Title>NBomber</Title>        
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <Title>NBomber</Title>
         <PackageReleaseNotes>- #534 Added ScenarioInfo for ScenarioInitContext
 - #499 Added support for ScenarioPartition
 - #542 Implemented NBomberRunner.WithMinimumLogLevel
@@ -87,13 +87,13 @@
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
         <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />
-        <PackageReference Update="FSharp.Core" Version="7.0.0" />        
+        <PackageReference Update="FSharp.Core" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\HtmlReport\assets\js\index.js" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>    
+    </ItemGroup>
 
 </Project>

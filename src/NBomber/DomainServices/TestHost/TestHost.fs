@@ -83,7 +83,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         // start scenarios
         let bombingTask = schedulers |> Seq.map(fun x -> x.Start(consoleCancelToken.Token)) |> Task.WhenAll
-        consoleCancelToken.CancelAfter maxDuration
+        // consoleCancelToken.CancelAfter maxDuration
 
         // waiting on all scenarios to finish
         reportingManager.Start() |> ignore

@@ -94,7 +94,7 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
             return Response.ok(sizeBytes = size)
         })
         |> Scenario.withoutWarmUp
-        |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 15)]
+        |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 30)]
 
     NBomberRunner.registerScenarios [scenario1]
     |> NBomberRunner.withoutReports
@@ -107,17 +107,16 @@ let ``SaveRealtimeStats should receive calculated stats by intervals`` () =
         let first = _realtimeStats[0]
         let last = _realtimeStats[_realtimeStats.Count - 1]
 
-        test <@ _realtimeStats.Count = 3 @>
+        let rpsEquals = _realtimeStats |> Seq.collect id |> Seq.forall(fun x -> x.Ok.Request.RPS = 1)
+        let countEquals = _realtimeStats |> Seq.collect id |> Seq.forall(fun x -> x.Ok.Request.Count = 5)
+
+        test <@ _realtimeStats.Count = 6 @>
+
+        test <@ rpsEquals @>
+        test <@ countEquals @>
 
         test <@ first[0].Ok.Latency.MaxMs < 1000 && first[0].Ok.Latency.MaxMs > 500 @>
         test <@ last[0].Ok.Latency.MaxMs < 1000  @>
-
-        test <@ first[0].Ok.Request.Count = 5 @>
-        test <@ first[0].Ok.Request.RPS = 1 @>
-
-        test <@ last[0].Ok.Request.Count = 5 @>
-        test <@ last[0].Ok.Request.RPS = 1 @>
-
         test <@ first[0].Ok.DataTransfer.MaxBytes = last[0].Ok.DataTransfer.MaxBytes @>
 
 [<Fact>]
