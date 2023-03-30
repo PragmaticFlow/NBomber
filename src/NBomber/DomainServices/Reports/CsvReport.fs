@@ -16,7 +16,7 @@ let private getHeader () =
      "data_transfer_min_kb"; "data_transfer_mean_kb"; "data_transfer_max_kb"; "data_transfer_all_mb"]
     |> String.concat(separator)
 
-let private toKb (bytes: int) =
+let private toKb (bytes: int64) =
     bytes |> Converter.fromBytesToKb
 
 let private toMb (bytes: int64) =

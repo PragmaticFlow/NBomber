@@ -72,12 +72,12 @@ module DataTransferStats =
             else ValueNone
 
         { MinBytes  = if dataTransfer.IsSome then stats.MinBytes else 0
-          MeanBytes = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> int else 0
+          MeanBytes = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> int64 else 0
           MaxBytes  = if dataTransfer.IsSome then stats.MaxBytes else 0
-          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) |> int else 0
-          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> int else 0
-          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> int else 0
-          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> int else 0
+          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) |> int64 else 0
+          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) |> int64 else 0
+          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) |> int64 else 0
+          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) |> int64 else 0
           StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
           AllBytes  = stats.AllBytes }
 

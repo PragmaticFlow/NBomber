@@ -1,4 +1,4 @@
-﻿module Tests.Statistics
+module Tests.Statistics
 
 open System
 open System.IO
@@ -27,7 +27,7 @@ module ScenarioStatsTests =
     let internal baseRawStepStats ={
         MinMicroSec = Int32.MaxValue
         MaxMicroSec = 0
-        MinBytes = Int32.MaxValue
+        MinBytes = Int64.MaxValue
         MaxBytes = 0
         RequestCount = 0
         LessOrEq800 = 0
@@ -263,6 +263,34 @@ module NodeStatsTests =
             test <@ stats.AllOkCount = 20 @>
             test <@ stats.AllFailCount = 20 @>
             test <@ stats.AllBytes = sc0.Ok.DataTransfer.AllBytes + sc1.Fail.DataTransfer.AllBytes @>
+
+    [<Fact>]
+    let ``NodeStats should support int64 data sizes`` () =
+
+        let sizeBytes = 3000000000L
+        let okScenario =
+            Scenario.create("ok scenario", fun ctx -> task {
+                do! Task.Delay(milliseconds 500)
+                return Response.ok(sizeBytes = sizeBytes)
+            })
+            |> Scenario.withoutWarmUp
+            |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 0.5, during = seconds 2)]
+
+        NBomberRunner.registerScenarios [okScenario]
+        |> NBomberRunner.withoutReports
+        |> NBomberRunner.run
+        |> Result.getOk
+        |> fun stats ->
+            let sc = stats.GetScenarioStats("ok scenario")
+            test <@ stats.Duration = seconds 2 @>
+
+            test <@ stats.AllRequestCount = 4 @>
+
+            test <@ stats.AllOkCount = 4 @>
+            test <@ stats.AllFailCount = 0 @>
+            test <@ stats.AllBytes = 4L * sizeBytes @>
+            test <@ sc.Ok.DataTransfer.MinBytes = sizeBytes @>
+            test <@ sc.Ok.DataTransfer.MaxBytes = sizeBytes @>
 
 module StepStatsRawData =
 

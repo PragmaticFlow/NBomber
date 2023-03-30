@@ -1,4 +1,4 @@
-﻿module internal NBomber.Domain.Stats.ScenarioStatsActor
+module internal NBomber.Domain.Stats.ScenarioStatsActor
 
 open System
 open System.Collections.Generic
@@ -29,7 +29,7 @@ type State = {
     MergeStatsFn: (LoadSimulationStats -> ScenarioStats seq -> ScenarioStats) option
     mutable ScenarioFailCount: int
     StepsOrder: Dictionary<string, int>
-    GlobalInfoDataSize: ResizeArray<int>
+    GlobalInfoDataSize: ResizeArray<int64>
 
     ReportingStatsCache: ConcurrentDictionary<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>

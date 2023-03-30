@@ -43,7 +43,7 @@ let OneSecond = TimeSpan.FromSeconds 1
 let ReportingManagerStartDelay = TimeSpan.FromSeconds 3
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
-let MaxTrackableStepResponseSize = int64 Int32.MaxValue
+let MaxTrackableStepResponseSize = Int64.MaxValue
 
 [<Literal>]
 let ConsoleRefreshTableCounter = 13

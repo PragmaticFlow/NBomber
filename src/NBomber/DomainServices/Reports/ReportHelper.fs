@@ -8,7 +8,7 @@ open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.Stats
 
-let printDataKb (highlightTxt: obj -> string) (bytes: int) =
+let printDataKb (highlightTxt: obj -> string) (bytes: int64) =
     $"{bytes |> Converter.fromBytesToKb |> highlightTxt} KB"
 
 let printAllData (highlightTxt: obj -> string) (bytes: int64) =
