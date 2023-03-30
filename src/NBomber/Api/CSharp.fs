@@ -315,7 +315,7 @@ type NBomberRunner =
     /// Sets real-time reporting interval.
     /// </summary>
     /// <param name="context">NBomberContext</param>
-    /// <param name="interval">Default value: 10 sec, min value: 5 sec</param>
+    /// <param name="interval">Default value: 5 sec, min value: 5 sec</param>
     [<Extension>]
     static member WithReportingInterval(context: NBomberContext, interval: TimeSpan) =
         context |> FSharp.NBomberRunner.withReportingInterval interval

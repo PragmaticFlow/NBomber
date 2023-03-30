@@ -287,7 +287,7 @@ module NBomberRunner =
     /// <summary>
     /// Sets real-time reporting interval.
     /// </summary>
-    /// <param name="interval">Default value: 10 sec, min value: 5 sec</param>
+    /// <param name="interval">Default value: 5 sec, min value: 5 sec</param>
     /// <param name="context">NBomberContext</param>
     let withReportingInterval (interval: TimeSpan) (context: NBomberContext) =
         let report = { context.Reporting with ReportingInterval = interval }
