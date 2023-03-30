@@ -149,7 +149,7 @@ type Scenario =
     /// Initializes scenario and all its dependencies.
     /// You can use it to prepare your target system, populate the database, or read and apply the JSON configuration for your scenario.
     /// Scenario init will be invoked before warm-up and bombing phases.
-    /// If Scenario init throws an exception, the NBomber load test will stop the execution. 
+    /// If Scenario init throws an exception, the NBomber load test will stop the execution.
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="initFunc">Represent lambda function that will be invoked to start Scenario initialization.
@@ -162,7 +162,7 @@ type Scenario =
     /// Cleans scenario's resources and all its dependencies.
     /// This method should be used to clean the scenario's resources after the test finishes.
     /// Scenario clean will be invoked after warm-up and bombing phases.
-    /// If Scenario clean throws an exception, the NBomber logs it and continues execution. 
+    /// If Scenario clean throws an exception, the NBomber logs it and continues execution.
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="cleanFunc">Represent lambda function that will be invoked to start Scenario cleaning.
@@ -172,7 +172,7 @@ type Scenario =
         { scenario with Clean = Some cleanFunc.Invoke }
 
     /// <summary>
-    /// This method sets duration of warm-up phase.    
+    /// This method sets duration of warm-up phase.
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="duration">By default warm-up duration is 30 seconds.</param>
@@ -195,7 +195,7 @@ type Scenario =
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="loadSimulations">Default value is: Simulation.KeepConstant(copies: 1, during: TimeSpan.FromMinutes(1))</param>
     /// <example>
-    /// <code>        
+    /// <code>
     /// scenario.WithLoadSimulations(
     ///     Simulation.RampingConstant(copies: 50, during: TimeSpan.FromMinutes(1)) // ramp-up from 0 to 50 copies
     ///     Simulation.KeepConstant(copies: 50, during: TimeSpan.FromMinutes(1))
@@ -212,7 +212,7 @@ type Scenario =
     /// For such cases, you can disable Scenario iteration auto restart.
     /// By default, when a Step returns a failed Response or unhandled exception was thrown,
     /// NBomber will automatically mark the whole iteration as failed and restart it.
-    /// If you want to disable auto restart of Scenario iteration you should set 'shouldRestart: false'.    
+    /// If you want to disable auto restart of Scenario iteration you should set 'shouldRestart: false'.
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="shouldRestart">The default value is true.
@@ -223,10 +223,10 @@ type Scenario =
 
     /// <summary>
     /// This method overrides the default value of MaxFailCount for Scenario.
-    /// MaxFailCount is incremented on every failure or failed Response.        
+    /// MaxFailCount is incremented on every failure or failed Response.
     /// When a scenario reaches MaxFailCount, NBomber will stop the whole load test.
     /// In the case of cluster mode, MaxFailCount is tracked per each NBomber instance exclusively.
-    /// It doesn't aggregate across the cluster. So if on any NBomber node MaxFailCount is reached, NBomber will stop the whole load test. 
+    /// It doesn't aggregate across the cluster. So if on any NBomber node MaxFailCount is reached, NBomber will stop the whole load test.
     /// </summary>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <param name="maxFailCount">The default value is 5_000.</param>
@@ -239,7 +239,7 @@ type Scenario =
 [<Extension>]
 type NBomberRunner =
 
-    /// Registers scenarios in NBomber environment.    
+    /// Registers scenarios in NBomber environment.
     static member RegisterScenarios([<ParamArray>]scenarios: ScenarioProps[]) =
         scenarios |> Seq.toList |> FSharp.NBomberRunner.registerScenarios
 
@@ -261,7 +261,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withTargetScenarios(names)
 
     /// <summary>
-    /// Sets test suite name.    
+    /// Sets test suite name.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="testSuite">Default value is: "nbomber_default_test_suite_name".</param>
@@ -270,7 +270,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withTestSuite(testSuite)
 
     /// <summary>
-    /// Sets test name.    
+    /// Sets test name.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="testName">Default value is: "nbomber_default_test_name".</param>
@@ -279,7 +279,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withTestName(testName)
 
     /// <summary>
-    /// Sets output report file name.    
+    /// Sets output report file name.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="reportFileName">Default name: "nbomber_report-{CurrentTime}"</param>
@@ -288,7 +288,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withReportFileName(reportFileName)
 
     /// <summary>
-    /// Sets output report folder path.    
+    /// Sets output report folder path.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="reportFolderPath">Default folder path: "./reports".</param>
@@ -312,7 +312,7 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.withoutReports
 
     /// <summary>
-    /// Sets real-time reporting interval.    
+    /// Sets real-time reporting interval.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="interval">Default value: 10 sec, min value: 5 sec</param>
@@ -320,7 +320,7 @@ type NBomberRunner =
     static member WithReportingInterval(context: NBomberContext, interval: TimeSpan) =
         context |> FSharp.NBomberRunner.withReportingInterval interval
 
-    /// Sets reporting sinks.    
+    /// Sets reporting sinks.
     /// ReportingSink provides functionality for saving real-time and final statistics.
     [<Extension>]
     static member WithReportingSinks(context: NBomberContext, [<ParamArray>]reportingSinks: IReportingSink[]) =
@@ -352,8 +352,8 @@ type NBomberRunner =
         context |> FSharp.NBomberRunner.loadConfig(path)
 
     /// <summary>
-    /// Loads infrastructure configuration by file path or by HTTP URL.     
-    /// </summary>    
+    /// Loads infrastructure configuration by file path or by HTTP URL.
+    /// </summary>
     /// <param name="context"></param>
     /// <param name="path">File path or HTTP URL to JSON config.</param>
     /// <example>
@@ -361,7 +361,7 @@ type NBomberRunner =
     /// // load by file path
     /// NBomberRunner.LoadInfraConfig("./my-test/infra-config.json")
     /// // load by URL
-    /// NBomberRunner.LoadInfraConfig("https://my-test/infra-config.json") 
+    /// NBomberRunner.LoadInfraConfig("https://my-test/infra-config.json")
     /// </code>
     /// </example>
     [<Extension>]
@@ -376,7 +376,7 @@ type NBomberRunner =
     [<Extension>]
     static member WithMinimumLogLevel(context: NBomberContext, level: LogEventLevel) =
         context |> FSharp.NBomberRunner.withMinimumLogLevel level
-    
+
     /// <summary>
     /// Sets logger configuration.
     /// Make sure that you always return a new instance of LoggerConfiguration.
@@ -396,13 +396,23 @@ type NBomberRunner =
 
     /// <summary>
     /// This method enables or disables hints analyzer.
-    /// Hints analyzer - analyzes statistics at the end of the test to provide hints in case of finding the wrong usage of NBomber or some environmental issues.    
-    /// </summary>    
+    /// Hints analyzer - analyzes statistics at the end of the test to provide hints in case of finding the wrong usage of NBomber or some environmental issues.
+    /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="enable">The default value is false.</param>
     [<Extension>]
     static member EnableHintsAnalyzer(context: NBomberContext, enable: bool) =
         context |> FSharp.NBomberRunner.enableHintsAnalyzer enable
+
+    /// <summary>
+    /// This method enables or disables to forcibly halt all tests at the end of the simulation even though NBomber is overloaded.
+    /// Use when you need to stop your test at a precise time even if your NBomber is overloaded and can have a short lag.
+    /// </summary>
+    /// <param name="context">NBomberContext</param>
+    /// <param name="enable">The default value is false.</param>
+    [<Extension>]
+    static member EnableStopTestForcibly(context: NBomberContext, enable: bool) =
+        context |> FSharp.NBomberRunner.enableStopTestForcibly enable
 
     /// Runs scenarios.
     [<Extension>]
@@ -412,7 +422,7 @@ type NBomberRunner =
         | Error msg -> failwith msg
 
     /// <summary>
-    /// Runs scenarios with CLI arguments.    
+    /// Runs scenarios with CLI arguments.
     /// </summary>
     /// <param name="context">NBomberContext</param>
     /// <param name="args">CLI args</param>
@@ -433,7 +443,7 @@ type NBomberRunner =
 type Simulation =
 
     /// <summary>
-    /// Adds or removes a given number of Scenario copies(instances) with a linear ramp over a given duration.    
+    /// Adds or removes a given number of Scenario copies(instances) with a linear ramp over a given duration.
     /// Each Scenario copy behaves like a long-running thread that runs continually(by specified duration) and will be destroyed when the current load simulation stops.
     /// Use it for a smooth ramp up and ramp down.
     /// Usually, this simulation type is used to test databases, message brokers, or any other system that works with a static client's pool of connections and reuses them.
@@ -476,7 +486,7 @@ type Simulation =
     /// </summary>
     /// <param name="rate">The injection rate of Scenario copies. It configures how many concurrent copies will be injected at a time.</param>
     /// <param name="interval">The injection interval. It configures the interval between injections. </param>
-    /// <param name="during">The duration of load simulation.</param> 
+    /// <param name="during">The duration of load simulation.</param>
     static member Inject(rate: int, interval: TimeSpan, during: TimeSpan) =
         LoadSimulation.Inject(rate, interval, during)
 

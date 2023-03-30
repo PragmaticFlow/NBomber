@@ -103,6 +103,16 @@ let getEnableHintAnalyzer (context: NBomberContext) =
     |> tryGetFromConfig
     |> Option.defaultValue context.EnableHintsAnalyzer
 
+let getEnableStopTestForcibly (context: NBomberContext) =
+    let tryGetFromConfig (ctx: NBomberContext) = option {
+        let! config = ctx.NBomberConfig
+        let! settings = config.GlobalSettings
+        return! settings.EnableStopTestForcibly
+    }
+    context
+    |> tryGetFromConfig
+    |> Option.defaultValue context.EnableStopTestForcibly
+
 let private getReportFolder (context: NBomberContext) =
     let tryGetFromConfig (ctx: NBomberContext) = option {
         let! config = ctx.NBomberConfig
@@ -159,6 +169,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
         let! reportingInterval = context |> getReportingInterval |> Result.mapError(AppError.create)
         let! scenariosSettings  = context |> getScenariosSettings(scenarios) |> Result.mapError(AppError.create)
         let enableHintsAnalyzer = context |> getEnableHintAnalyzer
+        let enableStopTestForcibly = context |> getEnableStopTestForcibly
 
         let nbConfig = {
             TestSuite = Some testInfo.TestSuite
@@ -171,6 +182,7 @@ let createSessionArgs (testInfo: TestInfo) (scenarios: DomainTypes.Scenario list
                 ReportFormats = Some reportFormats
                 ReportingInterval = Some reportingInterval
                 EnableHintsAnalyzer = Some enableHintsAnalyzer
+                EnableStopTestForcibly = Some enableStopTestForcibly
             }
         }
 

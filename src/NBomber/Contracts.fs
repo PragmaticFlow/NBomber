@@ -28,6 +28,7 @@ type NBomberContext = {
     EnableHintsAnalyzer: bool
     TargetScenarios: string list option
     MinimumLogLevel: LogEventLevel option
+    EnableStopTestForcibly: bool
 } with
 
     [<CompiledName("Empty")>]
@@ -49,6 +50,7 @@ type NBomberContext = {
         EnableHintsAnalyzer = false
         TargetScenarios = None
         MinimumLogLevel = None
+        EnableStopTestForcibly = false
     }
 
 namespace NBomber.Contracts.Internal
@@ -88,6 +90,7 @@ type SessionArgs = {
     member this.GetReportingInterval() = this.NBomberConfig.GlobalSettings.Value.ReportingInterval.Value
     member this.GetReportFolder() = this.NBomberConfig.GlobalSettings.Value.ReportFolder.Value
     member this.GetTargetScenarios() = this.NBomberConfig.TargetScenarios.Value
+    member this.ShouldStopTestForcibly() = this.NBomberConfig.GlobalSettings.Value.EnableStopTestForcibly.Value
 
     member this.SetTargetScenarios(targetScenarios) =
         let nbConfig = { this.NBomberConfig with TargetScenarios = Some targetScenarios }

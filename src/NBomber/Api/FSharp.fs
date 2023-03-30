@@ -131,8 +131,8 @@ module Scenario =
     /// Initializes scenario and all its dependencies.
     /// You can use it to prepare your target system, populate the database, or read and apply the JSON configuration for your scenario.
     /// Scenario init will be invoked before warm-up and bombing phases.
-    /// If Scenario init throws an exception, the NBomber load test will stop the execution. 
-    /// </summary>    
+    /// If Scenario init throws an exception, the NBomber load test will stop the execution.
+    /// </summary>
     /// <param name="initFunc">Represent lambda function that will be invoked to start Scenario initialization.
     /// If this lambda function throws an exception, the NBomber load test will stop the execution.</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
@@ -143,7 +143,7 @@ module Scenario =
     /// Cleans scenario's resources and all its dependencies.
     /// This function should be used to clean the scenario's resources after the test finishes.
     /// Scenario clean will be invoked after warm-up and bombing phases.
-    /// If Scenario clean throws an exception, the NBomber logs it and continues execution. 
+    /// If Scenario clean throws an exception, the NBomber logs it and continues execution.
     /// </summary>
     /// <param name="cleanFunc">Represent lambda function that will be invoked to start Scenario cleaning.
     /// If this lambda function throws an exception, the NBomber logs it and continues execution.</param>
@@ -152,7 +152,7 @@ module Scenario =
         { scenario with Clean = Some(fun token -> cleanFunc(token) :> Task) }
 
     /// <summary>
-    /// This function sets duration of warm-up phase.    
+    /// This function sets duration of warm-up phase.
     /// </summary>
     /// <param name="duration">By default warm-up duration is 30 seconds.</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
@@ -173,7 +173,7 @@ module Scenario =
     /// <param name="loadSimulations">Default value is: [KeepConstant(copies = 1, during = minutes 1)]</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     /// <example>
-    /// <code> 
+    /// <code>
     /// scenario
     /// |> withLoadSimulations [
     ///     RampingConstant(copies = 50, during = seconds 30) // ramp-up from 0 to 50 copies
@@ -190,20 +190,20 @@ module Scenario =
     /// For such cases, you can disable Scenario iteration auto restart.
     /// By default, when a Step returns a failed Response or unhandled exception was thrown,
     /// NBomber will automatically mark the whole iteration as failed and restart it.
-    /// If you want to disable auto restart of Scenario iteration you should set 'shouldRestart = false'.    
+    /// If you want to disable auto restart of Scenario iteration you should set 'shouldRestart = false'.
     /// </summary>
     /// <param name="shouldRestart">The default value is true.
     /// If you want to disable auto restart of Scenario iteration you should set 'shouldRestart = false'.</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
     let withRestartIterationOnFail (shouldRestart: bool) (scenario: ScenarioProps) =
         { scenario with RestartIterationOnFail = shouldRestart }
-    
+
     /// <summary>
     /// This function overrides the default value of MaxFailCount for Scenario.
     /// MaxFailCount is incremented on every failure or failed Response.
     /// When a scenario reaches MaxFailCount, NBomber will stop the whole load test.
     /// In the case of cluster mode, MaxFailCount is tracked per each NBomber instance exclusively.
-    /// It doesn't aggregate across the cluster. So if on any NBomber node MaxFailCount is reached, NBomber will stop the whole load test. 
+    /// It doesn't aggregate across the cluster. So if on any NBomber node MaxFailCount is reached, NBomber will stop the whole load test.
     /// </summary>
     /// <param name="maxFailCount">The default value is 5_000.</param>
     /// <param name="scenario">Represent configuration data that is needed to build a scenario.</param>
@@ -218,7 +218,7 @@ module NBomberRunner =
     let registerScenario (scenario: ScenarioProps) =
         { NBomberContext.empty with RegisteredScenarios = [scenario] }
 
-    /// Registers scenarios in NBomber environment.    
+    /// Registers scenarios in NBomber environment.
     let registerScenarios (scenarios: ScenarioProps list) =
         { NBomberContext.empty with RegisteredScenarios = scenarios }
 
@@ -237,7 +237,7 @@ module NBomberRunner =
         context |> NBomberContext.setTargetScenarios scenarioNames
 
     /// <summary>
-    /// Sets test suite name.    
+    /// Sets test suite name.
     /// </summary>
     /// <param name="testSuite">Default value is: "nbomber_default_test_suite_name".</param>
     /// <param name="context">NBomberContext</param>
@@ -245,7 +245,7 @@ module NBomberRunner =
         { context with TestSuite = testSuite }
 
     /// <summary>
-    /// Sets test name.    
+    /// Sets test name.
     /// </summary>
     /// <param name="testName">Default value is: "nbomber_default_test_name".</param>
     /// <param name="context">NBomberContext</param>
@@ -253,7 +253,7 @@ module NBomberRunner =
         { context with TestName = testName }
 
     /// <summary>
-    /// Sets output report file name.    
+    /// Sets output report file name.
     /// </summary>
     /// <param name="reportFileName">Default name: "nbomber_report-{CurrentTime}"</param>
     /// <param name="context">NBomberContext</param>
@@ -262,7 +262,7 @@ module NBomberRunner =
         { context with Reporting = report }
 
     /// <summary>
-    /// Sets output report folder path.    
+    /// Sets output report folder path.
     /// </summary>
     /// <param name="reportFolderPath">Default folder path: "./reports".</param>
     /// <param name="context">NBomberContext</param>
@@ -285,7 +285,7 @@ module NBomberRunner =
         { context with Reporting = report }
 
     /// <summary>
-    /// Sets real-time reporting interval.    
+    /// Sets real-time reporting interval.
     /// </summary>
     /// <param name="interval">Default value: 10 sec, min value: 5 sec</param>
     /// <param name="context">NBomberContext</param>
@@ -335,7 +335,7 @@ module NBomberRunner =
             failwith "NBomberConfig file is empty or doesn't follow the config format. Please read the documentation about NBomberConfig (JSON) format."
 
     /// <summary>
-    /// Loads infrastructure configuration by file path or by HTTP URL.     
+    /// Loads infrastructure configuration by file path or by HTTP URL.
     /// </summary>
     /// <param name="path">File path or HTTP URL to JSON config.</param>
     /// <param name="context"></param>
@@ -344,7 +344,7 @@ module NBomberRunner =
     /// // load by file path
     /// NBomberRunner.loadInfraConfig "./my-test/infra-config.json"
     /// // load by URL
-    /// NBomberRunner.loadInfraConfig "https://my-test/infra-config.json" 
+    /// NBomberRunner.loadInfraConfig "https://my-test/infra-config.json"
     /// </code>
     /// </example>
     let loadInfraConfig (path: string) (context: NBomberContext) =
@@ -367,8 +367,8 @@ module NBomberRunner =
     /// <param name="level">The default value is Debug</param>
     /// <param name="context">NBomberContext</param>
     let withMinimumLogLevel (level: LogEventLevel) (context: NBomberContext) =
-        { context with MinimumLogLevel = Some level }        
-    
+        { context with MinimumLogLevel = Some level }
+
     /// <summary>
     /// Sets logger configuration.
     /// Make sure that you always return a new instance of LoggerConfiguration.
@@ -397,12 +397,21 @@ module NBomberRunner =
 
     /// <summary>
     /// This function enables or disables hints analyzer.
-    /// Hints analyzer - analyzes statistics at the end of the test to provide hints in case of finding the wrong usage of NBomber or some environmental issues.    
+    /// Hints analyzer - analyzes statistics at the end of the test to provide hints in case of finding the wrong usage of NBomber or some environmental issues.
     /// </summary>
     /// <param name="enable">The default value is false.</param>
     /// <param name="context">NBomberContext</param>
     let enableHintsAnalyzer (enable: bool) (context: NBomberContext) =
         { context with EnableHintsAnalyzer = enable }
+
+    /// <summary>
+    /// This function enables or disables to forcibly halt all tests at the end of the simulation even though NBomber is overloaded.
+    /// Use when you need to stop your test at a precise time even if your NBomber is overloaded and can have a short lag.
+    /// </summary>
+    /// <param name="enable">The default value is false.</param>
+    /// <param name="context">NBomberContext</param>
+    let enableStopTestForcibly (enable: bool) (context: NBomberContext) =
+        { context with EnableStopTestForcibly = enable }
 
     let internal executeCliArgs (args) (context: NBomberContext) =
 
@@ -431,15 +440,15 @@ module NBomberRunner =
 
     let internal runWithResult (args: string seq) (context: NBomberContext) =
         GCSettings.LatencyMode <- GCLatencyMode.SustainedLowLatency
-        
+
         let disposeLogger = true
-        
+
         if Seq.isEmpty args then
             NBomberRunner.run disposeLogger context
-            
+
         elif args |> String.contains "disposeLogger=false" then
             context |> executeCliArgs args |> NBomberRunner.run(false)
-            
+
         else
             context |> executeCliArgs args |> NBomberRunner.run(disposeLogger)
 
@@ -451,7 +460,7 @@ module NBomberRunner =
         |> Result.mapError AppError.toString
 
     /// <summary>
-    /// Runs scenarios with CLI arguments.    
+    /// Runs scenarios with CLI arguments.
     /// </summary>
     /// <param name="args">CLI args</param>
     /// <param name="context">NBomberContext</param>

@@ -20,6 +20,7 @@ type GlobalSettings = {
     ReportFormats: ReportFormat list option
     ReportingInterval: TimeSpan option
     EnableHintsAnalyzer: bool option
+    EnableStopTestForcibly: bool option
 }
 
 type NBomberConfig = {
