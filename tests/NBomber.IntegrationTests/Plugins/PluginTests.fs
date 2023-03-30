@@ -55,6 +55,7 @@ let ``WorkerPlugin Init, Start, Stop should be invoked once for Warmup and once 
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withWorkerPlugins [plugin]
     |> NBomberRunner.enableHintsAnalyzer true
+    |> NBomberRunner.withReportingInterval(seconds 5)
     |> NBomberRunner.run
     |> Result.mapError failwith
     |> ignore

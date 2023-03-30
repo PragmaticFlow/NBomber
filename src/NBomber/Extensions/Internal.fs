@@ -22,7 +22,7 @@ module internal Internal =
         let inline round (digits: int) (value: float) = Math.Round(value, digits)
 
         let inline roundDuration (duration: TimeSpan) =
-            TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)    
+            TimeSpan(duration.Days, duration.Hours, duration.Minutes, duration.Seconds)
 
     module JsonExt =
 

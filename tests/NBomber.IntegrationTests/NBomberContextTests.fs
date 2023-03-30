@@ -26,6 +26,7 @@ let baseGlobalSettings = {
     ReportFormats = None
     ReportingInterval = None
     EnableHintsAnalyzer = None
+    EnableStopTestForcibly = None
 }
 
 let baseScenarioSetting = {

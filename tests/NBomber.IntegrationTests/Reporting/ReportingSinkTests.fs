@@ -312,6 +312,7 @@ let ``ReportingSink Init, Start, Stop should be invoked once for Warmup and once
     NBomberRunner.registerScenarios scenarios
     |> NBomberRunner.withReportingSinks [reportingSink]
     |> NBomberRunner.enableHintsAnalyzer true
+    |> NBomberRunner.withReportingInterval(seconds 5)
     |> NBomberRunner.run
     |> Result.mapError failwith
     |> ignore
