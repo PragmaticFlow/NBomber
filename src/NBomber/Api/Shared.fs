@@ -50,11 +50,11 @@ module Converter =
 
     [<CompiledName("FromBytesToKb")>]
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    let fromBytesToKb (bytes) = Converter.fromBytesToKb bytes
+    let fromBytesToKb (bytes: int64) = Converter.fromBytesToKb bytes
 
     [<CompiledName("FromBytesToMb")>]
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-    let fromBytesToMb (bytes) = Converter.fromBytesToMb bytes
+    let fromBytesToMb (bytes: int64) = Converter.fromBytesToMb bytes
 
 [<AutoOpen>]
 module Time =
