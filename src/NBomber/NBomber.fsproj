@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
         <Company>NBomber</Company>
-        <Version>4.1.1</Version>
+        <Version>4.1.2</Version>
         <Copyright>NBomber@2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -17,12 +17,7 @@
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <Title>NBomber</Title>
-        <PackageReleaseNotes>- #534 Added ScenarioInfo for ScenarioInitContext
-- #499 Added support for ScenarioPartition
-- #542 Implemented NBomberRunner.WithMinimumLogLevel
-- Improved performance of ScenarioStatsActor on 30% (replaced System.Threading.Channels on Concurrent.Queue)
-- Updated API XML docs</PackageReleaseNotes>
+        <Title>NBomber</Title>        
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
