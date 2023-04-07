@@ -37,7 +37,7 @@ public class ScenarioInjectRate
         .WithLoadSimulations(
             Simulation.RampingInject(rate: 50, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
             Simulation.Inject(rate: 50, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
-            Simulation.InjectRandom(minRate: 50, maxRate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30))
+            Simulation.InjectRandom(minRate: 10, maxRate: 50, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner
