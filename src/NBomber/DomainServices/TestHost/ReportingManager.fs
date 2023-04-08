@@ -66,19 +66,19 @@ type ReportingManager(dep: IGlobalDependency,
                       sessionArgs: SessionArgs) =
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
-    let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)    
+    let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
     let mutable _curDuration = TimeSpan.Zero
 
     let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
 
     let start () = backgroundTask {
-        do! Task.Delay Constants.ReportingManagerStartDelay
+        do! Task.Delay 2_000
         _buildRealtimeStatsTimer.Start()
     }
 
     let stop () = backgroundTask {
-        do! Task.Delay Constants.ReportingManagerStartDelay
+        do! Task.Delay 4_000
         _buildRealtimeStatsTimer.Stop()
     }
 

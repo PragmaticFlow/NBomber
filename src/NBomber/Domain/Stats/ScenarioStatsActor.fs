@@ -17,7 +17,7 @@ open NBomber.Domain.Stats.RawMeasurementStats
 
 type ActorMessage =
     | AddMeasurement of Measurement
-    | AddFromAgent of ScenarioStats
+    | AddFromAgent   of ScenarioStats
     | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan
     | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan * pause:TimeSpan
 
@@ -31,7 +31,7 @@ type State = {
     StepsOrder: Dictionary<string, int>
     GlobalInfoDataSize: ResizeArray<int64>
 
-    ReportingStatsCache: ConcurrentDictionary<TimeSpan,ScenarioStats>
+    AllRealtimeStats: ConcurrentDictionary<TimeSpan,ScenarioStats>
     CoordinatorStepsResults: Dictionary<string,RawMeasurementStats>
     IntervalStepsResults: Dictionary<string,RawMeasurementStats>
     mutable ConsoleScenarioStats: ScenarioStats // need to display on console (we merge absolute request counts)
@@ -60,7 +60,7 @@ let createState logger scenario reportingInterval mergeStatsFn =
       StepsOrder = stepsOrder
       GlobalInfoDataSize = ResizeArray<_>()
 
-      ReportingStatsCache = ConcurrentDictionary<_,_>()
+      AllRealtimeStats = ConcurrentDictionary<_,_>()
 
       CoordinatorStepsResults = Dict.empty()
       IntervalStepsResults = Dict.empty()
@@ -188,7 +188,7 @@ let mergeConsoleStats (consoleStats: ScenarioStats) (reportingStats: ScenarioSta
     { reportingStats with StepStats = updatedSteps }
 
 let addReportingStats (state: State) (reportingStats: ScenarioStats) =
-    state.ReportingStatsCache[reportingStats.Duration] <- reportingStats
+    state.AllRealtimeStats[reportingStats.Duration] <- reportingStats
     state.ConsoleScenarioStats <- mergeConsoleStats state.ConsoleScenarioStats reportingStats
 
     // reset reporting interval steps data
@@ -254,7 +254,7 @@ type ScenarioStatsActor(logger: ILogger,
         loop() |> ignore
 
     member _.ScenarioFailCount = _state.ScenarioFailCount
-    member _.AllRealtimeStats = _state.ReportingStatsCache :> IReadOnlyDictionary<_,_>
+    member _.AllRealtimeStats = _state.AllRealtimeStats :> IReadOnlyDictionary<_,_>
     member _.ConsoleScenarioStats = _state.ConsoleScenarioStats
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

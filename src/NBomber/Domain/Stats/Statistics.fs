@@ -12,9 +12,9 @@ open NBomber.Domain.Stats.RawMeasurementStats
 
 module Histogram =
 
-    let mean (histogram: HistogramBase) = histogram.GetMean()
-    let getPercentile (percentile: float) (histogram: HistogramBase) = histogram.GetValueAtPercentile(percentile)
-    let stdDev (histogram: HistogramBase) = histogram.GetStdDeviation()
+    let inline mean (histogram: HistogramBase) = histogram.GetMean()
+    let inline getPercentile (percentile: float) (histogram: HistogramBase) = histogram.GetValueAtPercentile(percentile)
+    let inline stdDev (histogram: HistogramBase) = histogram.GetStdDeviation()
 
 module RequestStats =
 
@@ -43,18 +43,16 @@ module LatencyStats =
 
     let create (stats: RawItemStats) =
 
-        let latencies =
-            if stats.LatencyHistogram.TotalCount > 0 then ValueSome stats.LatencyHistogram
-            else ValueNone
+        let dataExist = stats.LatencyHistogram.TotalCount > 0
 
-        { MinMs  = if latencies.IsSome then stats.MinMicroSec |> microSecToMs else 0.0
-          MeanMs = if latencies.IsSome then latencies.Value |> Histogram.mean |> microSecToMs else 0.0
-          MaxMs  = if latencies.IsSome then stats.MaxMicroSec |> microSecToMs else 0.0
-          Percent50 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(50.0) |> microSecToMs else 0.0
-          Percent75 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(75.0) |> microSecToMs else 0.0
-          Percent95 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(95.0) |> microSecToMs else 0.0
-          Percent99 = if latencies.IsSome then latencies.Value |> Histogram.getPercentile(99.0) |> microSecToMs else 0.0
-          StdDev    = if latencies.IsSome then latencies.Value |> Histogram.stdDev |> microSecToMs else 0.0
+        { MinMs  = if dataExist then stats.MinMicroSec |> microSecToMs else 0.0
+          MeanMs = if dataExist then stats.LatencyHistogram |> Histogram.mean |> microSecToMs else 0.0
+          MaxMs  = if dataExist then stats.MaxMicroSec |> microSecToMs else 0.0
+          Percent50 = if dataExist then stats.LatencyHistogram |> Histogram.getPercentile(50.0) |> microSecToMs else 0.0
+          Percent75 = if dataExist then stats.LatencyHistogram |> Histogram.getPercentile(75.0) |> microSecToMs else 0.0
+          Percent95 = if dataExist then stats.LatencyHistogram |> Histogram.getPercentile(95.0) |> microSecToMs else 0.0
+          Percent99 = if dataExist then stats.LatencyHistogram |> Histogram.getPercentile(99.0) |> microSecToMs else 0.0
+          StdDev    = if dataExist then stats.LatencyHistogram |> Histogram.stdDev |> microSecToMs else 0.0
           LatencyCount = { LessOrEq800 = stats.LessOrEq800; More800Less1200 = stats.More800Less1200; MoreOrEq1200 = stats.MoreOrEq1200 } }
 
 module DataTransferStats =
@@ -67,18 +65,16 @@ module DataTransferStats =
 
     let create (stats: RawItemStats) =
 
-        let dataTransfer =
-            if stats.DataTransferHistogram.TotalCount > 0L then ValueSome stats.DataTransferHistogram
-            else ValueNone
+        let dataExist = stats.DataTransferHistogram.TotalCount > 0
 
-        { MinBytes  = if dataTransfer.IsSome then stats.MinBytes else 0
-          MeanBytes = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.mean |> int64 else 0
-          MaxBytes  = if dataTransfer.IsSome then stats.MaxBytes else 0
-          Percent50 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(50.0) else 0
-          Percent75 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(75.0) else 0
-          Percent95 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(95.0) else 0
-          Percent99 = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.getPercentile(99.0) else 0
-          StdDev    = if dataTransfer.IsSome then dataTransfer.Value |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
+        { MinBytes  = if dataExist then stats.MinBytes else 0
+          MeanBytes = if dataExist then stats.DataTransferHistogram |> Histogram.mean |> int64 else 0
+          MaxBytes  = if dataExist then stats.MaxBytes else 0
+          Percent50 = if dataExist then stats.DataTransferHistogram |> Histogram.getPercentile(50.0) else 0
+          Percent75 = if dataExist then stats.DataTransferHistogram |> Histogram.getPercentile(75.0) else 0
+          Percent95 = if dataExist then stats.DataTransferHistogram |> Histogram.getPercentile(95.0) else 0
+          Percent99 = if dataExist then stats.DataTransferHistogram |> Histogram.getPercentile(99.0) else 0
+          StdDev    = if dataExist then stats.DataTransferHistogram |> Histogram.stdDev |> Converter.round(Constants.StatsRounding) else 0.0
           AllBytes  = stats.AllBytes }
 
 module StatusCodeStats =

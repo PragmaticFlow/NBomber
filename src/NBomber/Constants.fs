@@ -40,7 +40,6 @@ let MinReportingInterval = TimeSpan.FromSeconds 5
 let DefaultReportingInterval = TimeSpan.FromSeconds 5
 let GetPluginStatsTimeout = TimeSpan.FromSeconds 5
 let OneSecond = TimeSpan.FromSeconds 1
-let ReportingManagerStartDelay = TimeSpan.FromSeconds 3
 
 let MaxTrackableStepLatency = (1000L * TimeSpan.TicksPerMillisecond) * 60L * 10L // 10 min (in ticks)
 let MaxTrackableStepResponseSize = Int64.MaxValue
