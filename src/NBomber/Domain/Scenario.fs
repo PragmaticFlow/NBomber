@@ -81,7 +81,7 @@ let createScenarioInfo (scenarioName: string, duration: TimeSpan, threadNumber: 
       ScenarioOperation = operation }
 
 let createScenario (scn: ScenarioProps) = result {
-    let! simulations   = LoadSimulation.create scn.LoadSimulations
+    let! simulations   = LoadSimulation.create scn.ScenarioName scn.LoadSimulations
     let planedDuration = LoadSimulation.getPlanedDuration simulations
     let! scnProps      = Validation.validate scn planedDuration
 
@@ -123,7 +123,7 @@ let applySettings (settings: ScenarioSetting list) (scenarios: Scenario list) =
             match settings.LoadSimulationsSettings with
             | Some simulation ->
                 simulation
-                |> LoadSimulation.create
+                |> LoadSimulation.create scenario.ScenarioName
                 |> Result.getOk
 
             | None -> scenario.LoadSimulations

@@ -10,8 +10,8 @@ open NBomber.Domain
 open NBomber.Domain.DomainTypes
 
 [<Fact>]
-let ``create should correctly calculate and order simulations within timeline for Closed Model`` () =    
-    
+let ``create should correctly calculate and order simulations within timeline for Closed Model`` () =
+
     result {
         let simulations = [
             RampingConstant(10, seconds 20)
@@ -21,7 +21,7 @@ let ``create should correctly calculate and order simulations within timeline fo
             RampingConstant(0, seconds 20)
         ]
 
-        let! loadSimulations = LoadSimulation.create simulations
+        let! loadSimulations = LoadSimulation.create "my-scenario" simulations
         let planedDuration = LoadSimulation.getPlanedDuration loadSimulations
 
         let first = loadSimulations |> List.head
@@ -37,10 +37,10 @@ let ``create should correctly calculate and order simulations within timeline fo
         test <@ last.PrevActorCount = 1000 @>
     }
     |> ignore
-    
+
 [<Fact>]
-let ``create should correctly calculate and order simulations within timeline for Open Model`` () =    
-    
+let ``create should correctly calculate and order simulations within timeline for Open Model`` () =
+
     result {
         let simulations = [
             RampingInject(20, seconds 1, seconds 20)
@@ -48,7 +48,7 @@ let ``create should correctly calculate and order simulations within timeline fo
             RampingInject(0, seconds 1, seconds 20)
         ]
 
-        let! loadSimulations = LoadSimulation.create simulations
+        let! loadSimulations = LoadSimulation.create "my-scenario" simulations
         let planedDuration = LoadSimulation.getPlanedDuration loadSimulations
 
         let first = loadSimulations |> List.head
@@ -63,7 +63,7 @@ let ``create should correctly calculate and order simulations within timeline fo
         test <@ first.PrevActorCount = 0 @>
         test <@ last.PrevActorCount = 20 @>
     }
-    |> ignore    
+    |> ignore
 
 [<Fact>]
 let ``calcTimeProgress should correctly calculate progress for concrete segment`` () =
