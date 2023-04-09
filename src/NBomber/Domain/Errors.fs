@@ -26,11 +26,12 @@ type ReportError =
     | ReportingIntervalSmallerThanMin
 
 type LoadSimulationError =
-    | EmptySimulationsList
-    | DurationIsSmallerThanMin of simulation:LoadSimulation
-    | IntervalIsBiggerThanDuration of simulation:LoadSimulation
-    | CopiesCountIsNegative of simulation:LoadSimulation
-    | RateIsNegative of simulation:LoadSimulation
+    | EmptySimulationsList         of scnName:string
+    | DurationIsSmallerThanMin     of scnName:string * simulation:LoadSimulation
+    | IntervalIsBiggerThanDuration of scnName:string * simulation:LoadSimulation
+    | CopiesCountIsNegative        of scnName:string * simulation:LoadSimulation
+    | RateIsNegative               of scnName:string * simulation:LoadSimulation
+    | MinRateIsBiggerThanMax       of scnName:string * simulation:LoadSimulation
 
 type AppError =
     | Scenario of ScenarioError
@@ -90,21 +91,24 @@ type AppError =
 
     static member toString (error: LoadSimulationError) =
         match error with
-        | EmptySimulationsList ->
-            $"LoadSimulations list is empty"
+        | EmptySimulationsList scnName ->
+            $"Scenario: '{scnName}', LoadSimulations list is empty"
 
-        | DurationIsSmallerThanMin simulation ->
+        | DurationIsSmallerThanMin (scnName, simulation) ->
             let min = Constants.MinSimulationDuration.ToString("hh\:mm\:ss")
-            $"LoadSimulation duration: '%A{simulation}' is smaller than min duration value: '{min}'"
+            $"Scenario: '{scnName}', LoadSimulation duration: '%A{simulation}' is smaller than min duration value: '{min}'"
 
-        | IntervalIsBiggerThanDuration simulation ->
-            $"LoadSimulation interval: '%A{simulation}' should be smaller than simulation duration"
+        | IntervalIsBiggerThanDuration (scnName, simulation) ->
+            $"Scenario: '{scnName}', LoadSimulation interval: '%A{simulation}' should be smaller than simulation duration"
 
-        | CopiesCountIsNegative simulation ->
-            $"LoadSimulation: '%A{simulation}' has invalid copiesCount value. The value should be bigger or equal 0"
+        | CopiesCountIsNegative (scnName, simulation) ->
+            $"Scenario: '{scnName}', LoadSimulation: '%A{simulation}' has invalid copiesCount value. The value should be bigger or equal 0"
 
-        | RateIsNegative simulation ->
-            $"LoadSimulation: '%A{simulation}' has invalid rate value. The value should be bigger or equal 0"
+        | RateIsNegative (scnName, simulation) ->
+            $"Scenario: '{scnName}', LoadSimulation: '%A{simulation}' has invalid rate value. The value should be bigger or equal 0"
+
+        | MinRateIsBiggerThanMax (scnName, simulation) ->
+            $"Scenario: '{scnName}', LoadSimulation: '%A{simulation}' has invalid value of minRate. The value should be bigger than value of maxRate"
 
     static member toString (error: AppError) =
         match error with

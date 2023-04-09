@@ -14,28 +14,34 @@ open NBomber.Domain.DomainTypes
 
 module Validation =
 
-    let private validateSimulation (simulation: Contracts.LoadSimulation) = result {
+    let private validateSimulation (scnName: string) (simulation: Contracts.LoadSimulation) = result {
         let checkCopies copies =
             if copies < 0 then
-                Error (CopiesCountIsNegative simulation)
+                Error (CopiesCountIsNegative(scnName, simulation))
             else
                 Ok copies
 
         let checkRate rate =
             if rate < 0 then
-                Error (RateIsNegative simulation)
+                Error (RateIsNegative(scnName, simulation))
             else
                 Ok rate
 
+        let checkMinMaxRate minRate maxRate =
+            if minRate >= maxRate then
+                Error (MinRateIsBiggerThanMax(scnName, simulation))
+            else
+                Ok ()
+
         let checkInterval interval duration =
             if interval > duration then
-                Error (IntervalIsBiggerThanDuration simulation)
+                Error (IntervalIsBiggerThanDuration(scnName, simulation))
             else
                 Ok interval
 
         let checkDuration duration =
             if duration < Constants.MinSimulationDuration then
-                Error (DurationIsSmallerThanMin simulation)
+                Error (DurationIsSmallerThanMin(scnName, simulation))
             else
                 Ok duration
 
@@ -56,6 +62,7 @@ module Validation =
         | InjectRandom (minRate, maxRate, interval, duration) ->
             let! _ = checkRate minRate
             let! _ = checkRate maxRate
+            let! _ = checkMinMaxRate minRate maxRate
             let! _ = checkInterval interval duration
             let! _ = checkDuration duration
             return simulation
@@ -71,12 +78,12 @@ module Validation =
         else
             Ok simulations
 
-    let validate (simulations: Contracts.LoadSimulation list) = result {
+    let validate (scnName: string) (simulations: Contracts.LoadSimulation list) = result {
         let _ = validateOnEmpty simulations
 
         return!
             simulations
-            |> Seq.map validateSimulation
+            |> Seq.map(validateSimulation scnName)
             |> Result.sequence
             |> Result.mapError Seq.head
     }
@@ -122,21 +129,21 @@ let getPlanedDuration (simulations: LoadSimulation list) =
     |> List.map(fun x -> x.Duration)
     |> List.fold(fun st v -> st + v) TimeSpan.Zero
 
-let create (simulations: Contracts.LoadSimulation list) =
+let create (scnName:  string) (simulations: Contracts.LoadSimulation list) =
 
     let getPrevCopiesCount (simulation) =
         match simulation with
         | RampingConstant (copies, _)
         | KeepConstant (copies, _) -> copies
-        
-        | RampingInject (rate, _, _) 
-        | Inject (rate, _, _) -> rate        
-        
+
+        | RampingInject (rate, _, _)
+        | Inject (rate, _, _) -> rate
+
         | InjectRandom (_, maxRate, _, _) -> maxRate
         | Pause _ -> 0
 
     result {
-        let! all = Validation.validate simulations
+        let! all = Validation.validate scnName simulations
         let initState = createSimulation TimeSpan.Zero 0 (KeepConstant(0, TimeSpan.Zero))
 
         let simulations =
