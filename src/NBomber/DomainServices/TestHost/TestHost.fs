@@ -79,7 +79,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         use consoleCancelToken = new CancellationTokenSource()
         let maxDuration = schedulers |> Seq.map(fun x -> x.Scenario) |> Scenario.getMaxDuration
 
-        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers
+        TestHostConsole.LiveStatusTable.display dep consoleCancelToken.Token isWarmUp schedulers reportingManager
 
         // start scenarios
         let bombingTask = schedulers |> Seq.map(fun x -> x.Start(consoleCancelToken.Token)) |> Task.WhenAll
@@ -99,7 +99,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
 
         if isWarmUp then
             GC.Collect()
-            do! Task.Delay 1_000
+            do! Task.Delay Constants.ONE_SECOND
     }
 
     let startInit (consoleStatus: StatusContext option) (sessionArgs: SessionArgs) = taskResult {

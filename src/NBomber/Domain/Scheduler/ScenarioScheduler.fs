@@ -5,6 +5,7 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
+
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -232,7 +233,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
         while counter < Constants.MaxWaitWorkingActorsSec do
             let actorsCount = getWorkingActorCount()
             if actorsCount > 0 then
-                do! Task.Delay Constants.OneSecond
+                do! Task.Delay Constants.ONE_SECOND
                 counter <- counter + 1
             else
                 counter <- Constants.MaxWaitWorkingActorsSec

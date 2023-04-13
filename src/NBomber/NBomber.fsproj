@@ -32,6 +32,7 @@
         <Compile Include="Domain\Stats\RawMeasurementStats.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
+        <Compile Include="Domain\Stats\MetricsStatsActor.fs" />
         <Compile Include="Domain\ScenarioContext.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
@@ -51,6 +52,7 @@
         <Compile Include="DomainServices\Reports\MdReport.fs" />
         <Compile Include="DomainServices\Reports\ConsoleReport.fs" />
         <Compile Include="DomainServices\Reports\Report.fs" />
+        <Compile Include="DomainServices\TestHost\RuntimeMetricsGrabber.fs" />
         <Compile Include="DomainServices\TestHost\WorkerPlugins.fs" />
         <Compile Include="DomainServices\TestHost\ReportingSinks.fs" />
         <Compile Include="DomainServices\TestHost\ReportingManager.fs" />

@@ -3,20 +3,24 @@ module internal NBomber.DomainServices.TestHost.ReportingManager
 open System
 open System.Threading.Tasks
 open FsToolkit.ErrorHandling
-open NBomber
+
+open NBomber.Constants.Reporting
 open NBomber.Contracts.Internal
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.LoadSimulation
 open NBomber.Domain.Stats.Statistics
+open NBomber.Domain.Stats.MetricsStatsActor
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
+open NBomber.DomainServices.TestHost.MetricsGrabber
 
 type IReportingManager =
     inherit IDisposable
     abstract Start: unit -> Task<unit>
     abstract Stop: unit -> Task<unit>
+    abstract GetCurrentMetrics: unit -> MetricStats list
     abstract GetSessionResult: NodeInfo -> Task<NodeSessionResult>
 
 let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: NodeStats) =
@@ -67,18 +71,23 @@ type ReportingManager(dep: IGlobalDependency,
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
     let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
+    let _metricsActor = MetricsStatsActor(dep.Logger)
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
+
+    let mutable _metricsGrabber = Option.None
     let mutable _curDuration = TimeSpan.Zero
 
     let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
 
     let start () = backgroundTask {
-        do! Task.Delay 2_000
+        _metricsGrabber <- Some (new RuntimeMetricsGrabber(_metricsActor))
+        do! Task.Delay TIMER_START_DELAY
         _buildRealtimeStatsTimer.Start()
     }
 
     let stop () = backgroundTask {
-        do! Task.Delay 4_000
+        do! Task.Delay TIMER_STOP_DELAY
+        _metricsGrabber |> Option.iter(fun x -> x.Dispose())
         _buildRealtimeStatsTimer.Stop()
     }
 
@@ -87,23 +96,30 @@ type ReportingManager(dep: IGlobalDependency,
             let duration = _curDuration + _reportingInterval
             if duration <= _timerMaxDuration then
                 _curDuration <- duration
-                schedulers
-                |> List.map(fun x -> x.BuildRealtimeStats duration)
-                |> Task.WhenAll
-                |> Task.map(ReportingSinks.saveRealtimeStats dep)
+
+                backgroundTask {
+                    let statsTasks =
+                        schedulers
+                        |> Seq.map(fun x -> x.BuildRealtimeStats _curDuration)
+
+                    let! metrics = _metricsActor.BuildReportingStats _curDuration
+
+                    let! realtimeStats = statsTasks |> Task.WhenAll
+
+                    ReportingSinks.saveRealtimeStats dep realtimeStats
+                    |> ignore
+                }
                 |> ignore
             else
                 _buildRealtimeStatsTimer.Stop()
         )
 
     interface IReportingManager with
-        member _.Start() = start()
-        member _.Stop() = stop()
-        member _.GetSessionResult(nodeInfo) = getSessionResult nodeInfo
-
-    interface IDisposable with
-        member _.Dispose() =
-            _buildRealtimeStatsTimer.Dispose()
+        member this.Start() = start()
+        member this.Stop() = stop()
+        member this.GetCurrentMetrics() = _metricsActor.CurrentMetrics
+        member this.GetSessionResult(nodeInfo) = getSessionResult nodeInfo
+        member this.Dispose() = _buildRealtimeStatsTimer.Dispose()
 
 let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (sessionArgs: SessionArgs) =
     new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager
