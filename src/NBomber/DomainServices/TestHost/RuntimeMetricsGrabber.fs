@@ -4,6 +4,7 @@ open System.Collections.Generic
 open System.Diagnostics.Tracing
 
 open NBomber.Constants.Metrics
+open NBomber.Contracts.Stats
 open NBomber.Domain.Stats.MetricsStatsActor
 
 type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
@@ -13,12 +14,12 @@ type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
         metricsActor.RegisterMetric(CPU_USAGE, "%", DEFAULT_SCALING_FRACTION, MetricType.Histogram)
         metricsActor.RegisterMetric(WORKING_SET, "MB", DEFAULT_SCALING_FRACTION, MetricType.Histogram)
         metricsActor.RegisterMetric(GC_HEAP_SIZE, "MB", DEFAULT_SCALING_FRACTION, MetricType.Histogram)
-        metricsActor.RegisterMetric(THREAD_POOL_QUEUE_LENGTH, "", NO_SCALING_FRACTION, MetricType.Counter)
-        metricsActor.RegisterMetric(THREAD_POOL_QUEUE_COUNT, "", NO_SCALING_FRACTION, MetricType.Counter)
-        metricsActor.RegisterMetric(INCOMING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Counter)
-        metricsActor.RegisterMetric(OUTGOING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Counter)
-        metricsActor.RegisterMetric(DATA_RECEIVED, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Counter)
-        metricsActor.RegisterMetric(DATA_SENT, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Counter)
+        metricsActor.RegisterMetric(THREAD_POOL_QUEUE_LENGTH, "", NO_SCALING_FRACTION, MetricType.Gauge)
+        metricsActor.RegisterMetric(THREAD_POOL_QUEUE_COUNT, "", NO_SCALING_FRACTION, MetricType.Gauge)
+        metricsActor.RegisterMetric(INCOMING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Gauge)
+        metricsActor.RegisterMetric(OUTGOING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Gauge)
+        metricsActor.RegisterMetric(DATA_RECEIVED, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Gauge)
+        metricsActor.RegisterMetric(DATA_SENT, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Gauge)
 
     override this.OnEventSourceCreated(eventSource) =
 

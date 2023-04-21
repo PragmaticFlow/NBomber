@@ -9,35 +9,12 @@ open Serilog
 open HdrHistogram
 
 open NBomber
+open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 
 type Metric = {
     Name: string
     Value: float
-}
-
-type Percentiles = {
-    Mean: float
-    Max: float
-    Percent50: float
-    Percent75: float
-    Percent95: float
-    Percent99: float
-    StdDev: float
-}
-
-type MetricType =
-    | Histogram = 0
-    | Counter = 1
-
-type MetricStats = {
-    Name: string
-    MeasureUnit: string
-    MetricType: MetricType
-    Current: float
-    Max: float
-    Duration: TimeSpan
-    Percentiles: Percentiles option
 }
 
 type HistogramMetric = {
@@ -57,7 +34,7 @@ type HistogramMetric = {
                                   numberOfSignificantValueDigits = 3)
     }
 
-type CounterMetric = {
+type GaugeMetric = {
     Name: string
     MeasureUnit: string
     mutable Value: int64
@@ -73,7 +50,7 @@ type CounterMetric = {
 
 type RawMetricStats =
     | Histogram of HistogramMetric
-    | Counter   of CounterMetric
+    | Gauge     of GaugeMetric
 
 type ActorMessage =
     | RegisterMetric      of name:string * measureUnit:string * scalingFraction:float * metricType:MetricType
@@ -94,7 +71,7 @@ type MetricsStatsActor(logger: ILogger) =
         if not (rawMetrics.ContainsKey name) then
             match metricType with
             | MetricType.Histogram -> rawMetrics[name] <- Histogram(HistogramMetric.empty name measureUnit scFraction)
-            | MetricType.Counter   -> rawMetrics[name] <- Counter(CounterMetric.empty name measureUnit scFraction)
+            | MetricType.Gauge   -> rawMetrics[name] <- Gauge(GaugeMetric.empty name measureUnit scFraction)
             | _ -> ()
 
     let addMetric (metric: Metric) (rawMetrics: Dictionary<string, RawMetricStats>) =
@@ -103,12 +80,22 @@ type MetricsStatsActor(logger: ILogger) =
             v.Histogram.RecordValue(int64 metric.Value)
             v.Current <- metric.Value
 
-        | true, Counter v ->
+        | true, Gauge v ->
             v.Value <- int64 metric.Value
 
         | false, _ -> ()
 
-    let buildReportingStats (executedDuration) =
+    let buildStats (isFinal) (executedDuration) =
+
+        let buildPercentiles (m: HistogramMetric) = {
+            Mean = (m.Histogram.GetMean() / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            Max = (float (m.Histogram.GetMaxValue()) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            Percent50 = (float (m.Histogram.GetValueAtPercentile 50) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            Percent75 = (float (m.Histogram.GetValueAtPercentile 75) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            Percent95 = (float (m.Histogram.GetValueAtPercentile 95) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            Percent99 = (float (m.Histogram.GetValueAtPercentile 99) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+        }
+
         _rawMetrics
         |> Seq.map(fun (KeyValue(k, metric)) ->
             match metric with
@@ -119,12 +106,13 @@ type MetricsStatsActor(logger: ILogger) =
                   Current = (v.Current / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Max = (float (v.Histogram.GetMaxValue()) / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Duration = executedDuration
-                  Percentiles = None }
+                  Percentiles = if isFinal then v |> buildPercentiles |> Some
+                                else None }
 
-            | Counter v ->
+            | Gauge v ->
                 { Name = v.Name
                   MeasureUnit = v.MeasureUnit
-                  MetricType = MetricType.Counter
+                  MetricType = MetricType.Gauge
                   Current = (float v.Value / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Max = 0
                   Duration = executedDuration
@@ -146,7 +134,7 @@ type MetricsStatsActor(logger: ILogger) =
                         _rawMetrics |> addMetric metric
 
                     | BuildReportingStats(reply, executedDuration) ->
-                        let metrics = buildReportingStats executedDuration
+                        let metrics = buildStats false executedDuration
 
                         _currentMetrics <- metrics
                         _allRealtimeMetrics[executedDuration] <- metrics
@@ -154,7 +142,8 @@ type MetricsStatsActor(logger: ILogger) =
                         reply.TrySetResult(metrics) |> ignore
 
                     | GetFinalStats(reply, executedDuration) ->
-                        ()
+                        let metrics = buildStats true executedDuration
+                        reply.TrySetResult(metrics) |> ignore
 
                 | _ -> do! Task.Delay 100
         with
@@ -177,4 +166,9 @@ type MetricsStatsActor(logger: ILogger) =
     member this.BuildReportingStats(executedDuration) =
         let reply = TaskCompletionSource<_>()
         _queue.Enqueue(BuildReportingStats(reply, executedDuration))
+        reply.Task
+
+    member this.GetFinalStats(executedDuration) =
+        let reply = TaskCompletionSource<_>()
+        _queue.Enqueue(GetFinalStats(reply, executedDuration))
         reply.Task

@@ -104,7 +104,7 @@ module LiveStatusTable =
             | MetricType.Histogram ->
                 table.AddRow($"{s.Name}", $"current: {Console.okColor s.Current} {s.MeasureUnit}, max: {Console.okColor s.Max} {s.MeasureUnit}") |> ignore
 
-            | MetricType.Counter ->
+            | MetricType.Gauge ->
                 table.AddRow($"{s.Name}", $"current: {Console.okColor s.Current} {s.MeasureUnit}") |> ignore
 
             | _ ->

@@ -35,12 +35,21 @@ let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: Node
 let getFinalStats (dep: IGlobalDependency)
                   (testInfo: TestInfo)
                   (schedulers: ScenarioScheduler list)
+                  (metricsStatsActor: MetricsStatsActor)
                   (nodeInfo: NodeInfo) = backgroundTask {
 
     let! scenarioStats =
         schedulers
         |> List.map(fun x -> x.GetFinalStats())
         |> Task.WhenAll
+
+    let maxDuration =
+        if Array.isEmpty scenarioStats then
+            TimeSpan.Zero
+        else
+            scenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> Converter.roundDuration
+
+    let! metrics = metricsStatsActor.GetFinalStats(maxDuration)
 
     let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats
 
@@ -52,13 +61,14 @@ let getSessionResult (dep: IGlobalDependency)
                      (testInfo: TestInfo)
                      (useHintsAnalyzer: bool)
                      (schedulers: ScenarioScheduler list)
+                     (metricsStatsActor: MetricsStatsActor)
                      (nodeInfo: NodeInfo) = backgroundTask {
     let history =
         schedulers
         |> Seq.map(fun x -> x.AllRealtimeStats)
         |> TimeLineHistory.create
 
-    let! finalStats = getFinalStats dep testInfo schedulers nodeInfo
+    let! finalStats = getFinalStats dep testInfo schedulers metricsStatsActor nodeInfo
     let hints = getHints dep useHintsAnalyzer finalStats
 
     let result = { FinalStats = finalStats; TimeLineHistory = history; Hints = hints }
@@ -77,7 +87,7 @@ type ReportingManager(dep: IGlobalDependency,
     let mutable _metricsGrabber = Option.None
     let mutable _curDuration = TimeSpan.Zero
 
-    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
+    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers _metricsActor
 
     let start () = backgroundTask {
         _metricsGrabber <- Some (new RuntimeMetricsGrabber(_metricsActor))
