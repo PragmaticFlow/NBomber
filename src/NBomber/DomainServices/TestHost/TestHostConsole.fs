@@ -13,7 +13,6 @@ open NBomber.Contracts.Internal
 open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
-open NBomber.Domain.Stats.MetricsStatsActor
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.DomainServices.Reports
