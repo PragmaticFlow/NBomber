@@ -132,7 +132,7 @@ let ``NBomber should allow to set custom response latency and handle it properly
         return Response.ok(latencyMs = 2_000.0) // set custom latency
     })
     |> Scenario.withoutWarmUp
-    |> Scenario.withLoadSimulations [KeepConstant(copies = 1, during = seconds 3)]
+    |> Scenario.withLoadSimulations [Inject(rate = 1, interval = seconds 1, during = seconds 3)]
     |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
@@ -140,8 +140,8 @@ let ``NBomber should allow to set custom response latency and handle it properly
     |> fun nodeStats ->
         let scnStats = nodeStats.ScenarioStats[0]
 
-        test <@ scnStats.Ok.Request.Count > 5 @>
-        test <@ scnStats.Ok.Request.RPS >= 7.0 @>
+        test <@ scnStats.Ok.Request.Count = 3 @>
+        test <@ scnStats.Ok.Request.RPS = 1.0 @>
         test <@ scnStats.Ok.Latency.MinMs <= 2_001.0 @>
 
 [<Fact>]
