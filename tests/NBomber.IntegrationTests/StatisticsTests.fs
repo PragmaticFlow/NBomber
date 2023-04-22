@@ -213,7 +213,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with AllRequestCount = failCount; AllFailCount = failCount; AllBytes = allBytes }
 
         let nodeStats =
-            NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
+            NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
 
         test <@ nodeStats.AllRequestCount = okCount + failCount @>
         test <@ nodeStats.AllOkCount = okCount @>
@@ -226,7 +226,7 @@ module NodeStatsTests =
         let scenario2 = { baseScenarioStats with Duration = seconds 20 }
 
         let nodeStats =
-            NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |]
+            NodeStats.create baseTestInfo baseNodeInfo [| scenario1; scenario2 |] Array.empty
 
         test <@ nodeStats.Duration = seconds 20 @>
 
@@ -313,7 +313,7 @@ module StepStatsRawData =
         let stepResult = {
             Name = "step_name"
             ClientResponse = clientResponse
-            CurrentTimeBucket = TimeSpan.Zero            
+            CurrentTimeBucket = TimeSpan.Zero
             Latency = milliseconds stepResMs
         }
 
@@ -349,7 +349,7 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step_name"
                 ClientResponse = clientResponse
-                CurrentTimeBucket = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero
                 Latency = seconds 0
             }
 
@@ -388,7 +388,7 @@ module StepStatsRawData =
             let stepResponse = { // only stepResponse latency will be included
                 Name = "step_name"
                 ClientResponse = clientResponse
-                CurrentTimeBucket = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero
                 Latency = milliseconds latency
             }
 
@@ -456,7 +456,7 @@ module StepStatsRawData =
             let stepResponse = {
                 Name = "step"
                 ClientResponse = clientResponse
-                CurrentTimeBucket = TimeSpan.Zero                
+                CurrentTimeBucket = TimeSpan.Zero
                 Latency = seconds 0
             }
 

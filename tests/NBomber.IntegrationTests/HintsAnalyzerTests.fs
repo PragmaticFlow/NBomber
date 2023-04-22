@@ -19,6 +19,7 @@ open NBomber.FSharp
 
 let baseNodeStats = {
     ScenarioStats = Array.empty
+    MetricStats = Array.empty
     PluginStats = Array.empty
     NodeInfo = NodeInfo.init None
     TestInfo = { SessionId = ""; TestSuite = ""; TestName = ""; ClusterId = "" }
