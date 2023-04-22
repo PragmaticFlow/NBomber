@@ -55,16 +55,16 @@ type RawMetricStats =
 type ActorMessage =
     | RegisterMetric      of name:string * measureUnit:string * scalingFraction:float * metricType:MetricType
     | AddMetric           of Metric
-    | BuildReportingStats of reply:TaskCompletionSource<MetricStats list> * executedDuration:TimeSpan
-    | GetFinalStats       of reply:TaskCompletionSource<MetricStats list> * executedDuration:TimeSpan
+    | BuildReportingStats of reply:TaskCompletionSource<MetricStats[]> * executedDuration:TimeSpan
+    | GetFinalStats       of reply:TaskCompletionSource<MetricStats[]> * executedDuration:TimeSpan
 
 type MetricsStatsActor(logger: ILogger) =
 
     let _queue = ConcurrentQueue<ActorMessage>()
     let _rawMetrics = Dictionary<string, RawMetricStats>()
-    let _allRealtimeMetrics = ConcurrentDictionary<TimeSpan, MetricStats list>()
+    let _allRealtimeMetrics = ConcurrentDictionary<TimeSpan, MetricStats[]>()
 
-    let mutable _currentMetrics = List.empty<MetricStats>
+    let mutable _currentMetrics = Array.empty<MetricStats>
     let mutable _stop = false
 
     let registerMetric (name) (measureUnit) (scFraction) (metricType) (rawMetrics: Dictionary<string, RawMetricStats>) =
@@ -118,7 +118,7 @@ type MetricsStatsActor(logger: ILogger) =
                   Duration = executedDuration
                   Percentiles = None }
         )
-        |> Seq.toList
+        |> Seq.toArray
 
     let loop () = backgroundTask {
         try

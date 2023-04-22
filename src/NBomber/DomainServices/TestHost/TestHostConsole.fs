@@ -64,7 +64,7 @@ module LiveStatusTable =
         table.AddColumn("scenario")
              .AddColumn("step")
              .AddColumn("simulation")
-             .AddColumn("statistics (ms)")
+             .AddColumn("statistics")
 
     let private buildMetricsTable () =
         let table = Table()
@@ -83,19 +83,26 @@ module LiveStatusTable =
                 if scnStats.LoadSimulationStats.SimulationName = "pause" then "pause"
                 else $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}"
 
-            for stepStats in scnStats.StepStats do
+            scnStats.StepStats
+            |> Array.iteri(fun i stepStats ->
                 let ok = stepStats.Ok
                 let okR = ok.Request
                 let okL = ok.Latency
+                let okD = ok.DataTransfer
 
                 table.AddRow(
                     scnStats.ScenarioName,
                     stepStats.StepName,
                     simulation,
-                    $"ok: {Console.okColor okR.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor okR.RPS},\nmin = {Console.okColor okL.MinMs}, mean = {Console.okColor okL.MeanMs}, max = {Console.okColor okL.MaxMs},\np50 = {Console.okColor okL.Percent50}, p75 = {Console.okColor okL.Percent75}, p99 = {Console.okColor okL.Percent99}")
+                    $"ok: {Console.okColor okR.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor okR.RPS},\nmin = {Console.okColor okL.MinMs} ms, mean = {Console.okColor okL.MeanMs} ms, max = {Console.okColor okL.MaxMs} ms,\np50 = {Console.okColor okL.Percent50} ms, p75 = {Console.okColor okL.Percent75} ms,  p99 = {Console.okColor okL.Percent99} ms\ndata-mean = {Converter.fromBytesToKb okD.MeanBytes} KB, data-all = {Converter.fromBytesToMb okD.AllBytes} MB"
+                )
                 |> ignore
 
-    let private renderMetricsStats (table: Table) (stats: MetricStats list) =
+                if i <> scnStats.StepStats.Length - 1 then
+                    table.AddEmptyRow() |> ignore
+            )
+
+    let private renderMetricsStats (table: Table) (stats: MetricStats[]) =
         table.Rows.Clear()
 
         for s in stats do

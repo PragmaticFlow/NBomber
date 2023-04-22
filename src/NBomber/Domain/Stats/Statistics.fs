@@ -234,7 +234,7 @@ module ScenarioStats =
 
 module NodeStats =
 
-    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
+    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) (metrics: MetricStats[]) =
         if Array.isEmpty scnStats then
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
@@ -245,6 +245,7 @@ module NodeStats =
             let allBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
 
             { ScenarioStats = scnStats
+              MetricStats = metrics
               PluginStats = Array.empty
               NodeInfo = nodeInfo
               TestInfo = testInfo

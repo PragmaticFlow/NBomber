@@ -20,7 +20,7 @@ type IReportingManager =
     inherit IDisposable
     abstract Start: unit -> Task<unit>
     abstract Stop: unit -> Task<unit>
-    abstract GetCurrentMetrics: unit -> MetricStats list
+    abstract GetCurrentMetrics: unit -> MetricStats[]
     abstract GetSessionResult: NodeInfo -> Task<NodeSessionResult>
 
 let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: NodeStats) =
@@ -49,9 +49,9 @@ let getFinalStats (dep: IGlobalDependency)
         else
             scenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> Converter.roundDuration
 
-    let! metrics = metricsStatsActor.GetFinalStats(maxDuration)
+    let! metrics = metricsStatsActor.GetFinalStats maxDuration
 
-    let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats
+    let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats metrics
 
     let! pluginStats = WorkerPlugins.getStats dep nodeStats
     return { nodeStats with PluginStats = pluginStats }
