@@ -87,26 +87,35 @@ type MetricsStatsActor(logger: ILogger) =
 
     let buildStats (isFinal) (executedDuration) =
 
-        let buildPercentiles (m: HistogramMetric) = {
-            Mean = (m.Histogram.GetMean() / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-            Max = (float (m.Histogram.GetMaxValue()) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-            Percent50 = (float (m.Histogram.GetValueAtPercentile 50) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-            Percent75 = (float (m.Histogram.GetValueAtPercentile 75) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-            Percent95 = (float (m.Histogram.GetValueAtPercentile 95) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-            Percent99 = (float (m.Histogram.GetValueAtPercentile 99) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-        }
+        let buildPercentiles (m: HistogramMetric) =
+            if m.Histogram.TotalCount > 0 then
+                { Mean = (m.Histogram.GetMean() / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Max = (float (m.Histogram.GetMaxValue()) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Percent50 = (float (m.Histogram.GetValueAtPercentile 50) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Percent75 = (float (m.Histogram.GetValueAtPercentile 75) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Percent95 = (float (m.Histogram.GetValueAtPercentile 95) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Percent99 = (float (m.Histogram.GetValueAtPercentile 99) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding) }
+                |> Some
+            else
+                None
+
+        let calcMax (m: HistogramMetric) =
+            if m.Histogram.TotalCount > 0 then
+                (float (m.Histogram.GetMaxValue()) / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+            else
+                0
 
         _rawMetrics
         |> Seq.map(fun (KeyValue(k, metric)) ->
             match metric with
-            | Histogram v ->
-                { Name = v.Name
-                  MeasureUnit = v.MeasureUnit
+            | Histogram m ->
+                { Name = m.Name
+                  MeasureUnit = m.MeasureUnit
                   MetricType = MetricType.Histogram
-                  Current = (v.Current / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
-                  Max = (float (v.Histogram.GetMaxValue()) / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Current = (m.Current / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Max = calcMax m
                   Duration = executedDuration
-                  Percentiles = if isFinal then v |> buildPercentiles |> Some
+                  Percentiles = if isFinal then m |> buildPercentiles
                                 else None }
 
             | Gauge v ->
