@@ -181,3 +181,6 @@ type MetricsStatsActor(logger: ILogger) =
         let reply = TaskCompletionSource<_>()
         _queue.Enqueue(GetFinalStats(reply, executedDuration))
         reply.Task
+
+    interface IDisposable with
+        member this.Dispose() = _stop <- true

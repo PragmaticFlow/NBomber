@@ -1,5 +1,6 @@
 module internal NBomber.Domain.Concurrency.ScenarioActorPool
 
+open System
 open NBomber.Domain
 open NBomber.Domain.Concurrency.ScenarioActor
 open NBomber.Domain.ScenarioContext
@@ -15,7 +16,7 @@ let createActors (scnCtx: ScenarioContextArgs) count fromIndex =
     Array.init count (fun i ->
         let actorIndex = fromIndex + i
         let scenarioInfo = Scenario.createScenarioInfo(scenario.ScenarioName, scenario.PlanedDuration, actorIndex, scnCtx.ScenarioOperation)
-        ScenarioActor(scnCtx, scenarioInfo)
+        new ScenarioActor(scnCtx, scenarioInfo)
     )
 
 // todo: add tests
@@ -41,7 +42,7 @@ let inline rentActors
         { ActorsFromPool = notWorkingActors; NewActors = Array.empty }
 
 let inline askToStop (actorPool: ScenarioActor seq) =
-    actorPool |> Seq.iter(fun x -> x.AskToStop())
+    actorPool |> Seq.iter(fun x -> (x :> IDisposable).Dispose())
 
 let inline getWorkingActors (actorPool: ScenarioActor seq) =
     actorPool |> Seq.filter(fun x -> x.Working)

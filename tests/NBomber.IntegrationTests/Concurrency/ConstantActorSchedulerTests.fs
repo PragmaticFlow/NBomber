@@ -39,7 +39,7 @@ let internal baseScnDep = {
     Scenario = baseScenario
     ScenarioCancellationToken = new CancellationTokenSource()
     ScenarioOperation = ScenarioOperation.Bombing
-    ScenarioStatsActor = ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
+    ScenarioStatsActor = new ScenarioStatsActor(logger, baseScenario, Constants.DefaultReportingInterval)
     ExecStopCommand = fun _ -> ()
     TestInfo = TestInfo.empty
     GetNodeInfo = fun () -> NodeInfo.empty
@@ -91,7 +91,7 @@ let ``Stop should stop all working actors`` () =
 
     scheduler.AddActors(5, TimeSpan.Zero)
     Task.Delay(seconds 2).Wait()
-    scheduler.AskToStop()
+    (scheduler :> IDisposable).Dispose()
     Task.Delay(seconds 2).Wait()
     let workingActors = ScenarioActorPool.Test.getWorkingActors scheduler.AvailableActors
 

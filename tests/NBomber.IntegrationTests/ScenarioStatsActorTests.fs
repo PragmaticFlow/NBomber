@@ -27,7 +27,7 @@ let internal baseScenario =
 let ``AllRealtimeStats should contain cached realtime stats`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
+    let statsActor = new ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     for i in [1..10] do
         let result1 = { Name = "step_name"; ClientResponse = Response.ok()
@@ -52,7 +52,7 @@ let ``AllRealtimeStats should contain cached realtime stats`` () =
 let ``TempBuffer should work correctly`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
+    let statsActor = new ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     // add metrics that match the current reporting bucket
     let startTime = seconds 1
@@ -89,7 +89,7 @@ let ``TempBuffer should work correctly`` () =
 let ``BuildReportingStats should preserver Steps order at which steps arrived`` (stepNames: string list) =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
+    let statsActor = new ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     let stepNames =
         stepNames
@@ -118,7 +118,7 @@ let ``BuildReportingStats should preserver Steps order at which steps arrived`` 
 let ``DataTransfer should be calculated properly for Global Step Info`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
-    let statsActor = ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
+    let statsActor = new ScenarioStatsActor(env.Dep.Logger, baseScenario, reportingInterval = seconds 5)
 
     for i in [1 .. 100] do
         let stepSmall = { Name = "step_small"; ClientResponse = Response.ok(sizeBytes = 1); CurrentTimeBucket = TimeSpan.Zero; Latency = seconds 100 }

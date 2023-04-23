@@ -260,11 +260,12 @@ type ScenarioStatsActor(logger: ILogger,
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member this.Publish(msg) = _queue.Enqueue msg
 
-    member this.Stop() = _stop <- true
+    interface IDisposable with
+        member this.Dispose() = _stop <- true
 
 let createDefault (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
-    ScenarioStatsActor(logger, scenario, reportingInterval)
+    new ScenarioStatsActor(logger, scenario, reportingInterval)
 
 let createForCoordinator (mergeStats: LoadSimulationStats -> ScenarioStats seq -> ScenarioStats)
                          (logger: ILogger) (scenario: Scenario) (reportingInterval: TimeSpan) =
-    ScenarioStatsActor(logger, scenario, reportingInterval, mergeStats)
+    new ScenarioStatsActor(logger, scenario, reportingInterval, mergeStats)

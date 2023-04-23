@@ -168,13 +168,12 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
             _scenario <- Scenario.setExecutedDuration _scenario _scnTimer.Elapsed
 
-            _constantScheduler.AskToStop()
-            _oneTimeScheduler.AskToStop()
+            (_constantScheduler :> IDisposable).Dispose()
+            (_oneTimeScheduler :> IDisposable).Dispose()
             _scnTimer.Stop()
-            _warmupTimer.Stop()
+            _warmupTimer.Dispose()
 
             do! waitOnWorkingActors()
-            scnCtx.ScenarioStatsActor.Stop()
     }
 
     let start (testHostCancelToken: CancellationToken) = backgroundTask {
@@ -263,7 +262,9 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     member this.GetFinalStats() = getFinalStats()
 
     interface IDisposable with
-        member this.Dispose() = stop() |> ignore
+        member this.Dispose() =
+            stop() |> ignore
+            (scnCtx.ScenarioStatsActor :> IDisposable).Dispose()
 
 module Test =
 

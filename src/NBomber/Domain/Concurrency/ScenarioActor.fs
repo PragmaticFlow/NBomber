@@ -48,17 +48,17 @@ type ScenarioActor(scnCtx: ScenarioContextArgs, scenarioInfo: ScenarioInfo) =
             _working <- false
     }
 
-    member _.ScenarioStatsActor = scnCtx.ScenarioStatsActor
-    member _.ScenarioInfo = scenarioInfo
-    member _.Working = _working
+    member this.ScenarioStatsActor = scnCtx.ScenarioStatsActor
+    member this.ScenarioInfo = scenarioInfo
+    member this.Working = _working
 
-    member _.ExecSteps(injectInterval: TimeSpan) =
+    member this.ExecSteps(injectInterval: TimeSpan) =
         let startDelay = _randomizer.Next(0, int injectInterval.TotalMilliseconds)
         execSteps startDelay false
 
-    member _.RunInfinite(injectInterval: TimeSpan) =
+    member this.RunInfinite(injectInterval: TimeSpan) =
         let startDelay = _randomizer.Next(0, int injectInterval.TotalMilliseconds)
         execSteps startDelay true
 
-    member _.AskToStop() =
-        _shouldStop <- true
+    interface IDisposable with
+        member this.Dispose() = _shouldStop <- true

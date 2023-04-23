@@ -42,10 +42,10 @@ let inline exec
 
     | RentActors actorCount ->
         let result = ScenarioActorPool.rentActors createActors actorPool actorCount
-        
+
         execSteps result.ActorsFromPool
         execSteps result.NewActors
-        
+
         ScenarioActorPool.updatePool actorPool result.NewActors
 
 type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
@@ -54,20 +54,15 @@ type OneTimeActorScheduler(scnCtx: ScenarioContextArgs, exec: SchedulerExec) =
     let mutable _scheduledActorCount = 0
     let createActors = ScenarioActorPool.createActors scnCtx
 
-    let askToStop () =
-        ScenarioActorPool.askToStop _actorPool
+    member this.ScheduledActorCount = _scheduledActorCount
+    member this.AvailableActors = _actorPool
 
-    member _.ScheduledActorCount = _scheduledActorCount
-    member _.AvailableActors = _actorPool
-
-    member _.InjectActors(count, injectInterval) =        
+    member this.InjectActors(count, injectInterval) =
         _scheduledActorCount <- count
         _actorPool           <- exec createActors _actorPool _scheduledActorCount injectInterval
 
-    member _.AskToStop() = askToStop()
-
     interface IDisposable with
-        member _.Dispose() = askToStop()
+        member this.Dispose() = ScenarioActorPool.askToStop _actorPool
 
 module Test =
 

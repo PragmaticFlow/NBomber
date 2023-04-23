@@ -29,6 +29,7 @@
         <Compile Include="ExtensionsTests.fs" />
         <Compile Include="NBomberContextTests.fs" />
         <Compile Include="ScenarioStatsActorTests.fs" />
+        <Compile Include="MetricsStatsActorTests.fs" />
         <Compile Include="StatisticsTests.fs" />
         <Compile Include="LoadSimulationTests.fs" />
         <Compile Include="Concurrency\ConstantActorSchedulerTests.fs" />

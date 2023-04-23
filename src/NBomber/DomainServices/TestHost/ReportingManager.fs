@@ -81,7 +81,7 @@ type ReportingManager(dep: IGlobalDependency,
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
     let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
-    let _metricsActor = MetricsStatsActor(dep.Logger)
+    let _metricsActor = new MetricsStatsActor(dep.Logger)
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
 
     let mutable _metricsGrabber = Option.None
@@ -129,7 +129,10 @@ type ReportingManager(dep: IGlobalDependency,
         member this.Stop() = stop()
         member this.GetCurrentMetrics() = _metricsActor.CurrentMetrics
         member this.GetSessionResult(nodeInfo) = getSessionResult nodeInfo
-        member this.Dispose() = _buildRealtimeStatsTimer.Dispose()
+
+        member this.Dispose() =
+            _buildRealtimeStatsTimer.Dispose()
+            (_metricsActor :> IDisposable).Dispose()
 
 let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (sessionArgs: SessionArgs) =
     new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager
