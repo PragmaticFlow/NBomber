@@ -160,18 +160,22 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                 counter <- Constants.MaxWaitWorkingActorsSec
     }
 
-    let stop () = backgroundTask {
+    let stop (currentTime: TimeSpan option) = backgroundTask {
         scnCtx.ScenarioCancellationToken.Cancel()
 
         if _isWorking then
             _isWorking <- false
 
-            _scenario <- Scenario.setExecutedDuration _scenario _scnTimer.Elapsed
+            let executedDuration =
+                currentTime
+                |> Option.defaultValue _scnTimer.Elapsed
+
+            _scenario <- Scenario.setExecutedDuration _scenario executedDuration
 
             (_constantScheduler :> IDisposable).Dispose()
             (_oneTimeScheduler :> IDisposable).Dispose()
             _scnTimer.Stop()
-            _warmupTimer.Dispose()
+            _warmupTimer.Stop()
 
             do! waitOnWorkingActors()
     }
@@ -202,7 +206,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                   && not testHostCancelToken.IsCancellationRequested do
 
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
-                    stop() |> ignore
+                    stop(Some currentTime) |> ignore
                     scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
                 let startInterval = _scnTimer.Elapsed
@@ -237,7 +241,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             | Pause duration -> _pauseDuration <- _pauseDuration + duration
             | _              -> ()
 
-        stop() |> ignore
+        stop(Some currentTime) |> ignore
     }
 
     member this.Working = _isWorking
@@ -248,12 +252,12 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     member this.Start(bombingCancelToken) =
         if scnCtx.ScenarioOperation = ScenarioOperation.WarmUp && _scenario.WarmUpDuration.IsSome then
             _warmupTimer <- new Timer(_scenario.WarmUpDuration.Value.TotalMilliseconds)
-            _warmupTimer.Elapsed.Add(fun _ -> stop() |> ignore)
+            _warmupTimer.Elapsed.Add(fun _ -> stop(None) |> ignore)
             _warmupTimer.Start()
 
         start(bombingCancelToken) :> Task
 
-    member this.Stop() = stop() :> Task
+    member this.Stop() = stop(None) :> Task
 
     member this.AddStatsFromAgent(stats) = scnCtx.ScenarioStatsActor.Publish(AddFromAgent stats)
     member this.PrepareForRealtimeStats() = prepareForRealtimeStats()
@@ -263,7 +267,7 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
 
     interface IDisposable with
         member this.Dispose() =
-            stop() |> ignore
+            stop(None) |> ignore
             (scnCtx.ScenarioStatsActor :> IDisposable).Dispose()
 
 module Test =
