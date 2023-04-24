@@ -75,7 +75,7 @@ module Metrics =
     [<Literal>]
     let NO_SCALING_FRACTION = 1.0
     [<Literal>]
-    let BYTES_TO_MB_SCALING_FRACTION = 1048576.0 // 1024 * 1024
+    let BYTES_TO_MB_SCALING_FRACTION = 1_048_576.0 // 1024 * 1024
     [<Literal>]
     let CPU_USAGE = "cpu-usage"
     [<Literal>]

@@ -77,11 +77,12 @@ type MetricsStatsActor(logger: ILogger) =
     let addMetric (metric: Metric) (rawMetrics: Dictionary<string, RawMetricStats>) =
         match rawMetrics.TryGetValue metric.Name with
         | true, Histogram v ->
-            v.Histogram.RecordValue(int64 metric.Value)
-            v.Current <- metric.Value
+            let value = int64 (metric.Value * v.ScalingFraction)
+            v.Histogram.RecordValue value
+            v.Current <- float value
 
         | true, Gauge v ->
-            v.Value <- int64 metric.Value
+            v.Value <- int64 (metric.Value * v.ScalingFraction)
 
         | false, _ -> ()
 

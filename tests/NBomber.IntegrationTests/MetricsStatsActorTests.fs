@@ -1,45 +1,140 @@
 ﻿module Tests.MetricsStatsActor
 
-open System
-open System.Threading.Tasks
-
-open FsCheck.Xunit
-open NBomber.Domain.Stats.MetricsStatsActor
 open Xunit
 open Swensen.Unquote
 
 open NBomber
 open NBomber.Contracts.Stats
-open NBomber.Contracts.Internal
-open NBomber.Extensions.Internal
-open NBomber.Domain.Stats.ScenarioStatsActor
-open NBomber.FSharp
+open NBomber.Domain.Stats.MetricsStatsActor
 open Tests.TestHelper
 
 [<Fact>]
-let ``AllRealtimeStats should contain cached realtime stats`` () =
+let ``BuildReportingStats should calculate correctly for Gauge`` () =
 
     let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
     let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
 
-    ()
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Gauge)
 
-    // for i in [1..10] do
-    //     let result1 = { Name = "step_name"; ClientResponse = Response.ok()
-    //                     CurrentTimeBucket = TimeSpan.Zero; Latency = seconds i }
-    //     let result2 = { Name = Constants.ScenarioGlobalInfo; ClientResponse = Response.ok()
-    //                     CurrentTimeBucket = TimeSpan.Zero; Latency = seconds i }
-    //     metricsActor.Publish(AddMeasurement result1)
-    //     metricsActor.Publish(AddMeasurement result2)
-    //
-    // let tcs = TaskCompletionSource<ScenarioStats>()
-    // let loadStats = { SimulationName = ""; Value = 10 }
-    // let duration = seconds 10
-    // metricsActor.Publish(BuildReportingStats(tcs, loadStats, duration))
-    // let realtimeStats = tcs.Task.Result
-    //
-    // test <@ metricsActor.AllRealtimeStats[duration].Ok.Request.Count = 10 @>
-    // test <@ metricsActor.AllRealtimeStats[duration].StepStats[0].Ok.Request.Count = 10 @>
-    // test <@ metricsActor.AllRealtimeStats[duration].StepStats[0].Fail.Request.Count = 0 @>
-    // test <@ realtimeStats.Ok.Request.Count = 10 @>
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 3.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 2.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 1.5 })
 
+    let allMetrics = metricsActor.BuildReportingStats(seconds 1).GetAwaiter().GetResult()
+    let result = allMetrics[0]
+
+    test <@ result.Percentiles.IsNone @>
+    test <@ result.Name = metricName @>
+    test <@ result.Current = 1.5 @>
+    test <@ result.Max = 0 @>
+
+[<Fact>]
+let ``BuildReportingStats should calculate correctly for Histogram`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Histogram)
+
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 3.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 2.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 1.5 })
+
+    let allMetrics = metricsActor.BuildReportingStats(seconds 1).GetAwaiter().GetResult()
+    let result = allMetrics[0]
+
+    test <@ result.Percentiles.IsNone @>
+    test <@ result.Name = metricName @>
+    test <@ result.Current = 1.5 @>
+    test <@ result.Max = 3.5 @>
+
+[<Fact>]
+let ``BuildReportingStats should handle invalid args`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    // case 1
+    let result1 = metricsActor.BuildReportingStats(seconds 1).GetAwaiter().GetResult()
+
+    // case 2
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Histogram)
+    let result2 = metricsActor.BuildReportingStats(seconds 1).GetAwaiter().GetResult()
+
+    // case 3
+    metricsActor.Publish(AddMetric { Name = "a"; Value = 3.5 })
+    let result3 = metricsActor.BuildReportingStats(seconds 1).GetAwaiter().GetResult()
+
+    test <@ result1.Length = 0 @>
+    test <@ result2[0].Current = 0 @>
+    test <@ result3[0].Current = 0 @>
+
+[<Fact>]
+let ``GetFinalStats should calculate correctly for Gauge`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Gauge)
+
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 3.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 2.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 1.5 })
+
+    let allMetrics = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+    let result = allMetrics[0]
+
+    test <@ result.Percentiles.IsNone @>
+    test <@ result.Name = metricName @>
+    test <@ result.Current = 1.5 @>
+    test <@ result.Max = 0 @>
+
+[<Fact>]
+let ``GetFinalStats should calculate correctly for Histogram`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Histogram)
+
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 3.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 2.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 1.5 })
+
+    let allMetrics = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+    let result = allMetrics[0]
+
+    test <@ result.Percentiles.IsSome @>
+    test <@ result.Name = metricName @>
+    test <@ result.Current = 1.5 @>
+    test <@ result.Max = 3.5 @>
+    test <@ result.Percentiles.Value.Mean = 2.5 @>
+    test <@ result.Percentiles.Value.Percent50 = 2.5 @>
+    test <@ result.Percentiles.Value.Percent99 = 3.5 @>
+
+[<Fact>]
+let ``GetFinalStats should handle invalid args`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    // case 1
+    let result1 = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+
+    // case 2
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Histogram)
+    let result2 = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+
+    // case 3
+    metricsActor.Publish(AddMetric { Name = "a"; Value = 3.5 })
+    let result3 = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+
+    test <@ result1.Length = 0 @>
+    test <@ result2[0].Current = 0 @>
+    test <@ result3[0].Current = 0 @>

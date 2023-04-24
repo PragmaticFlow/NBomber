@@ -43,21 +43,21 @@ type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
             | true, name when name = CPU_USAGE ->
 
                 let value = data["Max"] :?> float
-                let metric = { Name = CPU_USAGE; Value = value * DEFAULT_SCALING_FRACTION }
+                let metric = { Name = CPU_USAGE; Value = value }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
             | true, name when name = WORKING_SET ->
 
                 let value = data["Max"] :?> float
-                let metric = { Name = WORKING_SET; Value = value * DEFAULT_SCALING_FRACTION }
+                let metric = { Name = WORKING_SET; Value = value }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
             | true, name when name = GC_HEAP_SIZE ->
 
                 let value = data["Max"] :?> float
-                let metric = { Name = GC_HEAP_SIZE; Value = value * DEFAULT_SCALING_FRACTION }
+                let metric = { Name = GC_HEAP_SIZE; Value = value }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
@@ -99,14 +99,14 @@ type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
             | true, name when name = BYTES_RECEIVED ->
 
                 let value = data["Max"] :?> float
-                let metric = { Name = DATA_RECEIVED; Value = value }
+                let metric = { Name = DATA_RECEIVED; Value = value / BYTES_TO_MB_SCALING_FRACTION }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
             | true, name when name = BYTES_SENT ->
 
                 let value = data["Max"] :?> float
-                let metric = { Name = DATA_SENT; Value = value }
+                let metric = { Name = DATA_SENT; Value = value / BYTES_TO_MB_SCALING_FRACTION }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
