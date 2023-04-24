@@ -64,7 +64,6 @@ module ScenarioStatsTests =
                 OperationType.Complete
                 (seconds 1)
                 (seconds 1)
-                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Request.Count + scenarioStats.Fail.Request.Count = okCount + failCount @>
 
@@ -85,7 +84,6 @@ module ScenarioStatsTests =
                 OperationType.Complete
                 (seconds 1)
                 (seconds 1)
-                TimeSpan.Zero
 
         test <@ ScenarioStats.calcAllBytes scenarioStats = okAllBytes + failAllBytes @>
 
@@ -105,7 +103,6 @@ module ScenarioStatsTests =
                 OperationType.Complete
                 (seconds 1)
                 (seconds 1)
-                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Request.Count = okCount1 @>
         test <@ scenarioStats.StepStats[0].Ok.Request.Count = okCount2 @>
@@ -126,7 +123,6 @@ module ScenarioStatsTests =
                 OperationType.Complete
                 (seconds 1)
                 (seconds 1)
-                TimeSpan.Zero
 
         test <@ scenarioStats.Fail.Request.Count = failCount1 @>
         test <@ scenarioStats.StepStats[0].Fail.Request.Count = failCount2 @>
@@ -161,7 +157,6 @@ module ScenarioStatsTests =
                 OperationType.Complete
                 (seconds 1)
                 (seconds 1)
-                TimeSpan.Zero
 
         test <@ scenarioStats.Ok.Latency.LatencyCount.LessOrEq800 = less800 @>
         test <@ scenarioStats.Ok.Latency.LatencyCount.More800Less1200 = more800Less1200 @>

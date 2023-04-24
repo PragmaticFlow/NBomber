@@ -129,6 +129,18 @@ let getPlanedDuration (simulations: LoadSimulation list) =
     |> List.map(fun x -> x.Duration)
     |> List.fold(fun st v -> st + v) TimeSpan.Zero
 
+let calcExecutedDuration (simulations: LoadSimulation list) (currentTime: TimeSpan) =
+    let execPauseTime =
+        simulations
+        |> List.choose(fun x ->
+            match x.Value with
+            | Pause _ when x.EndTime <= currentTime -> Some x.Duration
+            | _ -> None
+        )
+        |> List.fold(fun st v -> st + v) TimeSpan.Zero
+
+    currentTime - execPauseTime
+
 let create (scnName:  string) (simulations: Contracts.LoadSimulation list) =
 
     let getPrevCopiesCount (simulation) =

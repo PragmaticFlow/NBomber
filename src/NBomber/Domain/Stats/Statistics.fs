@@ -190,12 +190,10 @@ module ScenarioStats =
                (rawStats: RawMeasurementStats[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
-               (executedDuration: TimeSpan)
-               (reportingInterval: TimeSpan)
-               (pause: TimeSpan) =
+               (currentTime: TimeSpan)
+               (execDuration: TimeSpan) =
 
-        let execOnlyDuration = reportingInterval - pause
-        let allStepStats = rawStats |> Array.map(StepStats.create execOnlyDuration)
+        let allStepStats = rawStats |> Array.map(StepStats.create execDuration)
         let stepStats    = allStepStats |> Array.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo)
         let globalInfo   = allStepStats |> Array.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
@@ -224,7 +222,7 @@ module ScenarioStats =
           AllOkCount = allOkCount
           AllFailCount = allFailCount
           AllBytes = allBytes
-          Duration = Converter.roundDuration executedDuration }
+          Duration = Converter.roundDuration currentTime }
 
     let failStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)

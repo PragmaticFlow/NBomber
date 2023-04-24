@@ -18,8 +18,8 @@ open NBomber.Domain.Stats.RawMeasurementStats
 type ActorMessage =
     | AddMeasurement of Measurement
     | AddFromAgent   of ScenarioStats
-    | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan
-    | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * executedDuration:TimeSpan * pause:TimeSpan
+    | BuildReportingStats of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * currentTime:TimeSpan
+    | GetFinalStats       of reply:TaskCompletionSource<ScenarioStats> * LoadSimulationStats * currentTime:TimeSpan * execDuration:TimeSpan
 
 type State = {
     Logger: ILogger
@@ -123,31 +123,22 @@ let flushTempBuffer (state: State) =
     state.TempBuffer.Clear()
     state.UseTempBuffer <- true
 
-let createReportingStats (state: State) simulationStats executedDuration pause rawStats =
-    ScenarioStats.create
-        state.Scenario.ScenarioName rawStats simulationStats OperationType.Bombing executedDuration
-        state.ReportingInterval pause
-
-let createFinalStats (state: State) simulationStats executedDuration pause rawStats =
-    ScenarioStats.create
-        state.Scenario.ScenarioName rawStats simulationStats OperationType.Complete executedDuration
-        executedDuration pause
-
 let buildStats (state: State)
                (cordRawStats: RawMeasurementStats[])
                (agentStats: ResizeArray<ScenarioStats>)
                (simulationStats: LoadSimulationStats)
+               (currentTime: TimeSpan)
                (executedDuration: TimeSpan)
-               (pause: TimeSpan)
                (isFinalStats: bool) =
 
     cordRawStats |> Array.sortInPlaceBy(fun x -> state.StepsOrder[x.Name])
+    let name = state.Scenario.ScenarioName
 
     let cordStats =
         if isFinalStats then
-            cordRawStats |> createFinalStats state simulationStats executedDuration pause
+            ScenarioStats.create name cordRawStats simulationStats OperationType.Complete currentTime executedDuration
         else
-            cordRawStats |> createReportingStats state simulationStats executedDuration pause
+            ScenarioStats.create name cordRawStats simulationStats OperationType.Bombing currentTime executedDuration
 
     if state.Scenario.IsEnabled then
         agentStats.Add cordStats
@@ -225,12 +216,11 @@ type ScenarioStatsActor(logger: ILogger,
                     | AddFromAgent agentStats ->
                         _state |> addStatsFromAgent agentStats
 
-                    | BuildReportingStats (reply, simulationStats, executedDuration) ->
+                    | BuildReportingStats (reply, simulationStats, currentTime) ->
                         let isFinalStats = false
-                        let pause = TimeSpan.Zero
                         let reportingStats = _state.IntervalStepsResults.Values |> Seq.toArray
 
-                        let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats executedDuration pause isFinalStats
+                        let stats = buildStats _state reportingStats _state.IntervalAgentsStats simulationStats currentTime _state.ReportingInterval isFinalStats
 
                         addReportingStats _state stats
                         flushTempBuffer _state
@@ -259,6 +249,16 @@ type ScenarioStatsActor(logger: ILogger,
 
     [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member this.Publish(msg) = _queue.Enqueue msg
+
+    member this.BuildReportingStats(simulationStats, currentTime) =
+        let reply = TaskCompletionSource<_>()
+        _queue.Enqueue(BuildReportingStats(reply, simulationStats, currentTime))
+        reply.Task
+
+    member this.GetFinalStats(simulationStats, currentTime, execDuration) =
+        let reply = TaskCompletionSource<_>()
+        _queue.Enqueue(GetFinalStats(reply, simulationStats, currentTime, execDuration))
+        reply.Task
 
     interface IDisposable with
         member this.Dispose() = _stop <- true

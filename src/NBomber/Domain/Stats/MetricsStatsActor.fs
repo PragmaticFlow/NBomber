@@ -55,8 +55,8 @@ type RawMetricStats =
 type ActorMessage =
     | RegisterMetric      of name:string * measureUnit:string * scalingFraction:float * metricType:MetricType
     | AddMetric           of Metric
-    | BuildReportingStats of reply:TaskCompletionSource<MetricStats[]> * executedDuration:TimeSpan
-    | GetFinalStats       of reply:TaskCompletionSource<MetricStats[]> * executedDuration:TimeSpan
+    | BuildReportingStats of reply:TaskCompletionSource<MetricStats[]> * currentTime:TimeSpan
+    | GetFinalStats       of reply:TaskCompletionSource<MetricStats[]> * currentTime:TimeSpan
 
 type MetricsStatsActor(logger: ILogger) =
 
@@ -86,7 +86,7 @@ type MetricsStatsActor(logger: ILogger) =
 
         | false, _ -> ()
 
-    let buildStats (isFinal) (executedDuration) =
+    let buildStats (isFinal) (currentTime) =
 
         let buildPercentiles (m: HistogramMetric) =
             if m.Histogram.TotalCount > 0 then
@@ -115,7 +115,7 @@ type MetricsStatsActor(logger: ILogger) =
                   MetricType = MetricType.Histogram
                   Current = (m.Current / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Max = calcMax m
-                  Duration = executedDuration
+                  Duration = currentTime
                   Percentiles = if isFinal then m |> buildPercentiles
                                 else None }
 
@@ -125,7 +125,7 @@ type MetricsStatsActor(logger: ILogger) =
                   MetricType = MetricType.Gauge
                   Current = (float v.Value / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Max = 0
-                  Duration = executedDuration
+                  Duration = currentTime
                   Percentiles = None }
         )
         |> Seq.toArray
@@ -143,16 +143,16 @@ type MetricsStatsActor(logger: ILogger) =
                     | AddMetric metric ->
                         _rawMetrics |> addMetric metric
 
-                    | BuildReportingStats(reply, executedDuration) ->
-                        let metrics = buildStats false executedDuration
+                    | BuildReportingStats(reply, currentTime) ->
+                        let metrics = buildStats false currentTime
 
                         _currentMetrics <- metrics
-                        _allRealtimeMetrics[executedDuration] <- metrics
+                        _allRealtimeMetrics[currentTime] <- metrics
 
                         reply.TrySetResult(metrics) |> ignore
 
-                    | GetFinalStats(reply, executedDuration) ->
-                        let metrics = buildStats true executedDuration
+                    | GetFinalStats(reply, currentTime) ->
+                        let metrics = buildStats true currentTime
                         reply.TrySetResult(metrics) |> ignore
 
                 | _ -> do! Task.Delay 100
@@ -173,9 +173,9 @@ type MetricsStatsActor(logger: ILogger) =
     member this.RegisterMetric(name, measureUnit, scalingFraction, metricType) =
         _queue.Enqueue(RegisterMetric(name, measureUnit, scalingFraction, metricType))
 
-    member this.BuildReportingStats(executedDuration) =
+    member this.BuildReportingStats(currentTime) =
         let reply = TaskCompletionSource<_>()
-        _queue.Enqueue(BuildReportingStats(reply, executedDuration))
+        _queue.Enqueue(BuildReportingStats(reply, currentTime))
         reply.Task
 
     member this.GetFinalStats(executedDuration) =

@@ -85,7 +85,7 @@ type ReportingManager(dep: IGlobalDependency,
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
 
     let mutable _metricsGrabber = Option.None
-    let mutable _curDuration = TimeSpan.Zero
+    let mutable _currentTime = TimeSpan.Zero
 
     let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers _metricsActor
 
@@ -103,16 +103,16 @@ type ReportingManager(dep: IGlobalDependency,
 
     do
         _buildRealtimeStatsTimer.Elapsed.Add(fun _ ->
-            let duration = _curDuration + _reportingInterval
+            let duration = _currentTime + _reportingInterval
             if duration <= _timerMaxDuration then
-                _curDuration <- duration
+                _currentTime <- duration
 
                 backgroundTask {
                     let statsTasks =
                         schedulers
-                        |> Seq.map(fun x -> x.BuildRealtimeStats _curDuration)
+                        |> Seq.map(fun x -> x.BuildRealtimeStats _currentTime)
 
-                    let! metrics = _metricsActor.BuildReportingStats _curDuration
+                    let! metrics = _metricsActor.BuildReportingStats _currentTime
 
                     let! realtimeStats = statsTasks |> Task.WhenAll
 
