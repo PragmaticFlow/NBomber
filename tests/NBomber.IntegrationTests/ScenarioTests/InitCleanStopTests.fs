@@ -77,14 +77,14 @@ let ``TestInit should propagate CustomSettings from config.json`` () =
 let ``should be stopped via StepContext.StopScenario`` () =
 
     let mutable counter = 0
-    let duration = seconds 15
+    let duration = seconds 5
 
     let scenario1 =
         Scenario.create("test_youtube_1", fun ctx -> task {
             do! Task.Delay(milliseconds 100)
             counter <- counter + 1
 
-            if counter = 30 then
+            if counter = 5 then
                 ctx.StopScenario("test_youtube_1", "custom reason")
 
             return Response.ok()
@@ -159,7 +159,7 @@ let ``Test execution should be stopped if all scenarios are stopped`` () =
         test <@ youtube2Steps.Duration < duration @>
 
 [<Fact>]
-let ``withClean should provide scenario execution duration via context.ScenarioInfo`` () =    
+let ``withClean should provide scenario execution duration via context.ScenarioInfo`` () =
     let duration = seconds 60
     let mutable plannedDuration = TimeSpan.Zero
     let mutable executionDuration = TimeSpan.Zero
@@ -167,10 +167,10 @@ let ``withClean should provide scenario execution duration via context.ScenarioI
     let scenario1 =
         Scenario.create("test_youtube_1", fun ctx -> task {
             do! Task.Delay(seconds 1)
-            
+
             if ctx.InvocationNumber > 2 then
                 ctx.StopCurrentTest("no reason")
-            
+
             return Response.ok()
         })
         |> Scenario.withoutWarmUp
@@ -178,7 +178,7 @@ let ``withClean should provide scenario execution duration via context.ScenarioI
             plannedDuration <- ctx.ScenarioInfo.ScenarioDuration
         })
         |> Scenario.withClean(fun ctx -> task {
-            executionDuration <- ctx.ScenarioInfo.ScenarioDuration            
+            executionDuration <- ctx.ScenarioInfo.ScenarioDuration
         })
         |> Scenario.withLoadSimulations [KeepConstant(1, seconds 60)]
 
@@ -259,39 +259,39 @@ let ``MaxFailCount should be tracked only for scenarios failures, not steps fail
     |> Result.getOk
     |> fun stats ->
         test <@ stats.ScenarioStats[0].Fail.Request.Count = 0 @>
-        
+
 [<Fact>]
-let ``withInit should stop the test in case of error`` () =    
-    
+let ``withInit should stop the test in case of error`` () =
+
     Scenario.create("test_youtube", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
     |> Scenario.withInit(fun ctx -> task {
         failwith "my error"
-    }) 
+    })
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 2)]
-    |> NBomberRunner.registerScenario    
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
-    |> function        
+    |> function
         | Error error when error.Contains "Init scenario error" -> ()
         | _ -> failwith "error"
 
 [<Fact>]
 let ``withClean should not stop test in case of error`` () =
-    
+
     Scenario.create("test_youtube", fun ctx -> task {
         do! Task.Delay(milliseconds 100)
         return Response.ok()
     })
     |> Scenario.withClean(fun ctx -> task {
         failwith "my error"
-    }) 
+    })
     |> Scenario.withoutWarmUp
     |> Scenario.withLoadSimulations [KeepConstant(2,  seconds 1)]
-    |> NBomberRunner.registerScenario    
+    |> NBomberRunner.registerScenario
     |> NBomberRunner.withoutReports
     |> NBomberRunner.run
-    |> Result.isOk            
+    |> Result.isOk
