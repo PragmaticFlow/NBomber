@@ -87,12 +87,6 @@ module Metrics =
     [<Literal>]
     let THREAD_POOL_QUEUE_COUNT = "threadpool-thread-count"
     [<Literal>]
-    let INCOMING_CONNECTIONS_ESTABLISHED = "incoming-connections-established"
-    [<Literal>]
-    let OUTGOING_CONNECTIONS_ESTABLISHED = "outgoing-connections-established"
-    [<Literal>]
-    let CURRENT_OUTGOING_CONNECT_ATTEMPTS = "current-outgoing-connect-attempts"
-    [<Literal>]
     let DATA_RECEIVED = "data-received"
     [<Literal>]
     let DATA_SENT = "data-sent"

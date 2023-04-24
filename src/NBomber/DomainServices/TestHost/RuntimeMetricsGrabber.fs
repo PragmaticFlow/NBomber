@@ -16,9 +16,6 @@ type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
         metricsActor.RegisterMetric(GC_HEAP_SIZE, "MB", DEFAULT_SCALING_FRACTION, MetricType.Histogram)
         metricsActor.RegisterMetric(THREAD_POOL_QUEUE_LENGTH, "", NO_SCALING_FRACTION, MetricType.Gauge)
         metricsActor.RegisterMetric(THREAD_POOL_QUEUE_COUNT, "", NO_SCALING_FRACTION, MetricType.Gauge)
-        metricsActor.RegisterMetric(INCOMING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Gauge)
-        metricsActor.RegisterMetric(OUTGOING_CONNECTIONS_ESTABLISHED, "", NO_SCALING_FRACTION, MetricType.Gauge)
-        metricsActor.RegisterMetric(CURRENT_OUTGOING_CONNECT_ATTEMPTS, "", NO_SCALING_FRACTION, MetricType.Gauge)
         metricsActor.RegisterMetric(DATA_RECEIVED, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Gauge)
         metricsActor.RegisterMetric(DATA_SENT, "MB", BYTES_TO_MB_SCALING_FRACTION, MetricType.Gauge)
 
@@ -72,27 +69,6 @@ type RuntimeMetricsGrabber(metricsActor: MetricsStatsActor) =
 
                 let value = data["Max"] :?> float
                 let metric = { Name = THREAD_POOL_QUEUE_COUNT; Value = value }
-
-                metricsActor.Publish(ActorMessage.AddMetric metric)
-
-            | true, name when name = INCOMING_CONNECTIONS_ESTABLISHED ->
-
-                let value = data["Max"] :?> float
-                let metric = { Name = INCOMING_CONNECTIONS_ESTABLISHED; Value = value }
-
-                metricsActor.Publish(ActorMessage.AddMetric metric)
-
-            | true, name when name = OUTGOING_CONNECTIONS_ESTABLISHED ->
-
-                let value = data["Max"] :?> float
-                let metric = { Name = OUTGOING_CONNECTIONS_ESTABLISHED; Value = value }
-
-                metricsActor.Publish(ActorMessage.AddMetric metric)
-
-            | true, name when name = CURRENT_OUTGOING_CONNECT_ATTEMPTS ->
-
-                let value = data["Max"] :?> float
-                let metric = { Name = CURRENT_OUTGOING_CONNECT_ATTEMPTS; Value = value }
 
                 metricsActor.Publish(ActorMessage.AddMetric metric)
 
