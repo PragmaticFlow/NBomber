@@ -17,7 +17,7 @@
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <Title>NBomber</Title>        
+        <Title>NBomber</Title>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
@@ -32,6 +32,7 @@
         <Compile Include="Domain\Stats\RawMeasurementStats.fs" />
         <Compile Include="Domain\Stats\Statistics.fs" />
         <Compile Include="Domain\Stats\ScenarioStatsActor.fs" />
+        <Compile Include="Domain\Stats\MetricsStatsActor.fs" />
         <Compile Include="Domain\ScenarioContext.fs" />
         <Compile Include="Domain\Step.fs" />
         <Compile Include="Domain\Scenario.fs" />
@@ -51,6 +52,7 @@
         <Compile Include="DomainServices\Reports\MdReport.fs" />
         <Compile Include="DomainServices\Reports\ConsoleReport.fs" />
         <Compile Include="DomainServices\Reports\Report.fs" />
+        <Compile Include="DomainServices\TestHost\RuntimeMetricsGrabber.fs" />
         <Compile Include="DomainServices\TestHost\WorkerPlugins.fs" />
         <Compile Include="DomainServices\TestHost\ReportingSinks.fs" />
         <Compile Include="DomainServices\TestHost\ReportingManager.fs" />
@@ -71,7 +73,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="NBomber.Contracts" Version="[4.1.1]" />
+        <PackageReference Include="NBomber.Contracts" Version="[4.2.0-beta.1]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.13.0" />
         <PackageReference Include="FuncyDown" Version="1.3.0" />
@@ -89,6 +91,6 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>
+    </ItemGroup>    
 
 </Project>

@@ -4,7 +4,6 @@ open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-
 open FsToolkit.ErrorHandling
 open Spectre.Console
 
@@ -15,8 +14,9 @@ open NBomber.Extensions.Internal
 open NBomber.Domain
 open NBomber.Domain.DomainTypes
 open NBomber.Domain.Scheduler.ScenarioScheduler
-open NBomber.DomainServices.Reports
 open NBomber.Infra
+open NBomber.DomainServices.Reports
+open NBomber.DomainServices.TestHost.ReportingManager
 
 let printTargetScenarios (dep: IGlobalDependency) (targetScns: Scenario list) =
     targetScns
@@ -56,18 +56,25 @@ let printContextInfo (dep: IGlobalDependency) (sessionArgs: SessionArgs) =
 
 module LiveStatusTable =
 
-    let private buildTable () =
+    let private buildScenariosTable () =
         let table = Table()
         table.Border <- TableBorder.Square
+        table.Title <- TableTitle "scenarios stats"
 
-        TableColumn("scenario") |> table.AddColumn |> ignore
-        TableColumn("step") |> table.AddColumn |> ignore
-        TableColumn("load simulation") |> table.AddColumn |> ignore
-        TableColumn("ok latency (ms)") |> table.AddColumn |> ignore
-        TableColumn("fail latency (ms)") |> table.AddColumn |> ignore
-        TableColumn("ok data transfer (KB)") |> table.AddColumn
+        table.AddColumn("scenario")
+             .AddColumn("step")
+             .AddColumn("simulation")
+             .AddColumn("statistics")
 
-    let private renderTable (table: Table) (scenariosStats: ScenarioStats list) =
+    let private buildMetricsTable () =
+        let table = Table()
+        table.Border <- TableBorder.Square
+        table.Title <- TableTitle "metrics stats"
+
+        table.AddColumn("metric name")
+             .AddColumn("stats")
+
+    let private renderScenarioStats (table: Table) (scenariosStats: ScenarioStats list) =
         table.Rows.Clear()
 
         for scnStats in scenariosStats do
@@ -76,24 +83,38 @@ module LiveStatusTable =
                 if scnStats.LoadSimulationStats.SimulationName = "pause" then "pause"
                 else $"{scnStats.LoadSimulationStats.SimulationName}: {Console.blueColor scnStats.LoadSimulationStats.Value}"
 
-            for stepStats in scnStats.StepStats do
+            scnStats.StepStats
+            |> Array.iteri(fun i stepStats ->
                 let ok = stepStats.Ok
                 let okR = ok.Request
                 let okL = ok.Latency
-                let data = ok.DataTransfer
-
-                let fail = stepStats.Fail
-                let fR = fail.Request
-                let fL = fail.Latency
+                let okD = ok.DataTransfer
 
                 table.AddRow(
                     scnStats.ScenarioName,
                     stepStats.StepName,
                     simulation,
-                    $"ok: {Console.okColor okR.Count}, RPS: {Console.okColor okR.RPS}, p50 = {Console.okColor okL.Percent50}, p99 = {Console.okColor okL.Percent99}",
-                    $"fail: {Console.errorColor fR.Count}, RPS: {Console.errorColor fR.RPS}, p50 = {Console.errorColor fL.Percent50}, p99 = {Console.errorColor fL.Percent99}",
-                    $"min: {data.MinBytes |> Converter.fromBytesToKb |> Console.blueColor}, max: {data.MaxBytes |> Converter.fromBytesToKb |> Console.blueColor}, all: {data.AllBytes |> Converter.fromBytesToMb |> Console.blueColor} MB")
+                    $"ok: {Console.okColor okR.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor okR.RPS},\nmin = {Console.okColor okL.MinMs} ms, mean = {Console.okColor okL.MeanMs} ms, max = {Console.okColor okL.MaxMs} ms,\np50 = {Console.okColor okL.Percent50} ms, p75 = {Console.okColor okL.Percent75} ms,  p99 = {Console.okColor okL.Percent99} ms\ndata-mean = {Converter.fromBytesToKb okD.MeanBytes} KB, data-all = {Converter.fromBytesToMb okD.AllBytes} MB"
+                )
                 |> ignore
+
+                if i <> scnStats.StepStats.Length - 1 then
+                    table.AddEmptyRow() |> ignore
+            )
+
+    let private renderMetricsStats (table: Table) (stats: MetricStats[]) =
+        table.Rows.Clear()
+
+        for s in stats do
+            match s.MetricType with
+            | MetricType.Histogram ->
+                table.AddRow($"{s.Name}", $"current: {Console.okColor s.Current} {s.MeasureUnit}, max: {Console.okColor s.Max} {s.MeasureUnit}") |> ignore
+
+            | MetricType.Gauge ->
+                table.AddRow($"{s.Name}", $"current: {Console.okColor s.Current} {s.MeasureUnit}") |> ignore
+
+            | _ ->
+                table.AddRow($"{s.Name}", $"current: {Console.okColor s.Current} {s.MeasureUnit}") |> ignore
 
     let private getMaxScnDuration (isWarmUp: bool) (scnSchedulers: ScenarioScheduler list) =
         if isWarmUp then
@@ -104,7 +125,8 @@ module LiveStatusTable =
     let display (dep: IGlobalDependency)
                 (cancelToken: CancellationToken)
                 (isWarmUp: bool)
-                (scnSchedulers: ScenarioScheduler list) =
+                (scnSchedulers: ScenarioScheduler list)
+                (reportingManager: IReportingManager) =
 
         if dep.ApplicationType = ApplicationType.Console then
 
@@ -113,10 +135,19 @@ module LiveStatusTable =
 
             let maxDuration = getMaxScnDuration isWarmUp scnSchedulers
 
-            let table = buildTable ()
-            table.Caption <- TableTitle("real-time stats table")
+            let scnTable = buildScenariosTable()
+            let metricsTable = buildMetricsTable()
 
-            let liveTable = AnsiConsole.Live(table)
+            let mainTable = Table()
+            mainTable.Border <- TableBorder.Double
+
+            mainTable
+                .AddColumn("real-time stats table")
+                .AddRow(scnTable)
+                .AddEmptyRow()
+                .AddRow(metricsTable) |> ignore
+
+            let liveTable = AnsiConsole.Live(mainTable)
             liveTable.AutoClear <- false
             liveTable.Overflow <- VerticalOverflow.Ellipsis
             liveTable.Cropping <- VerticalOverflowCropping.Bottom
@@ -130,12 +161,13 @@ module LiveStatusTable =
                         if currentTime < maxDuration && refreshTableCounter = 0 then
 
                             let scenariosStats = scnSchedulers |> List.map(fun x -> x.ConsoleScenarioStats)
-                            renderTable table scenariosStats
+                            renderScenarioStats scnTable scenariosStats
+                            renderMetricsStats metricsTable (reportingManager.GetCurrentMetrics())
 
                         if currentTime <= maxDuration then
-                            table.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                            mainTable.Title <- TableTitle($"duration: ({currentTime:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
                             ctx.Refresh()
-                            
+
                         do! Task.Delay(1_000, cancelToken)
 
                         refreshTableCounter <- refreshTableCounter + 1
@@ -148,7 +180,7 @@ module LiveStatusTable =
                         refreshTableCounter <- 1
                         dep.Logger.Fatal(ex.ToString())
 
-                table.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
+                mainTable.Title <- TableTitle($"duration: ({maxDuration:``hh\:mm\:ss``} - {maxDuration:``hh\:mm\:ss``})")
                 ctx.Refresh()
             })
             |> ignore

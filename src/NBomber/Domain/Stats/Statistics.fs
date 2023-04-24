@@ -190,12 +190,10 @@ module ScenarioStats =
                (rawStats: RawMeasurementStats[])
                (simulationStats: LoadSimulationStats)
                (currentOperation: OperationType)
-               (executedDuration: TimeSpan)
-               (reportingInterval: TimeSpan)
-               (pause: TimeSpan) =
+               (currentTime: TimeSpan)
+               (execDuration: TimeSpan) =
 
-        let execOnlyDuration = reportingInterval - pause
-        let allStepStats = rawStats |> Array.map(StepStats.create execOnlyDuration)
+        let allStepStats = rawStats |> Array.map(StepStats.create execDuration)
         let stepStats    = allStepStats |> Array.filter(fun x -> x.StepName <> Constants.ScenarioGlobalInfo)
         let globalInfo   = allStepStats |> Array.tryFind(fun x -> x.StepName = Constants.ScenarioGlobalInfo)
 
@@ -224,7 +222,7 @@ module ScenarioStats =
           AllOkCount = allOkCount
           AllFailCount = allFailCount
           AllBytes = allBytes
-          Duration = Converter.roundDuration executedDuration }
+          Duration = Converter.roundDuration currentTime }
 
     let failStatsExist (stats: ScenarioStats) =
         stats.StepStats |> Array.exists(fun stats -> stats.Fail.Request.Count > 0)
@@ -234,7 +232,7 @@ module ScenarioStats =
 
 module NodeStats =
 
-    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) =
+    let create (testInfo: TestInfo) (nodeInfo: NodeInfo) (scnStats: ScenarioStats[]) (metrics: MetricStats[]) =
         if Array.isEmpty scnStats then
             { NodeStats.empty with NodeInfo = nodeInfo; TestInfo = testInfo }
         else
@@ -245,6 +243,7 @@ module NodeStats =
             let allBytes = scnStats |> Array.sumBy(fun x -> x.AllBytes)
 
             { ScenarioStats = scnStats
+              MetricStats = metrics
               PluginStats = Array.empty
               NodeInfo = nodeInfo
               TestInfo = testInfo

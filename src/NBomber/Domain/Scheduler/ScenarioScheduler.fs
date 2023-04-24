@@ -5,6 +5,7 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 open System.Timers
+
 open NBomber
 open NBomber.Contracts
 open NBomber.Contracts.Stats
@@ -99,7 +100,6 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     let mutable _warmupTimer = new Timer()
     let mutable _currentSimulation = _scenario.LoadSimulations.Head
     let mutable _cachedSimulationStats = Unchecked.defaultof<LoadSimulationStats>
-    let mutable _pauseDuration = TimeSpan.Zero
     let mutable _isWorking = false
 
     let _constantScheduler =
@@ -119,50 +119,52 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
     let prepareForRealtimeStats () =
         _cachedSimulationStats <- getCurrentSimulationStats()
 
-    let buildRealtimeStats (duration: TimeSpan) =
-        let simulationStats = getCurrentSimulationStats()
-        let reply = TaskCompletionSource<ScenarioStats>()
-        _statsActor.Publish(BuildReportingStats(reply, simulationStats, duration))
-        reply.Task
-
-    let commitRealtimeStats (duration) =
-        let reply = TaskCompletionSource<ScenarioStats>()
-        _statsActor.Publish(BuildReportingStats(reply, _cachedSimulationStats, duration))
-        reply.Task
-
-    let getFinalStats () =
-        let simulationStats = getCurrentSimulationStats()
-        let executedDuration = Scenario.getExecutedDuration _scenario
-        let reply = TaskCompletionSource<ScenarioStats>()
-        _statsActor.Publish(GetFinalStats(reply, simulationStats, executedDuration, _pauseDuration))
-        reply.Task
-
     let getRandomValue minRate maxRate =
         _randomGen.Next(minRate, maxRate)
 
-    let stop () =
+    let waitOnWorkingActors () = backgroundTask {
+
+        let getWorkingActorCount () =
+            _constantScheduler.AvailableActors
+            |> Seq.append _oneTimeScheduler.AvailableActors
+            |> Concurrency.ScenarioActorPool.getWorkingActors
+            |> Seq.length
+
+        let mutable counter = 0
+
+        while counter < Constants.MaxWaitWorkingActorsSec do
+            let actorsCount = getWorkingActorCount()
+            if actorsCount > 0 then
+                do! Task.Delay Constants.ONE_SECOND
+                counter <- counter + 1
+            else
+                counter <- Constants.MaxWaitWorkingActorsSec
+    }
+
+    let stop () = backgroundTask {
+        scnCtx.ScenarioCancellationToken.Cancel()
+
         if _isWorking then
             _isWorking <- false
 
-            _scenario <-
-                if not scnCtx.ScenarioCancellationToken.IsCancellationRequested then
-                    scnCtx.ScenarioCancellationToken.Cancel()
-                    Scenario.setExecutedDuration _scenario _scenario.PlanedDuration
-                else
-                    Scenario.setExecutedDuration _scenario _scnTimer.Elapsed
+            let executedDuration = LoadSimulation.calcExecutedDuration _scenario.LoadSimulations scnCtx.CurrentTimeBucket
+            _scenario <- Scenario.setExecutedDuration _scenario executedDuration
 
-            _constantScheduler.AskToStop()
-            _oneTimeScheduler.AskToStop()
+            (_constantScheduler :> IDisposable).Dispose()
+            (_oneTimeScheduler :> IDisposable).Dispose()
             _scnTimer.Stop()
             _warmupTimer.Stop()
+
+            do! waitOnWorkingActors()
+    }
 
     let start (testHostCancelToken: CancellationToken) = backgroundTask {
         _isWorking <- true
         _scnTimer.Start()
-        let mutable currentTime = TimeSpan.Zero
+        let mutable simulationExecTime = TimeSpan.Zero
 
         for simulation in _scenario.LoadSimulations do
-            currentTime <- TimeSpan.Zero
+            simulationExecTime <- TimeSpan.Zero
             _currentSimulation <- simulation
 
             // if we need switch from ClosedModel simulation to OpenModel simulation
@@ -177,16 +179,16 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
             let simulationInterval = LoadSimulation.getSimulationInterval simulation.Value
             let mutable intervalDrift = TimeSpan.Zero
 
-            while _isWorking && currentTime < simulation.Duration
+            while _isWorking && simulationExecTime < simulation.Duration
                   && not _scnCancelToken.IsCancellationRequested
                   && not testHostCancelToken.IsCancellationRequested do
 
                 if _statsActor.ScenarioFailCount >= _scenario.MaxFailCount then
-                    stop()
+                    stop() |> ignore
                     scnCtx.ExecStopCommand(StopCommand.StopTest $"Stopping test because of too many fails. Scenario '{_scenario.ScenarioName}' contains '{scnCtx.ScenarioStatsActor.ScenarioFailCount}' fails.")
 
                 let startInterval = _scnTimer.Elapsed
-                let timeProgress = LoadSimulation.calcTimeProgress currentTime simulation.Duration
+                let timeProgress = LoadSimulation.calcTimeProgress simulationExecTime simulation.Duration
 
                 let struct (command, copiesCount) =
                     schedule getRandomValue simulation timeProgress _constantScheduler.ScheduledActorCount
@@ -207,65 +209,48 @@ type ScenarioScheduler(scnCtx: ScenarioContextArgs, scenarioClusterCount: int) =
                     let endInterval = _scnTimer.Elapsed
                     intervalDrift <- calcTimeDrift startInterval endInterval simulationInterval
 
-                    currentTime <- currentTime + simulationInterval
+                    simulationExecTime <- simulationExecTime + simulationInterval
                     scnCtx.CurrentTimeBucket <- scnCtx.CurrentTimeBucket + simulationInterval
                 with
                 | _ -> ()  // operation cancel
 
-            // update pauseDuration to calculate correctly RPS
-            match simulation.Value with
-            | Pause duration -> _pauseDuration <- _pauseDuration + duration
-            | _              -> ()
-
-        stop()
+        stop() |> ignore
     }
 
-    let getWorkingActorCount () =
-        _constantScheduler.AvailableActors
-        |> Seq.append _oneTimeScheduler.AvailableActors
-        |> Concurrency.ScenarioActorPool.getWorkingActors
-        |> Seq.length
+    member this.Working = _isWorking
+    member this.Scenario = _scenario
+    member this.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
+    member this.ConsoleScenarioStats = scnCtx.ScenarioStatsActor.ConsoleScenarioStats
 
-    let waitOnWorkingActors () = backgroundTask {
-        let mutable counter = 0
+    member this.AddStatsFromAgent(stats) = scnCtx.ScenarioStatsActor.Publish(AddFromAgent stats)
+    member this.PrepareForRealtimeStats() = prepareForRealtimeStats()
 
-        while counter < Constants.MaxWaitWorkingActorsSec do
-            let actorsCount = getWorkingActorCount()
-            if actorsCount > 0 then
-                do! Task.Delay Constants.OneSecond
-                counter <- counter + 1
-            else
-                counter <- Constants.MaxWaitWorkingActorsSec
-    }
+    member this.CommitRealtimeStats(currentTime) =
+        _statsActor.BuildReportingStats(_cachedSimulationStats, currentTime)
 
-    member _.Working = _isWorking
-    member _.Scenario = _scenario
-    member _.AllRealtimeStats = scnCtx.ScenarioStatsActor.AllRealtimeStats
-    member _.ConsoleScenarioStats = scnCtx.ScenarioStatsActor.ConsoleScenarioStats
+    member this.BuildRealtimeStats(currentTime) =
+        let simulationStats = getCurrentSimulationStats()
+        _statsActor.BuildReportingStats(simulationStats, currentTime)
 
-    member _.Start(bombingCancelToken) =
+    member this.GetFinalStats() =
+        let simulationStats = getCurrentSimulationStats()
+        let executedDuration = Scenario.getExecutedDuration _scenario
+        _statsActor.GetFinalStats(simulationStats, scnCtx.CurrentTimeBucket, executedDuration)
+
+    member this.Start(bombingCancelToken) =
         if scnCtx.ScenarioOperation = ScenarioOperation.WarmUp && _scenario.WarmUpDuration.IsSome then
             _warmupTimer <- new Timer(_scenario.WarmUpDuration.Value.TotalMilliseconds)
-            _warmupTimer.Elapsed.Add(fun _ -> stop())
+            _warmupTimer.Elapsed.Add(fun _ -> stop() |> ignore)
             _warmupTimer.Start()
 
         start(bombingCancelToken) :> Task
 
-    member _.Stop() =
-        scnCtx.ScenarioCancellationToken.Cancel()
-        stop()
-        waitOnWorkingActors() :> Task
-
-    member _.AddStatsFromAgent(stats) = scnCtx.ScenarioStatsActor.Publish(AddFromAgent stats)
-    member _.PrepareForRealtimeStats() = prepareForRealtimeStats()
-    member _.CommitRealtimeStats(duration) = commitRealtimeStats duration
-    member _.BuildRealtimeStats(duration) = buildRealtimeStats duration
-    member _.GetFinalStats() = getFinalStats()
+    member this.Stop() = stop() :> Task
 
     interface IDisposable with
-        member _.Dispose() =
-            scnCtx.ScenarioCancellationToken.Cancel()
-            stop()
+        member this.Dispose() =
+            stop() |> ignore
+            (scnCtx.ScenarioStatsActor :> IDisposable).Dispose()
 
 module Test =
 
