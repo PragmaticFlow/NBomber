@@ -142,7 +142,7 @@ type PsPingPlugin(pluginConfig: PsPingPluginConfig) =
     interface IWorkerPlugin with
         member _.PluginName = _pluginName
 
-        member _.Init(context, infraConfig) =
+        member _.Init(context, metricsProvider, infraConfig) =
             _logger <- context.Logger.ForContext<PsPingPlugin>()
 
             let config =

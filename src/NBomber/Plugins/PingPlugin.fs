@@ -146,7 +146,7 @@ type PingPlugin(pluginConfig: PingPluginConfig) =
     interface IWorkerPlugin with
         member _.PluginName = _pluginName
 
-        member _.Init(context, infraConfig) =
+        member _.Init(context, metricsProvider, infraConfig) =
             _logger <- context.Logger.ForContext<PingPlugin>()
 
             let config =

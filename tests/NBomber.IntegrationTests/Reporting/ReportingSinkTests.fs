@@ -231,7 +231,7 @@ let ``WorkerPlugin stats should be passed to IReportingSink SaveFinalStats`` () 
     let plugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = Task.CompletedTask
+            member _.Init(_, _, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
             member _.GetStats(_) = PluginStatisticsHelper.createPluginStats() |> Task.FromResult
             member _.GetHints() = Array.empty
