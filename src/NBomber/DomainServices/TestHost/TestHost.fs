@@ -4,7 +4,6 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open System.Runtime.InteropServices
-
 open Serilog
 open Spectre.Console
 open FsToolkit.ErrorHandling
@@ -19,6 +18,7 @@ open NBomber.Domain.DomainTypes
 open NBomber.Domain.ScenarioContext
 open NBomber.Domain.Stats
 open NBomber.Domain.Stats.ScenarioStatsActor
+open NBomber.Domain.Stats.MetricsStatsActor
 open NBomber.Domain.Scheduler.ScenarioScheduler
 open NBomber.Infra
 open NBomber.DomainServices
@@ -101,11 +101,13 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
             do! Task.Delay Constants.ONE_SECOND
     }
 
-    let startInit (consoleStatus: StatusContext option) (sessionArgs: SessionArgs) = taskResult {
+    let startInit (consoleStatus: StatusContext option)
+                  (sessionArgs: SessionArgs)
+                  (metricsActor: MetricsStatsActor) = taskResult {
 
         let baseContext = NBomberContext.createBaseContext sessionArgs.TestInfo getCurrentNodeInfo dep.Logger
 
-        do! WorkerPlugins.init dep baseContext
+        do! WorkerPlugins.init dep baseContext metricsActor
         do! ReportingSinks.init dep baseContext
 
         return! TestHostScenario.initScenarios dep consoleStatus baseContext sessionArgs regScenarios
@@ -126,7 +128,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
     member this.TargetScenarios = _targetScenarios
     member this.CurrentSchedulers = _currentSchedulers
 
-    member this.StartInit(sessionArgs: SessionArgs) =
+    member this.StartInit(sessionArgs: SessionArgs, metricsActor: MetricsStatsActor) =
         _stopped <- false
         _currentOperation <- OperationType.Init
 
@@ -134,7 +136,7 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         dep.LogInfo "Starting init..."
 
         TestHostConsole.displayStatus dep "Initializing scenarios..." (fun consoleStatus -> backgroundTask {
-            let! initResult = startInit consoleStatus sessionArgs
+            let! initResult = startInit consoleStatus sessionArgs metricsActor
             match initResult with
             | Ok initializedScenarios ->
                 dep.LogInfo "Init finished"
@@ -250,19 +252,22 @@ type internal TestHost(dep: IGlobalDependency, regScenarios: Scenario list) as t
         |> Option.sequence
 
     member this.RunSession(sessionArgs: SessionArgs) = taskResult {
-        let! initializedScenarios = this.StartInit sessionArgs
+
+        use metricsActor = new MetricsStatsActor(dep.Logger)
+        let! initializedScenarios = this.StartInit(sessionArgs, metricsActor)
 
         // start warm up
         let warmupScenarios = Scenario.getScenariosForWarmUp initializedScenarios
         if warmupScenarios.Length > 0 then
             let warmupSchedulers = this.CreateScenarioSchedulers(warmupScenarios, ScenarioOperation.WarmUp)
-            use reportingManager = ReportingManager.create dep warmupSchedulers sessionArgs
+            use reportingManager = ReportingManager.create(dep, warmupSchedulers, sessionArgs, metricsActor)
             do! this.StartWarmUp(warmupScenarios, warmupSchedulers, reportingManager)
+            metricsActor.Publish CleanAllMetrics
 
         // start bombing
         let bombingSchedulers = this.CreateScenarioSchedulers(initializedScenarios, ScenarioOperation.Bombing)
         if bombingSchedulers.Length > 0 then
-            use reportingManager = ReportingManager.create dep bombingSchedulers sessionArgs
+            use reportingManager = ReportingManager.create(dep, bombingSchedulers, sessionArgs, metricsActor)
             do! this.StartBombing(bombingSchedulers, reportingManager)
 
             // gets final stats

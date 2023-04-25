@@ -7,14 +7,15 @@ open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Errors
 open NBomber.Extensions.Internal
+open NBomber.Domain.Stats.MetricsStatsActor
 open NBomber.Infra
 
 //todo: add Polly for timout and retry logic, using cancel token
-let init (dep: IGlobalDependency) (context: IBaseContext) = taskResult {
+let init (dep: IGlobalDependency) (context: IBaseContext) (metricsActor: MetricsStatsActor) = taskResult {
     try
         for plugin in dep.WorkerPlugins do
             dep.LogInfo("Start init plugin: {0}", plugin.PluginName)
-            do! plugin.Init(context, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
+            do! plugin.Init(context, metricsActor, dep.InfraConfig |> Option.defaultValue Constants.EmptyInfraConfig)
     with
     | ex -> return! AppError.createResult(InitScenarioError ex)
 }
@@ -29,7 +30,7 @@ let start (dep: IGlobalDependency) =
 //todo: add Polly for timout and retry logic, using cancel token
 let stop (dep: IGlobalDependency) = backgroundTask {
     for plugin in dep.WorkerPlugins do
-        try            
+        try
             do! plugin.Stop()
         with
         | ex -> dep.LogWarn(ex, "Failed to stop plugin: {0}", plugin.PluginName)

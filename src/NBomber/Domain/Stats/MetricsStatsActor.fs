@@ -9,6 +9,7 @@ open Serilog
 open HdrHistogram
 
 open NBomber
+open NBomber.Contracts
 open NBomber.Contracts.Stats
 open NBomber.Extensions.Internal
 
@@ -55,6 +56,7 @@ type RawMetricStats =
 type ActorMessage =
     | RegisterMetric      of name:string * measureUnit:string * scalingFraction:float * metricType:MetricType
     | AddMetric           of Metric
+    | CleanAllMetrics
     | BuildReportingStats of reply:TaskCompletionSource<MetricStats[]> * currentTime:TimeSpan
     | GetFinalStats       of reply:TaskCompletionSource<MetricStats[]> * currentTime:TimeSpan
 
@@ -85,6 +87,18 @@ type MetricsStatsActor(logger: ILogger) =
             v.Value <- int64 (metric.Value * v.ScalingFraction)
 
         | false, _ -> ()
+
+    let cleanAllMetrics (rawMetrics: Dictionary<string, RawMetricStats>) =
+        rawMetrics
+        |> Seq.iter(fun (KeyValue(k, metric)) ->
+            match metric with
+            | Histogram m ->
+                m.Current <- 0
+                m.Histogram.Reset()
+
+            | Gauge m ->
+                m.Value <- 0
+        )
 
     let buildStats (isFinal) (currentTime) =
 
@@ -119,11 +133,11 @@ type MetricsStatsActor(logger: ILogger) =
                   Percentiles = if isFinal then m |> buildPercentiles
                                 else None }
 
-            | Gauge v ->
-                { Name = v.Name
-                  MeasureUnit = v.MeasureUnit
+            | Gauge m ->
+                { Name = m.Name
+                  MeasureUnit = m.MeasureUnit
                   MetricType = MetricType.Gauge
-                  Current = (float v.Value / v.ScalingFraction) |> Converter.round(Constants.StatsRounding)
+                  Current = (float m.Value / m.ScalingFraction) |> Converter.round(Constants.StatsRounding)
                   Max = 0
                   Duration = currentTime
                   Percentiles = None }
@@ -142,6 +156,9 @@ type MetricsStatsActor(logger: ILogger) =
 
                     | AddMetric metric ->
                         _rawMetrics |> addMetric metric
+
+                    | CleanAllMetrics ->
+                        _rawMetrics |> cleanAllMetrics
 
                     | BuildReportingStats(reply, currentTime) ->
                         let metrics = buildStats false currentTime
@@ -182,6 +199,15 @@ type MetricsStatsActor(logger: ILogger) =
         let reply = TaskCompletionSource<_>()
         _queue.Enqueue(GetFinalStats(reply, executedDuration))
         reply.Task
+
+    interface IMetricsProvider with
+
+        [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+        member this.PublishMetric(name, value) =
+            this.Publish(AddMetric { Name = name; Value = value })
+
+        member this.RegisterMetric(name, measureUnit, scalingFraction, metricType) =
+            this.RegisterMetric(name, measureUnit, scalingFraction, metricType)
 
     interface IDisposable with
         member this.Dispose() = _stop <- true

@@ -77,20 +77,20 @@ let getSessionResult (dep: IGlobalDependency)
 
 type ReportingManager(dep: IGlobalDependency,
                       schedulers: ScenarioScheduler list,
-                      sessionArgs: SessionArgs) =
+                      sessionArgs: SessionArgs,
+                      metricsActor: MetricsStatsActor) =
 
     let _reportingInterval = sessionArgs.GetReportingInterval()
     let _buildRealtimeStatsTimer = new Timers.Timer(_reportingInterval.TotalMilliseconds)
-    let _metricsActor = new MetricsStatsActor(dep.Logger)
     let _timerMaxDuration = schedulers |> Seq.map(fun x -> x.Scenario.PlanedDuration) |> Seq.max
 
     let mutable _metricsGrabber = Option.None
     let mutable _currentTime = TimeSpan.Zero
 
-    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers _metricsActor
+    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers metricsActor
 
     let start () = backgroundTask {
-        _metricsGrabber <- Some (new RuntimeMetricsGrabber(_metricsActor))
+        _metricsGrabber <- Some (new RuntimeMetricsGrabber(metricsActor))
         do! Task.Delay TIMER_START_DELAY
         _buildRealtimeStatsTimer.Start()
     }
@@ -112,7 +112,7 @@ type ReportingManager(dep: IGlobalDependency,
                         schedulers
                         |> Seq.map(fun x -> x.BuildRealtimeStats _currentTime)
 
-                    let! metrics = _metricsActor.BuildReportingStats _currentTime
+                    let! metrics = metricsActor.BuildReportingStats _currentTime
 
                     let! realtimeStats = statsTasks |> Task.WhenAll
 
@@ -127,12 +127,11 @@ type ReportingManager(dep: IGlobalDependency,
     interface IReportingManager with
         member this.Start() = start()
         member this.Stop() = stop()
-        member this.GetCurrentMetrics() = _metricsActor.CurrentMetrics
+        member this.GetCurrentMetrics() = metricsActor.CurrentMetrics
         member this.GetSessionResult(nodeInfo) = getSessionResult nodeInfo
 
         member this.Dispose() =
             _buildRealtimeStatsTimer.Dispose()
-            (_metricsActor :> IDisposable).Dispose()
 
-let create (dep: IGlobalDependency) (schedulers: ScenarioScheduler list) (sessionArgs: SessionArgs) =
-    new ReportingManager(dep, schedulers, sessionArgs) :> IReportingManager
+let create (dep: IGlobalDependency, schedulers: ScenarioScheduler list, sessionArgs: SessionArgs, metricsActor: MetricsStatsActor) =
+    new ReportingManager(dep, schedulers, sessionArgs, metricsActor) :> IReportingManager

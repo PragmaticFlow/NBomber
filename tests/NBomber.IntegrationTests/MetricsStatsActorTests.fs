@@ -138,3 +138,24 @@ let ``GetFinalStats should handle invalid args`` () =
     test <@ result1.Length = 0 @>
     test <@ result2[0].Current = 0 @>
     test <@ result3[0].Current = 0 @>
+
+[<Fact>]
+let ``CleanAllMetrics should clean stats`` () =
+
+    let env = Dependency.createWithInMemoryLogger NodeType.SingleNode
+    let metricsActor = new MetricsStatsActor(env.Dep.Logger)
+    let metricName = "my-metric"
+
+    metricsActor.RegisterMetric(metricName, "MB", 100, MetricType.Gauge)
+
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 3.5 })
+    metricsActor.Publish(AddMetric { Name = metricName; Value = 2.5 })
+
+    let result1 = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+
+    metricsActor.Publish CleanAllMetrics
+
+    let result2 = metricsActor.GetFinalStats(seconds 1).GetAwaiter().GetResult()
+
+    test <@ result1[0].Current = 2.5 @>
+    test <@ result2[0].Current = 0 @>

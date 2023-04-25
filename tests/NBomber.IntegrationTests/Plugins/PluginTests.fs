@@ -28,7 +28,7 @@ let ``WorkerPlugin Init, Start, Stop should be invoked once for Warmup and once 
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
 
-            member _.Init(_, _) =
+            member _.Init(_, _, _) =
                 invocationOrder <- "init" :: invocationOrder
                 Task.CompletedTask
 
@@ -72,7 +72,7 @@ let ``Init should be invoked with infra config`` () =
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
 
-            member _.Init(logger, infraConfig) =
+            member _.Init(logger, _, infraConfig) =
                 pluginConfig <- infraConfig
                 Task.CompletedTask
 
@@ -103,7 +103,7 @@ let ``PluginStats should return empty data set in case of execution timeout`` ()
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
 
-            member _.Init(_, _) = Task.CompletedTask
+            member _.Init(_, _, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
             member _.GetStats(_) = task {
                 do! Task.Delay(seconds 10) // we waiting more than default timeout = 5 sec
@@ -136,7 +136,7 @@ let ``PluginStats should return empty data set in case of internal exception`` (
     let exceptionPlugin = {
         new IWorkerPlugin with
             member _.PluginName = "TestPlugin"
-            member _.Init(_, _) = Task.CompletedTask
+            member _.Init(_, _, _) = Task.CompletedTask
             member _.Start() = Task.CompletedTask
             member _.GetStats(_) = failwith "test exception" // we throw exception
             member _.GetHints() = Array.empty
