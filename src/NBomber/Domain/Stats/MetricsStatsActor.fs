@@ -142,6 +142,7 @@ type MetricsStatsActor(logger: ILogger) =
                   Duration = currentTime
                   Percentiles = None }
         )
+        |> Seq.sortBy(fun x -> x.Name)
         |> Seq.toArray
 
     let loop () = backgroundTask {

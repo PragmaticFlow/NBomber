@@ -69,7 +69,7 @@ module LiveStatusTable =
     let private buildMetricsTable () =
         let table = Table()
         table.Border <- TableBorder.Square
-        table.Title <- TableTitle "metrics stats"
+        table.Title <- TableTitle ".NET process metrics"
 
         table.AddColumn("metric name")
              .AddColumn("stats")

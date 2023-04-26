@@ -132,6 +132,7 @@ type ReportingManager(dep: IGlobalDependency,
 
         member this.Dispose() =
             _buildRealtimeStatsTimer.Dispose()
+            _metricsGrabber |> Option.iter(fun x -> x.Dispose())
 
 let create (dep: IGlobalDependency, schedulers: ScenarioScheduler list, sessionArgs: SessionArgs, metricsActor: MetricsStatsActor) =
     new ReportingManager(dep, schedulers, sessionArgs, metricsActor) :> IReportingManager
