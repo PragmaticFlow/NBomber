@@ -77,23 +77,19 @@ module Metrics =
     [<Literal>]
     let BYTES_TO_MB_SCALING_FRACTION = 1_048_576.0 // 1024 * 1024
     [<Literal>]
-    let CPU_USAGE = "cpu-usage"
+    let CPU_USAGE = "cpu: usage"
     [<Literal>]
-    let WORKING_SET = "working-set"
+    let RAM_WORKING_SET = "memory: working-set"
     [<Literal>]
-    let GC_HEAP_SIZE = "gc-heap-size"
+    let RAM_GC_HEAP_SIZE = "memory: gc-heap-size"
     [<Literal>]
-    let THREAD_POOL_QUEUE_LENGTH = "threadpool-queue-length"
+    let THREAD_POOL_QUEUE_LENGTH = "threadpool: queue-length"
     [<Literal>]
-    let THREAD_POOL_QUEUE_COUNT = "threadpool-thread-count"
+    let THREAD_POOL_QUEUE_COUNT = "threadpool: thread-count"
     [<Literal>]
-    let DATA_RECEIVED = "data-received"
+    let BYTES_RECEIVED = "data: received"
     [<Literal>]
-    let DATA_SENT = "data-sent"
-    [<Literal>]
-    let BYTES_RECEIVED = "bytes-received"
-    [<Literal>]
-    let BYTES_SENT = "bytes-sent"
+    let BYTES_SENT = "data: sent"
 
 module Reporting =
 
