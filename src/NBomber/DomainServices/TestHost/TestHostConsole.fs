@@ -64,7 +64,7 @@ module LiveStatusTable =
         table.AddColumn("scenario")
              .AddColumn("step")
              .AddColumn("simulation")
-             .AddColumn("statistics")
+             .AddColumn("statistics (ms)")
 
     let private buildMetricsTable () =
         let table = Table()
@@ -94,7 +94,7 @@ module LiveStatusTable =
                     scnStats.ScenarioName,
                     stepStats.StepName,
                     simulation,
-                    $"ok: {Console.okColor okR.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor okR.RPS},\nmin = {Console.okColor okL.MinMs} ms, mean = {Console.okColor okL.MeanMs} ms, max = {Console.okColor okL.MaxMs} ms,\np50 = {Console.okColor okL.Percent50} ms, p75 = {Console.okColor okL.Percent75} ms,  p99 = {Console.okColor okL.Percent99} ms\ndata-mean = {Converter.fromBytesToKb okD.MeanBytes} KB, data-all = {Converter.fromBytesToMb okD.AllBytes} MB"
+                    $"ok: {Console.okColor okR.Count}, fail: {Console.errorColor stepStats.Fail.Request.Count}, RPS: {Console.okColor okR.RPS},\nmin = {Console.okColor okL.MinMs}, mean = {Console.okColor okL.MeanMs}, max = {Console.okColor okL.MaxMs},\np50 = {Console.okColor okL.Percent50}, p75 = {Console.okColor okL.Percent75},  p99 = {Console.okColor okL.Percent99}\ndata-mean = {Console.okColor (Converter.fromBytesToKb okD.MeanBytes)} KB, data-all = {Console.okColor (Converter.fromBytesToMb okD.AllBytes)} MB"
                 )
                 |> ignore
 
@@ -148,9 +148,7 @@ module LiveStatusTable =
                 .AddRow(metricsTable) |> ignore
 
             let liveTable = AnsiConsole.Live(mainTable)
-            liveTable.AutoClear <- false
-            liveTable.Overflow <- VerticalOverflow.Ellipsis
-            liveTable.Cropping <- VerticalOverflowCropping.Bottom
+            liveTable.AutoClear <- true
 
             stopWatch.Start()
 
