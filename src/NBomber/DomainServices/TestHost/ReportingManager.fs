@@ -35,7 +35,6 @@ let getHints (dep: IGlobalDependency) (useHintsAnalyzer: bool) (finalStats: Node
 let getFinalStats (dep: IGlobalDependency)
                   (testInfo: TestInfo)
                   (schedulers: ScenarioScheduler list)
-                  (metricsStatsActor: MetricsStatsActor)
                   (nodeInfo: NodeInfo) = backgroundTask {
 
     let! scenarioStats =
@@ -49,9 +48,7 @@ let getFinalStats (dep: IGlobalDependency)
         else
             scenarioStats |> Seq.map(fun x -> x.Duration) |> Seq.max |> Converter.roundDuration
 
-    let! metrics = metricsStatsActor.GetFinalStats maxDuration
-
-    let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats metrics
+    let nodeStats = NodeStats.create testInfo nodeInfo scenarioStats Array.empty
 
     let! pluginStats = WorkerPlugins.getStats dep nodeStats
     return { nodeStats with PluginStats = pluginStats }
@@ -61,14 +58,13 @@ let getSessionResult (dep: IGlobalDependency)
                      (testInfo: TestInfo)
                      (useHintsAnalyzer: bool)
                      (schedulers: ScenarioScheduler list)
-                     (metricsStatsActor: MetricsStatsActor)
                      (nodeInfo: NodeInfo) = backgroundTask {
     let history =
         schedulers
         |> Seq.map(fun x -> x.AllRealtimeStats)
         |> TimeLineHistory.create
 
-    let! finalStats = getFinalStats dep testInfo schedulers metricsStatsActor nodeInfo
+    let! finalStats = getFinalStats dep testInfo schedulers nodeInfo
     let hints = getHints dep useHintsAnalyzer finalStats
 
     let result = { FinalStats = finalStats; TimeLineHistory = history; Hints = hints }
@@ -87,7 +83,7 @@ type ReportingManager(dep: IGlobalDependency,
     let mutable _metricsGrabber = Option.None
     let mutable _currentTime = TimeSpan.Zero
 
-    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers metricsActor
+    let getSessionResult = getSessionResult dep sessionArgs.TestInfo (sessionArgs.GetUseHintsAnalyzer()) schedulers
 
     let start () = backgroundTask {
         _metricsGrabber <- Some (new RuntimeMetricsGrabber(metricsActor))
@@ -112,7 +108,7 @@ type ReportingManager(dep: IGlobalDependency,
                         schedulers
                         |> Seq.map(fun x -> x.BuildRealtimeStats _currentTime)
 
-                    let! metrics = metricsActor.BuildReportingStats _currentTime
+                    let! _ = metricsActor.BuildReportingStats _currentTime
 
                     let! realtimeStats = statsTasks |> Task.WhenAll
 
