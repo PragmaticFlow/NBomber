@@ -15,10 +15,13 @@ let printAllData (highlightTxt: obj -> string) (bytes: int64) =
     $"{bytes |> Converter.fromBytesToMb |> highlightTxt} MB"
 
 let getFullReportsFolderPath (sessionArgs: SessionArgs) =
-    let strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location
-    let strWorkPath = System.IO.Path.GetDirectoryName strExeFilePath
     let reportFolder = sessionArgs.GetReportFolder()
-    System.IO.Path.Combine(strWorkPath, reportFolder)
+    if System.IO.Path.IsPathFullyQualified(reportFolder)
+        then  reportFolder    
+    else
+        let strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location
+        let strWorkPath = System.IO.Path.GetDirectoryName strExeFilePath    
+        System.IO.Path.Combine(strWorkPath, reportFolder)
 
 module StepStats =
 
