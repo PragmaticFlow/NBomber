@@ -1,6 +1,8 @@
 ﻿using System.Net.Http.Json;
 using NBomber.CSharp;
+using NBomber.Http;
 using NBomber.Http.CSharp;
+using NBomber.Plugins.Network.Ping;
 
 namespace CSharpProd.HTTP;
 
@@ -39,6 +41,10 @@ public class HttpResponseValidation
 
         NBomberRunner
             .RegisterScenarios(scenario)
+            .WithWorkerPlugins(
+                new PingPlugin(PingPluginConfig.CreateDefault("nbomber.com")),
+                new HttpMetricsPlugin(new [] { HttpVersion.Version1 })
+            )
             .Run();
     }
 }

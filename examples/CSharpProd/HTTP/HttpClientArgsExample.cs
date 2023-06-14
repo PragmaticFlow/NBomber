@@ -1,6 +1,7 @@
 ﻿using NBomber.CSharp;
 using NBomber.Http;
 using NBomber.Http.CSharp;
+using NBomber.Plugins.Network.Ping;
 
 namespace CSharpProd.HTTP;
 
@@ -18,9 +19,9 @@ public class HttpClientArgsExample
                     .WithBody(new StringContent("{ some JSON }"));
 
             // HttpCompletionOption: https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpcompletionoption?view=net-7.0
-            
+
             var clientArgs = new HttpClientArgs(
-                httpCompletion: HttpCompletionOption.ResponseContentRead, // or ResponseHeadersRead
+                httpCompletion: HttpCompletionOption.ResponseHeadersRead, // or ResponseContentRead
                 cancellationToken: CancellationToken.None
             );
 
@@ -33,6 +34,10 @@ public class HttpClientArgsExample
 
         NBomberRunner
             .RegisterScenarios(scenario)
+            .WithWorkerPlugins(
+                new PingPlugin(PingPluginConfig.CreateDefault("nbomber.com")),
+                new HttpMetricsPlugin(new [] { HttpVersion.Version1 })
+            )
             .Run();
     }
 }
