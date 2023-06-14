@@ -57,7 +57,6 @@ public class CustomSettingsExample
             .WithReportFolder("report_folder")
             .WithReportFormats(ReportFormat.Txt, ReportFormat.Html)
             .WithReportingInterval(TimeSpan.FromSeconds(10))
-            .EnableHintsAnalyzer(true)
             .Run();
     }
 }
