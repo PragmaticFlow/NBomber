@@ -12,6 +12,8 @@ NBomber is free for personal use, developer-centric, and extensible.
 Using NBomber, you can test the reliability and performance of your systems and catch performance regressions and problems earlier. 
 NBomber will help you to build resilient and performant applications that scale.
 
+[![NBomber 5](https://img.youtube.com/vi/Z51PyZvZNF8/maxresdefault.jpg)]([https://youtu.be/US_zgCYP0lE](https://youtu.be/Z51PyZvZNF8))
+
 ### Links
 - [Main web page](https://nbomber.com/)
 - [Documentation](https://nbomber.com/docs/getting-started/overview/)
