@@ -8,17 +8,13 @@
 
 NBomber is a modern and flexible load-testing framework for Pull and Push scenarios, designed to test any system regardless of a protocol (HTTP/WebSockets/AMQP, etc) or a semantic model (Pull/Push).
 
-NBomber is free, developer-centric, and extensible.
+NBomber is free for personal use, developer-centric, and extensible.
 Using NBomber, you can test the reliability and performance of your systems and catch performance regressions and problems earlier. 
 NBomber will help you to build resilient and performant applications that scale.
 
 ### Links
 - [Main web page](https://nbomber.com/)
 - [Documentation](https://nbomber.com/docs/getting-started/overview/)
-- [Roadmap](https://nbomber.com/docs/getting-started/roadmap)
-- [Chat](https://gitter.im/nbomber/community)
-- [Patreon](https://www.patreon.com/nbomber) - We appreciate every little donation. If everyone we've ever helped gave back just small donation a month, we'd be able to bring you NBomber for years and years to come.
-  If you or your company are using NBomber and willing to help keep the project sustainable, please donate via [Patreon](https://www.patreon.com/nbomber).
 
 ### Why we build NBomber and what you can do with it?
 The main reason behind NBomber is to provide a lightweight framework for writing load tests which you can use to test literally any system and simulate any production workload. We wanted to provide only a few abstractions so that we could describe any type of load and still have a simple, intuitive API.
@@ -30,7 +26,7 @@ NBomber as a modern framework provides:
 - Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL)
 - Zero dependencies on semantic model (Pull/Push)
 - Very flexible configuration and dead simple API
-- Cluster support
+- Distributed cluster support
 - Real-time reporting
 - CI/CD integration
 - Plugins/extensions support
