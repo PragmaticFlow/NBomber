@@ -1,4 +1,5 @@
 using CSharpProd.DB.LiteDB;
+using CSharpProd.DB.Redis;
 using CSharpProd.DB.SQLiteDB;
 using CSharpProd.Features;
 using CSharpProd.Features.CliArgs;
@@ -59,3 +60,4 @@ new HelloWorldExample().Run();
 // ----------------
 // new LiteDBExample().Run();
 // new SQLiteDBExample().Run();
+// new RedisExample().Run();
