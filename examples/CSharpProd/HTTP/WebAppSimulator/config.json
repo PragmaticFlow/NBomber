@@ -1,5 +1,5 @@
 {
-    "TargetScenarios": [ "init_http_db", "read_http_db" ],
+    "TargetScenarios": [ "init_http_db", "read_http_db", "write_http_db" ],
 
     "GlobalSettings": {
 
@@ -10,7 +10,7 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 1, "00:00:30" ] }
+                    { "KeepConstant": [ 2, "00:00:30" ] }
                 ]
             },
 
@@ -20,14 +20,14 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 1, "00:00:30" ] }
+                    { "KeepConstant": [ 2, "00:00:30" ] }
                 ]
             }
         ],
 
         "GlobalCustomSettings": {
 
-            "RecordsCount": 10000
+            "RecordsCount": 100
         }
     }
 }

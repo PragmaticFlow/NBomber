@@ -1,4 +1,4 @@
-﻿using NBomber.CSharp;
+using NBomber.CSharp;
 using NBomber.Http;
 using NBomber.Http.CSharp;
 using NBomber.Plugins.Network.Ping;
@@ -15,8 +15,8 @@ public class HttpClientArgsExample
         {
             var request =
                 Http.CreateRequest("GET", "https://nbomber.com")
-                    .WithHeader("Accept", "text/html")
-                    .WithBody(new StringContent("{ some JSON }"));
+                    .WithHeader("Accept", "text/html");
+                  //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
             // HttpCompletionOption: https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpcompletionoption?view=net-7.0
 

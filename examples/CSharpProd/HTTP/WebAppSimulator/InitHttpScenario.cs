@@ -4,6 +4,7 @@ using NBomber.Http.CSharp;
 using Bogus;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace CSharpProd.HTTP.WebAppSimulator
 {
@@ -23,7 +24,7 @@ namespace CSharpProd.HTTP.WebAppSimulator
                 {
                     // recreate DB
                     var request = Http.CreateRequest("PUT", "http://localhost:5195/api/databases");
-                    await Http.Send(_httpClient, request);
+                    var response = await Http.Send(_httpClient, request);
 
                     var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
 
@@ -42,9 +43,9 @@ namespace CSharpProd.HTTP.WebAppSimulator
                         {
                             var data = JsonConvert.SerializeObject(user);
                             var request = Http.CreateRequest("POST", "http://localhost:5195/api/users")
-                                .WithHeader("Content-Type", "application/json")
-                                .WithBody(new StringContent(data));
-
+                                .WithHeader("Accept", "application/json")                                
+                                .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                            
                             return Http.Send(_httpClient, request);
                         });
 

@@ -1,4 +1,3 @@
-using System.Data.SQLite;
 using WebAppSimulator.Infra.DAL;
 
 namespace WebAppSimulator
@@ -6,7 +5,11 @@ namespace WebAppSimulator
     public class SQLiteSettings
     {
         public string ConnectionString { get; set; }
-        public int ConnectionCount { get; set; }
+    }
+    public class RedisSettings
+    {
+        public string ConnectionString { get; set; }
+        public string ServerName { get; set; }
     }
     public class Program
     {
@@ -18,10 +21,22 @@ namespace WebAppSimulator
             builder.Services.AddRazorPages();
             builder.Services.AddSwaggerGen();
 
-            var settings = builder.Configuration.GetSection("SQLiteSettings").Get<SQLiteSettings>();
-            var rep = new SQLiteDBRepository(settings);
-            builder.Services.AddSingleton<IUserRepository>(rep);
-
+            var dbUse = builder.Configuration.GetValue<string>("DbUse", "");
+            if (dbUse == "SQLite")
+            {
+                var settings = builder.Configuration.GetSection("SQLiteSettings").Get<SQLiteSettings>();
+                var rep = new SQLiteDBRepository(settings);
+                builder.Services.AddSingleton<IUserRepository>(rep);
+            }
+            else if (dbUse == "Redis")
+            {
+                var settings = builder.Configuration.GetSection("RedisSetings").Get<RedisSettings>();
+                var rep = new RedisRepository(settings);
+                builder.Services.AddSingleton<IUserRepository>(rep);
+            }
+            else
+                throw new Exception("The base for the test is not specified in the file appsettings.json");
+            
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

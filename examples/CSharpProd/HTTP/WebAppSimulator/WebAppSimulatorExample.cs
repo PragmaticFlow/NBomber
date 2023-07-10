@@ -2,12 +2,12 @@ using NBomber.CSharp;
 
 namespace CSharpProd.HTTP.WebAppSimulator
 {
-    public class HttpExample
+    public class WebAppSimulatorExample
     {
-        public void Run()
+        public void RunHttpUserExample()
         {
             NBomberRunner.RegisterScenarios(
-                new InitHTTPScenario().Create(),
+                new InitHttpScenario().Create(),
                 new ReadHttpScenario().Create(),
                 new WriteHttpScenario().Create()
             )

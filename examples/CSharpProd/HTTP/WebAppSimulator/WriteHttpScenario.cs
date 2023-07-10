@@ -4,6 +4,7 @@ using NBomber.Contracts;
 using NBomber.CSharp;
 using Newtonsoft.Json;
 using NBomber.Http.CSharp;
+using System.Text;
 
 namespace CSharpProd.HTTP.WebAppSimulator
 {
@@ -31,7 +32,7 @@ namespace CSharpProd.HTTP.WebAppSimulator
                 var data = JsonConvert.SerializeObject(user);
                 var request = Http.CreateRequest("PUT", $"http://localhost:5195/api/users/{randomId}")
                      .WithHeader("Content-Type", "application/json")
-                     .WithBody(new StringContent(data));
+                     .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 
                 var response = await Http.Send(_httpClient, request);
                 return response;
