@@ -1,34 +1,33 @@
 {
-    "TargetScenarios": ["redis_init", "redis_read", "redis_write"],
+    "TargetScenarios": [ "init_http_db", "read_http_db", "write_http_db" ],
 
     "GlobalSettings": {
 
         "ScenariosSettings": [
             {
-                "ScenarioName": "redis_read",
+                "ScenarioName": "read_http_db",
 
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [100, "00:03:30"] }
+                    { "KeepConstant": [ 2, "00:00:30" ] }
                 ]
             },
 
             {
-                "ScenarioName": "redis_write",
+                "ScenarioName": "write_http_db",
 
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [100, "00:03:30"] }
+                    { "KeepConstant": [ 2, "00:00:30" ] }
                 ]
             }
         ],
 
         "GlobalCustomSettings": {
-            "ConnectionString": "localhost:6379",
-            "RecordsCount": 100000,
-            "RecordSize": 1000
+
+            "RecordsCount": 100
         }
     }
 }

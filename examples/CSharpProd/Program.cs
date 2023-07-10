@@ -11,6 +11,8 @@ using CSharpProd.HelloWorld;
 using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
 using CSharpProd.MQTT;
+using CSharpProd.HTTP.WebAppSimulator;
+
 
 // -------------------------------
 // -----Hello World examples -----
@@ -48,6 +50,7 @@ new HelloWorldExample().Run();
 // new SequentialHttpSteps().Run();
 // new HttpResponseValidation().Run();
 // new HttpClientArgsExample().Run();
+// new WebAppSimulatorExample().RunHttpUserExample();
 
 // ----------------
 // ----- MQTT -----
@@ -61,3 +64,4 @@ new HelloWorldExample().Run();
 // new LiteDBExample().Run();
 // new SQLiteDBExample().Run();
 // new RedisExample().Run();
+
