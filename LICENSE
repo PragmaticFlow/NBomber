@@ -1,4 +1,75 @@
-- Source code in this repository is licensed under Apache License 2.0
-- From v1 to v4 versions NBomber is licensed under Apache License 2.0
-- Since v5, NBomber is licensed under "NBomber Business License 1.1" (https://www.nuget.org/packages/NBomber/5.0.0/License)
-- NBomber v5 is FREE ONLY FOR PERSONAL USE. You can't use it for an organization. You need to buy "NBomber Business License".
+NBOMBER BUSINESS LICENSE AGREEMENT
+
+Version: 1.1, June 2023
+
+This NBomber Business License Agreement ("Agreement") is entered into by and between the customer ("Customer") identified in the corresponding Commercial Subscription order for the NBomber Software license and Anton Moldovan ("Sole proprietor of NBomber").
+
+1. DEFINITIONS
+
+Capitalized terms not otherwise defined elsewhere in this Agreement will have the following meaning:
+
+- Activation Key: means the activation key provided by NBomber to activate Software under a Commercial Subscription for the Subscription Period. 
+
+- Commercial Subscription: means a paid subscription to the Software pursuant to an order form. An Activation Key, as defined above, is necessary for Commercial Subscriptions. 
+
+- Software: the English version of the standard computer program(s) in executable object code, for which the License is granted to Customer under the Agreement and the Documentation, any Updates provided to Customer under the Maintenance, and all copies in whole or in part of the Software.
+
+- Pre-Release Software: means a beta or pre-release version of the Software.
+
+- Customer: the legal entity identified in the Purchase Order, which signs the Agreement and for which the License is granted and the Maintenance is provided.
+
+- Documentation: the English version of the documentation, which describes the main processes and guidelines to facilitate the installation and use of the Software, and its Update, if any, as provided to Customer by NBomber.
+
+- License: the right to use the Software in accordance with the terms of the Agreement.
+
+- Subscription Period: means the subscription period specified in an Order.
+
+- Third-party software: the third parties’ open source software, which may be included in the Software defined in the Documentation and subject to their own license terms and conditions, as contained in the Documentation.
+
+- Update: any correction and/or enhancement of the Software provided to Customer as part of the Maintenance as they become available.
+
+2. LICENSE & RESTRICTIONS
+
+2.1 Subject to the terms and conditions of this Agreement and the applicable order form, NBomber grants to Customer a limited, non-exclusive, non-sublicensable, non-transferable, revocable license during the term of the Subscription Period to use the Software for which Customer has purchased a Commercial Subscription. The license should be used solely in connection with the Customer’s internal operations.
+
+2.2 The License being non-exclusive, NBomber reserves the right to commercialize directly or indirectly the Software and/or the Maintenance to any third party.
+
+2.3 Customer agrees that it shall not (and will not allow any third party to):
+
+a) distribute or publish the Software license activation keys;
+b) sell, sublicense, rent, lease, distribute, allow any other people to use the Software for the benefit of a third party and/or provide any Software as a Service (SaaS), Application Service Provider (ASP); 
+c) distribute the Software: as a standalone product or a similar product, or as a part of any (including yours) product;
+d) remove or change any product identification, proprietary, copyright, or other notices contained in the Software;
+e) reverse-engineer, decompile, disassemble, recreate the Software, even partially, or attempt to or enable third parties to perform such acts;
+
+2.4 Customer acknowledges and agrees that in the event of any use of the Software by Customer beyond the limits defined in the Agreement, NBomber shall be entitled to invoice Customer for the amount that would be due if the same use was made under the applicable License.
+
+2.5 Customer acknowledges and agrees that the Software may include Third-party software subject to open source license agreements, notwithstanding any clause to the contrary in the General Terms and Conditions, and provided by NBomber “as is” without any warranty of any kind. In no event shall NBomber be liable for any damage suffered by Customer or a third party, resulting directly or indirectly from the use of such Third-party software.
+
+2.6 Customer acknowledges and agrees that the Pre-Release Software may include:
+
+a) is not at the level of performance or compatibility of final, generally available products;
+b) may not operate correctly;
+c) may be modified at any time before being made generally available;
+d) may not be made available for general release;
+e) may not be used in a production environment;
+
+3. PROVISION OF THE SOFTWARE 
+
+The Agreement does not include any installation and/or setup services. Consequently, and unless otherwise expressly agreed between the Parties, Customer is solely responsible for the downloading and installing of the Software, for which, under no circumstances, shall NBomber be held liable.
+
+4. WARRANTIES
+
+4.1 NBomber represents and warrants that:
+
+a) it has all rights necessary to provide the Software to Customer, and the Software does not infringe, misappropriate or violate any patent, copyright, trademark, trade secret, publicity, privacy, data security, or other rights of any third party;
+b) the Software is and will comply with the specifications in the Agreement and documentation;
+
+c) the Software provided under this Agreement does not contain any Trojan horses, worms, undocumented disabling devices, malicious code, or other internal component (e.g., a computer virus) which could damage, destroy, or alter software, firmware, or hardware or which could reveal any data or other information accessed through or processed by the Software;
+
+d) it has acquired and shall maintain in effect at all times during the Term any licenses and/or permits and/or mandated insurances necessary for providing the Software; 
+e) the Software does not use any viral or copyleft open source materials that would impact Customer (i.e., obligate Customer to adhere to such open source licenses);
+f) it shall not use any cookies, action tags, or any similar current or future technology, used to obtain, track, monitor, implement any form of profiling, or assess information obtained through the use hereof under this Agreement except as may be expressly set forth herein in order to provide the Software;
+
+4.2 NBomber is not liable for any damage caused by incorrect usage of the Software.
+
