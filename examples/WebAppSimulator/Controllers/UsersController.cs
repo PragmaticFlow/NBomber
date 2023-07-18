@@ -24,7 +24,7 @@ namespace WebAppSimulator.Controllers
         [HttpPost]
         public Task Post([FromBody] User request)
         {
-           return _repository.Insert(request);
+            return _repository.Insert(request);
         }
 
         [HttpPut("{id}")]

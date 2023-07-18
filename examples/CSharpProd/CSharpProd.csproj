@@ -28,8 +28,9 @@
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.0" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
-        <PackageReference Include="StackExchange.Redis" Version="2.6.116" />
+        <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -64,6 +65,10 @@
 
     <ItemGroup>
       <Folder Include="DB\Redis\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WebAppSimulator\WebAppSimulator.csproj" />
     </ItemGroup>
 
 </Project>

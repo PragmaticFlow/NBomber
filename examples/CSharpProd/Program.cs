@@ -12,12 +12,15 @@ using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
 using CSharpProd.MQTT;
 using CSharpProd.HTTP.WebAppSimulator;
+using Microsoft.AspNetCore.Builder;
+using CSharpProd.HTTP.SimpleBookstore;
 
+new InitSimpleBookstore().SingUpUser();
 
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
