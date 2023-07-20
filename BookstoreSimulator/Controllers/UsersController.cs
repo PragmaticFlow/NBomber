@@ -1,28 +1,35 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using BookstoreSimulator.Contracts;
+using BookstoreSimulator.Infra.Bookstore;
+using BookstoreSimulator.Infra.DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using WebAppSimulator.Contracts;
-using WebAppSimulator.Contracts.Bookstore;
-using WebAppSimulator.Infra.Bookstore;
-using WebAppSimulator.Infra.Bookstore.DAL;
 
-namespace WebAppSimulator.Controllers
+namespace BookstoreSimulator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookstoreUsersController : ControllerBase
+    public class UsersController : ControllerBase
     {
-        private BookstoreUserRepository _rep;
+        private UserRepository _rep;
         private JwtSetings _jwtSetings;
-
-        public BookstoreUsersController(BookstoreUserRepository rep, JwtSetings jwtSetings)
+        private SingUpUserRequestValidator _singUpUserRequestValidator;
+        private LoginUserRequestValidator _loginUserRequestValidator;
+        private Serilog.ILogger _logger;
+        public UsersController
+            (UserRepository rep, JwtSetings jwtSetings,
+            SingUpUserRequestValidator singUpUserRequestValidator,
+            LoginUserRequestValidator loginUserRequestValidator,
+            Serilog.ILogger logger)
         {
             _rep = rep;
             _jwtSetings = jwtSetings;
+            _singUpUserRequestValidator = singUpUserRequestValidator;
+            _loginUserRequestValidator = loginUserRequestValidator;
+            _logger = logger;
         }
 
         //[HttpGet]
@@ -43,8 +50,7 @@ namespace WebAppSimulator.Controllers
         [HttpPost]
         public async Task<IResult> Singup([FromBody] SingUpUserRequest request)
         {
-            var validator = new SingUpUserRequestValidator();
-            var validationResult = validator.Validate(request);
+            var validationResult = _singUpUserRequestValidator.Validate(request);
             if (validationResult.IsValid)
             {
                 var (passwordHash, passwordSalt) = Password.HashPassword(request.Password);
@@ -52,10 +58,14 @@ namespace WebAppSimulator.Controllers
                 var userId = Guid.NewGuid();
                 var user = UserDBRecord.Create(request, userId, passwordHash, passwordSalt, createdDT, createdDT);
 
-                if(await _rep.InsertUser(user))
+                var insrtedResult = await _rep.InsertUser(user);
+
+                if (insrtedResult == DBResultExeption.Ok)
                     return Results.StatusCode(StatusCodes.Status200OK);
-                else
+                else if (insrtedResult == DBResultExeption.Duplicate)
                     return Results.StatusCode(StatusCodes.Status409Conflict);
+                else
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
                 return Results.ValidationProblem(validationResult.ToDictionary());
@@ -66,8 +76,7 @@ namespace WebAppSimulator.Controllers
         [HttpPost]
         public async Task<IResult> Login([FromBody] LoginUserRequest request)
         {
-            var validator = new LoginUserRequestValidator();
-            var validationResult = validator.Validate(request);
+            var validationResult = _loginUserRequestValidator.Validate(request);
             if (validationResult.IsValid)
             {
                 var result = await _rep.TryFindUserLoginData(request.Email);
@@ -77,14 +86,14 @@ namespace WebAppSimulator.Controllers
                     if (passwordValid)
                     {
                         var jwt = GenerateJwtToken(result.UserId.ToString());
-                        var response = new Response<string>(jwt);
+                        var response = new ResponseBS<string>(jwt);
                         return Results.Ok(response);
                     }
                     else
                         return Results.StatusCode(StatusCodes.Status401Unauthorized);
                 }
                 else
-                    return Results.StatusCode(StatusCodes.Status401Unauthorized);
+                    return Results.StatusCode(StatusCodes.Status404NotFound);
             }
             else
                 return Results.ValidationProblem(validationResult.ToDictionary());

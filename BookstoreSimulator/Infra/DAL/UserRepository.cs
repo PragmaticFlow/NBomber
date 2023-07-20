@@ -1,11 +1,16 @@
 using Npgsql;
 using Dapper;
 using Newtonsoft.Json;
-using WebAppSimulator.Contracts.Bookstore;
-using WebAppSimulator.Contracts;
+using BookstoreSimulator.Contracts;
 
-namespace WebAppSimulator.Infra.Bookstore.DAL
+namespace BookstoreSimulator.Infra.DAL
 {
+    public enum DBResultExeption
+    {
+        Ok,
+        Duplicate,
+        OtherEx
+    }
     public class UserDBRecord
     {
         public Guid UserId { get; set; }
@@ -47,14 +52,15 @@ namespace WebAppSimulator.Infra.Bookstore.DAL
         public string LastName { get; set; }
     }
 
-    public class BookstoreUserRepository
+    public class UserRepository
     {
         private string _connectionStr;
-        public BookstoreUserRepository(BookstoreSettings settings)
+       
+        public UserRepository(BookstoreSettings settings)
         {
             _connectionStr = settings.ConnectionString;
         }
-        public async Task<bool> InsertUser(UserDBRecord record)
+        public async Task<DBResultExeption> InsertUser(UserDBRecord record)
         {
             try
             {
@@ -68,11 +74,14 @@ namespace WebAppSimulator.Infra.Bookstore.DAL
                     var command = new NpgsqlCommand(commandText, connection);
                     await connection.ExecuteAsync(commandText, record);
                 }
-                return true;
+                return DBResultExeption.Ok;
             }
-            catch(Exception ex)
+            catch(PostgresException ex) 
             {
-                return false;
+                if (ex.Code == "23505")
+                    return DBResultExeption.Duplicate;
+                else
+                    return DBResultExeption.OtherEx;
             }                   
         }
 
@@ -90,7 +99,7 @@ namespace WebAppSimulator.Infra.Bookstore.DAL
                     return result.First();
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 return null;
             }

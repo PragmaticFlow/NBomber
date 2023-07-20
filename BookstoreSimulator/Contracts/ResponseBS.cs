@@ -1,9 +1,9 @@
-namespace WebAppSimulator.Contracts
+namespace BookstoreSimulator.Contracts
 {
-    public class Response<T>
+    public class ResponseBS<T>
     {
         public T Data { get; private set; }
-        public Response(T data)
+        public ResponseBS(T data)
         {
             Data = data;
         }

@@ -1,7 +1,6 @@
 using FluentValidation;
-using WebAppSimulator.Infra.Bookstore;
 
-namespace WebAppSimulator.Contracts.Bookstore
+namespace BookstoreSimulator.Contracts
 {
     public class SingUpUserRequest
     {

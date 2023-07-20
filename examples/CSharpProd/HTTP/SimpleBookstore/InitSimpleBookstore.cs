@@ -1,10 +1,7 @@
 using Newtonsoft.Json;
-using WebAppSimulator.Contracts;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
-using System.Threading.Tasks;
+using BookstoreSimulator.Contracts;
 
 namespace CSharpProd.HTTP.SimpleBookstore
 {
@@ -12,23 +9,23 @@ namespace CSharpProd.HTTP.SimpleBookstore
     {
         public void SingUpUser()
         {
-            //var user = new UserSingup
-            //{
-            //    FirstName = "Jon",
-            //    LastName = "Smith",
-            //    Email = "asd@gmail.com",
-            //    Password = "fdsuHS12=",
-            //};
-
-            var user = new UserLogin
+            var user = new UserSingup
             {
+                FirstName = "Jon",
+                LastName = "Smith",
                 Email = "asd@gmail.com",
-                Password = "fdsuHS12="
+                Password = "fdsuHS12=",
             };
 
+            //var user = new UserLogin
+            //{
+            //    Email = "asd@gmail.com",
+            //    Password = "fdsuHS12="
+            //};
+
             var httpClient = new HttpClient();
-            //var url = "http://localhost:5195/api/bookstoreusers/singup";
-            var url = "http://localhost:5195/api/bookstoreusers/login";
+            var url = "http://localhost:5064/api/users/singup";
+            //var url = "http://localhost:5064/api/users/login";
 
             var message = new HttpRequestMessage(HttpMethod.Post, url);
             message.Content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json");
@@ -36,9 +33,10 @@ namespace CSharpProd.HTTP.SimpleBookstore
             var response = httpClient.SendAsync(message).Result;
             if(response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                var jwt = response.Content.ReadFromJsonAsync<Response<string>>().Result;
+                var jwt = response.Content.ReadFromJsonAsync<ResponseBS<string>>().Result;
                 Console.WriteLine(jwt.Data);
             }
         }
     }
 }
+

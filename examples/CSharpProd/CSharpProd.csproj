@@ -68,6 +68,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\BookstoreSimulator\BookstoreSimulator.csproj" />
       <ProjectReference Include="..\WebAppSimulator\WebAppSimulator.csproj" />
     </ItemGroup>
 

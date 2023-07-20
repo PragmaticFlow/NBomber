@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WebAppSimulator.Infra.Bookstore
+namespace BookstoreSimulator.Infra.Bookstore
 {
     public static class Password
     {

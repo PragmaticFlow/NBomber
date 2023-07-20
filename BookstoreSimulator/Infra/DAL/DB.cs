@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace WebAppSimulator.Infra.Bookstore.DAL
+namespace BookstoreSimulator.Infra.DAL
 {
     public class DB
     {
