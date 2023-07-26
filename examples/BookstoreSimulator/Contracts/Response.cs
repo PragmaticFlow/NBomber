@@ -1,9 +1,9 @@
 namespace BookstoreSimulator.Contracts
 {
-    public class ResponseBS<T>
+    public class Response<T>
     {
         public T Data { get; private set; }
-        public ResponseBS(T data)
+        public Response(T data)
         {
             Data = data;
         }

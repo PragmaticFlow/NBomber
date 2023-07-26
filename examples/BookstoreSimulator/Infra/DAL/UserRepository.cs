@@ -71,7 +71,6 @@ namespace BookstoreSimulator.Infra.DAL
                     var commandText = @"INSERT INTO Users 
                                     (UserId, Email, PasswordHash, PasswordSalt, UserData, CreatedDateTime, UpdatedDateTime) 
                                     VALUES (@UserId, @Email, @PasswordHash, @PasswordSalt::bytea, @UserData::jsonb, @CreatedDateTime, @UpdatedDateTime)";
-                    var command = new NpgsqlCommand(commandText, connection);
                     await connection.ExecuteAsync(commandText, record);
                 }
                 return DBResultExeption.Ok;

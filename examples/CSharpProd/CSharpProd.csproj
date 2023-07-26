@@ -7,10 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="HTTP\SimpleBookstore\config.json" />
       <None Remove="HTTP\WebAppSimulator\config.json" />
     </ItemGroup>
 
     <ItemGroup>
+      <Content Include="HTTP\SimpleBookstore\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
       <Content Include="HTTP\WebAppSimulator\config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

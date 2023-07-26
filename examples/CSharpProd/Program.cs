@@ -15,12 +15,13 @@ using CSharpProd.HTTP.WebAppSimulator;
 using Microsoft.AspNetCore.Builder;
 using CSharpProd.HTTP.SimpleBookstore;
 
-new InitSimpleBookstore().SingUpUser();
+new ExampleSimpleBookstore().Run();
+//new InitSimpleBookstoreScenario().Test();
 
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-//new HelloWorldExample().Run();
+// new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();

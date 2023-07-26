@@ -93,18 +93,21 @@ namespace BookstoreSimulator
             });
         
             var settings = builder.Configuration.GetSection("BookstoreSettings").Get<BookstoreSettings>();
-            var rep = new UserRepository(settings);
-            builder.Services.AddSingleton(rep);
 
-            var singUpUserRequestValidator = new SingUpUserRequestValidator();
-            builder.Services.AddSingleton(singUpUserRequestValidator);
+            builder.Services.AddSingleton(_ => new UserRepository(settings));
 
-            var loginUserRequestValidator = new LoginUserRequestValidator();
-            builder.Services.AddSingleton(loginUserRequestValidator);
+            builder.Services.AddSingleton(_ => new BookRepository(settings));
 
-            var db = new DB(settings);
-            db.CreateTables();
-      
+            builder.Services.AddSingleton(_ => new OrderRepository(settings));
+
+            builder.Services.AddSingleton(_ => new DB(settings));
+
+            builder.Services.AddSingleton(_ => new SingUpUserRequestValidator());
+
+            builder.Services.AddSingleton(_ => new LoginUserRequestValidator());
+
+            builder.Services.AddSingleton(_ => new BookRequestValidator());
+
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())
