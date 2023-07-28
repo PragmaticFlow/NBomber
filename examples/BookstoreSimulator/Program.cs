@@ -94,7 +94,7 @@ namespace BookstoreSimulator
             builder.Services.AddSingleton(_ => new UserRepository(settings, logger));
 
             builder.Services.AddSingleton(_ => new BookRepository(settings, logger));
-
+            
             builder.Services.AddSingleton(_ => new OrderRepository(settings, logger));
 
             builder.Services.AddSingleton(_ => new DB(settings, logger));
