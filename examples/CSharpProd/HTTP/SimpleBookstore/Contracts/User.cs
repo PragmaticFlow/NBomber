@@ -1,4 +1,4 @@
-namespace CSharpProd.HTTP.SimpleBookstore
+namespace CSharpProd.HTTP.SimpleBookstore.Contracts
 {
     public class UserSingup
     {

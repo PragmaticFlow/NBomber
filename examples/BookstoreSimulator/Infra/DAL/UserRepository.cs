@@ -9,7 +9,7 @@ namespace BookstoreSimulator.Infra.DAL
     {
         Ok,
         Duplicate,
-        OtherEx
+        UnhandledEx
     }
     public class UserDBRecord
     {
@@ -55,10 +55,12 @@ namespace BookstoreSimulator.Infra.DAL
     public class UserRepository
     {
         private string _connectionStr;
+        private Serilog.ILogger _logger;
        
-        public UserRepository(BookstoreSettings settings)
+        public UserRepository(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;
+            _logger = logger;
         }
         public async Task<DBResultExeption> InsertUser(UserDBRecord record)
         {
@@ -75,13 +77,19 @@ namespace BookstoreSimulator.Infra.DAL
                 }
                 return DBResultExeption.Ok;
             }
-            catch(PostgresException ex) 
+            catch (PostgresException ex) 
             {
+                _logger.Error(ex, "Inser user DB error");
+
                 if (ex.Code == "23505")
                     return DBResultExeption.Duplicate;
                 else
-                    return DBResultExeption.OtherEx;
-            }                   
+                    return DBResultExeption.UnhandledEx;
+            }
+            catch
+            {
+                return DBResultExeption.UnhandledEx;
+            }
         }
 
         public async Task<UserLoginDBRecord?> TryFindUserLoginData(string email)
@@ -98,8 +106,10 @@ namespace BookstoreSimulator.Infra.DAL
                     return result.First();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                _logger.Error(ex, $"Select user DB error by email {email}");
+
                 return null;
             }
         }

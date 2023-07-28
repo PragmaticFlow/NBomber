@@ -15,9 +15,6 @@ using CSharpProd.HTTP.WebAppSimulator;
 using Microsoft.AspNetCore.Builder;
 using CSharpProd.HTTP.SimpleBookstore;
 
-new ExampleSimpleBookstore().Run();
-//new InitSimpleBookstoreScenario().Test();
-
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
@@ -55,6 +52,7 @@ new ExampleSimpleBookstore().Run();
 // new HttpResponseValidation().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
+new ExampleSimpleBookstore().Run();
 
 // ----------------
 // ----- MQTT -----

@@ -10,14 +10,14 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 2, "00:00:30" ] }
+                    { "Inject": [ 20, "00:00:01", "00:00:30" ] }
                 ]
             }
         ],
 
         "GlobalCustomSettings": {
 
-            "RecordsCount": 100,
+            "RecordsCount": 1000,
 
             "BooksCount": 100
         }

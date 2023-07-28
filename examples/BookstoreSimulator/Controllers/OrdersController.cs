@@ -17,7 +17,6 @@ namespace BookstoreSimulator.Controllers
             _repository = repository;
         }
 
-        [Route("create")]
         [Authorize]
         [HttpPost]
         public async Task<IResult> CreateOrder([FromBody] OrderRequest request)
@@ -33,10 +32,10 @@ namespace BookstoreSimulator.Controllers
                 if (createdOrder)
                     return Results.StatusCode(StatusCodes.Status200OK);
                 else
-                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                    return Results.StatusCode(StatusCodes.Status409Conflict);
             }
             else
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                return Results.StatusCode(StatusCodes.Status400BadRequest);
         }
 
         private Guid? ExtractUserId(IHeaderDictionary headers)

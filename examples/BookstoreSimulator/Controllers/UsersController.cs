@@ -3,8 +3,8 @@ using BookstoreSimulator.Infra;
 using BookstoreSimulator.Infra.Bookstore;
 using BookstoreSimulator.Infra.DAL;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BookstoreSimulator.Controllers
 {
@@ -16,18 +16,17 @@ namespace BookstoreSimulator.Controllers
         private JwtSetings _jwtSetings;
         private SingUpUserRequestValidator _singUpUserRequestValidator;
         private LoginUserRequestValidator _loginUserRequestValidator;
- 
+   
         public UsersController
             (UserRepository rep, JwtSetings jwtSetings,
             SingUpUserRequestValidator singUpUserRequestValidator,
-            LoginUserRequestValidator loginUserRequestValidator,
-            Serilog.ILogger logger)
+            LoginUserRequestValidator loginUserRequestValidator
+            )
         {
             _rep = rep;
             _jwtSetings = jwtSetings;
             _singUpUserRequestValidator = singUpUserRequestValidator;
             _loginUserRequestValidator = loginUserRequestValidator;
-            //_logger = logger;
         }
 
         [Route("singup")]
@@ -51,7 +50,7 @@ namespace BookstoreSimulator.Controllers
                     return Results.StatusCode(StatusCodes.Status409Conflict);
                 else
                     return Results.StatusCode(StatusCodes.Status500InternalServerError);
-            } 
+            }
             else
                 return Results.ValidationProblem(validationResult.ToDictionary());
         }
@@ -65,7 +64,7 @@ namespace BookstoreSimulator.Controllers
             if (validationResult.IsValid)
             {
                 var result = await _rep.TryFindUserLoginData(request.Email);
-                if(result != null)
+                if (result != null)
                 {
                     var passwordValid = Password.VerifyPassword(request.Password, result.PasswordHash, result.PasswordSalt);
                     if (passwordValid)
@@ -87,7 +86,6 @@ namespace BookstoreSimulator.Controllers
         [Route("logout")]
         [Authorize]
         [HttpPost]
-
         public async Task<IResult> Logout()
         {
             return Results.Ok();

@@ -43,7 +43,7 @@ namespace BookstoreSimulator.Controllers
         public async Task<IResult> Get(bool availableOnly = true)
         {
             var books = await _bookRepository.Get(availableOnly);
-            if(books.Count > 0)
+            if (books.Count > 0)
             {
                 var data = new Response<List<BookDBRecord>>(books);
                 return Results.Ok(data);

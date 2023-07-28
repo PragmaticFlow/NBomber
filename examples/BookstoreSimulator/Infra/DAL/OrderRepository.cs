@@ -20,14 +20,15 @@ namespace BookstoreSimulator.Infra.DAL
     public class OrderRepository
     {
         private string _connectionStr;
-        public OrderRepository(BookstoreSettings settings)
+        private Serilog.ILogger _logger;
+        public OrderRepository(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;
+            _logger = logger;
         }
 
         public async Task<bool> CreateOrder(OrderDBRecord request)
         {
-        
             using (var connection = new NpgsqlConnection(_connectionStr))
             {
                 connection.Open();
@@ -35,7 +36,7 @@ namespace BookstoreSimulator.Infra.DAL
                 {
                     try
                     {
-                        var commandUpdate = "UPDATE Books SET Quantaty = Quantaty - 1 WHERE BookId = @BookId";
+                        var commandUpdate = @"UPDATE Books SET Quantaty = Quantaty - 1 WHERE BookId = @BookId";        
                         await connection.ExecuteAsync(commandUpdate, new { request.BookId }, transaction);
 
                         var commandInsert = @"INSERT INTO Orders 
@@ -45,8 +46,9 @@ namespace BookstoreSimulator.Infra.DAL
                         transaction.Commit();
                         return true;
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        _logger.Error(ex, "Create order DB error");
                         transaction.Rollback();
                         return false;
                     }

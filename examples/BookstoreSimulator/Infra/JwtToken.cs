@@ -18,7 +18,7 @@ namespace BookstoreSimulator.Infra
                 Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = jwtSetings.Issuer,
                 Audience = jwtSetings.Audience,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);

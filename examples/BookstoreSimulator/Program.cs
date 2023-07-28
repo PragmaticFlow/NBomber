@@ -32,9 +32,6 @@ namespace BookstoreSimulator
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
 
-            builder.Services.AddSingleton<Serilog.ILogger>(logger);
-            //
-
             builder.Services.AddControllers();
             builder.Services.AddRazorPages();
 
@@ -94,13 +91,13 @@ namespace BookstoreSimulator
         
             var settings = builder.Configuration.GetSection("BookstoreSettings").Get<BookstoreSettings>();
 
-            builder.Services.AddSingleton(_ => new UserRepository(settings));
+            builder.Services.AddSingleton(_ => new UserRepository(settings, logger));
 
-            builder.Services.AddSingleton(_ => new BookRepository(settings));
+            builder.Services.AddSingleton(_ => new BookRepository(settings, logger));
 
-            builder.Services.AddSingleton(_ => new OrderRepository(settings));
+            builder.Services.AddSingleton(_ => new OrderRepository(settings, logger));
 
-            builder.Services.AddSingleton(_ => new DB(settings));
+            builder.Services.AddSingleton(_ => new DB(settings, logger));
 
             builder.Services.AddSingleton(_ => new SingUpUserRequestValidator());
 

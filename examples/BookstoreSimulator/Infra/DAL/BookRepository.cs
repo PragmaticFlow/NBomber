@@ -10,7 +10,7 @@ namespace BookstoreSimulator.Infra.DAL
         public string Title { get; set; }
         public string Author { get; set; }
         public DateTime PublicationDate { get; set; }
-        public int Quantaty { get; set; } = 0;
+        public int Quantaty { get; set; }
 
         internal static BookDBRecord Create(BookRequest request, Guid bookId)
         {
@@ -27,10 +27,12 @@ namespace BookstoreSimulator.Infra.DAL
     public class BookRepository
     {
         private string _connectionStr;
+        private Serilog.ILogger _logger;
 
-        public BookRepository(BookstoreSettings settings)
+        public BookRepository(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;
+            _logger = logger;
         }
 
         public async Task<bool> InsertBook(BookDBRecord record)
@@ -48,8 +50,9 @@ namespace BookstoreSimulator.Infra.DAL
                 }
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Error(ex, "Inser book DB error");
                 return false;
             }
         }
@@ -76,8 +79,9 @@ namespace BookstoreSimulator.Infra.DAL
                     return result.ToList();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Error(ex, "Select book DB error");
                 return new List<BookDBRecord>();
             }
         }

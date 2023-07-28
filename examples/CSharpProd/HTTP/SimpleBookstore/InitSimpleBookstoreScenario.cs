@@ -1,4 +1,5 @@
 using Bogus;
+using CSharpProd.HTTP.SimpleBookstore.Contracts;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
@@ -13,7 +14,6 @@ namespace CSharpProd.HTTP.SimpleBookstore
     public class GlobalCustomSettings
     {
         public int RecordsCount { get; set; }
-
         public int BooksCount { get; set; }
     }
 
@@ -30,6 +30,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
                   // recreate DB
                   var request = Http.CreateRequest("PUT", "http://localhost:5064/api/databases")
                                 .WithHeader("Accept", "application/json");
+
                   var response = await Http.Send(_httpClient, request);
 
                   var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
@@ -43,7 +44,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
                           FirstName = faker.Name.FirstName(),
                           LastName = faker.Name.LastName(),
                           Email = faker.Internet.Email(),
-                          Password = GenerateRandomPassword(15),
+                          Password = PasswordGenerator.GeneratePassword(15),
                       })
                       .Select(user =>
                       {
@@ -68,7 +69,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
                           Title = faker.Lorem.Sentence(),
                           Author = faker.Name.FullName(),
                           PublicationDate = faker.Date.Past(200, DateTime.UtcNow),
-                          Quantaty = faker.Random.Number(1, 50)
+                          Quantaty = faker.Random.Number(10, 50)
                       })
                       .Select(book =>
                       {
@@ -82,30 +83,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
 
                   var allTasks = bookInsert.Concat(usersSingup);
                   await Task.WhenAll(allTasks);
-
               });
-
-        }
-
-        public static string GenerateRandomPassword(int length)
-        {
-            var random = new Randomizer();
-            var passwordChars = new[]
-            {
-            "abcdefghijklmnopqrstuvwxyz",
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "0123456789"
-            };
-            var password = new StringBuilder();
-
-            for (int i = 0; i < length; i++)
-            {
-                var charSetIndex = random.Number(0, passwordChars.Length - 1);
-                var charSet = passwordChars[charSetIndex];
-                password.Append(charSet[random.Number(0, charSet.Length - 1)]);
-            }
-
-            return password.ToString();
         }
     }
 }
