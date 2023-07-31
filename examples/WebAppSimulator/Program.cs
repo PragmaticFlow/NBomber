@@ -19,9 +19,12 @@ namespace WebAppSimulator
 
             builder.Services.AddControllers();
             builder.Services.AddRazorPages();
-            builder.Services.AddSwaggerGen();
 
-            var dbUse = builder.Configuration.GetValue<string>("DbUse", "");
+            builder.Services.AddSwaggerGen();
+            builder.Services.AddAuthentication();
+
+            var dbUse = builder.Configuration.GetValue("DbUse", "");
+
             if (dbUse == "SQLite")
             {
                 var settings = builder.Configuration.GetSection("SQLiteSettings").Get<SQLiteSettings>();
@@ -36,7 +39,7 @@ namespace WebAppSimulator
             }
             else
                 throw new Exception("The base for the test is not specified in the file appsettings.json");
-            
+
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

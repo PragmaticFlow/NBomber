@@ -12,7 +12,7 @@ using CSharpProd.HelloWorld.LoadSimulation;
 using CSharpProd.HTTP;
 using CSharpProd.MQTT;
 using CSharpProd.HTTP.WebAppSimulator;
-
+using CSharpProd.HTTP.SimpleBookstore;
 
 // -------------------------------
 // -----Hello World examples -----
@@ -51,6 +51,7 @@ new HelloWorldExample().Run();
 // new HttpResponseValidation().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
+// new ExampleSimpleBookstore().Run();
 
 // ----------------
 // ----- MQTT -----
