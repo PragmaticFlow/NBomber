@@ -17,10 +17,12 @@ namespace BookstoreSimulator.Infra.DAL
             Quantaty = request.Quantaty;
         }
     }
+
     public class OrderRepository
     {
         private string _connectionStr;
         private Serilog.ILogger _logger;
+
         public OrderRepository(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;

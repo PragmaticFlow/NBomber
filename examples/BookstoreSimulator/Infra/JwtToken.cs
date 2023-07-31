@@ -8,7 +8,7 @@ namespace BookstoreSimulator.Infra
 {
     public static class JwtToken
     {
-        internal static string GenerateJwtToken(string userId, JwtSetings jwtSetings)
+        public static string GenerateJwtToken(string userId, JwtSetings jwtSetings)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(jwtSetings.Key);
@@ -24,7 +24,7 @@ namespace BookstoreSimulator.Infra
             return tokenHandler.WriteToken(token);
         }
 
-        internal static string DecodeJwtToken(string jwtToken)
+        public static string DecodeJwtToken(string jwtToken)
         {
             var tokenHendler = new JwtSecurityTokenHandler();
             var userIdString = "";

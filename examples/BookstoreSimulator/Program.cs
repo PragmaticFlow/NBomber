@@ -93,17 +93,11 @@ namespace BookstoreSimulator
             var settings = builder.Configuration.GetSection("BookstoreSettings").Get<BookstoreSettings>();
 
             builder.Services.AddSingleton(_ => new UserRepository(settings, logger));
-
-            builder.Services.AddSingleton(_ => new BookRepository(settings, logger));
-            
+            builder.Services.AddSingleton(_ => new BookRepository(settings, logger));       
             builder.Services.AddSingleton(_ => new OrderRepository(settings, logger));
-
             builder.Services.AddSingleton(_ => new DB(settings, logger));
-
             builder.Services.AddSingleton(_ => new SingUpUserRequestValidator());
-
             builder.Services.AddSingleton(_ => new LoginUserRequestValidator());
-
             builder.Services.AddSingleton(_ => new BookRequestValidator());
 
             var app = builder.Build();

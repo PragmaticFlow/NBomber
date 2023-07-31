@@ -63,6 +63,7 @@ namespace BookstoreSimulator.Infra.DAL
             _connectionStr = settings.ConnectionString;
             _logger = logger;
         }
+
         public async Task<DBResultExeption> InsertUser(UserDBRecord record)
         {
             try
