@@ -18,7 +18,6 @@ namespace BookstoreSimulator.Controllers
             _bookRequestValidator = bookRequestValidator;
         }
 
-        [Route("create")]
         [AllowAnonymous]
         [HttpPost]
         public async Task<IResult> CreateBook([FromBody] BookRequest request)

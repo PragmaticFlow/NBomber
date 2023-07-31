@@ -74,7 +74,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
                       .Select(book =>
                       {
                           var data = JsonConvert.SerializeObject(book);
-                          var request = Http.CreateRequest("POST", "http://localhost:5064/api/books/create")
+                          var request = Http.CreateRequest("POST", "http://localhost:5064/api/books")
                                   .WithHeader("Accept", "application/json")
                                   .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 

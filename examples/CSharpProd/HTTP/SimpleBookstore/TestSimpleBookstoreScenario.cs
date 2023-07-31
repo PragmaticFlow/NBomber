@@ -110,5 +110,4 @@ namespace CSharpProd.HTTP.SimpleBookstore
             return response.Content.ReadFromJsonAsync<JwtResponse>().Result.Data;
         }
     }
-
 }
