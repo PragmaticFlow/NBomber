@@ -2,6 +2,7 @@ using BookstoreSimulator.Contracts;
 using BookstoreSimulator.Infra;
 using BookstoreSimulator.Infra.Bookstore;
 using BookstoreSimulator.Infra.DAL;
+using BookstoreSimulator.Infra.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -12,10 +13,10 @@ namespace BookstoreSimulator.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private UserRepository _rep;
-        private JwtSetings _jwtSetings;
-        private SingUpUserRequestValidator _singUpUserRequestValidator;
-        private LoginUserRequestValidator _loginUserRequestValidator;
+        private readonly UserRepository _rep;
+        private readonly JwtSetings _jwtSetings;
+        private readonly SingUpUserRequestValidator _singUpUserRequestValidator;
+        private readonly LoginUserRequestValidator _loginUserRequestValidator;
    
         public UsersController
             (UserRepository rep, JwtSetings jwtSetings,

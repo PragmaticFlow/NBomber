@@ -11,7 +11,8 @@ namespace BookstoreSimulator.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private OrderRepository _repository { get; set; }
+        private readonly OrderRepository _repository;
+
         public OrdersController(OrderRepository repository)
         {
             _repository = repository;

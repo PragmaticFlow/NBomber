@@ -11,6 +11,7 @@ namespace BookstoreSimulator.Infra.DAL
         Duplicate,
         UnhandledEx
     }
+
     public class UserDBRecord
     {
         public Guid UserId { get; set; }
@@ -46,7 +47,7 @@ namespace BookstoreSimulator.Infra.DAL
         public byte[] PasswordSalt { get; set; }
     }
 
-        public class UserData
+    public class UserData
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

@@ -9,8 +9,8 @@ namespace BookstoreSimulator.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
-        private BookRequestValidator _bookRequestValidator;
-        private BookRepository _bookRepository;
+        private readonly BookRequestValidator _bookRequestValidator;
+        private readonly BookRepository _bookRepository;
 
         public BooksController(BookRepository bookRepository, BookRequestValidator bookRequestValidator)
         {

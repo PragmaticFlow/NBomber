@@ -6,6 +6,7 @@ namespace BookstoreSimulator.Infra.DAL
     {
         private string _connectionStr;
         private Serilog.ILogger _logger;
+
         public DB(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;
