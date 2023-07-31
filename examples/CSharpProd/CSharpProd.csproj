@@ -73,8 +73,4 @@
       <Folder Include="DB\Redis\" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\BookstoreSimulator\BookstoreSimulator.csproj" />
-    </ItemGroup>
-
 </Project>
