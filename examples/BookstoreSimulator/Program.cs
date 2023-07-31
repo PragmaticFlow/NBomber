@@ -5,6 +5,7 @@ using System.Text;
 using BookstoreSimulator.Contracts;
 using Serilog;
 using BookstoreSimulator.Infra.DAL;
+using BookstoreSimulator.Infra.Validation;
 
 namespace BookstoreSimulator
 {

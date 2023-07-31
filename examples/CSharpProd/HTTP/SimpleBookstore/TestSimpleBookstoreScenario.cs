@@ -68,7 +68,7 @@ namespace CSharpProd.HTTP.SimpleBookstore
 
                     var createOrder = await Step.Run("createOrder", context, async () =>
                     {
-                        var rundomBook = books[random.Next(books.Count)];
+                        var rundomBook = books[random.Next(books.Count - 1)];
 
                         var order = new Order
                         {
