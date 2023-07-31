@@ -9,6 +9,7 @@ namespace BookstoreSimulator.Controllers
     public class DatabasesController : ControllerBase
     {
         private readonly DB _db;
+
         public DatabasesController(DB db)
         {
             _db = db;
