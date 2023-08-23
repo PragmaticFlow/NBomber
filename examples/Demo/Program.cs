@@ -8,6 +8,7 @@ using Demo.Features.CustomSettings;
 using Demo.Features.ElasticsearchLogger;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
+using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
 using Demo.HTTP;
@@ -18,7 +19,7 @@ using Demo.HTTP.SimpleBookstore;
 // -------------------------------
 // -----Hello World examples -----
 // -------------------------------
-// new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -43,6 +44,9 @@ using Demo.HTTP.SimpleBookstore;
 // new InfluxDBReportingExample().Run();
 // new CustomReportingExample().Run();
 // new ElasticsearchExample().Run();
+
+// ---- Timeouts ----
+// new ScenarioCompletionTimeout().Run();
 
 // ----------------
 // ----- HTTP -----
@@ -70,5 +74,5 @@ using Demo.HTTP.SimpleBookstore;
 // ---------------------
 // ----- Cluster -------
 // ---------------------
-new AutoClusterExample().Run();
+// new AutoClusterExample().Run();
 
