@@ -2,9 +2,7 @@
   <img src="https://github.com/PragmaticFlow/NBomber/blob/dev/assets/nbomber_logo.png" alt="NBomber logo" width="600px">
 </p>
 
-[![build](https://github.com/PragmaticFlow/NBomber/actions/workflows/build.yml/badge.svg)](https://github.com/PragmaticFlow/NBomber/actions/workflows/build.yml)
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
-[![Gitter](https://badges.gitter.im/nbomber/community.svg)](https://gitter.im/nbomber/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 NBomber is a modern and flexible load-testing framework for Pull and Push scenarios, designed to test any system regardless of a protocol (HTTP/WebSockets/AMQP, etc) or a semantic model (Pull/Push).
 
@@ -15,7 +13,7 @@ NBomber will help you to build resilient and performant applications that scale.
 [![NBomber 5](https://cdn.jsdelivr.net/gh/PragmaticFlow/NBomber@assets/v5.0/assets/NBomber_5_youtube.png)](https://youtu.be/Z51PyZvZNF8)
 
 ### Links
-- [Main web page](https://nbomber.com/)
+- [Website](https://nbomber.com/)
 - [Documentation](https://nbomber.com/docs/getting-started/overview/)
 
 ### Why we build NBomber and what you can do with it?
@@ -28,11 +26,12 @@ NBomber as a modern framework provides:
 - Zero dependencies on protocol (HTTP/WebSockets/AMQP/SQL)
 - Zero dependencies on semantic model (Pull/Push)
 - Very flexible configuration and dead simple API
-- Distributed cluster support
+- [Distributed cluster support](https://nbomber.com/docs/cluster/overview)
 - Real-time reporting
-- CI/CD integration
-- Plugins/extensions support
-- Data feed support
+- CI/CD integration (xUnit and NUnit runners are supported)
+- Plugins/extensions support - add your own plugins or data sinks
+- Data feed support - inject real or fake data into your tests
+- **Debuggability of your load test** - debug your tests using your favorite IDE
 
 ### What makes it very simple?
 One of the design goals of NBomber is to keep API as minimal as possible.
@@ -63,8 +62,5 @@ NBomberRunner
 ### Examples
 |Type|Language
 |--|--|
-| [NBomber](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/CSharpProd) | C# |
-| [NBomber Enterprise](https://github.com/PragmaticFlow/NBomber.Enterprise.Examples) | C# |
+| [NBomber Demo](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/Demo) | C# |
 
-### Contributing
-Would you like to help make NBomber even better? We keep a list of issues that are approachable for newcomers under the [good-first-issue](https://github.com/PragmaticFlow/NBomber/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label.
