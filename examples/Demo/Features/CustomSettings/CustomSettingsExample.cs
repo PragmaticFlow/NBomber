@@ -11,6 +11,11 @@ public class CustomScenarioSettings
     public int MyPauseMs { get; set; }
 }
 
+public class GlobalScenarioSettings
+{
+    public string ConnectionString { get; set; }
+}
+
 public class CustomSettingsExample
 {
     CustomScenarioSettings _customSettings = new();
@@ -18,6 +23,14 @@ public class CustomSettingsExample
     Task Init(IScenarioInitContext initContext)
     {
         _customSettings = initContext.CustomSettings.Get<CustomScenarioSettings>();
+
+        // if you want some settings to be shared globally among all scenarios
+        // you can use GlobalCustomSettings for this
+        var globalSettings = initContext.GlobalCustomSettings.Get<GlobalScenarioSettings>();
+        initContext.Logger.Information(
+            "test init received GlobalSettings.ConnectionString '{0}'",
+            globalSettings.ConnectionString
+        );
 
         initContext.Logger.Information(
             "test init received CustomSettings.MyTestField '{0}'",

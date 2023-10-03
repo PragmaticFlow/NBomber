@@ -26,6 +26,10 @@
             }
         ],
 
+        "GlobalCustomSettings": {
+            "ConnectionString": "my_db_connection_string"
+        },
+
         "ReportFileName": "my_custom_report_name",
         "ReportFolder": "./my_reports",
         "ReportFormats": ["Html", "Txt"],
