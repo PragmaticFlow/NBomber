@@ -1,0 +1,19 @@
+﻿version: "3.9"
+services:
+
+  influxdb:
+    image: "influxdb:2.7.1"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminadmin
+      DOCKER_INFLUXDB_INIT_ORG: nbomber
+      DOCKER_INFLUXDB_INIT_BUCKET: nbomber
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: secret-token
+    ports:
+      - "8086:8086"
+    volumes:
+        - 'influxdb-storage:/var/lib/influxdb2'
+
+volumes:
+    influxdb-storage:

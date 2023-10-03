@@ -41,8 +41,12 @@ new HelloWorldExample().Run();
 // new CustomSettingsExample().Run();
 // new ClientPoolMqttExample().Run();
 // new CliArgsExample().Run();
+
+// ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
 // new CustomReportingExample().Run();
+
+// ---- Logs ----
 // new ElasticsearchExample().Run();
 
 // ---- Timeouts ----

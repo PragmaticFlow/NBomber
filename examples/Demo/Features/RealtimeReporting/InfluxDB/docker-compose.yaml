@@ -1,12 +1,14 @@
 ﻿version: "3.9"
 services:
-  
+
   influxdb:
     image: "influxdb:1.8.1"
     environment:
       INFLUXDB_DB: "\"nbomber\""
     ports:
       - "8086:8086"
+    volumes:
+        - 'influxdb-storage:/var/lib/influxdb'
 
   grafana:
     image: "grafana/grafana:8.5.2"
@@ -14,3 +16,9 @@ services:
       - "3000:3000"
     depends_on:
       - "influxdb"
+    volumes:
+        - 'grafana-storage:/var/lib/grafana'
+
+volumes:
+    influxdb-storage:
+    grafana-storage:

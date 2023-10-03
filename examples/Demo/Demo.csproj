@@ -12,6 +12,9 @@
       <None Update="Cluster\AutoCluster\autocluster-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\InfluxDB\influx_v2\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -34,7 +37,7 @@
         <PackageReference Include="NBomber" Version="5.2.2" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
         <PackageReference Include="NBomber.Http" Version="5.0.0" />
-        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.0" />
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.1" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
