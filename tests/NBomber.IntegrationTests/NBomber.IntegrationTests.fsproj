@@ -72,7 +72,4 @@
         <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
         <PackageReference Update="FSharp.Core" Version="7.0.0" />
     </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\NBomber\NBomber.fsproj" />
-    </ItemGroup>
 </Project>

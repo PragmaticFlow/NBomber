@@ -1,4 +1,5 @@
 using Demo.Cluster.AutoCluster;
+using Demo.Cluster.ManualCluster;
 using Demo.DB.LiteDB;
 using Demo.DB.Redis;
 using Demo.DB.SQLiteDB;
@@ -78,5 +79,19 @@ new HelloWorldExample().Run();
 // ---------------------
 // ----- Cluster -------
 // ---------------------
+
+// ----- Auto Cluster -------
+// in order to run this example you should start 2 instances of NBomber,
+// for this, you need to run this NBomber application twice
+
 // new AutoClusterExample().Run();
+// new AutoClusterExample().Run();
+
+// ----- Manual Cluster -------
+// in order to run this example you should start 2 instances of NBomber,
+// - first instance will act as Coordinator
+// - second instance will act as Agent
+
+// new ManualClusterExample().Run(args: new [] { "--cluster-node-type=coordinator" });
+// new ManualClusterExample().Run(args: new [] { "--cluster-node-type=agent", "--cluster-agent-group=1" });
 

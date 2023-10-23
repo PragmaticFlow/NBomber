@@ -1,0 +1,23 @@
+﻿{
+    "TestSuite": "my test suite",
+    "TestName": "my test",
+
+    "ClusterSettings": {
+
+        "ManualCluster": {
+            "ClusterId": "test_cluster",
+            "NATSServerURL": "nats://localhost",
+
+            "Coordinator": {
+                "TargetScenarios": ["http_scenario"]
+            },
+
+            "Agent": {
+                "AgentGroups": [{"AgentGroup": "1", "TargetScenarios": ["http_scenario"]}],
+                "AgentsCount": 1
+            }
+
+        }
+
+    }
+}
