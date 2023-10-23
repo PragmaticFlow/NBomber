@@ -13,8 +13,6 @@ In order to run that demo you should spin-up NATS message broker via docker-comp
 docker compose up
 ```
 
-After this you need start 2 instances of NBomber.
-
 Useful links:
 - [Cluster overview](https://nbomber.com/docs/cluster/overview)
 - [How to run cluster](https://nbomber.com/docs/cluster/run-cluster)

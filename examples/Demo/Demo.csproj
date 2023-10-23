@@ -12,9 +12,12 @@
       <None Update="Cluster\AutoCluster\autocluster-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Features\RealtimeReporting\InfluxDB\influx_v2\infra-config.json">
+      <None Update="Cluster\ManualCluster\manual-cluster-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\InfluxDB\influx_v2\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>      
     </ItemGroup>
 
     <ItemGroup>
@@ -34,7 +37,7 @@
         <PackageReference Include="Bogus" Version="34.0.2" />
         <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
-        <PackageReference Include="NBomber" Version="5.2.2" />
+        <PackageReference Include="NBomber" Version="5.3.0" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
         <PackageReference Include="NBomber.Http" Version="5.0.0" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.1" />
