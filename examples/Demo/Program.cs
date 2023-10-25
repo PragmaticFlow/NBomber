@@ -84,8 +84,8 @@ new HelloWorldExample().Run();
 // in order to run this example you should start 2 instances of NBomber,
 // for this, you need to run this NBomber application twice
 
-// new AutoClusterExample().Run();
-// new AutoClusterExample().Run();
+// new AutoClusterExample().Run(); // 1 instance
+// new AutoClusterExample().Run(); // 2 instance
 
 // ----- Manual Cluster -------
 // in order to run this example you should start 2 instances of NBomber,

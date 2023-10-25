@@ -13,19 +13,22 @@ public class SimpleHttpExample
         using var httpClient = new HttpClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
-        {
-            var request =
-                Http.CreateRequest("GET", "https://nbomber.com")
-                    .WithHeader("Content-Type", "application/json");
-                    // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
+            {
+                var request =
+                    Http.CreateRequest("GET", "https://nbomber.com")
+                        .WithHeader("Content-Type", "application/json");
+                     // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
+                var response = await Http.Send(httpClient, request);
 
-            var response = await Http.Send(httpClient, request);
-
-            return response;
-        })
-        .WithoutWarmUp()
-        .WithLoadSimulations(Simulation.Inject(rate: 100, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
+                return response;
+            })
+            .WithoutWarmUp()
+            .WithLoadSimulations(
+                Simulation.RampingInject(rate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
+                Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
+                Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))
+            );
 
         NBomberRunner
             .RegisterScenarios(scenario)

@@ -8,6 +8,8 @@ namespace Demo.Cluster.AutoCluster;
 
 public class AutoClusterExample
 {
+    readonly HttpClient _httpClient = new();
+
     public void Run()
     {
         var scenario = BuildScenario();
@@ -29,20 +31,22 @@ public class AutoClusterExample
 
     private ScenarioProps BuildScenario()
     {
-        using var httpClient = new HttpClient();
-
         return Scenario.Create("http_scenario", async context =>
             {
                 var request =
                     Http.CreateRequest("GET", "https://nbomber.com")
                         .WithHeader("Content-Type", "application/json");
-                // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
+                     // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await Http.Send(_httpClient, request);
 
                 return response;
             })
             .WithoutWarmUp()
-            .WithLoadSimulations(Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
+            .WithLoadSimulations(
+                Simulation.RampingInject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
+                Simulation.Inject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)),
+                Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))
+            );
     }
 }

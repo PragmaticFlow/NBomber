@@ -1,5 +1,4 @@
 ﻿using NBomber.Contracts;
-using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 using NBomber.Http;
 using NBomber.Http.CSharp;
@@ -9,6 +8,8 @@ namespace Demo.Cluster.ManualCluster;
 
 public class ManualClusterExample
 {
+    readonly HttpClient _httpClient = new();
+
     public void Run(string[] args)
     {
         var scenario = BuildScenario();
@@ -30,8 +31,6 @@ public class ManualClusterExample
 
     private ScenarioProps BuildScenario()
     {
-        using var httpClient = new HttpClient();
-
         return Scenario.Create("http_scenario", async context =>
             {
                 var request =
@@ -39,7 +38,7 @@ public class ManualClusterExample
                         .WithHeader("Content-Type", "application/json");
                         // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await Http.Send(_httpClient, request);
 
                 return response;
             })

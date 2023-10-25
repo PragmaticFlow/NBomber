@@ -4,6 +4,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+        <ServerGarbageCollection>false</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,7 +19,7 @@
       </None>
       <None Update="Features\RealtimeReporting\InfluxDB\influx_v2\infra-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>      
+      </None>
     </ItemGroup>
 
     <ItemGroup>
