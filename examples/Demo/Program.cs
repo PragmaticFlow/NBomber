@@ -52,6 +52,7 @@ new HelloWorldExample().Run();
 
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();
+// new HttpWithTimeoutExample().Run();
 
 // ----------------
 // ----- HTTP -----

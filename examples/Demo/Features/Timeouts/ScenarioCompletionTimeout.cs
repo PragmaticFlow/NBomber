@@ -6,6 +6,8 @@ public class ScenarioCompletionTimeout
 {
     public void Run()
     {
+        // Docs: https://nbomber.com/docs/nbomber/timeouts
+
         // When NBomber finishes load tests, it waits for all running scenarios to complete their tasks.
 
         var scenario = Scenario.Create("scenario_1", async context =>
