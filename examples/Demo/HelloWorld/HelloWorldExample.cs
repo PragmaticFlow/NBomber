@@ -17,7 +17,7 @@ public class HelloWorldExample
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.Inject(rate: 1, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)) // keep injecting with rate 150
+            Simulation.Inject(rate: 150, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)) // keep injecting with rate 150
         );
 
         NBomberRunner

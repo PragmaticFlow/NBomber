@@ -23,12 +23,7 @@ public class HttpWithTimeoutExample
                     .WithHeader("Content-Type", "application/json");
                   //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-            // HttpCompletionOption: https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpcompletionoption?view=net-7.0
-
-            var clientArgs = new HttpClientArgs(
-                httpCompletion: HttpCompletionOption.ResponseContentRead, // or ResponseHeadersRead
-                cancellationToken: timeout.Token
-            );
+            var clientArgs = HttpClientArgs.Create(timeout.Token);
 
             var response = await Http.Send(httpClient, clientArgs, request);
 
