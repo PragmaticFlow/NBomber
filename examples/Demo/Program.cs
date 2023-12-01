@@ -18,7 +18,7 @@ using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
 
 // -------------------------------
-// -----Hello World examples -----
+// ----- Hello World examples -----
 // -------------------------------
 new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
@@ -26,10 +26,12 @@ new HelloWorldExample().Run();
 // new StepsShareData().Run();
 // new LoggerExample().Run();
 
+// ----- Load Simulations -----
 // new ParallelScenarios().Run();
 // new ScenarioInjectRate().Run();
 // new ScenarioKeepConstant().Run();
 // new DelayedScenarioStart().Run();
+// new ScenarioTotalIterations().Run();
 
 // new ScenarioWithTimeout().Run();
 // new ScenarioWithStepRetry().Run();
