@@ -39,10 +39,10 @@
         <PackageReference Include="Bogus" Version="34.0.2" />
         <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
-        <PackageReference Include="NBomber" Version="5.4.0" />
+        <PackageReference Include="NBomber" Version="5.4.1" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
         <PackageReference Include="NBomber.Http" Version="5.0.1" />
-        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.1" />
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.2" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
