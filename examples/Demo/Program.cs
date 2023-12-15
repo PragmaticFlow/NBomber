@@ -6,6 +6,7 @@ using Demo.DB.SQLiteDB;
 using Demo.Features;
 using Demo.Features.CliArgs;
 using Demo.Features.CustomSettings;
+using Demo.Features.DynamicWorkload;
 using Demo.Features.ElasticsearchLogger;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
@@ -55,6 +56,12 @@ new HelloWorldExample().Run();
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();
 // new HttpWithTimeoutExample().Run();
+
+// ---- Dynamic Workloads ----
+// new ThreadIdDistributionExample().Run();
+// new UniformDistributionExample().Run();
+// new ZipfianDistributionExample().Run();
+// new MultinomialDistributionExample().Run();
 
 // ----------------
 // ----- HTTP -----

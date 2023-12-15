@@ -44,6 +44,5 @@ public class DataFeedExample
         NBomberRunner
             .RegisterScenarios(scenario)
             .Run();
-
     }
 }
