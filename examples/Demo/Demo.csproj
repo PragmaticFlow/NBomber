@@ -48,7 +48,7 @@
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.34.0" />
     </ItemGroup>
 
     <ItemGroup>
