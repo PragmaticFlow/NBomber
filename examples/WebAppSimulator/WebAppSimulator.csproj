@@ -17,6 +17,7 @@
     <ItemGroup>
         <PackageReference Include="Bogus" Version="34.0.2" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />

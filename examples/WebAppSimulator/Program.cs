@@ -1,3 +1,6 @@
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Text;
 using WebAppSimulator.Infra.DAL;
 
 namespace WebAppSimulator
@@ -6,11 +9,13 @@ namespace WebAppSimulator
     {
         public string ConnectionString { get; set; }
     }
+
     public class RedisSettings
     {
         public string ConnectionString { get; set; }
         public string ServerName { get; set; }
     }
+
     public class Program
     {
         public static void Main(string[] args)
@@ -37,8 +42,6 @@ namespace WebAppSimulator
                 var rep = new RedisRepository(settings);
                 builder.Services.AddSingleton<IUserRepository>(rep);
             }
-            else
-                throw new Exception("The base for the test is not specified in the file appsettings.json");
 
             var app = builder.Build();
 
@@ -46,7 +49,6 @@ namespace WebAppSimulator
             {
                 app.UseExceptionHandler("/Error");
             }
-            app.UseHttpsRedirection();
 
             if (app.Environment.IsDevelopment())
             {
@@ -63,12 +65,14 @@ namespace WebAppSimulator
                 app.UseSwaggerUI();
             }
 
+            // app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseAuthorization();
 
             app.MapRazorPages();
             app.MapControllers();
+            app.UseWebSockets();
 
             app.Run();
         }

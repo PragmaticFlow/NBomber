@@ -17,6 +17,7 @@ using Demo.HTTP;
 using Demo.MQTT;
 using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
+using Demo.WebSockets;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -72,6 +73,11 @@ new HelloWorldExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
 // new ExampleSimpleBookstore().Run();
+
+// ----------------
+// ----- WebSockets -----
+// ----------------
+// new PingPongWebSocketsTest().Run();
 
 // ----------------
 // ----- MQTT -----

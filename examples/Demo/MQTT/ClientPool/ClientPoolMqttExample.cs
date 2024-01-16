@@ -102,7 +102,7 @@ public class ClientPoolMqttExample
 
         NBomberRunner
             .RegisterScenarios(scenario)
-            .LoadConfig("./Features/ClientPool/config.json")
+            .LoadConfig("./MQTT/ClientPool/config.json")
             .Run();
 
     }
