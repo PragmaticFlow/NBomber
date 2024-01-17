@@ -6,6 +6,7 @@ using Demo.DB.SQLiteDB;
 using Demo.Features;
 using Demo.Features.CliArgs;
 using Demo.Features.CustomSettings;
+using Demo.Features.DataDemo;
 using Demo.Features.DynamicWorkload;
 using Demo.Features.ElasticsearchLogger;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
@@ -42,10 +43,15 @@ new HelloWorldExample().Run();
 // ------------------
 // ---- Features ----
 // ------------------
-// new DataFeedExample().Run();
 // new CustomSettingsExample().Run();
 // new ClientPoolMqttExample().Run();
 // new CliArgsExample().Run();
+
+// ---- DataFeed ----
+// new InMemoryFeed().Run();
+// new JsonFeed().Run();
+// new CsvFeed().Run();
+// new FakeDataGenExample().Run();
 
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();

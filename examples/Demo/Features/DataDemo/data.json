@@ -1,5 +1,9 @@
 ﻿[
     {
+        "Id": 0,
+        "Name": "Test User 0"
+    },
+    {
         "Id": 1,
         "Name": "Test User 1"
     },
