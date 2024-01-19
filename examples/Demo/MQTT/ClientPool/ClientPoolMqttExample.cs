@@ -7,9 +7,8 @@ using MQTTnet.Client.Options;
 using NBomber;
 using NBomber.CSharp;
 using NBomber.Data;
-// ReSharper disable CheckNamespace
 
-namespace Demo.Features;
+namespace Demo.MQTT.ClientPool;
 
 public class CustomScenarioSettings
 {
