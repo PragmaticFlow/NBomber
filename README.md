@@ -3,6 +3,7 @@
 </p>
 
 [![NuGet](https://img.shields.io/nuget/v/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
+[![Nuget](https://img.shields.io/nuget/dt/nbomber.svg)](https://www.nuget.org/packages/nbomber/)
 
 NBomber is a modern and flexible load-testing framework for Pull and Push scenarios, designed to test any system regardless of a protocol (HTTP/WebSockets/AMQP, etc) or a semantic model (Pull/Push).
 
