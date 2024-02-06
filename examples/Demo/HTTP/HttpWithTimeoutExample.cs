@@ -30,7 +30,7 @@ public class HttpWithTimeoutExample
             return response;
         })
         .WithoutWarmUp()
-        .WithLoadSimulations(Simulation.Inject(rate: 100, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
+        .WithLoadSimulations(Simulation.Inject(rate: 5, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
 
         NBomberRunner
             .RegisterScenarios(scenario)

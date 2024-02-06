@@ -77,6 +77,7 @@ new HelloWorldExample().Run();
 // new SimpleHttpExample().Run();
 // new SequentialHttpSteps().Run();
 // new HttpResponseValidation().Run();
+// new HttpSendJsonExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
 // new ExampleSimpleBookstore().Run();

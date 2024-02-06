@@ -1,3 +1,4 @@
+using System.Text.Json;
 using NBomber.CSharp;
 using NBomber.Http;
 using NBomber.Http.CSharp;
@@ -18,11 +19,10 @@ public class HttpClientArgsExample
                     .WithHeader("Content-Type", "application/json");
                   //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-            // HttpCompletionOption: https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpcompletionoption?view=net-7.0
-
-            var clientArgs = new HttpClientArgs(
-                httpCompletion: HttpCompletionOption.ResponseHeadersRead, // or ResponseContentRead
-                cancellationToken: CancellationToken.None
+            var clientArgs = HttpClientArgs.Create(
+                CancellationToken.None,
+                httpCompletion: HttpCompletionOption.ResponseHeadersRead, // HttpCompletionOption: https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpcompletionoption?view=net-7.0
+                jsonOptions: JsonSerializerOptions.Default
             );
 
             var response = await Http.Send(httpClient, clientArgs, request);
@@ -30,7 +30,7 @@ public class HttpClientArgsExample
             return response;
         })
         .WithoutWarmUp()
-        .WithLoadSimulations(Simulation.Inject(rate: 100, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
+        .WithLoadSimulations(Simulation.Inject(rate: 5, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
 
         NBomberRunner
             .RegisterScenarios(scenario)
