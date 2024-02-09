@@ -1,12 +1,10 @@
-﻿using System.Collections.Concurrent;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Client.Connecting;
-using MQTTnet.Client.Options;
 using NBomber;
 using NBomber.CSharp;
 using NBomber.Data;
+using MqttClient = NBomber.MQTT.MqttClient;
 
 namespace Demo.MQTT.ClientPool;
 
@@ -21,26 +19,21 @@ public class ClientPoolMqttExample
 {
     public void Run()
     {
-        var clientPool = new ClientPool<IMqttClient>();
-        var responsePromises = new ConcurrentDictionary<IMqttClient, TaskCompletionSource<MqttApplicationMessage>>();
+        var clientPool = new ClientPool<MqttClient>();
         var message = Array.Empty<byte>();
 
         var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
             var client = clientPool.GetClient(ctx.ScenarioInfo);
-            var promise = responsePromises[client];
 
             var publish = await Step.Run("publish", ctx, async () =>
-            {
-                await client.PublishAsync(client.Options.ClientId, message);
-                return Response.Ok(sizeBytes: message.Length);
-            });
+                await client.Publish(new MqttApplicationMessageBuilder()
+                .WithTopic(client.Client.Options.ClientId)
+                .WithPayload(message)
+                .Build()));
 
             var receive = await Step.Run("receive", ctx, async () =>
-            {
-                var response = await promise.Task;
-                return Response.Ok(sizeBytes: response.Payload.Length);
-            });
+                await client.Receive());
 
             return Response.Ok();
         })
@@ -58,28 +51,18 @@ public class ClientPoolMqttExample
             {
                 counter++;
 
-                var client = mqttFactory.CreateMqttClient();
+                var client = new MqttClient(mqttFactory.CreateMqttClient());
                 var clientOptions = new MqttClientOptionsBuilder()
-                    .WithWebSocketServer(config.MqttServerUrl)
+                    .WithWebSocketServer(optionsBuilder => optionsBuilder.WithUri(config.MqttServerUrl))
                     .WithCleanSession()
                     .WithClientId($"client_{i}")
                     .Build();
 
-                var result = await client.ConnectAsync(clientOptions);
+                var result = await client.Connect(clientOptions);
 
-                if (result.ResultCode == MqttClientConnectResultCode.Success)
+                if (result.Payload.Value.ResultCode == MqttClientConnectResultCode.Success)
                 {
-                    // register client and push response promise
-                    responsePromises[client] = new TaskCompletionSource<MqttApplicationMessage>();
-
-                    client.UseApplicationMessageReceivedHandler(msg =>
-                    {
-                        var promise = responsePromises[client];
-                        responsePromises[client] = new TaskCompletionSource<MqttApplicationMessage>(); // set new promise
-                        promise.TrySetResult(msg.ApplicationMessage);
-                    });
-
-                    await client.SubscribeAsync(client.Options.ClientId);
+                    await client.Subscribe(client.Client.Options.ClientId);
 
                     clientPool.AddClient(client);
                 }
@@ -95,7 +78,7 @@ public class ClientPoolMqttExample
         })
         .WithClean(context =>
         {
-            clientPool.DisposeClients(client => client.DisconnectAsync().Wait());
+            clientPool.DisposeClients(client => client.Disconnect().Wait());
             return Task.CompletedTask;
         });
 
