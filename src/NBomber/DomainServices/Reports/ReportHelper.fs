@@ -56,8 +56,8 @@ module StepStats =
         [ if stepIndex > 0 then [String.Empty; String.Empty]
           ["name"; blueColor stats.StepName]
           ["request count"; reqCount]
-          ["latency"; latencies]
-          ["latency percentile"; percentiles]
+          ["latency, ms"; latencies]
+          ["latency percentile, ms"; percentiles]
           if data.DataTransfer.AllBytes > 0 then ["data transfer"; dataTransfer] ]
 
 module LoadSimulation =
