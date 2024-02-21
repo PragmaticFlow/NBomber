@@ -1,0 +1,32 @@
+﻿using NBomber.CSharp;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
+
+namespace Demo.Features.SerilogGrafanaLokiLogger;
+
+public class SerilogGrafanaLokiExample
+{
+    public void Run()
+    {
+        var scenario = Scenario.Create("hello_world_scenario", async context =>
+            {
+                await Task.Delay(1000);
+
+                ILogger logger = new LoggerConfiguration()
+                    .WriteTo.GrafanaLoki("http://localhost:3100")
+                    .CreateLogger();
+
+                logger.Debug("my log message: {0}", context.InvocationNumber);
+
+                return Response.Ok();
+            })
+            .WithoutWarmUp()
+            .WithLoadSimulations(
+                Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30))
+            );
+
+        NBomberRunner
+            .RegisterScenarios(scenario)
+            .Run();
+    }
+}
