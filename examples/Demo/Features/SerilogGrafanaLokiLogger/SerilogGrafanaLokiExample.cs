@@ -12,11 +12,7 @@ public class SerilogGrafanaLokiExample
             {
                 await Task.Delay(1000);
 
-                ILogger logger = new LoggerConfiguration()
-                    .WriteTo.GrafanaLoki("http://localhost:3100")
-                    .CreateLogger();
-
-                logger.Debug("my log message: {0}", context.InvocationNumber);
+                context.Logger.Information("my log message: {0}", context.InvocationNumber);
 
                 return Response.Ok();
             })
@@ -27,6 +23,12 @@ public class SerilogGrafanaLokiExample
 
         NBomberRunner
             .RegisterScenarios(scenario)
+            .WithLoggerConfig(() =>
+                new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.GrafanaLoki("http://localhost:3100",
+                        new [] {new LokiLabel {Key = "application", Value = "NBomber"}})
+            )
             .Run();
     }
 }
