@@ -1,0 +1,34 @@
+{
+    "TargetScenarios": ["redis_init", "redis_read", "redis_write"],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "redis_read",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [100, "00:03:30"] }
+                ]
+            },
+
+            {
+                "ScenarioName": "redis_write",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [100, "00:03:30"] }
+                ]
+            }
+        ],
+
+        "GlobalCustomSettings": {
+            "ConnectionString": "localhost:6379",
+            "RecordsCount": 100000,
+            "RecordSize": 1000
+        }
+    }
+}

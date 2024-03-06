@@ -1,0 +1,9 @@
+﻿{
+    "InfluxDBSink": {
+        "Url": "http://localhost:8086",
+        "Token": "YourToken",
+        "Org": "YourOrg",
+        "Bucket": "nbomber",
+        "CustomTags": [{ "Key": "environment", "Value": "linux" }]
+    }
+}

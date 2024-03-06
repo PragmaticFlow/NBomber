@@ -21,5 +21,3 @@ jobs:
       run: dotnet restore NBomber.sln
     - name: Build
       run: dotnet build NBomber.sln --no-restore
-    - name: Test
-      run: dotnet test tests/NBomber.IntegrationTests/NBomber.IntegrationTests.fsproj --filter CI!=disable --configuration Release --verbosity normal

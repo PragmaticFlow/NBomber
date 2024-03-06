@@ -1,0 +1,9 @@
+﻿version: "3.4"
+services:
+
+    nats:
+        image: "nats:2.9.9"
+        command: --js
+        ports:
+            - "8222:8222"
+            - "4222:4222"

@@ -1,0 +1,38 @@
+{
+    "TestSuite": "example",
+    "TestName": "custom_settings",
+
+    "TargetScenarios": ["my_scenario"],
+
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "my_scenario",
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "RampingConstant": [10, "00:00:05"] },
+                    { "KeepConstant": [10, "00:00:05"] },
+                    { "RampingInject": [20, "00:00:01", "00:00:05"] },
+                    { "Inject": [20, "00:00:01", "00:00:05"] }
+                ],
+
+                "CustomSettings": {
+                    "MyTestField": 1,
+                    "MyPauseMs": 200
+                },
+
+                "MaxFailCount": 500
+            }
+        ],
+
+        "GlobalCustomSettings": {
+            "ConnectionString": "my_db_connection_string"
+        },
+
+        "ReportFileName": "my_custom_report_name",
+        "ReportFolder": "./my_reports",
+        "ReportFormats": ["Html", "Txt"],
+        "ReportingInterval": "00:00:30"
+    }
+}

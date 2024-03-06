@@ -1,0 +1,25 @@
+{
+    "TargetScenarios": [ "init_bookstore_db", "test_bookstore" ],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "test_bookstore",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "Inject": [ 20, "00:00:01", "00:00:30" ] }
+                ]
+            }
+        ],
+
+        "GlobalCustomSettings": {
+
+            "RecordsCount": 1000,
+
+            "BooksCount": 100
+        }
+    }
+}
