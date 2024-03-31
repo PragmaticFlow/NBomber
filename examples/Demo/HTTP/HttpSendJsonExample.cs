@@ -44,8 +44,9 @@ public class HttpSendJsonExample
 
             var response2 = await Http.Send<UserData>(httpClient, request2);
 
-            var title = response2.Payload.Value.Title;
-            var userId = response2.Payload.Value.UserId;
+            var valueData = response2.Payload.Value.Data;
+            var title = valueData.Title;
+            var userId = valueData.UserId;
 
             return response2;
         })

@@ -4,7 +4,6 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-
         <ServerGarbageCollection>false</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
@@ -52,7 +51,7 @@
         <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="NBomber" Version="5.5.0" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
-        <PackageReference Include="NBomber.Http" Version="5.1.0-beta.2" />
+        <PackageReference Include="NBomber.Http" Version="5.1.0-beta.3" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.0" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.2" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
