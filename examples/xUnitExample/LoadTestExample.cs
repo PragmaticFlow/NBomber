@@ -1,3 +1,4 @@
+using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
 using Xunit;
@@ -46,9 +47,9 @@ public class LoadTestExample
             .RegisterScenarios(scenario)
             .Run();
 
-        var scnStats = result.GetScenarioStats("http_scenario");
-        var step1Stats = scnStats.GetStepStats("step_1");
-        var step2Stats = scnStats.GetStepStats("step_2");
+        var scnStats = result.ScenarioStats.Get("http_scenario");
+        var step1Stats = scnStats.StepStats.Get("step_1");
+        var step2Stats = scnStats.StepStats.Get("step_2");
 
         Assert.True(result.AllBytes > 0);
         Assert.True(result.AllRequestCount > 0);
@@ -57,15 +58,26 @@ public class LoadTestExample
 
         Assert.True(scnStats.Ok.Request.RPS > 0);
         Assert.True(scnStats.Ok.Request.Count > 0);
+
+        // success rate 100% of all requests
+        Assert.True(scnStats.Ok.Request.Percent == 100);
+        Assert.True(scnStats.Fail.Request.Percent == 0);
+
         Assert.True(scnStats.Ok.Latency.MinMs > 0);
         Assert.True(scnStats.Ok.Latency.MaxMs > 0);
-        Assert.True(scnStats.Fail.Request.Count == 0);
+
         Assert.True(scnStats.Fail.Request.Count == 0);
         Assert.True(scnStats.Fail.Latency.MinMs == 0);
 
         Assert.True(step1Stats.Ok.Latency.Percent50 > 0);
         Assert.True(step1Stats.Ok.Latency.Percent75 > 0);
         Assert.True(step1Stats.Ok.Latency.Percent99 > 0);
+
+        // less than 5% error responses with status code 503
+        Assert.True(
+            step1Stats.Fail.StatusCodes.Exists("503")
+            && step1Stats.Fail.StatusCodes.Get("503").Percent < 5
+        );
 
         Assert.True(step2Stats.Ok.DataTransfer.MinBytes > 0);
         Assert.True(step2Stats.Ok.DataTransfer.MaxBytes > 0);
