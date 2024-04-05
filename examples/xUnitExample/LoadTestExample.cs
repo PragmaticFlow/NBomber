@@ -1,3 +1,4 @@
+using NBomber;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
@@ -81,9 +82,10 @@ public class LoadTestExample
             && step1Stats.Fail.StatusCodes.Get("503").Percent < 5
         );
 
-        Assert.True(step2Stats.Ok.DataTransfer.MinBytes > 0);
-        Assert.True(step2Stats.Ok.DataTransfer.MaxBytes > 0);
+        Assert.True(step2Stats.Ok.DataTransfer.MinBytes > Bytes.FromKb(1));
+        Assert.True(step2Stats.Ok.DataTransfer.MaxBytes > Bytes.FromKb(1));
         Assert.True(step2Stats.Ok.DataTransfer.Percent99 > 0);
-        Assert.True(step2Stats.Ok.DataTransfer.AllBytes > 0);
+
+        Assert.True(step2Stats.Ok.DataTransfer.AllBytes < Bytes.FromGb(10));
     }
 }
