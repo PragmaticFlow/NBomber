@@ -49,6 +49,8 @@ public class LoadTestExample
 
         var scnStats = result.ScenarioStats.Get("http_scenario");
         var step1Stats = scnStats.StepStats.Get("step_1");
+
+        var isStep2Exist = scnStats.StepStats.Exists("step_2");
         var step2Stats = scnStats.StepStats.Get("step_2");
 
         Assert.True(result.AllBytes > 0);
