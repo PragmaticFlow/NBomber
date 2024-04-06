@@ -81,6 +81,7 @@ new HelloWorldExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
 // new ExampleSimpleBookstore().Run();
+// new HttpRequestTracing().Run();
 
 // ----------------
 // ----- WebSockets -----
