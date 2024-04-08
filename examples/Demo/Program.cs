@@ -18,7 +18,7 @@ using Demo.HTTP;
 using Demo.MQTT;
 using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
-using Demo.MQTT.ConstantRate;
+using Demo.MQTT.ClientPool;
 using Demo.WebSockets;
 
 // -------------------------------
@@ -81,6 +81,7 @@ new HelloWorldExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
 // new ExampleSimpleBookstore().Run();
+// new HttpRequestTracing().Run();
 
 // ----------------
 // ----- WebSockets -----
@@ -91,7 +92,6 @@ new HelloWorldExample().Run();
 // ----- MQTT -----
 // ----------------
 // new PingPongMqttTest().Run();
-// new ConstantPublishToMqtt().Run();
 // new ClientPoolMqttExample().Run();
 
 // ----------------

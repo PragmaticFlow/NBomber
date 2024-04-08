@@ -1,10 +1,8 @@
-﻿
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Client;
 using NBomber.CSharp;
 using NBomber.Data;
 using MqttClient = NBomber.MQTT.MqttClient;
-
 
 namespace Demo.MQTT;
 
@@ -16,40 +14,45 @@ public class PingPongMqttTest
 
         var scenario = Scenario.Create("ping_pong_mqtt_scenario", async ctx =>
         {
-            using var mqttClient = new MqttClient(new MqttFactory().CreateMqttClient());
-            var topic = $"/clients/{ctx.ScenarioInfo.ThreadId}";
+            using var client = new MqttClient(new MqttFactory().CreateMqttClient());
+            var topic = $"/clients/{ctx.ScenarioInfo.InstanceId}";
 
             var connect = await Step.Run("connect", ctx, async () =>
             {
                 var clientOptions = new MqttClientOptionsBuilder()
-                    .WithWebSocketServer(optionsBuilder => optionsBuilder.WithUri("ws://localhost:8083/mqtt"))
+                    .WithWebSocketServer(options => options.WithUri("ws://localhost:8083/mqtt"))
                     .WithCleanSession()
-                    .WithClientId($"client_{ctx.ScenarioInfo.ThreadId}")
+                    .WithClientId($"client_{ctx.ScenarioInfo.InstanceId}")
                     .Build();
 
-                return await mqttClient.Connect(clientOptions);
+                var response = await client.Connect(clientOptions);
+                return response;
             });
 
-            var subscribe = await Step.Run("subscribe", ctx, async () =>
-                await mqttClient.Subscribe(topic));
+            var subscribe = await Step.Run("subscribe", ctx, () => client.Subscribe(topic));
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
-                var msg = new MqttApplicationMessageBuilder().WithTopic(topic)
-                    .WithPayload(payload).Build();
+                var msg = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(payload)
+                    .Build();
 
-                return await mqttClient.Publish(msg);
+                var response = await client.Publish(msg);
+                return response;
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
-                await mqttClient.Receive());
+            {
+                var response = await client.Receive();
+                return response;
+            });
 
-            var disconnect = await Step.Run("disconnect", ctx, async () =>
-                await mqttClient.Disconnect());
+            var disconnect = await Step.Run("disconnect", ctx, () => client.Disconnect());
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(
             Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );

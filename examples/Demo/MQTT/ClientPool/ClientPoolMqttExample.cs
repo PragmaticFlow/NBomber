@@ -27,13 +27,21 @@ public class ClientPoolMqttExample
             var client = clientPool.GetClient(ctx.ScenarioInfo);
 
             var publish = await Step.Run("publish", ctx, async () =>
-                await client.Publish(new MqttApplicationMessageBuilder()
-                .WithTopic(client.Client.Options.ClientId)
-                .WithPayload(message)
-                .Build()));
+            {
+                var msg = new MqttApplicationMessageBuilder()
+                    .WithTopic(client.Client.Options.ClientId)
+                    .WithPayload(message)
+                    .Build();
+
+                var response = await client.Publish(msg);
+                return response;
+            });
 
             var receive = await Step.Run("receive", ctx, async () =>
-                await client.Receive());
+            {
+                var response = await client.Receive();
+                return response;
+            });
 
             return Response.Ok();
         })
@@ -60,10 +68,9 @@ public class ClientPoolMqttExample
 
                 var result = await client.Connect(clientOptions);
 
-                if (result.Payload.Value.ResultCode == MqttClientConnectResultCode.Success)
+                if (!result.IsError)
                 {
                     await client.Subscribe(client.Client.Options.ClientId);
-
                     clientPool.AddClient(client);
                 }
                 else
@@ -72,11 +79,11 @@ public class ClientPoolMqttExample
                 if (counter == 10)
                 {
                     counter = 0;
-                    await Task.Delay(500);
+                    await Task.Delay(500); // pause, to do not overload MQTT broker
                 }
             }
         })
-        .WithClean(context =>
+        .WithClean(ctx =>
         {
             clientPool.DisposeClients(client => client.Disconnect().Wait());
             return Task.CompletedTask;
