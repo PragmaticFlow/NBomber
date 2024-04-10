@@ -66,7 +66,7 @@ new HelloWorldExample().Run();
 // new HttpWithTimeoutExample().Run();
 
 // ---- Dynamic Workloads ----
-// new ThreadIdDistributionExample().Run();
+// new InstanceNumberDistributionExample().Run();
 // new UniformDistributionExample().Run();
 // new ZipfianDistributionExample().Run();
 // new MultinomialDistributionExample().Run();
