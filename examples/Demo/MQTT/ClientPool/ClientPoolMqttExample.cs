@@ -45,7 +45,7 @@ public class ClientPoolMqttExample
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30)))
         .WithInit(async context =>
         {
