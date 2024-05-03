@@ -56,6 +56,7 @@ new HelloWorldExample().Run();
 
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
+// new TimescaleDBReportingExample().Run();
 // new CustomReportingExample().Run();
 
 // ---- Logs ----
