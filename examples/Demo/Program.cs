@@ -25,7 +25,7 @@ using Demo.WebSockets;
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-//new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -57,11 +57,12 @@ using Demo.WebSockets;
 
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
+// new TimescaleDBReportingExample().Run();
 // new CustomReportingExample().Run();
 
 // ---- Logs ----
 // new ElasticsearchExample().Run();
-new SerilogGrafanaLokiExample().Run();
+// new SerilogGrafanaLokiExample().Run();
 
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();

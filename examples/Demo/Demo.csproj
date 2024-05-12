@@ -29,6 +29,9 @@
       <None Update="MQTT\ClientPool\config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\TimescaleDB\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -54,6 +57,7 @@
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
         <PackageReference Include="NBomber.Http" Version="5.1.0" />
         <PackageReference Include="NBomber.MQTT" Version="0.1.0" />
+        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.1.0" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.0" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.2" />
 
