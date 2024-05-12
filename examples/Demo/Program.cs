@@ -11,6 +11,7 @@ using Demo.Features.DynamicWorkload;
 using Demo.Features.ElasticsearchLogger;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
+using Demo.Features.SerilogGrafanaLokiLogger;
 using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
@@ -24,7 +25,7 @@ using Demo.WebSockets;
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -60,6 +61,7 @@ new HelloWorldExample().Run();
 
 // ---- Logs ----
 // new ElasticsearchExample().Run();
+new SerilogGrafanaLokiExample().Run();
 
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();
