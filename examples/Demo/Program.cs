@@ -8,10 +8,11 @@ using Demo.Features.CliArgs;
 using Demo.Features.CustomSettings;
 using Demo.Features.DataDemo;
 using Demo.Features.DynamicWorkload;
-using Demo.Features.ElasticsearchLogger;
+using Demo.Features.Logger.Elasticsearch;
+using Demo.Features.Logger.GrafanaLoki;
+using Demo.Features.Logger.TextFile;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
-using Demo.Features.SerilogGrafanaLokiLogger;
 using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
@@ -61,8 +62,9 @@ new HelloWorldExample().Run();
 // new CustomReportingExample().Run();
 
 // ---- Logs ----
-// new ElasticsearchExample().Run();
-// new SerilogGrafanaLokiExample().Run();
+// new TextFileLogger().Run();
+// new ElasticsearchLogger().Run();
+// new GrafanaLokiLogger().Run();
 
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();

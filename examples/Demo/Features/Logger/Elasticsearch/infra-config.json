@@ -1,0 +1,13 @@
+﻿{
+    "Serilog": {
+        "Using":  ["Serilog.Sinks.Elasticsearch"],
+        "MinimumLevel": "Debug",
+        "WriteTo": [{
+            "Name": "Elasticsearch",
+            "Args": {
+                "nodeUris": "http://localhost:9200",
+                "indexFormat": "nbomber-{0:yyyy.MM.dd}"
+            }
+        }]
+    }
+}

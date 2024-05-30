@@ -2,9 +2,9 @@
 using Serilog;
 using Serilog.Sinks.Grafana.Loki;
 
-namespace Demo.Features.SerilogGrafanaLokiLogger;
+namespace Demo.Features.Logger.GrafanaLoki;
 
-public class SerilogGrafanaLokiExample
+public class GrafanaLokiLogger
 {
     public void Run()
     {
