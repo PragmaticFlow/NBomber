@@ -21,6 +21,8 @@ using Demo.MQTT;
 using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
 using Demo.MQTT.ClientPool;
+using Demo.WebBrowsers.Playwright;
+using Demo.WebBrowsers.Puppeteer;
 using Demo.WebSockets;
 
 // -------------------------------
@@ -124,4 +126,10 @@ new HelloWorldExample().Run();
 
 // new ManualClusterExample().Run(args: new [] { "--cluster-node-type=coordinator" });
 // new ManualClusterExample().Run(args: new [] { "--cluster-node-type=agent", "--cluster-agent-group=1" });
+
+// --------------------------
+// ----- Web Browsers -------
+// --------------------------
+// await new PuppeteerExample().Run();
+// await new PlaywrightExample().Run();
 
