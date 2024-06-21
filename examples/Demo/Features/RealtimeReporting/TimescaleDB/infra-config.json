@@ -1,0 +1,5 @@
+{
+  "TimescaleDbSink":{
+    "ConnectionString": "Host=localhost;Port=5432;Database=timescaledb;Username=timescaledb;Password=timescaledb;Pooling=true;Maximum Pool Size=300;"
+  }
+}

@@ -9,13 +9,15 @@
             {
                 "ScenarioName": "mqtt_scenario",
 
+                "WarmUpDuration": "00:00:03",
+
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [500, "00:00:20"] }
+                    { "KeepConstant": [100, "00:00:20"] }
                 ],
 
                 "CustomSettings": {
-                    "MqttServerUrl": "ws://localhost:8083/mqtt",
-                    "ClientCount": 500,
+                    "MqttServerUrl": "localhost",
+                    "ClientCount": 100,
                     "MsgSizeBytes": 200
                 }
             }

@@ -8,7 +8,9 @@ using Demo.Features.CliArgs;
 using Demo.Features.CustomSettings;
 using Demo.Features.DataDemo;
 using Demo.Features.DynamicWorkload;
-using Demo.Features.ElasticsearchLogger;
+using Demo.Features.Logger.Elasticsearch;
+using Demo.Features.Logger.GrafanaLoki;
+using Demo.Features.Logger.TextFile;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
 using Demo.Features.Timeouts;
@@ -18,7 +20,7 @@ using Demo.HTTP;
 using Demo.MQTT;
 using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
-using Demo.MQTT.ConstantRate;
+using Demo.MQTT.ClientPool;
 using Demo.WebSockets;
 
 // -------------------------------
@@ -56,17 +58,20 @@ new HelloWorldExample().Run();
 
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
+// new TimescaleDBReportingExample().Run();
 // new CustomReportingExample().Run();
 
 // ---- Logs ----
-// new ElasticsearchExample().Run();
+// new TextFileLogger().Run();
+// new ElasticsearchLogger().Run();
+// new GrafanaLokiLogger().Run();
 
 // ---- Timeouts ----
 // new ScenarioCompletionTimeout().Run();
 // new HttpWithTimeoutExample().Run();
 
 // ---- Dynamic Workloads ----
-// new ThreadIdDistributionExample().Run();
+// new InstanceNumberDistributionExample().Run();
 // new UniformDistributionExample().Run();
 // new ZipfianDistributionExample().Run();
 // new MultinomialDistributionExample().Run();
@@ -81,6 +86,7 @@ new HelloWorldExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
 // new ExampleSimpleBookstore().Run();
+// new HttpRequestTracing().Run();
 
 // ----------------
 // ----- WebSockets -----
@@ -91,7 +97,6 @@ new HelloWorldExample().Run();
 // ----- MQTT -----
 // ----------------
 // new PingPongMqttTest().Run();
-// new ConstantPublishToMqtt().Run();
 // new ClientPoolMqttExample().Run();
 
 // ----------------

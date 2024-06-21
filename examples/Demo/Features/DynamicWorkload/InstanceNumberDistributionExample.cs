@@ -2,13 +2,13 @@
 
 namespace Demo.Features.DynamicWorkload;
 
-public class ThreadIdDistributionExample
+public class InstanceNumberDistributionExample
 {
     public void Run()
     {
         var scenario = Scenario.Create("home_page", async context =>
         {
-            if (context.ScenarioInfo.ThreadNumber % 9 < 3)
+            if (context.ScenarioInfo.InstanceNumber % 9 < 3)
             {
                 // 0-2 range, run step 1
                 await Step.Run("step_1", context, async () =>
@@ -17,7 +17,7 @@ public class ThreadIdDistributionExample
                     return Response.Ok();
                 });
             }
-            else if (context.ScenarioInfo.ThreadNumber % 9 < 6)
+            else if (context.ScenarioInfo.InstanceNumber % 9 < 6)
             {
                 // 3-5 range, run step 2
                 await Step.Run("step_2", context, async () =>

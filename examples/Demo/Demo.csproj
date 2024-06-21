@@ -2,9 +2,8 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-
         <ServerGarbageCollection>false</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     </PropertyGroup>
@@ -30,6 +29,15 @@
       <None Update="MQTT\ClientPool\config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\TimescaleDB\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Features\Logger\TextFile\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Features\Logger\Elasticsearch\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -51,14 +59,17 @@
         <PackageReference Include="LiteDB" Version="5.0.15" />
         <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="Microsoft.Playwright" Version="1.42.0-beta-2" />
-        <PackageReference Include="NBomber" Version="5.5.0" />
+        <PackageReference Include="NBomber" Version="5.6.0" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
-        <PackageReference Include="NBomber.Http" Version="5.1.0-beta.1" />
+        <PackageReference Include="NBomber.Http" Version="5.1.0" />
+        <PackageReference Include="NBomber.MQTT" Version="0.1.0" />
+        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.1.0" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.0" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.2" />
         <PackageReference Include="MQTTnet" Version="3.1.2" />
-        <PackageReference Include="PuppeteerSharp" Version="14.0.0" />
+        <PackageReference Include="PuppeteerSharp" Version="14.0.0" />      
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
         <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />

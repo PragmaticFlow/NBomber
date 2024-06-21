@@ -1,0 +1,42 @@
+﻿services:
+
+  timescaledb:
+    image: timescale/timescaledb:2.14.2-pg16
+    restart: always
+    command: postgres -c 'max_connections=500'
+    environment:
+      POSTGRES_DB: timescaledb
+      POSTGRES_USER: timescaledb
+      POSTGRES_PASSWORD: timescaledb
+    ports:
+      - 5432:5432
+    volumes:
+      - metrics-data:/var/lib/postgresql/data
+
+#  grafana:
+#    image: grafana/grafana:10.4.2
+#    ports:
+#      - 3000:3000
+#    volumes:
+#      - grafana-data:/var/lib/grafana
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 5051:80
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  metrics-data:
+    driver: local
+
+  grafana-data:
+    driver: local
+
+  pgadmin-data:
+    driver: local
