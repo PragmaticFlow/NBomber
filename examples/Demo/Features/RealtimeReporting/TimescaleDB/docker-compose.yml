@@ -5,7 +5,7 @@
     restart: always
     command: postgres -c 'max_connections=500'
     environment:
-      POSTGRES_DB: timescaledb
+      POSTGRES_DB: metricsdb
       POSTGRES_USER: timescaledb
       POSTGRES_PASSWORD: timescaledb
     ports:
@@ -35,8 +35,8 @@ volumes:
   metrics-data:
     driver: local
 
-  grafana-data:
-    driver: local
+#  grafana-data:
+#    driver: local
 
   pgadmin-data:
     driver: local
