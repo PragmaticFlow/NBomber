@@ -2,31 +2,61 @@
 
 using PuppeteerSharp;
 using NBomber.CSharp;
-using NBomber.WebBrowser.PuppeteerSharp;
+using NBomber.WebBrowser.Puppeteer;
 
 public class PuppeteerExample
 {
     public async Task Run()
     {
-        var browserPath = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+        // downloading the Chrome
+        var installedBrowser = await new BrowserFetcher(SupportedBrowser.Chrome).DownloadAsync(BrowserTag.Stable);
+        var browserPath = installedBrowser.GetExecutablePath();
 
         await using var browser = await Puppeteer.LaunchAsync(
-            new LaunchOptions { Headless = true, ExecutablePath = browserPath }
+            new LaunchOptions
+            {
+                Headless = true,
+                ExecutablePath = browserPath
+            }
         );
 
         var scenario = Scenario.Create("puppeteer_scenario", async context =>
         {
             await using var page = await browser.NewPageAsync();
-            var pageResponse = await page.GoToAsync("https://translate.google.com/");
+            await page.SetCacheEnabledAsync(false); // disable caching
 
-            var response = await pageResponse.ToNBomberResponse();
-            page.CloseAsync();
+            await Step.Run("open nbomber", context, async () =>
+            {
+                var pageResponse = await page.GoToAsync("https://nbomber.com/");
 
-            return response;
+                var html = await page.GetContentAsync();
+                var totalSize = await page.GetDataTransferSize();
+
+                return Response.Ok(sizeBytes: totalSize);
+            });
+
+            await Step.Run("open bing", context, async () =>
+            {
+                var pageResponse = await page.GoToAsync("https://www.bing.com/maps");
+
+                await page.WaitForSelectorAsync(".searchbox input");
+                await page.FocusAsync(".searchbox input");
+                await page.Keyboard.TypeAsync("CN Tower, Toronto, Ontario, Canada");
+
+                await page.Keyboard.PressAsync("Enter");
+                await page.WaitForNavigationAsync(new NavigationOptions { WaitUntil = [WaitUntilNavigation.Load]});
+
+                var totalSize = await page.GetDataTransferSize();
+                return Response.Ok(sizeBytes: totalSize);
+            });
+
+            await page.CloseAsync();
+
+            return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(
-            Simulation.KeepConstant(1, TimeSpan.FromSeconds(60))
+            Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner
