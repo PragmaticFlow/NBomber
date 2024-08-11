@@ -1,27 +1,23 @@
-﻿using NBomber.CSharp;
+﻿namespace Demo.WebSockets.ClientPool;
+
+using NBomber;
+using NBomber.CSharp;
 using NBomber.Data;
 using NBomber.WebSockets;
 
-namespace Demo.WebSockets;
-
-public class PingPongWebSocketsTest
+public class ClientPoolWebSocketsExample
 {
     // To run this example you need to spin up local server examples/simulators/WebAppSimulator
     // The server should run on localhost:5000
 
     public void Run()
     {
+        var clientPool = new ClientPool<WebSocket>();
         var payload = Data.GenerateRandomBytes(1_000_000); // 1MB
 
-        var scenario = Scenario.Create("ping_pong_websockets", async ctx =>
+        var scenario = Scenario.Create("websockets_client_pool", async ctx =>
         {
-            using var websocket = new WebSocket(new WebSocketConfig());
-
-            var connect = await Step.Run("connect", ctx, async () =>
-            {
-                await websocket.Connect("ws://localhost:5000/ws");
-                return Response.Ok();
-            });
+            var websocket = clientPool.GetClient(ctx.ScenarioInfo);
 
             var ping = await Step.Run("ping", ctx, async () =>
             {
@@ -37,18 +33,27 @@ public class PingPongWebSocketsTest
                 return Response.Ok(sizeBytes: response.Data.Length);
             });
 
-            var disconnect = await Step.Run("disconnect", ctx, async () =>
-            {
-                await websocket.Close();
-                return Response.Ok();
-            });
-
             return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.KeepConstant(10, TimeSpan.FromSeconds(30))
-        );
+            Simulation.KeepConstant(5, TimeSpan.FromSeconds(10))
+        )
+        .WithInit(async ctx =>
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                var websocket = new WebSocket(new WebSocketConfig());
+                await websocket.Connect("ws://localhost:5000/ws");
+
+                clientPool.AddClient(websocket);
+            }
+        })
+        .WithClean(ctx =>
+        {
+            clientPool.DisposeClients(client => client.Close().Wait());
+            return Task.CompletedTask;
+        });
 
         NBomberRunner
             .RegisterScenarios(scenario)

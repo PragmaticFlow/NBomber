@@ -18,9 +18,7 @@ public class WebSocketController : ControllerBase
             using var ms = MsStreamManager.GetStream();
 
             await Receive(webSocket, ms);
-            await Send(webSocket, ms);
-
-            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+            //await Send(webSocket, ms);
         }
         else
         {
@@ -30,20 +28,30 @@ public class WebSocketController : ControllerBase
 
     private async Task Receive(WebSocket webSocket, RecyclableMemoryStream ms)
     {
-        var endOfMessage = false;
+        var closeSocket = false;
 
-        while (!endOfMessage)
+        while (!closeSocket)
         {
-            var buffer = ms.GetMemory(BufferSize);
-            var message = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+            var endOfMessage = false;
 
-            if (message.MessageType == WebSocketMessageType.Close)
+            while (!endOfMessage)
             {
-                break;
+                var buffer = ms.GetMemory(BufferSize);
+                var message = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+
+                if (message.MessageType == WebSocketMessageType.Close)
+                {
+                    closeSocket = true;
+                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                    break;
+                }
+
+                ms.Advance(message.Count);
+                endOfMessage = message.EndOfMessage;
             }
 
-            ms.Advance(message.Count);
-            endOfMessage = message.EndOfMessage;
+            if (!closeSocket)
+                await Send(webSocket, ms);
         }
     }
 

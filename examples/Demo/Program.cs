@@ -24,6 +24,7 @@ using Demo.MQTT.ClientPool;
 using Demo.WebBrowsers.Playwright;
 using Demo.WebBrowsers.Puppeteer;
 using Demo.WebSockets;
+using Demo.WebSockets.ClientPool;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -94,6 +95,7 @@ new HelloWorldExample().Run();
 // ----- WebSockets -----
 // ----------------
 // new PingPongWebSocketsTest().Run();
+// new ClientPoolWebSocketsExample().Run();
 
 // ----------------
 // ----- MQTT -----
