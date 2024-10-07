@@ -1,3 +1,5 @@
+#pragma warning disable CS1998
+
 using Bogus;
 using LiteDB;
 using NBomber.CSharp;
@@ -53,7 +55,7 @@ namespace Demo.DB.LiteDB
 
                 return Response.Ok(sizeBytes: initDBScn.RecordSizeBytes * listOfRandomUser.Count);
             });
-            
+
             var checkpointDB = Scenario.Create("checkpointDB", async context =>
             {
                 await Task.Delay(5_000);

@@ -22,7 +22,7 @@ public class JsonFeed
 
             await Task.Delay(1_000);
 
-            ctx.Logger.Information($"ScenarioCopyId: {ctx.ScenarioInfo.ThreadNumber}, UserId: {user.Id}");
+            ctx.Logger.Information($"ScenarioCopyId: {ctx.ScenarioInfo.InstanceNumber}, UserId: {user.Id}");
 
             return Response.Ok();
         })

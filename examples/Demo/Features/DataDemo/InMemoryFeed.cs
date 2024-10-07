@@ -16,7 +16,7 @@ public class InMemoryFeed
 
             await Task.Delay(1_000);
 
-            ctx.Logger.Information($"ScenarioCopy Id: {ctx.ScenarioInfo.ThreadNumber}, User ID: {user.Id}");
+            ctx.Logger.Information($"ScenarioCopy Id: {ctx.ScenarioInfo.InstanceNumber}, User ID: {user.Id}");
 
             return Response.Ok();
         })

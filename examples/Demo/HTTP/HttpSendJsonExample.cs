@@ -40,7 +40,7 @@ public class HttpSendJsonExample
             // example of typed Send<T> that deserialize JSON response
             var request2 =
                 Http.CreateRequest("GET", "https://jsonplaceholder.typicode.com/todos/1")
-                    .WithHeader("Accept", "application/json");
+                    .WithHeader("Content-Type", "application/json");
 
             var response2 = await Http.Send<UserData>(httpClient, request2);
 
