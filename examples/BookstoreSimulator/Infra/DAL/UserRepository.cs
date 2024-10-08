@@ -57,7 +57,7 @@ namespace BookstoreSimulator.Infra.DAL
     {
         private string _connectionStr;
         private Serilog.ILogger _logger;
-       
+
         public UserRepository(BookstoreSettings settings, Serilog.ILogger logger)
         {
             _connectionStr = settings.ConnectionString;
@@ -72,18 +72,18 @@ namespace BookstoreSimulator.Infra.DAL
                 {
                     connection.Open();
 
-                    var commandText = @"INSERT INTO Users 
-                                    (UserId, Email, PasswordHash, PasswordSalt, UserData, CreatedDateTime, UpdatedDateTime) 
+                    var commandText = @"INSERT INTO Users
+                                    (UserId, Email, PasswordHash, PasswordSalt, UserData, CreatedDateTime, UpdatedDateTime)
                                     VALUES (@UserId, @Email, @PasswordHash, @PasswordSalt::bytea, @UserData::jsonb, @CreatedDateTime, @UpdatedDateTime)";
                     await connection.ExecuteAsync(commandText, record);
                 }
                 return DBResultExeption.Ok;
             }
-            catch (PostgresException ex) 
+            catch (PostgresException ex)
             {
                 _logger.Error(ex, "Inser user DB error");
 
-                if (ex.Code == "23505")
+                if (ex.SqlState == "23505")
                     return DBResultExeption.Duplicate;
                 else
                     return DBResultExeption.UnhandledEx;

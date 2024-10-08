@@ -16,7 +16,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
-        <PackageReference Include="Npgsql" Version="7.0.4" />
+        <PackageReference Include="Npgsql" Version="8.0.4" />
         <PackageReference Include="FluentValidation" Version="11.6.0" />
         <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
