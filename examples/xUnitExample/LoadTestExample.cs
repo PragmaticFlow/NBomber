@@ -19,7 +19,7 @@ public class LoadTestExample
             {
                 var request =
                     Http.CreateRequest("GET", "https://nbomber.com")
-                        .WithHeader("Accept", "text/html")
+                        .WithHeader("Content-Type", "application/json")
                         .WithBody(new StringContent("{ some JSON }"));
 
                 var response = await Http.Send(httpClient, request);
@@ -31,7 +31,7 @@ public class LoadTestExample
             {
                 var request =
                     Http.CreateRequest("GET", "https://nbomber.com")
-                        .WithHeader("Accept", "text/html")
+                        .WithHeader("Content-Type", "application/json")
                         .WithBody(new StringContent("{ some JSON }"));
 
                 var response = await Http.Send(httpClient, request);
@@ -48,7 +48,16 @@ public class LoadTestExample
             .RegisterScenarios(scenario)
             .Run();
 
+        // StatsHelper API extensions provides: Get, Find, Exist methods to work with ScenarioStats, StepStats, StatusCodes, etc.
+
+        // gets scenario stats:
+        // it throws exception if "http_scenario" is not found
         var scnStats = result.ScenarioStats.Get("http_scenario");
+
+        // finds scenario stats:
+        // it returns null if "http_scenario" is not found
+        scnStats = result.ScenarioStats.Find("http_scenario");
+
         var step1Stats = scnStats.StepStats.Get("step_1");
 
         var isStep2Exist = scnStats.StepStats.Exists("step_2");
@@ -81,6 +90,8 @@ public class LoadTestExample
             step1Stats.Fail.StatusCodes.Exists("503")
             && step1Stats.Fail.StatusCodes.Get("503").Percent < 5
         );
+        // or you can use .Find() which may return null
+        Assert.True(step1Stats.Fail.StatusCodes.Find("503")?.Percent < 5);
 
         Assert.True(step2Stats.Ok.DataTransfer.MinBytes > Bytes.FromKb(1));
         Assert.True(step2Stats.Ok.DataTransfer.MaxBytes > Bytes.FromKb(1));

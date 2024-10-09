@@ -1,0 +1,31 @@
+﻿{
+    "GlobalSettings": {
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "http_scenario",
+
+                "LoadSimulationsSettings": [
+                    { "Inject": [1, "00:00:01", "00:00:30"] }
+                ],
+
+                "ThresholdSettings": [
+
+                    { "OkRequest": "RPS >= 30" },
+                    { "OkRequest": "Percent > 90" },
+
+                    { "FailRequest": "Percent < 10" },
+
+                    { "OkLatency": "max < 100" },
+                    { "OkLatency": "p75 < 80" },
+
+                    { "OkDataTransfer": "p75 < 80" },
+
+                    { "StatusCode": ["500", "Percent < 5"] },
+                    { "StatusCode": ["400", "Percent < 10"], "AbortWhenErrorCount": 5 },
+                    { "StatusCode": ["200", "Percent >= 50"], "AbortWhenErrorCount": 5, "StartCheckAfter": "00:00:10" }
+
+                ]
+            }
+        ]
+    }
+}
