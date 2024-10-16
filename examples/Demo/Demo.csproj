@@ -57,16 +57,15 @@
         <PackageReference Include="Bogus" Version="34.0.2" />
         <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
-        <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 
-        <PackageReference Include="NBomber" Version="5.7.0" />
+        <PackageReference Include="NBomber" Version="5.8.0-beta.8" />
         <PackageReference Include="NBomber.Data" Version="5.0.0" />
-        <PackageReference Include="NBomber.Http" Version="5.1.0" />
-        <PackageReference Include="NBomber.MQTT" Version="0.1.0" />
-        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.5.1" />
+        <PackageReference Include="NBomber.Http" Version="5.2.0-beta.0" />
+        <PackageReference Include="NBomber.MQTT" Version="0.2.0-beta.0" />
+        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.6.0-beta.5" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.1.0" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.0" />
-        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.0.2" />
+        <PackageReference Include="NBomber.Sinks.InfluxDB" Version="5.1.0-beta.0" />
 
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />

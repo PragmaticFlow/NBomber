@@ -1,5 +1,4 @@
-﻿using MathNet.Numerics.Distributions;
-using NBomber.CSharp;
+﻿using NBomber.CSharp;
 
 namespace Demo.Features.DynamicWorkload;
 
@@ -7,34 +6,37 @@ public class MultinomialDistributionExample
 {
     public void Run()
     {
-        var ratios = new[] {0.7, 0.2, 0.1}; // 70%, 20%, 10%
+        // 70% for read, 20% for write, 10% for delete
+        var items = new [] { ("read", 70), ("write", 20), ("delete", 10) };
 
         var scenario = Scenario.Create("multinomial_distribution", async context =>
         {
-            int[] result = Multinomial.Sample(context.Random, ratios, 1);
-            if (result[0] == 1) // 70% for read
+            var randomItem = context.Random.Choice(items);
+            switch (randomItem)
             {
-                await Step.Run("read", context, async () =>
-                {
-                    await Task.Delay(100);
-                    return Response.Ok();
-                });
-            }
-            else if (result[1] == 1) // 20% for write
-            {
-                await Step.Run("write", context, async () =>
-                {
-                    await Task.Delay(100);
-                    return Response.Ok();
-                });
-            }
-            else // 10% for delete
-            {
-                await Step.Run("delete", context, async () =>
-                {
-                    await Task.Delay(100);
-                    return Response.Ok();
-                });
+                case "read": // 70% for read
+                    await Step.Run("read", context, async () =>
+                    {
+                        await Task.Delay(100);
+                        return Response.Ok();
+                    });
+                    break;
+
+                case "write": // 20% for write
+                    await Step.Run("write", context, async () =>
+                    {
+                        await Task.Delay(100);
+                        return Response.Ok();
+                    });
+                    break;
+
+                case "delete": // 10% for delete
+                    await Step.Run("delete", context, async () =>
+                    {
+                        await Task.Delay(100);
+                        return Response.Ok();
+                    });
+                    break;
             }
 
             return Response.Ok();

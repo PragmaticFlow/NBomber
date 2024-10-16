@@ -8,7 +8,11 @@ public class UniformDistributionExample
     {
         var scenario = Scenario.Create("uniform_distribution", async context =>
         {
-            // context.Random: System.Random
+            // If you want to get numbers say from 1 to 3 (including 3) you should use:
+            // Random.Next(minValue: 1, maxValue: 4);
+
+            // minValue: inclusive lower bound value
+            // maxValue: exclusive upper bound value
             var stepNumber = context.Random.Next(minValue: 1, maxValue: 4);
             if (stepNumber == 1)
             {

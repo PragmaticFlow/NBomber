@@ -1,5 +1,4 @@
-﻿using MathNet.Numerics.Distributions;
-using NBomber.CSharp;
+﻿using NBomber.CSharp;
 
 namespace Demo.Features.DynamicWorkload;
 
@@ -9,7 +8,7 @@ public class ZipfianDistributionExample
     {
         var scenario = Scenario.Create("zipfian_distribution", async context =>
         {
-            var stepNumber = Zipf.Sample(s: 1.3, n: 5, rnd: context.Random);
+            var stepNumber = context.Random.Zipf(n: 5, s: 1.3);
             if (stepNumber == 1)
             {
                 await Step.Run("step_1", context, async () =>

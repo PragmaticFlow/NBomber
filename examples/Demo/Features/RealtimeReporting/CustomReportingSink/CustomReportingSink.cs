@@ -17,7 +17,7 @@ class CustomReportingSink : IReportingSink
         return Task.CompletedTask;
     }
 
-    public Task Start() => Task.CompletedTask;
+    public Task Start(SessionStartInfo sessionInfo) => Task.CompletedTask;
     public Task SaveRealtimeStats(ScenarioStats[] stats) => Task.CompletedTask;
     public Task SaveFinalStats(NodeStats stats) => Task.CompletedTask;
     public Task Stop() => Task.CompletedTask;

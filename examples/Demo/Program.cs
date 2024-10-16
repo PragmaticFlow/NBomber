@@ -74,6 +74,7 @@ new HelloWorldExample().Run();
 // new HttpWithTimeoutExample().Run();
 
 // ---- Dynamic Workloads ----
+// new ScenarioWeightExample().Run();
 // new InstanceNumberDistributionExample().Run();
 // new UniformDistributionExample().Run();
 // new ZipfianDistributionExample().Run();
