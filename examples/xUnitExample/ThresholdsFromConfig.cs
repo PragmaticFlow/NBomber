@@ -38,7 +38,6 @@ public class ThresholdsFromConfig
 
         // Here, we attempt to find a failed threshold, and if one is found (i.e., it is not null), we throw an exception.
         var failedThreshold = result.Thresholds.FirstOrDefault(x => x.IsFailed);
-
-        Assert.True(failedThreshold != null);
+        Assert.Null(failedThreshold);
     }
 }
