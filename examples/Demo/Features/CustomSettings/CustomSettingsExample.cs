@@ -24,17 +24,17 @@ public class CustomSettingsExample
     {
         _customSettings = initContext.CustomSettings.Get<CustomScenarioSettings>();
 
+        initContext.Logger.Information(
+            "test init received CustomSettings.MyTestField '{0}'",
+            _customSettings.MyTestField
+        );
+
         // if you want some settings to be shared globally among all scenarios
         // you can use GlobalCustomSettings for this
         var globalSettings = initContext.GlobalCustomSettings.Get<GlobalScenarioSettings>();
         initContext.Logger.Information(
             "test init received GlobalSettings.ConnectionString '{0}'",
             globalSettings.ConnectionString
-        );
-
-        initContext.Logger.Information(
-            "test init received CustomSettings.MyTestField '{0}'",
-            _customSettings.MyTestField
         );
 
         return Task.CompletedTask;

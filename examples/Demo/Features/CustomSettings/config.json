@@ -11,8 +11,6 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "RampingConstant": [10, "00:00:05"] },
-                    { "KeepConstant": [10, "00:00:05"] },
                     { "RampingInject": [20, "00:00:01", "00:00:05"] },
                     { "Inject": [20, "00:00:01", "00:00:05"] }
                 ],
