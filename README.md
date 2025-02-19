@@ -77,9 +77,19 @@ NBomberRunner
 
 [Load Testing with C# and NBomber (Part 1)](https://youtu.be/XnK5sLhqXms)
 
+### Blog Posts
+
+- Abdul Rahman - [Using NBomber for Performance, Load and Stress testing in ASP.NET WEB API](https://ilovedotnet.org/blogs/using-nbomber-for-performance-load-and-stress-testing-in-asp-net-webapi/)
+- Olena Kostash - [Load Testing HTTP API on C# with NBomber](https://medium.com/@OlenaKostash/load-testing-http-api-on-c-with-nbomber-96939511bdab)
+- ExecuteAutomation - [HTTP Performance Testing with NBomber in C# .NET](https://medium.com/executeautomation/http-performance-testing-with-nbomber-in-c-net-c858b887da1d)
+- Stijn Moreels - [NBomber Load Tests in the xUnit Testing Framework for Invictus](https://www.codit.eu/blog/nbomber-load-tests-in-the-xunit-testing-framework-for-invictus)
+- Stijn Moreels - [Integrating NBomber Load Testing with F# Expecto](https://www.codit.eu/blog/integrating-nbomber-load-testing-with-f-expecto/)
+- Anh Nguyen Viet - [NBomber – Performance Testing Framework](https://blog.nashtechglobal.com/nbomber-performance-testing-framework/)
+
 ### Links
 - [Website](https://nbomber.com/)
 - [Documentation](https://nbomber.com/docs/getting-started/overview/)
+- [Blog](https://nbomber.com/blog/)
 - [Examples](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/Demo)
 
 ### Frequently asked questions
