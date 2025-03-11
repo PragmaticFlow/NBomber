@@ -27,9 +27,11 @@ public class GreeterService : Greeter.GreeterBase
 
     public override Task<ReadDataReply> ReadData(ReadDataRequest request, ServerCallContext context)
     {
+        var data = ByteString.CopyFrom([0xAA, 0xBB, 0xCC]);
+
         return Task.FromResult(new ReadDataReply
         {
-            Data = this.Data
+            Data = data
         });
     }
 }
