@@ -18,7 +18,7 @@ public class GrpcWriteScenario
     public ScenarioProps Create()
     {
         return Scenario
-            .Create("redis_write", async context =>
+            .Create("grpc_write", async context =>
             {
                 var randomId = _random.Next(_grpcConfig.RecordsCount);
 

@@ -26,7 +26,7 @@
         ],
 
         "GlobalCustomSettings": {
-            "ConnectionString": "localhost:7117",
+            "ConnectionString": "https://localhost:7117",
             "RecordsCount": 100000,
             "RecordSize": 1000
         }
