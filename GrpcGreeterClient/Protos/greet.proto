@@ -12,11 +12,12 @@ service Greeter {
 
 // Requests
 message SendDataRequest {
-  bytes data = 1;
+  int32 recordId = 1;
+  bytes data = 2;
 }
 
 message ReadDataRequest {
-
+  int32 recordId = 1;
 }
 
 // Replies

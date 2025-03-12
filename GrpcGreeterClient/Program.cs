@@ -12,18 +12,20 @@ namespace GrpcGreeterClient
             using var channel = GrpcChannel.ForAddress("https://localhost:7117");
             var client = new Greeter.GreeterClient(channel);
 
+            var random = new Random();
+            var randomId = random.Next(1, Int32.MaxValue);
             var randomBytes = Data.GenerateRandomBytes(10);
-            var data = ByteString.CopyFrom(randomBytes);
+            var randomData = ByteString.CopyFrom(randomBytes);
             var sendDataReply = client.SendData(
-                new SendDataRequest { Data = data }
+                new SendDataRequest { RecordId = 0, Data = randomData }
             );
             Console.WriteLine($"Data sending status: {sendDataReply.SendDataStatus}");
 
             var readDataReply = client.ReadData(
-                new ReadDataRequest()
+                new ReadDataRequest { RecordId = 0 }
             );
-            Console.WriteLine($"Sent data: {String.Join(", ", data)}");
-            Console.WriteLine($"Read data: {String.Join(", ", readDataReply.Data)}");
+            Console.WriteLine($"Sent data: { String.Join(", ", randomData) }");
+            Console.WriteLine($"Read data: { String.Join(", ", readDataReply.Data) }");
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

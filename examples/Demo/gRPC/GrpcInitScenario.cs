@@ -30,9 +30,9 @@ public class GrpcInitScenario
                 foreach (var i in Enumerable.Range(0, grpcConfig.RecordsCount))
                 {
                     var randomBytes = Data.GenerateRandomBytes(grpcConfig.RecordSize);
-                    var data = ByteString.CopyFrom(randomBytes);
+                    var randomData = ByteString.CopyFrom(randomBytes);
                     var sendDataReply = client.SendData(
-                        new SendDataRequest { Data = data }
+                        new SendDataRequest { RecordId = i, Data = randomData }
                     );
                 }
 
