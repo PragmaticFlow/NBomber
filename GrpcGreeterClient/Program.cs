@@ -17,12 +17,12 @@ namespace GrpcGreeterClient
             var randomBytes = Data.GenerateRandomBytes(10);
             var randomData = ByteString.CopyFrom(randomBytes);
             var sendDataReply = client.SendData(
-                new SendDataRequest { RecordId = 0, Data = randomData }
+                new SendDataRequest { RecordId = randomId, Data = randomData }
             );
             Console.WriteLine($"Data sending status: {sendDataReply.SendDataStatus}");
 
             var readDataReply = client.ReadData(
-                new ReadDataRequest { RecordId = 0 }
+                new ReadDataRequest { RecordId = randomId }
             );
             Console.WriteLine($"Sent data: { String.Join(", ", randomData) }");
             Console.WriteLine($"Read data: { String.Join(", ", readDataReply.Data) }");
