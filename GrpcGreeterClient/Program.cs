@@ -1,5 +1,6 @@
 using Google.Protobuf;
 using Grpc.Net.Client;
+using NBomber.Data;
 
 namespace GrpcGreeterClient
 {
@@ -11,7 +12,8 @@ namespace GrpcGreeterClient
             using var channel = GrpcChannel.ForAddress("https://localhost:7117");
             var client = new Greeter.GreeterClient(channel);
 
-            var data = ByteString.CopyFrom([0xAA, 0xBB, 0xCC]);
+            var randomBytes = Data.GenerateRandomBytes(10);
+            var data = ByteString.CopyFrom(randomBytes);
             var sendDataReply = client.SendData(
                 new SendDataRequest { Data = data }
             );
