@@ -1,6 +1,5 @@
 using Google.Protobuf;
 using Grpc.Core;
-using GrpcGreeter;
 
 namespace GrpcGreeter.Services;
 
@@ -27,11 +26,9 @@ public class GreeterService : Greeter.GreeterBase
 
     public override Task<ReadDataReply> ReadData(ReadDataRequest request, ServerCallContext context)
     {
-        var data = ByteString.CopyFrom([0xAA, 0xBB, 0xCC]);
-
         return Task.FromResult(new ReadDataReply
         {
-            Data = data
+            Data = Data
         });
     }
 }

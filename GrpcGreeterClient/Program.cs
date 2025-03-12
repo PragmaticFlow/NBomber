@@ -1,7 +1,5 @@
 using Google.Protobuf;
 using Grpc.Net.Client;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace GrpcGreeterClient
 {
