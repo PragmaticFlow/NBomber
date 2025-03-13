@@ -32,7 +32,7 @@ public class GrpcWriteScenario
             {
                 _grpcConfig = context.GlobalCustomSettings.Get<GrpcConfig>();
 
-                using var channel = GrpcChannel.ForAddress(_grpcConfig.ConnectionString);
+                var channel = GrpcChannel.ForAddress(_grpcConfig.ConnectionString);
                 _grpcClient = new Greeter.GreeterClient(channel);
 
                 var randomBytes = Data.GenerateRandomBytes(_grpcConfig.RecordSize);
