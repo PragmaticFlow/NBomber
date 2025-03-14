@@ -6,8 +6,14 @@ package greet;
 
 // The greeting service definition.
 service Greeter {
+  // Unary RPCs
   rpc SendData (SendDataRequest) returns (SendDataReply);
-  rpc ReadData (ReadDataRequest) returns (ReadDataReply);
+  rpc GetData (GetDataRequest) returns (GetDataReply);
+
+  // Streaming RPCs
+  rpc SendDataStream (stream SendDataRequest) returns (SendDataReply);
+  rpc GetDataStream (GetDataRequest) returns (stream GetDataReply);
+  rpc SendAndGetDataStream (stream SendDataRequest) returns (stream GetDataReply);
 }
 
 // Requests
@@ -16,7 +22,7 @@ message SendDataRequest {
   bytes data = 2;
 }
 
-message ReadDataRequest {
+message GetDataRequest {
   int32 recordId = 1;
 }
 
@@ -25,6 +31,6 @@ message SendDataReply {
   string sendDataStatus = 1;
 }
 
-message ReadDataReply {
+message GetDataReply {
   bytes data = 1;
 }

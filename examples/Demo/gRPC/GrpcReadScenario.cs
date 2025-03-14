@@ -19,11 +19,11 @@ public class GrpcReadScenario
             {
                 var randomId = _random.Next(_grpcConfig.RecordsCount);
 
-                var readDataResponse = await _grpcClient.ReadDataAsync(
-                    new ReadDataRequest { RecordId = randomId }
+                var getDataResponse = await _grpcClient.GetDataAsync(
+                    new GetDataRequest { RecordId = randomId }
                 );
 
-                return Response.Ok(sizeBytes: readDataResponse.Data.Length);
+                return Response.Ok(sizeBytes: getDataResponse.Data.Length);
             })
             .WithInit(context =>
             {

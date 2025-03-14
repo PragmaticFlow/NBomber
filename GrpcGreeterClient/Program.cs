@@ -21,11 +21,11 @@ namespace GrpcGreeterClient
             );
             Console.WriteLine($"Data sending status: {sendDataReply.SendDataStatus}");
 
-            var readDataReply = client.ReadData(
-                new ReadDataRequest { RecordId = randomId }
+            var getDataReply = client.GetData(
+                new GetDataRequest { RecordId = randomId }
             );
             Console.WriteLine($"Sent data: { String.Join(", ", randomData) }");
-            Console.WriteLine($"Read data: { String.Join(", ", readDataReply.Data) }");
+            Console.WriteLine($"Read data: { String.Join(", ", getDataReply.Data) }");
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
