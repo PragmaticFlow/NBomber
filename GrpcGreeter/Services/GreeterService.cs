@@ -1,7 +1,7 @@
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using System.Collections.Concurrent;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GrpcGreeter.Services;
 
@@ -47,7 +47,7 @@ public class GreeterService : Greeter.GreeterBase
         return await Task.FromResult<SendDataReply>(response);
     }
 
-    public override async Task GetDataStream(GetDataRequest request,
+    public override async Task GetDataStream(Empty request,
         IServerStreamWriter<GetDataReply> responseStream, ServerCallContext context)
     {
         var dataStorageKeys = DataStorage.Keys.ToList();

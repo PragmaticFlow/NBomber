@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option csharp_namespace = "GrpcGreeterClient";
 
 package greet;
@@ -12,7 +14,7 @@ service Greeter {
 
   // Streaming RPCs
   rpc SendDataStream (stream SendDataRequest) returns (SendDataReply);
-  rpc GetDataStream (GetDataRequest) returns (stream GetDataReply);
+  rpc GetDataStream (google.protobuf.Empty) returns (stream GetDataReply);
   rpc SendAndGetDataStream (stream SendDataRequest) returns (stream GetDataReply);
 }
 
