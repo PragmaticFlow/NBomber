@@ -5,6 +5,7 @@ using Demo.DB.Redis;
 using Demo.DB.SQLiteDB;
 using Demo.Features;
 using Demo.Features.CliArgs;
+using Demo.Features.CustomMetrics;
 using Demo.Features.CustomSettings;
 using Demo.Features.DataDemo;
 using Demo.Features.DynamicWorkload;
@@ -47,6 +48,7 @@ new HelloWorldExample().Run();
 // new ScenarioWithTimeout().Run();
 // new ScenarioWithStepRetry().Run();
 // new EmptyScenario().Run();
+// new ScenarioTimerTimeExample().Run();
 
 // ------------------
 // ---- Features ----
@@ -54,6 +56,7 @@ new HelloWorldExample().Run();
 // new CustomSettingsExample().Run();
 // new ClientPoolMqttExample().Run();
 // new CliArgsExample().Run();
+// new CustomMetricsExample().Run();
 
 // ---- DataFeed ----
 // new InMemoryFeed().Run();
