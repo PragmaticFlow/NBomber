@@ -1,0 +1,17 @@
+﻿{
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "scenario",
+
+                "ThresholdSettings": [
+
+                    { "Metric": ["my-counter", "value < 1000"] },
+                    { "Metric": ["my-gauge", "value >= 6.5"] }
+
+                ]
+            }
+        ]
+    }
+}
