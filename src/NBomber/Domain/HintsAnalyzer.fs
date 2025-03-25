@@ -6,7 +6,7 @@ let private analyzeDataTransfer (scnStats: ScenarioStats) =
 
     let printHint (scnName, stepName) =
         $"Step: '{stepName}' in Scenario: '{scnName}' didn't track data transfer." +
-        " In order to track data transfer, you should use Response.Ok(sizeInBytes: value)"
+        " In order to track data transfer, you should use Response.Ok(sizeBytes: value)"
 
     scnStats.StepStats
     |> Seq.filter(fun step -> step.Ok.DataTransfer.MinBytes + step.Fail.DataTransfer.MinBytes = 0)
