@@ -1,21 +1,36 @@
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Serialization;
 
 namespace Demo.HTTP;
 
-public class CreatedUser
+public class UserPage
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
-    [JsonPropertyName("job")]
-    public string Job { get; set; }
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
-    [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; }
+    [JsonPropertyName("page")]
+    public int Page { get; set; }
+    [JsonPropertyName("per_page")]
+    public int PerPage { get; set; }
+    [JsonPropertyName("total")]
+    public int Total { get; set; }
+    [JsonPropertyName("total_pages")]
+    public int TotalPages { get; set; }
+    [JsonIgnore]
+    public object Data { get; set; }
+}
+
+public class LoginResponse
+{
+    [JsonPropertyName("token")]
+    public string Token { get; set; }
+}
+
+public class ErrorLoginResponse
+{
+    [JsonPropertyName("error")]
+    public string Error { get; set; }
 }
 
 public class CustomHttpResponseValidation
@@ -28,28 +43,35 @@ public class CustomHttpResponseValidation
         {
             var failOk = await Step.Run("success_when_fail", ctx, async () =>
             {
-                var request = Http.CreateRequest("GET", "https://reqres.in/api/users/23");
+                var request = Http.CreateRequest("POST", "https://reqres.in/api/login")
+                    .WithBody(new StringContent("""{ "email": "peter@klaven" }""", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await Http.Send<LoginResponse>(httpClient, request);
 
-                if (response.StatusCode == HttpStatusCode.NotFound.ToString())
-                    return Response.Ok();
+                if (response.StatusCode == HttpStatusCode.BadRequest.ToString())
+                {
+                    var originalHttpResponse = response.Payload.Value.Response;
+
+                    var errorResponse = await originalHttpResponse.Content.ReadFromJsonAsync<ErrorLoginResponse>();
+
+                    if (errorResponse.Error == "Missing password")
+                        return Response.Ok();
+                }
 
                 return Response.Fail();
             });
 
             var successFail = await Step.Run("fail_when_success", ctx, async () =>
             {
-                var request = Http.CreateRequest("POST", "https://reqres.in/api/users")
-                    .WithBody(new StringContent("""{ "name": "morpheus", "job": "leader" }""", Encoding.UTF8, "application/json"));
+                var request = Http.CreateRequest("GET", "https://reqres.in/api/users");
 
-                var response = await Http.Send<CreatedUser>(httpClient, request);
+                var response = await Http.Send<UserPage>(httpClient, request);
 
-                if (response.StatusCode == HttpStatusCode.Created.ToString())
+                if (response.StatusCode == HttpStatusCode.OK.ToString())
                 {
                     var responseData = response.Payload.Value.Data;
 
-                    if (responseData.Name == "morpheus")
+                    if (responseData.PerPage == 6)
                         return Response.Fail();
                 }
 

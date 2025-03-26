@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -72,7 +72,7 @@
 
         <PackageReference Include="NBomber" Version="6.0.1" />
         <PackageReference Include="NBomber.Data" Version="6.0.0" />
-        <PackageReference Include="NBomber.Http" Version="6.0.0" />
+        <PackageReference Include="NBomber.Http" Version="6.0.1" />
         <PackageReference Include="NBomber.MQTT" Version="0.3.0" />
         <PackageReference Include="NBomber.Sinks.Timescale" Version="0.7.0" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.2.0" />
