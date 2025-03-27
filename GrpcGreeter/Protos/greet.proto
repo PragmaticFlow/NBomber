@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcGreeter";
+
+package greet;
+
+// The greeting service definition.
+service Greeter {
+  // Unary RPCs
+  rpc SendData (SendDataRequest) returns (SendDataReply);
+  rpc GetData (GetDataRequest) returns (GetDataReply);
+
+  // Streaming RPCs
+  rpc SendDataStream (stream SendDataRequest) returns (SendDataReply);
+  rpc GetDataStream (google.protobuf.Empty) returns (stream GetDataReply);
+  rpc SendAndGetDataStream (stream SendDataRequest) returns (stream GetDataReply);
+}
+
+// Requests
+message SendDataRequest {
+  int32 recordId = 1;
+  bytes data = 2;
+}
+
+message GetDataRequest {
+  int32 recordId = 1;
+}
+
+// Replies
+message SendDataReply {
+  string sendDataStatus = 1;
+}
+
+message GetDataReply {
+  bytes data = 1;
+}

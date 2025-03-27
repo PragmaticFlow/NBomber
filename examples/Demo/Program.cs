@@ -28,6 +28,7 @@ using Demo.WebBrowsers.Playwright;
 using Demo.WebBrowsers.Puppeteer;
 using Demo.WebSockets;
 using Demo.WebSockets.ClientPool;
+using Demo.gRPC;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -104,7 +105,7 @@ new HelloWorldExample().Run();
 // new CustomHttpResponseValidation().Run();
 
 // ----------------
-// ----- WebSockets -----
+// -- WebSockets --
 // ----------------
 // new PingPongWebSocketsTest().Run();
 // new ClientPoolWebSocketsExample().Run();
@@ -114,6 +115,11 @@ new HelloWorldExample().Run();
 // ----------------
 // new PingPongMqttTest().Run();
 // new ClientPoolMqttExample().Run();
+
+// ----------------
+// ----- gRPC -----
+// ----------------
+// new GrpcExample().Run();
 
 // ----------------
 // ----- Db -------

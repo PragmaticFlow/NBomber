@@ -26,6 +26,9 @@
       <None Update="Features\DataDemo\data.csv">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="gRPC\config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="MQTT\ClientPool\config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
@@ -68,6 +71,7 @@
     <ItemGroup>
         <PackageReference Include="Bogus" Version="34.0.2" />
         <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
 
         <PackageReference Include="NBomber" Version="6.0.1" />
@@ -115,6 +119,10 @@
 
     <ItemGroup>
       <Folder Include="DB\Redis\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\GrpcGreeterClient\GrpcGreeterClient.csproj" />
     </ItemGroup>
 
 </Project>
