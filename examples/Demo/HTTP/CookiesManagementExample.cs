@@ -19,7 +19,7 @@ namespace Demo.HTTP
                     var login = await Step.Run("login", context, async () =>
                     {
                         // WebAppSimulator address
-                        var request = Http.CreateRequest("POST", "https://localhost:65385/api/CookiesAuthentication/Login")
+                        var request = Http.CreateRequest("POST", "https://localhost:65385/api/CookiesAuthentication")
                             .WithBody(new StringContent("""{"login": "morpheus","password": "leader"}""", Encoding.UTF8, "application/json"));
 
                         var response = await Http.Send((HttpClient)httpClient, request);
@@ -32,7 +32,7 @@ namespace Demo.HTTP
 
                 var getData = await Step.Run("get_data", context, async () =>
                 {
-                    var request = Http.CreateRequest("GET", "https://localhost:65385/api/CookiesAuthentication/GetData");
+                    var request = Http.CreateRequest("GET", "https://localhost:65385/api/CookiesAuthentication");
 
                     var response = await Http.Send((HttpClient)httpClient, request);
 

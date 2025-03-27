@@ -12,7 +12,7 @@ namespace WebAppSimulator.Controllers
         public CookiesAuthenticationController() { }
 
         [HttpPost]
-        public IActionResult Login(string login, string password)
+        public IActionResult Login([FromBody] LoginDto loginDto)
         {
             var authCookie = Guid.NewGuid();
 
@@ -40,5 +40,11 @@ namespace WebAppSimulator.Controllers
                 return Unauthorized("The auth cookie is not valid.");
             }            
         }
+    }
+
+    public class LoginDto
+    {
+        public string Login { get; set; }
+        public string Password { get; set; }
     }
 }
