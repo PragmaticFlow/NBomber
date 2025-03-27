@@ -28,7 +28,7 @@ namespace WebAppSimulator.Infra.DAL
 
         public async Task<User> GetById(int id)
         {
-            var data = await _database.StringGetAsync(id.ToString());
+            byte[] data = await _database.StringGetAsync(id.ToString());
             var user = JsonSerializer.Deserialize<User>(data);
             return user;
         }

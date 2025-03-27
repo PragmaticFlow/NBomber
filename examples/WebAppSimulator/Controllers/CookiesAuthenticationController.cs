@@ -7,23 +7,23 @@ namespace WebAppSimulator.Controllers
     [ApiController]
     public class CookiesAuthenticationController : ControllerBase
     {
-        private readonly ConcurrentBag<Guid> GeneratedCookies = new();
+        private static readonly ConcurrentBag<Guid> GeneratedCookies = new();
 
         public CookiesAuthenticationController() { }
 
         [HttpPost]
-        public Task Login(string login, string password)
+        public IActionResult Login(string login, string password)
         {
             var authCookie = Guid.NewGuid();
 
             GeneratedCookies.Add(authCookie);
             Response.Cookies.Append("auth_hash_cookie", authCookie.ToString());
 
-            return Task.CompletedTask;
+            return Ok("Cookies were added.");
         }
 
         [HttpGet]
-        public Task<string> GetAccess()
+        public IActionResult GetData()
         {
             var authCookie = Request.Cookies["auth_hash_cookie"];
             var convertResult = Guid.TryParse(authCookie, out Guid guidAuthCookie);
@@ -31,13 +31,13 @@ namespace WebAppSimulator.Controllers
             if (convertResult)
             {
                 if (GeneratedCookies.TryPeek(out guidAuthCookie))
-                    return Task.FromResult("Authentication successful.");
+                    return Ok("Authentication successful.");
                 else
-                    return Task.FromResult("Authentication failed. The auth_hash_cookie is wrong.");
+                    return Unauthorized("Authentication failed. The auth cookie is wrong.");
             }
             else
             {
-                return Task.FromResult("The auth_hash_cookie is not valid.");
+                return Unauthorized("The auth cookie is not valid.");
             }            
         }
     }
