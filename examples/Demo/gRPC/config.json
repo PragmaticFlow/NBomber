@@ -1,0 +1,34 @@
+{
+    "TargetScenarios": [ "grpc_init", "grpc_read", "grpc_write" ],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "grpc_read",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 100, "00:03:30" ] }
+                ]
+            },
+
+            {
+                "ScenarioName": "grpc_write",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 100, "00:03:30" ] }
+                ]
+            }
+        ],
+
+        "GlobalCustomSettings": {
+            "ConnectionString": "https://localhost:7117",
+            "RecordsCount": 100000,
+            "RecordSize": 1000
+        }
+    }
+}
