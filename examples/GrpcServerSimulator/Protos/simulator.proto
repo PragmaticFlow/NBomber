@@ -2,12 +2,12 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option csharp_namespace = "GrpcGreeter";
+option csharp_namespace = "GrpcSimulator";
 
-package greet;
+package grpcSimulator;
 
 // The greeting service definition.
-service Greeter {
+service GrpcSimulator {
   // Unary RPCs
   rpc SendData (SendDataRequest) returns (SendDataReply);
   rpc GetData (GetDataRequest) returns (GetDataReply);
