@@ -6,7 +6,6 @@ option csharp_namespace = "GrpcSimulator";
 
 package grpcSimulator;
 
-// The greeting service definition.
 service GrpcSimulator {
   // Unary RPCs
   rpc SendData (SendDataRequest) returns (SendDataReply);

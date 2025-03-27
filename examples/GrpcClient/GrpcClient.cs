@@ -4,16 +4,16 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using NBomber.Data;
 
-namespace GrpcGreeterClient
+namespace GrpcSimulator
 {
-    class GrpcGreeterClient
+    class GrpcClient
     {
-        private readonly Greeter.GreeterClient _client;
+        private readonly GrpcSimulator.GrpcSimulatorClient _client;
 
-        public GrpcGreeterClient(string address)
+        public GrpcClient(string address)
         {
             var channel = GrpcChannel.ForAddress("https://localhost:7117");
-            _client = new Greeter.GreeterClient(channel);
+            _client = new GrpcSimulator.GrpcSimulatorClient(channel);
         }
 
         public void SendRandomData(int recordId)
@@ -24,7 +24,7 @@ namespace GrpcGreeterClient
                 new SendDataRequest { RecordId = recordId, Data = randomData }
             );
 
-            Console.WriteLine($"Data sent: {String.Join(", ", randomData)}.");
+            Console.WriteLine($"Data sent: {string.Join(", ", randomData)}.");
             Console.WriteLine($"Data sending status: {sendDataReply.SendDataStatus}.");
             Console.WriteLine();
         }
@@ -34,8 +34,8 @@ namespace GrpcGreeterClient
             var getDataReply = _client.GetData(
                 new GetDataRequest { RecordId = recordId }
             );
-            
-            Console.WriteLine($"Data get: {String.Join(", ", getDataReply.Data)}.");
+
+            Console.WriteLine($"Data get: {string.Join(", ", getDataReply.Data)}.");
             Console.WriteLine();
         }
 
@@ -55,7 +55,7 @@ namespace GrpcGreeterClient
 
                     await clientStreamingCall.RequestStream.WriteAsync(
                         new SendDataRequest { RecordId = i, Data = randomData });
-                    Console.WriteLine($"Data sent: {String.Join(", ", randomData)}.");
+                    Console.WriteLine($"Data sent: {string.Join(", ", randomData)}.");
                     i++;
                 }
 
@@ -81,7 +81,7 @@ namespace GrpcGreeterClient
                 await foreach (var data in streamingCall.ResponseStream
                     .ReadAllAsync(cancellationToken: cancellationToken.Token))
                 {
-                    Console.WriteLine($"Data received: {String.Join(", ", data.Data)}.");
+                    Console.WriteLine($"Data received: {string.Join(", ", data.Data)}.");
                 }
 
                 Console.WriteLine("Server streaming completed.");
@@ -114,7 +114,7 @@ namespace GrpcGreeterClient
 
                             await duplexStreamingCall.RequestStream.WriteAsync(
                                 new SendDataRequest { RecordId = i, Data = randomData });
-                            Console.WriteLine($"Data sent: {String.Join(", ", randomData )}.");
+                            Console.WriteLine($"Data sent: {string.Join(", ", randomData )}.");
                             i++;
                         }
 
@@ -126,7 +126,7 @@ namespace GrpcGreeterClient
                         while(!cancellationToken.IsCancellationRequested &&
                             await duplexStreamingCall.ResponseStream.MoveNext())
                         {
-                            Console.WriteLine($"Data received: {String.Join(", ", duplexStreamingCall.ResponseStream.Current.Data)}.");
+                            Console.WriteLine($"Data received: {string.Join(", ", duplexStreamingCall.ResponseStream.Current.Data)}.");
                         }
                         Console.WriteLine("Server streaming completed.");
                     })
