@@ -5,13 +5,14 @@ using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Data;
+using GrpcSimulatorClient = GrpcSimulator.GrpcSimulator.GrpcSimulatorClient;
 
 namespace Demo.gRPC;
 
 public class GrpcWriteScenario
 {
     private GrpcConfig _grpcConfig;
-    private GrpcSimulator.GrpcSimulator.GrpcSimulatorClient _grpcClient;
+    private GrpcSimulatorClient _grpcClient;
     private ByteString _payload;
     private readonly Random _random = new();
 
@@ -33,7 +34,7 @@ public class GrpcWriteScenario
                 _grpcConfig = context.GlobalCustomSettings.Get<GrpcConfig>();
 
                 var channel = GrpcChannel.ForAddress(_grpcConfig.ConnectionString);
-                _grpcClient = new GrpcSimulator.GrpcSimulator.GrpcSimulatorClient(channel);
+                _grpcClient = new GrpcSimulatorClient(channel);
 
                 var randomBytes = Data.GenerateRandomBytes(_grpcConfig.RecordSize);
                 _payload = ByteString.CopyFrom(randomBytes);

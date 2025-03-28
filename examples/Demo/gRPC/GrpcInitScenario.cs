@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Data;
+using GrpcSimulatorClient = GrpcSimulator.GrpcSimulator.GrpcSimulatorClient;
 
 namespace Demo.gRPC;
 
@@ -25,7 +26,7 @@ public class GrpcInitScenario
                 var grpcConfig = context.GlobalCustomSettings.Get<GrpcConfig>();
 
                 using var channel = GrpcChannel.ForAddress(grpcConfig.ConnectionString);
-                var client = new GrpcSimulator.GrpcSimulator.GrpcSimulatorClient(channel);
+                var client = new GrpcSimulatorClient(channel);
 
                 foreach (var i in Enumerable.Range(0, grpcConfig.RecordsCount))
                 {
