@@ -1,6 +1,3 @@
-using System.Buffers;
-using System.IO.Pipelines;
-using System.Text;
 using WebAppSimulator.Infra.DAL;
 
 namespace WebAppSimulator
@@ -23,7 +20,6 @@ namespace WebAppSimulator
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
-            builder.Services.AddRazorPages();
 
             builder.Services.AddSwaggerGen();
             builder.Services.AddAuthentication();
@@ -65,12 +61,11 @@ namespace WebAppSimulator
                 app.UseSwaggerUI();
             }
 
-            // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseAuthorization();
 
-            app.MapRazorPages();
             app.MapControllers();
             app.UseWebSockets();
 
