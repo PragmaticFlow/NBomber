@@ -34,7 +34,7 @@ namespace BookstoreSimulator
             builder.Logging.AddSerilog(logger);
 
             builder.Services.AddControllers();
-            builder.Services.AddRazorPages();
+            builder.Services.AddEndpointsApiExplorer();
 
             var jwtSetings = builder.Configuration.GetSection("JWT").Get<JwtSetings>();
             builder.Services.AddSingleton(jwtSetings);
@@ -128,7 +128,6 @@ namespace BookstoreSimulator
 
             app.UseAuthorization();
 
-            app.MapRazorPages();
             app.MapControllers();
 
             app.Run();
