@@ -1,15 +1,16 @@
 using Grpc.Net.Client;
-using GrpcGreeterClient;
+using GrpcSimulator;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using GrpcSimulatorClient = GrpcSimulator.GrpcSimulator.GrpcSimulatorClient;
 
 namespace Demo.gRPC;
 
 public class GrpcReadScenario
 {
     private GrpcConfig _grpcConfig;
-    private Greeter.GreeterClient _grpcClient;
+    private GrpcSimulatorClient _grpcClient;
     private readonly Random _random = new();
 
     public ScenarioProps Create()
@@ -30,7 +31,7 @@ public class GrpcReadScenario
                 _grpcConfig = context.GlobalCustomSettings.Get<GrpcConfig>();
 
                 var channel = GrpcChannel.ForAddress(_grpcConfig.ConnectionString);
-                _grpcClient = new Greeter.GreeterClient(channel);
+                _grpcClient = new GrpcSimulatorClient(channel);
 
                 return Task.CompletedTask;
             });

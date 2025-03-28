@@ -1,16 +1,17 @@
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using GrpcSimulator;
 using System.Collections.Concurrent;
 
-namespace GrpcGreeter.Services;
+namespace GrpcSimulator.Services;
 
-public class GreeterService : Greeter.GreeterBase
+public class GrpcSimulatorService : GrpcSimulator.GrpcSimulatorBase
 {
-    private readonly ILogger<GreeterService> _logger;
+    private readonly ILogger<GrpcSimulatorService> _logger;
     private ConcurrentDictionary<int, ByteString> DataStorage { get; set; }
 
-    public GreeterService(ILogger<GreeterService> logger)
+    public GrpcSimulatorService(ILogger<GrpcSimulatorService> logger)
     {
         _logger = logger;
         DataStorage = new ConcurrentDictionary<int, ByteString>();

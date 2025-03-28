@@ -1,10 +1,10 @@
-namespace GrpcGreeterClient
+namespace GrpcSimulator
 {
     internal class Program
     {
         static async Task Main(string[] args)
         {
-            var client = new GrpcGreeterClient("https://localhost:7117");
+            var client = new GrpcClient("https://localhost:7117");
             var randomId = 1;
 
             client.SendRandomData(randomId);
