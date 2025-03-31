@@ -111,15 +111,6 @@ namespace BookstoreSimulator
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseStaticFiles(new StaticFileOptions()
-                {
-                    OnPrepareResponse = context =>
-                    {
-                        context.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store");
-                        context.Context.Response.Headers.Append("Expires", "-1");
-                    }
-                });
-
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
