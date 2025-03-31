@@ -22,7 +22,7 @@ namespace WebAppSimulator.Controllers
         }
 
         [HttpPost]
-        public Task Post([FromBody] User request)
+        public Task<int> Post([FromBody] UserDto request)
         {
             return _repository.Insert(request);
         }

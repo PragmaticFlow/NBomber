@@ -5,7 +5,7 @@ namespace WebAppSimulator.Infra.DAL
     public interface IUserRepository
     {
         Task<User> GetById(int id);
-        Task Insert(User user);
+        Task<int> Insert(UserDto userDto);
         Task<bool> Update(User user);
         void CreateDB();
         void DeleTable();

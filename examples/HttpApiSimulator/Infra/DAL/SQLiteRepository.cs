@@ -1,5 +1,6 @@
 using System.Data.SQLite;
 using Dapper.Contrib.Extensions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using WebAppSimulator.Contracts;
 
 namespace WebAppSimulator.Infra.DAL
@@ -36,10 +37,9 @@ namespace WebAppSimulator.Infra.DAL
             return _connection.GetAsync<User>(id);
         }
 
-        public Task Insert(User user)
+        public Task<int> Insert(UserDto userDto)
         {
-            _connection.Insert(user);
-            return Task.CompletedTask;
+            return _connection.InsertAsync(userDto.ToUser());
         }
 
         public Task<bool> Update(User user)
