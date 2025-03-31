@@ -44,7 +44,7 @@ namespace WebAppSimulator.Infra.DAL
         public Task<bool> Update(User user)
         {
             var data = JsonSerializer.SerializeToUtf8Bytes(user);
-            return _database.StringSetAsync(user.Id.ToString(), data);
+            return _database.StringSetAsync(user.ToString(), data);
         }
     }
 }

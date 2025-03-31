@@ -28,9 +28,9 @@ namespace WebAppSimulator.Controllers
         }
 
         [HttpPut("{id}")]
-        public Task<bool> Put(int id, [FromBody] User request)
+        public Task<bool> Put(int id, [FromBody] UserDto request)
         {
-            return _repository.Update(request);
+            return _repository.Update(request.ToUser(id));
         }
     }
 }

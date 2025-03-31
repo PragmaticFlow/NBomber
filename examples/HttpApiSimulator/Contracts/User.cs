@@ -14,11 +14,11 @@ namespace WebAppSimulator.Contracts
         public string LastName { get; set; }
         public int Age { get; set; }
 
-        public User ToUser()
+        public User ToUser(int id = 0)
         {
             return new User
             {
-                Id = 0,
+                Id = id,
                 FirstName = this.FirstName,
                 LastName = this.LastName,
                 Age = this.Age
