@@ -21,16 +21,10 @@ namespace WebAppSimulator.Controllers
             return _repository.GetById(id);
         }
 
-        [HttpPost]
-        public Task<int> Post([FromBody] UserDto request)
-        {
-            return _repository.Insert(request);
-        }
-
         [HttpPut("{id}")]
-        public Task<bool> Put(int id, [FromBody] UserDto request)
+        public async Task<bool> Put(int id, [FromBody] UserDto request)
         {
-            return _repository.Update(request.ToUser(id));
+            return await _repository.Update(request.ToUser(id));
         }
     }
 }

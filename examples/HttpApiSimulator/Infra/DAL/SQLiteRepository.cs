@@ -1,6 +1,5 @@
-using System.Data.SQLite;
 using Dapper.Contrib.Extensions;
-using Microsoft.AspNetCore.Http.HttpResults;
+using System.Data.SQLite;
 using WebAppSimulator.Contracts;
 
 namespace WebAppSimulator.Infra.DAL
@@ -25,10 +24,10 @@ namespace WebAppSimulator.Infra.DAL
             _command.CommandText = "pragma synchronous = normar";
             _command.ExecuteNonQuery();
             _command.CommandText = @"CREATE TABLE IF NOT EXISTS  users 
-                    (Id INTEGER PRIMARY KEY,
-                    FirstName TEXT, 
-                    LastName TEXT,
-                    Age INTEGER)";
+                (Id INTEGER PRIMARY KEY,
+                FirstName TEXT, 
+                LastName TEXT,
+                Age INTEGER)";
             _command.ExecuteNonQuery();
         }
 
@@ -37,15 +36,18 @@ namespace WebAppSimulator.Infra.DAL
             return _connection.GetAsync<User>(id);
         }
 
-        public Task<int> Insert(UserDto userDto)
-        {
-            return _connection.InsertAsync(userDto.ToUser());
-        }
-
         public Task<bool> Update(User user)
         {
-            return _connection.UpdateAsync(user);
+            _command.CommandText = @$"INSERT INTO users (Id, FirstName, LastName, Age)
+                VALUES ({user.Id}, '{user.FirstName}', '{user.LastName}', {user.Age})
+                ON CONFLICT(Id)
+                DO UPDATE SET FirstName = excluded.FirstName, LastName = excluded.LastName, Age = excluded.Age;";
+
+            var affectedRows = _command.ExecuteNonQuery();
+
+            return Task.FromResult(affectedRows > 0);
         }
+
         public void DeleTable()
         {
             _command.CommandText = "DROP TABLE IF EXISTS users";

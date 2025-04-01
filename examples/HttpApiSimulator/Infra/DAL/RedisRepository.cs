@@ -33,14 +33,6 @@ namespace WebAppSimulator.Infra.DAL
             return user;
         }
 
-        public async Task<int> Insert(UserDto user)
-        {
-            var data = JsonSerializer.SerializeToUtf8Bytes(user);
-            var result = await _database.StringSetAsync(user.ToString(), data);
-
-            return result ? 1 : 0;
-        }
-
         public Task<bool> Update(User user)
         {
             var data = JsonSerializer.SerializeToUtf8Bytes(user);
