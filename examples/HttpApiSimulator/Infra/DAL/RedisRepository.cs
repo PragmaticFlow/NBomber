@@ -9,6 +9,7 @@ namespace WebAppSimulator.Infra.DAL
         private ConnectionMultiplexer _redis;
         private IDatabase _database;
         private RedisSettings _settings;
+
         public RedisRepository(RedisSettings settings)
         {
             _settings = settings;
@@ -29,14 +30,14 @@ namespace WebAppSimulator.Infra.DAL
         public async Task<User> GetById(int id)
         {
             byte[] data = await _database.StringGetAsync(id.ToString());
-            var user = JsonSerializer.Deserialize<User>(data);
+            var user = data != null ? JsonSerializer.Deserialize<User>(data) : null;
             return user;
         }
 
         public Task<bool> Update(User user)
         {
             var data = JsonSerializer.SerializeToUtf8Bytes(user);
-            return _database.StringSetAsync(user.ToString(), data);
+            return _database.StringSetAsync(user.Id.ToString(), data);
         }
     }
 }

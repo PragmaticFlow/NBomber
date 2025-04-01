@@ -7,7 +7,6 @@ namespace WebAppSimulator.Infra.DAL
     public class SQLiteDBRepository : IUserRepository
     {
         private SQLiteCommand _command = null;
-
         private SQLiteConnection _connection = null;
         
         public SQLiteDBRepository(SQLiteSettings settings)
@@ -16,6 +15,7 @@ namespace WebAppSimulator.Infra.DAL
             _connection.Open();
             _command = new SQLiteCommand(_connection);
         }
+
         public void CreateDB()
         {
             _command.CommandText = "PRAGMA journal_mode=WAL";
