@@ -122,7 +122,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\GrpcGreeterClient\GrpcGreeterClient.csproj" />
+      <ProjectReference Include="..\GrpcClient\GrpcClient.csproj" />
     </ItemGroup>
 
 </Project>
