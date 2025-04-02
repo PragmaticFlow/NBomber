@@ -29,7 +29,7 @@ namespace BookstoreSimulator.Controllers
                 var book = BookDBRecord.Create(request, bookId);
                 var insertedResult = await _bookRepository.InsertBook(book);
                 if (insertedResult)
-                    return Results.Ok();
+                    return Results.Ok(bookId);
                 else
                     return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
