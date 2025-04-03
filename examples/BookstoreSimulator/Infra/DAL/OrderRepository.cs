@@ -38,7 +38,7 @@ namespace BookstoreSimulator.Infra.DAL
                 {
                     try
                     {
-                        var commandUpdate = @"UPDATE Books SET Quantaty = Quantaty - 1 WHERE BookId = @BookId";        
+                        var commandUpdate = @$"UPDATE Books SET Quantaty = Quantaty - {request.Quantaty} WHERE BookId = @BookId";     
                         await connection.ExecuteAsync(commandUpdate, new { request.BookId }, transaction);
 
                         var commandInsert = @"INSERT INTO Orders 
