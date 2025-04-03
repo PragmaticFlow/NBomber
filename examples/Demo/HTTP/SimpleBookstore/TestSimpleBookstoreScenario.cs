@@ -28,7 +28,7 @@ namespace Demo.HTTP.SimpleBookstore
                         var rundomUser = userLogins[rundom];
                         var data = JsonConvert.SerializeObject(rundomUser);
 
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/users/login")
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/login")
                             .WithHeader("Accept", "application/json")
                             .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 
@@ -47,7 +47,7 @@ namespace Demo.HTTP.SimpleBookstore
 
                     var getAvailableBook = await Step.Run("getAvailableBook", context, async () =>
                     {
-                        var request = Http.CreateRequest("GET", "http://localhost:5064/api/books?availableOnly=true")
+                        var request = Http.CreateRequest("GET", "http://localhost:5223/api/books?availableOnly=false")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
@@ -76,7 +76,7 @@ namespace Demo.HTTP.SimpleBookstore
                             Quantaty = 1
                         };
                         var data = JsonConvert.SerializeObject(order);
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/orders")
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/orders")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}")
                             .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
@@ -87,7 +87,7 @@ namespace Demo.HTTP.SimpleBookstore
 
                     var logout = await Step.Run("logout", context, async () =>
                     {
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/users/logout")
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/logout")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
