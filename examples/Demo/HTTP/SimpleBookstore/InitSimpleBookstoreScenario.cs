@@ -1,12 +1,10 @@
-using Bogus;
 using Microsoft.Extensions.Configuration;
+using System.Text;
+using System.Text.Json;
+using Bogus;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using NBomber.Data;
 using NBomber.Http.CSharp;
-using Newtonsoft.Json;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using Demo.HTTP.SimpleBookstore.Contracts;
 
 namespace Demo.HTTP.SimpleBookstore
@@ -54,7 +52,7 @@ namespace Demo.HTTP.SimpleBookstore
                               Password = user.Password,
                           });
                    
-                          var data = JsonConvert.SerializeObject(user);
+                          var data = JsonSerializer.Serialize(user);
                           var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/singup")
                               .WithHeader("Accept", "application/json")
                               .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
@@ -73,7 +71,7 @@ namespace Demo.HTTP.SimpleBookstore
                       })
                       .Select(book =>
                       {
-                          var data = JsonConvert.SerializeObject(book);
+                          var data = JsonSerializer.Serialize(book);
                           var request = Http.CreateRequest("POST", "http://localhost:5223/api/books")
                                   .WithHeader("Accept", "application/json")
                                   .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));

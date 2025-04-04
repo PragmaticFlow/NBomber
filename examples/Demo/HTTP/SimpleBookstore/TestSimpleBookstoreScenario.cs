@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using Newtonsoft.Json;
-using System.Text;
 using NBomber.Http.CSharp;
-using System.Net.Http.Json;
 using Demo.HTTP.SimpleBookstore.Contracts;
 
 namespace Demo.HTTP.SimpleBookstore
@@ -26,7 +26,7 @@ namespace Demo.HTTP.SimpleBookstore
                     var login = await Step.Run("login", context, async () =>
                     {
                         var rundomUser = userLogins[rundom];
-                        var data = JsonConvert.SerializeObject(rundomUser);
+                        var data = JsonSerializer.Serialize(rundomUser);
 
                         var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/login")
                             .WithHeader("Accept", "application/json")
@@ -34,13 +34,8 @@ namespace Demo.HTTP.SimpleBookstore
 
                         var response = await Http.Send(_httpClient, request);
 
-                        if (!response.IsError && response.Payload.Value.IsSuccessStatusCode)
-                        {
-                            var jwt = ExtractJwt(response.Payload.Value);
-                            return Response.Ok(payload: jwt, sizeBytes: response.SizeBytes);
-                        }
-                        else
-                            return Response.Fail<string>();
+                        var jwt = ExtractJwt(response.Payload.Value);
+                        return Response.Ok(payload: jwt, sizeBytes: response.SizeBytes);
                     });
 
                     var jwt = login.Payload.Value;
@@ -53,15 +48,10 @@ namespace Demo.HTTP.SimpleBookstore
 
                         var response = await Http.Send(_httpClient, request);
 
-                        if (!response.IsError && response.Payload.Value.IsSuccessStatusCode)
-                        {
-                            var books = response.Payload.Value.Content;
-                            var booksList = books.ReadFromJsonAsync<HttpResponse<List<BookResponse>>>().Result.Data;
+                        var books = response.Payload.Value.Content;
+                        var booksList = books.ReadFromJsonAsync<HttpResponse<List<BookResponse>>>().Result.Data;
 
-                            return Response.Ok(payload: booksList, sizeBytes: response.SizeBytes);
-                        }
-                        else
-                            return Response.Fail<List<BookResponse>>();
+                        return Response.Ok(payload: booksList, sizeBytes: response.SizeBytes);
                     });
 
                     var books = getAvailableBook.Payload.Value;
@@ -75,7 +65,7 @@ namespace Demo.HTTP.SimpleBookstore
                             BookId = rundomBook.BookId,
                             Quantaty = 1
                         };
-                        var data = JsonConvert.SerializeObject(order);
+                        var data = JsonSerializer.Serialize(order);
                         var request = Http.CreateRequest("POST", "http://localhost:5223/api/orders")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}")
