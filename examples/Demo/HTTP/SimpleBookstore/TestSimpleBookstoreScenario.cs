@@ -1,11 +1,9 @@
 using Microsoft.Extensions.Configuration;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
 using Demo.HTTP.SimpleBookstore.Contracts;
+using System.Net.Http.Json;
 
 namespace Demo.HTTP.SimpleBookstore
 {
@@ -26,11 +24,10 @@ namespace Demo.HTTP.SimpleBookstore
                     var login = await Step.Run("login", context, async () =>
                     {
                         var rundomUser = userLogins[rundom];
-                        var data = JsonSerializer.Serialize(rundomUser);
 
                         var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/login")
                             .WithHeader("Accept", "application/json")
-                            .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                            .WithJsonBody(rundomUser);
 
                         var response = await Http.Send(_httpClient, request);
 
@@ -46,12 +43,11 @@ namespace Demo.HTTP.SimpleBookstore
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
-                        var response = await Http.Send(_httpClient, request);
+                        var response = await Http.Send<BookListResponse>(_httpClient, request);
 
-                        var books = response.Payload.Value.Content;
-                        var booksList = books.ReadFromJsonAsync<HttpResponse<List<BookResponse>>>().Result.Data;
+                        var booksList = response.Payload.Value.Data;
 
-                        return Response.Ok(payload: booksList, sizeBytes: response.SizeBytes);
+                        return Response.Ok(payload: booksList.Data, sizeBytes: response.SizeBytes);
                     });
 
                     var books = getAvailableBook.Payload.Value;
@@ -65,13 +61,14 @@ namespace Demo.HTTP.SimpleBookstore
                             BookId = rundomBook.BookId,
                             Quantaty = 1
                         };
-                        var data = JsonSerializer.Serialize(order);
+
                         var request = Http.CreateRequest("POST", "http://localhost:5223/api/orders")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}")
-                            .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                            .WithJsonBody(order);
 
                         var response = await Http.Send(_httpClient, request);
+
                         return response;
                     });
 
