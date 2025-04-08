@@ -107,7 +107,7 @@ namespace BookstoreSimulator
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 
             if (app.Environment.IsDevelopment())
             {

@@ -33,7 +33,7 @@ using Demo.gRPC;
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -100,7 +100,7 @@ new HelloWorldExample().Run();
 // new HttpSendJsonExample().Run();
 // new HttpClientArgsExample().Run();
 // new WebAppSimulatorExample().RunHttpUserExample();
-// new ExampleSimpleBookstore().Run();
+new ExampleSimpleBookstore().Run();
 // new HttpRequestTracing().Run();
 // new CookiesManagementExample().Run(); 
 // new CustomHttpResponseValidation().Run();

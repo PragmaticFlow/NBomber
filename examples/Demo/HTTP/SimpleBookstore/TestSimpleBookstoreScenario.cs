@@ -4,6 +4,7 @@ using NBomber.CSharp;
 using NBomber.Http.CSharp;
 using Demo.HTTP.SimpleBookstore.Contracts;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Demo.HTTP.SimpleBookstore
 {
@@ -11,6 +12,7 @@ namespace Demo.HTTP.SimpleBookstore
     {
         private GlobalCustomSettings _settings { get; set; }
         private HttpClient _httpClient = new HttpClient();
+
         public ScenarioProps Create()
         {
             var userLogins = InitSimpleBookstoreScenario.UserLogins;
