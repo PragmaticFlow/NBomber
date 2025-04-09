@@ -34,7 +34,7 @@ namespace BookstoreSimulator
             builder.Logging.AddSerilog(logger);
 
             builder.Services.AddControllers();
-            builder.Services.AddRazorPages();
+            builder.Services.AddEndpointsApiExplorer();
 
             var jwtSetings = builder.Configuration.GetSection("JWT").Get<JwtSetings>();
             builder.Services.AddSingleton(jwtSetings);
@@ -107,19 +107,10 @@ namespace BookstoreSimulator
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseStaticFiles(new StaticFileOptions()
-                {
-                    OnPrepareResponse = context =>
-                    {
-                        context.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store");
-                        context.Context.Response.Headers.Append("Expires", "-1");
-                    }
-                });
-
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
@@ -128,7 +119,6 @@ namespace BookstoreSimulator
 
             app.UseAuthorization();
 
-            app.MapRazorPages();
             app.MapControllers();
 
             app.Run();

@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using Newtonsoft.Json;
-using System.Text;
 using NBomber.Http.CSharp;
-using System.Net.Http.Json;
 using Demo.HTTP.SimpleBookstore.Contracts;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Demo.HTTP.SimpleBookstore
 {
@@ -13,6 +12,7 @@ namespace Demo.HTTP.SimpleBookstore
     {
         private GlobalCustomSettings _settings { get; set; }
         private HttpClient _httpClient = new HttpClient();
+
         public ScenarioProps Create()
         {
             var userLogins = InitSimpleBookstoreScenario.UserLogins;
@@ -26,42 +26,30 @@ namespace Demo.HTTP.SimpleBookstore
                     var login = await Step.Run("login", context, async () =>
                     {
                         var rundomUser = userLogins[rundom];
-                        var data = JsonConvert.SerializeObject(rundomUser);
 
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/users/login")
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/login")
                             .WithHeader("Accept", "application/json")
-                            .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                            .WithJsonBody(rundomUser);
 
                         var response = await Http.Send(_httpClient, request);
 
-                        if (!response.IsError && response.Payload.Value.IsSuccessStatusCode)
-                        {
-                            var jwt = ExtractJwt(response.Payload.Value);
-                            return Response.Ok(payload: jwt, sizeBytes: response.SizeBytes);
-                        }
-                        else
-                            return Response.Fail<string>();
+                        var jwt = ExtractJwt(response.Payload.Value);
+                        return Response.Ok(payload: jwt, sizeBytes: response.SizeBytes);
                     });
 
                     var jwt = login.Payload.Value;
 
                     var getAvailableBook = await Step.Run("getAvailableBook", context, async () =>
                     {
-                        var request = Http.CreateRequest("GET", "http://localhost:5064/api/books?availableOnly=true")
+                        var request = Http.CreateRequest("GET", "http://localhost:5223/api/books?availableOnly=false")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
-                        var response = await Http.Send(_httpClient, request);
+                        var response = await Http.Send<BookListResponse>(_httpClient, request);
 
-                        if (!response.IsError && response.Payload.Value.IsSuccessStatusCode)
-                        {
-                            var books = response.Payload.Value.Content;
-                            var booksList = books.ReadFromJsonAsync<HttpResponse<List<BookResponse>>>().Result.Data;
+                        var booksList = response.Payload.Value.Data;
 
-                            return Response.Ok(payload: booksList, sizeBytes: response.SizeBytes);
-                        }
-                        else
-                            return Response.Fail<List<BookResponse>>();
+                        return Response.Ok(payload: booksList.Data, sizeBytes: response.SizeBytes);
                     });
 
                     var books = getAvailableBook.Payload.Value;
@@ -75,19 +63,20 @@ namespace Demo.HTTP.SimpleBookstore
                             BookId = rundomBook.BookId,
                             Quantaty = 1
                         };
-                        var data = JsonConvert.SerializeObject(order);
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/orders")
+
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/orders")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}")
-                            .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                            .WithJsonBody(order);
 
                         var response = await Http.Send(_httpClient, request);
+
                         return response;
                     });
 
                     var logout = await Step.Run("logout", context, async () =>
                     {
-                        var request = Http.CreateRequest("POST", "http://localhost:5064/api/users/logout")
+                        var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/logout")
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 

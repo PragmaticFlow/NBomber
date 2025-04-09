@@ -1,21 +1,37 @@
-version: '3.8'
 services:
-  db:
-    container_name: pg_container
-    image: postgres
-    restart: always
+
+  postgres_db:
+    image: postgres:17.4
+    command: postgres -c 'max_connections=500'
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
       POSTGRES_DB: bookstore_db
     ports:
       - "5432:5432"
+    healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -d 'user=bookstore dbname=bookstore_db'" ]
+        interval: 5s
+        timeout: 10s
+        retries: 5
+        start_period: 5s
+
   pgadmin:
-    container_name: pgadmin_container
     image: dpage/pgadmin4
-    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres_db
+
+volumes:
+    postgres_db_data:
+        driver: local
+    pgadmin_data:
+        driver: local

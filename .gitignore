@@ -342,3 +342,6 @@ ASALocalRun/
 !/src/NBomber/DomainServices/Reports
 /examples/CSharpProd/DB/Redis/redis-data/
 /examples/WebAppSimulator/DB
+/examples/HttpApiSimulator/UsersDB.db
+/examples/HttpApiSimulator/UsersDB.db-shm
+/examples/HttpApiSimulator/UsersDB.db-wal

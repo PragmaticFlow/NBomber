@@ -16,4 +16,9 @@ namespace Demo.HTTP.SimpleBookstore.Contracts
         public DateTime PublicationDate { get; set; }
         public int Quantaty { get; set; }
     }
+
+    public class BookListResponse
+    {
+        public List<BookResponse> Data { get; set; }
+    }
 }

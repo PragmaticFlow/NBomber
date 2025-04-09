@@ -1,12 +1,8 @@
-using Bogus;
 using Microsoft.Extensions.Configuration;
+using Bogus;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using NBomber.Data;
 using NBomber.Http.CSharp;
-using Newtonsoft.Json;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using Demo.HTTP.SimpleBookstore.Contracts;
 
 namespace Demo.HTTP.SimpleBookstore
@@ -28,8 +24,8 @@ namespace Demo.HTTP.SimpleBookstore
               .WithInit(async context =>
               {
                   // recreate DB
-                  var request = Http.CreateRequest("PUT", "http://localhost:5064/api/databases")
-                                .WithHeader("Accept", "application/json");
+                  var request = Http.CreateRequest("PUT", "http://localhost:5223/api/databases")
+                    .WithHeader("Accept", "application/json");
 
                   var response = await Http.Send(_httpClient, request);
 
@@ -53,11 +49,10 @@ namespace Demo.HTTP.SimpleBookstore
                               Email = user.Email,
                               Password = user.Password,
                           });
-                   
-                          var data = JsonConvert.SerializeObject(user);
-                          var request = Http.CreateRequest("POST", "http://localhost:5064/api/users/singup")
+
+                          var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/singup")
                               .WithHeader("Accept", "application/json")
-                              .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                              .WithJsonBody(user);
 
                           return Http.Send(_httpClient, request);
                       });
@@ -73,10 +68,9 @@ namespace Demo.HTTP.SimpleBookstore
                       })
                       .Select(book =>
                       {
-                          var data = JsonConvert.SerializeObject(book);
-                          var request = Http.CreateRequest("POST", "http://localhost:5064/api/books")
+                          var request = Http.CreateRequest("POST", "http://localhost:5223/api/books")
                                   .WithHeader("Accept", "application/json")
-                                  .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                                  .WithJsonBody(book);
 
                           return Http.Send(_httpClient, request);
                       });
