@@ -15,10 +15,12 @@ namespace BookstoreSimulator
         public string Issuer { get; set; }
         public string Audience { get; set; }
     }
+
     public class BookstoreSettings
     {
         public string ConnectionString { get; set; }
     }
+
     public class Program
     {
         public static void Main(string[] args)
@@ -30,6 +32,7 @@ namespace BookstoreSimulator
                 .ReadFrom.Configuration(builder.Configuration)
                 .Enrich.FromLogContext()
                 .CreateLogger();
+
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
 

@@ -10,25 +10,24 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 100, "00:03:30" ] }
+                    { "KeepConstant": [ 1, "00:01:00" ] }
                 ]
             },
-
             {
                 "ScenarioName": "grpc_write",
 
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 100, "00:03:30" ] }
+                    { "KeepConstant": [ 1, "00:01:00" ] }
                 ]
             }
         ],
 
         "GlobalCustomSettings": {
-            "ConnectionString": "https://localhost:7117",
-            "RecordsCount": 100000,
-            "RecordSize": 1000
+            "ConnectionString": "https://localhost:60530",
+            "RecordsCount": 1000,
+            "RecordSizeBytes": 500
         }
     }
 }

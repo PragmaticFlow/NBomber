@@ -13,7 +13,7 @@ public class GrpcConfig
 {
     public string ConnectionString { get; set; }
     public int RecordsCount { get; set; }
-    public int RecordSize { get; set; }
+    public int RecordSizeBytes { get; set; }
 }
 
 public class GrpcInitScenario
@@ -30,7 +30,7 @@ public class GrpcInitScenario
 
                 foreach (var i in Enumerable.Range(0, grpcConfig.RecordsCount))
                 {
-                    var randomBytes = Data.GenerateRandomBytes(grpcConfig.RecordSize);
+                    var randomBytes = Data.GenerateRandomBytes(grpcConfig.RecordSizeBytes);
                     var randomData = ByteString.CopyFrom(randomBytes);
                     var sendDataReply = client.SendData(
                         new SendDataRequest { RecordId = i, Data = randomData }

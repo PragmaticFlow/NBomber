@@ -137,7 +137,7 @@ namespace GrpcSimulator
                     task.Wait(cancellationToken.Token);
                     Console.WriteLine();
                 }
-                catch (OperationCanceledException e)
+                catch (OperationCanceledException)
                 {
                     await duplexStreamingCall.RequestStream.CompleteAsync();
                     Thread.Sleep(6000);

@@ -36,7 +36,7 @@ public class GrpcWriteScenario
                 var channel = GrpcChannel.ForAddress(_grpcConfig.ConnectionString);
                 _grpcClient = new GrpcSimulatorClient(channel);
 
-                var randomBytes = Data.GenerateRandomBytes(_grpcConfig.RecordSize);
+                var randomBytes = Data.GenerateRandomBytes(_grpcConfig.RecordSizeBytes);
                 _payload = ByteString.CopyFrom(randomBytes);
 
                 return Task.CompletedTask;

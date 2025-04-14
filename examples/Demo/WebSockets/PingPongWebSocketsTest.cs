@@ -6,12 +6,12 @@ namespace Demo.WebSockets;
 
 public class PingPongWebSocketsTest
 {
-    // To run this example you need to spin up local server examples/simulators/WebAppSimulator
-    // The server should run on localhost:5000
+    // To run this example you need to spin up local server examples/simulators/WebSocketsSimulator
+    // The server should run on localhost:60528
 
     public void Run()
     {
-        var payload = Data.GenerateRandomBytes(1_000_000); // 1MB
+        var payload = Data.GenerateRandomBytes(sizeInBytes: 500);
 
         var scenario = Scenario.Create("ping_pong_websockets", async ctx =>
         {
@@ -19,7 +19,7 @@ public class PingPongWebSocketsTest
 
             var connect = await Step.Run("connect", ctx, async () =>
             {
-                await websocket.Connect("ws://localhost:5000/ws");
+                await websocket.Connect("ws://localhost:60528/ws");
                 return Response.Ok();
             });
 
@@ -47,7 +47,7 @@ public class PingPongWebSocketsTest
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
-            Simulation.KeepConstant(10, TimeSpan.FromSeconds(30))
+            Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );
 
         NBomberRunner

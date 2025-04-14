@@ -24,7 +24,7 @@ namespace Demo.HTTP.SimpleBookstore
               .WithInit(async context =>
               {
                   // recreate DB
-                  var request = Http.CreateRequest("PUT", "http://localhost:5223/api/databases")
+                  var request = Http.CreateRequest("PUT", "http://localhost:50762/api/databases")
                     .WithHeader("Accept", "application/json");
 
                   var response = await Http.Send(_httpClient, request);
@@ -50,7 +50,7 @@ namespace Demo.HTTP.SimpleBookstore
                               Password = user.Password,
                           });
 
-                          var request = Http.CreateRequest("POST", "http://localhost:5223/api/users/singup")
+                          var request = Http.CreateRequest("POST", "http://localhost:50762/api/users/singup")
                               .WithHeader("Accept", "application/json")
                               .WithJsonBody(user);
 
@@ -68,7 +68,7 @@ namespace Demo.HTTP.SimpleBookstore
                       })
                       .Select(book =>
                       {
-                          var request = Http.CreateRequest("POST", "http://localhost:5223/api/books")
+                          var request = Http.CreateRequest("POST", "http://localhost:50762/api/books")
                                   .WithHeader("Accept", "application/json")
                                   .WithJsonBody(book);
 

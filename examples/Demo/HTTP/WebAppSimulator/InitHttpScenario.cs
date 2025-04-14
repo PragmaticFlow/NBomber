@@ -23,7 +23,7 @@ namespace Demo.HTTP.WebAppSimulator
                 .WithInit(async context =>
                 {
                     // recreate DB
-                    var request = Http.CreateRequest("PUT", "http://localhost:5195/api/databases");
+                    var request = Http.CreateRequest("PUT", "http://localhost:60529/api/databases");
                     var response = await Http.Send(_httpClient, request);
 
                     var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
@@ -42,10 +42,10 @@ namespace Demo.HTTP.WebAppSimulator
                         .Select(user =>
                         {
                             var data = JsonConvert.SerializeObject(user);
-                            var request = Http.CreateRequest("POST", "http://localhost:5195/api/users")
-                                .WithHeader("Accept", "application/json")                                
+                            var request = Http.CreateRequest("POST", "http://localhost:60529/api/users")
+                                .WithHeader("Accept", "application/json")
                                 .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
-                            
+
                             return Http.Send(_httpClient, request);
                         });
 

@@ -7,13 +7,13 @@ using NBomber.WebSockets;
 
 public class ClientPoolWebSocketsExample
 {
-    // To run this example you need to spin up local server examples/simulators/WebAppSimulator
-    // The server should run on localhost:5000
+    // To run this example you need to spin up local server examples/simulators/WebSocketsSimulator
+    // The server should run on localhost:60528
 
     public void Run()
     {
         var clientPool = new ClientPool<WebSocket>();
-        var payload = Data.GenerateRandomBytes(1_000_000); // 1MB
+        var payload = Data.GenerateRandomBytes(sizeInBytes: 500);
 
         var scenario = Scenario.Create("websockets_client_pool", async ctx =>
         {
@@ -35,16 +35,16 @@ public class ClientPoolWebSocketsExample
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(5))
         .WithLoadSimulations(
-            Simulation.KeepConstant(5, TimeSpan.FromSeconds(10))
+            Simulation.KeepConstant(50, TimeSpan.FromSeconds(30))
         )
         .WithInit(async ctx =>
         {
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 50; i++)
             {
                 var websocket = new WebSocket(new WebSocketConfig());
-                await websocket.Connect("ws://localhost:5000/ws");
+                await websocket.Connect("ws://localhost:60528/ws");
 
                 clientPool.AddClient(websocket);
             }
