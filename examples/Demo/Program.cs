@@ -29,6 +29,7 @@ using Demo.WebBrowsers.Puppeteer;
 using Demo.WebSockets;
 using Demo.WebSockets.ClientPool;
 using Demo.gRPC;
+using Demo.MQTT.IndependentActors;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -115,7 +116,8 @@ new HelloWorldExample().Run();
 // ----- MQTT -----
 // ----------------
 // new PingPongMqttTest().Run();
-new ClientPoolMqttExample().Run();
+// new ClientPoolMqttExample().Run();
+// new IndependentActorsMqttExample().Run();
 
 // ----------------
 // ----- gRPC -----
