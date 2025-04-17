@@ -19,22 +19,23 @@ using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
 using Demo.HTTP;
-using Demo.MQTT;
 using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
+using Demo.MQTT;
 using Demo.MQTT.ClientPool;
+using Demo.MQTT.IndependentActors;
 using Demo.NBomber_Studio;
 using Demo.WebBrowsers.Playwright;
 using Demo.WebBrowsers.Puppeteer;
 using Demo.WebSockets;
 using Demo.WebSockets.ClientPool;
 using Demo.gRPC;
-using Demo.MQTT.IndependentActors;
+using Demo.AMQP;
 
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -118,6 +119,11 @@ new HelloWorldExample().Run();
 // new PingPongMqttTest().Run();
 // new ClientPoolMqttExample().Run();
 // new IndependentActorsMqttExample().Run();
+
+// ----------------
+// ----- AMQP -----
+// ----------------
+new PingPongAmqpTest().Run();
 
 // ----------------
 // ----- gRPC -----
