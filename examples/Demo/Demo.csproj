@@ -11,6 +11,9 @@
     <ItemGroup>
       <None Remove="HTTP\SimpleBookstore\config.json" />
       <None Remove="HTTP\WebAppSimulator\config.json" />
+      <None Update="AMQP\ClientPool\config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Cluster\AutoCluster\autocluster-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

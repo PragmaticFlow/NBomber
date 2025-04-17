@@ -31,6 +31,7 @@ using Demo.WebSockets;
 using Demo.WebSockets.ClientPool;
 using Demo.gRPC;
 using Demo.AMQP;
+using Demo.AMQP.ClientPool;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -123,7 +124,8 @@ using Demo.AMQP;
 // ----------------
 // ----- AMQP -----
 // ----------------
-new PingPongAmqpTest().Run();
+// new PingPongAmqpTest().Run();
+new ClientPoolAmqpExample().Run();
 
 // ----------------
 // ----- gRPC -----
