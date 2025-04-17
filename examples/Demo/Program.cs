@@ -32,11 +32,12 @@ using Demo.WebSockets.ClientPool;
 using Demo.gRPC;
 using Demo.AMQP;
 using Demo.AMQP.ClientPool;
+using Demo.AMQP.IndependentActors;
 
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-//new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -125,7 +126,8 @@ using Demo.AMQP.ClientPool;
 // ----- AMQP -----
 // ----------------
 // new PingPongAmqpTest().Run();
-new ClientPoolAmqpExample().Run();
+// new ClientPoolAmqpExample().Run();
+// new IndependentActorsAmqpExample().Run();
 
 // ----------------
 // ----- gRPC -----
