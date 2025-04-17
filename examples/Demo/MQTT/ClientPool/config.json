@@ -16,7 +16,7 @@
                 ],
 
                 "CustomSettings": {
-                    "MqttServerUrl": "localhost",
+                    "MqttServerUrl": "ws://localhost:8083/mqtt",
                     "ClientCount": 100,
                     "MsgSizeBytes": 200
                 }

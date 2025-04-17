@@ -115,7 +115,7 @@ new HelloWorldExample().Run();
 // ----- MQTT -----
 // ----------------
 // new PingPongMqttTest().Run();
-// new ClientPoolMqttExample().Run();
+new ClientPoolMqttExample().Run();
 
 // ----------------
 // ----- gRPC -----
