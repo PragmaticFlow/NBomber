@@ -1,0 +1,18 @@
+﻿version: '3.4'
+services:
+
+    redis:
+        image: 'redis:7.0.2'
+#        command: 'redis-server --save "30 1000" --appendonly yes --requirepass "" '
+        command: 'redis-server --save "" --appendonly no --requirepass "" '
+#        command: 'redis-server /usr/local/etc/redis/redis.conf'
+        volumes:
+            - './redis-data:/data'
+#            - './redis-config/redis.conf:/usr/local/etc/redis/redis.conf'
+        ports:
+            - '6379:6379'
+
+# to fix redis.conf you should set:
+# bind 0.0.0.0
+# protected-mode no
+# redis.conf should have ASCII encoding

@@ -8,6 +8,9 @@ namespace Demo.HTTP
     {
         public void Run()
         {
+            // For this example, you'll need to start the HttpApiSimulator, which is located in the examples/simulators solution folder.
+            // Make sure it’s running before executing the client tests to ensure proper communication.
+
             var scenario = Scenario.Create("cookies_management_scenario", async context =>
             {
                 HttpClient myClient = null;
