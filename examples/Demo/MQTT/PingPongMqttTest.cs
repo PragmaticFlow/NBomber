@@ -1,5 +1,4 @@
-﻿using MQTTnet;
-using MQTTnet.Client;
+using MQTTnet;
 using NBomber.CSharp;
 using NBomber.Data;
 using MqttClient = NBomber.MQTT.MqttClient;
@@ -12,25 +11,22 @@ public class PingPongMqttTest
     {
         var payload = Data.GenerateRandomBytes(200);
 
-        var scenario = Scenario.Create("ping_pong_mqtt_scenario", async ctx =>
+        var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
-            using var client = new MqttClient(new MqttFactory().CreateMqttClient());
             var topic = $"/clients/{ctx.ScenarioInfo.InstanceId}";
+            var mqttClient = new MqttClient(new MqttClientFactory().CreateMqttClient());
 
             var connect = await Step.Run("connect", ctx, async () =>
             {
-                var clientOptions = new MqttClientOptionsBuilder()
-                    .WithTcpServer("localhost")
-                    //.WithWebSocketServer(options => options.WithUri("ws://localhost:8083/mqtt"))
-                    .WithCleanSession()
-                    .WithClientId($"client_{ctx.ScenarioInfo.InstanceId}")
+                var options = new MqttClientOptionsBuilder()
+                    .WithWebSocketServer(options => { options.WithUri("ws://localhost:8083/mqtt"); })
                     .Build();
 
-                var response = await client.Connect(clientOptions);
-                return response;
+                return await mqttClient.Connect(options);
             });
 
-            var subscribe = await Step.Run("subscribe", ctx, () => client.Subscribe(topic));
+            var subscribe = await Step.Run("subscribe", ctx, async () =>
+                await mqttClient.Subscribe(topic));
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
@@ -39,21 +35,18 @@ public class PingPongMqttTest
                     .WithPayload(payload)
                     .Build();
 
-                var response = await client.Publish(msg);
-                return response;
+                return await mqttClient.Publish(msg);
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
-            {
-                var response = await client.Receive();
-                return response;
-            });
+                await mqttClient.Receive(ctx.ScenarioCancellationToken));
 
-            var disconnect = await Step.Run("disconnect", ctx, () => client.Disconnect());
+            var disconnect = await Step.Run("disconnect", ctx, async () =>
+                await mqttClient.Disconnect());
 
             return Response.Ok();
         })
-        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
+        .WithoutWarmUp()
         .WithLoadSimulations(
             Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );

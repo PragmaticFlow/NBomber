@@ -77,7 +77,7 @@
         <PackageReference Include="NBomber" Version="6.0.2" />
         <PackageReference Include="NBomber.Data" Version="6.0.0" />
         <PackageReference Include="NBomber.Http" Version="6.0.2" />
-        <PackageReference Include="NBomber.MQTT" Version="0.3.0" />
+        <PackageReference Include="NBomber.MQTT" Version="0.4.0" />
         <PackageReference Include="NBomber.Sinks.Timescale" Version="0.7.0" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.2.0" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.0" />
