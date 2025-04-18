@@ -2,13 +2,20 @@ using RabbitMQ.Client;
 using NBomber.AMQP;
 using NBomber.Contracts;
 using NBomber.CSharp;
+using Microsoft.Extensions.Configuration;
 
 namespace Demo.AMQP.IndependentActors;
+
+public class CustomConsumeScenarioSettings
+{
+    public string AmqpServerUrl { get; set; }
+}
 
 public class AmqpConsumeScenario
 {
     public ScenarioProps Create()
     {
+        CustomConsumeScenarioSettings config = null;
         AmqpClient amqpClient = null;
 
         return Scenario.Create("consume_scenario", async ctx =>
@@ -27,7 +34,9 @@ public class AmqpConsumeScenario
         )
         .WithInit(async ctx =>
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            config = ctx.CustomSettings.Get<CustomConsumeScenarioSettings>();
+
+            var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
             var connection = await factory.CreateConnectionAsync();
             var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);

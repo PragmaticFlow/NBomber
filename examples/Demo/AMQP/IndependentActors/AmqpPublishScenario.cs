@@ -3,14 +3,22 @@ using NBomber.AMQP;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Data;
+using Microsoft.Extensions.Configuration;
 
 namespace Demo.AMQP.IndependentActors;
+
+public class CustomPublishScenarioSettings
+{
+    public string AmqpServerUrl { get; set; }
+    public int MsgSizeBytes { get; set; }
+}
 
 public class AmqpPublishScenario
 {
     public ScenarioProps Create()
     {
-        byte[] payload = Data.GenerateRandomBytes(200);
+        CustomPublishScenarioSettings config = null;
+        byte[] payload = null;
         AmqpClient amqpClient = null;
 
         return Scenario.Create("publish_scenario", async ctx =>
@@ -38,7 +46,10 @@ public class AmqpPublishScenario
         )
         .WithInit(async ctx =>
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            config = ctx.CustomSettings.Get<CustomPublishScenarioSettings>();
+            payload = Data.GenerateRandomBytes(config.MsgSizeBytes);
+
+            var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
             var connection = await factory.CreateConnectionAsync();
             var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);

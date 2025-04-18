@@ -10,6 +10,7 @@ public class IndependentActorsAmqpExample
             new AmqpPublishScenario().Create(),
             new AmqpConsumeScenario().Create()
         )
+        .LoadConfig("./AMQP/IndependentActors/config.json")
         .Run();
     }
 }
