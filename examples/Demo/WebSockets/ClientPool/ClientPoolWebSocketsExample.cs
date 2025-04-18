@@ -1,19 +1,27 @@
-﻿namespace Demo.WebSockets.ClientPool;
-
+using Microsoft.Extensions.Configuration;
 using NBomber;
 using NBomber.CSharp;
 using NBomber.Data;
 using NBomber.WebSockets;
+
+namespace Demo.WebSockets.ClientPool;
 
 public class ClientPoolWebSocketsExample
 {
     // To run this example you need to spin up local server examples/simulators/WebSocketsSimulator
     // The server should run on localhost:60528
 
+    public class CustomScenarioSettings
+    {
+        public string WebSocketsServerUrl { get; set; }
+        public int ClientCount { get; set; }
+        public int MsgSizeBytes { get; set; }
+    }
+
     public void Run()
     {
         var clientPool = new ClientPool<WebSocket>();
-        var payload = Data.GenerateRandomBytes(sizeInBytes: 500);
+        byte[] payload = null;
 
         var scenario = Scenario.Create("websockets_client_pool", async ctx =>
         {
@@ -41,10 +49,13 @@ public class ClientPoolWebSocketsExample
         )
         .WithInit(async ctx =>
         {
-            for (var i = 0; i < 50; i++)
+            var config = ctx.CustomSettings.Get<CustomScenarioSettings>();
+            payload = Data.GenerateRandomBytes(sizeInBytes: config.MsgSizeBytes);
+
+            for (var i = 0; i < config.ClientCount; i++)
             {
                 var websocket = new WebSocket(new WebSocketConfig());
-                await websocket.Connect("ws://localhost:60528/ws");
+                await websocket.Connect(config.WebSocketsServerUrl);
 
                 clientPool.AddClient(websocket);
             }
@@ -57,6 +68,7 @@ public class ClientPoolWebSocketsExample
 
         NBomberRunner
             .RegisterScenarios(scenario)
+            .LoadConfig("./WebSockets/ClientPool/config.json")
             .Run();
     }
 }

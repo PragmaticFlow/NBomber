@@ -115,6 +115,9 @@
         <None Update="Features\RealtimeReporting\InfluxDb\infra-config.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="WebSockets\ClientPool\config.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
