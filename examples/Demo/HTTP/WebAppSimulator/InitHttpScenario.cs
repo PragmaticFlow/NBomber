@@ -6,51 +6,51 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace Demo.HTTP.WebAppSimulator
+namespace Demo.HTTP.WebAppSimulator;
+
+public class GlobalCustomSettings
 {
-    public class GlobalCustomSettings
+    public string ServerUrl { get; set; }
+    public int RecordsCount { get; set; }
+}
+
+public class InitHttpScenario
+{
+    private HttpClient _httpClient = new HttpClient();
+    public ScenarioProps Create()
     {
-        public int RecordsCount { get; set; }
-    }
+        return Scenario
+            .Empty("init_http_db")
+            .WithInit(async context =>
+            {
+                var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
 
-    public class InitHttpScenario
-    {
-        private HttpClient _httpClient = new HttpClient();
-        public ScenarioProps Create()
-        {
-            return Scenario
-                .Empty("init_http_db")
-                .WithInit(async context =>
-                {
-                    // recreate DB
-                    var request = Http.CreateRequest("PUT", "http://localhost:60529/api/databases");
-                    var response = await Http.Send(_httpClient, request);
+                // recreate DB
+                var request = Http.CreateRequest("PUT", settings.ServerUrl + "/api/databases");
+                var response = await Http.Send(_httpClient, request);                
 
-                    var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
+                var faker = new Faker();
 
-                    var faker = new Faker();
+                var responses = Enumerable
+                    .Range(0, settings.RecordsCount)
+                    .Select(i => new User
+                    {
+                        Id = i,
+                        FirstName = faker.Name.FirstName(),
+                        LastName = faker.Name.LastName(),
+                        Age = faker.Random.Int(1, 100)
+                    })
+                    .Select(user =>
+                    {
+                        var data = JsonConvert.SerializeObject(user);
+                        var request = Http.CreateRequest("POST", settings.ServerUrl + "/api/users")
+                            .WithHeader("Accept", "application/json")
+                            .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 
-                    var responses = Enumerable
-                        .Range(0, settings.RecordsCount)
-                        .Select(i => new User
-                        {
-                            Id = i,
-                            FirstName = faker.Name.FirstName(),
-                            LastName = faker.Name.LastName(),
-                            Age = faker.Random.Int(1, 100)
-                        })
-                        .Select(user =>
-                        {
-                            var data = JsonConvert.SerializeObject(user);
-                            var request = Http.CreateRequest("POST", "http://localhost:60529/api/users")
-                                .WithHeader("Accept", "application/json")
-                                .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
+                        return Http.Send(_httpClient, request);
+                    });
 
-                            return Http.Send(_httpClient, request);
-                        });
-
-                    await Task.WhenAll(responses);
-                });
-        }
+                await Task.WhenAll(responses);
+            });
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
-using System.Net.Http;
 
 namespace Demo.HTTP.WebAppSimulator
 {
@@ -17,7 +16,7 @@ namespace Demo.HTTP.WebAppSimulator
             .Create("read_http_db", async context =>
             {
                 var randomId = _random.Next(_settings.RecordsCount);
-                var request = Http.CreateRequest("GET", $"http://localhost:60529/api/users/{randomId}");
+                var request = Http.CreateRequest("GET", _settings.ServerUrl + $"/api/users/{randomId}");
 
                 var response = await Http.Send(_httpClient, request);
                 return response;
