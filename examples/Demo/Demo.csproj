@@ -119,6 +119,7 @@
 
     <ItemGroup>
       <Folder Include="DB\Redis\" />
+      <Folder Include="Scripting\" />
     </ItemGroup>
 
     <ItemGroup>
