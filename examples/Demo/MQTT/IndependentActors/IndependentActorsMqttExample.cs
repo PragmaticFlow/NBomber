@@ -10,6 +10,7 @@ public class IndependentActorsMqttExample
             new MqttPublishScenario().Create(),
             new MqttConsumeScenario().Create()
         )
+        .LoadConfig("./MQTT/IndependentActors/config.json")
         .Run();
     }
 }

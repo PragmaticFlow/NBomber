@@ -4,14 +4,20 @@ using NBomber.Data;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using MqttClient = NBomber.MQTT.MqttClient;
+using Microsoft.Extensions.Configuration;
 
 namespace Demo.MQTT.IndependentActors;
+
+public class CustomConsumeScenarioSettings
+{
+    public string MqttServerUrl { get; set; }
+}
 
 public class MqttConsumeScenario
 {
     public ScenarioProps Create()
     {
-        byte[] payload = Data.GenerateRandomBytes(200);
+        CustomConsumeScenarioSettings config = null;
         MqttClient mqttClient = null;
 
         return Scenario.Create("consume_scenario", async ctx =>
@@ -30,9 +36,11 @@ public class MqttConsumeScenario
         )
         .WithInit(async ctx =>
         {
+            config = ctx.CustomSettings.Get<CustomConsumeScenarioSettings>();
+
             var clientId = $"mqtt_consumer";
             var options = new MqttClientOptionsBuilder()
-                .WithWebSocketServer(options => { options.WithUri("ws://localhost:8083/mqtt"); })
+                .WithWebSocketServer(options => { options.WithUri(config.MqttServerUrl); })
                 .WithClientId(clientId)
                 .WithProtocolVersion(MqttProtocolVersion.V500)
                 .Build();
