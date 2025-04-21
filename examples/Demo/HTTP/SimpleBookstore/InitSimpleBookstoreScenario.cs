@@ -9,7 +9,8 @@ namespace Demo.HTTP.SimpleBookstore
 {
     public class GlobalCustomSettings
     {
-        public int RecordsCount { get; set; }
+        public string ServerUrl { get; set; }
+        public int ClientsCount { get; set; }
         public int BooksCount { get; set; }
     }
 
@@ -22,19 +23,19 @@ namespace Demo.HTTP.SimpleBookstore
             return Scenario
               .Empty("init_bookstore_db")
               .WithInit(async context =>
-              {
+              {                
+                  var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
+
                   // recreate DB
-                  var request = Http.CreateRequest("PUT", "http://localhost:50762/api/databases")
+                  var request = Http.CreateRequest("PUT", settings.ServerUrl + "/api/databases")
                     .WithHeader("Accept", "application/json");
 
                   var response = await Http.Send(_httpClient, request);
 
-                  var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
-
                   var faker = new Faker();
 
                   var usersSingup = Enumerable
-                      .Range(0, settings.RecordsCount)
+                      .Range(0, settings.ClientsCount)
                       .Select(i => new UserSingup
                       {
                           FirstName = faker.Name.FirstName(),
@@ -50,7 +51,7 @@ namespace Demo.HTTP.SimpleBookstore
                               Password = user.Password,
                           });
 
-                          var request = Http.CreateRequest("POST", "http://localhost:50762/api/users/singup")
+                          var request = Http.CreateRequest("POST", settings.ServerUrl + "/api/users/singup")
                               .WithHeader("Accept", "application/json")
                               .WithJsonBody(user);
 
@@ -68,7 +69,7 @@ namespace Demo.HTTP.SimpleBookstore
                       })
                       .Select(book =>
                       {
-                          var request = Http.CreateRequest("POST", "http://localhost:50762/api/books")
+                          var request = Http.CreateRequest("POST", settings.ServerUrl + "/api/books")
                                   .WithHeader("Accept", "application/json")
                                   .WithJsonBody(book);
 

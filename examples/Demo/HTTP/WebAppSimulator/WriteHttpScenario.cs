@@ -30,7 +30,7 @@ namespace Demo.HTTP.WebAppSimulator
                 };
 
                 var data = JsonConvert.SerializeObject(user);
-                var request = Http.CreateRequest("PUT", $"http://localhost:60529/api/users/{randomId}")
+                var request = Http.CreateRequest("PUT", _settings.ServerUrl + $"/api/users/{randomId}")
                      .WithHeader("Content-Type", "application/json")
                      .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 

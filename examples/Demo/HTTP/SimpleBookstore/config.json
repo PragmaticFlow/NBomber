@@ -17,8 +17,8 @@
 
         "GlobalCustomSettings": {
 
-            "RecordsCount": 10,
-
+            "ServerUrl": "http://localhost:50762",
+            "ClientsCount": 10,
             "BooksCount": 10
         }
     }

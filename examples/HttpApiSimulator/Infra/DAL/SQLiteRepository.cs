@@ -6,29 +6,29 @@ namespace WebAppSimulator.Infra.DAL
 {
     public class SQLiteDBRepository : IUserRepository
     {
-        private SQLiteCommand _command = null;
         private SQLiteConnection _connection = null;
         
         public SQLiteDBRepository(SQLiteSettings settings)
         {
             _connection = new SQLiteConnection(settings.ConnectionString);
             _connection.Open();
-            _command = new SQLiteCommand(_connection);
         }
 
         public void CreateDB()
         {
-            _command.CommandText = "PRAGMA journal_mode=WAL";
-            _command.ExecuteNonQuery();
+            using var command = _connection.CreateCommand();
 
-            _command.CommandText = "pragma synchronous = normar";
-            _command.ExecuteNonQuery();
-            _command.CommandText = @"CREATE TABLE IF NOT EXISTS  users 
+            command.CommandText = "PRAGMA journal_mode=WAL";
+            command.ExecuteNonQuery();
+
+            command.CommandText = "pragma synchronous = normar";
+            command.ExecuteNonQuery();
+            command.CommandText = @"CREATE TABLE IF NOT EXISTS  users 
                 (Id INTEGER PRIMARY KEY,
                 FirstName TEXT, 
                 LastName TEXT,
                 Age INTEGER)";
-            _command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
         }
 
         public Task<User> GetById(int id)
@@ -38,20 +38,29 @@ namespace WebAppSimulator.Infra.DAL
 
         public Task<bool> Update(User user)
         {
-            _command.CommandText = @$"INSERT INTO users (Id, FirstName, LastName, Age)
-                VALUES ({user.Id}, '{user.FirstName}', '{user.LastName}', {user.Age})
+            using var command = _connection.CreateCommand();
+
+            command.CommandText = @"INSERT INTO users (Id, FirstName, LastName, Age)
+                VALUES (@Id, @FirstName, @LastName, @Age)
                 ON CONFLICT(Id)
                 DO UPDATE SET FirstName = excluded.FirstName, LastName = excluded.LastName, Age = excluded.Age;";
 
-            var affectedRows = _command.ExecuteNonQuery();
+            command.Parameters.AddWithValue("@Id", user.Id);
+            command.Parameters.AddWithValue("@FirstName", user.FirstName);
+            command.Parameters.AddWithValue("@LastName", user.LastName);
+            command.Parameters.AddWithValue("@Age", user.Age);
+
+            var affectedRows = command.ExecuteNonQuery();
 
             return Task.FromResult(affectedRows > 0);
         }
 
         public void DeleTable()
         {
-            _command.CommandText = "DROP TABLE IF EXISTS users";
-            _command.ExecuteNonQuery();
+            using var command = _connection.CreateCommand();
+
+            command.CommandText = "DROP TABLE IF EXISTS users";
+            command.ExecuteNonQuery();
         }
     }
 }

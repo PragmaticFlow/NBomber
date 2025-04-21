@@ -27,7 +27,9 @@
 
         "GlobalCustomSettings": {
 
+            "ServerUrl": "http://localhost:60529",
             "RecordsCount": 100
+
         }
     }
 }
