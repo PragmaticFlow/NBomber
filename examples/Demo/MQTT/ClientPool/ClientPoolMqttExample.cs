@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using MQTTnet;
-using MQTTnet.Client;
 using NBomber;
 using NBomber.CSharp;
 using NBomber.Data;
@@ -20,28 +19,25 @@ public class ClientPoolMqttExample
     public void Run()
     {
         var clientPool = new ClientPool<MqttClient>();
-        var message = Array.Empty<byte>();
+        var message = Data.GenerateRandomBytes(200);
 
         var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
-            var client = clientPool.GetClient(ctx.ScenarioInfo);
+            var mqttClient = clientPool.GetClient(ctx.ScenarioInfo);
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
+                var topic = $"/clients/{ctx.ScenarioInfo.InstanceId}";
                 var msg = new MqttApplicationMessageBuilder()
-                    .WithTopic(client.Client.Options.ClientId)
+                    .WithTopic(topic)
                     .WithPayload(message)
                     .Build();
 
-                var response = await client.Publish(msg);
-                return response;
+                return await mqttClient.Publish(msg);
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
-            {
-                var response = await client.Receive();
-                return response;
-            });
+                await mqttClient.Receive(ctx.ScenarioCancellationToken));
 
             return Response.Ok();
         })
@@ -52,40 +48,30 @@ public class ClientPoolMqttExample
             var config = context.CustomSettings.Get<CustomScenarioSettings>();
             message = Data.GenerateRandomBytes(config.MsgSizeBytes);
 
-            var mqttFactory = new MqttFactory();
-
-            var counter = 0;
             for (var i = 0; i < config.ClientCount; i++)
             {
-                counter++;
-
-                var client = new MqttClient(mqttFactory.CreateMqttClient());
-                var clientOptions = new MqttClientOptionsBuilder()
-                    .WithTcpServer(config.MqttServerUrl)
-                    .WithCleanSession()
-                    .WithClientId($"client_{i}")
+                var topic = $"/clients/mqtt_scenario_{i}";
+                var clientId = $"mqtt_client_{i}";
+                var options = new MqttClientOptionsBuilder()
+                    .WithWebSocketServer(options => { options.WithUri(config.MqttServerUrl); })
+                    .WithClientId(clientId)
                     .Build();
 
-                var result = await client.Connect(clientOptions);
+                var mqttClient = new MqttClient(new MqttClientFactory().CreateMqttClient());
+                var connectResult = await mqttClient.Connect(options);
 
-                if (!result.IsError)
+                if (!connectResult.IsError)
                 {
-                    await client.Subscribe(client.Client.Options.ClientId);
-                    clientPool.AddClient(client);
+                    await mqttClient.Subscribe(topic);
+                    clientPool.AddClient(mqttClient);
                 }
                 else
                     throw new Exception("client can't connect to the MQTT broker");
-
-                if (counter == 10)
-                {
-                    counter = 0;
-                    await Task.Delay(500); // pause, to do not overload MQTT broker
-                }
             }
         })
         .WithClean(ctx =>
         {
-            clientPool.DisposeClients(client => client.Disconnect().Wait());
+            clientPool.DisposeClients(async client => await client.Disconnect());
             return Task.CompletedTask;
         });
 
@@ -93,6 +79,5 @@ public class ClientPoolMqttExample
             .RegisterScenarios(scenario)
             .LoadConfig("./MQTT/ClientPool/config.json")
             .Run();
-
     }
 }
