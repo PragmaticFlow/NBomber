@@ -1,6 +1,6 @@
 {
-    "TestSuite": "example",
-    "TestName": "custom_settings",
+    "TestSuite": "AMQP",
+    "TestName": "independent_actors",
 
     "TargetScenarios": [ "publish_scenario", "consume_scenario" ],
 
@@ -9,30 +9,26 @@
             {
                 "ScenarioName": "publish_scenario",
 
-                "WarmUpDuration": "00:00:03",
+                "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "Inject": [ 100, "00:00:01", "00:00:30" ] }
-                ],
-
-                "CustomSettings": {
-                    "AmqpServerUrl": "localhost",
-                    "MsgSizeBytes": 200
-                }
+                    { "Inject": [ 10, "00:00:01", "00:00:30" ] }
+                ]
             },
             {
                 "ScenarioName": "consume_scenario",
 
-                "WarmUpDuration": "00:00:03",
+                "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [ 1, "00:00:30" ] }
-                ],
-
-                "CustomSettings": {
-                    "AmqpServerUrl": "localhost"
-                }
+                ]
             }
-        ]
+        ],
+
+        "GlobalCustomSettings": {
+            "AmqpServerUrl": "localhost",
+            "MsgSizeBytes": 100
+        }
     }
 }

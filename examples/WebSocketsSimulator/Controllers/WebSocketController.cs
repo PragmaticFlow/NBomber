@@ -15,9 +15,8 @@ public class WebSocketController : ControllerBase
         if (HttpContext.WebSockets.IsWebSocketRequest)
         {
             using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-            using var ms = MsStreamManager.GetStream();
 
-            await Receive(webSocket, ms);
+            await Receive(webSocket);
             //await Send(webSocket, ms);
         }
         else
@@ -26,32 +25,41 @@ public class WebSocketController : ControllerBase
         }
     }
 
-    private async Task Receive(WebSocket webSocket, RecyclableMemoryStream ms)
+    private async Task Receive(WebSocket webSocket)
     {
-        var closeSocket = false;
-
-        while (!closeSocket)
+        try
         {
-            var endOfMessage = false;
+            var closeSocket = false;
 
-            while (!endOfMessage)
+            while (!closeSocket)
             {
-                var buffer = ms.GetMemory(BufferSize);
-                var message = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                var endOfMessage = false;
+                using var ms = MsStreamManager.GetStream();
 
-                if (message.MessageType == WebSocketMessageType.Close)
+                while (!endOfMessage)
                 {
-                    closeSocket = true;
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-                    break;
+                    var buffer = ms.GetMemory(BufferSize);
+                    var message = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+
+                    if (message.MessageType == WebSocketMessageType.Close)
+                    {
+                        closeSocket = true;
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                        break;
+                    }
+
+                    ms.Advance(message.Count);
+                    endOfMessage = message.EndOfMessage;
                 }
 
-                ms.Advance(message.Count);
-                endOfMessage = message.EndOfMessage;
+                if (!closeSocket)
+                    await Send(webSocket, ms);
             }
-
-            if (!closeSocket)
-                await Send(webSocket, ms);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 

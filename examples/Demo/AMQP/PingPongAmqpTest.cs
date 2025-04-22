@@ -7,6 +7,8 @@ namespace Demo.AMQP;
 
 public class PingPongAmqpTest
 {
+    // For this example, please spin up local RabbitMQ via docker-compose.yml located in the AMQP folder.
+
     public void Run()
     {
         var payload = Data.GenerateRandomBytes(200);
@@ -14,21 +16,20 @@ public class PingPongAmqpTest
 
         var scenario = Scenario.Create("ping_pong_amqp_scenario", async ctx =>
         {
+            AmqpClient amqpClient = null;
+
             var connect = await Step.Run("connect", ctx, async () =>
             {
                 var connection = await factory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync();
 
-                var amqpClient = new AmqpClient(channel);
-                ctx.Data["amqpClient"] = amqpClient;
+                amqpClient = new AmqpClient(channel);
 
                 var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
                 return await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                     routingKey: scenarioInstanceId);
             });
-
-            using var amqpClient = (AmqpClient)ctx.Data["amqpClient"];
 
             var subscribe = await Step.Run("subscribe", ctx, async () =>
             {

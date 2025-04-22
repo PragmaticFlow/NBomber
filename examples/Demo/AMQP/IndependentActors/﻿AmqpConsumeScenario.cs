@@ -6,16 +6,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace Demo.AMQP.IndependentActors;
 
-public class CustomConsumeScenarioSettings
-{
-    public string AmqpServerUrl { get; set; }
-}
-
 public class AmqpConsumeScenario
 {
     public ScenarioProps Create()
     {
-        CustomConsumeScenarioSettings config = null;
         AmqpClient amqpClient = null;
 
         return Scenario.Create("consume_scenario", async ctx =>
@@ -26,7 +20,7 @@ public class AmqpConsumeScenario
             var timestampMs = (long)message.Payload.Value.BasicProperties.Headers["timestamp"];
             var latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - timestampMs;
 
-            return Response.Ok(customLatencyMs: latency);
+            return Response.Ok(customLatencyMs: latency, sizeBytes: message.SizeBytes);
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
@@ -34,7 +28,7 @@ public class AmqpConsumeScenario
         )
         .WithInit(async ctx =>
         {
-            config = ctx.CustomSettings.Get<CustomConsumeScenarioSettings>();
+            var config = ctx.GlobalCustomSettings.Get<AmqpCustomSettings>();
 
             var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
             var connection = await factory.CreateConnectionAsync();

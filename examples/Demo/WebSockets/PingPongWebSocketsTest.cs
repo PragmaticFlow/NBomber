@@ -31,7 +31,7 @@ public class PingPongWebSocketsTest
 
             var pong = await Step.Run("pong", ctx, async () =>
             {
-                using var response = await websocket.Receive();
+                using var response = await websocket.Receive(ctx.ScenarioCancellationToken);
                 // var str = Encoding.UTF8.GetString(response.Data.Span);
                 // var user = JsonSerializer.Deserialize<T>(response.Data.Span);
                 return Response.Ok(sizeBytes: response.Data.Length);

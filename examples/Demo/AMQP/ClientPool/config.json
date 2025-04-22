@@ -1,6 +1,6 @@
 {
-    "TestSuite": "example",
-    "TestName": "custom_settings",
+    "TestSuite": "AMQP",
+    "TestName": "client_pool",
 
     "TargetScenarios": [ "amqp_scenario" ],
 
@@ -9,16 +9,16 @@
             {
                 "ScenarioName": "amqp_scenario",
 
-                "WarmUpDuration": "00:00:03",
+                "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 100, "00:00:20" ] }
+                    { "KeepConstant": [ 100, "00:00:30" ] }
                 ],
 
                 "CustomSettings": {
                     "AmqpServerUrl": "localhost",
                     "ClientCount": 100,
-                    "MsgSizeBytes": 200,
+                    "MsgSizeBytes": 100,
                     "UsePersistence": false
                 }
             }

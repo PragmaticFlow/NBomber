@@ -7,6 +7,8 @@ namespace Demo.MQTT;
 
 public class PingPongMqttTest
 {
+    // For this example, please spin up local MQTT broker via docker-compose.yml located in the MQTT folder.
+
     public void Run()
     {
         var payload = Data.GenerateRandomBytes(200);
@@ -14,7 +16,7 @@ public class PingPongMqttTest
         var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
             var topic = $"/clients/{ctx.ScenarioInfo.InstanceId}";
-            var mqttClient = new MqttClient(new MqttClientFactory().CreateMqttClient());
+            using var mqttClient = new MqttClient(new MqttClientFactory().CreateMqttClient());
 
             var connect = await Step.Run("connect", ctx, async () =>
             {
@@ -26,7 +28,10 @@ public class PingPongMqttTest
             });
 
             var subscribe = await Step.Run("subscribe", ctx, async () =>
-                await mqttClient.Subscribe(topic));
+            {
+                var response = await mqttClient.Subscribe(topic);
+                return response;
+            });
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
@@ -39,10 +44,16 @@ public class PingPongMqttTest
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
-                await mqttClient.Receive(ctx.ScenarioCancellationToken));
+            {
+                var response = await mqttClient.Receive(ctx.ScenarioCancellationToken);
+                return response;
+            });
 
             var disconnect = await Step.Run("disconnect", ctx, async () =>
-                await mqttClient.Disconnect());
+            {
+                var response = await mqttClient.Disconnect();
+                return response;
+            });
 
             return Response.Ok();
         })

@@ -17,10 +17,12 @@ public class CustomScenarioSettings
 
 public class ClientPoolAmqpExample
 {
+    // For this example, please spin up local RabbitMQ via docker-compose.yml located in the AMQP folder.
+
     public void Run()
     {
         var clientPool = new ClientPool<AmqpClient>();
-        var message = Array.Empty<byte>();
+        byte[] message = [];
         var usePersistence = false;
 
         var scenario = Scenario.Create("amqp_scenario", async ctx =>
@@ -38,14 +40,12 @@ public class ClientPoolAmqpExample
 
             var receive = await Step.Run("receive", ctx, async () =>
             {
-                var response = await client.Receive().AsTask();
+                var response = await client.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });
 
             return Response.Ok();
         })
-        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
-        .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30)))
         .WithInit(async context =>
         {
             var config = context.CustomSettings.Get<CustomScenarioSettings>();
@@ -71,11 +71,13 @@ public class ClientPoolAmqpExample
                 }
                 else
                     throw new Exception("client can't connect to the AMQP broker");
+
+                await Task.Delay(10);
             }
         })
         .WithClean(ctx =>
         {
-            clientPool.DisposeClients(client => client.Disconnect());
+            clientPool.DisposeClients(client => client.Dispose());
             return Task.CompletedTask;
         });
 

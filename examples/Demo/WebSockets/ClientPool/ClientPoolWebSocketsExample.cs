@@ -1,8 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using NBomber;
+using NBomber.Contracts;
+using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 using NBomber.Data;
 using NBomber.WebSockets;
+using WebSocket = NBomber.WebSockets.WebSocket;
 
 namespace Demo.WebSockets.ClientPool;
 
@@ -20,8 +23,9 @@ public class ClientPoolWebSocketsExample
 
     public void Run()
     {
+        CustomScenarioSettings config = null;
         var clientPool = new ClientPool<WebSocket>();
-        byte[] payload = null;
+        byte[] payload = [];
 
         var scenario = Scenario.Create("websockets_client_pool", async ctx =>
         {
@@ -35,7 +39,7 @@ public class ClientPoolWebSocketsExample
 
             var pong = await Step.Run("pong", ctx, async () =>
             {
-                using var response = await websocket.Receive();
+                using var response = await websocket.Receive(ctx.ScenarioCancellationToken);
                 // var str = Encoding.UTF8.GetString(response.Data.Span);
                 // var user = JsonSerializer.Deserialize<T>(response.Data.Span);
                 return Response.Ok(sizeBytes: response.Data.Length);
@@ -43,26 +47,23 @@ public class ClientPoolWebSocketsExample
 
             return Response.Ok();
         })
-        .WithWarmUpDuration(TimeSpan.FromSeconds(5))
-        .WithLoadSimulations(
-            Simulation.KeepConstant(50, TimeSpan.FromSeconds(30))
-        )
         .WithInit(async ctx =>
         {
-            var config = ctx.CustomSettings.Get<CustomScenarioSettings>();
+            config = ctx.CustomSettings.Get<CustomScenarioSettings>();
             payload = Data.GenerateRandomBytes(sizeInBytes: config.MsgSizeBytes);
 
             for (var i = 0; i < config.ClientCount; i++)
             {
                 var websocket = new WebSocket(new WebSocketConfig());
                 await websocket.Connect(config.WebSocketsServerUrl);
+                await Task.Delay(10);
 
                 clientPool.AddClient(websocket);
             }
         })
         .WithClean(ctx =>
         {
-            clientPool.DisposeClients(client => client.Close().Wait());
+            clientPool.DisposeClients(client => client.Dispose());
             return Task.CompletedTask;
         });
 

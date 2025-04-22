@@ -1,6 +1,6 @@
 {
-    "TestSuite": "example",
-    "TestName": "custom_settings",
+    "TestSuite": "WebSockets",
+    "TestName": "client_pool",
 
     "TargetScenarios": [ "websockets_client_pool" ],
 
@@ -12,13 +12,13 @@
                 "WarmUpDuration": "00:00:05",
 
                 "LoadSimulationsSettings": [
-                    { "KeepConstant": [ 50, "00:00:30" ] }
+                    { "KeepConstant": [ 100, "00:00:30" ] }
                 ],
 
                 "CustomSettings": {
                     "WebSocketsServerUrl": "ws://localhost:60528/ws",
-                    "ClientCount": 50,
-                    "MsgSizeBytes": 500
+                    "ClientCount": 100,
+                    "MsgSizeBytes": 100
                 }
             }
         ]
