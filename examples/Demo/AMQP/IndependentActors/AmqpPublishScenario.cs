@@ -21,16 +21,14 @@ public class AmqpPublishScenario
             var publish = await Step.Run("publish", ctx, async () =>
             {
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var prop = new BasicProperties
+
+                var props = new BasicProperties
                 {
                     // We include the current timestamp so the consumer can calculate the final latency.
-                    Headers = new Dictionary<string, object>
-                    {
-                        { "timestamp", timestamp }
-                    }
+                    Headers = new Dictionary<string, object> { { "timestamp", timestamp } }
                 };
 
-                return await amqpClient.Publish(exchange: "myExchange", routingKey: "IndependentActors", prop, body: payload);
+                return await amqpClient.Publish(exchange: "myExchange", routingKey: "myQueue", props, payload);
             });
 
             return Response.Ok();
@@ -45,8 +43,8 @@ public class AmqpPublishScenario
             var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);
 
-            await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "IndependentActors",
-                routingKey: "IndependentActors");
+            await amqpClient.DeclareQueue(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "myQueue",
+                routingKey: "myQueue");
         })
         .WithClean(async ctx =>
         {

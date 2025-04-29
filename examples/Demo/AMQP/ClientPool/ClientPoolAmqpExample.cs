@@ -25,21 +25,23 @@ public class ClientPoolAmqpExample
         byte[] message = [];
         var usePersistence = false;
 
-        var scenario = Scenario.Create("amqp_scenario", async ctx =>
+        var scenario = Scenario.Create("client_pool_scenario", async ctx =>
         {
+            // get a client from the pool by Scenario InstanceID
             var client = clientPool.GetClient(ctx.ScenarioInfo);
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
-                var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
-                var prop = new BasicProperties { Persistent = usePersistence };
+                var queueName = $"queue_{ctx.ScenarioInfo.InstanceNumber}";
+                var props = new BasicProperties { Persistent = usePersistence };
 
-                var response = await client.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, basicProperties: prop, body: message);
+                var response = await client.Publish(exchange: "myExchange", routingKey: queueName, props, message);
                 return response;
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
             {
+                // pass the ScenarioCancellationToken to stop waiting for a response if the scenario finish event is triggered
                 var response = await client.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });
@@ -54,19 +56,21 @@ public class ClientPoolAmqpExample
 
             var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
 
+            // initialize a client and add it to the ClientPool
             for (var i = 0; i < config.ClientCount; i++)
             {
                 var connection = await factory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync();
                 var amqpClient = new AmqpClient(channel);
 
-                var scenarioInstanceId = $"amqp_scenario_{i}";
-                var result = await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
-                        routingKey: scenarioInstanceId, durable: usePersistence);
+                var queueName = $"queue_{i}";
+
+                var result = await amqpClient.DeclareQueue(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: queueName,
+                        routingKey: queueName, durable: usePersistence);
 
                 if (!result.IsError)
                 {
-                    await amqpClient.Subscribe(queue: scenarioInstanceId);
+                    await amqpClient.Subscribe(queue: queueName);
                     clientPool.AddClient(amqpClient);
                 }
                 else

@@ -14,39 +14,39 @@ public class PingPongAmqpTest
         var payload = Data.GenerateRandomBytes(200);
         var factory = new ConnectionFactory { HostName = "localhost" };
 
-        var scenario = Scenario.Create("ping_pong_amqp_scenario", async ctx =>
+        var scenario = Scenario.Create("ping_pong_scenario", async ctx =>
         {
-            AmqpClient amqpClient = null;
-
             var connect = await Step.Run("connect", ctx, async () =>
             {
                 var connection = await factory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync();
 
-                amqpClient = new AmqpClient(channel);
-
-                var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
-
-                return await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
-                    routingKey: scenarioInstanceId);
+                var amqpClient = new AmqpClient(channel);
+                return Response.Ok(payload: amqpClient);
             });
+
+            using var amqpClient = connect.Payload.Value;
 
             var subscribe = await Step.Run("subscribe", ctx, async () =>
             {
                 var queueName = ctx.ScenarioInfo.InstanceId;
+
+                await amqpClient.DeclareQueue(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: queueName,
+                    routingKey: queueName);
+
                 return await amqpClient.Subscribe(queue: queueName, autoAck: true);
             });
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
                 var queueName = ctx.ScenarioInfo.InstanceId;
-                var prop = new BasicProperties();
-                return await amqpClient.Publish(exchange: "myExchange", routingKey: queueName, prop, body: payload);
+                return await amqpClient.Publish(exchange: "myExchange", routingKey: queueName, body: payload);
             });
 
             var receive = await Step.Run("receive", ctx, async () =>
             {
-                var response = await amqpClient.Receive().AsTask();
+                // Here, we pass the ScenarioCancellationToken to stop waiting for a response if the scenario finish event is triggered
+                var response = await amqpClient.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });
 

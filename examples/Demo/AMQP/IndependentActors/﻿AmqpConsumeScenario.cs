@@ -35,10 +35,10 @@ public class AmqpConsumeScenario
             var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);
 
-            await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "IndependentActors",
-                routingKey: "IndependentActors");
+            await amqpClient.DeclareQueue(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "myQueue",
+                routingKey: "myQueue");
 
-            await amqpClient.Subscribe(queue: "IndependentActors", autoAck: true);
+            await amqpClient.Subscribe(queue: "myQueue", autoAck: true);
         })
         .WithClean(async ctx =>
         {

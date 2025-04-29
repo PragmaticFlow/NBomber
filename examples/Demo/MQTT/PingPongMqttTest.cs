@@ -45,6 +45,7 @@ public class PingPongMqttTest
 
             var receive = await Step.Run("receive", ctx, async () =>
             {
+                // pass the ScenarioCancellationToken to stop waiting for a response if the scenario finish event is triggered
                 var response = await mqttClient.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });

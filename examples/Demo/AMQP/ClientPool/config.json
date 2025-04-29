@@ -2,12 +2,12 @@
     "TestSuite": "AMQP",
     "TestName": "client_pool",
 
-    "TargetScenarios": [ "amqp_scenario" ],
+    "TargetScenarios": [ "client_pool_scenario" ],
 
     "GlobalSettings": {
         "ScenariosSettings": [
             {
-                "ScenarioName": "amqp_scenario",
+                "ScenarioName": "client_pool_scenario",
 
                 "WarmUpDuration": "00:00:05",
 
