@@ -1,5 +1,4 @@
-﻿version: "3.4"
-services:
+﻿services:
 
     nats:
         image: "nats:2.9.9"
