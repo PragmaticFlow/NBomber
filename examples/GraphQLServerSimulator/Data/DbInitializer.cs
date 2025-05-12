@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 using GraphQLServer.Contracts;
 
 namespace GraphQLServer.Data;
@@ -22,7 +22,7 @@ public static class DbInitializer
         testUsers.GenerateBetween(100, 100);
 
         context.Roles.AddRange(roleAdmin, roleGuest);
-        context.Users.AddRange(testUsers.GenerateBetween(5, 10));
+        context.Users.AddRange(testUsers.GenerateBetween(100, 1000));
 
         context.SaveChanges();
     }

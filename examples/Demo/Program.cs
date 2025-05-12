@@ -33,11 +33,12 @@ using Demo.gRPC;
 using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
+using Demo.GraphQL;
 
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-new HelloWorldExample().Run();
+//new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -133,6 +134,11 @@ new HelloWorldExample().Run();
 // ----- gRPC -----
 // ----------------
 // new GrpcExample().Run();
+
+// ----------------
+// ---- GraphQL ---
+// ----------------
+new GraphQLExample().Run();
 
 // ----------------
 // ----- Db -------
