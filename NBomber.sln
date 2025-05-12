@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcClient", "examples\Grpc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookstoreSimulator", "examples\BookstoreSimulator\BookstoreSimulator.csproj", "{BB8FF9AE-4D47-47E7-9B22-F3ABDFDE28D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphQLServerSimulator", "examples\GraphQLServerSimulator\GraphQLServerSimulator.csproj", "{26A207DB-5268-4C0E-B92F-72005815AC4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,18 @@ Global
 		{BB8FF9AE-4D47-47E7-9B22-F3ABDFDE28D1}.Release|x64.Build.0 = Release|Any CPU
 		{BB8FF9AE-4D47-47E7-9B22-F3ABDFDE28D1}.Release|x86.ActiveCfg = Release|Any CPU
 		{BB8FF9AE-4D47-47E7-9B22-F3ABDFDE28D1}.Release|x86.Build.0 = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|x64.Build.0 = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Debug|x86.Build.0 = Debug|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|x64.ActiveCfg = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|x64.Build.0 = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|x86.ActiveCfg = Release|Any CPU
+		{26A207DB-5268-4C0E-B92F-72005815AC4A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,6 +156,7 @@ Global
 		{D4E6343A-1042-CDB6-308D-6C1662607E77} = {B20C9B19-52F5-4AF1-B41D-D01294BEC6C9}
 		{EBBD9F26-59E7-0C55-0059-93AD3EB3469A} = {B20C9B19-52F5-4AF1-B41D-D01294BEC6C9}
 		{BB8FF9AE-4D47-47E7-9B22-F3ABDFDE28D1} = {B20C9B19-52F5-4AF1-B41D-D01294BEC6C9}
+		{26A207DB-5268-4C0E-B92F-72005815AC4A} = {B20C9B19-52F5-4AF1-B41D-D01294BEC6C9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7E9329B-84FE-436E-8A44-26D8176C5C6F}
