@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
+using NBomber.Contracts.Metrics;
 using NBomber.Contracts.Stats;
 using NBomber.CSharp;
 using Serilog;
@@ -19,6 +20,7 @@ class CustomReportingSink : IReportingSink
 
     public Task Start(SessionStartInfo sessionInfo) => Task.CompletedTask;
     public Task SaveRealtimeStats(ScenarioStats[] stats) => Task.CompletedTask;
+    public Task SaveRealtimeMetrics(MetricStats metrics) => Task.CompletedTask;
     public Task SaveFinalStats(NodeStats stats) => Task.CompletedTask;
     public Task Stop() => Task.CompletedTask;
 
