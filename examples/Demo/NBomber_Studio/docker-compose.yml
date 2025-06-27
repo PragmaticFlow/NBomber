@@ -20,7 +20,7 @@
             start_period: 5s
 
     nbomber-studio:
-        image: nbomberdocker/nbomber-studio:0.2.1
+        image: nbomberdocker/nbomber-studio:0.3.0
         ports:
             - "5333:8080"
         depends_on:
@@ -29,6 +29,20 @@
         environment:
             DBSETTINGS__CONNECTIONSTRING: "Host=timescaledb;Port=5432;Username=timescaledb;Password=timescaledb;Database=nb_studio_db;Pooling=true;"
 
+    pgadmin:
+        image: dpage/pgadmin4
+        restart: always
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: admin
+        ports:
+            - 5051:80
+        volumes:
+            - pgadmin-data:/var/lib/pgadmin
+
 volumes:
     nb_studio_data:
+        driver: local
+
+    pgadmin-data:
         driver: local
