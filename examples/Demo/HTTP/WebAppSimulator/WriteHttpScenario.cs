@@ -13,7 +13,8 @@ namespace Demo.HTTP.WebAppSimulator
         private GlobalCustomSettings _settings;
         private readonly Random _random = new Random();
         private Faker _faker = new Faker();
-        private HttpClient _httpClient = new HttpClient();
+        private HttpClient _httpClient = Http.CreateDefaultClient();
+
         public ScenarioProps Create()
         {
             return Scenario

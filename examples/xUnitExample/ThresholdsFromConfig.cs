@@ -9,7 +9,7 @@ public class ThresholdsFromConfig
     [Fact]
     public void Runtime_Thresholds_Example()
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {

@@ -19,12 +19,13 @@ public class HttpSendJsonExample
     public void Run()
     {
         // sets global JsonSerializerOptions to use CamelCase naming
-        Http.GlobalJsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
 
-        using var httpClient = new HttpClient();
+        // Http.GlobalJsonSerializerOptions = new JsonSerializerOptions
+        // {
+        //     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        // };
+
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {

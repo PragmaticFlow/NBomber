@@ -15,7 +15,6 @@ using Demo.Features.Logger.TextFile;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
 using Demo.Features.Thresholds;
-using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
 using Demo.HTTP;
@@ -80,10 +79,6 @@ new HelloWorldExample().Run();
 // new ElasticsearchLogger().Run();
 // new GrafanaLokiLogger().Run();
 
-// ---- Timeouts ----
-// new ScenarioCompletionTimeout().Run();
-// new HttpWithTimeoutExample().Run();
-
 // ---- Thresholds ----
 // new ThresholdsExample().Run();
 // new ThresholdsConfigExample().Run();
@@ -108,6 +103,7 @@ new HelloWorldExample().Run();
 // new HttpRequestTracing().Run();
 // new CookiesManagementExample().Run();
 // new CustomHttpResponseValidation().Run();
+// new HttpWithTimeoutExample().Run();
 
 // ----------------
 // -- WebSockets --

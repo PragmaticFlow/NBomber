@@ -10,7 +10,7 @@ public class Thresholds
     [Fact]
     public void Runtime_Thresholds_Example()
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -48,7 +48,7 @@ public class Thresholds
                 startCheckAfter: TimeSpan.FromSeconds(10) // Threshold check will be delayed on 10 sec
             ),
 
-            Threshold.Create(scenarioStats => scenarioStats.Ok.StatusCodes.Find("200")?.Percent >= 80)
+            Threshold.Create(scenarioStats => scenarioStats.Ok.StatusCodes.Get("200").Percent >= 80)
         );
 
         var result = NBomberRunner

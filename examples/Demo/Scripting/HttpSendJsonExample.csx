@@ -17,7 +17,7 @@ public class UserData
     public bool Completed { get; set; }
 }
 
-var httpClient = new HttpClient();
+var httpClient = Http.CreateDefaultClient();
 
 var scenario = Scenario.Create("http_scenario", async context =>
 {

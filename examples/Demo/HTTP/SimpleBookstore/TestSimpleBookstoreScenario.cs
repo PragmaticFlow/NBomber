@@ -11,7 +11,7 @@ namespace Demo.HTTP.SimpleBookstore
     public class TestSimpleBookstoreScenario
     {
         private GlobalCustomSettings _settings { get; set; }
-        private HttpClient _httpClient = new HttpClient();
+        private HttpClient _httpClient = Http.CreateDefaultClient();
 
         public ScenarioProps Create()
         {

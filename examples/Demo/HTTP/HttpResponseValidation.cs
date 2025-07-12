@@ -16,7 +16,7 @@ public class HttpResponseValidation
 {
     public void Run()
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {

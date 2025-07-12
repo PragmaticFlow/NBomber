@@ -37,7 +37,7 @@ public class CustomHttpResponseValidation
 {
     public void Run()
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("custom_http_response_validation_scenario", async ctx =>
         {
