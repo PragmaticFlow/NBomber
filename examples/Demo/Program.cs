@@ -1,3 +1,4 @@
+using Bogus;
 using Demo.Cluster.AutoCluster;
 using Demo.Cluster.ManualCluster;
 using Demo.DB.LiteDB;
@@ -32,6 +33,7 @@ using Demo.gRPC;
 using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
+using Demo.HTTP.RestSharpDemo;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -104,6 +106,8 @@ new HelloWorldExample().Run();
 // new CookiesManagementExample().Run();
 // new CustomHttpResponseValidation().Run();
 // new HttpWithTimeoutExample().Run();
+
+// new RestSharpSimpleHttpExample().Run();
 
 // ----------------
 // -- WebSockets --

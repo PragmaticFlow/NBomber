@@ -1,8 +1,8 @@
 using System.Text.Json;
+using HttpApiSimulator.Contracts;
 using StackExchange.Redis;
-using WebAppSimulator.Contracts;
 
-namespace WebAppSimulator.Infra.DAL
+namespace HttpApiSimulator.Infra.DAL
 {
     public class RedisRepository: IUserRepository
     {
@@ -13,7 +13,7 @@ namespace WebAppSimulator.Infra.DAL
         public RedisRepository(RedisSettings settings)
         {
             _settings = settings;
-            _redis = ConnectionMultiplexer.Connect(_settings.ConnectionString);     
+            _redis = ConnectionMultiplexer.Connect(_settings.ConnectionString);
         }
 
         public void CreateDB()
@@ -24,20 +24,20 @@ namespace WebAppSimulator.Infra.DAL
         public void DeleTable()
         {
             var server = _redis.GetServer(_settings.ServerName);
-            server.FlushDatabase();           
+            server.FlushDatabase();
         }
 
-        public async Task<User> GetById(int id)
+        public async ValueTask<User> GetById(int id)
         {
             byte[] data = await _database.StringGetAsync(id.ToString());
             var user = data != null ? JsonSerializer.Deserialize<User>(data) : null;
             return user;
         }
 
-        public Task<bool> Update(User user)
+        public ValueTask<bool> Update(User user)
         {
             var data = JsonSerializer.SerializeToUtf8Bytes(user);
-            return _database.StringSetAsync(user.Id.ToString(), data);
+            return new ValueTask<bool>(_database.StringSetAsync(user.Id.ToString(), data));
         }
     }
 }

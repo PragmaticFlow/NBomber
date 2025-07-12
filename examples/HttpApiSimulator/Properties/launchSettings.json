@@ -2,11 +2,11 @@
   "profiles": {
     "HttpApiSimulator": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:60527;http://localhost:60529"
+      "applicationUrl": "http://localhost:60529"
     }
   }
 }

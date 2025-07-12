@@ -1,8 +1,8 @@
+using HttpApiSimulator.Contracts;
+using HttpApiSimulator.Infra.DAL;
 using Microsoft.AspNetCore.Mvc;
-using WebAppSimulator.Contracts;
-using WebAppSimulator.Infra.DAL;
 
-namespace WebAppSimulator.Controllers
+namespace HttpApiSimulator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -16,13 +16,16 @@ namespace WebAppSimulator.Controllers
         }
 
         [HttpGet("{id}")]
-        public Task<User> Get(int id)
+        public async Task<IResult> Get(int id)
         {
-            return _repository.GetById(id);
+            var user = await _repository.GetById(id);
+            return user == null
+                ? Results.NotFound()
+                : Results.Ok(user);
         }
 
         [HttpPut("{id}")]
-        public async Task<bool> Put(int id, [FromBody] UserDto request)
+        public async Task<bool> Put(int id, [FromBody] UpdateUserReq request)
         {
             return await _repository.Update(request.ToUser(id));
         }

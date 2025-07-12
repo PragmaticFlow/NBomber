@@ -1,6 +1,6 @@
-using WebAppSimulator.Infra.DAL;
+using HttpApiSimulator.Infra.DAL;
 
-namespace WebAppSimulator
+namespace HttpApiSimulator
 {
     public class SQLiteSettings
     {
@@ -37,6 +37,11 @@ namespace WebAppSimulator
                 var settings = builder.Configuration.GetSection("RedisSetings").Get<RedisSettings>();
                 var rep = new RedisRepository(settings);
                 builder.Services.AddSingleton<IUserRepository>(rep);
+            }
+            else // InMemory
+            {
+                var inMemory = new InMemoryRepository();
+                builder.Services.AddSingleton<IUserRepository>(inMemory);
             }
 
             var app = builder.Build();

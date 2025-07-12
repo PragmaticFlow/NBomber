@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc;
 
-namespace WebAppSimulator.Controllers
+namespace HttpApiSimulator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -38,7 +38,7 @@ namespace WebAppSimulator.Controllers
             else
             {
                 return Unauthorized("The auth cookie is not valid.");
-            }            
+            }
         }
     }
 
