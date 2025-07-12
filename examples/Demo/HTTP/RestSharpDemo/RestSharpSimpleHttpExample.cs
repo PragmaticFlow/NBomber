@@ -15,7 +15,7 @@ public class RestSharpSimpleHttpExample
 
         var host = "localhost:60529";
         var options = new RestClientOptions($"http://{host}");
-        using var client = RestClientBuilder.CreateDefaultClient(options);
+        var client = RestClientBuilder.CreateDefaultClient(options);
 
         var scenario = Scenario.Create("http_scenario", async ctx =>
         {

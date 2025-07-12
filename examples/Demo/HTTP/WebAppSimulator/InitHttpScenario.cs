@@ -18,7 +18,7 @@ public class InitHttpScenario
 {
     public ScenarioProps Create()
     {
-        using var httpClient = Http.CreateDefaultClient();
+        var httpClient = Http.CreateDefaultClient();
 
         return Scenario
             .Empty("init_http_db")

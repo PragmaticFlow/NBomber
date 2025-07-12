@@ -10,12 +10,12 @@ namespace Demo.HTTP.WebAppSimulator
         public ScenarioProps Create()
         {
             GlobalCustomSettings settings = null;
-            using var httpClient = Http.CreateDefaultClient();
-            var _random = new Random();
+            var httpClient = Http.CreateDefaultClient();
+            var random = new Random();
 
             return Scenario.Create("read_http_db", async context =>
             {
-                var randomId = _random.Next(settings.RecordsCount);
+                var randomId = random.Next(settings.RecordsCount);
                 var request = Http.CreateRequest("GET", settings.ServerUrl + $"/api/users/{randomId}");
 
                 var response = await Http.Send(httpClient, request);

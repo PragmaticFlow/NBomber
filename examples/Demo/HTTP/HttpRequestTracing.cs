@@ -8,7 +8,7 @@ public class HttpRequestTracing
 {
     public void Run()
     {
-        using var httpClient = Http.CreateDefaultClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {

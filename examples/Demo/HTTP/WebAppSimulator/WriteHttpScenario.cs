@@ -17,12 +17,11 @@ namespace Demo.HTTP.WebAppSimulator
 
         public ScenarioProps Create()
         {
-            return Scenario
-            .Create("write_http_db", async context =>
+            return Scenario.Create("write_http_db", async context =>
             {
                 var randomId = _random.Next(_settings.RecordsCount);
 
-                var user = new User()
+                var user = new User
                 {
                     Id = randomId,
                     FirstName = _faker.Name.FirstName(),
