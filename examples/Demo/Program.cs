@@ -33,6 +33,7 @@ using Demo.gRPC;
 using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
+using Demo.Features.RealtimeReporting.Datadog;
 using Demo.HTTP.RestSharpDemo;
 
 // -------------------------------
@@ -73,6 +74,7 @@ new HelloWorldExample().Run();
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
 // new TimescaleDBReportingExample().Run();
+// new DatadogReportingExample().Run();
 // new CustomReportingExample().Run();
 // new NBomberStudioReportingExample().Run();
 

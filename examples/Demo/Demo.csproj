@@ -62,6 +62,9 @@
       <None Update="Features\CustomMetrics\nbomber-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\Datadog\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -90,10 +93,12 @@
         <PackageReference Include="NBomber.Http" Version="6.1.0-beta.2" />
         <PackageReference Include="NBomber.MQTT" Version="0.4.1-beta.3" />
         <PackageReference Include="NBomber.RestSharp" Version="0.1.0-beta.4" />
-        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.8.1-beta.0" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.2.0" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.1-beta.4" />
+        
+        <PackageReference Include="NBomber.Sinks.Timescale" Version="0.8.1-beta.0" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="6.1.0-beta.2" />
+        <PackageReference Include="NBomber.Sinks.Datadog" Version="0.1.0-beta.4" />
 
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />

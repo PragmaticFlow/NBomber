@@ -1,0 +1,8 @@
+﻿services:
+
+  telegraf:
+    image: telegraf:latest
+    ports:
+        - "8125:8125/udp"  # DogStatsD
+    volumes:
+        - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
