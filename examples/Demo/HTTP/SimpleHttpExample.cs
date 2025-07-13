@@ -34,7 +34,7 @@ public class SimpleHttpExample
             .RegisterScenarios(scenario)
             .WithWorkerPlugins(
                 new PingPlugin(PingPluginConfig.CreateDefault("nbomber.com")),
-                new HttpMetricsPlugin(new [] { HttpVersion.Version1 })
+                new HttpMetricsPlugin([HttpVersion.Version1])
             )
             .Run();
     }
