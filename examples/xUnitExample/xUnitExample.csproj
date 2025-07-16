@@ -8,8 +8,8 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
-        <PackageReference Include="NBomber" Version="6.1.0-beta.18" />
-        <PackageReference Include="NBomber.Http" Version="6.1.0-beta.4" />
+        <PackageReference Include="NBomber" Version="6.1.0" />
+        <PackageReference Include="NBomber.Http" Version="6.1.0" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
