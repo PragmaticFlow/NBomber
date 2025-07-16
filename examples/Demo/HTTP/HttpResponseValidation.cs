@@ -36,7 +36,7 @@ public class HttpResponseValidation
 
             return response;
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, TimeSpan.FromSeconds(30)));
 
         NBomberRunner

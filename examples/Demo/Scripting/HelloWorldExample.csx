@@ -1,4 +1,4 @@
-#r "nuget: NBomber, 6.0.2"
+#r "nuget: NBomber, 6.1.0"
 
 using NBomber.CSharp;
 

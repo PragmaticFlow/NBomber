@@ -9,7 +9,7 @@
             {
                 "ScenarioName": "publish_scenario",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "Inject": [ 10, "00:00:01", "00:00:30" ] }
@@ -18,7 +18,7 @@
             {
                 "ScenarioName": "consume_scenario",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [ 1, "00:00:30" ] }

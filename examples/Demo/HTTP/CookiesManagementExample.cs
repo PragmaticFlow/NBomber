@@ -47,7 +47,7 @@ namespace Demo.HTTP
 
                 return Response.Ok();
             })
-            .WithoutWarmUp()
+            .WithWarmUpDuration(TimeSpan.FromSeconds(3))
             .WithLoadSimulations(Simulation.KeepConstant(copies: 10, during: TimeSpan.FromSeconds(30)));
 
             NBomberRunner

@@ -9,7 +9,7 @@
             {
                 "ScenarioName": "mqtt_scenario",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [100, "00:00:30"] }

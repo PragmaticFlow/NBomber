@@ -7,7 +7,7 @@
             {
                 "ScenarioName": "test_bookstore",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "Inject": [ 10, "00:00:01", "00:00:30" ] }
