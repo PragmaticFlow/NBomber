@@ -1,3 +1,4 @@
+using Bogus;
 using Demo.Cluster.AutoCluster;
 using Demo.Cluster.ManualCluster;
 using Demo.DB.LiteDB;
@@ -15,7 +16,6 @@ using Demo.Features.Logger.TextFile;
 using Demo.Features.RealtimeReporting.CustomReportingSink;
 using Demo.Features.RealtimeReporting.InfluxDB;
 using Demo.Features.Thresholds;
-using Demo.Features.Timeouts;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
 using Demo.HTTP;
@@ -33,6 +33,8 @@ using Demo.gRPC;
 using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
+using Demo.Features.RealtimeReporting.Datadog;
+using Demo.HTTP.RestSharpDemo;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -72,6 +74,7 @@ new HelloWorldExample().Run();
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
 // new TimescaleDBReportingExample().Run();
+// new DatadogReportingExample().Run();
 // new CustomReportingExample().Run();
 // new NBomberStudioReportingExample().Run();
 
@@ -79,10 +82,6 @@ new HelloWorldExample().Run();
 // new TextFileLogger().Run();
 // new ElasticsearchLogger().Run();
 // new GrafanaLokiLogger().Run();
-
-// ---- Timeouts ----
-// new ScenarioCompletionTimeout().Run();
-// new HttpWithTimeoutExample().Run();
 
 // ---- Thresholds ----
 // new ThresholdsExample().Run();
@@ -108,6 +107,9 @@ new HelloWorldExample().Run();
 // new HttpRequestTracing().Run();
 // new CookiesManagementExample().Run();
 // new CustomHttpResponseValidation().Run();
+// new HttpWithTimeoutExample().Run();
+
+// new RestSharpSimpleHttpExample().Run();
 
 // ----------------
 // -- WebSockets --

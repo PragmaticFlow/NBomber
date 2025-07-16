@@ -16,9 +16,10 @@ public class GlobalCustomSettings
 
 public class InitHttpScenario
 {
-    private HttpClient _httpClient = new HttpClient();
     public ScenarioProps Create()
     {
+        var httpClient = Http.CreateDefaultClient();
+
         return Scenario
             .Empty("init_http_db")
             .WithInit(async context =>
@@ -27,7 +28,7 @@ public class InitHttpScenario
 
                 // recreate DB
                 var request = Http.CreateRequest("PUT", settings.ServerUrl + "/api/databases");
-                var response = await Http.Send(_httpClient, request);                
+                var response = await Http.Send(httpClient, request);
 
                 var faker = new Faker();
 
@@ -47,7 +48,7 @@ public class InitHttpScenario
                             .WithHeader("Accept", "application/json")
                             .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 
-                        return Http.Send(_httpClient, request);
+                        return Http.Send(httpClient, request);
                     });
 
                 await Task.WhenAll(responses);

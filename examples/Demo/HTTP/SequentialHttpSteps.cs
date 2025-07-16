@@ -9,7 +9,7 @@ public class SequentialHttpSteps
 {
     public void Run()
     {
-        using var httpClient = new HttpClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -39,7 +39,7 @@ public class SequentialHttpSteps
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.Inject(rate: 5, interval: TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
 
         NBomberRunner

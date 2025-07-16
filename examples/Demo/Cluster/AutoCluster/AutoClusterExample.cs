@@ -42,7 +42,7 @@ public class AutoClusterExample
 
                 return response;
             })
-            .WithoutWarmUp()
+            .WithWarmUpDuration(TimeSpan.FromSeconds(3))
             .WithLoadSimulations(
                 Simulation.RampingInject(rate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(10)),
                 Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)),

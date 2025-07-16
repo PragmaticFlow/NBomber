@@ -7,7 +7,7 @@
             {
                 "ScenarioName": "grpc_read",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [ 1, "00:01:00" ] }
@@ -16,7 +16,7 @@
             {
                 "ScenarioName": "grpc_write",
 
-                "WarmUpDuration": "00:00:05",
+                "WarmUpDuration": "00:00:03",
 
                 "LoadSimulationsSettings": [
                     { "KeepConstant": [ 1, "00:01:00" ] }

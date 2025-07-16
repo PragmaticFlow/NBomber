@@ -16,14 +16,14 @@ namespace Demo.HTTP.SimpleBookstore
 
     public class InitSimpleBookstoreScenario
     {
-        private HttpClient _httpClient = new HttpClient();
+        private HttpClient _httpClient = Http.CreateDefaultClient();
         public static List<UserLogin> UserLogins = new List<UserLogin>();
         public ScenarioProps Create()
         {
             return Scenario
               .Empty("init_bookstore_db")
               .WithInit(async context =>
-              {                
+              {
                   var settings = context.GlobalCustomSettings.Get<GlobalCustomSettings>();
 
                   // recreate DB

@@ -1,7 +1,7 @@
+using HttpApiSimulator.Infra.DAL;
 using Microsoft.AspNetCore.Mvc;
-using WebAppSimulator.Infra.DAL;
 
-namespace WebAppSimulator.Controllers
+namespace HttpApiSimulator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

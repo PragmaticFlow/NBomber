@@ -37,7 +37,7 @@ public class CustomHttpResponseValidation
 {
     public void Run()
     {
-        using var httpClient = new HttpClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("custom_http_response_validation_scenario", async ctx =>
         {
@@ -80,7 +80,7 @@ public class CustomHttpResponseValidation
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(10)))
         .WithRestartIterationOnFail(shouldRestart: false);
 

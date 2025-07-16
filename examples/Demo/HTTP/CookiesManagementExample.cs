@@ -18,7 +18,7 @@ namespace Demo.HTTP
 
                 if (httpClient is null)
                 {
-                    myClient = new HttpClient();
+                    myClient = Http.CreateDefaultClient();
 
                     var login = await Step.Run("login", context, async () =>
                     {
@@ -36,18 +36,18 @@ namespace Demo.HTTP
                 else
                     myClient = (HttpClient)httpClient;
 
-                    var getData = await Step.Run("get_data", context, async () =>
-                    {
-                        var request = Http.CreateRequest("GET", "https://localhost:65385/api/CookiesAuthentication");
+                var getData = await Step.Run("get_data", context, async () =>
+                {
+                    var request = Http.CreateRequest("GET", "https://localhost:65385/api/CookiesAuthentication");
 
-                        var response = await Http.Send(myClient, request);
+                    var response = await Http.Send(myClient, request);
 
-                        return response;
-                    });
+                    return response;
+                });
 
                 return Response.Ok();
             })
-            .WithoutWarmUp()
+            .WithWarmUpDuration(TimeSpan.FromSeconds(3))
             .WithLoadSimulations(Simulation.KeepConstant(copies: 10, during: TimeSpan.FromSeconds(30)));
 
             NBomberRunner

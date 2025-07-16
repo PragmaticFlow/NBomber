@@ -16,7 +16,7 @@ public class HttpResponseValidation
 {
     public void Run()
     {
-        using var httpClient = new HttpClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -36,7 +36,7 @@ public class HttpResponseValidation
 
             return response;
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, TimeSpan.FromSeconds(30)));
 
         NBomberRunner

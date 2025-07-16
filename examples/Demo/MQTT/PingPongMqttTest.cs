@@ -58,7 +58,7 @@ public class PingPongMqttTest
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(
             Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))
         );

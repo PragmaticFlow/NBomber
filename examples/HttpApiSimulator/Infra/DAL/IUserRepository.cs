@@ -1,11 +1,11 @@
-using WebAppSimulator.Contracts;
+using HttpApiSimulator.Contracts;
 
-namespace WebAppSimulator.Infra.DAL
+namespace HttpApiSimulator.Infra.DAL
 {
     public interface IUserRepository
     {
-        Task<User> GetById(int id);
-        Task<bool> Update(User user);
+        ValueTask<User> GetById(int id);
+        ValueTask<bool> Update(User user);
         void CreateDB();
         void DeleTable();
     }

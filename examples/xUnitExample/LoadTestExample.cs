@@ -11,7 +11,7 @@ public class LoadTestExample
     [Fact]
     public void SimpleHttpExample()
     {
-        using var httpClient = new HttpClient();
+        using var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {

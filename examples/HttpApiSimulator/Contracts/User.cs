@@ -1,4 +1,4 @@
-namespace WebAppSimulator.Contracts
+namespace HttpApiSimulator.Contracts
 {
     public class User
     {
@@ -8,7 +8,7 @@ namespace WebAppSimulator.Contracts
         public int Age { get; set; }
     }
 
-    public class UserDto
+    public class UpdateUserReq
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

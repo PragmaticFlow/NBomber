@@ -1,5 +1,5 @@
-#r "nuget: NBomber, 6.0.2"
-#r "nuget: NBomber.Http, 6.0.2"
+#r "nuget: NBomber, 6.1.0"
+#r "nuget: NBomber.Http, 6.1.0"
 #r "nuget: System.Net.Http, 4.3.4"
 
 using System.Text.Json;
@@ -17,7 +17,7 @@ public class UserData
     public bool Completed { get; set; }
 }
 
-var httpClient = new HttpClient();
+var httpClient = Http.CreateDefaultClient();
 
 var scenario = Scenario.Create("http_scenario", async context =>
 {
@@ -43,7 +43,7 @@ var scenario = Scenario.Create("http_scenario", async context =>
 
     return response2;
 })
-.WithoutWarmUp()
+.WithWarmUpDuration(TimeSpan.FromSeconds(3))
 .WithLoadSimulations(Simulation.Inject(rate: 5, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)));
 
 NBomberRunner

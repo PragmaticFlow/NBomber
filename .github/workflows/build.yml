@@ -16,8 +16,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 8.x.x
-    - name: Restore dependencies
-      run: dotnet restore NBomber.sln
+        dotnet-version: 9.x.x
+
     - name: Build
-      run: dotnet build NBomber.sln --no-restore
+      run: dotnet build NBomber.sln

@@ -1,0 +1,6 @@
+﻿{
+    "DatadogSink": {
+      "StatsdServerName": "localhost",
+      "StatsdPort": 8125
+    }
+}

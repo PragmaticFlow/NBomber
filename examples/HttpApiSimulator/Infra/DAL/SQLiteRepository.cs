@@ -1,13 +1,13 @@
-using Dapper.Contrib.Extensions;
 using System.Data.SQLite;
-using WebAppSimulator.Contracts;
+using Dapper.Contrib.Extensions;
+using HttpApiSimulator.Contracts;
 
-namespace WebAppSimulator.Infra.DAL
+namespace HttpApiSimulator.Infra.DAL
 {
     public class SQLiteDBRepository : IUserRepository
     {
         private SQLiteConnection _connection = null;
-        
+
         public SQLiteDBRepository(SQLiteSettings settings)
         {
             _connection = new SQLiteConnection(settings.ConnectionString);
@@ -23,20 +23,20 @@ namespace WebAppSimulator.Infra.DAL
 
             command.CommandText = "pragma synchronous = normar";
             command.ExecuteNonQuery();
-            command.CommandText = @"CREATE TABLE IF NOT EXISTS  users 
+            command.CommandText = @"CREATE TABLE IF NOT EXISTS  users
                 (Id INTEGER PRIMARY KEY,
-                FirstName TEXT, 
+                FirstName TEXT,
                 LastName TEXT,
                 Age INTEGER)";
             command.ExecuteNonQuery();
         }
 
-        public Task<User> GetById(int id)
+        public ValueTask<User> GetById(int id)
         {
-            return _connection.GetAsync<User>(id);
+            return new ValueTask<User>(_connection.GetAsync<User>(id));
         }
 
-        public Task<bool> Update(User user)
+        public ValueTask<bool> Update(User user)
         {
             using var command = _connection.CreateCommand();
 
@@ -52,7 +52,7 @@ namespace WebAppSimulator.Infra.DAL
 
             var affectedRows = command.ExecuteNonQuery();
 
-            return Task.FromResult(affectedRows > 0);
+            return ValueTask.FromResult(affectedRows > 0);
         }
 
         public void DeleTable()
