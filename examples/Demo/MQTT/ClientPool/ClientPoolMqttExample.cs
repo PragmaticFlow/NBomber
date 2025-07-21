@@ -26,7 +26,8 @@ public class ClientPoolMqttExample
 
         var scenario = Scenario.Create("mqtt_scenario", async ctx =>
         {
-            var mqttClient = clientPool.GetClient(ctx.ScenarioInfo);
+            // get a client from the pool by Scenario InstanceID
+            var mqttClient = clientPool.GetClient(ctx.ScenarioInfo.InstanceNumber);
 
             var publish = await Step.Run("publish", ctx, async () =>
             {

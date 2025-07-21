@@ -29,7 +29,8 @@ public class ClientPoolWebSocketsExample
 
         var scenario = Scenario.Create("websockets_client_pool", async ctx =>
         {
-            var websocket = clientPool.GetClient(ctx.ScenarioInfo);
+            // get a client from the pool by Scenario InstanceID
+            var websocket = clientPool.GetClient(ctx.ScenarioInfo.InstanceNumber);
 
             var ping = await Step.Run("ping", ctx, async () =>
             {

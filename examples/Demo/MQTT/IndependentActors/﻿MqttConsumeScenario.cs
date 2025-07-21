@@ -33,7 +33,7 @@ public class MqttConsumeScenario
             var config = ctx.GlobalCustomSettings.Get<MqttCustomSettings>();
 
             var options = new MqttClientOptionsBuilder()
-                .WithWebSocketServer(options => { options.WithUri(config.MqttServerUrl); })
+                .WithTcpServer(config.MqttServerUrl)
                 .WithClientId("mqtt_consumer")
                 .WithProtocolVersion(MqttProtocolVersion.V500)
                 .Build();

@@ -39,7 +39,7 @@ public class MqttPublishScenario
             payload = Data.GenerateRandomBytes(config.MsgSizeBytes);
 
             var options = new MqttClientOptionsBuilder()
-                .WithWebSocketServer(options => { options.WithUri(config.MqttServerUrl); })
+                .WithTcpServer(config.MqttServerUrl)
                 .WithClientId("mqtt_publisher")
                 .WithProtocolVersion(MqttProtocolVersion.V500)
                 .Build();

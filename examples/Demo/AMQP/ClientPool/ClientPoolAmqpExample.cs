@@ -28,7 +28,7 @@ public class ClientPoolAmqpExample
         var scenario = Scenario.Create("client_pool_scenario", async ctx =>
         {
             // get a client from the pool by Scenario InstanceID
-            var client = clientPool.GetClient(ctx.ScenarioInfo);
+            var client = clientPool.GetClient(ctx.ScenarioInfo.InstanceNumber);
 
             var publish = await Step.Run("publish", ctx, async () =>
             {

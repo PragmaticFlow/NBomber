@@ -21,7 +21,7 @@ public class PingPongMqttTest
             var connect = await Step.Run("connect", ctx, async () =>
             {
                 var options = new MqttClientOptionsBuilder()
-                    .WithWebSocketServer(options => { options.WithUri("ws://localhost:8083/mqtt"); })
+                    .WithTcpServer("localhost")
                     .Build();
 
                 return await mqttClient.Connect(options);
