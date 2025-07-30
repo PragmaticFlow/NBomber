@@ -34,6 +34,7 @@ using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
 using Demo.Features.RealtimeReporting.Datadog;
+using Demo.Features.Timeouts;
 using Demo.HTTP.RestSharpDemo;
 
 // -------------------------------
@@ -64,6 +65,7 @@ new HelloWorldExample().Run();
 // new ClientPoolMqttExample().Run();
 // new CliArgsExample().Run();
 // new CustomMetricsExample().Run();
+// new ScenarioCompletionTimeout().Run();
 
 // ---- DataFeed ----
 // new InMemoryFeed().Run();

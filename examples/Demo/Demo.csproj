@@ -86,7 +86,7 @@
         <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
         <PackageReference Include="LiteDB" Version="5.0.15" />
 
-        <PackageReference Include="NBomber" Version="6.1.0" />
+        <PackageReference Include="NBomber" Version="6.1.1" />
 
         <PackageReference Include="NBomber.AMQP" Version="0.2.1" />
         <PackageReference Include="NBomber.Data" Version="6.1.1" />
