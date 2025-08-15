@@ -1,0 +1,115 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: nb-config-my-test-1
+    namespace: nbomber-tests
+data:
+    nb-config.json: |
+        {
+            "TestSuite": "my test suite",
+            "TestName": "my-test-1",
+            "ClusterSettings": {
+
+                "AutoCluster": {
+
+                    "ClusterId": "test_cluster",
+                    "NATSServerURL": "nats://nats-my-test-1",
+
+                    "Coordinator": {
+                        "TargetScenarios": []
+                    },
+
+                    "Agent": {
+                        "TargetScenarios": ["my_scenario"],
+                        "AgentsCount": 1
+                    }
+                }
+            },
+
+            "GlobalSettings": {
+
+                "ScenariosSettings": [
+                    {
+                        "ScenarioName": "my_scenario",
+                        "WarmUpDuration": "00:00:03",
+
+                        "LoadSimulationsSettings": [
+                            { "Inject": [10, "00:00:01", "00:00:20"] }
+                        ]
+                    }
+                ],
+
+                "ReportFileName": "my_report_name",
+                "ReportFolder": "my_reports"
+            }
+        }
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: k8sdemo-job-my-test-1
+    namespace: nbomber-tests
+spec:
+    completions: 2 # total number of pods that should run to completion
+    parallelism: 2 # number of pods running at the same time
+    template:
+        spec:
+            containers:
+              - name: k8sdemo
+                image: antyadev/k8sdemo:latest
+                args: ["--config", "/config/nb-config.json", "--cluster-local-dev", "true"]
+#                args: ["--config", "/config/nb-config.json", "--license", "YOUR_LICENSE_KEY"]
+                volumeMounts:
+                    - name: nb-config-volume
+                      mountPath: /config
+                      readOnly: true
+
+            restartPolicy: Never
+
+            volumes:
+                - name: nb-config-volume
+                  configMap:
+                    name: nb-config-my-test-1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    namespace: nbomber-tests
+    name: nats-my-test-1
+    labels:
+        app: nats
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: nats
+    template:
+        metadata:
+            labels:
+                app: nats
+        spec:
+            containers:
+                - name: nats
+                  image: nats:2.9.9
+                  args: [ "--js" ]
+                  ports:
+                      - containerPort: 4222
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    namespace: nbomber-tests
+    name: nats-my-test-1
+    labels:
+        app: nats
+spec:
+    selector:
+        app: nats
+    ports:
+        - port: 4222
+    type: ClusterIP
