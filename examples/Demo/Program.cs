@@ -40,7 +40,7 @@ using Demo.HTTP.RestSharpDemo;
 // -------------------------------
 // ----- Hello World examples -----
 // -------------------------------
-// new HelloWorldExample().Run();
+new HelloWorldExample().Run();
 // new ScenarioWithInit().Run();
 // new ScenarioWithSteps().Run();
 // new StepsShareData().Run();
@@ -75,7 +75,7 @@ using Demo.HTTP.RestSharpDemo;
 
 // ---- Real-time reporting ----
 // new InfluxDBReportingExample().Run();
-new TimescaleDBReportingExample().Run();
+// new TimescaleDBReportingExample().Run();
 // new DatadogReportingExample().Run();
 // new CustomReportingExample().Run();
 // new NBomberStudioReportingExample().Run();

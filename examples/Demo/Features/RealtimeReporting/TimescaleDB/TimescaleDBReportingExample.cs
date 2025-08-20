@@ -25,7 +25,7 @@ public class TimescaleDBReportingExample
             var step3 = await Step.Run("buy_product", context, async () =>
             {
                 await Task.Delay(Random.Shared.Next(1000, 2000));
-                return Response.Fail(sizeBytes: 30, statusCode: "200");
+                return Response.Ok(sizeBytes: 30, statusCode: "200");
             });
 
             return Response.Ok(statusCode: "201");
@@ -55,7 +55,7 @@ public class TimescaleDBReportingExample
                 var step3 = await Step.Run("buy_product", context, async () =>
                 {
                     await Task.Delay(Random.Shared.Next(1000, 2000));
-                    return Response.Fail(sizeBytes: 30, statusCode: "200");
+                    return Response.Ok(sizeBytes: 30, statusCode: "200");
                 });
 
                 return Response.Ok(statusCode: "201");
