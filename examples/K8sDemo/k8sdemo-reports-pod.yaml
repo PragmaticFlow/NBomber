@@ -1,0 +1,19 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+    name: k8sdemo-reports-pod
+    namespace: nbomber-tests
+spec:
+    restartPolicy: Never
+    terminationGracePeriodSeconds: 0
+    containers:
+        - name: collector
+          image: busybox
+          command: ["sleep", "3600"]  # keeps the pod alive for copying
+          volumeMounts:
+              - name: k8sdemo-pvc-volume
+                mountPath: /app/my_reports
+    volumes:
+        - name: k8sdemo-pvc-volume
+          persistentVolumeClaim:
+              claimName: k8sdemo-pvc

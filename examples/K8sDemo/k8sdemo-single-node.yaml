@@ -1,0 +1,67 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+    name: k8sdemo-pod
+    namespace: nbomber-tests
+spec:
+    containers:
+        - name: k8sdemo
+          image: nbomberdocker/k8sdemo:latest
+          args: ["--config", "/config/nb-config.json"]
+          volumeMounts:
+              - name: k8sdemo-config-volume
+                mountPath: /config
+                readOnly: true
+              - name: k8sdemo-pvc-volume
+                mountPath: /app/my_reports
+    restartPolicy: Never
+    volumes:
+        - name: k8sdemo-config-volume
+          configMap:
+              name: k8sdemo-config
+        - name: k8sdemo-pvc-volume
+          persistentVolumeClaim:
+              claimName: k8sdemo-pvc
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: k8sdemo-config
+    namespace: nbomber-tests
+data:
+    nb-config.json: |
+        {
+            "TestSuite": "my-test-suite",
+            "TestName": "k8sdemo-test",
+
+            "GlobalSettings": {
+                "ScenariosSettings": [
+                    {
+                        "ScenarioName": "my_scenario",
+                        "WarmUpDuration": "00:00:03",
+                        "LoadSimulationsSettings": [
+                            { "Inject": [5, "00:00:01", "00:00:20"] }
+                        ]
+                    }
+                ],
+
+                "ReportFileName": "my_report_name",
+                "ReportFolder": "my_reports"
+            }
+        }
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: k8sdemo-pvc
+    namespace: nbomber-tests
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 100Mi
