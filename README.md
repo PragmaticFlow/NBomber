@@ -79,6 +79,7 @@ NBomberRunner
 
 ### Blog Posts
 
+- Anton Martyniuk - [Load Testing Microservices With C# and NBomber](https://antondevtips.com/blog/load-testing-microservices-with-csharp-and-nbomber)
 - Abdul Rahman - [Using NBomber for Performance, Load and Stress testing in ASP.NET WEB API](https://ilovedotnet.org/blogs/using-nbomber-for-performance-load-and-stress-testing-in-asp-net-webapi/)
 - Olena Kostash - [Load Testing HTTP API on C# with NBomber](https://medium.com/@OlenaKostash/load-testing-http-api-on-c-with-nbomber-96939511bdab)
 - ExecuteAutomation - [HTTP Performance Testing with NBomber in C# .NET](https://medium.com/executeautomation/http-performance-testing-with-nbomber-in-c-net-c858b887da1d)
