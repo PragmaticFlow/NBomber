@@ -73,7 +73,7 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
-      <Content Include="HTTP\WebAppSimulator\config.json">
+      <Content Include="HTTP\HttpApiSimulator\config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

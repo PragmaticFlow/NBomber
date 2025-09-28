@@ -3,7 +3,7 @@ using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
 
-namespace Demo.HTTP.WebAppSimulator
+namespace Demo.HTTP.HttpApiSimulator
 {
     public class ReadHttpScenario
     {
