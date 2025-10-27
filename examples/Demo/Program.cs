@@ -36,6 +36,7 @@ using Demo.Features.RealtimeReporting.Datadog;
 using Demo.Features.Timeouts;
 using Demo.HTTP.HttpApiSimulator;
 using Demo.HTTP.RestSharpDemo;
+using Demo.DB.MongoDB;
 
 // -------------------------------
 // ----- Hello World examples -----
@@ -144,6 +145,7 @@ new HelloWorldExample().Run();
 // new LiteDBExample().Run();
 // new SQLiteDBExample().Run();
 // new RedisExample().Run();
+// new MongoDBExample().Run();
 
 // ---------------------
 // ----- Cluster -------
