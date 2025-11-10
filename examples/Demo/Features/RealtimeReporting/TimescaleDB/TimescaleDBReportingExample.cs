@@ -8,7 +8,7 @@ public class TimescaleDBReportingExample
 
     public void Run()
     {
-        var scenario = Scenario.Create("user_flow_scenario", async context =>
+        var scenario = Scenario.Create("user_scenario", async context =>
         {
             var step1 = await Step.Run("login", context, async () =>
             {
@@ -25,10 +25,15 @@ public class TimescaleDBReportingExample
             var step3 = await Step.Run("buy_product", context, async () =>
             {
                 await Task.Delay(Random.Shared.Next(1000, 2000));
-                return Response.Fail(sizeBytes: 30, statusCode: "200");
+                var value = context.Random.Next(0, 4);
+
+                if (value == 3)
+                    return Response.Fail(sizeBytes: 30, statusCode: "200");
+
+                return Response.Ok(statusCode: "200", sizeBytes: 30);
             });
 
-            return Response.Ok(statusCode: "201");
+            return Response.Ok(statusCode: "200");
         })
         .WithMaxFailCount(Int32.MaxValue)
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
@@ -38,24 +43,29 @@ public class TimescaleDBReportingExample
             Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))    // rump-down to rate 0
         );
 
-        var scenario2 = Scenario.Create("user_flow_scenario2", async context =>
+        var scenario2 = Scenario.Create("user_scenario_2", async context =>
             {
                 var step1 = await Step.Run("login", context, async () =>
                 {
                     await Task.Delay(Random.Shared.Next(100, 500));
-                    return Response.Ok(sizeBytes: 10, statusCode: "200");
+                    return Response.Ok(statusCode: "200", sizeBytes: 20);
                 });
 
                 var step2 = await Step.Run("get_product", context, async () =>
                 {
                     await Task.Delay(Random.Shared.Next(500, 1000));
-                    return Response.Ok(sizeBytes: 20, statusCode: "200");
+                    return Response.Ok(statusCode: "200", sizeBytes: 20);
                 });
 
                 var step3 = await Step.Run("buy_product", context, async () =>
                 {
                     await Task.Delay(Random.Shared.Next(1000, 2000));
-                    return Response.Fail(sizeBytes: 30, statusCode: "200");
+                    var value = context.Random.Next(0, 4);
+
+                    if (value == 3)
+                        return Response.Fail(sizeBytes: 30, statusCode: "200");
+
+                    return Response.Ok(statusCode: "200", sizeBytes: 30);
                 });
 
                 return Response.Ok(statusCode: "201");
@@ -73,7 +83,7 @@ public class TimescaleDBReportingExample
             .LoadInfraConfig("Features/RealtimeReporting/TimescaleDB/infra-config.json")
             .WithReportingInterval(TimeSpan.FromSeconds(5))
             .WithReportingSinks(_timescaleDbSink)
-            .WithTestSuite("reporting")
+            .WithTestSuite("user_operations")
             .WithTestName("timescale_db_demo")
             .Run();
     }
