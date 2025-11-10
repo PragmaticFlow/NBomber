@@ -65,6 +65,9 @@
       <None Update="Features\RealtimeReporting\Datadog\infra-config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Features\RealtimeReporting\OpenTelemetry\infra-config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -93,6 +96,7 @@
         <PackageReference Include="NBomber.Http" Version="6.1.0" />
         <PackageReference Include="NBomber.MQTT" Version="0.4.1" />
         <PackageReference Include="NBomber.RestSharp" Version="0.1.0" />
+        <PackageReference Include="NBomber.Sinks.OpenTelemetry" Version="0.1.0" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.2.1" />
         <PackageReference Include="NBomber.WebSockets" Version="0.1.2" />
 
