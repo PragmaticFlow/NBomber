@@ -20,14 +20,14 @@
             start_period: 5s
 
     nbomber-studio:
-        image: nbomberdocker/nbomber-studio:0.3.0
+        image: nbomberdocker/nbomber-studio:latest
         ports:
             - "5333:8080"
         depends_on:
             timescaledb:
                 condition: service_healthy
         environment:
-            DBSETTINGS__CONNECTIONSTRING: "Host=timescaledb;Port=5432;Username=timescaledb;Password=timescaledb;Database=nb_studio_db;Pooling=true;"
+            POSTGRESQL__CONNECTIONSTRING: "Host=timescaledb;Port=5432;Username=timescaledb;Password=timescaledb;Database=nb_studio_db;Pooling=true;"
 
     pgadmin:
         image: dpage/pgadmin4

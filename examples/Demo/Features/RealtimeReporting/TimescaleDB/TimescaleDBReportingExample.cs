@@ -3,9 +3,6 @@ using NBomber.Sinks.Timescale;
 
 public class TimescaleDBReportingExample
 {
-    // this reporting sink will save stats data into TimescaleDB.
-    private readonly TimescaleDbSink _timescaleDbSink = new();
-
     public void Run()
     {
         var scenario = Scenario.Create("user_scenario", async context =>
@@ -25,12 +22,7 @@ public class TimescaleDBReportingExample
             var step3 = await Step.Run("buy_product", context, async () =>
             {
                 await Task.Delay(Random.Shared.Next(1000, 2000));
-                var value = context.Random.Next(0, 4);
-
-                if (value == 3)
-                    return Response.Fail(sizeBytes: 30, statusCode: "200");
-
-                return Response.Ok(statusCode: "200", sizeBytes: 30);
+                return Response.Ok(statusCode: "201", sizeBytes: 30);
             });
 
             return Response.Ok(statusCode: "200");
@@ -44,47 +36,46 @@ public class TimescaleDBReportingExample
         );
 
         var scenario2 = Scenario.Create("user_scenario_2", async context =>
+        {
+            var step1 = await Step.Run("login", context, async () =>
             {
-                var step1 = await Step.Run("login", context, async () =>
-                {
-                    await Task.Delay(Random.Shared.Next(100, 500));
-                    return Response.Ok(statusCode: "200", sizeBytes: 20);
-                });
+                await Task.Delay(Random.Shared.Next(100, 500));
+                return Response.Ok(statusCode: "200", sizeBytes: 20);
+            });
 
-                var step2 = await Step.Run("get_product", context, async () =>
-                {
-                    await Task.Delay(Random.Shared.Next(500, 1000));
-                    return Response.Ok(statusCode: "200", sizeBytes: 20);
-                });
+            var step2 = await Step.Run("get_product", context, async () =>
+            {
+                await Task.Delay(Random.Shared.Next(500, 1000));
+                return Response.Ok(statusCode: "200", sizeBytes: 20);
+            });
 
-                var step3 = await Step.Run("buy_product", context, async () =>
-                {
-                    await Task.Delay(Random.Shared.Next(1000, 2000));
-                    var value = context.Random.Next(0, 4);
+            var step3 = await Step.Run("buy_product", context, async () =>
+            {
+                await Task.Delay(Random.Shared.Next(1000, 2000));
+                var value = context.Random.Next(0, 4);
 
-                    if (value == 3)
-                        return Response.Fail(sizeBytes: 30, statusCode: "200");
+                if (value == 3)
+                    return Response.Fail(sizeBytes: 30, statusCode: "400");
 
-                    return Response.Ok(statusCode: "200", sizeBytes: 30);
-                });
+                return Response.Ok(statusCode: "200", sizeBytes: 30);
+            });
 
-                return Response.Ok(statusCode: "201");
-            })
-            .WithMaxFailCount(Int32.MaxValue)
-            .WithWarmUpDuration(TimeSpan.FromSeconds(3))
-            .WithLoadSimulations(
-                Simulation.RampingInject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)), // rump-up to rate 200
-                Simulation.Inject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)),       // keep injecting with rate 200
-                Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))    // rump-down to rate 0
-            );
+            return Response.Ok(statusCode: "201");
+        })
+        .WithMaxFailCount(Int32.MaxValue)
+        .WithWarmUpDuration(TimeSpan.FromSeconds(3))
+        .WithLoadSimulations(
+            Simulation.RampingInject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)), // rump-up to rate 200
+            Simulation.Inject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromSeconds(30)),       // keep injecting with rate 200
+            Simulation.RampingInject(rate: 0, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1))    // rump-down to rate 0
+        );
 
         NBomberRunner
             .RegisterScenarios(scenario, scenario2)
             .LoadInfraConfig("Features/RealtimeReporting/TimescaleDB/infra-config.json")
-            .WithReportingInterval(TimeSpan.FromSeconds(5))
-            .WithReportingSinks(_timescaleDbSink)
+            .WithReportingSinks(new TimescaleDbSink())
             .WithTestSuite("user_operations")
-            .WithTestName("timescale_db_demo")
+            .WithTestName("mongo_db_orders_creation")
             .Run();
     }
 }
