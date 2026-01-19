@@ -5,9 +5,6 @@ namespace Demo.NBomber_Studio;
 
 public class NBomberStudioReportingExample
 {
-    // this reporting sink will save stats data into TimescaleDB.
-    private readonly TimescaleDbSink _timescaleDbSink = new();
-
     public void Run()
     {
         var scenario = Scenario.Create("user_flow_scenario", async context =>
@@ -42,7 +39,7 @@ public class NBomberStudioReportingExample
         NBomberRunner
             .RegisterScenarios(scenario)
             .LoadInfraConfig("NBomber_Studio/infra-config.json")
-            .WithReportingSinks(_timescaleDbSink)
+            .WithReportingSinks(new TimescaleDbSink())
             .WithTestSuite("reporting")
             .WithTestName("timescale_db_demo")
             .Run();
