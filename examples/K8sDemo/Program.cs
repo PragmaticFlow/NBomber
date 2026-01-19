@@ -1,10 +1,15 @@
 ﻿using NBomber.CSharp;
+using NBomber.Http.CSharp;
+
+var httpClient = Http.CreateDefaultClient();
 
 var scenario = Scenario.Create("my_scenario", async context =>
 {
-    await Task.Delay(500);
+    var request = Http.CreateRequest("GET", "https://catfact.ninja/facts");
 
-    return Response.Ok();
+    var response = await Http.Send(httpClient, request);
+
+    return response;
 });
 
 NBomberRunner

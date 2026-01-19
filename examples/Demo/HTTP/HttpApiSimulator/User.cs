@@ -1,4 +1,4 @@
-namespace Demo.HTTP.WebAppSimulator
+namespace Demo.HTTP.HttpApiSimulator
 {
     public class User
     {

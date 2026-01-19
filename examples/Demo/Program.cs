@@ -19,7 +19,6 @@ using Demo.Features.Thresholds;
 using Demo.HelloWorld;
 using Demo.HelloWorld.LoadSimulation;
 using Demo.HTTP;
-using Demo.HTTP.WebAppSimulator;
 using Demo.HTTP.SimpleBookstore;
 using Demo.MQTT;
 using Demo.MQTT.ClientPool;
@@ -34,7 +33,9 @@ using Demo.AMQP;
 using Demo.AMQP.ClientPool;
 using Demo.AMQP.IndependentActors;
 using Demo.Features.RealtimeReporting.Datadog;
+using Demo.Features.RealtimeReporting.OpenTelemetry;
 using Demo.Features.Timeouts;
+using Demo.HTTP.HttpApiSimulator;
 using Demo.HTTP.RestSharpDemo;
 
 // -------------------------------
@@ -79,6 +80,7 @@ new HelloWorldExample().Run();
 // new DatadogReportingExample().Run();
 // new CustomReportingExample().Run();
 // new NBomberStudioReportingExample().Run();
+// new OpenTelemetryExample().Run();
 
 // ---- Logs ----
 // new TextFileLogger().Run();
@@ -104,7 +106,7 @@ new HelloWorldExample().Run();
 // new HttpResponseValidation().Run();
 // new HttpSendJsonExample().Run();
 // new HttpClientArgsExample().Run();
-// new WebAppSimulatorExample().RunHttpUserExample();
+// new HttpApiSimulatorExample().Run();
 // new ExampleSimpleBookstore().Run();
 // new HttpRequestTracing().Run();
 // new CookiesManagementExample().Run();

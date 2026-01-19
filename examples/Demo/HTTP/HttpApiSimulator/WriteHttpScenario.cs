@@ -1,12 +1,12 @@
+using System.Text;
 using Bogus;
 using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using Newtonsoft.Json;
 using NBomber.Http.CSharp;
-using System.Text;
+using Newtonsoft.Json;
 
-namespace Demo.HTTP.WebAppSimulator
+namespace Demo.HTTP.HttpApiSimulator
 {
     public class WriteHttpScenario
     {

@@ -1,0 +1,14 @@
+﻿name: open-telemetry-example
+
+services:
+
+    aspire-dashboard:
+        image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+        ports:
+            - "18888:18888"
+            - "18889:18889"
+        volumes:
+            - aspire-data:/aspire
+
+volumes:
+    aspire-data:

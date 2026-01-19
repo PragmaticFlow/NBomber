@@ -6,12 +6,12 @@ public class RedisExample
 {
     public void Run()
     {
-        NBomberRunner.RegisterScenarios(
-            new RedisInitScenario().Create(),
-            new RedisReadScenario().Create(),
-            new RedisWriteScenario().Create()
-        )
-        .LoadConfig("./DB/Redis/config.json")
-        .Run();
+        var scn1 = new RedisInitScenario().Create();
+        var scn2 = new RedisReadScenario().Create();
+        var scn3 = new RedisWriteScenario().Create();
+
+        NBomberRunner.RegisterScenarios(scn1, scn2, scn3)
+            .LoadConfig("./DB/Redis/config.json")
+            .Run();
     }
 }

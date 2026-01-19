@@ -1,0 +1,6 @@
+﻿{
+    "OpenTelemetrySink": {
+        "Endpoint": "http://localhost:18889",
+        "Protocol": "Grpc" // Grpc, HttpProtobuf
+    }
+}

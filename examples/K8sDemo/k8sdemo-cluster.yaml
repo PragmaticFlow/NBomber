@@ -1,22 +1,36 @@
 ﻿apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: k8sdemo-pvc
+    namespace: nbomber-tests
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 100Mi
+
+---
+
+apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: nb-config-my-test-1
+    name: k8sdemo-config
     namespace: nbomber-tests
 data:
     nb-config.json: |
         {
-            "TestSuite": "my test suite",
-            "TestName": "my-test-1",
+            "TestSuite": "my-test-suite",
+            "TestName": "k8sdemo",
             "ClusterSettings": {
 
                 "AutoCluster": {
 
-                    "ClusterId": "test_cluster",
-                    "NATSServerURL": "nats://nats-my-test-1",
+                    "ClusterId": "k8sdemo",
+                    "NATSServerURL": "nats://k8sdemo-nats",
 
                     "Coordinator": {
-                        "TargetScenarios": []
+                        "TargetScenarios": ["my_scenario"]
                     },
 
                     "Agent": {
@@ -34,7 +48,7 @@ data:
                         "WarmUpDuration": "00:00:03",
 
                         "LoadSimulationsSettings": [
-                            { "Inject": [10, "00:00:01", "00:00:20"] }
+                            { "Inject": [5, "00:00:01", "00:00:20"] }
                         ]
                     }
                 ],
@@ -49,7 +63,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: k8sdemo-job-my-test-1
+    name: k8sdemo-job
     namespace: nbomber-tests
 spec:
     completions: 2 # total number of pods that should run to completion
@@ -58,20 +72,25 @@ spec:
         spec:
             containers:
               - name: k8sdemo
-                image: antyadev/k8sdemo:latest
+                image: nbomberdocker/k8sdemo:latest
                 args: ["--config", "/config/nb-config.json", "--cluster-local-dev", "true"]
 #                args: ["--config", "/config/nb-config.json", "--license", "YOUR_LICENSE_KEY"]
                 volumeMounts:
-                    - name: nb-config-volume
+                    - name: k8sdemo-config-volume
                       mountPath: /config
                       readOnly: true
+                    - name: k8sdemo-pvc-volume
+                      mountPath: /app/my_reports
 
             restartPolicy: Never
 
             volumes:
-                - name: nb-config-volume
+                - name: k8sdemo-config-volume
                   configMap:
-                    name: nb-config-my-test-1
+                    name: k8sdemo-config
+                - name: k8sdemo-pvc-volume
+                  persistentVolumeClaim:
+                    claimName: k8sdemo-pvc
 
 ---
 
@@ -79,7 +98,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     namespace: nbomber-tests
-    name: nats-my-test-1
+    name: k8sdemo-nats
     labels:
         app: nats
 spec:
@@ -104,7 +123,7 @@ apiVersion: v1
 kind: Service
 metadata:
     namespace: nbomber-tests
-    name: nats-my-test-1
+    name: k8sdemo-nats
     labels:
         app: nats
 spec:

@@ -1,12 +1,12 @@
+using System.Text;
+using Bogus;
+using Microsoft.Extensions.Configuration;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http.CSharp;
-using Bogus;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System.Text;
 
-namespace Demo.HTTP.WebAppSimulator;
+namespace Demo.HTTP.HttpApiSimulator;
 
 public class GlobalCustomSettings
 {

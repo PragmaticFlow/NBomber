@@ -24,6 +24,12 @@ namespace HttpApiSimulator.Controllers
                 : Results.Ok(user);
         }
 
+        [HttpPost]
+        public async Task<bool> Post([FromBody] User user)
+        {
+            return await _repository.Update(user);
+        }
+
         [HttpPut("{id}")]
         public async Task<bool> Put(int id, [FromBody] UpdateUserReq request)
         {

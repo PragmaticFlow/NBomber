@@ -1,10 +1,11 @@
 using NBomber.CSharp;
+using NBomber.Http;
 
-namespace Demo.HTTP.WebAppSimulator
+namespace Demo.HTTP.HttpApiSimulator
 {
-    public class WebAppSimulatorExample
+    public class HttpApiSimulatorExample
     {
-        public void RunHttpUserExample()
+        public void Run()
         {
             // For this example, you'll need to start the HttpApiSimulator, which is located in the examples/simulators solution folder.
             // Make sure it’s running before executing the client tests to ensure proper communication.
@@ -15,7 +16,8 @@ namespace Demo.HTTP.WebAppSimulator
                 new ReadHttpScenario().Create(),
                 new WriteHttpScenario().Create()
             )
-            .LoadConfig("./HTTP/WebAppSimulator/config.json")
+            .WithWorkerPlugins(new HttpMetricsPlugin([HttpVersion.Version1]))
+            .LoadConfig("./HTTP/HttpApiSimulator/config.json")
             .Run();
         }
     }
