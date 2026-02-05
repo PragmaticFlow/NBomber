@@ -7,6 +7,20 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+      <!-- Enable NuGet package auditing -->
+      <NuGetAudit>true</NuGetAudit>
+
+      <!-- Audit direct and transitive packages -->
+      <NuGetAuditMode>all</NuGetAuditMode>
+
+      <!-- Report low, moderate, high and critical advisories -->
+      <NuGetAuditLevel>low</NuGetAuditLevel>
+
+      <!-- Fails the build on CI or on release when a vulnerability is detected -->
+      <WarningsAsErrors>NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
