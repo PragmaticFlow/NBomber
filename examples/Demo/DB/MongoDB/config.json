@@ -1,0 +1,37 @@
+{
+    "TargetScenarios": [ "mongo_init", "mongo_read", "mongo_write" ],
+
+    "GlobalSettings": {
+
+        "ScenariosSettings": [
+            {
+                "ScenarioName": "mongo_read",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 100, "00:03:30" ] }
+                ]
+            },
+
+            {
+                "ScenarioName": "mongo_write",
+
+                "WarmUpDuration": "00:00:05",
+
+                "LoadSimulationsSettings": [
+                    { "KeepConstant": [ 100, "00:03:30" ] }
+                ]
+            }
+        ],
+
+        "GlobalCustomSettings": {
+
+            "ConnectionString": "mongodb://localhost:27017",
+
+            "UsersCount": 100000,
+
+            "DataSize": 1000
+        }
+    }
+}
