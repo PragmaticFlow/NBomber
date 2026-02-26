@@ -21,8 +21,8 @@ namespace Demo.DB.MongoDB
                 var result = await _users.ReplaceOneAsync(x => x.Id == id, user, new ReplaceOptions() { IsUpsert = true });
 
                 return result.IsAcknowledged
-                ? Response.Ok(sizeBytes: _data.Length)
-                : Response.Fail();
+                    ? Response.Ok(sizeBytes: _data.Length)
+                    : Response.Fail();
             })
             .WithInit(context =>
             {
