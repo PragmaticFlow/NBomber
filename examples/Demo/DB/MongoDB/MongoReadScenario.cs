@@ -18,8 +18,8 @@ namespace Demo.DB.MongoDB
                 var user = (await _users.FindAsync(x => x.Id == id)).FirstOrDefault();
 
                 return user != null
-                ? Response.Ok(sizeBytes: user.Data.Length)
-                : Response.Fail(message: "Not found");
+                    ? Response.Ok(sizeBytes: user.Data.Length)
+                    : Response.Fail(message: "Not found");
             })
             .WithInit(context =>
             {
