@@ -16,7 +16,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 9.x.x
+        dotnet-version: 10.x.x
 
     - name: Build
       run: dotnet build NBomber.sln

@@ -1,7 +1,7 @@
 ﻿services:
 
     timescaledb:
-        image: timescale/timescaledb:2.24.0-pg17-oss
+        image: timescale/timescaledb:2.25.0-pg18-oss
         command: postgres -c 'max_connections=500'
         restart: always
         ports:
@@ -20,7 +20,7 @@
             start_period: 5s
 
     nbomber-studio:
-        image: nbomberdocker/nbomber-studio:0.5.2
+        image: nbomberdocker/nbomber-studio:latest
         ports:
             - "5333:8080"
         depends_on:

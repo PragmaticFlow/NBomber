@@ -18,7 +18,7 @@ NBomber as a modern framework provides:
 - **Native Debug** - debug your tests using your favorite IDE (Visual Studio, VS Code, Rider)
 - [Informative Reports](https://nbomber.com/docs/reporting/reports): [HTML](https://nbomber.com/assets/reports/html_report.html)
 - Realtime reporting:
-    - [NBomber Studio](https://nbomber.com/docs/nbomber-studio/overview) - is a powerful management tool designed by NBomber. Monitor tests in real time with NBomber Studio and conduct detailed result analysis to identify trends.
+    - [NBomber Studio](https://nbomber.com/docs/nbomber-studio/overview) - is a powerful management tool designed by NBomber. Monitor tests in real time with NBomber Studio and conduct detailed result analysis to identify trends. Check out our [blog posts about NBomber Studio](https://nbomber.com/blog/tags/nbomber-studio-release).
     - [Reporting Sinks](https://nbomber.com/docs/nbomber/reporting-sinks) for integration with popular systems for real-time monitoring
         - [InfluxDB](https://nbomber.com/docs/reporting/realtime/influx-db)
         - [TimescaleDB](https://nbomber.com/docs/reporting/realtime/timescale)
@@ -27,11 +27,11 @@ NBomber as a modern framework provides:
   - [HTTP](https://nbomber.com/docs/protocols/http),
   - [WebSockets](https://nbomber.com/docs/protocols/websockets),
   - [MQTT](https://nbomber.com/docs/protocols/mqtt),
+  - [AMQP](https://nbomber.com/docs/protocols/amqp)
   - [WebBrowser](https://nbomber.com/docs/protocols/webbrowser)
   - [Redis](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/Demo/DB/Redis),
   - [SQLite](https://github.com/PragmaticFlow/NBomber/tree/dev/examples/Demo/DB/SQLiteDB),
   - MongoDB
-  - AMQP
   - gRPC
 - [Data Feed](https://nbomber.com/docs/nbomber/data) - inject real or fake data into your tests
 - [Distributed Cluster](https://nbomber.com/docs/cluster/overview) - run your load tests in distributed mode

@@ -1,32 +1,38 @@
 ﻿services:
 
-  timescaledb:
-    image: timescale/timescaledb:2.24.0-pg17-oss
-    restart: always
-    command: postgres -c 'max_connections=500'
-    environment:
-      POSTGRES_DB: nb_studio_db
-      POSTGRES_USER: timescaledb
-      POSTGRES_PASSWORD: timescaledb
-    ports:
-      - "5432:5432"
-    volumes:
-      - metrics-data:/var/lib/postgresql/data
+    timescaledb:
+        image: timescale/timescaledb:2.25.0-pg18-oss
+        command: postgres -c 'max_connections=500'
+        restart: always
+        ports:
+            - "5432:5432"
+        volumes:
+            - nb_studio_data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: nb_studio_db
+            POSTGRES_USER: timescaledb
+            POSTGRES_PASSWORD: timescaledb
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -d 'user=timescaledb dbname=nb_studio_db'" ]
+            interval: 5s
+            timeout: 10s
+            retries: 5
+            start_period: 5s
 
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5051:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
+    pgadmin:
+        image: dpage/pgadmin4
+        restart: always
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: admin
+        ports:
+            - "5051:80"
+        volumes:
+            - pgadmin-data:/var/lib/pgadmin
 
 volumes:
-  metrics-data:
-    driver: local
+    metrics-data:
+        driver: local
 
-  pgadmin-data:
-    driver: local
+    pgadmin-data:
+        driver: local
