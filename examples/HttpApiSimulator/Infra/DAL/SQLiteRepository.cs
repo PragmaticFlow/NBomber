@@ -2,65 +2,64 @@ using System.Data.SQLite;
 using Dapper.Contrib.Extensions;
 using HttpApiSimulator.Contracts;
 
-namespace HttpApiSimulator.Infra.DAL
+namespace HttpApiSimulator.Infra.DAL;
+
+public class SQLiteDBRepository : IUserRepository
 {
-    public class SQLiteDBRepository : IUserRepository
+    private SQLiteConnection _connection = null;
+
+    public SQLiteDBRepository(SQLiteSettings settings)
     {
-        private SQLiteConnection _connection = null;
+        _connection = new SQLiteConnection(settings.ConnectionString);
+        _connection.Open();
+    }
 
-        public SQLiteDBRepository(SQLiteSettings settings)
-        {
-            _connection = new SQLiteConnection(settings.ConnectionString);
-            _connection.Open();
-        }
+    public void CreateDB()
+    {
+        using var command = _connection.CreateCommand();
 
-        public void CreateDB()
-        {
-            using var command = _connection.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode=WAL";
+        command.ExecuteNonQuery();
 
-            command.CommandText = "PRAGMA journal_mode=WAL";
-            command.ExecuteNonQuery();
-
-            command.CommandText = "pragma synchronous = normar";
-            command.ExecuteNonQuery();
-            command.CommandText = @"CREATE TABLE IF NOT EXISTS  users
+        command.CommandText = "pragma synchronous = normar";
+        command.ExecuteNonQuery();
+        command.CommandText = @"CREATE TABLE IF NOT EXISTS  users
                 (Id INTEGER PRIMARY KEY,
                 FirstName TEXT,
                 LastName TEXT,
                 Age INTEGER)";
-            command.ExecuteNonQuery();
-        }
+        command.ExecuteNonQuery();
+    }
 
-        public ValueTask<User> GetById(int id)
-        {
-            return new ValueTask<User>(_connection.GetAsync<User>(id));
-        }
+    public ValueTask<User> GetById(int id)
+    {
+        return new ValueTask<User>(_connection.GetAsync<User>(id));
+    }
 
-        public ValueTask<bool> Update(User user)
-        {
-            using var command = _connection.CreateCommand();
+    public ValueTask<bool> Update(User user)
+    {
+        using var command = _connection.CreateCommand();
 
-            command.CommandText = @"INSERT INTO users (Id, FirstName, LastName, Age)
+        command.CommandText = @"INSERT INTO users (Id, FirstName, LastName, Age)
                 VALUES (@Id, @FirstName, @LastName, @Age)
                 ON CONFLICT(Id)
                 DO UPDATE SET FirstName = excluded.FirstName, LastName = excluded.LastName, Age = excluded.Age;";
 
-            command.Parameters.AddWithValue("@Id", user.Id);
-            command.Parameters.AddWithValue("@FirstName", user.FirstName);
-            command.Parameters.AddWithValue("@LastName", user.LastName);
-            command.Parameters.AddWithValue("@Age", user.Age);
+        command.Parameters.AddWithValue("@Id", user.Id);
+        command.Parameters.AddWithValue("@FirstName", user.FirstName);
+        command.Parameters.AddWithValue("@LastName", user.LastName);
+        command.Parameters.AddWithValue("@Age", user.Age);
 
-            var affectedRows = command.ExecuteNonQuery();
+        var affectedRows = command.ExecuteNonQuery();
 
-            return ValueTask.FromResult(affectedRows > 0);
-        }
+        return ValueTask.FromResult(affectedRows > 0);
+    }
 
-        public void DeleTable()
-        {
-            using var command = _connection.CreateCommand();
+    public void DeleTable()
+    {
+        using var command = _connection.CreateCommand();
 
-            command.CommandText = "DROP TABLE IF EXISTS users";
-            command.ExecuteNonQuery();
-        }
+        command.CommandText = "DROP TABLE IF EXISTS users";
+        command.ExecuteNonQuery();
     }
 }

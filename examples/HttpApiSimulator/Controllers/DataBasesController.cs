@@ -1,24 +1,23 @@
 using HttpApiSimulator.Infra.DAL;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HttpApiSimulator.Controllers
+namespace HttpApiSimulator.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class DataBasesController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DataBasesController : ControllerBase
+    private readonly IUserRepository _repository;
+
+    public DataBasesController(IUserRepository repository)
     {
-        private readonly IUserRepository _repository;
+        _repository = repository;
+    }
 
-        public DataBasesController(IUserRepository repository)
-        {
-            _repository = repository;
-        }
-
-        [HttpPut]
-        public void PrepareDB()
-        {
-            _repository.DeleTable();
-            _repository.CreateDB();
-        }
+    [HttpPut]
+    public void PrepareDB()
+    {
+        _repository.DeleTable();
+        _repository.CreateDB();
     }
 }
