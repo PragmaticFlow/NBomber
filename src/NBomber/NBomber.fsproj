@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    
+
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Anton Moldovan</Authors>
@@ -7,7 +7,7 @@
         <Version>4.2.0-beta.0</Version>
         <Copyright>NBomber@2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>        
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PackageIcon>nbomber_icon.png</PackageIcon>
         <RepositoryUrl>https://github.com/PragmaticFlow/NBomber</RepositoryUrl>
         <PackageTags>load-testing, performance-testing, integration-testing, fsharp</PackageTags>
@@ -21,19 +21,12 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <!-- Enable NuGet package auditing -->
         <NuGetAudit>true</NuGetAudit>
-
-        <!-- Audit direct and transitive packages -->
         <NuGetAuditMode>all</NuGetAuditMode>
-
-        <!-- Report low, moderate, high and critical advisories -->
         <NuGetAuditLevel>low</NuGetAuditLevel>
-
-        <!-- Fails the build on CI or on release when a vulnerability is detected -->
         <WarningsAsErrors>NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <Compile Include="AssemblyInfo.fs" />
         <Compile Include="Constants.fs" />
@@ -107,6 +100,6 @@
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\sidebar.css" />
         <EmbeddedResource Include="Resources\HtmlReport\assets\css\index.css" />
         <EmbeddedResource Include="Resources\HtmlReport\index.html" />
-    </ItemGroup>    
+    </ItemGroup>
 
 </Project>
