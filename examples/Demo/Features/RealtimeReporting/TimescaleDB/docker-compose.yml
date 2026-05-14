@@ -10,10 +10,10 @@
             - nb_studio_data:/var/lib/postgresql/data
         environment:
             POSTGRES_DB: nb_studio_db
-            POSTGRES_USER: timescaledb
-            POSTGRES_PASSWORD: timescaledb
+            POSTGRES_USER: nb_studio_db
+            POSTGRES_PASSWORD: nb_studio_db
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -d 'user=timescaledb dbname=nb_studio_db'" ]
+            test: [ "CMD-SHELL", "pg_isready -d 'user=nb_studio_db dbname=nb_studio_db'" ]
             interval: 5s
             timeout: 10s
             retries: 5

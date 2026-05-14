@@ -10,10 +10,10 @@
             - nb_studio_data:/var/lib/postgresql/data
         environment:
             POSTGRES_DB: nb_studio_db
-            POSTGRES_USER: timescaledb
-            POSTGRES_PASSWORD: timescaledb
+            POSTGRES_USER: nb_studio_db
+            POSTGRES_PASSWORD: nb_studio_db
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -d 'user=timescaledb dbname=nb_studio_db'" ]
+            test: [ "CMD-SHELL", "pg_isready -d 'user=nb_studio_db dbname=nb_studio_db'" ]
             interval: 5s
             timeout: 10s
             retries: 5
@@ -27,22 +27,9 @@
             timescaledb:
                 condition: service_healthy
         environment:
-            POSTGRESQL__CONNECTIONSTRING: "Host=timescaledb;Port=5432;Username=timescaledb;Password=timescaledb;Database=nb_studio_db;Pooling=true;"
+            POSTGRESQL__CONNECTIONSTRING: "Host=timescaledb;Port=5432;Username=nb_studio_db;Password=nb_studio_db;Database=nb_studio_db;Pooling=true;"
 
-    pgadmin:
-        image: dpage/pgadmin4
-        restart: always
-        environment:
-            PGADMIN_DEFAULT_EMAIL: admin@admin.com
-            PGADMIN_DEFAULT_PASSWORD: admin
-        ports:
-            - "5051:80"
-        volumes:
-            - pgadmin-data:/var/lib/pgadmin
 
 volumes:
     nb_studio_data:
-        driver: local
-
-    pgadmin-data:
         driver: local
