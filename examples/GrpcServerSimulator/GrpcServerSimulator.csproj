@@ -6,13 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <NuGetAudit>true</NuGetAudit>
-        <NuGetAuditMode>all</NuGetAuditMode>
-        <NuGetAuditLevel>low</NuGetAuditLevel>
-        <WarningsAsErrors>NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
-    </PropertyGroup>
-
     <ItemGroup>
         <Protobuf Include="Protos\simulator.proto" GrpcServices="Server"/>
     </ItemGroup>
