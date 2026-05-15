@@ -344,3 +344,5 @@ ASALocalRun/
 /examples/HttpApiSimulator/UsersDB.db
 /examples/HttpApiSimulator/UsersDB.db-shm
 /examples/HttpApiSimulator/UsersDB.db-wal
+
+*.csproj.lscache
