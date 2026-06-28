@@ -27,7 +27,7 @@ public class InMemoryRepository: IUserRepository
         _users = new ConcurrentDictionary<int, User>();
     }
 
-    public void DeleTable()
+    public void DeleteTable()
     {
         _users.Clear();
     }
