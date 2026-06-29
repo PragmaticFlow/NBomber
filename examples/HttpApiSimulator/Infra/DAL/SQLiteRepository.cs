@@ -55,7 +55,7 @@ public class SQLiteDBRepository : IUserRepository
         return ValueTask.FromResult(affectedRows > 0);
     }
 
-    public void DeleTable()
+    public void DeleteTable()
     {
         using var command = _connection.CreateCommand();
 

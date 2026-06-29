@@ -34,7 +34,7 @@ public class Program
         }
         else if (dbUse == "Redis")
         {
-            var settings = builder.Configuration.GetSection("RedisSetings").Get<RedisSettings>();
+            var settings = builder.Configuration.GetSection("RedisSettings").Get<RedisSettings>();
             var rep = new RedisRepository(settings);
             builder.Services.AddSingleton<IUserRepository>(rep);
         }

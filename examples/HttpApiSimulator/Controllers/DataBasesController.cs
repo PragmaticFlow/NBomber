@@ -17,7 +17,7 @@ public class DataBasesController : ControllerBase
     [HttpPut]
     public void PrepareDB()
     {
-        _repository.DeleTable();
+        _repository.DeleteTable();
         _repository.CreateDB();
     }
 }

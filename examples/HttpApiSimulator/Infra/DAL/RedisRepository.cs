@@ -21,7 +21,7 @@ public class RedisRepository: IUserRepository
         _database = _redis.GetDatabase();
     }
 
-    public void DeleTable()
+    public void DeleteTable()
     {
         var server = _redis.GetServer(_settings.ServerName);
         server.FlushDatabase();
