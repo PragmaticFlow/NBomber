@@ -73,7 +73,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="MessagePack" Version="2.5.192" />
+        <PackageReference Include="MessagePack" Version="2.5.302" />
         <PackageReference Include="NBomber.Contracts" Version="[4.2.0-beta.2]" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="2.13.0" />

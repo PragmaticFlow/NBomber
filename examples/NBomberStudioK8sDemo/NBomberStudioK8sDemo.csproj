@@ -15,9 +15,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="NBomber" Version="6.4.1" />
-      <PackageReference Include="NBomber.Http" Version="6.2.0" />
-      <PackageReference Include="NBomber.Sinks.Timescale" Version="0.13.0" />
+      <PackageReference Include="NBomber" Version="6.5.0" />
+      <PackageReference Include="NBomber.Http" Version="6.2.1" />
+      <PackageReference Include="NBomber.Sinks.Timescale" Version="0.13.1" />
     </ItemGroup>
 
 </Project>
