@@ -24,7 +24,7 @@ public class ScenarioCompletionTimeout
                 .WithScenarioCompletionTimeout(TimeSpan.FromSeconds(10)) // we set 10 sec to wait
                 .Run();
 
-        Console.WriteLine(result.AllOkCount == 1
+        Console.WriteLine(result.ScenarioStats[0].Ok.Request.Count == 1
             ? "Scenario completed"
             : "Scenario not completed"
         );

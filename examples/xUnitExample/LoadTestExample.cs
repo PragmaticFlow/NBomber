@@ -63,11 +63,6 @@ public class LoadTestExample
         var isStep2Exist = scnStats.StepStats.Exists("step_2");
         var step2Stats = scnStats.StepStats.Get("step_2");
 
-        Assert.True(result.AllBytes > 0);
-        Assert.True(result.AllRequestCount > 0);
-        Assert.True(result.AllOkCount > 0);
-        Assert.True(result.AllFailCount == 0);
-
         Assert.True(scnStats.Ok.Request.RPS > 0);
         Assert.True(scnStats.Ok.Request.Count > 0);
 
