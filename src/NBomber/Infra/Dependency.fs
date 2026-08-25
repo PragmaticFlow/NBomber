@@ -229,7 +229,7 @@ module internal Dependency =
 
 module internal ResourceManager =
 
-    let readResource (name) =
+    let readResource (name:string) =
         let assembly = typedefof<ReportingContext>.Assembly
         assembly.GetManifestResourceNames()
         |> Array.tryFind(fun x -> x.Contains name)
