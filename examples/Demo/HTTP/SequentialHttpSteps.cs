@@ -43,7 +43,8 @@ public class SequentialHttpSteps
         .WithThresholds(
             Threshold.Create(x => x.Ok.Request.RPS >= 70),
             Threshold.Create(x => x.Ok.Latency.Percent99 <= 100)
-        );
+        )
+        .WithTags(("service", "login_api"));
 
         NBomberRunner
             .RegisterScenarios(scenario)
@@ -51,6 +52,7 @@ public class SequentialHttpSteps
                 new PingPlugin(PingPluginConfig.CreateDefault("nbomber.com")),
                 new HttpMetricsPlugin(new [] { HttpVersion.Version1 })
             )
+            .WithTags(("env", "prod"), ("region", "eu"))
             .Run();
     }
 }
