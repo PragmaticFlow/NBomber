@@ -55,8 +55,6 @@ public class PingPongAmqpTest
                 await amqpClient.Disconnect();
                 return Response.Ok();
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(

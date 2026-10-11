@@ -45,8 +45,6 @@ public class ClientPoolAmqpExample
                 var response = await client.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithInit(async context =>
         {

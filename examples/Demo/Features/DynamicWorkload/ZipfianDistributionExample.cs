@@ -49,8 +49,6 @@ public class ZipfianDistributionExample
                     return Response.Ok();
                 });
             }
-
-            return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(30)));

@@ -55,8 +55,6 @@ public class StepsShareData
             });
 
             context.Logger.Information(myData);
-
-            return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(

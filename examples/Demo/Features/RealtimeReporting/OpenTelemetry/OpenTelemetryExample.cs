@@ -34,8 +34,6 @@ public class OpenTelemetryExample
 
                     return Response.Ok();
                 });
-
-                return Response.Ok();
             })
             .WithInit(ctx =>
             {

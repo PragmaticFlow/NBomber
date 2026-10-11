@@ -55,8 +55,6 @@ public class PingPongMqttTest
                 var response = await mqttClient.Disconnect();
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(

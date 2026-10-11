@@ -26,8 +26,6 @@ public class NBomberStudioReportingExample
                 await Task.Delay(Random.Shared.Next(1000, 2000));
                 return Response.Ok(sizeBytes: 30, statusCode: "200");
             });
-
-            return Response.Ok(statusCode: "201", message: "Hello world");
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(
@@ -60,8 +58,6 @@ public class NBomberStudioReportingExample
 
                 return Response.Ok(statusCode: "200", sizeBytes: 30);
             });
-
-            return Response.Ok(statusCode: "201");
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithMaxFailCount(Int32.MaxValue)

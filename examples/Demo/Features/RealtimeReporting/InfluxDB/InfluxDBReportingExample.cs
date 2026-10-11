@@ -39,8 +39,6 @@ public class InfluxDBReportingExample
                 await Task.Delay(2000);
                 return Response.Ok(sizeBytes: 30, statusCode: "200");
             });
-
-            return Response.Ok(statusCode: "201");
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(10))
         .WithLoadSimulations(

@@ -53,8 +53,6 @@ public class PlaywrightExample
             });
 
             await page.CloseAsync();
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(

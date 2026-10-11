@@ -84,8 +84,6 @@ namespace Demo.HTTP.SimpleBookstore
 
                         return response;
                     });
-
-                    return Response.Ok();
                 })
                 .WithInit(context =>
                 {

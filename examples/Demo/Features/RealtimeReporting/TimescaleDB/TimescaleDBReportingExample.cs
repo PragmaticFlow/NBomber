@@ -29,8 +29,6 @@ public class TimescaleDBReportingExample
 
                 return Response.Ok(statusCode: "200", sizeBytes: 30);
             });
-
-            return Response.Ok(statusCode: "200");
         })
         .WithMaxFailCount(Int32.MaxValue)
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
@@ -64,8 +62,6 @@ public class TimescaleDBReportingExample
 
                 return Response.Ok(statusCode: "200", sizeBytes: 30);
             });
-
-            return Response.Ok(statusCode: "201");
         })
         .WithMaxFailCount(Int32.MaxValue)
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))

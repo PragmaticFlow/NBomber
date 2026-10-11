@@ -44,8 +44,6 @@ namespace Demo.HTTP
 
                     return response;
                 });
-
-                return Response.Ok();
             })
             .WithWarmUpDuration(TimeSpan.FromSeconds(3))
             .WithLoadSimulations(Simulation.KeepConstant(copies: 10, during: TimeSpan.FromSeconds(30)));

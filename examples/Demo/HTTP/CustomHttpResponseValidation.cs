@@ -77,8 +77,6 @@ public class CustomHttpResponseValidation
 
                 return Response.Ok();
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(Simulation.KeepConstant(copies: 1, during: TimeSpan.FromSeconds(10)))

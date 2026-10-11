@@ -39,8 +39,6 @@ public class RestSharpSimpleHttpExample
                 var response = await client.SendGet<User>(request);
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(

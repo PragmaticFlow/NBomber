@@ -17,21 +17,16 @@ public class MqttPublishScenario
 
         return Scenario.Create("publish_scenario", async ctx =>
         {
-            var publish = await Step.Run("publish", ctx, async () =>
-            {
-                // We include the current timestamp so that the consumer can calculate the final latency.
-                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            // We include the current timestamp so that the consumer can calculate the final latency.
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-                var msg = new MqttApplicationMessageBuilder()
-                    .WithTopic("/clients/independentActors")
-                    .WithPayload(payload)
-                    .WithUserProperty("timestamp", timestamp.ToString())
-                    .Build();
+            var msg = new MqttApplicationMessageBuilder()
+                .WithTopic("/clients/independentActors")
+                .WithPayload(payload)
+                .WithUserProperty("timestamp", timestamp.ToString())
+                .Build();
 
-                return await mqttClient.Publish(msg);
-            });
-
-            return Response.Ok();
+            return await mqttClient.Publish(msg);
         })
         .WithInit(async ctx =>
         {

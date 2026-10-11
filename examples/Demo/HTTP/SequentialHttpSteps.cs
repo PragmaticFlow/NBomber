@@ -1,3 +1,4 @@
+using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Http;
 using NBomber.Http.CSharp;
@@ -13,7 +14,7 @@ public class SequentialHttpSteps
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
-            var step1 = await Step.Run("step_1", context, async () =>
+            var step1 = await Step.Run("login", context, async () =>
             {
                 var request =
                     Http.CreateRequest("GET", "https://nbomber.com")
@@ -25,7 +26,7 @@ public class SequentialHttpSteps
                 return response;
             });
 
-            var step2 = await Step.Run("step_2", context, async () =>
+            var step2 = await Step.Run("logout", context, async () =>
             {
                 var request =
                     Http.CreateRequest("GET", "https://nbomber.com")
@@ -36,11 +37,13 @@ public class SequentialHttpSteps
 
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
-        .WithLoadSimulations(Simulation.Inject(rate: 5, interval: TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
+        .WithLoadSimulations(Simulation.Inject(rate: 40, interval: TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(2)))
+        .WithThresholds(
+            Threshold.Create(x => x.Ok.Request.RPS >= 70),
+            Threshold.Create(x => x.Ok.Latency.Percent99 <= 100)
+        );
 
         NBomberRunner
             .RegisterScenarios(scenario)

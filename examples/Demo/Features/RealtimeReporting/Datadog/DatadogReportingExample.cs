@@ -28,8 +28,6 @@ public class DatadogReportingExample
                 await Task.Delay(2000);
                 return Response.Ok(sizeBytes: 30, statusCode: "200");
             });
-
-            return Response.Ok(statusCode: "201");
         })
         .WithLoadSimulations(
             Simulation.RampingInject(rate: 200, interval: TimeSpan.FromSeconds(1), during: TimeSpan.FromMinutes(1)), // rump-up to rate 200

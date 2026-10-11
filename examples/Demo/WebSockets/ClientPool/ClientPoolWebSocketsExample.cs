@@ -45,8 +45,6 @@ public class ClientPoolWebSocketsExample
                 // var user = JsonSerializer.Deserialize<T>(response.Data.Span);
                 return Response.Ok(sizeBytes: response.Data.Length);
             });
-
-            return Response.Ok();
         })
         .WithInit(async ctx =>
         {

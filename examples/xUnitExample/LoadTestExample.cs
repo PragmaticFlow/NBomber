@@ -38,8 +38,6 @@ public class LoadTestExample
 
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(Simulation.Inject(rate: 10, interval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10)));

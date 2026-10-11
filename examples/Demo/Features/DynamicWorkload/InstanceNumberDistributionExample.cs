@@ -35,8 +35,6 @@ public class InstanceNumberDistributionExample
                     return Response.Ok();
                 });
             }
-
-            return Response.Ok();
         })
         .WithoutWarmUp()
         .WithLoadSimulations(

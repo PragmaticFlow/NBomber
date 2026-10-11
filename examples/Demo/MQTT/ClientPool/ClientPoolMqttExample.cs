@@ -46,8 +46,6 @@ public class ClientPoolMqttExample
                 var response = await mqttClient.Receive(ctx.ScenarioCancellationToken);
                 return response;
             });
-
-            return Response.Ok();
         })
         .WithInit(async context =>
         {

@@ -42,8 +42,6 @@ public class PingPongWebSocketsTest
                 await websocket.Close();
                 return Response.Ok();
             });
-
-            return Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(3))
         .WithLoadSimulations(
