@@ -1,6 +1,5 @@
 ﻿using NBomber.CSharp;
 using NBomber.Data;
-using NBomber.Data.CSharp;
 
 namespace Demo.Features.DataDemo;
 

@@ -15,7 +15,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="MessagePack" Version="2.5.302" />
-        <PackageReference Include="NBomber.Data" Version="6.1.1"/>
+        <PackageReference Include="NBomber.Data" Version="6.2.0" />
     </ItemGroup>
 
     <ItemGroup>
