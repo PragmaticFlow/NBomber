@@ -84,7 +84,7 @@
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="ConsoleTables" Version="2.4.2" />
-        <PackageReference Include="Serilog.Sinks.SpectreConsole" Version="[0.3.3]" />
+        <PackageReference Include="Serilog.Sinks.Spectre" Version="0.6.0" />
         <PackageReference Update="FSharp.Core" Version="7.0.0" />
         <PackageReference Include="System.Text.Json" Version="9.0.0" />
     </ItemGroup>

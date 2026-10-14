@@ -9,7 +9,7 @@ open System.Runtime.Versioning
 open Microsoft.Extensions.Configuration
 open Serilog
 open Serilog.Events
-open Serilog.Sinks.SpectreConsole
+open Serilog.Sinks.Spectre
 
 open NBomber.Configuration
 open NBomber.Contracts
@@ -135,7 +135,7 @@ module internal Logger =
     let createConsoleLogger () =
         let outputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
         let config = LoggerConfiguration()
-        config.WriteTo.SpectreConsole(outputTemplate, minLevel = LogEventLevel.Information) |> ignore
+        config.WriteTo.Spectre(outputTemplate, restrictedToMinimumLevel = LogEventLevel.Information) |> ignore
         config.CreateLogger() :> ILogger
 
     let create (logSettings: LoggerInitSettings) (context: NBomberContext) =
