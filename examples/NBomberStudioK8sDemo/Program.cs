@@ -8,7 +8,7 @@ var scenario = Scenario.Create("my_scenario", async context =>
 {
     var request = Http.CreateRequest("GET", "https://artifacthub.io/");
 
-    var response = await Http.Send(httpClient, request);
+    var response = await httpClient.SendRequest(request);
 
     return response;
 });

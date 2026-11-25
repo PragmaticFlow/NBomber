@@ -10,7 +10,7 @@ public class Thresholds
     [Fact]
     public void Runtime_Thresholds_Example()
     {
-        using var httpClient = Http.CreateDefaultClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -20,7 +20,7 @@ public class Thresholds
                     Http.CreateRequest("GET", "https://nbomber.com")
                         .WithHeader("Content-Type", "application/json");
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });

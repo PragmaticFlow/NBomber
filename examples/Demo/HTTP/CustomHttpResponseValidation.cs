@@ -46,7 +46,7 @@ public class CustomHttpResponseValidation
                 var request = Http.CreateRequest("POST", "https://reqres.in/api/login")
                     .WithBody(new StringContent("""{ "email": "peter@klaven" }""", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send<LoginResponse>(httpClient, request);
+                var response = await httpClient.SendRequest<LoginResponse>(request);
 
                 if (response.StatusCode == HttpStatusCode.BadRequest.ToString())
                 {
@@ -65,9 +65,9 @@ public class CustomHttpResponseValidation
             {
                 var request = Http.CreateRequest("GET", "https://reqres.in/api/users");
 
-                var response = await Http.Send<UserPage>(httpClient, request);
+                var response = await httpClient.SendRequest<UserPage>(request);
 
-                if (response.StatusCode == HttpStatusCode.OK.ToString())
+                if (response.StatusCode == nameof(HttpStatusCode.OK))
                 {
                     var responseData = response.Payload.Value.Data;
 

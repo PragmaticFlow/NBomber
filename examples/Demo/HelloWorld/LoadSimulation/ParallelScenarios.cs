@@ -25,6 +25,7 @@ public class ParallelScenarios
         })
         .WithoutWarmUp()
         .WithLoadSimulations(
+            Simulation.Pause(TimeSpan.FromMinutes(1)),
             Simulation.RampingConstant(copies: 50, during: TimeSpan.FromSeconds(30)),
             Simulation.KeepConstant(copies: 50, during: TimeSpan.FromSeconds(30))
         );

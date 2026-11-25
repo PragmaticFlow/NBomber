@@ -36,14 +36,14 @@ public class HttpSendJsonExample
                 Http.CreateRequest("GET", "https://nbomber.com")
                     .WithJsonBody(user);
 
-            var response1 = await Http.Send(httpClient, request1);
+            var response1 = await httpClient.SendRequest(request1);
 
             // example of typed Send<T> that deserialize JSON response
             var request2 =
                 Http.CreateRequest("GET", "https://jsonplaceholder.typicode.com/todos/1")
                     .WithHeader("Content-Type", "application/json");
 
-            var response2 = await Http.Send<UserData>(httpClient, request2);
+            var response2 = await httpClient.SendRequest<UserData>(request2);
 
             var userData = response2.Payload.Value.Data;
             var title = userData.Title;

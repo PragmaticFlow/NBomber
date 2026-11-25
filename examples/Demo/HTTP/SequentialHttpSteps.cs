@@ -21,7 +21,7 @@ public class SequentialHttpSteps
                         .WithHeader("Content-Type", "application/json");
                         //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });
@@ -33,7 +33,7 @@ public class SequentialHttpSteps
                         .WithHeader("Content-Type", "application/json");
                       //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });

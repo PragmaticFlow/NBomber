@@ -14,9 +14,7 @@ public class HttpRequestTracing
         {
             var request = Http.CreateRequest("GET", "https://catfact.ninja/fact");
 
-            var clientArgs = HttpClientArgs.Create(logger: context.Logger);
-
-            var response = await Http.Send(httpClient, clientArgs, request);
+            var response = await httpClient.SendRequest(request, logger: context.Logger);
 
             return response;
         })

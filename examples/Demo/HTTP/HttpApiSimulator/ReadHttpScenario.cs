@@ -18,7 +18,7 @@ namespace Demo.HTTP.HttpApiSimulator
                 var randomId = random.Next(settings.RecordsCount);
                 var request = Http.CreateRequest("GET", settings.ServerUrl + $"/api/users/{randomId}");
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
                 return response;
             })
             .WithInit(context =>

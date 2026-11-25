@@ -7,7 +7,7 @@ var scenario = Scenario.Create("my_scenario", async context =>
 {
     var request = Http.CreateRequest("GET", "https://catfact.ninja/facts");
 
-    var response = await Http.Send(httpClient, request);
+    var response = await httpClient.SendRequest(request);
 
     return response;
 });

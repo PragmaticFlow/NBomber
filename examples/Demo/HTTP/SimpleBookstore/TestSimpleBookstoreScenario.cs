@@ -31,7 +31,7 @@ namespace Demo.HTTP.SimpleBookstore
                             .WithHeader("Accept", "application/json")
                             .WithJsonBody(rundomUser);
 
-                        var response = await Http.Send(_httpClient, request);
+                        var response = await _httpClient.SendRequest(request);
 
                         var jwt = ExtractJwt(response.Payload.Value);
                         return Response.Ok(payload: jwt, sizeBytes: response.SizeBytes);
@@ -45,7 +45,7 @@ namespace Demo.HTTP.SimpleBookstore
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
-                        var response = await Http.Send<BookListResponse>(_httpClient, request);
+                        var response = await _httpClient.SendRequest<BookListResponse>(request);
 
                         var booksList = response.Payload.Value.Data;
 
@@ -69,7 +69,7 @@ namespace Demo.HTTP.SimpleBookstore
                             .WithHeader("Authorization", $"Bearer {jwt}")
                             .WithJsonBody(order);
 
-                        var response = await Http.Send(_httpClient, request);
+                        var response = await _httpClient.SendRequest(request);
 
                         return response;
                     });
@@ -80,7 +80,7 @@ namespace Demo.HTTP.SimpleBookstore
                             .WithHeader("Accept", "application/json")
                             .WithHeader("Authorization", $"Bearer {jwt}");
 
-                        var response = await Http.Send(_httpClient, request);
+                        var response = await _httpClient.SendRequest(request);
 
                         return response;
                     });

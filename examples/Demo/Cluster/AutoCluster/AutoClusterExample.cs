@@ -38,7 +38,7 @@ public class AutoClusterExample
                         .WithHeader("Content-Type", "application/json");
                      // .WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(_httpClient, request);
+                var response = await _httpClient.SendRequest(request);
 
                 return response;
             })

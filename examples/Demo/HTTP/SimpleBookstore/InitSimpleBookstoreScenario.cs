@@ -30,7 +30,7 @@ namespace Demo.HTTP.SimpleBookstore
                   var request = Http.CreateRequest("PUT", settings.ServerUrl + "/api/databases")
                     .WithHeader("Accept", "application/json");
 
-                  var response = await Http.Send(_httpClient, request);
+                  var response = await _httpClient.SendRequest(request);
 
                   var faker = new Faker();
 
@@ -55,7 +55,7 @@ namespace Demo.HTTP.SimpleBookstore
                               .WithHeader("Accept", "application/json")
                               .WithJsonBody(user);
 
-                          return Http.Send(_httpClient, request);
+                          return _httpClient.SendRequest(request);
                       });
 
                   var bookInsert = Enumerable
@@ -73,7 +73,7 @@ namespace Demo.HTTP.SimpleBookstore
                                   .WithHeader("Accept", "application/json")
                                   .WithJsonBody(book);
 
-                          return Http.Send(_httpClient, request);
+                          return _httpClient.SendRequest(request);
                       });
 
                   var allTasks = bookInsert.Concat(usersSingup);

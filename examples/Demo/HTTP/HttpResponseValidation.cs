@@ -22,7 +22,7 @@ public class HttpResponseValidation
         {
             var request = Http.CreateRequest("GET", "https://catfact.ninja/fact");
 
-            var response = await Http.Send(httpClient, request);
+            var response = await httpClient.SendRequest(request);
 
             // here, you can do validation of HTTP response
 

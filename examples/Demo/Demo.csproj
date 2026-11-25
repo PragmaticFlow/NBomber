@@ -98,7 +98,7 @@
 
         <PackageReference Include="NBomber.AMQP" Version="0.2.2" />
         <PackageReference Include="NBomber.Data" Version="6.2.0" />
-        <PackageReference Include="NBomber.Http" Version="6.2.1" />
+        <PackageReference Include="NBomber.Http" Version="7.0.0" />
         <PackageReference Include="NBomber.MQTT" Version="0.5.1" />
         <PackageReference Include="NBomber.RestSharp" Version="0.2.1" />
         <PackageReference Include="NBomber.WebBrowser" Version="0.2.2" />
@@ -106,8 +106,8 @@
 
         <PackageReference Include="NBomber.Sinks.Timescale" Version="0.15.1" />
         <PackageReference Include="NBomber.Sinks.InfluxDB" Version="6.2.0" />
-        <PackageReference Include="NBomber.Sinks.Datadog" Version="0.2.0" />
-        <PackageReference Include="NBomber.Sinks.OpenTelemetry" Version="0.3.0" />
+        <PackageReference Include="NBomber.Sinks.Datadog" Version="0.2.1" />
+        <PackageReference Include="NBomber.Sinks.OpenTelemetry" Version="0.3.1" />
 
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
@@ -148,7 +148,6 @@
 
     <ItemGroup>
       <Folder Include="DB\Redis\" />
-      <Folder Include="Scripting\" />
     </ItemGroup>
 
     <ItemGroup>

@@ -34,7 +34,7 @@ namespace Demo.HTTP.HttpApiSimulator
                      .WithHeader("Content-Type", "application/json")
                      .WithBody(new StringContent(data, Encoding.UTF8, "application/json"));
 
-                var response = await Http.Send(_httpClient, request);
+                var response = await _httpClient.SendRequest(request);
                 return response;
             })
             .WithInit(context =>

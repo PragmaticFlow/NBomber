@@ -23,9 +23,7 @@ public class HttpWithTimeoutExample
                     .WithHeader("Content-Type", "application/json");
                   //.WithBody(new StringContent("{ some JSON }", Encoding.UTF8, "application/json"));
 
-            var clientArgs = HttpClientArgs.Create(timeout.Token);
-
-            var response = await Http.Send(httpClient, clientArgs, request);
+            var response = await httpClient.SendRequest(request, cancellationToken: timeout.Token);
 
             return response;
         })

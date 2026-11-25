@@ -11,7 +11,7 @@ public class LoadTestExample
     [Fact]
     public void SimpleHttpExample()
     {
-        using var httpClient = Http.CreateDefaultClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -22,7 +22,7 @@ public class LoadTestExample
                         .WithHeader("Content-Type", "application/json")
                         .WithBody(new StringContent("{ some JSON }"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });
@@ -34,7 +34,7 @@ public class LoadTestExample
                         .WithHeader("Content-Type", "application/json")
                         .WithBody(new StringContent("{ some JSON }"));
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });

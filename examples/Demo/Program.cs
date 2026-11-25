@@ -106,7 +106,6 @@ new HelloWorldExample().Run();
 // new SequentialHttpSteps().Run();
 // new HttpResponseValidation().Run();
 // new HttpSendJsonExample().Run();
-// new HttpClientArgsExample().Run();
 // new HttpApiSimulatorExample().Run();
 // new ExampleSimpleBookstore().Run();
 // new HttpRequestTracing().Run();

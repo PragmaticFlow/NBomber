@@ -11,7 +11,7 @@ public class ThresholdsExample
         // more info about Runtime Thresholds can be found by the following link
         // https://nbomber.com/docs/nbomber/asserts_and_thresholds#runtime-thresholds
 
-        using var httpClient = Http.CreateDefaultClient();
+        var httpClient = Http.CreateDefaultClient();
 
         var scenario = Scenario.Create("http_scenario", async context =>
         {
@@ -21,7 +21,7 @@ public class ThresholdsExample
                     Http.CreateRequest("GET", "https://nbomber.com")
                         .WithHeader("Content-Type", "application/json");
 
-                var response = await Http.Send(httpClient, request);
+                var response = await httpClient.SendRequest(request);
 
                 return response;
             });

@@ -13,36 +13,38 @@ namespace Demo.HTTP
 
             var scenario = Scenario.Create("cookies_management_scenario", async context =>
             {
-                HttpClient myClient = null;
-                context.ScenarioInstanceData.TryGetValue("my_http_client", out var httpClient);
-
-                if (httpClient is null)
+                // Each scenario copy (virtual user) creates its own HttpClient once and keeps it in ScenarioInstanceData.
+                // Store it right after it's created: if the login step fails, NBomber ends the iteration,
+                // and a client that isn't stored yet would be lost and created again on the next iteration.
+                if (!context.ScenarioInstanceData.TryGetValue("http_client", out var client))
                 {
-                    myClient = Http.CreateDefaultClient();
+                    client = Http.CreateDefaultClient();
+                    context.ScenarioInstanceData["http_client"] = client;
+                }
+                var httpClient = (HttpClient)client;
 
-                    var login = await Step.Run("login", context, async () =>
+                // The login state has its own key, so a failed login is repeated on the next iteration with the same client.
+                if (!context.ScenarioInstanceData.ContainsKey("logged_in"))
+                {
+                    await Step.Run("login", context, async () =>
                     {
                         // WebAppSimulator address
                         var request = Http.CreateRequest("POST", "https://localhost:65385/api/CookiesAuthentication")
-                            .WithJsonBody(new StringContent("""{"login": "morpheus","password": "leader"}"""));
+                            .WithJsonBody(new { Login = "morpheus", Password = "leader" });
 
-                        var response = await Http.Send(myClient, request);
-
-                        return response;
+                        // the session cookies are stored in this HttpClient
+                        return await httpClient.SendRequest(request);
                     });
 
-                    context.ScenarioInstanceData["my_http_client"] = myClient;
+                    context.ScenarioInstanceData["logged_in"] = true;
                 }
-                else
-                    myClient = (HttpClient)httpClient;
 
-                var getData = await Step.Run("get_data", context, async () =>
+                await Step.Run("get_data", context, async () =>
                 {
                     var request = Http.CreateRequest("GET", "https://localhost:65385/api/CookiesAuthentication");
 
-                    var response = await Http.Send(myClient, request);
-
-                    return response;
+                    // sends the cookies of this user session only
+                    return await httpClient.SendRequest(request);
                 });
             })
             .WithWarmUpDuration(TimeSpan.FromSeconds(3))
